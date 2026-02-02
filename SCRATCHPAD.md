@@ -8,7 +8,7 @@
 
 _What's the main thing being worked on right now?_
 
-- Setting up Claude Code workflow and slash commands
+- Building out provider discovery features (cards, detail pages)
 
 ---
 
@@ -16,7 +16,10 @@ _What's the main thing being worked on right now?_
 
 _Active work items and their current state._
 
-- [ ] Initial project setup
+- [x] Initial project setup
+- [x] Provider cards on homepage
+- [x] Provider detail page
+- [ ] Browse page with filtering
 
 ---
 
@@ -32,8 +35,9 @@ _None currently._
 
 _What should be tackled next, in priority order._
 
-1. Create initial web app structure
-2. Set up development environment
+1. Browse page with provider cards and filters
+2. User authentication (login/signup)
+3. Consultation request flow
 
 ---
 
@@ -57,6 +61,13 @@ _Useful context, patterns noticed, things to remember._
 ---
 
 ## Session Log
+
+### 2026-02-02
+
+- Added "Top providers near you" section to homepage with 4 provider cards
+- Created `ProviderCard` component (`components/providers/ProviderCard.tsx`)
+- Created provider detail page (`app/provider/[slug]/page.tsx`) with hero, about, amenities, and contact card
+- Using dummy data for providers (will connect to Supabase later)
 
 ### 2026-01-30
 

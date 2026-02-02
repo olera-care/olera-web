@@ -3,6 +3,55 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import ProviderCard, { Provider } from "@/components/providers/ProviderCard";
+
+// Dummy provider data
+const topProviders: Provider[] = [
+  {
+    id: "1",
+    slug: "sunrise-senior-living",
+    name: "Sunrise Senior Living",
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800",
+    address: "1234 Oak Street, Austin, TX 78701",
+    rating: 4.8,
+    priceRange: "$3,500-5,000 / mo",
+    careTypes: ["Assisted Living", "Memory Care", "Respite Care"],
+    verified: true,
+  },
+  {
+    id: "2",
+    slug: "harmony-care-home",
+    name: "Harmony Care Home",
+    image: "https://images.unsplash.com/photo-1586105251261-72a756497a11?w=800",
+    address: "5678 Maple Avenue, Austin, TX 78702",
+    rating: 4.6,
+    priceRange: "$4,200-6,500 / mo",
+    careTypes: ["Memory Care", "Hospice", "Skilled Nursing"],
+    verified: true,
+  },
+  {
+    id: "3",
+    slug: "golden-years-residence",
+    name: "Golden Years Residence",
+    image: "https://images.unsplash.com/photo-1559526324-593bc073d938?w=800",
+    address: "910 Pine Road, Austin, TX 78703",
+    rating: 4.5,
+    priceRange: "$2,800-4,200 / mo",
+    careTypes: ["Independent Living", "Assisted Living"],
+    verified: true,
+  },
+  {
+    id: "4",
+    slug: "caring-hearts-home-care",
+    name: "Caring Hearts Home Care",
+    image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800",
+    address: "Serving Greater Austin Area",
+    rating: 4.9,
+    priceRange: "$25-45 / hr",
+    careTypes: ["Home Care", "Respite Care", "Companion Care"],
+    verified: true,
+  },
+];
 
 // Care type options for the quick filters
 const careTypes = [
@@ -169,6 +218,47 @@ export default function HomePage() {
                 <span>Verified providers</span>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Top Providers Section */}
+      <section className="py-16 md:py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Top providers near you
+            </h2>
+            <div className="flex gap-2">
+              <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:border-gray-300 hover:text-gray-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button className="w-10 h-10 rounded-full border border-primary-600 flex items-center justify-center text-primary-600 hover:bg-primary-50 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {topProviders.map((provider) => (
+              <ProviderCard key={provider.id} provider={provider} />
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <Link
+              href="/browse"
+              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium"
+            >
+              View all providers
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
         </div>
       </section>

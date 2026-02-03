@@ -239,30 +239,10 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
             </div>
           </div>
         )}
-        {/* Favorite Button */}
-        <button
-          className="absolute top-3 right-3 w-11 h-11 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors focus-ring"
-          aria-label={`Save ${provider.name}`}
-        >
-          <svg
-            className="w-5 h-5 text-gray-400 hover:text-primary-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
-        </button>
       </div>
 
-      {/* Content - 256px to match image height */}
-      <div className="pt-5 px-5 pb-5 flex flex-col h-64">
+      {/* Content */}
+      <div className="pt-5 px-5 pb-5 flex flex-col flex-1">
         {/* Stack 1: Category, Provider Name & Location */}
         <div>
           <p className="text-primary-600 text-sm font-semibold tracking-wide uppercase">
@@ -295,7 +275,7 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
         </div>
 
         {/* Stack 2: Price & Rating */}
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex items-center justify-between mt-auto pt-4">
           {/* Price with "From" prefix */}
           <p className="text-lg">
             <span className="text-gray-500 font-normal">From </span>
@@ -305,7 +285,7 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
           {/* Rating with review count */}
           <div className="flex items-center gap-1.5 text-gray-900">
             <svg
-              className="w-6 h-6 text-primary-500"
+              className="w-5 h-5 text-primary-500"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -317,20 +297,6 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
             )}
           </div>
         </div>
-
-        {/* Address */}
-        <p className="text-gray-500 text-base mt-1">{provider.address}</p>
-
-        {/* Price */}
-        <div className="mt-3">
-          <p className="text-gray-500 text-sm">Estimated Pricing</p>
-          <p className="text-gray-900 font-semibold">{provider.priceRange}</p>
-        </div>
-
-        {/* CTA Button */}
-        <span className="mt-4 w-full btn-primary text-base block text-center">
-          View provider
-        </span>
       </div>
     </Link>
   );

@@ -8,7 +8,7 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
 import { setDeferredAction } from "@/lib/deferred-action";
 
@@ -49,11 +49,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  const supabase = createClient();
+  const configured = isSupabaseConfigured();
 
   // Fetch account, active profile, and membership for the current user
   const fetchAccountData = useCallback(
     async (userId: string) => {
+      if (!configured) return { account: null, activeProfile: null, membership: null };
+
+      const supabase = createClient();
+
       // Get account
       const { data: account } = await supabase
         .from("accounts")
@@ -83,11 +87,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       return { account, activeProfile, membership };
     },
-    [supabase]
+    [configured]
   );
 
   // Initialize: check current session
   useEffect(() => {
+    if (!configured) {
+      setState((prev) => ({ ...prev, isLoading: false }));
+      return;
+    }
+
+    const supabase = createClient();
+
     const init = async () => {
       const {
         data: { session },
@@ -140,7 +151,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase, fetchAccountData]);
+  }, [configured, fetchAccountData]);
 
   const openAuthModal = useCallback(
     (deferred?: Omit<DeferredAction, "createdAt">) => {
@@ -157,7 +168,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (configured) {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    }
     setState({
       user: null,
       account: null,
@@ -165,7 +179,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       membership: null,
       isLoading: false,
     });
-  }, [supabase]);
+  }, [configured]);
 
   const refreshAccountData = useCallback(async () => {
     if (!state.user) return;

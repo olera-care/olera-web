@@ -63,9 +63,9 @@ export default function Navbar() {
             <span className="text-xl font-bold text-gray-900">Olera</span>
           </Link>
 
-          {/* Desktop Navigation — care categories for families and unauthenticated users */}
+          {/* Desktop Navigation — care categories for unauthenticated users only */}
           <div className="hidden lg:flex items-center space-x-4">
-            {(!isAuthenticated || isFamily) &&
+            {!isAuthenticated &&
               NAV_CATEGORIES.map((cat) => (
                 <NavDropdown key={cat.label} category={cat} />
               ))}
@@ -245,8 +245,8 @@ export default function Navbar() {
         {isMobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-gray-100">
             <div className="flex flex-col space-y-1">
-              {/* Care category accordions — for families and unauthenticated */}
-              {(!isAuthenticated || isFamily) &&
+              {/* Care category accordions — for unauthenticated users only */}
+              {!isAuthenticated &&
                 NAV_CATEGORIES.map((cat) => (
                   <MobileNavAccordion
                     key={cat.label}

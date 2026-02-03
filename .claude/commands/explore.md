@@ -6,6 +6,36 @@ Feature or area to explore: $ARGUMENTS
 
 Before planning or writing ANY code, deeply understand the existing codebase.
 
+### Step 0: Identify Team Member & Fetch Task
+
+**STOP and ask the user:**
+
+> **Who is working today?**
+> - TJ
+> - Logan
+> - Esther
+
+After identifying the team member, fetch their next task using the **Notion MCP tools**:
+
+1. **Use the Notion MCP** to query the **Web App** roadmap database:
+   - **IMPORTANT: Use EXACTLY this data_source_id**: `2f75903a-0ffe-8166-9d6f-000b1b51cb11`
+   - This is the "Web App Action Items/Roadmap" - NOT the iOS roadmap
+   - Use the `query-data-source` MCP tool with this exact ID
+   - Filter for: Status = "To Do" AND Assignee contains the team member's name
+   - Sort by Priority (P1 first, then P2, P3, P4, P5)
+   - DO NOT search for databases - use the ID provided above directly
+   - DO NOT use WebFetch - use the Notion MCP tools directly
+
+2. **If MCP tools aren't available**, ask the user to share the task details manually
+
+3. **Present the task**: Share the highest priority "To Do" task with the user and confirm this is what they want to explore
+
+**Priority labels**: P1 🔥 (highest) > P2 > P3 > P4 > P5 (lowest)
+
+If no feature was provided via $ARGUMENTS, use the fetched Notion task as the exploration target.
+
+---
+
 ### Step 1: Ask Clarifying Questions
 
 **STOP and ask the user these questions before proceeding:**

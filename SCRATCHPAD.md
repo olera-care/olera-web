@@ -62,6 +62,14 @@ _Useful context, patterns noticed, things to remember._
 
 ## Session Log
 
+### 2026-02-03
+
+- Set up Notion MCP integration for Claude Code (user-scoped)
+- Updated `/explore` command to fetch tasks from "Web App Action Items/Roadmap" Notion database
+- Added Step 0: Identify team member (TJ, Logan, Esther) and auto-fetch their highest priority "To Do" task
+- Correct data_source_id: `2f75903a-0ffe-8166-9d6f-000b1b51cb11`
+- Files modified: `.claude/commands/explore.md`
+
 ### 2026-02-02
 
 - Added "Top providers near you" section to homepage with 4 provider cards

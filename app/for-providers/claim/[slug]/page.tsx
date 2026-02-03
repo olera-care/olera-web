@@ -120,7 +120,7 @@ export default function ClaimProfilePage() {
         action: "claim",
         targetProfileId: profile?.id,
         returnUrl: `/for-providers/claim/${slug}`,
-      });
+      }, "sign-up");
       return;
     }
 
@@ -255,7 +255,7 @@ export default function ClaimProfilePage() {
         )}
 
         <Button size="lg" fullWidth loading={claiming} onClick={handleClaim}>
-          {user ? "Claim This Profile" : "Sign In to Claim"}
+          {user ? "Claim This Profile" : "Create Account to Claim"}
         </Button>
 
         {!user && (

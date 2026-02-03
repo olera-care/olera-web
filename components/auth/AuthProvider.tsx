@@ -12,13 +12,17 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
 import { setDeferredAction } from "@/lib/deferred-action";
 
+export type AuthModalView = "sign-in" | "sign-up";
+
 interface AuthContextValue extends AuthState {
   /** Open the auth modal. Optionally store a deferred action to execute after auth. */
-  openAuthModal: (deferred?: Omit<DeferredAction, "createdAt">) => void;
+  openAuthModal: (deferred?: Omit<DeferredAction, "createdAt">, view?: AuthModalView) => void;
   /** Close the auth modal. */
   closeAuthModal: () => void;
   /** Whether the auth modal is currently open. */
   isAuthModalOpen: boolean;
+  /** The initial view the modal should show when opened. */
+  authModalDefaultView: AuthModalView;
   /** Sign out the current user. */
   signOut: () => Promise<void>;
   /** Refresh account/profile/membership data from the database. */
@@ -48,6 +52,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     isLoading: true,
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalDefaultView, setAuthModalDefaultView] = useState<AuthModalView>("sign-up");
 
   const configured = isSupabaseConfigured();
 
@@ -154,10 +159,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, [configured, fetchAccountData]);
 
   const openAuthModal = useCallback(
-    (deferred?: Omit<DeferredAction, "createdAt">) => {
+    (deferred?: Omit<DeferredAction, "createdAt">, view?: AuthModalView) => {
       if (deferred) {
         setDeferredAction(deferred);
       }
+      setAuthModalDefaultView(view || "sign-up");
       setIsAuthModalOpen(true);
     },
     []
@@ -196,6 +202,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         openAuthModal,
         closeAuthModal,
         isAuthModalOpen,
+        authModalDefaultView,
         signOut,
         refreshAccountData,
       }}

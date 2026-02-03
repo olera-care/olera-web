@@ -136,14 +136,14 @@ export default function Navbar() {
               <>
                 <button
                   type="button"
-                  onClick={() => openAuthModal()}
+                  onClick={() => openAuthModal(undefined, "sign-in")}
                   className="text-gray-600 hover:text-primary-600 font-medium transition-colors focus:outline-none focus:underline"
                 >
                   Log In
                 </button>
                 <button
                   type="button"
-                  onClick={() => openAuthModal()}
+                  onClick={() => openAuthModal(undefined, "sign-up")}
                   className="btn-primary text-base"
                 >
                   Get Started
@@ -242,7 +242,7 @@ export default function Navbar() {
                     type="button"
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      openAuthModal();
+                      openAuthModal(undefined, "sign-in");
                     }}
                     className="text-left text-gray-600 hover:text-primary-600 font-medium"
                   >
@@ -252,7 +252,7 @@ export default function Navbar() {
                     type="button"
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      openAuthModal();
+                      openAuthModal(undefined, "sign-up");
                     }}
                     className="btn-primary text-center"
                   >

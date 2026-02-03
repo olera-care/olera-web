@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { getDeferredAction } from "@/lib/deferred-action";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -12,8 +12,8 @@ import Button from "@/components/ui/Button";
 type AuthView = "sign-in" | "sign-up" | "check-email";
 
 export default function AuthModal() {
-  const { isAuthModalOpen, closeAuthModal, account } = useAuth();
-  const [view, setView] = useState<AuthView>("sign-in");
+  const { isAuthModalOpen, closeAuthModal, authModalDefaultView, account } = useAuth();
+  const [view, setView] = useState<AuthView>("sign-up");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -21,13 +21,19 @@ export default function AuthModal() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Sync view with the requested default when modal opens
+  useEffect(() => {
+    if (isAuthModalOpen) {
+      setView(authModalDefaultView);
+    }
+  }, [isAuthModalOpen, authModalDefaultView]);
+
   const resetForm = () => {
     setEmail("");
     setPassword("");
     setDisplayName("");
     setError("");
     setLoading(false);
-    setView("sign-in");
   };
 
   const handleClose = () => {
@@ -65,12 +71,11 @@ export default function AuthModal() {
       setLoading(false);
       handleClose();
 
-      // Check for deferred action with a returnUrl (e.g., claim flow)
+      // Check for deferred action with a returnUrl (e.g., claim or create flow)
+      // Don't clear — let the target page consume and clear the deferred action
       const deferred = getDeferredAction();
       if (deferred?.returnUrl) {
-        const returnUrl = deferred.returnUrl;
-        clearDeferredAction();
-        router.push(returnUrl);
+        router.push(deferred.returnUrl);
       } else {
         // If onboarding not completed, redirect
         setTimeout(() => {
@@ -144,12 +149,11 @@ export default function AuthModal() {
       setLoading(false);
       handleClose();
 
-      // Check for deferred action with a returnUrl (e.g., claim flow)
+      // Check for deferred action with a returnUrl (e.g., claim or create flow)
+      // Don't clear — let the target page consume and clear the deferred action
       const deferred = getDeferredAction();
       if (deferred?.returnUrl) {
-        const returnUrl = deferred.returnUrl;
-        clearDeferredAction();
-        router.push(returnUrl);
+        router.push(deferred.returnUrl);
       } else {
         router.push("/onboarding");
       }

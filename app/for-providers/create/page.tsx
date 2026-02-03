@@ -215,7 +215,7 @@ export default function CreateProfilePage() {
       openAuthModal({
         action: "create_profile",
         returnUrl: "/for-providers/create",
-      });
+      }, "sign-up");
       return;
     }
 
@@ -425,7 +425,7 @@ export default function CreateProfilePage() {
         />
 
         <Button type="submit" size="lg" fullWidth loading={submitting}>
-          {user ? "Create Profile" : "Sign In to Create Profile"}
+          {user ? "Create Profile" : "Create Account & Profile"}
         </Button>
       </form>
     </div>

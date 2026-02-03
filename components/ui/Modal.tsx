@@ -37,24 +37,34 @@ export default function Modal({
     [onClose]
   );
 
-  // Trap focus inside modal
+  // Keyboard listener — re-attaches when handler identity changes
   useEffect(() => {
     if (!isOpen) return;
 
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
 
-    // Focus the first focusable element
-    const firstFocusable = contentRef.current?.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    firstFocusable?.focus();
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
   }, [isOpen, handleKeyDown]);
+
+  // Auto-focus first focusable element — only on initial open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Small delay so the DOM has settled after render
+    const timer = setTimeout(() => {
+      const firstFocusable = contentRef.current?.querySelector<HTMLElement>(
+        'input, select, textarea, button[type="submit"]'
+      );
+      firstFocusable?.focus();
+    }, 50);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -64,14 +65,20 @@ export default function AuthModal() {
       setLoading(false);
       handleClose();
 
-      // If onboarding not completed, redirect
-      // Account data will be refreshed by AuthProvider's onAuthStateChange
-      // We check after a short delay to let the state update
-      setTimeout(() => {
-        if (account && !account.onboarding_completed) {
-          router.push("/onboarding");
-        }
-      }, 100);
+      // Check for deferred action with a returnUrl (e.g., claim flow)
+      const deferred = getDeferredAction();
+      if (deferred?.returnUrl) {
+        const returnUrl = deferred.returnUrl;
+        clearDeferredAction();
+        router.push(returnUrl);
+      } else {
+        // If onboarding not completed, redirect
+        setTimeout(() => {
+          if (account && !account.onboarding_completed) {
+            router.push("/onboarding");
+          }
+        }, 100);
+      }
     } catch (err) {
       console.error("Sign in error:", err);
       setError("Something went wrong. Please try again.");
@@ -136,7 +143,16 @@ export default function AuthModal() {
       // No email confirmation — user is signed in immediately
       setLoading(false);
       handleClose();
-      router.push("/onboarding");
+
+      // Check for deferred action with a returnUrl (e.g., claim flow)
+      const deferred = getDeferredAction();
+      if (deferred?.returnUrl) {
+        const returnUrl = deferred.returnUrl;
+        clearDeferredAction();
+        router.push(returnUrl);
+      } else {
+        router.push("/onboarding");
+      }
     } catch (err) {
       console.error("Sign up error:", err);
       setError("Something went wrong. Please try again.");

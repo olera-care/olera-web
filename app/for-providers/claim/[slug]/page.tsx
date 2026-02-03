@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import type { Profile, OrganizationMetadata } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -18,6 +19,7 @@ export default function ClaimProfilePage() {
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState("");
+  const autoClaimTriggered = useRef(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !slug) return;
@@ -43,17 +45,8 @@ export default function ClaimProfilePage() {
     fetchProfile();
   }, [slug]);
 
-  const handleClaim = async () => {
-    if (!user) {
-      openAuthModal({
-        action: "claim",
-        targetProfileId: profile?.id,
-        returnUrl: `/for-providers/claim/${slug}`,
-      });
-      return;
-    }
-
-    if (!profile || !account) return;
+  const executeClaim = useCallback(async (claimProfile: Profile, claimAccount: typeof account) => {
+    if (!claimAccount) return;
 
     setClaiming(true);
     setError("");
@@ -65,11 +58,11 @@ export default function ClaimProfilePage() {
       const { error: claimError } = await supabase
         .from("profiles")
         .update({
-          account_id: account.id,
+          account_id: claimAccount.id,
           claim_state: "claimed",
           source: "user_created",
         })
-        .eq("id", profile.id)
+        .eq("id", claimProfile.id)
         .eq("claim_state", "unclaimed");
 
       if (claimError) {
@@ -80,10 +73,10 @@ export default function ClaimProfilePage() {
       const { error: accountError } = await supabase
         .from("accounts")
         .update({
-          active_profile_id: profile.id,
+          active_profile_id: claimProfile.id,
           onboarding_completed: true,
         })
-        .eq("id", account.id);
+        .eq("id", claimAccount.id);
 
       if (accountError) {
         throw new Error(accountError.message);
@@ -93,7 +86,7 @@ export default function ClaimProfilePage() {
       const { data: existingMembership } = await supabase
         .from("memberships")
         .select("id")
-        .eq("account_id", account.id)
+        .eq("account_id", claimAccount.id)
         .single();
 
       if (!existingMembership) {
@@ -101,7 +94,7 @@ export default function ClaimProfilePage() {
         trialEnd.setDate(trialEnd.getDate() + 30);
 
         await supabase.from("memberships").insert({
-          account_id: account.id,
+          account_id: claimAccount.id,
           plan: "pro",
           status: "trialing",
           trial_ends_at: trialEnd.toISOString(),
@@ -119,7 +112,36 @@ export default function ClaimProfilePage() {
       setError(`Failed to claim profile: ${message}`);
       setClaiming(false);
     }
+  }, [refreshAccountData, router]);
+
+  const handleClaim = () => {
+    if (!user) {
+      openAuthModal({
+        action: "claim",
+        targetProfileId: profile?.id,
+        returnUrl: `/for-providers/claim/${slug}`,
+      });
+      return;
+    }
+
+    if (profile && account) {
+      executeClaim(profile, account);
+    }
   };
+
+  // Auto-claim: if user returns from auth with a deferred claim action,
+  // trigger the claim automatically instead of making them click again
+  useEffect(() => {
+    if (autoClaimTriggered.current) return;
+    if (!user || !account || !profile || loading) return;
+
+    const deferred = getDeferredAction();
+    if (deferred?.action === "claim" && deferred?.targetProfileId === profile.id) {
+      autoClaimTriggered.current = true;
+      clearDeferredAction();
+      executeClaim(profile, account);
+    }
+  }, [user, account, profile, loading, executeClaim]);
 
   if (loading) {
     return (

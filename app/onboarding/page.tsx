@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { ProfileType, ProfileCategory, Profile } from "@/lib/types";
+import Button from "@/components/ui/Button";
 import IntentStep from "@/components/onboarding/IntentStep";
 import ProfileInfoStep from "@/components/onboarding/ProfileInfoStep";
 import OrgClaimStep from "@/components/onboarding/OrgClaimStep";
@@ -72,23 +73,83 @@ function clearFormStorage() {
   sessionStorage.removeItem(FORM_STORAGE_KEY);
 }
 
+const VALID_INTENTS: ProfileType[] = ["organization", "caregiver", "family"];
+
 export default function OnboardingPage() {
-  const { user, account, activeProfile, refreshAccountData } = useAuth();
+  const { user, account, activeProfile, isLoading, openAuthModal, refreshAccountData } = useAuth();
   const isAddingProfile = !!activeProfile;
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>("intent");
   const [data, setData] = useState<OnboardingData>(INITIAL_DATA);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Restore form data from sessionStorage on mount (survives auth redirects)
+  // Restore form state: sessionStorage first (mid-flow), then URL params (fresh entry)
   useEffect(() => {
     const saved = loadFormFromStorage();
     if (saved) {
       setData(saved.data);
       setStep(saved.step);
+      return;
     }
+
+    // Check URL params for pre-population (e.g., from /for-providers/claim/[slug])
+    const intentParam = searchParams.get("intent") as ProfileType | null;
+    const claimParam = searchParams.get("claim");
+
+    if (intentParam && VALID_INTENTS.includes(intentParam)) {
+      if (claimParam) {
+        // Pre-fill from seeded profile and skip intent step
+        fetchAndPreFill(intentParam, claimParam);
+      } else {
+        // Skip intent step with the given intent
+        const next = { ...INITIAL_DATA, intent: intentParam };
+        setData(next);
+        setStep("profile-info");
+        saveFormToStorage(next, "profile-info");
+      }
+    } else if (claimParam) {
+      // claim param without intent — default to organization
+      fetchAndPreFill("organization", claimParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fetch seeded profile for claim pre-fill
+  const fetchAndPreFill = async (intent: ProfileType, profileId: string) => {
+    let profile: Profile | null = null;
+    try {
+      if (isSupabaseConfigured()) {
+        const supabase = createClient();
+        const { data: fetched } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", profileId)
+          .single<Profile>();
+        profile = fetched;
+      }
+    } catch {
+      // Supabase not configured — proceed with empty data
+    }
+
+    const next: OnboardingData = {
+      ...INITIAL_DATA,
+      intent,
+      claimedProfileId: profileId,
+      displayName: profile?.display_name || "",
+      category: profile?.category || null,
+      city: profile?.city || "",
+      state: profile?.state || "",
+      zip: profile?.zip || "",
+      careTypes: profile?.care_types ?? [],
+      description: profile?.description || "",
+      phone: profile?.phone || "",
+    };
+    setData(next);
+    setStep("profile-info");
+    saveFormToStorage(next, "profile-info");
+  };
 
   const updateData = (partial: Partial<OnboardingData>) => {
     setData((prev) => {
@@ -106,6 +167,7 @@ export default function OnboardingPage() {
   };
 
   const handleProfileInfoComplete = () => {
+    // If claiming a pre-selected profile (from URL param), skip org-claim step
     if (data.intent === "organization" && !data.claimedProfileId) {
       setStep("org-claim");
       saveFormToStorage(data, "org-claim");
@@ -130,15 +192,24 @@ export default function OnboardingPage() {
 
       if (profileId) {
         // Claiming an existing seeded profile.
+        // Fetch the seeded profile if not provided (e.g., claim came from URL param)
+        let s = seededProfile ?? null;
+        if (!s) {
+          const { data: fetched } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", profileId)
+            .single<Profile>();
+          s = fetched;
+        }
+
         // Only overwrite fields that are empty/missing in the seeded profile
         // to preserve richer seeded data (e.g., care_types, description).
-        const s = seededProfile;
         const update: Record<string, unknown> = {
           account_id: account.id,
           claim_state: "claimed" as const,
         };
 
-        // Fill in fields only if the seeded profile doesn't already have them
         if (!s?.display_name?.trim() && data.displayName) {
           update.display_name = data.displayName;
         }
@@ -172,11 +243,9 @@ export default function OnboardingPage() {
         const accountUpdate: Record<string, unknown> = {
           onboarding_completed: true,
         };
-        // Only set display_name on account if it's not already set
         if (!account.display_name) {
           accountUpdate.display_name = data.displayName;
         }
-        // Only set active_profile_id if user doesn't already have one
         if (!isAddingProfile) {
           accountUpdate.active_profile_id = profileId;
         }
@@ -188,7 +257,7 @@ export default function OnboardingPage() {
 
         if (accountError) throw accountError;
 
-        // Create membership for providers — only if none exists yet
+        // Create membership for providers
         if (data.intent !== "family") {
           await supabase.from("memberships").upsert(
             {
@@ -232,11 +301,9 @@ export default function OnboardingPage() {
         const newAccountUpdate: Record<string, unknown> = {
           onboarding_completed: true,
         };
-        // Only set display_name on account if it's not already set
         if (!account.display_name) {
           newAccountUpdate.display_name = data.displayName;
         }
-        // Only set active_profile_id if user doesn't already have one
         if (!isAddingProfile) {
           newAccountUpdate.active_profile_id = newProfile.id;
         }
@@ -248,7 +315,7 @@ export default function OnboardingPage() {
 
         if (accountError) throw accountError;
 
-        // Create membership for providers — only if none exists yet
+        // Create membership for providers
         if (data.intent !== "family") {
           await supabase.from("memberships").upsert(
             {
@@ -282,9 +349,53 @@ export default function OnboardingPage() {
     }
   };
 
+  // --- Auth gate ---
+  // /onboarding is no longer middleware-protected so it can receive redirects
+  // from /for-providers flows. Show a sign-in prompt for unauthenticated users.
+  if (!isLoading && !user) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Create your profile
+          </h1>
+          <p className="text-lg text-gray-600 mb-6">
+            Sign in or create an account to get started on Olera.
+          </p>
+          <Button
+            size="lg"
+            onClick={() => openAuthModal(undefined, "sign-up")}
+          >
+            Get started
+          </Button>
+          <p className="mt-4 text-base text-gray-500">
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={() => openAuthModal(undefined, "sign-in")}
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Sign in
+            </button>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <div className="text-lg text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  // When claiming a pre-selected profile, org-claim step is skipped
+  const showOrgClaimStep = data.intent === "organization" && !data.claimedProfileId;
+  const totalSteps = showOrgClaimStep ? 3 : 2;
   const stepNumber =
     step === "intent" ? 1 : step === "profile-info" ? 2 : 3;
-  const totalSteps = data.intent === "organization" ? 3 : 2;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-12 px-4">
@@ -363,7 +474,6 @@ function generateSlug(name: string, city: string, state: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-  // Append short random suffix for collision resistance
   const suffix = Math.random().toString(36).substring(2, 6);
   return `${slug}-${suffix}`;
 }
@@ -375,6 +485,5 @@ function buildMetadata(data: OnboardingData): Record<string, unknown> {
       relationship_to_recipient: data.relationshipToRecipient || undefined,
     };
   }
-  // Organization and caregiver start with empty metadata
   return {};
 }

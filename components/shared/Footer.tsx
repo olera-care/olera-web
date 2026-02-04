@@ -72,7 +72,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/for-providers/create"
+                  href="/for-providers/claim"
                   className="text-gray-500 hover:text-primary-600 transition-colors text-[15px]"
                 >
                   Claim Your Listing

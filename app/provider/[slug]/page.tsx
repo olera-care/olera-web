@@ -179,7 +179,9 @@ export default async function ProviderPage({
     priceRange,
   });
 
-  const similarProviders = getSimilarProviders(profile.category, profile.slug, 3);
+  const similarProviders = isMockDataEnabled()
+    ? getSimilarProviders(profile.category, profile.slug, 3)
+    : [];
 
   const details: { label: string; value: string; icon: string }[] = [];
   if (meta?.year_founded) details.push({ label: "Year Founded", value: String(meta.year_founded), icon: "calendar" });
@@ -187,6 +189,9 @@ export default async function ProviderPage({
   if (meta?.years_experience) details.push({ label: "Experience", value: `${meta.years_experience} years`, icon: "award" });
   if (meta?.accepts_medicaid !== undefined) details.push({ label: "Medicaid", value: meta.accepts_medicaid ? "Accepted" : "Not accepted", icon: "shield" });
   if (meta?.accepts_medicare !== undefined) details.push({ label: "Medicare", value: meta.accepts_medicare ? "Accepted" : "Not accepted", icon: "shield" });
+  if (meta?.staff_count) details.push({ label: "Staff", value: `${meta.staff_count} members`, icon: "users" });
+  if (meta?.availability) details.push({ label: "Availability", value: meta.availability, icon: "calendar" });
+  if (meta?.languages && meta.languages.length > 0) details.push({ label: "Languages", value: meta.languages.join(", "), icon: "users" });
 
   // ============================================================
   // Render
@@ -382,6 +387,24 @@ export default async function ProviderPage({
               </div>
             )}
 
+            {/* Certifications (caregivers) */}
+            {meta?.certifications && meta.certifications.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2.5">Certifications</h2>
+                <div className="flex flex-wrap gap-2">
+                  {meta.certifications.map((cert) => (
+                    <span
+                      key={cert}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary-50 text-secondary-700 text-sm font-medium border border-secondary-100"
+                    >
+                      <CheckIcon className="w-3.5 h-3.5" />
+                      {cert}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Amenities & Highlights */}
             {amenities.length > 0 && (
               <div>
@@ -426,7 +449,7 @@ export default async function ProviderPage({
 
           {/* Right Column — Sticky Sidebar */}
           <div className="lg:col-span-1 self-stretch">
-            <div className="sticky top-24 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[646px]">
+            <div className="sticky top-24 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
               {/* Accent bar */}
               <div className="h-1 bg-gradient-to-r from-primary-500 to-primary-600" />
 

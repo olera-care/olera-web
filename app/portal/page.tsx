@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT } from "@/lib/membership";
+import { getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable } from "@/lib/membership";
 import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -91,30 +91,29 @@ export default function PortalDashboard() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <StatCard
-          label="Profile views"
-          value="—"
-          description="Coming soon"
-        />
+        <Link href="/portal/profile" className="block">
+          <StatCard
+            label="Profile status"
+            value={isProfileShareable(activeProfile) ? "Complete" : "Incomplete"}
+            description={
+              isProfileShareable(activeProfile)
+                ? "Your profile is ready to share"
+                : "Finish setting up your profile"
+            }
+          />
+        </Link>
         {isProvider && (
-          <>
-            <Link href="/portal/connections" className="block">
-              <StatCard
-                label="Inquiries received"
-                value={inquiryCount !== null ? String(inquiryCount) : "—"}
-                description={
-                  inquiryCount === 0
-                    ? "No inquiries yet"
-                    : "Click to view"
-                }
-              />
-            </Link>
+          <Link href="/portal/connections" className="block">
             <StatCard
-              label="Response rate"
-              value="—"
-              description="Start responding to build your rate"
+              label="Inquiries received"
+              value={inquiryCount !== null ? String(inquiryCount) : "—"}
+              description={
+                inquiryCount === 0
+                  ? "No inquiries yet"
+                  : "Click to view"
+              }
             />
-          </>
+          </Link>
         )}
         {isFamily && (
           <>

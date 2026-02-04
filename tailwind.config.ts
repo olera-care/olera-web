@@ -113,7 +113,7 @@ const config: Config = {
           700: "#a6522f",
           800: "#85432c",
           900: "#6c3926",
-          950: "#3a1b12",
+          950: "#2a1810", // Deep warm brown for overlay
         },
         // Untitled UI Gray scale (neutral, modern)
         gray: {

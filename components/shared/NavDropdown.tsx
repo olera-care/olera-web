@@ -7,9 +7,10 @@ import type { NavCategory } from "./NavMenuData";
 interface NavDropdownProps {
   category: NavCategory;
   onNavigate?: () => void;
+  isScrolled?: boolean;
 }
 
-export default function NavDropdown({ category, onNavigate }: NavDropdownProps) {
+export default function NavDropdown({ category, onNavigate, isScrolled = false }: NavDropdownProps) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,7 +68,7 @@ export default function NavDropdown({ category, onNavigate }: NavDropdownProps) 
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-1.5 text-gray-700 hover:text-primary-600 text-[15px] font-medium transition-colors focus:outline-none focus:underline py-1"
+        className="flex items-center gap-1.5 text-[15px] font-medium text-gray-700 hover:text-primary-600 transition-colors focus:outline-none focus:underline py-1"
         aria-expanded={open}
         aria-haspopup="true"
       >

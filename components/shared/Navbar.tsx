@@ -15,6 +15,7 @@ export default function Navbar() {
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Gate on account existence — not just user — to ensure data has loaded
   const isAuthenticated = !!user && !!account;
@@ -23,6 +24,15 @@ export default function Navbar() {
     activeProfile?.type === "organization" ||
     activeProfile?.type === "caregiver";
   const isFamily = activeProfile?.type === "family";
+
+  // Track scroll position for navbar background
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Close user menu on outside click
   useEffect(() => {
@@ -52,13 +62,15 @@ export default function Navbar() {
     : null;
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className={`sticky top-0 z-50 transition-all duration-300 bg-[#FFFEF8] ${
+      isScrolled ? "shadow-sm" : ""
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">O</span>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
+              <span className="font-bold text-lg text-white">O</span>
             </div>
             <span className="text-xl font-bold text-gray-900">Olera</span>
           </Link>
@@ -67,7 +79,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center space-x-4">
             {!isAuthenticated &&
               NAV_CATEGORIES.map((cat) => (
-                <NavDropdown key={cat.label} category={cat} />
+                <NavDropdown key={cat.label} category={cat} isScrolled={isScrolled} />
               ))}
           </div>
 
@@ -76,7 +88,7 @@ export default function Navbar() {
             {!isAuthenticated && !isLoading && (
               <Link
                 href="/for-providers"
-                className="text-gray-700 hover:text-primary-600 text-[15px] font-medium transition-colors focus:outline-none focus:underline whitespace-nowrap"
+                className="text-[15px] font-medium text-gray-700 hover:text-primary-600 transition-colors focus:outline-none focus:underline whitespace-nowrap"
               >
                 For Providers
               </Link>
@@ -196,7 +208,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => openAuthModal(undefined, "sign-in")}
-                className="text-[15px] text-gray-700 hover:text-primary-600 font-medium transition-colors focus:outline-none focus:underline"
+                className="text-[15px] font-medium text-gray-700 hover:text-primary-600 transition-colors focus:outline-none focus:underline"
               >
                 Log In
               </button>
@@ -206,7 +218,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
+import type { Profile } from "@/lib/types";
 import BrowseFilters from "@/components/browse/BrowseFilters";
+import ProfileCard, { profileToCard } from "@/components/shared/ProfileCard";
 
 const CARE_TYPE_OPTIONS = [
   "Assisted Living",
@@ -136,103 +137,12 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {profiles.map((profile) => (
-                <BrowseCard key={profile.id} profile={profile} />
+                <ProfileCard key={profile.id} card={profileToCard(profile)} />
               ))}
             </div>
           </>
         )}
       </div>
     </div>
-  );
-}
-
-function BrowseCard({ profile }: { profile: Profile }) {
-  const meta = profile.metadata as OrganizationMetadata & CaregiverMetadata;
-  const priceRange =
-    meta?.price_range ||
-    (meta?.hourly_rate_min && meta?.hourly_rate_max
-      ? `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`
-      : null);
-  const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
-  const displayedCareTypes = (profile.care_types || []).slice(0, 2);
-  const remainingCount = Math.max(0, (profile.care_types || []).length - 2);
-
-  return (
-    <Link
-      href={`/provider/${profile.slug}`}
-      className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:border-primary-200 transition-shadow duration-200 block cursor-pointer"
-    >
-      {/* Image */}
-      <div className="relative h-48 bg-gray-200">
-        {profile.image_url ? (
-          <img
-            src={profile.image_url}
-            alt={profile.display_name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-300 flex items-center justify-center">
-            <span className="text-4xl font-bold text-primary-600/40">
-              {profile.display_name.charAt(0)}
-            </span>
-          </div>
-        )}
-
-        {/* Claim state badge */}
-        {profile.claim_state === "claimed" &&
-          profile.verification_state === "verified" && (
-            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-primary-600 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Verified
-            </div>
-          )}
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        <h3 className="font-semibold text-gray-900 text-lg leading-tight">
-          {profile.display_name}
-        </h3>
-
-        {locationStr && (
-          <p className="text-gray-500 text-base mt-1">{locationStr}</p>
-        )}
-
-        {priceRange && (
-          <div className="mt-3">
-            <p className="text-gray-500 text-sm">Estimated Pricing</p>
-            <p className="text-gray-900 font-semibold">{priceRange}</p>
-          </div>
-        )}
-
-        {displayedCareTypes.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {displayedCareTypes.map((ct) => (
-              <span
-                key={ct}
-                className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full"
-              >
-                {ct}
-              </span>
-            ))}
-            {remainingCount > 0 && (
-              <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
-                +{remainingCount} more
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="mt-4 text-primary-600 font-medium text-base">
-          View provider
-        </div>
-      </div>
-    </Link>
   );
 }

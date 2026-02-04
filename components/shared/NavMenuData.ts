@@ -1,116 +1,110 @@
 /**
- * Navigation menu structure for care category dropdowns.
- *
- * Each top-level item maps to a dropdown panel with sub-items.
- * Sub-items link to /browse with a pre-applied care type filter,
- * or to future educational content pages.
+ * Navigation data for the Find Care mega-menu and top-level nav links.
  */
 
-export interface NavSubItem {
+export interface NavResource {
+  title: string;
+  href: string;
+  icon: "chat" | "heart" | "dollar" | "compare" | "book" | "info" | "shield";
+}
+
+export interface CareCategory {
+  id: string;
   label: string;
+  headline: string;
   description: string;
+  image: string;
+  resources: NavResource[];
+}
+
+export interface NavLink {
+  label: string;
   href: string;
 }
 
-export interface NavCategory {
-  label: string;
-  items: NavSubItem[];
-}
-
-export const NAV_CATEGORIES: NavCategory[] = [
+export const CARE_CATEGORIES: CareCategory[] = [
   {
+    id: "home-health",
+    label: "Home Health",
+    headline: "Find Home Health Near You",
+    description: "Skilled medical care in the comfort of home",
+    image: "/images/home-health.webp",
+    resources: [
+      { title: "Home Health Forum", href: "/community/home-health", icon: "chat" },
+      { title: "Home Health Guide", href: "/resources/home-health", icon: "heart" },
+      { title: "Paying for Home Health", href: "/resources/paying-for-home-health", icon: "dollar" },
+      { title: "Home Health vs Home Care", href: "/resources/home-health-vs-home-care", icon: "compare" },
+    ],
+  },
+  {
+    id: "home-care",
     label: "Home Care",
-    items: [
-      {
-        label: "Home Care Agencies",
-        description: "Non-medical help with daily living",
-        href: "/browse?type=home-care",
-      },
-      {
-        label: "Home Health",
-        description: "Skilled nursing and therapy at home",
-        href: "/browse?type=home-health",
-      },
-      {
-        label: "Private Caregivers",
-        description: "Independent caregivers for hire",
-        href: "/browse?type=home-care&q=caregiver",
-      },
+    headline: "Find Home Care Near You",
+    description: "In-home assistance for daily living activities",
+    image: "/images/home-care.jpg",
+    resources: [
+      { title: "Home Care Forum", href: "/community/home-care", icon: "chat" },
+      { title: "Home Care Support", href: "/resources/home-care", icon: "heart" },
+      { title: "Paying for Home Care", href: "/resources/paying-for-home-care", icon: "dollar" },
+      { title: "Home Care vs Home Health", href: "/resources/home-care-vs-home-health", icon: "compare" },
     ],
   },
   {
+    id: "assisted-living",
     label: "Assisted Living",
-    items: [
-      {
-        label: "Assisted Living",
-        description: "Help with daily activities in a community setting",
-        href: "/browse?type=assisted-living",
-      },
-      {
-        label: "Independent Living",
-        description: "Active senior communities with minimal support",
-        href: "/browse?type=independent-living",
-      },
-      {
-        label: "Memory Care",
-        description: "Specialized care for Alzheimer's and dementia",
-        href: "/browse?type=memory-care",
-      },
+    headline: "Find Assisted Living Near You",
+    description: "Residential communities with personal care support",
+    image: "/images/assisted-living.webp",
+    resources: [
+      { title: "Assisted Living Forum", href: "/community/assisted-living", icon: "chat" },
+      { title: "Assisted Living Guide", href: "/resources/assisted-living", icon: "book" },
+      { title: "Paying for Assisted Living", href: "/resources/paying-for-assisted-living", icon: "dollar" },
+      { title: "Assisted Living vs Nursing Home", href: "/resources/assisted-living-vs-nursing-home", icon: "compare" },
     ],
   },
   {
+    id: "memory-care",
     label: "Memory Care",
-    items: [
-      {
-        label: "Memory Care Communities",
-        description: "Dedicated facilities for dementia care",
-        href: "/browse?type=memory-care",
-      },
-      {
-        label: "Assisted Living with Memory Care",
-        description: "Assisted living communities offering memory units",
-        href: "/browse?type=assisted-living",
-      },
+    headline: "Find Memory Care Near You",
+    description: "Specialized care for dementia and Alzheimer's",
+    image: "/images/memory-care.jpg",
+    resources: [
+      { title: "Memory Care Forum", href: "/community/memory-care", icon: "chat" },
+      { title: "Memory Care Guide", href: "/resources/memory-care", icon: "book" },
+      { title: "Paying for Memory Care", href: "/resources/paying-for-memory-care", icon: "dollar" },
+      { title: "Signs It's Time for Memory Care", href: "/resources/when-memory-care", icon: "info" },
     ],
   },
   {
+    id: "nursing-homes",
     label: "Nursing Homes",
-    items: [
-      {
-        label: "Skilled Nursing Facilities",
-        description: "24/7 medical care and supervision",
-        href: "/browse?type=skilled-nursing",
-      },
-      {
-        label: "Rehabilitation",
-        description: "Short-term recovery after surgery or illness",
-        href: "/browse?type=rehabilitation",
-      },
+    headline: "Find Nursing Homes Near You",
+    description: "24/7 skilled nursing and medical care",
+    image: "/images/nursing-homes.webp",
+    resources: [
+      { title: "Nursing Home Forum", href: "/community/nursing-homes", icon: "chat" },
+      { title: "Nursing Home Guide", href: "/resources/nursing-homes", icon: "book" },
+      { title: "Paying for Nursing Home", href: "/resources/paying-for-nursing-home", icon: "dollar" },
+      { title: "Medicare & Medicaid Coverage", href: "/resources/medicare-medicaid", icon: "shield" },
     ],
   },
   {
-    label: "More",
-    items: [
-      {
-        label: "Hospice",
-        description: "Comfort-focused end-of-life care",
-        href: "/browse?type=hospice",
-      },
-      {
-        label: "Respite Care",
-        description: "Temporary relief for family caregivers",
-        href: "/browse?type=respite-care",
-      },
-      {
-        label: "Adult Day Care",
-        description: "Daytime programs for socialization and support",
-        href: "/browse?type=adult-day-care",
-      },
-      {
-        label: "Browse All Providers",
-        description: "See all care providers on Olera",
-        href: "/browse",
-      },
+    id: "independent-living",
+    label: "Independent Living",
+    headline: "Find Independent Living Near You",
+    description: "Active adult communities for seniors",
+    image: "/images/independent-living.jpg",
+    resources: [
+      { title: "Independent Living Forum", href: "/community/independent-living", icon: "chat" },
+      { title: "Independent Living Guide", href: "/resources/independent-living", icon: "book" },
+      { title: "Cost of Independent Living", href: "/resources/independent-living-costs", icon: "dollar" },
+      { title: "Is Independent Living Right?", href: "/resources/is-independent-living-right", icon: "info" },
     ],
   },
+];
+
+export const NAV_LINKS: NavLink[] = [
+  { label: "Community", href: "/community" },
+  { label: "Resources", href: "/resources" },
+  { label: "Benefits", href: "/benefits" },
 ];

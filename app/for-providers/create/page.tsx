@@ -172,20 +172,11 @@ export default function CreateProfilePage() {
 
       if (accountError) throw new Error(accountError.message);
 
-      // Create trial membership if none exists
-      const { data: existingMembership } = await supabase
-        .from("memberships")
-        .select("id")
-        .eq("account_id", createAccount.id)
-        .single();
-
-      if (!existingMembership) {
-        await supabase.from("memberships").insert({
-          account_id: createAccount.id,
-          plan: "free",
-          status: "free",
-        });
-      }
+      // Ensure membership exists (upsert to avoid race conditions)
+      await supabase.from("memberships").upsert(
+        { account_id: createAccount.id, plan: "free", status: "free" },
+        { onConflict: "account_id" }
+      );
 
       clearFormStorage();
       await refreshAccountData();

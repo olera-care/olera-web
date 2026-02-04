@@ -37,6 +37,32 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
 
       {/* Main content */}
       <div className="flex-1 min-w-0">
+        {/* Mobile role indicator — hidden on desktop where sidebar shows it */}
+        {activeProfile && (
+          <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-2">
+            <span
+              className={[
+                "inline-block w-2 h-2 rounded-full",
+                activeProfile.type === "organization"
+                  ? "bg-primary-500"
+                  : activeProfile.type === "caregiver"
+                  ? "bg-secondary-500"
+                  : "bg-warm-500",
+              ].join(" ")}
+            />
+            <span className="text-sm font-medium text-gray-600">
+              {activeProfile.type === "organization"
+                ? "Organization"
+                : activeProfile.type === "caregiver"
+                ? "Caregiver"
+                : "Family"}
+            </span>
+            <span className="text-sm text-gray-400 mx-1">&middot;</span>
+            <span className="text-sm font-medium text-gray-900 truncate">
+              {activeProfile.display_name}
+            </span>
+          </div>
+        )}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>

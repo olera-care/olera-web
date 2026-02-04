@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
-import { getProviderBySlug, mockProviderToProfile } from "@/lib/mock-providers";
+import { getProviderBySlug, mockProviderToProfile, isMockDataEnabled } from "@/lib/mock-providers";
 import Badge from "@/components/ui/Badge";
 import InquiryButton from "@/components/providers/InquiryButton";
 import ImageCarousel from "@/components/providers/ImageCarousel";
@@ -125,7 +125,7 @@ export default async function ProviderPage({
     // Supabase not configured — fall through to mock lookup
   }
 
-  if (!profile) {
+  if (!profile && isMockDataEnabled()) {
     const mockProvider = getProviderBySlug(slug);
     if (mockProvider) {
       profile = mockProviderToProfile(mockProvider);

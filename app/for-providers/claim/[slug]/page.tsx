@@ -82,20 +82,11 @@ export default function ClaimProfilePage() {
         throw new Error(accountError.message);
       }
 
-      // Create free membership if none exists
-      const { data: existingMembership } = await supabase
-        .from("memberships")
-        .select("id")
-        .eq("account_id", claimAccount.id)
-        .single();
-
-      if (!existingMembership) {
-        await supabase.from("memberships").insert({
-          account_id: claimAccount.id,
-          plan: "free",
-          status: "free",
-        });
-      }
+      // Ensure membership exists (upsert to avoid race conditions)
+      await supabase.from("memberships").upsert(
+        { account_id: claimAccount.id, plan: "free", status: "free" },
+        { onConflict: "account_id" }
+      );
 
       await refreshAccountData();
       router.push("/portal");

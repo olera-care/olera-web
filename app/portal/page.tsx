@@ -129,11 +129,13 @@ export default function PortalDashboard() {
                 }
               />
             </Link>
-            <StatCard
-              label="Saved providers"
-              value="0"
-              description="Save providers while you browse"
-            />
+            <Link href="/browse" className="block">
+              <StatCard
+                label="Browse providers"
+                value="Explore"
+                description="Find and compare care options"
+              />
+            </Link>
           </>
         )}
       </div>

@@ -5,19 +5,19 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable } from "@/lib/membership";
-import EmptyState from "@/components/ui/EmptyState";
-import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
 
 export default function PortalDashboard() {
   const { activeProfile, membership } = useAuth();
   const [inquiryCount, setInquiryCount] = useState<number | null>(null);
 
+  // activeProfile is guaranteed by the portal layout guard
+  if (!activeProfile) return null;
+
   const isProvider =
-    activeProfile?.type === "organization" ||
-    activeProfile?.type === "caregiver";
-  const isFamily = activeProfile?.type === "family";
+    activeProfile.type === "organization" ||
+    activeProfile.type === "caregiver";
+  const isFamily = activeProfile.type === "family";
 
   // Fetch real connection counts
   useEffect(() => {
@@ -37,16 +37,6 @@ export default function PortalDashboard() {
 
     fetchCounts();
   }, [activeProfile, isProvider]);
-
-  if (!activeProfile) {
-    return (
-      <EmptyState
-        title="No profile found"
-        description="Complete onboarding to set up your profile."
-        action={<Link href="/onboarding"><Button>Complete setup</Button></Link>}
-      />
-    );
-  }
 
   const freeRemaining = getFreeConnectionsRemaining(membership);
 

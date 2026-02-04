@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type {
@@ -12,7 +11,6 @@ import type {
 } from "@/lib/types";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import EmptyState from "@/components/ui/EmptyState";
 
 const ORG_CATEGORIES: { value: ProfileCategory; label: string }[] = [
   { value: "assisted_living", label: "Assisted Living" },
@@ -231,19 +229,8 @@ export default function PortalProfilePage() {
     }
   }, [activeProfile]);
 
-  if (!activeProfile) {
-    return (
-      <EmptyState
-        title="No profile found"
-        description="Complete onboarding to set up your profile."
-        action={
-          <Link href="/onboarding">
-            <Button>Complete setup</Button>
-          </Link>
-        }
-      />
-    );
-  }
+  // activeProfile is guaranteed by the portal layout guard
+  if (!activeProfile) return null;
 
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));

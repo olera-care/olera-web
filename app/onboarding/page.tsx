@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { ProfileType, ProfileCategory } from "@/lib/types";
+import type { ProfileType, ProfileCategory, Profile } from "@/lib/types";
 import IntentStep from "@/components/onboarding/IntentStep";
 import ProfileInfoStep from "@/components/onboarding/ProfileInfoStep";
 import OrgClaimStep from "@/components/onboarding/OrgClaimStep";
@@ -17,6 +17,9 @@ export interface OnboardingData {
   state: string;
   zip: string;
   careTypes: string[];
+  // Provider-specific (required for shareable profile)
+  description: string;
+  phone: string;
   // Family-specific
   timeline: string;
   relationshipToRecipient: string;
@@ -32,12 +35,42 @@ const INITIAL_DATA: OnboardingData = {
   state: "",
   zip: "",
   careTypes: [],
+  description: "",
+  phone: "",
   timeline: "",
   relationshipToRecipient: "",
   claimedProfileId: null,
 };
 
 type Step = "intent" | "profile-info" | "org-claim";
+
+const FORM_STORAGE_KEY = "olera_onboarding_form";
+
+interface StoredForm {
+  data: OnboardingData;
+  step: Step;
+}
+
+function saveFormToStorage(data: OnboardingData, step: Step) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify({ data, step }));
+}
+
+function loadFormFromStorage(): StoredForm | null {
+  if (typeof window === "undefined") return null;
+  const raw = sessionStorage.getItem(FORM_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function clearFormStorage() {
+  if (typeof window === "undefined") return;
+  sessionStorage.removeItem(FORM_STORAGE_KEY);
+}
 
 export default function OnboardingPage() {
   const { user, account, activeProfile, refreshAccountData } = useAuth();
@@ -48,29 +81,45 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Restore form data from sessionStorage on mount (survives auth redirects)
+  useEffect(() => {
+    const saved = loadFormFromStorage();
+    if (saved) {
+      setData(saved.data);
+      setStep(saved.step);
+    }
+  }, []);
+
   const updateData = (partial: Partial<OnboardingData>) => {
-    setData((prev) => ({ ...prev, ...partial }));
+    setData((prev) => {
+      const next = { ...prev, ...partial };
+      saveFormToStorage(next, step);
+      return next;
+    });
   };
 
   const handleIntentSelected = (intent: ProfileType) => {
-    updateData({ intent });
+    const next = { ...data, intent };
+    setData(next);
     setStep("profile-info");
+    saveFormToStorage(next, "profile-info");
   };
 
   const handleProfileInfoComplete = () => {
     if (data.intent === "organization" && !data.claimedProfileId) {
       setStep("org-claim");
+      saveFormToStorage(data, "org-claim");
     } else {
       handleSubmit();
     }
   };
 
-  const handleClaimComplete = (claimedProfileId: string | null) => {
+  const handleClaimComplete = (claimedProfileId: string, seededProfile: Profile) => {
     updateData({ claimedProfileId });
-    handleSubmit(claimedProfileId);
+    handleSubmit(claimedProfileId, seededProfile);
   };
 
-  const handleSubmit = async (claimedId?: string | null) => {
+  const handleSubmit = async (claimedId?: string | null, seededProfile?: Profile) => {
     if (!user || !account || !isSupabaseConfigured()) return;
     setSubmitting(true);
     setError("");
@@ -80,18 +129,41 @@ export default function OnboardingPage() {
       const profileId = claimedId ?? data.claimedProfileId;
 
       if (profileId) {
-        // Claiming an existing seeded profile
+        // Claiming an existing seeded profile.
+        // Only overwrite fields that are empty/missing in the seeded profile
+        // to preserve richer seeded data (e.g., care_types, description).
+        const s = seededProfile;
+        const update: Record<string, unknown> = {
+          account_id: account.id,
+          claim_state: "claimed" as const,
+        };
+
+        // Fill in fields only if the seeded profile doesn't already have them
+        if (!s?.display_name?.trim() && data.displayName) {
+          update.display_name = data.displayName;
+        }
+        if (!s?.city && data.city) {
+          update.city = data.city;
+        }
+        if (!s?.state && data.state) {
+          update.state = data.state;
+        }
+        if (!s?.zip && data.zip) {
+          update.zip = data.zip;
+        }
+        if ((!s?.care_types || s.care_types.length === 0) && data.careTypes.length > 0) {
+          update.care_types = data.careTypes;
+        }
+        if (!s?.description?.trim() && data.description) {
+          update.description = data.description;
+        }
+        if (!s?.phone && data.phone) {
+          update.phone = data.phone;
+        }
+
         const { error: claimError } = await supabase
           .from("profiles")
-          .update({
-            account_id: account.id,
-            claim_state: "claimed" as const,
-            display_name: data.displayName || undefined,
-            city: data.city || undefined,
-            state: data.state || undefined,
-            zip: data.zip || undefined,
-            care_types: data.careTypes.length > 0 ? data.careTypes : undefined,
-          })
+          .update(update)
           .eq("id", profileId);
 
         if (claimError) throw claimError;
@@ -139,6 +211,8 @@ export default function OnboardingPage() {
             type: data.intent!,
             category: data.category,
             display_name: data.displayName,
+            description: data.description || null,
+            phone: data.phone || null,
             city: data.city || null,
             state: data.state || null,
             zip: data.zip || null,
@@ -187,6 +261,7 @@ export default function OnboardingPage() {
         }
       }
 
+      clearFormStorage();
       await refreshAccountData();
 
       // Redirect: if adding a second profile, go to portal; otherwise role-based
@@ -224,8 +299,13 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={() => {
-                  if (step === "org-claim") setStep("profile-info");
-                  else setStep("intent");
+                  if (step === "org-claim") {
+                    setStep("profile-info");
+                    saveFormToStorage(data, "profile-info");
+                  } else {
+                    setStep("intent");
+                    saveFormToStorage(data, "intent");
+                  }
                 }}
                 className="text-base text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:underline"
               >

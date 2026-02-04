@@ -68,10 +68,13 @@ export default function ProfileInfoStep({
     onComplete();
   };
 
+  const isProvider = intent !== "family";
   const isValid =
     data.displayName.trim().length > 0 &&
     (data.city.trim().length > 0 || data.state.trim().length > 0) &&
-    data.careTypes.length > 0;
+    data.careTypes.length > 0 &&
+    (!isProvider || data.description.trim().length > 0) &&
+    (!isProvider || data.phone.trim().length > 0);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -85,7 +88,7 @@ export default function ProfileInfoStep({
       <p className="text-lg text-gray-600 mb-8">
         {intent === "family"
           ? "We'll use this to find the best matches for you."
-          : "You can add more details later in your profile editor."}
+          : "This info will help families find and reach you."}
       </p>
 
       <div className="space-y-6">
@@ -193,6 +196,41 @@ export default function ProfileInfoStep({
             ))}
           </div>
         </div>
+
+        {isProvider && (
+          <>
+            <Input
+              as="textarea"
+              label={
+                intent === "organization"
+                  ? "About your organization"
+                  : "About you"
+              }
+              name="description"
+              value={data.description}
+              onChange={(e) =>
+                onChange({ description: (e.target as HTMLTextAreaElement).value })
+              }
+              placeholder={
+                intent === "organization"
+                  ? "Describe your services, philosophy, and what makes your organization unique..."
+                  : "Describe your experience, specialties, and approach to caregiving..."
+              }
+              rows={3}
+              required
+            />
+            <Input
+              label="Phone number"
+              name="phone"
+              value={data.phone}
+              onChange={(e) =>
+                onChange({ phone: (e.target as HTMLInputElement).value })
+              }
+              placeholder="e.g., (512) 555-0123"
+              required
+            />
+          </>
+        )}
 
         {intent === "family" && (
           <>

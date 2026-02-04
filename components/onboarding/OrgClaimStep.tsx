@@ -10,7 +10,7 @@ import Badge from "@/components/ui/Badge";
 
 interface OrgClaimStepProps {
   data: OnboardingData;
-  onClaim: (profileId: string | null) => void;
+  onClaim: (profileId: string, seededProfile: Profile) => void;
   onSkip: () => void;
   submitting: boolean;
 }
@@ -183,7 +183,10 @@ export default function OrgClaimStep({
             size="lg"
             fullWidth
             loading={submitting}
-            onClick={() => onClaim(selected)}
+            onClick={() => {
+              const profile = results.find((p) => p.id === selected);
+              if (profile) onClaim(selected, profile);
+            }}
           >
             Claim this organization
           </Button>

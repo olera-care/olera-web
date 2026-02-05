@@ -650,7 +650,20 @@ export default function AuthFlowModal({
           return;
         }
 
-        // Email confirmation required - show OTP screen
+        // Email confirmation required - send an explicit OTP code
+        // signUp sends a magic link by default, but we want a 6-digit code
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: data.email,
+          options: {
+            shouldCreateUser: false, // User already exists from signUp
+          },
+        });
+
+        if (otpError) {
+          console.error("Failed to send OTP:", otpError);
+          // Fall back to showing verify screen anyway - user can resend
+        }
+
         setResendCooldown(30);
         setLoading(false);
         setStep("verify-code");
@@ -726,7 +739,7 @@ export default function AuthFlowModal({
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email: data.email,
         token: otpCode,
-        type: "signup",
+        type: "email", // Use "email" for OTP sent via signInWithOtp
       });
 
       if (verifyError) {
@@ -765,9 +778,12 @@ export default function AuthFlowModal({
       }
 
       const supabase = createClient();
-      const { error: resendError } = await supabase.auth.resend({
-        type: "signup",
+      // Use signInWithOtp to send a proper 6-digit OTP code
+      const { error: resendError } = await supabase.auth.signInWithOtp({
         email: data.email,
+        options: {
+          shouldCreateUser: false, // User already exists from signUp
+        },
       });
 
       if (resendError) {

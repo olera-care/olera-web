@@ -10,6 +10,10 @@ export function isProfileShareable(profile: Profile | null): boolean {
   if (!profile.display_name?.trim()) return false;
   if (!profile.city && !profile.state) return false;
   if (profile.care_types.length === 0) return false;
+  // Providers must have a description
+  if (profile.type !== "family" && !profile.description?.trim()) return false;
+  // Providers must have at least one contact method
+  if (profile.type !== "family" && !profile.phone && !profile.email && !profile.website) return false;
   return true;
 }
 
@@ -22,6 +26,8 @@ export function getProfileCompletionGaps(profile: Profile | null): string[] {
   if (!profile.display_name?.trim()) gaps.push("display name");
   if (!profile.city && !profile.state) gaps.push("location (city or state)");
   if (profile.care_types.length === 0) gaps.push("care types");
+  if (profile.type !== "family" && !profile.description?.trim()) gaps.push("description");
+  if (profile.type !== "family" && !profile.phone && !profile.email && !profile.website) gaps.push("contact method (phone, email, or website)");
   return gaps;
 }
 

@@ -500,6 +500,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
       <Link
         href={profileHref}
         target="_blank"
+        rel="noopener noreferrer"
         className="text-primary-600 hover:underline text-sm font-medium inline-flex items-center gap-1"
       >
         View full profile

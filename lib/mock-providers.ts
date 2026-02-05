@@ -3,10 +3,21 @@
  *
  * Both the landing page (client component) and the provider detail page
  * (server component) import from here so mock data stays in sync.
+ *
+ * In production, set NEXT_PUBLIC_DISABLE_MOCK_DATA=true to prevent
+ * mock data from being used as a fallback for real provider queries.
  */
 
 import type { Provider, StaffMember } from "@/components/providers/ProviderCard";
 import type { Profile, ProfileCategory, OrganizationMetadata } from "@/lib/types";
+
+/**
+ * Returns true if mock data fallback is allowed.
+ * Disabled in production via NEXT_PUBLIC_DISABLE_MOCK_DATA=true.
+ */
+export function isMockDataEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_DISABLE_MOCK_DATA !== "true";
+}
 
 // ============================================================
 // Top Providers (the 6 featured cards on the homepage)

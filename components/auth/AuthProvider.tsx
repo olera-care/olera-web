@@ -315,8 +315,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           activeProfile: newActive,
         };
       });
+
+      // Refresh full account data so membership state stays accurate
+      await refreshAccountData();
     },
-    [configured]
+    [configured, refreshAccountData]
   );
 
   return (

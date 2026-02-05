@@ -72,7 +72,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/for-providers/create"
+                  href="/for-providers/claim"
                   className="text-gray-500 hover:text-primary-600 transition-colors text-[15px]"
                 >
                   Claim Your Listing
@@ -87,12 +87,12 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Olera. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="text-gray-400 hover:text-gray-600 text-sm transition-colors">
+            <span className="text-gray-400 text-sm cursor-default">
               Privacy
-            </Link>
-            <Link href="/terms" className="text-gray-400 hover:text-gray-600 text-sm transition-colors">
+            </span>
+            <span className="text-gray-400 text-sm cursor-default">
               Terms
-            </Link>
+            </span>
           </div>
         </div>
       </div>

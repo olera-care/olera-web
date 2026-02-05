@@ -1372,7 +1372,7 @@ export default function HomePage() {
               The Olera Community
             </h2>
             <Link
-              href="/community"
+              href="/browse"
               className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 mt-4 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white shadow-sm shadow-primary-600/20 hover:shadow-md hover:shadow-primary-600/30 transition-all"
             >
               Join the conversation
@@ -1453,7 +1453,7 @@ export default function HomePage() {
               return (
                 <Link
                   key={post.id}
-                  href="/community"
+                  href="/browse"
                   className={`group relative bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-lg ${colors.accent} ${colors.glow} transition-all duration-300`}
                 >
                   {/* Left accent stripe */}
@@ -1553,7 +1553,7 @@ export default function HomePage() {
           {/* Mobile CTA */}
           <div className="mt-6 text-center sm:hidden">
             <Link
-              href="/community"
+              href="/browse"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-all"
             >
               Join the conversation
@@ -1569,7 +1569,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {/* Resources Card */}
             <Link
-              href="/resources"
+              href="/browse"
               className="group relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary-50 via-primary-50/80 to-white border border-primary-100/60 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-100/40 transition-all duration-300"
             >
               {/* Permanent left accent bar */}
@@ -1602,7 +1602,7 @@ export default function HomePage() {
 
             {/* Benefits Finder Card */}
             <Link
-              href="/benefits"
+              href="/browse"
               className="group relative rounded-2xl overflow-hidden bg-gradient-to-br from-warm-50 via-warm-50/80 to-white border border-warm-100/60 hover:border-warm-200 hover:shadow-lg hover:shadow-warm-100/40 transition-all duration-300"
             >
               {/* Permanent left accent bar */}
@@ -1664,7 +1664,7 @@ export default function HomePage() {
                   </svg>
                 </Link>
                 <Link
-                  href="/auth/signup"
+                  href="/onboarding"
                   className="inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-xl text-sm font-semibold text-white transition-all"
                 >
                   Create Free Account

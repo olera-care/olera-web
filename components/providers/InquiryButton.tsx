@@ -36,6 +36,7 @@ export default function InquiryButton({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [alreadySent, setAlreadySent] = useState(false);
+  const [showCompleteProfileHint, setShowCompleteProfileHint] = useState(false);
   const autoInquiryTriggered = useRef(false);
 
   // Check if inquiry already exists
@@ -168,10 +169,20 @@ export default function InquiryButton({
 
         setSuccess(true);
         setAlreadySent(true);
+
+        // If user's family profile was just auto-created (no care_types),
+        // prompt them to complete it after the success message
+        const needsCompletion =
+          activeProfile?.type !== "family" ||
+          (activeProfile?.care_types?.length ?? 0) === 0;
+
         setTimeout(() => {
           setShowModal(false);
           setSuccess(false);
           setMessage("");
+          if (needsCompletion) {
+            setShowCompleteProfileHint(true);
+          }
         }, 2000);
       } catch (err: unknown) {
         const msg =
@@ -240,6 +251,24 @@ export default function InquiryButton({
           ? "Request Consultation"
           : "Sign Up to Request Consultation"}
       </Button>
+
+      {showCompleteProfileHint && (
+        <div className="mt-3 bg-primary-50 border border-primary-200 rounded-lg p-3 text-sm">
+          <p className="text-primary-800 font-medium mb-1">
+            Your inquiry has been sent!
+          </p>
+          <p className="text-primary-700">
+            Complete your profile so providers can learn more about your care
+            needs.{" "}
+            <a
+              href="/portal/profile"
+              className="underline font-medium hover:text-primary-900"
+            >
+              Complete profile
+            </a>
+          </p>
+        </div>
+      )}
 
       <Modal
         isOpen={showModal}

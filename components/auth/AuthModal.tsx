@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { getDeferredAction } from "@/lib/deferred-action";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -71,13 +71,12 @@ export default function AuthModal() {
       setLoading(false);
       handleClose();
 
-      // Check for deferred action with a returnUrl (e.g., claim or create flow)
+      // Check for deferred action with a returnUrl (e.g., claim flow)
       const deferred = getDeferredAction();
       if (deferred?.returnUrl) {
+        clearDeferredAction();
         router.push(deferred.returnUrl);
       }
-      // No setTimeout — auth listener in AuthProvider handles state.
-      // If onboarding isn't complete, the navbar shows "Complete your profile".
     } catch (err) {
       console.error("Sign in error:", err);
       setError("Something went wrong. Please try again.");
@@ -143,11 +142,14 @@ export default function AuthModal() {
       setLoading(false);
       handleClose();
 
-      // Check for deferred action with a returnUrl (e.g., claim or create flow)
-      // Don't clear — let the target page consume and clear the deferred action
+      // Check for deferred action with a returnUrl (e.g., claim flow)
       const deferred = getDeferredAction();
       if (deferred?.returnUrl) {
+        clearDeferredAction();
         router.push(deferred.returnUrl);
+      } else if (window.location.pathname === "/onboarding") {
+        // Already on onboarding — refresh in place to preserve URL params (e.g., ?intent=)
+        router.refresh();
       } else {
         router.push("/onboarding");
       }

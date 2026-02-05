@@ -1,5 +1,11 @@
-import Link from "next/link";
-import Button from "@/components/ui/Button";
+import type { Metadata } from "next";
+import ProviderGetStartedButton from "@/components/providers/ProviderGetStartedButton";
+
+export const metadata: Metadata = {
+  title: "For Providers | Olera",
+  description:
+    "Grow your senior care business on Olera. Claim your profile, showcase your services, and connect with families actively searching for care.",
+};
 
 export default function ForProvidersPage() {
   return (
@@ -17,12 +23,7 @@ export default function ForProvidersPage() {
               free for 30 days.
             </p>
             <div className="mt-10">
-              <Link
-                href="/for-providers/claim"
-                className="inline-flex items-center justify-center font-semibold rounded-lg px-10 py-4 text-lg bg-white text-primary-700 hover:bg-primary-50 transition-colors min-h-[44px] shadow-lg"
-              >
-                Get Started Free
-              </Link>
+              <ProviderGetStartedButton variant="hero" />
             </div>
           </div>
         </div>
@@ -131,9 +132,7 @@ export default function ForProvidersPage() {
           </div>
 
           <div className="mt-12 text-center">
-            <Link href="/for-providers/claim">
-              <Button size="lg">Get Started Free</Button>
-            </Link>
+            <ProviderGetStartedButton />
           </div>
         </div>
       </section>

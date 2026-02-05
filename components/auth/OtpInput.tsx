@@ -20,7 +20,7 @@ interface OtpInputProps {
  * - Keyboard navigation (backspace to go back)
  */
 export default function OtpInput({
-  length = 6,
+  length = 8,
   value,
   onChange,
   disabled = false,
@@ -120,7 +120,7 @@ export default function OtpInput({
   };
 
   return (
-    <div className="flex justify-center gap-1.5 sm:gap-2 max-w-xs mx-auto" role="group" aria-label="Verification code">
+    <div className="flex justify-center gap-1 sm:gap-1.5 max-w-sm mx-auto" role="group" aria-label="Verification code">
       {digits.map((digit, index) => (
         <input
           key={index}
@@ -138,8 +138,8 @@ export default function OtpInput({
           aria-label={`Digit ${index + 1} of ${length}`}
           autoComplete={index === 0 ? "one-time-code" : "off"}
           className={`
-            w-10 h-12 sm:w-11 sm:h-14
-            text-center text-xl sm:text-2xl font-semibold
+            w-9 h-11 sm:w-10 sm:h-12
+            text-center text-lg sm:text-xl font-semibold
             border-2 rounded-lg
             transition-all duration-150
             focus:outline-none focus:ring-2 focus:ring-offset-1

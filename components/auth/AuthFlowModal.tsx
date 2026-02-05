@@ -651,7 +651,7 @@ export default function AuthFlowModal({
         }
 
         // Email confirmation required - send an explicit OTP code
-        // signUp sends a magic link by default, but we want a 6-digit code
+        // signUp sends a magic link by default, but we want an OTP code
         const { error: otpError } = await supabase.auth.signInWithOtp({
           email: data.email,
           options: {
@@ -720,8 +720,8 @@ export default function AuthFlowModal({
 
   const handleVerifyOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (otpCode.length !== 6) {
-      setError("Please enter the 6-digit code.");
+    if (otpCode.length !== 8) {
+      setError("Please enter the 8-digit code.");
       return;
     }
 
@@ -778,7 +778,7 @@ export default function AuthFlowModal({
       }
 
       const supabase = createClient();
-      // Use signInWithOtp to send a proper 6-digit OTP code
+      // Use signInWithOtp to send an OTP code
       const { error: resendError } = await supabase.auth.signInWithOtp({
         email: data.email,
         options: {
@@ -1762,12 +1762,12 @@ function VerifyCodeStep({
       <form onSubmit={onVerify} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 text-center mb-3">
-            Enter 6-digit code
+            Enter 8-digit code
           </label>
           <OtpInput value={otpCode} onChange={setOtpCode} disabled={loading} />
         </div>
 
-        <Button type="submit" loading={loading} fullWidth size="md" disabled={otpCode.length !== 6}>
+        <Button type="submit" loading={loading} fullWidth size="md" disabled={otpCode.length !== 8}>
           Verify & complete setup
         </Button>
 

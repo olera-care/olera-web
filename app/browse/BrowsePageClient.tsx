@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import {
   type Provider,
   PROVIDERS_TABLE,
@@ -44,15 +44,7 @@ export default function BrowsePageClient({
 
   useEffect(() => {
     async function fetchProviders() {
-      // If Supabase not configured, use mock data immediately
-      if (!isSupabaseConfigured()) {
-        console.log("Supabase not configured, using mock data");
-        setProviders(allBrowseProviders.map(mockToCardFormat));
-        setUsingMockData(true);
-        setIsLoading(false);
-        return;
-      }
-
+      // Always try Supabase first (don't check isSupabaseConfigured - it can give false negatives)
       try {
         const supabase = createClient();
         let query = supabase

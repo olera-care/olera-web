@@ -9,6 +9,7 @@ import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import OtpInput from "@/components/auth/OtpInput";
 
 // ============================================================
 // Types
@@ -21,7 +22,8 @@ type Step =
   | "basic-info"
   | "org-search"
   | "visibility"
-  | "create-account";
+  | "create-account"
+  | "verify-code";
 
 interface ProviderData {
   providerType: ProviderType | null;
@@ -112,6 +114,10 @@ export default function ProviderOnboardingModal({
   const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
 
+  // OTP verification state
+  const [otpCode, setOtpCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   // Org search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
@@ -135,8 +141,18 @@ export default function ProviderOnboardingModal({
       setSearching(false);
       setHasSearched(false);
       setSelectedOrgId(null);
+      setOtpCode("");
+      setResendCooldown(0);
     }
   }, [isOpen]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const update = (partial: Partial<ProviderData>) => {
     setData((prev) => ({ ...prev, ...partial }));
@@ -153,6 +169,7 @@ export default function ProviderOnboardingModal({
     "org-search": 3,
     visibility: data.providerType === "organization" ? 4 : 3,
     "create-account": data.providerType === "organization" ? 5 : 4,
+    "verify-code": data.providerType === "organization" ? 5 : 4, // Same step as create-account
   };
 
   const goBack = () => {
@@ -163,6 +180,10 @@ export default function ProviderOnboardingModal({
     else if (step === "visibility") {
       setStep(data.providerType === "organization" ? "org-search" : "basic-info");
     } else if (step === "create-account") setStep("visibility");
+    else if (step === "verify-code") {
+      setStep("create-account");
+      setOtpCode("");
+    }
   };
 
   // ----------------------------------------------------------
@@ -298,10 +319,10 @@ export default function ProviderOnboardingModal({
           setSubmitting(false);
           return;
         }
-        setAuthError(
-          "We sent a confirmation link to your email. Please confirm and then sign in."
-        );
+        // Email confirmation required — show OTP verification screen
+        setResendCooldown(30); // Initial cooldown before allowing resend
         setSubmitting(false);
+        setStep("verify-code");
         return;
       }
 
@@ -421,6 +442,196 @@ export default function ProviderOnboardingModal({
   };
 
   // ----------------------------------------------------------
+  // OTP Verification (after create-account)
+  // ----------------------------------------------------------
+
+  const handleVerifyOtp = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (otpCode.length !== 6) {
+      setAuthError("Please enter the 6-digit code.");
+      return;
+    }
+
+    setAuthError("");
+    setSubmitting(true);
+
+    try {
+      if (!isSupabaseConfigured()) {
+        setAuthError("Backend not configured.");
+        setSubmitting(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        email: authEmail,
+        token: otpCode,
+        type: "email",
+      });
+
+      if (verifyError) {
+        if (verifyError.message.includes("expired")) {
+          setAuthError("This code has expired. Please request a new one.");
+        } else if (verifyError.message.includes("invalid")) {
+          setAuthError("Invalid code. Please check and try again.");
+        } else {
+          setAuthError(verifyError.message);
+        }
+        setSubmitting(false);
+        return;
+      }
+
+      // User is now signed in — continue with profile creation
+      // Wait for account row to exist (created by auth trigger)
+      let accountRow = account;
+      if (!accountRow && verifyData.user) {
+        for (let i = 0; i < 10; i++) {
+          await new Promise((r) => setTimeout(r, 500));
+          const { data: acct } = await supabase
+            .from("accounts")
+            .select("*")
+            .eq("user_id", verifyData.user.id)
+            .single();
+          if (acct) {
+            accountRow = acct;
+            break;
+          }
+        }
+      }
+
+      if (!accountRow) {
+        setAuthError("Account setup timed out. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      // --- Create or claim profile ---
+      const profileType = data.providerType === "caregiver" ? "caregiver" : "organization";
+      let profileId: string;
+
+      if (data.claimedProfileId && data.claimedProfile) {
+        // Claiming an existing seeded profile
+        profileId = data.claimedProfileId;
+        const s = data.claimedProfile;
+        const claimUpdate: Record<string, unknown> = {
+          account_id: accountRow.id,
+          claim_state: "claimed",
+        };
+        if (!s.display_name?.trim() && data.displayName) claimUpdate.display_name = data.displayName;
+        if (!s.city && data.city) claimUpdate.city = data.city;
+        if (!s.state && data.state) claimUpdate.state = data.state;
+        if (!s.zip && data.zip) claimUpdate.zip = data.zip;
+        if ((!s.care_types || s.care_types.length === 0) && data.careTypes.length > 0) {
+          claimUpdate.care_types = data.careTypes;
+        }
+        if (!s.description?.trim() && data.description) claimUpdate.description = data.description;
+        if (!s.phone && data.phone) claimUpdate.phone = data.phone;
+
+        const { error: claimErr } = await supabase
+          .from("profiles")
+          .update(claimUpdate)
+          .eq("id", profileId);
+        if (claimErr) throw claimErr;
+      } else {
+        // Create new profile
+        const slug = generateSlug(data.displayName, data.city, data.state);
+        const { data: newProfile, error: profileErr } = await supabase
+          .from("profiles")
+          .insert({
+            account_id: accountRow.id,
+            slug,
+            type: profileType,
+            category: data.category,
+            display_name: data.displayName,
+            description: data.description || null,
+            phone: data.phone || null,
+            city: data.city || null,
+            state: data.state || null,
+            zip: data.zip || null,
+            care_types: data.careTypes,
+            claim_state: "claimed",
+            verification_state: "unverified",
+            source: "user_created",
+            is_active: true,
+            metadata: {
+              visible_to_families: data.visibleToFamilies,
+              visible_to_providers: data.visibleToProviders,
+            },
+          })
+          .select("id")
+          .single();
+        if (profileErr) throw profileErr;
+        profileId = newProfile.id;
+      }
+
+      // --- Update account ---
+      const { error: accountErr } = await supabase
+        .from("accounts")
+        .update({
+          onboarding_completed: true,
+          active_profile_id: profileId,
+          display_name: accountRow.display_name || data.displayName || authName,
+        })
+        .eq("id", accountRow.id);
+      if (accountErr) throw accountErr;
+
+      // --- Create membership ---
+      await supabase.from("memberships").upsert(
+        { account_id: accountRow.id, plan: "free", status: "free" },
+        { onConflict: "account_id" }
+      );
+
+      // --- Done ---
+      await refreshAccountData();
+      onClose();
+      router.push("/portal");
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : String(err);
+      console.error("OTP verification error:", message, err);
+      setAuthError(`Something went wrong: ${message}`);
+      setSubmitting(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (resendCooldown > 0) return;
+
+    setAuthError("");
+    setSubmitting(true);
+
+    try {
+      if (!isSupabaseConfigured()) {
+        setAuthError("Backend not configured.");
+        setSubmitting(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: authEmail,
+      });
+
+      if (resendError) {
+        setAuthError(resendError.message);
+        setSubmitting(false);
+        return;
+      }
+
+      setResendCooldown(60); // 60 second cooldown
+      setOtpCode(""); // Clear any partial input
+      setSubmitting(false);
+    } catch (err) {
+      console.error("Resend code error:", err);
+      setAuthError("Failed to resend code. Please try again.");
+      setSubmitting(false);
+    }
+  };
+
+  // ----------------------------------------------------------
   // If user is already authenticated, skip account creation
   // ----------------------------------------------------------
 
@@ -534,6 +745,7 @@ export default function ProviderOnboardingModal({
     "org-search": "Is your organization listed?",
     visibility: "Who can find you?",
     "create-account": "Create your account",
+    "verify-code": "Verify your email",
   };
 
   return (
@@ -958,6 +1170,86 @@ export default function ProviderOnboardingModal({
             and Privacy Policy.
           </p>
         </form>
+      )}
+
+      {/* ---- Step 5b: OTP Verification ---- */}
+      {step === "verify-code" && (
+        <div className="py-2">
+          <div className="text-center mb-6">
+            <div className="mb-4">
+              <svg className="w-14 h-14 text-primary-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-base text-gray-600">
+              We sent a verification code to
+            </p>
+            <p className="font-semibold text-gray-900 mt-1">{authEmail}</p>
+          </div>
+
+          <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 text-center mb-3">
+                Enter 6-digit code
+              </label>
+              <OtpInput
+                value={otpCode}
+                onChange={setOtpCode}
+                disabled={submitting}
+                error={!!authError}
+              />
+            </div>
+
+            {authError && (
+              <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-base text-center" role="alert">
+                {authError}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              loading={submitting}
+              fullWidth
+              size="lg"
+              disabled={otpCode.length !== 6}
+            >
+              Verify &amp; complete setup
+            </Button>
+
+            <div className="text-center space-y-3">
+              <p className="text-sm text-gray-500">
+                Didn&apos;t receive the code?
+              </p>
+              {resendCooldown > 0 ? (
+                <p className="text-sm text-gray-400">
+                  Resend available in {resendCooldown}s
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={submitting}
+                  className="text-primary-600 hover:text-primary-700 font-medium text-sm focus:outline-none focus:underline disabled:opacity-50"
+                >
+                  Resend code
+                </button>
+              )}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("create-account");
+                    setOtpCode("");
+                    setAuthError("");
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-sm focus:outline-none focus:underline"
+                >
+                  Use a different email
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       )}
     </Modal>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -8,8 +8,9 @@ import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import OtpInput from "@/components/auth/OtpInput";
 
-type AuthView = "sign-in" | "sign-up" | "check-email";
+type AuthView = "sign-in" | "sign-up" | "verify-code" | "check-email";
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal, authModalDefaultView } = useAuth();
@@ -20,6 +21,11 @@ export default function AuthModal() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // OTP verification state
+  const [otpCode, setOtpCode] = useState("");
+  const [verifyingEmail, setVerifyingEmail] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Sync view with the requested default when modal opens
   useEffect(() => {
@@ -34,11 +40,119 @@ export default function AuthModal() {
     setDisplayName("");
     setError("");
     setLoading(false);
+    setOtpCode("");
+    setVerifyingEmail("");
+    setResendCooldown(0);
   };
 
   const handleClose = () => {
     resetForm();
     closeAuthModal();
+  };
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Handle successful auth completion
+  const handleAuthSuccess = useCallback(() => {
+    setLoading(false);
+    handleClose();
+
+    const deferred = getDeferredAction();
+    if (deferred?.returnUrl) {
+      clearDeferredAction();
+      router.push(deferred.returnUrl);
+    } else if (window.location.pathname === "/onboarding") {
+      router.refresh();
+    } else {
+      router.push("/onboarding");
+    }
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Verify OTP code
+  const handleVerifyOtp = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (otpCode.length !== 6) {
+      setError("Please enter the 6-digit code.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      if (!isSupabaseConfigured()) {
+        setError("Authentication is not configured.");
+        setLoading(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: verifyingEmail,
+        token: otpCode,
+        type: "email",
+      });
+
+      if (verifyError) {
+        if (verifyError.message.includes("expired")) {
+          setError("This code has expired. Please request a new one.");
+        } else if (verifyError.message.includes("invalid")) {
+          setError("Invalid code. Please check and try again.");
+        } else {
+          setError(verifyError.message);
+        }
+        setLoading(false);
+        return;
+      }
+
+      handleAuthSuccess();
+    } catch (err) {
+      console.error("OTP verification error:", err);
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  // Resend verification code
+  const handleResendCode = async () => {
+    if (resendCooldown > 0) return;
+
+    setError("");
+    setLoading(true);
+
+    try {
+      if (!isSupabaseConfigured()) {
+        setError("Authentication is not configured.");
+        setLoading(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email: verifyingEmail,
+      });
+
+      if (resendError) {
+        setError(resendError.message);
+        setLoading(false);
+        return;
+      }
+
+      setResendCooldown(60); // 60 second cooldown
+      setOtpCode(""); // Clear any partial input
+      setLoading(false);
+    } catch (err) {
+      console.error("Resend code error:", err);
+      setError("Failed to resend code. Please try again.");
+      setLoading(false);
+    }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -68,15 +182,7 @@ export default function AuthModal() {
         return;
       }
 
-      setLoading(false);
-      handleClose();
-
-      // Check for deferred action with a returnUrl (e.g., claim flow)
-      const deferred = getDeferredAction();
-      if (deferred?.returnUrl) {
-        clearDeferredAction();
-        router.push(deferred.returnUrl);
-      }
+      handleAuthSuccess();
     } catch (err) {
       console.error("Sign in error:", err);
       setError("Something went wrong. Please try again.");
@@ -132,27 +238,16 @@ export default function AuthModal() {
           return;
         }
 
-        // Email confirmation required — show a message instead of redirecting
+        // Email confirmation required — show OTP verification screen
+        setVerifyingEmail(email);
+        setResendCooldown(30); // Initial cooldown before allowing resend
         setLoading(false);
-        setView("check-email");
+        setView("verify-code");
         return;
       }
 
       // No email confirmation — user is signed in immediately
-      setLoading(false);
-      handleClose();
-
-      // Check for deferred action with a returnUrl (e.g., claim flow)
-      const deferred = getDeferredAction();
-      if (deferred?.returnUrl) {
-        clearDeferredAction();
-        router.push(deferred.returnUrl);
-      } else if (window.location.pathname === "/onboarding") {
-        // Already on onboarding — refresh in place to preserve URL params (e.g., ?intent=)
-        router.refresh();
-      } else {
-        router.push("/onboarding");
-      }
+      handleAuthSuccess();
     } catch (err) {
       console.error("Sign up error:", err);
       setError("Something went wrong. Please try again.");
@@ -165,7 +260,9 @@ export default function AuthModal() {
       isOpen={isAuthModalOpen}
       onClose={handleClose}
       title={
-        view === "check-email"
+        view === "verify-code"
+          ? "Enter verification code"
+          : view === "check-email"
           ? "Check your email"
           : view === "sign-in"
           ? "Welcome back"
@@ -173,7 +270,84 @@ export default function AuthModal() {
       }
       size="sm"
     >
-      {view === "check-email" ? (
+      {view === "verify-code" ? (
+        <div className="py-2">
+          <div className="text-center mb-6">
+            <div className="mb-4">
+              <svg className="w-14 h-14 text-primary-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="text-base text-gray-600">
+              We sent a verification code to
+            </p>
+            <p className="font-semibold text-gray-900 mt-1">{verifyingEmail}</p>
+          </div>
+
+          <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 text-center mb-3">
+                Enter 6-digit code
+              </label>
+              <OtpInput
+                value={otpCode}
+                onChange={setOtpCode}
+                disabled={loading}
+                error={!!error}
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-base text-center" role="alert">
+                {error}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              loading={loading}
+              fullWidth
+              size="md"
+              disabled={otpCode.length !== 6}
+            >
+              Verify code
+            </Button>
+
+            <div className="text-center space-y-3">
+              <p className="text-sm text-gray-500">
+                Didn&apos;t receive the code?
+              </p>
+              {resendCooldown > 0 ? (
+                <p className="text-sm text-gray-400">
+                  Resend available in {resendCooldown}s
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={loading}
+                  className="text-primary-600 hover:text-primary-700 font-medium text-sm focus:outline-none focus:underline disabled:opacity-50"
+                >
+                  Resend code
+                </button>
+              )}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setView("sign-up");
+                    setOtpCode("");
+                    setError("");
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-sm focus:outline-none focus:underline"
+                >
+                  Use a different email
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      ) : view === "check-email" ? (
         <div className="text-center py-4">
           <div className="mb-4">
             <svg className="w-16 h-16 text-primary-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

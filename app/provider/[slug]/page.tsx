@@ -1,40 +1,20 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
-import { getProviderBySlug, mockProviderToProfile } from "@/lib/mock-providers";
-import Badge from "@/components/ui/Badge";
+import {
+  type Provider,
+  PROVIDERS_TABLE,
+  parseProviderImages,
+  formatPriceRange,
+  getPrimaryImage,
+  formatLocation,
+  getCategoryDisplayName,
+} from "@/lib/types/provider";
+import { getProviderBySlug } from "@/lib/mock-providers";
 import InquiryButton from "@/components/providers/InquiryButton";
 import ImageCarousel from "@/components/providers/ImageCarousel";
 import ExpandableText from "@/components/providers/ExpandableText";
-import CompactProviderCard from "@/components/providers/CompactProviderCard";
-import {
-  getInitials,
-  formatCategory,
-  buildQuickFacts,
-  getSimilarProviders,
-  type QuickFact,
-} from "@/lib/provider-utils";
-
-// Extended metadata type that includes mock-specific fields
-interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
-  rating?: number;
-  review_count?: number;
-  images?: string[];
-  staff?: { name: string; position: string; bio: string; image: string };
-  badge?: string;
-  accepted_payments?: string[];
-}
 
 // --- Inline SVG icon components ---
-
-function MapPinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
 
 function StarIcon({ className, filled = true }: { className?: string; filled?: boolean }) {
   return filled ? (
@@ -48,14 +28,6 @@ function StarIcon({ className, filled = true }: { className?: string; filled?: b
   );
 }
 
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
-  );
-}
-
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,40 +36,61 @@ function ChevronRightIcon({ className }: { className?: string }) {
   );
 }
 
-// Quick fact icon mapping
-const factIcons: Record<QuickFact["icon"], (props: { className?: string }) => React.JSX.Element> = {
-  category: ({ className }) => (
+function MapPinIcon({ className }: { className?: string }) {
+  return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
-  ),
-  location: MapPinIcon,
-  calendar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-  users: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
-  ),
-  award: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-    </svg>
-  ),
-  shield: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  dollar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-};
+  );
+}
+
+// --- Similar Provider Card ---
+function SimilarProviderCard({ provider }: { provider: Provider }) {
+  const primaryImage = getPrimaryImage(provider);
+  const locationStr = formatLocation(provider);
+  const rating = provider.google_rating;
+
+  return (
+    <Link
+      href={`/provider/${provider.provider_id}`}
+      className="group flex gap-3 p-3 bg-white rounded-xl border border-gray-100 hover:border-primary-200 hover:shadow-sm transition-all"
+    >
+      {/* Thumbnail */}
+      <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+        {primaryImage ? (
+          <img
+            src={primaryImage}
+            alt={provider.provider_name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
+            <span className="text-xl font-bold text-primary-500/50">
+              {provider.provider_name.charAt(0)}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate group-hover:text-primary-600 transition-colors">
+          {provider.provider_name}
+        </h3>
+        {locationStr && (
+          <p className="text-xs text-gray-500 mt-0.5 truncate">{locationStr}</p>
+        )}
+        {rating && (
+          <div className="flex items-center gap-1 mt-1.5">
+            <StarIcon className="w-3.5 h-3.5 text-yellow-400" filled />
+            <span className="text-xs font-medium text-gray-700">{rating.toFixed(1)}</span>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
 
 // ============================================================
 // Page Component
@@ -110,29 +103,78 @@ export default async function ProviderPage({
 }) {
   const { slug } = await params;
 
-  // --- Data fetching (unchanged) ---
-  let profile: Profile | null = null;
+  // --- Data fetching from iOS Supabase ---
+  let provider: Provider | null = null;
+  let similarProviders: Provider[] = [];
+
   try {
     const supabase = await createClient();
-    const { data } = await supabase
-      .from("profiles")
+    const { data, error } = await supabase
+      .from(PROVIDERS_TABLE)
       .select("*")
-      .eq("slug", slug)
-      .in("type", ["organization", "caregiver"])
-      .single<Profile>();
-    profile = data;
+      .eq("provider_id", slug)
+      .eq("deleted", false)
+      .single<Provider>();
+
+    if (!error && data) {
+      provider = data;
+
+      // Fetch similar providers (same category, different provider)
+      const { data: similar } = await supabase
+        .from(PROVIDERS_TABLE)
+        .select("*")
+        .eq("deleted", false)
+        .ilike("provider_category", `%${data.provider_category.split(" | ")[0]}%`)
+        .neq("provider_id", slug)
+        .not("provider_images", "is", null)
+        .order("google_rating", { ascending: false, nullsFirst: false })
+        .limit(6);
+
+      if (similar) {
+        similarProviders = similar as Provider[];
+      }
+    }
   } catch {
     // Supabase not configured — fall through to mock lookup
   }
 
-  if (!profile) {
+  // Fallback to mock data for development/demo
+  if (!provider) {
     const mockProvider = getProviderBySlug(slug);
     if (mockProvider) {
-      profile = mockProviderToProfile(mockProvider);
+      // Convert mock to Provider format
+      provider = {
+        provider_id: mockProvider.slug,
+        provider_name: mockProvider.name,
+        provider_category: mockProvider.primaryCategory,
+        main_category: null,
+        phone: null,
+        email: null,
+        website: null,
+        google_rating: mockProvider.rating,
+        address: mockProvider.address,
+        city: mockProvider.address.split(", ")[1] || null,
+        state: mockProvider.address.split(", ")[2]?.split(" ")[0] || null,
+        zipcode: null,
+        lat: null,
+        lon: null,
+        place_id: null,
+        provider_images: mockProvider.images?.join(" | ") || null,
+        provider_logo: mockProvider.image,
+        provider_description: mockProvider.description || null,
+        community_Score: null,
+        value_score: null,
+        information_availability_score: null,
+        lower_price: null,
+        upper_price: null,
+        contact_for_price: null,
+        deleted: false,
+        deleted_at: null,
+      };
     }
   }
 
-  if (!profile) {
+  if (!provider) {
     return (
       <div className="bg-[#FFFEF8] min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -148,45 +190,31 @@ export default async function ProviderPage({
     );
   }
 
-  // --- Data extraction ---
-  const meta = profile.metadata as ExtendedMetadata;
-  const amenities = meta?.amenities || [];
-  const priceRange =
-    meta?.price_range ||
-    (meta?.hourly_rate_min && meta?.hourly_rate_max
-      ? `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`
-      : null);
+  // --- Data extraction (using iOS schema directly) ---
+  const images = parseProviderImages(provider.provider_images);
+  const primaryImage = getPrimaryImage(provider);
+  const allImages = primaryImage && !images.includes(primaryImage)
+    ? [primaryImage, ...images]
+    : images.length > 0 ? images : (primaryImage ? [primaryImage] : []);
 
-  const rating = meta?.rating;
-  const reviewCount = meta?.review_count;
-  const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
-  const staff = meta?.staff;
-  const badge = meta?.badge;
-  const acceptedPayments = meta?.accepted_payments || [];
+  const priceRange = formatPriceRange(provider);
+  const rating = provider.google_rating;
+  const categoryLabel = getCategoryDisplayName(provider.provider_category);
+  const locationStr = formatLocation(provider);
 
-  const categoryLabel = formatCategory(profile.category);
-  const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
+  // Build full address string
+  const fullAddress = [
+    provider.address,
+    provider.city,
+    provider.state,
+    provider.zipcode,
+  ].filter(Boolean).join(", ");
 
-  const quickFacts = buildQuickFacts({
-    category: profile.category,
-    city: profile.city,
-    state: profile.state,
-    yearFounded: meta?.year_founded,
-    bedCount: meta?.bed_count,
-    yearsExperience: meta?.years_experience,
-    acceptsMedicaid: meta?.accepts_medicaid,
-    acceptsMedicare: meta?.accepts_medicare,
-    priceRange,
-  });
-
-  const similarProviders = getSimilarProviders(profile.category, profile.slug, 3);
-
-  const details: { label: string; value: string; icon: string }[] = [];
-  if (meta?.year_founded) details.push({ label: "Year Founded", value: String(meta.year_founded), icon: "calendar" });
-  if (meta?.bed_count) details.push({ label: "Capacity", value: `${meta.bed_count} beds`, icon: "users" });
-  if (meta?.years_experience) details.push({ label: "Experience", value: `${meta.years_experience} years`, icon: "award" });
-  if (meta?.accepts_medicaid !== undefined) details.push({ label: "Medicaid", value: meta.accepts_medicaid ? "Accepted" : "Not accepted", icon: "shield" });
-  if (meta?.accepts_medicare !== undefined) details.push({ label: "Medicare", value: meta.accepts_medicare ? "Accepted" : "Not accepted", icon: "shield" });
+  // Build scores display if available
+  const scores: { label: string; value: number }[] = [];
+  if (provider.community_Score) scores.push({ label: "Community", value: provider.community_Score });
+  if (provider.value_score) scores.push({ label: "Value", value: provider.value_score });
+  if (provider.information_availability_score) scores.push({ label: "Info Quality", value: provider.information_availability_score });
 
   // ============================================================
   // Render
@@ -211,7 +239,7 @@ export default async function ProviderPage({
                 <li><ChevronRightIcon className="w-3.5 h-3.5 text-gray-300" /></li>
                 <li>
                   <Link
-                    href={`/browse?type=${profile.category}`}
+                    href={`/browse?category=${encodeURIComponent(provider.provider_category)}`}
                     className="hover:text-primary-600 transition-colors"
                   >
                     {categoryLabel}
@@ -221,7 +249,7 @@ export default async function ProviderPage({
             )}
             <li><ChevronRightIcon className="w-3.5 h-3.5 text-gray-300" /></li>
             <li className="text-gray-900 font-medium truncate max-w-[200px]">
-              {profile.display_name}
+              {provider.provider_name}
             </li>
           </ol>
           <div className="flex items-center gap-4 flex-shrink-0">
@@ -248,47 +276,48 @@ export default async function ProviderPage({
           {/* Left Column — Image + Content */}
           <div className="lg:col-span-2">
 
-            {/* ── Top Stack: Image + Identity + Highlights ── */}
+            {/* ── Top Stack: Image + Identity ── */}
             <div>
               {/* Image Carousel */}
-              {images.length > 0 && (
-                <ImageCarousel images={images} alt={profile.display_name} className="h-[420px]" />
+              {allImages.length > 0 && (
+                <ImageCarousel images={allImages} alt={provider.provider_name} className="h-[420px]" />
               )}
 
               {/* Category + Provider Name + Location */}
-              <div className={images.length > 0 ? "mt-6" : ""}>
+              <div className={allImages.length > 0 ? "mt-6" : ""}>
                 {categoryLabel && (
                   <p className="text-primary-600 text-sm font-semibold uppercase tracking-wider mb-1">
                     {categoryLabel}
                   </p>
                 )}
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight flex items-center gap-2">
-                  {profile.display_name}
-                  <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                  </svg>
+                  {provider.provider_name}
+                  {rating && rating >= 4.0 && (
+                    <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                    </svg>
+                  )}
                 </h1>
-                {profile.address && (
-                  <p className="text-[15px] text-gray-500 mt-1">
-                    {profile.address}
+                {fullAddress && (
+                  <p className="text-[15px] text-gray-500 mt-1 flex items-center gap-1">
+                    <MapPinIcon className="w-4 h-4" />
+                    {fullAddress}
                   </p>
                 )}
               </div>
 
-              {/* Highlights Bar */}
-              {amenities.length > 0 && (
+              {/* Scores Bar (if available) */}
+              {scores.length > 0 && (
                 <div className="grid grid-cols-3 rounded-lg overflow-hidden mt-4 bg-white border border-gray-200 shadow-sm">
-                  {amenities.slice(0, 3).map((item, index) => (
+                  {scores.map((score, index) => (
                     <div
-                      key={item}
+                      key={score.label}
                       className={`flex flex-col items-center text-center px-4 py-4 ${
                         index > 0 ? "border-l border-gray-200" : ""
                       }`}
                     >
-                      <div className="w-9 h-9 rounded-full bg-primary-50 flex items-center justify-center mb-2.5">
-                        <CheckIcon className="w-4 h-4 text-primary-600" />
-                      </div>
-                      <p className="text-sm font-semibold text-gray-900">{item}</p>
+                      <p className="text-2xl font-bold text-primary-600">{score.value.toFixed(1)}</p>
+                      <p className="text-xs text-gray-500 font-medium mt-1">{score.label}</p>
                     </div>
                   ))}
                 </div>
@@ -298,8 +327,7 @@ export default async function ProviderPage({
             {/* ── Content Sections ── */}
             <div className="mt-[44px] space-y-[44px]">
 
-            {/* Unclaimed Banner */}
-            {profile.claim_state === "unclaimed" && (
+              {/* Unclaimed Banner */}
               <div className="bg-warm-50 border border-warm-200 rounded-xl p-4 md:p-5">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -318,115 +346,62 @@ export default async function ProviderPage({
                     </div>
                   </div>
                   <Link
-                    href={`/for-providers/claim/${profile.slug}`}
+                    href={`/for-providers/claim/${provider.provider_id}`}
                     className="shrink-0 bg-primary-600 hover:bg-primary-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors text-sm"
                   >
                     Claim This Profile
                   </Link>
                 </div>
               </div>
-            )}
 
-            {/* Services Offered */}
-            {profile.care_types && profile.care_types.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2.5">Services Offered</h2>
-                <div className="flex flex-wrap gap-2">
-                  {profile.care_types.map((type) => (
-                    <span
-                      key={type}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 text-primary-700 text-sm font-medium border border-primary-100"
-                    >
-                      <CheckIcon className="w-3.5 h-3.5" />
-                      {type}
-                    </span>
-                  ))}
+              {/* About */}
+              {provider.provider_description && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2.5">
+                    About {provider.provider_name}
+                  </h2>
+                  <ExpandableText text={provider.provider_description} maxLength={400} />
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* About */}
-            {profile.description && (
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2.5">
-                  About {profile.display_name}
-                </h2>
-                <ExpandableText text={profile.description} maxLength={250} />
-              </div>
-            )}
+              {/* Category Info */}
+              {provider.provider_category && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2.5">Care Type</h2>
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary-50 text-primary-700 text-sm font-medium border border-primary-100">
+                    {provider.provider_category}
+                  </span>
+                </div>
+              )}
 
-            {/* Meet Our Team */}
-            {staff && (
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2.5">Meet Our Team</h2>
-                <div className="flex items-start gap-4">
-                  {staff.image ? (
-                    <img
-                      src={staff.image}
-                      alt={staff.name}
-                      className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border border-gray-100"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-lg font-bold text-primary-600">
-                        {getInitials(staff.name)}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{staff.name}</h3>
-                    <p className="text-primary-600 text-sm font-medium">{staff.position}</p>
-                    <p className="text-gray-500 text-sm mt-2 leading-relaxed">{staff.bio}</p>
+              {/* Similar Providers */}
+              {similarProviders.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      Similar {categoryLabel} Providers
+                    </h2>
+                    <Link
+                      href={`/browse?type=${categoryLabel.toLowerCase().replace(/\s+/g, "-")}`}
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                    >
+                      View all
+                      <ChevronRightIcon className="w-4 h-4" />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {similarProviders.slice(0, 4).map((similar) => (
+                      <SimilarProviderCard key={similar.provider_id} provider={similar} />
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Amenities & Highlights */}
-            {amenities.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2.5">Amenities &amp; Highlights</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {amenities.map((amenity) => (
-                    <div key={amenity} className="flex items-center gap-3 py-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
-                        <CheckIcon className="w-4 h-4 text-primary-600" />
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">{amenity}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Details */}
-            {details.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2.5">Details</h2>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {details.map((detail) => {
-                    const IconComp = factIcons[detail.icon as QuickFact["icon"]] || factIcons.category;
-                    return (
-                      <div key={detail.label} className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <IconComp className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <div>
-                          <dt className="text-xs text-gray-500 font-medium">{detail.label}</dt>
-                          <dd className="text-sm text-gray-900 font-semibold">{detail.value}</dd>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </dl>
-              </div>
-            )}
+              )}
             </div>
           </div>
 
           {/* Right Column — Sticky Sidebar */}
           <div className="lg:col-span-1 self-stretch">
-            <div className="sticky top-24 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[646px]">
+            <div className="sticky top-24 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col">
               {/* Accent bar */}
               <div className="h-1 bg-gradient-to-r from-primary-500 to-primary-600" />
 
@@ -434,7 +409,7 @@ export default async function ProviderPage({
                 {/* Price */}
                 {priceRange && (
                   <div className="text-center pb-4 border-b border-gray-100">
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Starting from</p>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pricing</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">{priceRange}</p>
                   </div>
                 )}
@@ -452,33 +427,31 @@ export default async function ProviderPage({
                       ))}
                     </div>
                     <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
-                    {reviewCount && (
-                      <span className="text-sm text-gray-500">({reviewCount})</span>
-                    )}
+                    <span className="text-sm text-gray-500">Google</span>
                   </div>
                 )}
 
                 {/* CTA Buttons */}
                 <div className="space-y-2.5">
                   <InquiryButton
-                    providerProfileId={profile.id}
-                    providerName={profile.display_name}
-                    providerSlug={profile.slug}
+                    providerProfileId={provider.provider_id}
+                    providerName={provider.provider_name}
+                    providerSlug={provider.provider_id}
                   />
-                  {profile.phone && (
+                  {provider.phone && (
                     <a
-                      href={`tel:${profile.phone}`}
+                      href={`tel:${provider.phone}`}
                       className="w-full border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2 min-h-[44px] text-sm"
                     >
                       <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
-                      {profile.phone}
+                      {provider.phone}
                     </a>
                   )}
-                  {profile.website && (
+                  {provider.website && (
                     <a
-                      href={profile.website}
+                      href={provider.website}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2 min-h-[44px] text-sm"
@@ -489,33 +462,25 @@ export default async function ProviderPage({
                       Visit Website
                     </a>
                   )}
+                  {provider.email && (
+                    <a
+                      href={`mailto:${provider.email}`}
+                      className="w-full border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2 min-h-[44px] text-sm"
+                    >
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Email
+                    </a>
+                  )}
                 </div>
 
-                {/* Accepted Payments */}
-                {acceptedPayments.length > 0 && (
-                  <div className="pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 font-medium mb-2">Accepted payments</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {acceptedPayments.map((payment) => (
-                        <span
-                          key={payment}
-                          className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-600 border border-gray-100"
-                        >
-                          {payment}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Hours */}
-                {meta?.hours && (
+                {/* Location */}
+                {locationStr && (
                   <div className="pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className="text-sm text-gray-600">{meta.hours}</p>
+                      <MapPinIcon className="w-4 h-4 text-gray-400" />
+                      <p className="text-sm text-gray-600">{locationStr}</p>
                     </div>
                   </div>
                 )}
@@ -524,22 +489,6 @@ export default async function ProviderPage({
           </div>
         </div>
       </div>
-
-      {/* ===== Similar Providers ===== */}
-      {similarProviders.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-          <div className="border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Similar providers nearby
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {similarProviders.map((provider) => (
-                <CompactProviderCard key={provider.id} provider={provider} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

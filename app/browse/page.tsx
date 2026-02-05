@@ -1,19 +1,23 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
+import {
+  type Provider,
+  PROVIDERS_TABLE,
+  formatLocation,
+  formatPriceRange,
+  getCategoryDisplayName,
+  getPrimaryImage,
+} from "@/lib/types/provider";
 import BrowseFilters from "@/components/browse/BrowseFilters";
 
+// Care types matching iOS Supabase provider_category values
 const CARE_TYPE_OPTIONS = [
-  "Assisted Living",
-  "Memory Care",
-  "Independent Living",
-  "Skilled Nursing",
-  "Home Care",
-  "Home Health",
-  "Hospice",
-  "Respite Care",
-  "Adult Day Care",
-  "Rehabilitation",
+  { label: "Home Care", value: "Home Care (Non-medical)" },
+  { label: "Home Health", value: "Home Health Care" },
+  { label: "Assisted Living", value: "Assisted Living" },
+  { label: "Memory Care", value: "Memory Care" },
+  { label: "Independent Living", value: "Independent Living" },
+  { label: "Nursing Home", value: "Nursing Home" },
 ];
 
 interface BrowsePageProps {
@@ -31,23 +35,22 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   const careTypeFilter = params.type || "";
   const stateFilter = params.state || "";
 
-  let profiles: Profile[] = [];
+  let providers: Provider[] = [];
   let fetchError = false;
 
   try {
     const supabase = await createClient();
     let query = supabase
-      .from("profiles")
+      .from(PROVIDERS_TABLE)
       .select("*")
-      .neq("type", "family")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
+      .eq("deleted", false)
+      .order("google_rating", { ascending: false, nullsFirst: false })
       .limit(50);
 
-    // Text search on display_name or city
+    // Text search on provider_name or city
     if (searchQuery) {
       query = query.or(
-        `display_name.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,zip.eq.${searchQuery}`
+        `provider_name.ilike.%${searchQuery}%,city.ilike.%${searchQuery}%,zipcode.eq.${parseInt(searchQuery) || 0}`
       );
     }
 
@@ -56,14 +59,15 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
       query = query.ilike("state", stateFilter);
     }
 
-    // Care type filter
+    // Care type filter - match iOS provider_category
     if (careTypeFilter) {
-      // Map URL slug back to display name
-      const careTypeName = CARE_TYPE_OPTIONS.find(
-        (ct) => ct.toLowerCase().replace(/\s+/g, "-") === careTypeFilter
+      // Find the iOS category value from the URL slug
+      const careTypeOption = CARE_TYPE_OPTIONS.find(
+        (ct) => ct.label.toLowerCase().replace(/\s+/g, "-") === careTypeFilter
       );
-      if (careTypeName) {
-        query = query.contains("care_types", [careTypeName]);
+      if (careTypeOption) {
+        // Use ilike with % to match combined categories like "Assisted Living | Memory Care"
+        query = query.ilike("provider_category", `%${careTypeOption.value}%`);
       }
     }
 
@@ -72,9 +76,10 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
       console.error("Browse fetch error:", error.message);
       fetchError = true;
     } else {
-      profiles = (data as Profile[]) || [];
+      providers = (data as Provider[]) || [];
     }
-  } catch {
+  } catch (err) {
+    console.error("Browse page error:", err);
     fetchError = true;
   }
 
@@ -95,7 +100,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
       {/* Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <BrowseFilters
-          careTypes={CARE_TYPE_OPTIONS}
+          careTypes={CARE_TYPE_OPTIONS.map((ct) => ct.label)}
           currentQuery={searchQuery}
           currentType={careTypeFilter}
           currentState={stateFilter}
@@ -110,7 +115,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
               Unable to load providers. Please try again later.
             </p>
           </div>
-        ) : profiles.length === 0 ? (
+        ) : providers.length === 0 ? (
           <div className="text-center py-12">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               No providers found
@@ -132,11 +137,11 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
         ) : (
           <>
             <p className="text-base text-gray-500 mb-6">
-              {profiles.length} provider{profiles.length !== 1 ? "s" : ""} found
+              {providers.length} provider{providers.length !== 1 ? "s" : ""} found
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {profiles.map((profile) => (
-                <BrowseCard key={profile.id} profile={profile} />
+              {providers.map((provider) => (
+                <ProviderBrowseCard key={provider.provider_id} provider={provider} />
               ))}
             </div>
           </>
@@ -146,58 +151,54 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   );
 }
 
-function BrowseCard({ profile }: { profile: Profile }) {
-  const meta = profile.metadata as OrganizationMetadata & CaregiverMetadata;
-  const priceRange =
-    meta?.price_range ||
-    (meta?.hourly_rate_min && meta?.hourly_rate_max
-      ? `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`
-      : null);
-  const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
-  const displayedCareTypes = (profile.care_types || []).slice(0, 2);
-  const remainingCount = Math.max(0, (profile.care_types || []).length - 2);
+function ProviderBrowseCard({ provider }: { provider: Provider }) {
+  const priceRange = formatPriceRange(provider);
+  const locationStr = formatLocation(provider);
+  const categoryDisplay = getCategoryDisplayName(provider.provider_category);
+  const primaryImage = getPrimaryImage(provider);
+  const rating = provider.google_rating;
 
   return (
     <Link
-      href={`/provider/${profile.slug}`}
+      href={`/provider/${provider.provider_id}`}
       className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:border-primary-200 transition-shadow duration-200 block cursor-pointer"
     >
       {/* Image */}
       <div className="relative h-48 bg-gray-200">
-        {profile.image_url ? (
+        {primaryImage ? (
           <img
-            src={profile.image_url}
-            alt={profile.display_name}
+            src={primaryImage}
+            alt={provider.provider_name}
             className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-300 flex items-center justify-center">
             <span className="text-4xl font-bold text-primary-600/40">
-              {profile.display_name.charAt(0)}
+              {provider.provider_name.charAt(0)}
             </span>
           </div>
         )}
 
-        {/* Claim state badge */}
-        {profile.claim_state === "claimed" &&
-          profile.verification_state === "verified" && (
-            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-primary-600 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Verified
-            </div>
-          )}
+        {/* Rating badge */}
+        {rating && rating >= 4.0 && (
+          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-900 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5">
+            <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+            {rating.toFixed(1)}
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-4">
+        {/* Category */}
+        <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide mb-1">
+          {categoryDisplay}
+        </p>
+
         <h3 className="font-semibold text-gray-900 text-lg leading-tight">
-          {profile.display_name}
+          {provider.provider_name}
         </h3>
 
         {locationStr && (
@@ -208,24 +209,6 @@ function BrowseCard({ profile }: { profile: Profile }) {
           <div className="mt-3">
             <p className="text-gray-500 text-sm">Estimated Pricing</p>
             <p className="text-gray-900 font-semibold">{priceRange}</p>
-          </div>
-        )}
-
-        {displayedCareTypes.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
-            {displayedCareTypes.map((ct) => (
-              <span
-                key={ct}
-                className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full"
-              >
-                {ct}
-              </span>
-            ))}
-            {remainingCount > 0 && (
-              <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
-                +{remainingCount} more
-              </span>
-            )}
           </div>
         )}
 

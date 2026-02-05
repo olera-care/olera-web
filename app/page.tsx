@@ -6,6 +6,14 @@ import Link from "next/link";
 import Image from "next/image";
 import ProviderCard from "@/components/providers/ProviderCard";
 import { topProviders, providersByCategory } from "@/lib/mock-providers";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  type Provider as IOSProvider,
+  type ProviderCardData,
+  PROVIDERS_TABLE,
+  toCardFormat,
+  mockToCardFormat,
+} from "@/lib/types/provider";
 
 // Hook to detect when element is in view
 function useInView(threshold: number = 0.3) {
@@ -548,11 +556,23 @@ function BentoGridSection() {
   );
 }
 
+// Map UI category IDs to iOS Supabase provider_category values
+const categoryToProviderCategory: Record<string, string> = {
+  "home-care": "Home Care (Non-medical)",
+  "home-health": "Home Health Care",
+  "assisted-living": "Assisted Living",
+  "memory-care": "Memory Care",
+  "independent-living": "Independent Living",
+  "nursing-home": "Nursing Home",
+};
+
 // Browse by Care Type Section Component
 function BrowseByCareTypeSection() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>("home-care");
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [categoryProviders, setCategoryProviders] = useState<ProviderCardData[]>([]);
+  const [isLoadingCategory, setIsLoadingCategory] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const updateScrollState = useCallback(() => {
@@ -607,7 +627,56 @@ function BrowseByCareTypeSection() {
     }
   };
 
-  const selectedProviders = selectedCategory ? providersByCategory[selectedCategory] || [] : [];
+  // Fetch providers for selected category from iOS Supabase
+  useEffect(() => {
+    async function fetchCategoryProviders() {
+      if (!selectedCategory) {
+        setCategoryProviders([]);
+        setIsLoadingCategory(false);
+        return;
+      }
+
+      setIsLoadingCategory(true);
+      const providerCategory = categoryToProviderCategory[selectedCategory];
+
+      if (!isSupabaseConfigured() || !providerCategory) {
+        // Fall back to mock data
+        const mockProviders = providersByCategory[selectedCategory] || [];
+        setCategoryProviders(mockProviders.map(mockToCardFormat));
+        setIsLoadingCategory(false);
+        return;
+      }
+
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from(PROVIDERS_TABLE)
+          .select("*")
+          .eq("deleted", false)
+          .ilike("provider_category", `%${providerCategory}%`)
+          .not("provider_images", "is", null)
+          .order("google_rating", { ascending: false, nullsFirst: false })
+          .limit(8);
+
+        if (error || !data || data.length === 0) {
+          // Fall back to mock data
+          const mockProviders = providersByCategory[selectedCategory] || [];
+          setCategoryProviders(mockProviders.map(mockToCardFormat));
+        } else {
+          setCategoryProviders((data as IOSProvider[]).map(toCardFormat));
+        }
+      } catch (err) {
+        console.error("Error fetching category providers:", err);
+        // Fall back to mock data
+        const mockProviders = providersByCategory[selectedCategory] || [];
+        setCategoryProviders(mockProviders.map(mockToCardFormat));
+      } finally {
+        setIsLoadingCategory(false);
+      }
+    }
+
+    fetchCategoryProviders();
+  }, [selectedCategory]);
 
   return (
     <section className="pt-8 md:pt-12 pb-6 md:pb-10">
@@ -699,11 +768,18 @@ function BrowseByCareTypeSection() {
                 ref={scrollContainerRef}
                 className="flex gap-5 overflow-x-scroll pb-4 scrollbar-hide"
               >
-                {selectedProviders.slice(0, 6).map((provider) => (
-                  <div key={provider.id} className="flex-shrink-0 w-[370px] h-[512px]">
-                    <ProviderCard provider={provider} />
-                  </div>
-                ))}
+                {isLoadingCategory ? (
+                  // Loading skeleton
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex-shrink-0 w-[370px] h-[512px] bg-gray-100 rounded-2xl animate-pulse" />
+                  ))
+                ) : (
+                  categoryProviders.slice(0, 6).map((provider) => (
+                    <div key={provider.id} className="flex-shrink-0 w-[370px] h-[512px]">
+                      <ProviderCard provider={provider} />
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -730,8 +806,51 @@ export default function HomePage() {
   const [careType, setCareType] = useState("");
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [featuredProviders, setFeaturedProviders] = useState<ProviderCardData[]>([]);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(true);
   const router = useRouter();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  // Fetch featured providers from iOS Supabase
+  useEffect(() => {
+    async function fetchFeaturedProviders() {
+      if (!isSupabaseConfigured()) {
+        // Fall back to mock data if Supabase not configured
+        setFeaturedProviders(topProviders.map(mockToCardFormat));
+        setIsLoadingProviders(false);
+        return;
+      }
+
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from(PROVIDERS_TABLE)
+          .select("*")
+          .eq("deleted", false)
+          .not("google_rating", "is", null)
+          .gte("google_rating", 4.0)
+          .not("provider_images", "is", null)
+          .order("google_rating", { ascending: false })
+          .limit(8);
+
+        if (error || !data || data.length === 0) {
+          // Fall back to mock data
+          setFeaturedProviders(topProviders.map(mockToCardFormat));
+        } else {
+          // Convert iOS providers to card format
+          setFeaturedProviders((data as IOSProvider[]).map(toCardFormat));
+        }
+      } catch (err) {
+        console.error("Error fetching providers:", err);
+        // Fall back to mock data
+        setFeaturedProviders(topProviders.map(mockToCardFormat));
+      } finally {
+        setIsLoadingProviders(false);
+      }
+    }
+
+    fetchFeaturedProviders();
+  }, []);
 
   const updateScrollState = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -963,11 +1082,18 @@ export default function HomePage() {
               ref={scrollContainerRef}
               className="flex gap-5 overflow-x-scroll pb-4 scrollbar-hide"
             >
-              {topProviders.map((provider) => (
-                <div key={provider.id} className="flex-shrink-0 w-[370px] h-[512px]">
-                  <ProviderCard provider={provider} />
-                </div>
-              ))}
+              {isLoadingProviders ? (
+                // Loading skeleton
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[370px] h-[512px] bg-gray-100 rounded-2xl animate-pulse" />
+                ))
+              ) : (
+                featuredProviders.map((provider) => (
+                  <div key={provider.id} className="flex-shrink-0 w-[370px] h-[512px]">
+                    <ProviderCard provider={provider} />
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

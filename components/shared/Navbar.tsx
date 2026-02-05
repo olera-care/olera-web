@@ -77,9 +77,13 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className={`sticky top-0 z-50 transition-all duration-300 bg-white ${
-        isScrolled ? "shadow-sm" : ""
-      } ${!navbarVisible ? "-translate-y-full" : "translate-y-0"}`}>
+      <nav
+        className={`sticky top-0 z-50 bg-white ${isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        style={{
+          transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
+          transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}

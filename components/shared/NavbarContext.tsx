@@ -43,20 +43,29 @@ export function NavbarProvider({ children }: { children: React.ReactNode }) {
     if (!autoHide || forceHidden) return;
 
     setVisible(true);
+    let ticking = false;
 
     const handleScroll = () => {
-      const currentY = window.scrollY;
-      const delta = currentY - lastScrollY.current;
+      if (ticking) return;
 
-      if (Math.abs(delta) < scrollThreshold) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const currentY = window.scrollY;
+        const delta = currentY - lastScrollY.current;
 
-      if (delta > 0 && currentY > 80) {
-        setVisible(false);
-      } else {
-        setVisible(true);
-      }
+        // Only update if scroll delta exceeds threshold
+        if (Math.abs(delta) >= scrollThreshold) {
+          if (delta > 0 && currentY > 80) {
+            setVisible(false);
+          } else if (delta < -scrollThreshold) {
+            // Require more deliberate scroll-up to show navbar
+            setVisible(true);
+          }
+          lastScrollY.current = currentY;
+        }
 
-      lastScrollY.current = currentY;
+        ticking = false;
+      });
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });

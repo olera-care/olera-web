@@ -94,7 +94,7 @@ function CarouselSection({
   return (
     <div className="mb-10">
       <div className="mb-3">
-        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
       </div>
       <div className="relative group/carousel">
         <div
@@ -152,9 +152,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return () => disableAutoHide();
   }, [enableAutoHide, disableAutoHide]);
 
-  // Filter states
-  const [searchLocation, setSearchLocation] = useState("Austin, TX");
-  const [locationInput, setLocationInput] = useState("Austin, TX");
+  // Filter states - use searchQuery from URL if provided, otherwise default to Austin, TX
+  const initialLocation = searchQuery?.trim() || "Austin, TX";
+  const [searchLocation, setSearchLocation] = useState(initialLocation);
+  const [locationInput, setLocationInput] = useState(initialLocation);
   const [selectedRating, setSelectedRating] = useState("any");
   const [selectedPayment, setSelectedPayment] = useState("any");
   const [sortBy, setSortBy] = useState("recommended");
@@ -323,14 +324,20 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return result;
   }, [isAllTypes, careType, selectedRating, selectedPayment, sortBy]);
 
-  // Categorized providers for carousel view
+  // Categorized providers for carousel view - override badges to match section
   const topRatedProviders = useMemo(
-    () => [...filteredProviders].sort((a, b) => b.rating - a.rating).slice(0, 8),
+    () => [...filteredProviders]
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 8)
+      .map((p) => ({ ...p, badge: "Top Rated" })),
     [filteredProviders]
   );
 
   const affordableProviders = useMemo(
-    () => filteredProviders.filter((p) => p.acceptedPayments?.includes("Medicaid")).slice(0, 8),
+    () => filteredProviders
+      .filter((p) => p.acceptedPayments?.includes("Medicaid"))
+      .slice(0, 8)
+      .map((p) => ({ ...p, badge: undefined })), // No badge for affordable section
     [filteredProviders]
   );
 
@@ -338,16 +345,20 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     () =>
       [...filteredProviders]
         .sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0))
-        .slice(0, 8),
+        .slice(0, 8)
+        .map((p) => ({ ...p, badge: "Top Rated" })),
     [filteredProviders]
   );
 
   const featuredProviders = useMemo(
-    () => filteredProviders.filter((p) => p.verified).slice(0, 8),
+    () => filteredProviders
+      .filter((p) => p.verified)
+      .slice(0, 8)
+      .map((p) => ({ ...p, badge: "Featured" })),
     [filteredProviders]
   );
 
-  // For "all" view, group by type
+  // For "all" view, group by type - keep original badges for category sections
   const homeCareProviders = useMemo(
     () => filteredProviders.filter((p) => p.primaryCategory === "Home Care").slice(0, 8),
     [filteredProviders]
@@ -387,11 +398,17 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Filter Bar - Sticky below navbar (slides to top-0 when navbar hides) */}
-      <div className={`sticky z-40 bg-white border-b border-gray-200 transition-all duration-300 ${navbarVisible ? "top-[64px]" : "top-0"}`}>
+      {/* Filter Bar - Sticky below navbar (slides smoothly with navbar hide/show), fixed at top-0 for map view */}
+      <div
+        className={`z-40 bg-white border-b border-gray-200 ${isMapView ? "fixed top-0 left-0 right-0" : "sticky top-0 -mt-16"}`}
+        style={!isMapView ? {
+          transform: navbarVisible ? "translateY(64px)" : "translateY(0)",
+          transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
+        } : undefined}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-3">
           {/* Filter Buttons - Left Side */}
-          <div className="flex items-center gap-2 flex-nowrap overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-2 flex-nowrap overflow-visible">
             {/* Location Dropdown */}
             <div className="relative dropdown-container flex-shrink-0">
               <button
@@ -402,7 +419,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                   setShowRatingDropdown(false);
                   setShowPaymentDropdown(false);
                   setShowSortDropdown(false);
-                  setTimeout(() => locationInputRef.current?.focus(), 100);
+                  setTimeout(() => locationInputRef.current?.focus({ preventScroll: true }), 100);
                 }}
                 className={`flex items-center justify-between h-9 px-3 w-[250px] rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                   searchLocation !== "Austin, TX"
@@ -783,9 +800,9 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       <div className={viewMode === "map" ? "" : ""}>
         {/* Carousel View */}
         {viewMode === "carousel" && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[94px] pb-8">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-8">
+            <div className="flex items-center gap-3 mb-[34px]">
               <h1 className="text-2xl font-bold text-gray-900">
                 {careTypeLabel} in {searchLocation}
               </h1>
@@ -857,8 +874,8 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
         {/* Grid View */}
         {viewMode === "grid" && (
-          <div className="min-h-[calc(100vh-200px)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8">
-            <div className="flex items-center gap-3 mb-8">
+          <div className="min-h-[calc(100vh-200px)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[94px] pb-8">
+            <div className="flex items-center gap-3 mb-4">
               <h1 className="text-2xl font-bold text-gray-900">
                 {careTypeLabel} in {searchLocation}
               </h1>
@@ -888,14 +905,14 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
         {/* Map View */}
         {viewMode === "map" && (
-          <div className="flex" style={{ height: "calc(100vh - 56px)" }}>
+          <div className="flex" style={{ height: "100vh" }}>
             {/* Left Side - Listings (aligned with navbar) */}
             <div
               ref={mapListingsRef}
-              className="w-full lg:w-[50%] h-full overflow-y-auto bg-gray-50"
+              className="w-full lg:flex-1 h-full overflow-y-auto bg-gray-50"
             >
               <div className="px-4 sm:px-6 lg:pr-6 pt-6 pb-8" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-4">
                   <h1 className="text-2xl font-bold text-gray-900">
                     {careTypeLabel} in {searchLocation}
                   </h1>
@@ -930,8 +947,8 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
             </div>
 
             {/* Right Side - Map (independent section with rounded corners + inset) */}
-            <div className="hidden lg:flex lg:flex-1 h-full py-3 pl-0" style={{ paddingRight: "max(calc((100vw - 80rem) / 2 + 2rem), 1rem)" }}>
-              <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+            <div className="hidden lg:flex flex-col w-[600px] h-full pt-6 pb-[90px] pl-0" style={{ paddingRight: "max(calc((100vw - 80rem) / 2 + 2rem), 1rem)" }}>
+              <div className="relative w-full flex-1 min-h-0 rounded-2xl overflow-hidden shadow-sm border border-gray-200">
                 <img
                   src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1200&h=1600&fit=crop"
                   alt="Map view"

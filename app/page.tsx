@@ -122,13 +122,39 @@ const careCategories = [
 
 // Care type options for search dropdown
 const careTypeOptions = [
-  { value: "", label: "Type of care" },
-  { value: "assisted-living", label: "Assisted Living" },
+  { value: "home-health", label: "Home Health" },
   { value: "home-care", label: "Home Care" },
+  { value: "assisted-living", label: "Assisted Living" },
+  { value: "nursing-home", label: "Nursing Home" },
   { value: "memory-care", label: "Memory Care" },
   { value: "independent-living", label: "Independent Living" },
-  { value: "skilled-nursing", label: "Skilled Nursing" },
-  { value: "respite-care", label: "Respite Care" },
+];
+
+// Location suggestions for autocomplete
+const locationSuggestions = [
+  { city: "Dallas", state: "TX", full: "Dallas, TX" },
+  { city: "Plano", state: "TX", full: "Plano, TX" },
+  { city: "Frisco", state: "TX", full: "Frisco, TX" },
+  { city: "Irving", state: "TX", full: "Irving, TX" },
+  { city: "Richardson", state: "TX", full: "Richardson, TX" },
+  { city: "Garland", state: "TX", full: "Garland, TX" },
+  { city: "McKinney", state: "TX", full: "McKinney, TX" },
+  { city: "Carrollton", state: "TX", full: "Carrollton, TX" },
+  { city: "Arlington", state: "TX", full: "Arlington, TX" },
+  { city: "Fort Worth", state: "TX", full: "Fort Worth, TX" },
+  { city: "Austin", state: "TX", full: "Austin, TX" },
+  { city: "Houston", state: "TX", full: "Houston, TX" },
+  { city: "San Antonio", state: "TX", full: "San Antonio, TX" },
+  { city: "New York", state: "NY", full: "New York, NY" },
+  { city: "Los Angeles", state: "CA", full: "Los Angeles, CA" },
+  { city: "Chicago", state: "IL", full: "Chicago, IL" },
+  { city: "Phoenix", state: "AZ", full: "Phoenix, AZ" },
+  { city: "Philadelphia", state: "PA", full: "Philadelphia, PA" },
+  { city: "Denver", state: "CO", full: "Denver, CO" },
+  { city: "Seattle", state: "WA", full: "Seattle, WA" },
+  { city: "Miami", state: "FL", full: "Miami, FL" },
+  { city: "Atlanta", state: "GA", full: "Atlanta, GA" },
+  { city: "Boston", state: "MA", full: "Boston, MA" },
 ];
 
 // Scrolling tags data
@@ -801,15 +827,111 @@ function BrowseByCareTypeSection() {
   );
 }
 
+// US state abbreviation mapping
+const stateAbbreviations: Record<string, string> = {
+  Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
+  Colorado: "CO", Connecticut: "CT", Delaware: "DE", Florida: "FL", Georgia: "GA",
+  Hawaii: "HI", Idaho: "ID", Illinois: "IL", Indiana: "IN", Iowa: "IA",
+  Kansas: "KS", Kentucky: "KY", Louisiana: "LA", Maine: "ME", Maryland: "MD",
+  Massachusetts: "MA", Michigan: "MI", Minnesota: "MN", Mississippi: "MS", Missouri: "MO",
+  Montana: "MT", Nebraska: "NE", Nevada: "NV", "New Hampshire": "NH", "New Jersey": "NJ",
+  "New Mexico": "NM", "New York": "NY", "North Carolina": "NC", "North Dakota": "ND", Ohio: "OH",
+  Oklahoma: "OK", Oregon: "OR", Pennsylvania: "PA", "Rhode Island": "RI", "South Carolina": "SC",
+  "South Dakota": "SD", Tennessee: "TN", Texas: "TX", Utah: "UT", Vermont: "VT",
+  Virginia: "VA", Washington: "WA", "West Virginia": "WV", Wisconsin: "WI", Wyoming: "WY",
+  "District of Columbia": "DC",
+};
+
 export default function HomePage() {
-  const [location, setLocation] = useState("");
-  const [careType, setCareType] = useState("");
+  const [location, setLocation] = useState("Houston, TX");
+  const [careType, setCareType] = useState("home-health");
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showCareTypeDropdown, setShowCareTypeDropdown] = useState(false);
+  const [isGeolocating, setIsGeolocating] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [featuredProviders, setFeaturedProviders] = useState<ProviderCardData[]>([]);
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
   const router = useRouter();
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+  const careTypeDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Geolocation function
+  const detectLocation = () => {
+    if (!navigator.geolocation) return;
+
+    setIsGeolocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&countrycodes=us`
+          );
+          const data = await response.json();
+
+          const country = data.address?.country_code?.toUpperCase();
+          if (country !== "US") {
+            setIsGeolocating(false);
+            return;
+          }
+
+          const city =
+            data.address?.city ||
+            data.address?.town ||
+            data.address?.village ||
+            data.address?.county ||
+            "Unknown";
+          const stateName = data.address?.state || "";
+          const stateAbbr =
+            stateAbbreviations[stateName] || stateName.substring(0, 2).toUpperCase();
+          const locationString = `${city}, ${stateAbbr}`;
+          setLocation(locationString);
+        } catch {
+          // Silently fail
+        }
+        setIsGeolocating(false);
+      },
+      () => {
+        setIsGeolocating(false);
+      }
+    );
+  };
+
+  // Filter location suggestions based on input
+  const filteredLocations = React.useMemo(() => {
+    if (!location.trim()) return locationSuggestions.slice(0, 8);
+    const search = location.toLowerCase();
+    return locationSuggestions
+      .filter(
+        (loc) =>
+          loc.city.toLowerCase().includes(search) ||
+          loc.state.toLowerCase().includes(search) ||
+          loc.full.toLowerCase().includes(search)
+      )
+      .slice(0, 8);
+  }, [location]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        locationDropdownRef.current &&
+        !locationDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowLocationDropdown(false);
+      }
+      if (
+        careTypeDropdownRef.current &&
+        !careTypeDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowCareTypeDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch featured providers from iOS Supabase
   useEffect(() => {
@@ -903,20 +1025,22 @@ export default function HomePage() {
   };
 
   return (
-    <div className="bg-[#FFFEF8]">
+    <div className="bg-gray-50">
       {/* Hero Section - Full Image Background */}
       <section className="pt-4 pb-8">
         <div className="mx-4 sm:mx-6 lg:mx-8">
-          <div className="relative rounded-[2rem] min-h-[75vh] flex items-center px-8 md:px-16 lg:px-20 py-16 md:py-20 overflow-hidden">
-            {/* Background Image */}
-            <img
-              src="/hero.png"
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            {/* Warm gradient overlay for readability */}
-            <div className="absolute inset-0 bg-gradient-to-r from-warm-950/85 via-warm-900/70 to-warm-900/40" />
-            <div className="absolute inset-0 bg-gradient-to-t from-warm-950/50 via-transparent to-warm-900/20" />
+          <div className="relative rounded-[2rem] min-h-[75vh] flex items-center px-8 md:px-16 lg:px-20 py-16 md:py-20">
+            {/* Background Image Container - overflow hidden only for bg */}
+            <div className="absolute inset-0 rounded-[2rem] overflow-hidden">
+              <img
+                src="/hero.png"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* Warm gradient overlay for readability */}
+              <div className="absolute inset-0 bg-gradient-to-r from-warm-950/85 via-warm-900/70 to-warm-900/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-warm-950/50 via-transparent to-warm-900/20" />
+            </div>
 
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col items-center text-center">
@@ -940,70 +1064,168 @@ export default function HomePage() {
               <div className="mt-8 w-full max-w-3xl">
                 <form onSubmit={handleSearch}>
                   <div className="bg-white/95 backdrop-blur-sm shadow-2xl p-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl">
-                    {/* Location Input */}
-                    <div className="flex-1 flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-                      <svg
-                        className="w-5 h-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    {/* Location Input with Dropdown */}
+                    <div className="relative flex-1" ref={locationDropdownRef}>
+                      <div
+                        className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors cursor-text ${
+                          showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => {
+                          setShowLocationDropdown(true);
+                          locationInputRef.current?.focus();
+                        }}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        <svg
+                          className="w-5 h-5 text-gray-400 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                        <input
+                          ref={locationInputRef}
+                          type="text"
+                          value={location}
+                          onChange={(e) => {
+                            setLocation(e.target.value);
+                            setShowLocationDropdown(true);
+                          }}
+                          onFocus={() => setShowLocationDropdown(true)}
+                          placeholder="City or ZIP code"
+                          className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
                         />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
-                      <input
-                        type="text"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder="City or ZIP code"
-                        className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
-                      />
+                      </div>
+
+                      {/* Location Dropdown */}
+                      {showLocationDropdown && (
+                        <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[300px] overflow-y-auto">
+                          {/* Use Current Location Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              detectLocation();
+                              setShowLocationDropdown(false);
+                            }}
+                            disabled={isGeolocating}
+                            className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-primary-600 hover:bg-primary-50 transition-colors"
+                          >
+                            {isGeolocating ? (
+                              <svg className="w-4 h-4 text-primary-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                              </svg>
+                            )}
+                            <span className="font-medium">
+                              {isGeolocating ? "Detecting..." : "Use my current location"}
+                            </span>
+                          </button>
+
+                          <div className="border-t border-gray-100 my-1" />
+
+                          {filteredLocations.length > 0 ? (
+                            filteredLocations.map((loc) => (
+                              <button
+                                key={loc.full}
+                                type="button"
+                                onClick={() => {
+                                  setLocation(loc.full);
+                                  setShowLocationDropdown(false);
+                                }}
+                                className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                                  location === loc.full ? "bg-primary-50 text-primary-700" : "text-gray-900"
+                                }`}
+                              >
+                                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="font-medium">{loc.full}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                              No locations found
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Care Type Dropdown */}
-                    <div className="flex-1 flex items-center px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-                      <svg
-                        className="w-5 h-5 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <div className="relative flex-1" ref={careTypeDropdownRef}>
+                      <div
+                        className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors cursor-pointer ${
+                          showCareTypeDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => setShowCareTypeDropdown(!showCareTypeDropdown)}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                        />
-                      </svg>
-                      <select
-                        value={careType}
-                        onChange={(e) => setCareType(e.target.value)}
-                        className="w-full ml-3 bg-transparent border-none text-gray-900 focus:outline-none focus:ring-0 text-base cursor-pointer appearance-none"
-                      >
-                        {careTypeOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <svg
-                        className="w-4 h-4 text-gray-400 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                        <svg
+                          className="w-5 h-5 text-gray-400 flex-shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
+                        <span className="flex-1 ml-3 text-base text-left text-gray-900">
+                          {careTypeOptions.find(opt => opt.value === careType)?.label}
+                        </span>
+                        <svg
+                          className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${showCareTypeDropdown ? "rotate-180" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+
+                      {/* Care Type Dropdown Menu */}
+                      {showCareTypeDropdown && (
+                        <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
+                          {careTypeOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => {
+                                setCareType(option.value);
+                                setShowCareTypeDropdown(false);
+                              }}
+                              className={`flex items-center justify-between w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                                careType === option.value ? "bg-primary-50 text-primary-700" : "text-gray-900"
+                              }`}
+                            >
+                              <span className="font-medium">{option.label}</span>
+                              {careType === option.value && (
+                                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Search Button */}

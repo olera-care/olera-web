@@ -6,12 +6,14 @@ import type { Account } from "@/lib/types";
 /**
  * Creates a Supabase admin client with service role key.
  * This bypasses RLS and should only be used server-side.
+ * Returns null if service role key is not configured.
  */
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
-    throw new Error("Supabase admin credentials not configured");
+    console.warn("SUPABASE_SERVICE_ROLE_KEY not configured - falling back to authenticated client");
+    return null;
   }
   return createClient(url, serviceKey);
 }
@@ -53,11 +55,12 @@ export async function POST(request: Request) {
       // No body or invalid JSON - that's fine
     }
 
-    // Use admin client to bypass RLS
+    // Try admin client first (bypasses RLS), fall back to authenticated client
     const adminClient = getAdminClient();
+    const dbClient = adminClient || supabase;
 
     // Check if account already exists
-    const { data: existingAccount, error: selectError } = await adminClient
+    const { data: existingAccount, error: selectError } = await dbClient
       .from("accounts")
       .select("*")
       .eq("user_id", user.id)
@@ -70,15 +73,12 @@ export async function POST(request: Request) {
     // Account doesn't exist - create it
     // Note: selectError will be PGRST116 (no rows) if account doesn't exist
     if (selectError && selectError.code !== "PGRST116") {
-      console.error("Error checking for account:", selectError);
-      return NextResponse.json(
-        { error: "Failed to check account status" },
-        { status: 500 }
-      );
+      console.error("Error checking for account:", selectError.message, selectError.code);
+      // Don't fail - try to create the account anyway
     }
 
     // Create the account
-    const { data: newAccount, error: insertError } = await adminClient
+    const { data: newAccount, error: insertError } = await dbClient
       .from("accounts")
       .insert({
         user_id: user.id,
@@ -89,11 +89,11 @@ export async function POST(request: Request) {
       .single();
 
     if (insertError) {
-      console.error("Error creating account:", insertError);
+      console.error("Error creating account:", insertError.message, insertError.code);
 
       // Handle race condition - another request might have created it
       if (insertError.code === "23505") { // unique_violation
-        const { data: raceAccount } = await adminClient
+        const { data: raceAccount } = await dbClient
           .from("accounts")
           .select("*")
           .eq("user_id", user.id)
@@ -104,8 +104,16 @@ export async function POST(request: Request) {
         }
       }
 
+      // If insert failed due to RLS, provide a more helpful error
+      if (insertError.code === "42501") { // insufficient_privilege
+        return NextResponse.json(
+          { error: "Database permissions issue. Please contact support." },
+          { status: 500 }
+        );
+      }
+
       return NextResponse.json(
-        { error: "Failed to create account" },
+        { error: `Failed to create account: ${insertError.message}` },
         { status: 500 }
       );
     }

@@ -160,6 +160,11 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     }
   }, [viewMode, setForceHidden]);
 
+  // Reset scroll position when switching view modes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [viewMode]);
+
   // Refs
   const locationInputRef = useRef<HTMLInputElement>(null);
   const mapListingsRef = useRef<HTMLDivElement>(null);

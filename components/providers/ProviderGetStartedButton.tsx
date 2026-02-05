@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Button from "@/components/ui/Button";
-import ProviderOnboardingModal from "@/components/providers/ProviderOnboardingModal";
+import AuthFlowModal from "@/components/auth/AuthFlowModal";
 
 interface ProviderGetStartedButtonProps {
   /** Visual variant */
@@ -12,9 +12,10 @@ interface ProviderGetStartedButtonProps {
 }
 
 /**
- * Client component that opens the provider onboarding overlay.
- * The overlay handles the entire flow: type selection → info collection →
- * org search → visibility → account creation → profile persist → dashboard.
+ * Client component that opens the unified auth + onboarding flow for providers.
+ *
+ * Uses AuthFlowModal with intent="provider" to skip the "family vs provider"
+ * question since the user's intent is clear from the entry point.
  *
  * Used on the provider landing page where the parent is a server component.
  */
@@ -38,7 +39,11 @@ export default function ProviderGetStartedButton({
         >
           {children ?? "Get Started Free"}
         </button>
-        <ProviderOnboardingModal isOpen={open} onClose={() => setOpen(false)} />
+        <AuthFlowModal
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          intent="provider"
+        />
       </>
     );
   }
@@ -48,7 +53,11 @@ export default function ProviderGetStartedButton({
       <Button size="lg" onClick={() => setOpen(true)}>
         {children ?? "Get Started Free"}
       </Button>
-      <ProviderOnboardingModal isOpen={open} onClose={() => setOpen(false)} />
+      <AuthFlowModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        intent="provider"
+      />
     </>
   );
 }

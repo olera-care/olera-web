@@ -47,38 +47,14 @@ export default function BrowsePageClient({
       // Always try Supabase first (don't check isSupabaseConfigured - it can give false negatives)
       try {
         const supabase = createClient();
-        let query = supabase
+
+        // Base query - match homepage pattern exactly
+        const { data, error } = await supabase
           .from(PROVIDERS_TABLE)
           .select("*")
           .eq("deleted", false)
-          .order("google_rating", { ascending: false, nullsFirst: false })
+          .order("google_rating", { ascending: false })
           .limit(50);
-
-        // Text search on provider_name or city
-        if (searchQuery) {
-          // Escape special characters in search query for Supabase
-          const safeQuery = searchQuery.replace(/[%_]/g, "");
-          query = query.or(
-            `provider_name.ilike.%${safeQuery}%,city.ilike.%${safeQuery}%`
-          );
-        }
-
-        // State filter
-        if (stateFilter) {
-          query = query.ilike("state", stateFilter);
-        }
-
-        // Care type filter - match iOS provider_category
-        if (careTypeFilter) {
-          const careTypeOption = CARE_TYPE_OPTIONS.find(
-            (ct) => ct.label.toLowerCase().replace(/\s+/g, "-") === careTypeFilter
-          );
-          if (careTypeOption) {
-            query = query.ilike("provider_category", `%${careTypeOption.value}%`);
-          }
-        }
-
-        const { data, error } = await query;
 
         if (error) {
           console.error("Browse fetch error:", error.message);

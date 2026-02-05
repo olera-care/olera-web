@@ -827,25 +827,49 @@ export default function AuthFlowModal({
         return;
       }
 
-      // Wait for account row to exist (created by auth trigger)
+      // Get or create account row
       let accountRow = account;
       if (!accountRow) {
-        for (let i = 0; i < 10; i++) {
-          await new Promise((r) => setTimeout(r, 500));
-          const { data: acct } = await supabase
+        // First, check if account already exists
+        const { data: existingAcct } = await supabase
+          .from("accounts")
+          .select("*")
+          .eq("user_id", currentUser.id)
+          .single();
+
+        if (existingAcct) {
+          accountRow = existingAcct;
+        } else {
+          // Create account row if it doesn't exist
+          const displayName = data.displayName || data.orgName || currentUser.email?.split("@")[0] || "";
+          const { data: newAcct, error: createErr } = await supabase
             .from("accounts")
-            .select("*")
-            .eq("user_id", currentUser.id)
+            .insert({
+              user_id: currentUser.id,
+              email: currentUser.email,
+              display_name: displayName,
+              onboarding_completed: false,
+            })
+            .select()
             .single();
-          if (acct) {
-            accountRow = acct;
-            break;
+
+          if (createErr) {
+            console.error("Failed to create account:", createErr);
+            // Try fetching again in case of race condition (trigger created it)
+            const { data: retryAcct } = await supabase
+              .from("accounts")
+              .select("*")
+              .eq("user_id", currentUser.id)
+              .single();
+            accountRow = retryAcct;
+          } else {
+            accountRow = newAcct;
           }
         }
       }
 
       if (!accountRow) {
-        setError("Account setup timed out. Please try again.");
+        setError("Failed to create account. Please try again.");
         setLoading(false);
         return;
       }

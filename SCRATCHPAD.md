@@ -8,7 +8,13 @@
 
 _What's the main thing being worked on right now?_
 
-- Landing page redesign (hero section, provider cards spacing)
+- **Supabase Unification**: Connect web provider pages to iOS Supabase (P1 task)
+  - Plan: `plans/supabase-unification-plan.md`
+  - **Phase 1: COMPLETE** - All pages connected to iOS Supabase
+  - ✅ Provider detail page shows real data + similar providers
+  - ✅ Homepage fetches real providers (top + by category)
+  - ✅ Browse page with search/filtering by state/category
+  - Phase 2/3: Waiting for iOS app approval before schema changes
 
 ---
 
@@ -63,6 +69,58 @@ _Useful context, patterns noticed, things to remember._
 ---
 
 ## Session Log
+
+### 2026-02-05
+
+**Supabase Unification - Phase 1 Implementation:**
+
+*Session 2:*
+- Connected web app to iOS Supabase (`ocaabzfiiikjcgqwhbwr`)
+- Created `lib/types/provider.ts` - iOS Provider schema + helpers
+- Key decision: **No adapter layer** - adjusted web to match iOS schema directly
+  - User feedback: "why adapter layer, what if we made both uniform"
+  - Result: Simpler code, direct schema match
+- Updated `app/provider/[slug]/page.tsx`:
+  - Queries `olera-providers` table (39,355+ providers)
+  - Uses `provider_id` as URL slug
+  - Falls back to mock data for dev/demo
+- Updated `app/page.tsx`:
+  - "Top providers" fetches from Supabase (rating >= 4.0)
+  - "Browse by care type" fetches by `provider_category`
+  - Added loading skeletons and mock fallback
+- Created helper functions:
+  - `toCardFormat()` - iOS Provider → ProviderCard data
+  - `mockToCardFormat()` - Mock data → ProviderCard data
+  - `parseProviderImages()` - Pipe-separated string → array
+  - `formatPriceRange()`, `formatLocation()`, `getCategoryDisplayName()`
+
+*Session 3:*
+- Updated browse page (`/browse`) to use iOS Supabase
+  - Search by name, city, or zipcode
+  - Filter by care type (maps to `provider_category`)
+  - Filter by state
+  - Shows 50 providers, ordered by rating
+- Added similar providers to detail page (`/provider/[slug]`)
+  - Queries providers with same category
+  - Shows up to 4 similar providers with thumbnails
+  - Links to browse page for full category view
+- **Phase 1 Complete** - All web pages connected to iOS Supabase
+
+**Phase 1 Summary:**
+- Provider detail, homepage, browse page all fetch from iOS Supabase
+- 39,355+ real providers accessible
+- Graceful mock fallback for development
+- No schema changes made (iOS app safe during review)
+
+*Session 1:*
+- Ran `/explore` workflow - identified TJ's P1 task from Notion
+- Explored codebase structure
+- Created implementation plan: `plans/supabase-unification-plan.md`
+- Constraint: iOS app in Apple review, cannot be broken
+
+**Key Finding:**
+- `DATABASE_STRATEGY.md` recommends Neon + Clerk, but Notion task specifies Supabase unification
+- Decision: Follow Notion task, keep DATABASE_STRATEGY.md as future reference
 
 ### 2026-02-03
 

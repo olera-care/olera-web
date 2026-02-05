@@ -48,11 +48,49 @@ export default function BrowsePageClient({
       try {
         const supabase = createClient();
 
-        // Base query - match homepage pattern exactly
-        const { data, error } = await supabase
+        // Build query with filters
+        let query = supabase
           .from(PROVIDERS_TABLE)
           .select("*")
-          .eq("deleted", false)
+          .eq("deleted", false);
+
+        // Apply care type filter
+        if (careTypeFilter) {
+          const careTypeOption = CARE_TYPE_OPTIONS.find(
+            (ct) => ct.label.toLowerCase().replace(/\s+/g, "-") === careTypeFilter
+          );
+          if (careTypeOption) {
+            // Use ilike for flexible matching (handles "Memory Care | Assisted Living" etc)
+            query = query.ilike("provider_category", `%${careTypeOption.value}%`);
+          }
+        }
+
+        // Apply location filter (searchQuery can be "City, ST" or just "City" or state code)
+        if (searchQuery) {
+          const trimmed = searchQuery.trim();
+
+          // Check if it's "City, State" format
+          const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
+          if (cityStateMatch) {
+            const city = cityStateMatch[1].trim();
+            const state = cityStateMatch[2].toUpperCase();
+            query = query.ilike("city", `%${city}%`).eq("state", state);
+          } else if (/^[A-Z]{2}$/i.test(trimmed)) {
+            // Just a state code like "TX" or "CA"
+            query = query.eq("state", trimmed.toUpperCase());
+          } else {
+            // Search by city name or provider name
+            query = query.or(`city.ilike.%${trimmed}%,provider_name.ilike.%${trimmed}%`);
+          }
+        }
+
+        // Apply state filter if provided separately
+        if (stateFilter) {
+          query = query.eq("state", stateFilter.toUpperCase());
+        }
+
+        // Order by rating and limit results
+        const { data, error } = await query
           .order("google_rating", { ascending: false })
           .limit(50);
 
@@ -83,23 +121,22 @@ export default function BrowsePageClient({
     fetchProviders();
   }, [searchQuery, careTypeFilter, stateFilter]);
 
-  // Filter mock data client-side if using fallback
+  // For real data, server already filtered. For mock data, apply client-side filters.
   const filteredProviders = usingMockData
     ? providers.filter((p) => {
-        // Apply care type filter
+        // Apply care type filter for mock data
         if (careTypeFilter) {
           const careTypeOption = CARE_TYPE_OPTIONS.find(
             (ct) => ct.label.toLowerCase().replace(/\s+/g, "-") === careTypeFilter
           );
           if (careTypeOption && p.primaryCategory) {
-            // Match category loosely
             const searchTerm = careTypeOption.label.toLowerCase();
             if (!p.primaryCategory.toLowerCase().includes(searchTerm)) {
               return false;
             }
           }
         }
-        // Apply search filter
+        // Apply search filter for mock data
         if (searchQuery) {
           const search = searchQuery.toLowerCase();
           const nameMatch = p.name.toLowerCase().includes(search);

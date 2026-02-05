@@ -79,6 +79,18 @@ _Useful context, patterns noticed, things to remember._
 
 **Supabase Unification - Phase 1 Implementation:**
 
+*Session 5:*
+- **Fixed browse page showing mock data instead of real Supabase data**
+  - Root cause: Deployment propagation delay / caching issue
+  - Added temporary debug badge to diagnose (`[REAL] Success: 50 providers`)
+  - Confirmed real data working, removed debug badge
+- **Added server-side filtering to browse page**
+  - Location search: "City, ST" format, state codes, or city/provider name search
+  - Care type filter: Maps dropdown values to `provider_category` with ilike
+  - State filter: Direct state code matching
+  - Files: `app/browse/BrowsePageClient.tsx`
+- Browse page now fully functional with real data + working filters
+
 *Session 2:*
 - Connected web app to iOS Supabase (`ocaabzfiiikjcgqwhbwr`)
 - Created `lib/types/provider.ts` - iOS Provider schema + helpers

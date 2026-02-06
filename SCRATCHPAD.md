@@ -8,14 +8,18 @@
 
 _What's the main thing being worked on right now?_
 
-- **Supabase Unification**: Connect web provider pages to iOS Supabase (P1 task)
-  - Plan: `plans/supabase-unification-plan.md`
-  - **Phase 1: COMPLETE** - All pages connected to iOS Supabase
-  - ✅ Provider detail page shows real data + similar providers
-  - ✅ Homepage fetches real providers (top + by category)
-  - ✅ Browse page with search/filtering by state/category
-  - ✅ All PRs merged (#16, #17, #18)
-  - Phase 2/3: Waiting for iOS app approval before schema changes
+- **Provider Portal Integration**: Merge Logan's PR #21 into main
+  - Plan: `plans/provider-portal-integration.md`
+  - **iOS APPROVED** (2026-02-05) - Can proceed with schema changes
+  - Phase 1: Preparation (verify tables, add env vars) ← CURRENT
+  - Phase 2: Code merge (selective, preserve browse/provider pages)
+  - Phase 3: Integration testing
+  - Phase 4: Deploy & verify
+
+- **Supabase Unification**: ✅ COMPLETE
+  - All pages connected to iOS Supabase
+  - Browse page with server-side filtering
+  - PRs merged: #16, #17, #18, #20
 
 ---
 
@@ -30,6 +34,8 @@ _Active work items and their current state._
 - [x] Provider card spacing standardization
 - [x] Browse page with filtering
 - [x] iOS Supabase integration (Phase 1)
+- [x] PR #20 merged (Esther's provider details + community forum)
+- [ ] PR #21 integration (Logan's provider portal) ← IN PROGRESS
 
 ---
 
@@ -45,10 +51,10 @@ _None currently._
 
 _What should be tackled next, in priority order._
 
-1. User authentication (login/signup)
-2. Consultation request flow
-3. Phase 2: Environment strategy (dev/staging/prod)
-4. Phase 3: Supabase unification (after iOS approval)
+1. **PR #21 Integration** - Provider portal (auth flow, onboarding, dashboard)
+2. Family onboarding flow
+3. Payment/subscription integration
+4. Environment strategy (dev/staging/prod)
 
 ---
 
@@ -58,6 +64,8 @@ _Key decisions with rationale, for future reference._
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-02-05 | Use shared tables for PR #21 (not separate web tables) | iOS approved, avoid duplication |
+| 2026-02-05 | Keep our browse/provider pages when merging PR #21 | Working filtering, Esther's design already merged |
 | 2026-02-05 | No adapter layer for iOS schema | User feedback: keep both uniform, simpler code |
 | 2026-02-05 | Server-side browse page over client-side | Real Supabase data requires server components |
 | 2026-01-30 | Added Claude Code slash commands | Standardize workflow for explore → plan → build → save cycle |
@@ -76,6 +84,28 @@ _Useful context, patterns noticed, things to remember._
 ## Session Log
 
 ### 2026-02-05
+
+**Provider Portal Integration Planning:**
+
+*Session 6:*
+- **Merged PR #20** (Esther's provider details consolidation)
+  - Community forum feature (`/community` pages)
+  - Improved provider detail page with sticky sidebar
+  - New components: ProviderMap, CompactProviderCard, QASection, etc.
+  - Resolved conflict: Kept our `BrowsePageClient` with filtering
+  - Resolved conflict: Kept our Navbar with auth integration
+- **Analyzed PR #21** (Logan's provider portal)
+  - Unified auth flow (AuthFlowModal, OTP verification)
+  - Provider onboarding, portal dashboard, profile editing
+  - Requires: accounts, profiles, memberships, connections tables
+  - Different schema from `olera-providers` - can coexist
+- **Created integration plan**: `plans/provider-portal-integration.md`
+  - File triage: MERGE vs SKIP vs KEEP OURS
+  - Database schema requirements
+  - Implementation phases with checkboxes
+  - Test plan, rollback plan, decision log
+- **iOS APPROVED!** - Can now proceed with portal integration
+- Files: `plans/provider-portal-integration.md`
 
 **Supabase Unification - Phase 1 Implementation:**
 

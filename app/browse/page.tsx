@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import BrowsePageClient from "./BrowsePageClient";
+import BrowseClient from "@/components/browse/BrowseClient";
 
 // SEO metadata for each care type
 const careTypeSEO: Record<string, { title: string; description: string }> = {
@@ -69,14 +69,7 @@ export async function generateMetadata({
 export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   const params = await searchParams;
   const searchQuery = params.q || params.location || "";
-  const careTypeFilter = params.type || "";
-  const stateFilter = params.state || "";
+  const careType = params.type || "";
 
-  return (
-    <BrowsePageClient
-      searchQuery={searchQuery}
-      careTypeFilter={careTypeFilter}
-      stateFilter={stateFilter}
-    />
-  );
+  return <BrowseClient careType={careType} searchQuery={searchQuery} />;
 }

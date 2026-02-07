@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 import ProviderCard from "@/components/providers/ProviderCard";
-import type { Provider } from "@/components/providers/ProviderCard";
-import { allBrowseProviders, getCareTypeLabel, getCareTypeName } from "@/lib/mock-providers";
+import type { Provider as ProviderCardType } from "@/components/providers/ProviderCard";
 import { useNavbar } from "@/components/shared/NavbarContext";
+import { createClient } from "@/lib/supabase/client";
+import {
+  type Provider as SupabaseProvider,
+  PROVIDERS_TABLE,
+  toCardFormat,
+  type ProviderCardData,
+} from "@/lib/types/provider";
 
 // Location suggestions moved to useCitySearch hook for comprehensive US city search
 
@@ -45,6 +51,22 @@ const sortOptions = [
   { value: "price-high", label: "Price: High to Low" },
 ];
 
+// Map URL care type params to Supabase provider_category values
+const CARE_TYPE_TO_SUPABASE: Record<string, string> = {
+  "home-care": "Home Care (Non-medical)",
+  "home-health": "Home Health Care",
+  "assisted-living": "Assisted Living",
+  "memory-care": "Memory Care",
+  "nursing-homes": "Nursing Home",
+  "independent-living": "Independent Living",
+};
+
+// Helper to get care type label from ID
+function getCareTypeLabel(id: string): string {
+  const ct = careTypes.find((c) => c.id === id);
+  return ct?.label || "All Care Types";
+}
+
 type ViewMode = "carousel" | "grid" | "map";
 
 // Helper function to parse price for sorting
@@ -62,7 +84,7 @@ function CarouselSection({
   scrollId,
 }: {
   title: string;
-  providers: Provider[];
+  providers: ProviderCardType[];
   scrollId: string;
 }) {
   if (providers.length === 0) return null;
@@ -147,6 +169,66 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
   // Geolocation state
   const [isGeolocating, setIsGeolocating] = useState(false);
+
+  // Provider data from Supabase
+  const [providers, setProviders] = useState<ProviderCardData[]>([]);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(true);
+
+  // Fetch providers from Supabase
+  const fetchProviders = useCallback(async () => {
+    setIsLoadingProviders(true);
+    try {
+      const supabase = createClient();
+      let query = supabase
+        .from(PROVIDERS_TABLE)
+        .select("*")
+        .eq("deleted", false);
+
+      // Apply care type filter
+      if (careType && careType !== "all") {
+        const supabaseCategory = CARE_TYPE_TO_SUPABASE[careType];
+        if (supabaseCategory) {
+          query = query.ilike("provider_category", `%${supabaseCategory}%`);
+        }
+      }
+
+      // Apply location filter
+      if (searchLocation) {
+        const trimmed = searchLocation.trim();
+        const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
+        if (cityStateMatch) {
+          const city = cityStateMatch[1].trim();
+          const state = cityStateMatch[2].toUpperCase();
+          query = query.ilike("city", `%${city}%`).eq("state", state);
+        } else if (/^[A-Z]{2}$/i.test(trimmed)) {
+          query = query.eq("state", trimmed.toUpperCase());
+        } else {
+          query = query.or(`city.ilike.%${trimmed}%,provider_name.ilike.%${trimmed}%`);
+        }
+      }
+
+      // Order by rating and limit
+      const { data, error } = await query
+        .order("google_rating", { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.error("Browse fetch error:", error.message);
+        setProviders([]);
+      } else {
+        setProviders((data as SupabaseProvider[]).map(toCardFormat));
+      }
+    } catch (err) {
+      console.error("Browse page error:", err);
+      setProviders([]);
+    }
+    setIsLoadingProviders(false);
+  }, [careType, searchLocation]);
+
+  // Fetch on mount and when filters change
+  useEffect(() => {
+    fetchProviders();
+  }, [fetchProviders]);
 
   // Map view: lock body scroll and force-hide navbar
   useEffect(() => {
@@ -267,20 +349,17 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Filter and sort providers
+  // Filter and sort providers (Supabase already filtered by care type and location)
   const filteredProviders = useMemo(() => {
-    const careTypeName = getCareTypeName(careType);
-    let result = isAllTypes
-      ? [...allBrowseProviders]
-      : allBrowseProviders.filter((p) => p.primaryCategory === careTypeName);
+    let result = [...providers];
 
-    // Apply rating filter
+    // Apply rating filter (client-side)
     if (selectedRating !== "any") {
       const minRating = parseFloat(selectedRating);
       result = result.filter((p) => p.rating >= minRating);
     }
 
-    // Apply payment filter
+    // Apply payment filter (client-side)
     if (selectedPayment !== "any") {
       result = result.filter((p) => p.acceptedPayments?.includes(selectedPayment));
     }
@@ -305,7 +384,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     }
 
     return result;
-  }, [isAllTypes, careType, selectedRating, selectedPayment, sortBy]);
+  }, [providers, selectedRating, selectedPayment, sortBy]);
 
   // Categorized providers for carousel view - override badges to match section
   const topRatedProviders = useMemo(

@@ -8,20 +8,21 @@
 
 _What's the main thing being worked on right now?_
 
+- **PR #22 Merged - Esther's Browse/Community Design**: ✅ COMPLETE
+  - Merged Esther's browse page design (carousel/grid/map views)
+  - Integrated with our Supabase data (39K+ providers)
+  - Community forum V2 added
+  - Provider detail page styling confirmed
+
 - **Provider Portal Integration**: ✅ MERGED
   - PR #23 merged to main
   - SQL migration run, tables created
   - Deployed to production
 
-- **"Email me a code instead" option**: ✅ COMPLETE
-  - Added to both `AuthFlowModal.tsx` and `AuthModal.tsx`
-  - Matches iOS app UX: OTP link below password field
-  - Users can sign in via email code instead of password
-
 - **Supabase Unification**: ✅ COMPLETE
   - All pages connected to iOS Supabase
   - Browse page with server-side filtering
-  - PRs merged: #16, #17, #18, #20
+  - PRs merged: #16, #17, #18, #20, #22
 
 ---
 
@@ -87,7 +88,46 @@ _Useful context, patterns noticed, things to remember._
 
 ## Session Log
 
-### 2026-02-07
+### 2026-02-07 (Session 9)
+
+**Merged PR #22 - Esther's Design + Our Supabase Data:**
+
+- **Merged PR #22** (browse-page-refinement from Esther's fork)
+  - Used manual merge branch to resolve conflicts
+  - Conflicts resolved:
+    - `SCRATCHPAD.md` - kept ours
+    - `Navbar.tsx` - kept ours (auth integration)
+  - Esther's changes merged: Community forum V2, navbar updates, browse filter widths
+
+- **Fixed homepage city search regression**
+  - PR #22 added `DEFAULT_LOCATION = "New York, NY"` that pre-filled search
+  - Removed to restore iOS-like placeholder behavior ("City or ZIP code")
+
+- **Integrated Esther's browse design with Supabase data**
+  - Switched `/browse` to use `BrowseClient` component (carousel/grid/map views)
+  - Added Supabase fetching to `BrowseClient.tsx` (replaced mock data)
+  - Queries `olera-providers` table (39K+ providers)
+  - Filters by care type, location (city/state/ZIP)
+  - Client-side filtering for rating and payment type
+  - Files modified:
+    - `components/browse/BrowseClient.tsx` - Added Supabase integration
+    - `app/browse/page.tsx` - Switched to BrowseClient component
+
+- **Verified provider detail page**
+  - All Esther's design elements already merged:
+    - Olera Score breakdown (Community, Value, Transparency, Completeness)
+    - "What families are saying" reviews section
+    - "Similar providers nearby" section
+  - Using real Supabase data (`community_score`, `value_score`, `info_score`)
+
+**Commits:**
+- `c0e0abf` - Merge PR #22
+- `c1e3a92` - Fix homepage city search placeholder
+- `e5b0e1a` - Integrate Supabase data with Esther's browse design
+
+---
+
+### 2026-02-07 (Session 8)
 
 **"Email me a code instead" - OTP Sign-in Option:**
 

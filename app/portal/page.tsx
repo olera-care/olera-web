@@ -4,20 +4,20 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT } from "@/lib/membership";
-import EmptyState from "@/components/ui/EmptyState";
-import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
+import { getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable } from "@/lib/membership";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
 
 export default function PortalDashboard() {
   const { activeProfile, membership } = useAuth();
   const [inquiryCount, setInquiryCount] = useState<number | null>(null);
 
+  // activeProfile is guaranteed by the portal layout guard
+  if (!activeProfile) return null;
+
   const isProvider =
-    activeProfile?.type === "organization" ||
-    activeProfile?.type === "caregiver";
-  const isFamily = activeProfile?.type === "family";
+    activeProfile.type === "organization" ||
+    activeProfile.type === "caregiver";
+  const isFamily = activeProfile.type === "family";
 
   // Fetch real connection counts
   useEffect(() => {
@@ -37,16 +37,6 @@ export default function PortalDashboard() {
 
     fetchCounts();
   }, [activeProfile, isProvider]);
-
-  if (!activeProfile) {
-    return (
-      <EmptyState
-        title="No profile found"
-        description="Complete onboarding to set up your profile."
-        action={<Link href="/onboarding"><Button>Complete setup</Button></Link>}
-      />
-    );
-  }
 
   const freeRemaining = getFreeConnectionsRemaining(membership);
 
@@ -91,30 +81,29 @@ export default function PortalDashboard() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <StatCard
-          label="Profile views"
-          value="—"
-          description="Coming soon"
-        />
+        <Link href="/portal/profile" className="block">
+          <StatCard
+            label="Profile status"
+            value={isProfileShareable(activeProfile) ? "Complete" : "Incomplete"}
+            description={
+              isProfileShareable(activeProfile)
+                ? "Your profile is ready to share"
+                : "Finish setting up your profile"
+            }
+          />
+        </Link>
         {isProvider && (
-          <>
-            <Link href="/portal/connections" className="block">
-              <StatCard
-                label="Inquiries received"
-                value={inquiryCount !== null ? String(inquiryCount) : "—"}
-                description={
-                  inquiryCount === 0
-                    ? "No inquiries yet"
-                    : "Click to view"
-                }
-              />
-            </Link>
+          <Link href="/portal/connections" className="block">
             <StatCard
-              label="Response rate"
-              value="—"
-              description="Start responding to build your rate"
+              label="Inquiries received"
+              value={inquiryCount !== null ? String(inquiryCount) : "—"}
+              description={
+                inquiryCount === 0
+                  ? "No inquiries yet"
+                  : "Click to view"
+              }
             />
-          </>
+          </Link>
         )}
         {isFamily && (
           <>
@@ -129,11 +118,13 @@ export default function PortalDashboard() {
                 }
               />
             </Link>
-            <StatCard
-              label="Saved providers"
-              value="0"
-              description="Save providers while you browse"
-            />
+            <Link href="/browse" className="block">
+              <StatCard
+                label="Browse providers"
+                value="Explore"
+                description="Find and compare care options"
+              />
+            </Link>
           </>
         )}
       </div>
@@ -181,14 +172,14 @@ export default function PortalDashboard() {
             show={isProvider}
           />
           <QuickAction
-            title="Browse caregivers"
-            description="Find experienced caregivers to join your team."
+            title="Browse private caregivers"
+            description="Find experienced private caregivers to join your team."
             href="/browse/caregivers"
             show={activeProfile.type === "organization"}
           />
           <QuickAction
             title="Find job opportunities"
-            description="Browse organizations looking for caregivers."
+            description="Browse organizations looking for private caregivers."
             href="/browse/providers"
             show={activeProfile.type === "caregiver"}
           />

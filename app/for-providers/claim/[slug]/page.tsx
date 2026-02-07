@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import type { Profile, OrganizationMetadata } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -13,13 +12,11 @@ import Badge from "@/components/ui/Badge";
 export default function ClaimProfilePage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
-  const { user, account, openAuthModal, refreshAccountData } = useAuth();
+  const { user, openAuthFlow } = useAuth();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState("");
-  const autoClaimTriggered = useRef(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured() || !slug) return;
@@ -27,7 +24,7 @@ export default function ClaimProfilePage() {
     const fetchProfile = async () => {
       const supabase = createClient();
       const { data, error: fetchError } = await supabase
-        .from("profiles")
+        .from("business_profiles")
         .select("*")
         .eq("slug", slug)
         .single<Profile>();
@@ -45,99 +42,19 @@ export default function ClaimProfilePage() {
     fetchProfile();
   }, [slug]);
 
-  const executeClaim = useCallback(async (claimProfile: Profile, claimAccount: typeof account) => {
-    if (!claimAccount) return;
-
-    setClaiming(true);
-    setError("");
-
-    try {
-      const supabase = createClient();
-
-      // Claim the profile: set account_id and claim_state
-      const { error: claimError } = await supabase
-        .from("profiles")
-        .update({
-          account_id: claimAccount.id,
-          claim_state: "claimed",
-          source: "user_created",
-        })
-        .eq("id", claimProfile.id)
-        .eq("claim_state", "unclaimed");
-
-      if (claimError) {
-        throw new Error(claimError.message);
-      }
-
-      // Set as active profile on account
-      const { error: accountError } = await supabase
-        .from("accounts")
-        .update({
-          active_profile_id: claimProfile.id,
-          onboarding_completed: true,
-        })
-        .eq("id", claimAccount.id);
-
-      if (accountError) {
-        throw new Error(accountError.message);
-      }
-
-      // Create free membership if none exists
-      const { data: existingMembership } = await supabase
-        .from("memberships")
-        .select("id")
-        .eq("account_id", claimAccount.id)
-        .single();
-
-      if (!existingMembership) {
-        await supabase.from("memberships").insert({
-          account_id: claimAccount.id,
-          plan: "free",
-          status: "free",
-        });
-      }
-
-      await refreshAccountData();
-      router.push("/portal");
-    } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "message" in err
-          ? (err as { message: string }).message
-          : String(err);
-      console.error("Claim error:", message);
-      setError(`Failed to claim profile: ${message}`);
-      setClaiming(false);
-    }
-  }, [refreshAccountData, router]);
-
   const handleClaim = () => {
-    if (!user) {
-      openAuthModal({
-        action: "claim",
-        targetProfileId: profile?.id,
-        returnUrl: `/for-providers/claim/${slug}`,
-      }, "sign-up");
-      return;
-    }
+    if (!profile) return;
 
-    if (profile && account) {
-      executeClaim(profile, account);
-    }
+    // Open the unified auth flow modal with the claim profile pre-selected
+    // The modal handles both authenticated and unauthenticated users:
+    // - If authenticated: skips to onboarding completion with claim profile
+    // - If not authenticated: goes through onboarding then auth
+    openAuthFlow({
+      intent: "provider",
+      providerType: "organization",
+      claimProfile: profile,
+    });
   };
-
-  // Auto-claim: if user returns from auth with a deferred claim action,
-  // trigger the claim automatically instead of making them click again
-  useEffect(() => {
-    if (autoClaimTriggered.current) return;
-    if (!user || !account || !profile || loading) return;
-
-    const deferred = getDeferredAction();
-    if (deferred?.action === "claim" && deferred?.targetProfileId === profile.id) {
-      autoClaimTriggered.current = true;
-      clearDeferredAction();
-      executeClaim(profile, account);
-    }
-  }, [user, account, profile, loading, executeClaim]);
 
   if (loading) {
     return (
@@ -250,7 +167,7 @@ export default function ClaimProfilePage() {
           </div>
         )}
 
-        <Button size="lg" fullWidth loading={claiming} onClick={handleClaim}>
+        <Button size="lg" fullWidth onClick={handleClaim}>
           {user ? "Claim This Profile" : "Create Account to Claim"}
         </Button>
 

@@ -52,9 +52,12 @@ export interface Account {
   updated_at: string;
 }
 
-export interface Profile {
+// BusinessProfile - stored in "business_profiles" table
+// Note: iOS has a separate "profiles" table for user identity (like our "accounts")
+export interface BusinessProfile {
   id: string;
   account_id: string | null;
+  source_provider_id: string | null; // Links to olera-providers.provider_id when claiming
   slug: string;
   type: ProfileType;
   category: ProfileCategory | null;
@@ -80,6 +83,9 @@ export interface Profile {
   created_at: string;
   updated_at: string;
 }
+
+// Alias for backwards compatibility
+export type Profile = BusinessProfile;
 
 export interface Membership {
   id: string;

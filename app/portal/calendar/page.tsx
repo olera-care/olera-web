@@ -108,7 +108,7 @@ export default function CalendarPage() {
     });
 
     const { data: profiles } = await supabase
-      .from("profiles")
+      .from("business_profiles")
       .select("*")
       .in("id", Array.from(profileIds));
 
@@ -146,7 +146,7 @@ export default function CalendarPage() {
     return (
       <div className="text-center py-16">
         <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
-        <p className="mt-4 text-gray-500">Loading appointments...</p>
+        <p className="mt-4 text-gray-500">Loading activity...</p>
       </div>
     );
   }
@@ -154,9 +154,9 @@ export default function CalendarPage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Appointments</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Activity</h1>
         <p className="text-lg text-gray-600 mt-1">
-          Track meetings and next steps with your connections.
+          Track your accepted connections and coordinate next steps.
         </p>
       </div>
 
@@ -285,8 +285,8 @@ export default function CalendarPage() {
         </h2>
         <span className="text-sm text-gray-500">
           {selectedDayAppointments.length === 0
-            ? "No appointments"
-            : `${selectedDayAppointments.length} appointment${selectedDayAppointments.length !== 1 ? "s" : ""}`}
+            ? "No activity"
+            : `${selectedDayAppointments.length} connection${selectedDayAppointments.length !== 1 ? "s" : ""}`}
         </span>
       </div>
 
@@ -307,11 +307,11 @@ export default function CalendarPage() {
             />
           </svg>
           <p className="text-base text-gray-500">
-            Nothing scheduled for this day.
+            No connections on this day.
           </p>
           {appointments.length === 0 && (
             <p className="text-sm text-gray-400 mt-1">
-              Accepted connections will appear here so you can schedule follow-ups.
+              Accepted connections will appear here so you can coordinate next steps.
             </p>
           )}
         </div>

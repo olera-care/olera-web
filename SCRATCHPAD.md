@@ -11,10 +11,12 @@ _What's the main thing being worked on right now?_
 - **Provider Portal Integration**: Merge Logan's PR #21 into main
   - Plan: `plans/provider-portal-integration.md`
   - **iOS APPROVED** (2026-02-05) - Can proceed with schema changes
-  - Phase 1: Preparation (verify tables, add env vars) ← CURRENT
-  - Phase 2: Code merge (selective, preserve browse/provider pages)
-  - Phase 3: Integration testing
+  - ✅ Phase 1: Schema analysis complete, migration file created
+  - ✅ Phase 2: Code merge complete (build passes)
+  - ✅ Phase 3a: SQL migration run in Supabase (tables created)
+  - ⏳ Phase 3b: Add env var + merge PR ← CURRENT
   - Phase 4: Deploy & verify
+  - **PR #23**: https://github.com/olera-care/olera-web/pull/23
 
 - **Supabase Unification**: ✅ COMPLETE
   - All pages connected to iOS Supabase
@@ -43,7 +45,10 @@ _Active work items and their current state._
 
 _Items waiting on decisions, external input, or dependencies._
 
-_None currently._
+- **PR #23 - Ready to merge after:**
+  1. ~~Run SQL migration in Supabase~~ ✅ Done
+  2. Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel environment variables
+  3. Merge PR #23 (`feature/provider-portal` → `main`)
 
 ---
 
@@ -51,10 +56,11 @@ _None currently._
 
 _What should be tackled next, in priority order._
 
-1. **PR #21 Integration** - Provider portal (auth flow, onboarding, dashboard)
-2. Family onboarding flow
-3. Payment/subscription integration
-4. Environment strategy (dev/staging/prod)
+1. **Complete PR #21 Integration** - Run migration, add env var, merge branch, test
+2. **Update claim flow** - Wire `source_provider_id` to claim existing olera-providers listings
+3. Family onboarding flow
+4. Payment/subscription integration
+5. Environment strategy (dev/staging/prod)
 
 ---
 
@@ -68,6 +74,7 @@ _Key decisions with rationale, for future reference._
 | 2026-02-05 | Keep our browse/provider pages when merging PR #21 | Working filtering, Esther's design already merged |
 | 2026-02-05 | No adapter layer for iOS schema | User feedback: keep both uniform, simpler code |
 | 2026-02-05 | Server-side browse page over client-side | Real Supabase data requires server components |
+| 2026-02-06 | Add `source_provider_id` to link claims | Enables claiming existing 39K olera-providers without modifying iOS schema |
 | 2026-01-30 | Added Claude Code slash commands | Standardize workflow for explore → plan → build → save cycle |
 
 ---
@@ -82,6 +89,55 @@ _Useful context, patterns noticed, things to remember._
 ---
 
 ## Session Log
+
+### 2026-02-06
+
+**Provider Portal Integration - Phase 2 Code Merge:**
+
+*Session 7:*
+- **Analyzed iOS Supabase schema** to reconcile with Logan's expected schema
+  - iOS `profiles` = user identity (like accounts)
+  - iOS `olera-providers` = provider listings (39K+)
+  - iOS `provider_claims` = sophisticated claim workflow
+  - iOS `conversations` = chat threads
+- **Key Decision**: Rename Logan's `profiles` → `business_profiles` to avoid iOS conflict
+- **Created SQL migration**: `supabase/migrations/001_provider_portal_tables.sql`
+  - `accounts` - web portal user identity
+  - `business_profiles` - orgs/caregivers/families
+  - `memberships` - subscription info
+  - `connections` - inquiries/saves
+  - Includes RLS policies and triggers
+- **Merged PR #21 code** on `feature/provider-portal` branch
+  - Auth components: AuthFlowModal, OtpInput, AuthProvider, GlobalAuthFlowModal
+  - Portal pages: dashboard, profile, calendar, connections
+  - For-providers pages: landing, claim flow, create
+  - API routes: ensure-account
+  - Utility files: membership.ts, profile-card.ts, Modal.tsx
+  - Onboarding components: OrgClaimStep, ProfileInfoStep
+  - Shared components: ProfileCard, ProfileSwitcher, RoleGate
+- **Updated all table references**: `profiles` → `business_profiles` in merged files
+- **Updated types**: Added `BusinessProfile` interface with `Profile` alias
+- **Build passes** ✅
+- **Resolved data architecture question**:
+  - Problem: How to link `business_profiles` (user-owned) to `olera-providers` (39K listings)?
+  - Solution: Add `source_provider_id` column to `business_profiles`
+  - When claiming: Create `business_profiles` row with `source_provider_id` → original listing
+  - Browse page → reads `olera-providers` (unchanged)
+  - Portal → reads/writes `business_profiles` (user's copy)
+  - See: `plans/provider-data-architecture.md`
+- **Committed**: `c3967ea` on `feature/provider-portal` branch
+- **Created PR #23**: https://github.com/olera-care/olera-web/pull/23
+- **SQL Migration Run** ✅ - Tables created in Supabase:
+  - `accounts` - web portal user identity
+  - `business_profiles` - orgs/caregivers/families with `source_provider_id`
+  - `memberships` - subscription info
+  - `connections` - inquiries/saves
+- **Next steps**:
+  1. ~~Run SQL migration in Supabase~~ ✅ Done
+  2. Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel (user action)
+  3. Merge PR #23 to main
+  4. Test provider portal flows
+  5. Deploy to production
 
 ### 2026-02-05
 

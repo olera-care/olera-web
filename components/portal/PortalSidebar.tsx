@@ -80,15 +80,14 @@ function getSidebarNav(profileType: string | undefined): SidebarNav {
   if (profileType === "organization" || profileType === "caregiver") {
     mainItems.push(
       { label: "Connections", href: "/portal/connections", icon: icons.connections },
-      { label: "Appointments", href: "/portal/calendar", icon: icons.calendar }
+      { label: "Activity", href: "/portal/calendar", icon: icons.calendar }
     );
   }
 
   if (profileType === "family") {
     mainItems.push(
       { label: "My Inquiries", href: "/portal/connections", icon: icons.inquiries },
-      { label: "Appointments", href: "/portal/calendar", icon: icons.calendar },
-      { label: "Saved Providers", href: "/portal/saved", icon: icons.saved }
+      { label: "Activity", href: "/portal/calendar", icon: icons.calendar }
     );
   }
 
@@ -99,7 +98,7 @@ function getSidebarNav(profileType: string | undefined): SidebarNav {
   if (profileType === "organization") {
     discoverItems.push(
       { label: "Browse Families", href: "/portal/discover/families", icon: icons.search },
-      { label: "Browse Caregivers", href: "/portal/discover/caregivers", icon: icons.search }
+      { label: "Browse Private Caregivers", href: "/portal/discover/caregivers", icon: icons.search }
     );
   } else if (profileType === "caregiver") {
     discoverItems.push(
@@ -168,7 +167,7 @@ export default function PortalSidebar({ profile }: PortalSidebarProps) {
                 {profile.type === "organization"
                   ? "Organization"
                   : profile.type === "caregiver"
-                  ? "Caregiver"
+                  ? "Private Caregiver"
                   : "Family"}
               </p>
               <p className="text-lg font-semibold text-gray-900 truncate">

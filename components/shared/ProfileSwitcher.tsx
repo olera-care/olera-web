@@ -7,7 +7,7 @@ import type { Profile } from "@/lib/types";
 
 const TYPE_LABELS: Record<string, string> = {
   organization: "Organization",
-  caregiver: "Caregiver",
+  caregiver: "Private Caregiver",
   family: "Family",
 };
 

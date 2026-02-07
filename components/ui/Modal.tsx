@@ -99,15 +99,17 @@ export default function Modal({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      onClick={(e) => {
-        // Close when clicking the overlay (not the content)
-        if (e.target === overlayRef.current) {
-          onCloseRef.current();
-        }
-      }}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-gray-900/50 animate-fade-in" />
+      {/* Backdrop - uses onMouseDown to prevent drag-and-release closes */}
+      <div
+        className="absolute inset-0 bg-gray-900/50 animate-fade-in"
+        onMouseDown={(e) => {
+          // Only close if the mousedown started on the backdrop itself
+          if (e.target === e.currentTarget) {
+            onCloseRef.current();
+          }
+        }}
+      />
 
       {/* Content */}
       <div

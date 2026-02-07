@@ -565,6 +565,7 @@ export function mockProviderToProfile(provider: Provider): Profile {
   return {
     id: provider.id,
     account_id: null,
+    source_provider_id: null,
     slug: provider.slug,
     type: "organization",
     category: categoryMap[provider.primaryCategory] || "assisted_living",
@@ -664,6 +665,7 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
   return {
     id: provider.provider_id,
     account_id: null,
+    source_provider_id: provider.provider_id, // Links back to the original olera-providers record
     slug: provider.provider_id, // iOS uses provider_id as the slug
     type: "organization",
     category: iosCategoryMap[provider.provider_category] || "assisted_living",

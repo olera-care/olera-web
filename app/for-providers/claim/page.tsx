@@ -29,7 +29,7 @@ export default function ClaimSearchPage() {
 
         // Build base query — only search non-family profiles
         let q = supabase
-          .from("profiles")
+          .from("business_profiles")
           .select("*")
           .neq("type", "family")
           .ilike("display_name", `%${query.trim()}%`)
@@ -111,7 +111,7 @@ export default function ClaimSearchPage() {
           <p className="text-gray-500 mb-3">
             Not part of an existing organization?
           </p>
-          <Link href="/for-providers/create">
+          <Link href="/onboarding?intent=organization">
             <Button variant="secondary">Create a New Profile</Button>
           </Link>
         </div>
@@ -139,7 +139,7 @@ export default function ClaimSearchPage() {
                 We don&apos;t have a listing for &quot;{query}&quot; yet. You
                 can create a new profile to get started.
               </p>
-              <Link href="/for-providers/create">
+              <Link href="/onboarding?intent=organization">
                 <Button size="lg">Create a New Profile</Button>
               </Link>
             </div>
@@ -212,7 +212,7 @@ export default function ClaimSearchPage() {
                 <p className="text-gray-500 mb-3">
                   Don&apos;t see your organization?
                 </p>
-                <Link href="/for-providers/create">
+                <Link href="/onboarding?intent=organization">
                   <Button variant="secondary">Create a New Profile</Button>
                 </Link>
               </div>

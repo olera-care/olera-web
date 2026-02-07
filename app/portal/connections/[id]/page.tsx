@@ -64,7 +64,7 @@ export default function ConnectionDetailPage() {
       // Fetch both profiles
       const profileIds = [conn.from_profile_id, conn.to_profile_id];
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("business_profiles")
         .select("*")
         .in("id", profileIds);
 
@@ -500,6 +500,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
       <Link
         href={profileHref}
         target="_blank"
+        rel="noopener noreferrer"
         className="text-primary-600 hover:underline text-sm font-medium inline-flex items-center gap-1"
       >
         View full profile

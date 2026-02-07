@@ -209,11 +209,69 @@ iOS Supabase (ocaabzfiiikjcgqwhbwr)
 
 ## Database Schema
 
-### Required Tables (Verify These Exist)
+### iOS Schema Analysis (2026-02-05)
+
+**Existing iOS Tables:**
+
+| Table | Purpose | Records | Key Columns |
+|-------|---------|---------|-------------|
+| `profiles` | User identity | 30 | id, email, full_name, avatar_url, is_admin |
+| `olera-providers` | Provider listings | 39K+ | provider_id, provider_name, city, state, etc. |
+| `provider_claims` | Claim workflow | 7 | user_id, provider_id, claim_status, verification_* |
+| `conversations` | Chat threads | 4 | provider_id, care_seeker_user_id, match_id |
+| `matches` | Care matches | ? | (not examined) |
+
+**Schema Conflict:**
+- iOS `profiles` = **user identity** (email, name, avatar)
+- Logan's `profiles` = **business entities** (orgs, caregivers, families with addresses, services, etc.)
+
+These are fundamentally different concepts with the same name!
+
+### Reconciliation Strategy
+
+**Approach: Create New Tables, Don't Modify iOS Tables**
+
+```
+iOS (Keep As-Is)                    Web Portal (Create New)
+─────────────────                   ────────────────────────
+profiles (user identity)      →     accounts (user identity for web)
+olera-providers (listings)    →     (read-only, shared) ←── linked via source_provider_id
+provider_claims               →     (reuse for claim workflow)
+conversations                 →     connections (generic version)
+```
+
+**Why this approach:**
+1. iOS app just approved - can't risk breaking it
+2. Naming conflict requires either renaming (risky) or new tables (safe)
+3. Can unify later when both platforms are stable
+
+### Linking Strategy (2026-02-06)
+
+**See:** `plans/provider-data-architecture.md` for full analysis.
+
+**Decision:** Add `source_provider_id` to `business_profiles` to link claims to `olera-providers`.
+
+```
+┌──────────────────┐         ┌──────────────────┐
+│  olera-providers │◄────────│ business_profiles │
+│    (39K+ rows)   │ source_ │  (user-owned)    │
+│  • Read-only     │ provider│  • Editable      │
+│  • Public browse │ _id     │  • Portal view   │
+└──────────────────┘         └──────────────────┘
+```
+
+**Rules:**
+- Browse page → reads `olera-providers` (unchanged)
+- Claiming → creates `business_profiles` row with `source_provider_id` pointing to original
+- Edits → go to `business_profiles`
+- Portal → shows/edits `business_profiles`
+
+### Tables to Create
 
 ```sql
--- 1. accounts
-CREATE TABLE accounts (
+-- 1. accounts (NEW - web portal user identity)
+-- Note: iOS has "profiles" for this, we use "accounts" to avoid conflict
+CREATE TABLE IF NOT EXISTS accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID UNIQUE NOT NULL REFERENCES auth.users(id),
   active_profile_id UUID,
@@ -224,10 +282,12 @@ CREATE TABLE accounts (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. profiles
-CREATE TABLE profiles (
+-- 2. business_profiles (NEW - Logan's "profiles" concept, renamed to avoid conflict)
+-- These are org/caregiver/family business entities, NOT user accounts
+CREATE TABLE IF NOT EXISTS business_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id UUID REFERENCES accounts(id),
+  source_provider_id TEXT, -- Links to olera-providers.provider_id when claiming
   slug TEXT UNIQUE NOT NULL,
   type TEXT NOT NULL, -- 'organization' | 'caregiver' | 'family'
   category TEXT,
@@ -246,7 +306,7 @@ CREATE TABLE profiles (
   service_area TEXT,
   care_types TEXT[] DEFAULT '{}',
   metadata JSONB DEFAULT '{}',
-  claim_state TEXT DEFAULT 'unclaimed',
+  claim_state TEXT DEFAULT 'unclaimed', -- Links to provider_claims workflow
   verification_state TEXT DEFAULT 'unverified',
   source TEXT DEFAULT 'user_created',
   is_active BOOLEAN DEFAULT TRUE,
@@ -254,8 +314,8 @@ CREATE TABLE profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. memberships
-CREATE TABLE memberships (
+-- 3. memberships (NEW - subscription/billing info)
+CREATE TABLE IF NOT EXISTS memberships (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   account_id UUID NOT NULL REFERENCES accounts(id),
   plan TEXT DEFAULT 'free',
@@ -271,18 +331,64 @@ CREATE TABLE memberships (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. connections
-CREATE TABLE connections (
+-- 4. connections (NEW - generic inquiries/saves)
+-- Note: iOS has "conversations" for chat, this is broader
+CREATE TABLE IF NOT EXISTS connections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  from_profile_id UUID NOT NULL REFERENCES profiles(id),
-  to_profile_id UUID NOT NULL REFERENCES profiles(id),
-  type TEXT NOT NULL,
+  from_profile_id UUID NOT NULL REFERENCES business_profiles(id),
+  to_profile_id UUID NOT NULL REFERENCES business_profiles(id),
+  type TEXT NOT NULL, -- 'inquiry' | 'save' | 'match'
   status TEXT DEFAULT 'pending',
   message TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- RLS Policies (add after table creation)
+ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE business_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE memberships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE connections ENABLE ROW LEVEL SECURITY;
+
+-- Basic RLS: users can read/write their own data
+CREATE POLICY "Users can manage own account" ON accounts
+  FOR ALL USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage own profiles" ON business_profiles
+  FOR ALL USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can view own membership" ON memberships
+  FOR ALL USING (account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can manage own connections" ON connections
+  FOR ALL USING (from_profile_id IN (SELECT id FROM business_profiles WHERE account_id IN (SELECT id FROM accounts WHERE user_id = auth.uid())));
 ```
+
+### Code Changes Required
+
+Since we renamed `profiles` → `business_profiles`, Logan's code needs updates:
+
+| Original Reference | New Reference |
+|-------------------|---------------|
+| `profiles` table | `business_profiles` table |
+| `profile_id` columns | Keep as-is (still refers to business_profiles) |
+| Type definitions | Update `Profile` → `BusinessProfile` or add alias |
+
+### Existing iOS Tables to Reuse
+
+| Table | Use Case | Notes |
+|-------|----------|-------|
+| `provider_claims` | Claim workflow | Already has sophisticated status tracking |
+| `olera-providers` | Provider listings | Read-only from web, 39K+ records |
+
+### Future Unification (Not This Phase)
+
+Eventually we may want to:
+1. Migrate iOS `profiles` → `accounts`
+2. Create unified user identity across platforms
+3. Link iOS `conversations` with web `connections`
+
+For now, keep them separate and functional.
 
 ### Environment Variables Needed
 
@@ -299,24 +405,32 @@ SUPABASE_SERVICE_ROLE_KEY=... # From Supabase Dashboard → Settings → API
 
 ## Implementation Phases
 
-### Phase 1: Preparation
-- [ ] **1.1** Verify Supabase tables exist (accounts, profiles, memberships, connections)
-- [ ] **1.2** Document any schema differences between expected and actual
-- [ ] **1.3** Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel environment
-- [ ] **1.4** Create feature branch: `feature/provider-portal`
+### Phase 1: Preparation (Database & Environment)
+- [x] **1.1** ~~Verify Supabase tables exist~~ → Analyzed iOS schema (2026-02-05)
+- [x] **1.2** Document schema differences → See "iOS Schema Analysis" section above
+- [x] **1.3** Created SQL migration file: `supabase/migrations/001_provider_portal_tables.sql`
+  - [~] `accounts` - SQL ready, needs to run in Supabase
+  - [~] `business_profiles` - SQL ready, needs to run in Supabase
+  - [~] `memberships` - SQL ready, needs to run in Supabase
+  - [~] `connections` - SQL ready, needs to run in Supabase
+- [~] **1.4** RLS policies included in migration file
+- [ ] **1.5** Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel environment ← **USER ACTION NEEDED**
+- [x] **1.6** Create feature branch: `feature/provider-portal`
 
-### Phase 2: Code Merge
-- [ ] **2.1** Checkout PR #21 to examine
-- [ ] **2.2** Cherry-pick/merge auth components (AuthFlowModal, OtpInput, AuthProvider)
-- [ ] **2.3** Cherry-pick/merge portal pages (dashboard, profile, connections)
-- [ ] **2.4** Cherry-pick/merge for-providers pages (claim, create)
-- [ ] **2.5** Cherry-pick/merge API routes (ensure-account)
-- [ ] **2.6** Cherry-pick/merge utility files (lib/, components/ui/)
-- [ ] **2.7** Resolve conflicts (keep our browse/provider pages)
-- [ ] **2.8** Update app/layout.tsx to include GlobalAuthFlowModal
+### Phase 2: Code Merge ✅ COMPLETE (2026-02-06)
+- [x] **2.1** Checkout PR #21 to examine
+- [x] **2.2** Cherry-pick/merge auth components (AuthFlowModal, OtpInput, AuthProvider, GlobalAuthFlowModal)
+- [x] **2.3** Cherry-pick/merge portal pages (dashboard, profile, calendar, connections)
+- [x] **2.4** Cherry-pick/merge for-providers pages (landing, claim, create)
+- [x] **2.5** Cherry-pick/merge API routes (ensure-account)
+- [x] **2.6** Cherry-pick/merge utility files (lib/membership.ts, lib/profile-card.ts, components/ui/Modal.tsx)
+- [x] **2.7** **UPDATED table references**: `profiles` → `business_profiles` in all merged files
+- [x] **2.8** Kept our browse/provider pages (no conflicts)
+- [x] **2.9** Updated app/layout.tsx to include GlobalAuthFlowModal
+- [x] **2.10** Updated type definitions: Added `BusinessProfile` with `Profile` alias
 
 ### Phase 3: Integration Testing (Local)
-- [ ] **3.1** `npm run build` passes
+- [x] **3.1** `npm run build` passes ✅
 - [ ] **3.2** Homepage loads, featured providers display
 - [ ] **3.3** Browse page filtering works
 - [ ] **3.4** Provider detail page loads
@@ -406,27 +520,40 @@ ALTER TABLE profiles DROP COLUMN new_column;
 | 2026-02-05 | Use shared tables (not separate web tables) | iOS approved, avoid duplication | TJ + Claude |
 | 2026-02-05 | Keep our browse/provider pages | Working filtering, Esther's design | TJ + Claude |
 | 2026-02-05 | Skip browse variant pages | Different system, not needed now | TJ + Claude |
-| | | | |
+| 2026-02-06 | Rename Logan's `profiles` → `business_profiles` | iOS already has `profiles` for user identity, avoid conflict | TJ + Claude |
+| 2026-02-06 | Create new tables instead of modifying iOS tables | iOS just approved, can't risk breaking it | TJ + Claude |
+| 2026-02-06 | Reuse `provider_claims` table for claim workflow | Already has sophisticated status tracking | TJ + Claude |
+| 2026-02-06 | Add `source_provider_id` to link claims to olera-providers | Enables claiming existing 39K listings without modifying iOS schema | TJ + Claude |
 
 ---
 
 ## Open Questions
 
 1. **Do `accounts`, `profiles`, `memberships`, `connections` tables exist in iOS Supabase?**
-   - Status: ❓ Need to verify
-   - Action: Check Supabase Dashboard
+   - Status: ✅ ANSWERED (2026-02-06)
+   - Answer: `profiles` exists (user identity), others don't. Need to create `accounts`, `business_profiles`, `memberships`, `connections`.
 
 2. **Does iOS app use these tables or different ones?**
-   - Status: ❓ Need to verify
-   - Action: Review iOS codebase or ask Logan
+   - Status: ✅ ANSWERED (2026-02-06)
+   - Answer: iOS uses `profiles` (user identity), `olera-providers` (listings), `provider_claims` (claims), `conversations` (chat). Different naming/structure than Logan's expected schema.
 
 3. **Is there a database trigger for account creation on auth.users insert?**
-   - Status: ❓ Need to verify
+   - Status: ❓ Still need to verify
    - Action: Check Supabase Dashboard → Database → Triggers
+   - Note: May need to create trigger for `accounts` table
 
 4. **Do we need RLS policies for the new tables?**
-   - Status: ❓ Depends on if tables exist
-   - Action: Review after verifying tables
+   - Status: ✅ ANSWERED
+   - Answer: Yes, basic policies included in schema above. Review before deployment.
+
+5. **Should `connections` link to iOS `conversations` or stay separate?**
+   - Status: ❓ Defer for now
+
+6. **How should `business_profiles` link to `olera-providers` for claiming?**
+   - Status: ✅ ANSWERED (2026-02-06)
+   - Answer: Add `source_provider_id` column to `business_profiles` that references `olera-providers.provider_id`
+   - See: `plans/provider-data-architecture.md` for full analysis
+   - Action: Keep separate initially, unify later when both platforms stable
 
 ---
 

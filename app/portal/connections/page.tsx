@@ -78,7 +78,7 @@ export default function ConnectionsPage() {
         console.time("[olera] query: connection profiles");
         const { data: profileData } = await supabase
           .from("business_profiles")
-          .select("*")
+          .select("id, display_name, city, state, type, email, phone, slug, image_url")
           .in("id", Array.from(profileIds));
         console.timeEnd("[olera] query: connection profiles");
         profiles = (profileData as Profile[]) || [];

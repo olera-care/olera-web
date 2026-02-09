@@ -113,7 +113,7 @@ export default function CalendarPage() {
 
       const { data: profiles } = await supabase
         .from("business_profiles")
-        .select("*")
+        .select("id, display_name, email, phone")
         .in("id", Array.from(profileIds));
 
       const profileMap = new Map(

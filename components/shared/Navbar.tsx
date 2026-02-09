@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileSwitcher from "@/components/shared/ProfileSwitcher";
@@ -20,6 +20,7 @@ export default function Navbar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
+  const pathname = usePathname();
 
   // Gate on account existence — not just user — to ensure data has loaded
   const isAuthenticated = !!user && !!account;
@@ -28,6 +29,14 @@ export default function Navbar() {
     activeProfile?.type === "organization" ||
     activeProfile?.type === "caregiver";
   const isFamily = activeProfile?.type === "family";
+
+  // Check if a nav link is active
+  const isLinkActive = (href: string) => {
+    if (href === "/resources") {
+      return pathname === "/resources";
+    }
+    return pathname === href || pathname.startsWith(href + "/");
+  };
 
   // Track scroll position for navbar background
   useEffect(() => {
@@ -134,7 +143,11 @@ export default function Navbar() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                    className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
+                      isLinkActive(link.href)
+                        ? "text-primary-600"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     {link.label}
                   </Link>

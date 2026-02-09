@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
 export default function PortalLayout({ children }: { children: ReactNode }) {
-  const { user, account, activeProfile, isLoading } = useAuth();
+  const { user, account, activeProfile, isLoading, refreshAccountData } = useAuth();
 
   if (isLoading) {
     return (
@@ -17,7 +17,8 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user || !account) {
+  // Not signed in at all
+  if (!user) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="text-center">
@@ -27,6 +28,26 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
           <p className="text-lg text-gray-600">
             You need to be signed in to access the portal.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Signed in but account data couldn't be loaded (DB timeout, race condition)
+  if (!account) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            Loading your account
+          </h1>
+          <p className="text-lg text-gray-600 mb-6">
+            We&apos;re having trouble loading your account data. This usually
+            resolves on its own.
+          </p>
+          <Button size="lg" onClick={() => refreshAccountData()}>
+            Try again
+          </Button>
         </div>
       </div>
     );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileSwitcher from "@/components/shared/ProfileSwitcher";
@@ -11,6 +11,8 @@ import { useNavbar } from "@/components/shared/NavbarContext";
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isPortalRoute = pathname?.startsWith("/portal");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
@@ -94,8 +96,8 @@ export default function Navbar() {
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
 
-            {/* Desktop Navigation — middle section (always visible, route-based not auth-based) */}
-            <div className="hidden lg:flex items-center gap-1">
+            {/* Desktop Navigation — middle section (hidden on portal routes) */}
+            {!isPortalRoute && <div className="hidden lg:flex items-center gap-1">
               {/* Find Care trigger */}
               <div onMouseEnter={() => setIsFindCareOpen(true)}>
                 <button
@@ -138,11 +140,11 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-            </div>
+            </div>}
 
             {/* Desktop Right — utility actions */}
             <div className="hidden lg:flex items-center space-x-4">
-              {!isLoading && (
+              {!isLoading && !isPortalRoute && (
                 <Link
                   href="/for-providers"
                   className="text-[15px] font-medium text-gray-700 hover:text-primary-600 transition-colors focus:outline-none focus:underline whitespace-nowrap"
@@ -311,69 +313,72 @@ export default function Navbar() {
           {isMobileMenuOpen && (
             <div className="lg:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col space-y-1">
-                {/* Find Care accordion — always visible (route-based nav) */}
-                <button
-                  type="button"
-                  onClick={() => setIsMobileCareOpen((prev) => !prev)}
-                  className="flex items-center justify-between w-full py-3 text-gray-700 hover:text-primary-600 font-medium"
-                  aria-expanded={isMobileCareOpen}
-                >
-                  Find Care
-                  <svg
-                    className={`w-4 h-4 transition-transform ${
-                      isMobileCareOpen ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-                {isMobileCareOpen && (
-                  <div className="pl-4 pb-2 space-y-1">
-                    {CARE_CATEGORIES.map((cat) => (
+                {/* Public nav items — hidden on portal routes */}
+                {!isPortalRoute && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setIsMobileCareOpen((prev) => !prev)}
+                      className="flex items-center justify-between w-full py-3 text-gray-700 hover:text-primary-600 font-medium"
+                      aria-expanded={isMobileCareOpen}
+                    >
+                      Find Care
+                      <svg
+                        className={`w-4 h-4 transition-transform ${
+                          isMobileCareOpen ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    {isMobileCareOpen && (
+                      <div className="pl-4 pb-2 space-y-1">
+                        {CARE_CATEGORIES.map((cat) => (
+                          <Link
+                            key={cat.id}
+                            href={`/browse?type=${cat.id}`}
+                            className="block py-2 text-sm text-gray-600 hover:text-primary-600"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <span className="font-medium">{cat.label}</span>
+                            <span className="block text-xs text-gray-400 mt-0.5">
+                              {cat.description}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
+                    {NAV_LINKS.map((link) => (
                       <Link
-                        key={cat.id}
-                        href={`/browse?type=${cat.id}`}
-                        className="block py-2 text-sm text-gray-600 hover:text-primary-600"
+                        key={link.label}
+                        href={link.href}
+                        className="block py-3 text-gray-700 hover:text-primary-600 font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <span className="font-medium">{cat.label}</span>
-                        <span className="block text-xs text-gray-400 mt-0.5">
-                          {cat.description}
-                        </span>
+                        {link.label}
                       </Link>
                     ))}
-                  </div>
+
+                    <Link
+                      href="/for-providers"
+                      className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      For Providers
+                    </Link>
+
+                    <hr className="border-gray-100" />
+                  </>
                 )}
-
-                {/* Simple nav links */}
-                {NAV_LINKS.map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="block py-3 text-gray-700 hover:text-primary-600 font-medium"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-
-                <Link
-                  href="/for-providers"
-                  className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  For Providers
-                </Link>
-
-                <hr className="border-gray-100" />
 
                 {/* Authenticated section */}
                 {isAuthenticated ? (
@@ -456,13 +461,15 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Find Care Mega Menu */}
-      <FindCareMegaMenu
-        isOpen={isFindCareOpen}
-        onClose={() => setIsFindCareOpen(false)}
-        onMouseEnter={() => setIsFindCareOpen(true)}
-        onMouseLeave={() => setIsFindCareOpen(false)}
-      />
+      {/* Find Care Mega Menu — only on public pages */}
+      {!isPortalRoute && (
+        <FindCareMegaMenu
+          isOpen={isFindCareOpen}
+          onClose={() => setIsFindCareOpen(false)}
+          onMouseEnter={() => setIsFindCareOpen(true)}
+          onMouseLeave={() => setIsFindCareOpen(false)}
+        />
+      )}
     </>
   );
 }

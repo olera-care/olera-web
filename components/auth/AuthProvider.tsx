@@ -210,7 +210,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       if (event === "SIGNED_IN" && session?.user) {
         // New sign-in: must fetch fresh data (ok to show loading briefly)
         const version = ++versionRef.current;
-        const data = await fetchAccountData(session.user.id);
+        let data = await fetchAccountData(session.user.id);
+
+        // Account may not exist yet (DB trigger race). Retry once after a delay.
+        if (!data?.account) {
+          await new Promise((r) => setTimeout(r, 1500));
+          if (cancelled || versionRef.current !== version) return;
+          data = await fetchAccountData(session.user.id);
+        }
 
         if (cancelled || versionRef.current !== version) return;
 

@@ -69,7 +69,7 @@ const EMPTY_STATE: AuthState = {
   isLoading: false,
 };
 
-const FETCH_TIMEOUT_MS = 30000;
+const FETCH_TIMEOUT_MS = 10000;
 
 /** Race a promise against a timeout. Returns null on timeout. */
 function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T | null> {
@@ -175,28 +175,32 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       if (cancelled) return;
 
-      if (session?.user) {
-        let data = await fetchAccountData(session.user.id);
-
-        // Retry once if account data didn't load (DB lag, transient timeout)
-        if (!data?.account) {
-          await new Promise((r) => setTimeout(r, 1500));
-          if (cancelled) return;
-          data = await fetchAccountData(session.user.id);
-        }
-
-        if (cancelled) return;
-
-        setState({
-          user: { id: session.user.id, email: session.user.email! },
-          account: data?.account ?? null,
-          activeProfile: data?.activeProfile ?? null,
-          profiles: data?.profiles ?? [],
-          membership: data?.membership ?? null,
-          isLoading: false,
-        });
-      } else {
+      if (!session?.user) {
         setState({ ...EMPTY_STATE, isLoading: false });
+        return;
+      }
+
+      // Set user immediately so UI knows we're authenticated.
+      // This makes isLoading: false within milliseconds (getSession reads local storage).
+      // Account data loads as a non-blocking second step.
+      setState((prev) => ({
+        ...prev,
+        user: { id: session.user.id, email: session.user.email! },
+        isLoading: false,
+      }));
+
+      // Fetch account data — if it fails, portal shows "Loading your account" + Try again
+      const data = await fetchAccountData(session.user.id);
+      if (cancelled) return;
+
+      if (data) {
+        setState((prev) => ({
+          ...prev,
+          account: data.account,
+          activeProfile: data.activeProfile,
+          profiles: data.profiles,
+          membership: data.membership,
+        }));
       }
     };
 
@@ -216,11 +220,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (event === "SIGNED_IN" && session?.user) {
-        // New sign-in: fetch fresh data, but never overwrite good state with null.
+        // Set user immediately so UI reflects sign-in state.
+        setState((prev) => ({
+          ...prev,
+          user: { id: session.user.id, email: session.user.email! },
+          isLoading: false,
+        }));
+
+        // Fetch account data. For brand-new accounts the DB trigger may
+        // not have run yet, so retry once after a short delay.
         const version = ++versionRef.current;
         let data = await fetchAccountData(session.user.id);
 
-        // Account may not exist yet (DB trigger race). Retry once after a delay.
         if (!data?.account) {
           await new Promise((r) => setTimeout(r, 1500));
           if (cancelled || versionRef.current !== version) return;
@@ -229,22 +240,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
         if (cancelled || versionRef.current !== version) return;
 
+        // Only update if we got data — never overwrite good state with null.
         if (data) {
-          setState({
-            user: { id: session.user.id, email: session.user.email! },
+          setState((prev) => ({
+            ...prev,
             account: data.account,
             activeProfile: data.activeProfile,
             profiles: data.profiles,
             membership: data.membership,
-            isLoading: false,
-          });
-        } else {
-          // Fetch failed — set user (so we don't show "Sign in required")
-          // but preserve any existing account/profile data.
-          setState((prev) => ({
-            ...prev,
-            user: { id: session.user.id, email: session.user.email! },
-            isLoading: false,
           }));
         }
       }

@@ -23,8 +23,10 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
 
-  // Gate on account existence — not just user — to ensure data has loaded
-  const isAuthenticated = !!user && !!account;
+  // Show auth pill as soon as we know a user session exists.
+  // Full dropdown content requires account data.
+  const hasSession = !!user;
+  const isFullyLoaded = !!user && !!account;
   const hasProfile = !!activeProfile;
   const isProvider =
     activeProfile?.type === "organization" ||
@@ -159,8 +161,8 @@ export default function Navbar() {
             <div className="flex-1 flex items-center justify-end">
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center">
-                {isAuthenticated ? (
-                  /* ── Authenticated: avatar pill with user menu ── */
+                {hasSession ? (
+                  /* ── Signed in: avatar pill with user/account menu ── */
                   <div className="relative" ref={userMenuRef}>
                     <button
                       type="button"
@@ -192,55 +194,63 @@ export default function Navbar() {
                             {user?.email}
                           </p>
                         </div>
-                        {hasProfile ? (
-                          <>
-                            <Link
-                              href="/portal"
-                              className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors"
-                              onClick={() => setIsUserMenuOpen(false)}
-                            >
-                              Dashboard
-                            </Link>
-                            <Link
-                              href="/portal/profile"
-                              className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors"
-                              onClick={() => setIsUserMenuOpen(false)}
-                            >
-                              Edit Profile
-                            </Link>
-                            <Link
-                              href="/portal/connections"
-                              className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors"
-                              onClick={() => setIsUserMenuOpen(false)}
-                            >
-                              {isProvider ? "Connections" : "My Inquiries"}
-                            </Link>
-                            {isProvider && (
+                        {isFullyLoaded ? (
+                          hasProfile ? (
+                            <>
                               <Link
-                                href="/portal/settings"
+                                href="/portal"
                                 className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors"
                                 onClick={() => setIsUserMenuOpen(false)}
                               >
-                                Settings
+                                Dashboard
                               </Link>
-                            )}
-                          </>
+                              <Link
+                                href="/portal/profile"
+                                className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors"
+                                onClick={() => setIsUserMenuOpen(false)}
+                              >
+                                Edit Profile
+                              </Link>
+                              <Link
+                                href="/portal/connections"
+                                className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors"
+                                onClick={() => setIsUserMenuOpen(false)}
+                              >
+                                {isProvider ? "Connections" : "My Inquiries"}
+                              </Link>
+                              {isProvider && (
+                                <Link
+                                  href="/portal/settings"
+                                  className="block px-4 py-3 text-base text-gray-700 hover:bg-gray-50 transition-colors"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                  Settings
+                                </Link>
+                              )}
+                            </>
+                          ) : (
+                            <Link
+                              href="/onboarding"
+                              className="block px-4 py-3 text-base text-primary-600 hover:bg-primary-50 transition-colors font-medium"
+                              onClick={() => setIsUserMenuOpen(false)}
+                            >
+                              Complete your profile
+                            </Link>
+                          )
                         ) : (
-                          <Link
-                            href="/onboarding"
-                            className="block px-4 py-3 text-base text-primary-600 hover:bg-primary-50 transition-colors font-medium"
-                            onClick={() => setIsUserMenuOpen(false)}
-                          >
-                            Complete your profile
-                          </Link>
+                          <div className="px-4 py-3 text-sm text-gray-400">
+                            Loading account...
+                          </div>
                         )}
-                        {/* Profile switcher */}
-                        <div className="border-t border-gray-100 mt-1 pt-1">
-                          <ProfileSwitcher
-                            onSwitch={() => setIsUserMenuOpen(false)}
-                            variant="dropdown"
-                          />
-                        </div>
+                        {/* Profile switcher — only when account data loaded */}
+                        {isFullyLoaded && (
+                          <div className="border-t border-gray-100 mt-1 pt-1">
+                            <ProfileSwitcher
+                              onSwitch={() => setIsUserMenuOpen(false)}
+                              variant="dropdown"
+                            />
+                          </div>
+                        )}
                         <div className="border-t border-gray-100 mt-1 pt-1">
                           <button
                             type="button"
@@ -412,57 +422,63 @@ export default function Navbar() {
                 )}
 
                 {/* Account section */}
-                {isAuthenticated ? (
+                {hasSession ? (
                   <>
-                    {hasProfile ? (
-                      <>
-                        <Link
-                          href="/portal"
-                          className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Dashboard
-                        </Link>
-                        <Link
-                          href="/portal/profile"
-                          className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Edit Profile
-                        </Link>
-                        <Link
-                          href="/portal/connections"
-                          className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          {isProvider ? "Connections" : "My Inquiries"}
-                        </Link>
-                        {isProvider && (
+                    {isFullyLoaded ? (
+                      hasProfile ? (
+                        <>
                           <Link
-                            href="/portal/settings"
+                            href="/portal"
                             className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
-                            Settings
+                            Dashboard
                           </Link>
-                        )}
-                      </>
+                          <Link
+                            href="/portal/profile"
+                            className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            Edit Profile
+                          </Link>
+                          <Link
+                            href="/portal/connections"
+                            className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {isProvider ? "Connections" : "My Inquiries"}
+                          </Link>
+                          {isProvider && (
+                            <Link
+                              href="/portal/settings"
+                              className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              Settings
+                            </Link>
+                          )}
+                        </>
+                      ) : (
+                        <Link
+                          href="/onboarding"
+                          className="block py-3 text-primary-600 hover:text-primary-700 font-medium"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Complete your profile
+                        </Link>
+                      )
                     ) : (
-                      <Link
-                        href="/onboarding"
-                        className="block py-3 text-primary-600 hover:text-primary-700 font-medium"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Complete your profile
-                      </Link>
+                      <p className="py-3 text-sm text-gray-400">Loading account...</p>
                     )}
-                    {/* Profile switcher */}
-                    <div className="border-t border-gray-100 pt-2">
-                      <ProfileSwitcher
-                        onSwitch={() => setIsMobileMenuOpen(false)}
-                        variant="dropdown"
-                      />
-                    </div>
+                    {/* Profile switcher — only when account loaded */}
+                    {isFullyLoaded && (
+                      <div className="border-t border-gray-100 pt-2">
+                        <ProfileSwitcher
+                          onSwitch={() => setIsMobileMenuOpen(false)}
+                          variant="dropdown"
+                        />
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => {

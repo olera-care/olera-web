@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 import ProviderCard from "@/components/providers/ProviderCard";
 import type { Provider } from "@/components/providers/ProviderCard";
-import { allBrowseProviders, getCareTypeLabel, getCareTypeName } from "@/lib/mock-providers";
+import { allBrowseProviders, getCareTypeLabel } from "@/lib/mock-providers";
 import { useNavbar } from "@/components/shared/NavbarContext";
+import Pagination from "@/components/ui/Pagination";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  type Provider as IOSProvider,
+  PROVIDERS_TABLE,
+  toCardFormat,
+} from "@/lib/types/provider";
 
 // Location suggestions moved to useCitySearch hook for comprehensive US city search
 
@@ -45,7 +52,20 @@ const sortOptions = [
   { value: "price-high", label: "Price: High to Low" },
 ];
 
+// Map URL care type slugs to Supabase provider_category values
+const CARE_TYPE_TO_DB_CATEGORY: Record<string, string> = {
+  "home-care": "Home Care (Non-medical)",
+  "home-health": "Home Health Care",
+  "assisted-living": "Assisted Living",
+  "memory-care": "Memory Care",
+  "nursing-homes": "Nursing Home",
+  "independent-living": "Independent Living",
+};
+
 type ViewMode = "carousel" | "grid" | "map";
+
+// Pagination constant
+const PROVIDERS_PER_PAGE = 24;
 
 // Helper function to parse price for sorting
 function parsePrice(price: string): number {
@@ -69,8 +89,9 @@ function CarouselSection({
 
   return (
     <div className="mb-10">
-      <div className="mb-3">
+      <div className="mb-3 flex items-baseline gap-2">
         <h2 className="text-base font-semibold text-gray-900">{title}</h2>
+        <span className="text-sm text-gray-500">({providers.length})</span>
       </div>
       <div className="relative group/carousel">
         <div
@@ -137,6 +158,15 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [sortBy, setSortBy] = useState("recommended");
   const [viewMode, setViewMode] = useState<ViewMode>("carousel");
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
+
+  // Supabase provider data state
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [useSupabase, setUseSupabase] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Dropdown states
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
@@ -267,47 +297,156 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Filter and sort providers
-  const filteredProviders = useMemo(() => {
-    const careTypeName = getCareTypeName(careType);
-    let result = isAllTypes
-      ? [...allBrowseProviders]
-      : allBrowseProviders.filter((p) => p.primaryCategory === careTypeName);
-
-    // Apply rating filter
-    if (selectedRating !== "any") {
-      const minRating = parseFloat(selectedRating);
-      result = result.filter((p) => p.rating >= minRating);
+  // Fetch providers from Supabase
+  const fetchProviders = useCallback(async () => {
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      setProviders(allBrowseProviders);
+      setTotalCount(allBrowseProviders.length);
+      setIsLoadingProviders(false);
+      setUseSupabase(false);
+      return;
     }
 
-    // Apply payment filter
-    if (selectedPayment !== "any") {
+    setIsLoadingProviders(true);
+    setUseSupabase(true);
+
+    try {
+      const supabase = createClient();
+      let query = supabase
+        .from(PROVIDERS_TABLE)
+        .select("*", { count: "exact" })
+        .eq("deleted", false)
+        .not("provider_images", "is", null);
+
+      // Apply care type filter
+      if (careType && careType !== "all") {
+        const dbCategory = CARE_TYPE_TO_DB_CATEGORY[careType];
+        if (dbCategory) {
+          query = query.ilike("provider_category", `%${dbCategory}%`);
+        }
+      }
+
+      // Apply rating filter
+      if (selectedRating !== "any") {
+        query = query.gte("google_rating", parseFloat(selectedRating));
+      }
+
+      // Apply sorting
+      switch (sortBy) {
+        case "rating":
+          query = query.order("google_rating", { ascending: false, nullsFirst: false });
+          break;
+        case "price-low":
+          query = query.order("lower_price", { ascending: true, nullsFirst: false });
+          break;
+        case "price-high":
+          query = query.order("lower_price", { ascending: false, nullsFirst: false });
+          break;
+        default:
+          // Recommended - sort by rating
+          query = query.order("google_rating", { ascending: false, nullsFirst: false });
+      }
+
+      // Limit results for performance
+      query = query.limit(100);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error("Supabase query error:", error);
+        throw error;
+      }
+
+      // Convert iOS Provider format to ProviderCard format
+      const cardProviders = (data as IOSProvider[]).map((p) => {
+        const cardData = toCardFormat(p);
+        return {
+          id: cardData.id,
+          slug: cardData.slug,
+          name: cardData.name,
+          image: cardData.image,
+          images: cardData.images,
+          address: cardData.address,
+          rating: cardData.rating,
+          reviewCount: cardData.reviewCount,
+          priceRange: cardData.priceRange,
+          primaryCategory: cardData.primaryCategory,
+          careTypes: cardData.careTypes,
+          highlights: cardData.highlights,
+          acceptedPayments: cardData.acceptedPayments,
+          verified: cardData.verified,
+          description: cardData.description,
+        } as Provider;
+      });
+
+      setProviders(cardProviders);
+      setTotalCount(count || 0);
+    } catch (err) {
+      console.error("Failed to fetch providers from Supabase:", err);
+      // Fallback to mock data
+      setProviders(allBrowseProviders);
+      setTotalCount(allBrowseProviders.length);
+      setUseSupabase(false);
+    } finally {
+      setIsLoadingProviders(false);
+    }
+  }, [careType, selectedRating, sortBy]);
+
+  // Fetch providers when filters change
+  useEffect(() => {
+    fetchProviders();
+  }, [fetchProviders]);
+
+  // Filter and sort providers
+  // When using Supabase, filtering/sorting is done server-side
+  // Only apply client-side filters that aren't in the Supabase query
+  const filteredProviders = useMemo(() => {
+    let result = [...providers];
+
+    // Payment filter only applies to mock data (Supabase schema doesn't have payment info)
+    if (selectedPayment !== "any" && !useSupabase) {
       result = result.filter((p) => p.acceptedPayments?.includes(selectedPayment));
     }
 
-    // Apply sorting
-    switch (sortBy) {
-      case "rating":
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-      case "price-low":
-        result.sort((a, b) => parsePrice(a.priceRange) - parsePrice(b.priceRange));
-        break;
-      case "price-high":
-        result.sort((a, b) => parsePrice(b.priceRange) - parsePrice(a.priceRange));
-        break;
-      case "reviews":
-        result.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
-        break;
-      default:
-        // Recommended - mix of rating and reviews
-        result.sort((a, b) => b.rating * (b.reviewCount || 1) - a.rating * (a.reviewCount || 1));
+    // For mock data, apply additional client-side sorting if needed
+    if (!useSupabase) {
+      switch (sortBy) {
+        case "rating":
+          result.sort((a, b) => b.rating - a.rating);
+          break;
+        case "price-low":
+          result.sort((a, b) => parsePrice(a.priceRange) - parsePrice(b.priceRange));
+          break;
+        case "price-high":
+          result.sort((a, b) => parsePrice(b.priceRange) - parsePrice(a.priceRange));
+          break;
+        case "reviews":
+          result.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+          break;
+        default:
+          // Recommended - mix of rating and reviews
+          result.sort((a, b) => b.rating * (b.reviewCount || 1) - a.rating * (a.reviewCount || 1));
+      }
     }
 
     return result;
-  }, [isAllTypes, careType, selectedRating, selectedPayment, sortBy]);
+  }, [providers, selectedPayment, sortBy, useSupabase]);
 
-  // Categorized providers for carousel view - override badges to match section
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProviders.length / PROVIDERS_PER_PAGE);
+  const paginatedProviders = useMemo(() => {
+    const startIndex = (currentPage - 1) * PROVIDERS_PER_PAGE;
+    return filteredProviders.slice(startIndex, startIndex + PROVIDERS_PER_PAGE);
+  }, [filteredProviders, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [careType, selectedRating, selectedPayment, sortBy]);
+
+  // Categorized providers for carousel view - uses all filtered providers (no pagination)
+  // Carousel is for discovery, showing the best of each category
   const topRatedProviders = useMemo(
     () => [...filteredProviders]
       .sort((a, b) => b.rating - a.rating)
@@ -819,11 +958,21 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                 {careTypeLabel} in {searchLocation}
               </h1>
               <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                {filteredProviders.length} results
+                {isLoadingProviders ? (
+                  <span className="inline-block w-8 h-4 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  `${useSupabase ? totalCount.toLocaleString() : filteredProviders.length} results`
+                )}
               </span>
             </div>
 
-            {isAllTypes ? (
+            {isLoadingProviders ? (
+              <>
+                <CarouselSkeleton />
+                <CarouselSkeleton />
+                <CarouselSkeleton />
+              </>
+            ) : isAllTypes ? (
               <>
                 <CarouselSection
                   title={`Top Rated Providers in ${searchLocation}`}
@@ -892,21 +1041,41 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                 {careTypeLabel} in {searchLocation}
               </h1>
               <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                {filteredProviders.length} results
+                {isLoadingProviders ? (
+                  <span className="inline-block w-8 h-4 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  `${useSupabase ? totalCount.toLocaleString() : filteredProviders.length} results`
+                )}
               </span>
             </div>
 
-            {filteredProviders.length > 0 ? (
+            {isLoadingProviders ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[...Array(9)].map((_, i) => (
+                  <ProviderCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : paginatedProviders.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {filteredProviders.map((provider, index) => (
+                  {paginatedProviders.map((provider, index) => (
                     <ProviderCard key={`${provider.id}-${index}`} provider={provider} />
                   ))}
                 </div>
-                <div className="py-8 text-center">
-                  <button className="px-8 py-3 border border-gray-300 rounded-lg font-medium text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-all">
-                    Load more providers
-                  </button>
+                {/* Pagination */}
+                <div className="py-8 flex justify-center">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={useSupabase ? totalCount : filteredProviders.length}
+                    itemsPerPage={PROVIDERS_PER_PAGE}
+                    onPageChange={(page) => {
+                      setCurrentPage(page);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    itemLabel="providers"
+                    showItemCount={false}
+                  />
                 </div>
               </>
             ) : (
@@ -923,20 +1092,30 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               ref={mapListingsRef}
               className="w-full lg:flex-1 h-full overflow-y-auto bg-gray-50"
             >
-              <div className="px-4 sm:px-6 lg:pr-6 pt-6 pb-8" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
+              <div className="px-4 sm:px-6 lg:pr-6 pt-6" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <h1 className="text-2xl font-bold text-gray-900">
                     {careTypeLabel} in {searchLocation}
                   </h1>
                   <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                    {filteredProviders.length} results
+                    {isLoadingProviders ? (
+                      <span className="inline-block w-8 h-4 bg-gray-200 rounded animate-pulse" />
+                    ) : (
+                      `${useSupabase ? totalCount.toLocaleString() : filteredProviders.length} results`
+                    )}
                   </span>
                 </div>
 
-                {filteredProviders.length > 0 ? (
+                {isLoadingProviders ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {[...Array(6)].map((_, i) => (
+                      <ProviderCardSkeleton key={i} />
+                    ))}
+                  </div>
+                ) : paginatedProviders.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      {filteredProviders.map((provider, index) => (
+                      {paginatedProviders.map((provider, index) => (
                         <div
                           key={`${provider.id}-${index}`}
                           onMouseEnter={() => setHoveredProviderId(provider.id)}
@@ -946,10 +1125,20 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         </div>
                       ))}
                     </div>
-                    <div className="py-6 text-center">
-                      <button className="px-8 py-3 border border-gray-300 rounded-lg font-medium text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-all bg-white">
-                        Load more providers
-                      </button>
+                    {/* Pagination */}
+                    <div className="pt-10 pb-24 flex justify-center">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={useSupabase ? totalCount : filteredProviders.length}
+                        itemsPerPage={PROVIDERS_PER_PAGE}
+                        onPageChange={(page) => {
+                          setCurrentPage(page);
+                          mapListingsRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        itemLabel="providers"
+                        showItemCount={false}
+                      />
                     </div>
                   </>
                 ) : (
@@ -969,7 +1158,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
                 {/* Mock Map Markers */}
                 <div className="absolute inset-0 pointer-events-none">
-                  {filteredProviders.slice(0, 15).map((provider, index) => (
+                  {paginatedProviders.slice(0, 15).map((provider, index) => (
                     <div
                       key={`marker-${provider.id}-${index}`}
                       className={`absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer transition-all duration-200 ${
@@ -1036,6 +1225,38 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ProviderCardSkeleton() {
+  return (
+    <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm animate-pulse">
+      <div className="aspect-[4/3] bg-gray-200" />
+      <div className="p-4 space-y-3">
+        <div className="h-5 bg-gray-200 rounded w-3/4" />
+        <div className="h-4 bg-gray-200 rounded w-1/2" />
+        <div className="flex gap-2">
+          <div className="h-6 bg-gray-200 rounded-full w-20" />
+          <div className="h-6 bg-gray-200 rounded-full w-16" />
+        </div>
+        <div className="h-4 bg-gray-200 rounded w-1/3" />
+      </div>
+    </div>
+  );
+}
+
+function CarouselSkeleton() {
+  return (
+    <div className="mb-10">
+      <div className="h-6 bg-gray-200 rounded w-64 mb-3" />
+      <div className="flex gap-4 overflow-hidden">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex-shrink-0 w-[340px]">
+            <ProviderCardSkeleton />
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -553,8 +553,8 @@ function CommunityPageContent() {
               </div>
               </div>
 
-              {/* Pagination - Full width footer spanning edge to edge, content aligned with cards */}
-              <div className="flex-shrink-0 bg-white border-t border-gray-200 px-5 py-2.5 pr-[max(1.25rem,calc((100vw-1280px)/2+1.25rem))]">
+              {/* Pagination - Full width footer spanning edge to edge, centered */}
+              <div className="flex-shrink-0 bg-white border-t border-gray-200 px-5 py-2.5 flex justify-center">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -565,6 +565,7 @@ function CommunityPageContent() {
                     feedScrollEl?.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   itemLabel="discussions"
+                  showItemCount={false}
                 />
               </div>
             </div>
@@ -801,7 +802,7 @@ function CommunityPageContent() {
               </div>
 
               {/* Pagination - its own card */}
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3">
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 flex justify-center">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -812,6 +813,7 @@ function CommunityPageContent() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   itemLabel="discussions"
+                  showItemCount={false}
                 />
               </div>
 

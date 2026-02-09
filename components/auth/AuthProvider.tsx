@@ -165,6 +165,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const accountIdRef = useRef<string | null>(null);
   // Version counter to discard stale async responses
   const versionRef = useRef(0);
+  // Tracks whether init() is handling the initial session.
+  // Prevents the SIGNED_IN listener from firing a duplicate fetchAccountData.
+  const initHandlingRef = useRef(true);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -217,7 +220,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             .from("memberships")
             .select("*")
             .eq("account_id", account.id)
-            .single<Membership>(),
+            .maybeSingle<Membership>(),
         ]),
         QUERY_TIMEOUT_MS,
         "profiles+membership query"
@@ -313,6 +316,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // which is much better than a spinner or error.
       }
 
+      // Allow the SIGNED_IN listener to fire on subsequent sign-ins
+      initHandlingRef.current = false;
       console.timeEnd("[olera] init");
     };
 
@@ -332,6 +337,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (event === "SIGNED_IN" && session?.user) {
+        // On page load, init() already handles the initial session.
+        // Skip here to avoid a duplicate fetchAccountData call.
+        if (initHandlingRef.current) return;
+
         const userId = session.user.id;
 
         // Set user + any cached data immediately

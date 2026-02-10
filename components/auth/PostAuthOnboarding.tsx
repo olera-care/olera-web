@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth, type AuthFlowIntent, type AuthFlowProviderType } from "@/components/auth/AuthProvider";
-import { createProfileAfterAuth, type ProfileCreationData } from "@/lib/profile-creation";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Input from "@/components/ui/Input";
@@ -198,47 +197,45 @@ export default function PostAuthOnboarding({
     setError("");
 
     try {
-      // Ensure account exists
-      let accountId = account?.id;
-      if (!accountId) {
-        const response = await fetch("/api/auth/ensure-account", {
+      // Ensure account exists first
+      if (!account?.id) {
+        const ensureRes = await fetch("/api/auth/ensure-account", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ display_name: displayName }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
+        if (!ensureRes.ok) {
+          const errorData = await ensureRes.json().catch(() => ({}));
           throw new Error(errorData.error || "Failed to set up account");
         }
-
-        const { account: newAccount } = await response.json();
-        accountId = newAccount?.id;
       }
 
-      if (!accountId) {
-        setError("Account setup failed. Please try again.");
-        setLoading(false);
-        return;
+      // Create profile via server-side API (bypasses RLS)
+      const response = await fetch("/api/auth/create-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intent,
+          providerType,
+          displayName,
+          orgName: providerType === "organization" ? displayName : undefined,
+          city,
+          state,
+          careTypes,
+          category,
+          claimedProfileId: claimIdOverride ?? claimedProfile?.id ?? null,
+          careNeeds: intent === "family" ? careTypes : undefined,
+          isAddingProfile,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to create profile");
       }
 
-      const profileData: ProfileCreationData = {
-        intent: intent!,
-        providerType,
-        displayName,
-        orgName: providerType === "organization" ? displayName : undefined,
-        city,
-        state,
-        careTypes,
-        category,
-        claimedProfileId: claimIdOverride ?? claimedProfile?.id ?? null,
-        claimedProfile: claimProfileOverride ?? claimedProfile ?? null,
-        careNeeds: intent === "family" ? careTypes : undefined,
-      };
-
-      await createProfileAfterAuth(profileData, accountId, isAddingProfile);
-
-      // Refresh auth context
+      // Refresh auth context to pick up the new profile
       await refreshAccountData();
 
       // Handle deferred action

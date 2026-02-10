@@ -97,17 +97,81 @@ const EMPTY_STATE: AuthState = {
   profiles: [],
   membership: null,
   isLoading: false,
+  fetchError: false,
 };
 
-const FETCH_TIMEOUT_MS = 10000;
+// ─── Query timeout ──────────────────────────────────────────────────────
+// Bounded wait: if Supabase doesn't respond in 15s, fail explicitly
+// so the user sees an error + retry instead of an infinite spinner.
+const QUERY_TIMEOUT_MS = 15_000;
 
-/** Race a promise against a timeout. Returns null on timeout. */
-function withTimeout<T>(promise: PromiseLike<T>, ms: number): Promise<T | null> {
+function withBoundedTimeout<T>(
+  promise: PromiseLike<T>,
+  ms: number,
+  label: string
+): Promise<T> {
   return Promise.race([
     Promise.resolve(promise),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    ),
   ]);
 }
+
+// ─── Persistent cache (localStorage) ────────────────────────────────────
+// Persists auth data across tabs, refreshes, and browser restarts.
+// 30-minute TTL ensures stale data is refreshed.
+const CACHE_KEY = "olera_auth_cache";
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+interface CachedAuthData {
+  userId: string;
+  account: Account;
+  activeProfile: Profile | null;
+  profiles: Profile[];
+  membership: Membership | null;
+  cachedAt: number;
+}
+
+function cacheAuthData(userId: string, data: Omit<CachedAuthData, "userId" | "cachedAt">) {
+  try {
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ ...data, userId, cachedAt: Date.now() })
+    );
+  } catch {
+    /* quota exceeded or SSR — ignore */
+  }
+}
+
+function getCachedAuthData(
+  userId: string
+): Omit<CachedAuthData, "userId" | "cachedAt"> | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CachedAuthData;
+    if (parsed.userId !== userId) return null;
+    // Expired cache — discard
+    if (Date.now() - parsed.cachedAt > CACHE_TTL_MS) {
+      localStorage.removeItem(CACHE_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function clearAuthCache() {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+// ─── Provider ───────────────────────────────────────────────────────────
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -131,6 +195,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const accountIdRef = useRef<string | null>(null);
   // Version counter to discard stale async responses
   const versionRef = useRef(0);
+  // Tracks whether init() is handling the initial session.
+  // Prevents the SIGNED_IN listener from firing a duplicate fetchAccountData.
+  const initHandlingRef = useRef(true);
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -140,7 +207,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Fetch account, profiles, and membership for a given user ID.
-   * Parallelizes queries where possible and has a timeout guard.
+   * Has a 15-second timeout — throws on timeout so callers can handle it.
    */
   const fetchAccountData = useCallback(
     async (userId: string) => {
@@ -148,43 +215,58 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       const supabase = createClient();
 
-      // Step 1: Get account (required for everything else)
-      const accountResult = await withTimeout(
-        supabase.from("accounts").select("*").eq("user_id", userId).single<Account>(),
-        FETCH_TIMEOUT_MS
-      );
+      console.time("[olera] fetchAccountData");
 
-      const account = accountResult?.data ?? null;
-      if (!account) return null;
+      // Step 1: Get account (required for everything else)
+      console.time("[olera] query: accounts");
+      const accountResult = await withBoundedTimeout(
+        supabase
+          .from("accounts")
+          .select("*")
+          .eq("user_id", userId)
+          .single<Account>(),
+        QUERY_TIMEOUT_MS,
+        "accounts query"
+      );
+      const account = accountResult.data;
+      const accountError = accountResult.error;
+      console.timeEnd("[olera] query: accounts");
+
+      if (accountError || !account) {
+        console.timeEnd("[olera] fetchAccountData");
+        return null;
+      }
 
       // Step 2: Fetch profiles and membership in parallel
-      const [profilesResult, membershipResult] = await Promise.all([
-        withTimeout(
+      console.time("[olera] query: profiles+membership");
+      const [profilesResult, membershipResult] = await withBoundedTimeout(
+        Promise.all([
           supabase
             .from("business_profiles")
             .select("*")
             .eq("account_id", account.id)
             .order("created_at", { ascending: true }),
-          FETCH_TIMEOUT_MS
-        ),
-        withTimeout(
           supabase
             .from("memberships")
             .select("*")
             .eq("account_id", account.id)
-            .single<Membership>(),
-          FETCH_TIMEOUT_MS
-        ),
-      ]);
+            .maybeSingle<Membership>(),
+        ]),
+        QUERY_TIMEOUT_MS,
+        "profiles+membership query"
+      );
+      console.timeEnd("[olera] query: profiles+membership");
 
-      const profiles = (profilesResult?.data as Profile[]) || [];
-      const membership = membershipResult?.data ?? null;
+      const profiles = (profilesResult.data as Profile[]) || [];
+      const membership = membershipResult.data ?? null;
 
       let activeProfile: Profile | null = null;
       if (account.active_profile_id) {
-        activeProfile = profiles.find((p) => p.id === account.active_profile_id) || null;
+        activeProfile =
+          profiles.find((p) => p.id === account.active_profile_id) || null;
       }
 
+      console.timeEnd("[olera] fetchAccountData");
       return { account, activeProfile, profiles, membership };
     },
     [configured]
@@ -201,27 +283,72 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     let cancelled = false;
 
     const init = async () => {
+      console.time("[olera] init");
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (cancelled) return;
 
-      if (session?.user) {
-        const data = await fetchAccountData(session.user.id);
+      if (!session?.user) {
+        clearAuthCache();
+        setState({ ...EMPTY_STATE, isLoading: false });
+        console.timeEnd("[olera] init");
+        return;
+      }
+
+      const userId = session.user.id;
+
+      // Restore cached data immediately — no loading screens, correct
+      // initials, full portal rendered on first paint.
+      const cached = getCachedAuthData(userId);
+      const hasCachedData = !!cached?.account;
+
+      setState({
+        user: { id: userId, email: session.user.email! },
+        account: cached?.account ?? null,
+        activeProfile: cached?.activeProfile ?? null,
+        profiles: cached?.profiles ?? [],
+        membership: cached?.membership ?? null,
+        isLoading: false,
+        fetchError: false,
+      });
+
+      // Background refresh — keeps data current without blocking UI
+      try {
+        const data = await fetchAccountData(userId);
         if (cancelled) return;
 
-        setState({
-          user: { id: session.user.id, email: session.user.email! },
-          account: data?.account ?? null,
-          activeProfile: data?.activeProfile ?? null,
-          profiles: data?.profiles ?? [],
-          membership: data?.membership ?? null,
-          isLoading: false,
-        });
-      } else {
-        setState({ ...EMPTY_STATE, isLoading: false });
+        if (data) {
+          cacheAuthData(userId, data);
+          setState((prev) => ({
+            ...prev,
+            account: data.account,
+            activeProfile: data.activeProfile,
+            profiles: data.profiles,
+            membership: data.membership,
+            fetchError: false,
+          }));
+        } else if (!hasCachedData) {
+          // Fetch returned null (no account row yet) and we have no cache.
+          // Signal error so the UI can show a retry button.
+          setState((prev) => ({ ...prev, fetchError: true }));
+        }
+      } catch (err) {
+        console.error("[olera] init fetch failed:", err);
+        if (cancelled) return;
+        if (!hasCachedData) {
+          // Timeout or network error with no cache — show error + retry
+          setState((prev) => ({ ...prev, fetchError: true }));
+        }
+        // If we have cache, silently keep it — user sees stale data
+        // which is much better than a spinner or error.
       }
+
+      // Allow the SIGNED_IN listener to fire on subsequent sign-ins
+      initHandlingRef.current = false;
+      console.timeEnd("[olera] init");
     };
 
     init();
@@ -233,49 +360,92 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       if (cancelled) return;
 
       if (event === "SIGNED_OUT") {
-        // Immediately clear state — no async work needed
         versionRef.current++;
+        clearAuthCache();
         setState({ ...EMPTY_STATE });
         return;
       }
 
       if (event === "SIGNED_IN" && session?.user) {
-        // New sign-in: must fetch fresh data (ok to show loading briefly)
-        const version = ++versionRef.current;
-        const data = await fetchAccountData(session.user.id);
+        // On page load, init() already handles the initial session.
+        // Skip here to avoid a duplicate fetchAccountData call.
+        if (initHandlingRef.current) return;
 
-        if (cancelled || versionRef.current !== version) return;
+        const userId = session.user.id;
 
-        setState({
-          user: { id: session.user.id, email: session.user.email! },
-          account: data?.account ?? null,
-          activeProfile: data?.activeProfile ?? null,
-          profiles: data?.profiles ?? [],
-          membership: data?.membership ?? null,
+        // Set user + any cached data immediately
+        const cached = getCachedAuthData(userId);
+        setState((prev) => ({
+          ...prev,
+          user: { id: userId, email: session.user.email! },
+          account: cached?.account ?? prev.account,
+          activeProfile: cached?.activeProfile ?? prev.activeProfile,
+          profiles: cached?.profiles ?? prev.profiles,
+          membership: cached?.membership ?? prev.membership,
           isLoading: false,
-        });
+          fetchError: false,
+        }));
+
+        // Fetch fresh data. For brand-new accounts the DB trigger may
+        // not have run yet, so retry once after a short delay.
+        const version = ++versionRef.current;
+        try {
+          let data = await fetchAccountData(userId);
+
+          if (!data?.account) {
+            await new Promise((r) => setTimeout(r, 1500));
+            if (cancelled || versionRef.current !== version) return;
+            data = await fetchAccountData(userId);
+          }
+
+          if (cancelled || versionRef.current !== version) return;
+
+          if (data) {
+            cacheAuthData(userId, data);
+            setState((prev) => ({
+              ...prev,
+              account: data.account,
+              activeProfile: data.activeProfile,
+              profiles: data.profiles,
+              membership: data.membership,
+              fetchError: false,
+            }));
+          } else if (!cached?.account) {
+            setState((prev) => ({ ...prev, fetchError: true }));
+          }
+        } catch (err) {
+          console.error("[olera] SIGNED_IN fetch failed:", err);
+          if (cancelled || versionRef.current !== version) return;
+          if (!cached?.account) {
+            setState((prev) => ({ ...prev, fetchError: true }));
+          }
+        }
       }
 
       if (event === "TOKEN_REFRESHED" && session?.user) {
-        // Token refresh: keep existing state if refetch fails.
-        // This prevents random sign-out appearance on slow networks.
         const version = ++versionRef.current;
-        const data = await fetchAccountData(session.user.id);
+        try {
+          const data = await fetchAccountData(session.user.id);
 
-        if (cancelled || versionRef.current !== version) return;
+          if (cancelled || versionRef.current !== version) return;
 
-        // Only update state if fetch succeeded — never clear on failure
-        if (data) {
-          setState({
-            user: { id: session.user.id, email: session.user.email! },
-            account: data.account,
-            activeProfile: data.activeProfile,
-            profiles: data.profiles,
-            membership: data.membership,
-            isLoading: false,
-          });
+          if (data) {
+            cacheAuthData(session.user.id, data);
+            setState((prev) => ({
+              ...prev,
+              user: { id: session.user.id, email: session.user.email! },
+              account: data.account,
+              activeProfile: data.activeProfile,
+              profiles: data.profiles,
+              membership: data.membership,
+              isLoading: false,
+            }));
+          }
+          // If fetch failed, silently keep existing state
+        } catch (err) {
+          console.error("[olera] TOKEN_REFRESHED fetch failed:", err);
+          // Keep existing state — don't disrupt the user
         }
-        // If data is null (timeout/error), silently keep existing state
       }
     });
 
@@ -316,7 +486,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       if (deferred) {
         setDeferredAction(deferred);
       }
-      // Convert to new auth flow options format
       setAuthFlowOptions({
         deferred,
         defaultToSignIn: view === "sign-in",
@@ -339,7 +508,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   const closeAuthModal = useCallback(() => {
     setIsAuthModalOpen(false);
-    // Reset options when modal closes
     setAuthFlowOptions({});
   }, []);
 
@@ -375,44 +543,51 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   /**
    * Sign out. Let the auth listener handle state clearing.
    * Only clear state manually if signOut fails.
-   * Optional onComplete callback fires after state is cleared (e.g. to redirect).
    */
-  const signOut = useCallback(async (onComplete?: () => void) => {
-    if (!configured) return;
-    const supabase = createClient();
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      // Supabase signOut failed — force-clear local state anyway
-      console.error("Sign out error:", error.message);
-      versionRef.current++;
-      setState({ ...EMPTY_STATE });
-    }
-    // On success, the onAuthStateChange SIGNED_OUT handler clears state
-    onComplete?.();
-  }, [configured]);
+  const signOut = useCallback(
+    async (onComplete?: () => void) => {
+      if (!configured) return;
+      clearAuthCache();
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Sign out error:", error.message);
+        versionRef.current++;
+        setState({ ...EMPTY_STATE });
+      }
+      onComplete?.();
+    },
+    [configured]
+  );
 
   /**
    * Refresh account data from the database.
-   * Uses userIdRef to avoid stale closure issues.
+   * Updates cache on success. Clears fetchError on success.
    */
   const refreshAccountData = useCallback(async () => {
     const userId = userIdRef.current;
     if (!userId) return;
 
     const version = ++versionRef.current;
-    const data = await fetchAccountData(userId);
+    try {
+      const data = await fetchAccountData(userId);
 
-    // Discard if a newer request has been issued
-    if (versionRef.current !== version) return;
+      if (versionRef.current !== version) return;
 
-    if (data) {
-      setState((prev) => ({
-        ...prev,
-        account: data.account,
-        activeProfile: data.activeProfile,
-        profiles: data.profiles,
-        membership: data.membership,
-      }));
+      if (data) {
+        cacheAuthData(userId, data);
+        setState((prev) => ({
+          ...prev,
+          account: data.account,
+          activeProfile: data.activeProfile,
+          profiles: data.profiles,
+          membership: data.membership,
+          fetchError: false,
+        }));
+      }
+    } catch (err) {
+      console.error("[olera] refreshAccountData failed:", err);
+      // Keep existing state
     }
   }, [fetchAccountData]);
 
@@ -438,15 +613,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       // Optimistic local update
       setState((prev) => {
-        const newActive = prev.profiles.find((p) => p.id === profileId) || null;
+        const newActive =
+          prev.profiles.find((p) => p.id === profileId) || null;
         return {
           ...prev,
-          account: prev.account ? { ...prev.account, active_profile_id: profileId } : null,
+          account: prev.account
+            ? { ...prev.account, active_profile_id: profileId }
+            : null,
           activeProfile: newActive,
         };
       });
 
-      // Refresh full account data so membership state stays accurate
       await refreshAccountData();
     },
     [configured, refreshAccountData]

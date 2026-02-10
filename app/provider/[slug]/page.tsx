@@ -143,12 +143,12 @@ export default async function ProviderPage({
     // iOS Supabase not configured or provider not found
   }
 
-  // 2. Try web profiles table
+  // 2. Try web business_profiles table
   if (!profile) {
     try {
       const supabase = await createClient();
       const { data } = await supabase
-        .from("profiles")
+        .from("business_profiles")
         .select("*")
         .eq("slug", slug)
         .in("type", ["organization", "caregiver"])

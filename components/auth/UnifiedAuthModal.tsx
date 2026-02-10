@@ -47,6 +47,8 @@ export default function UnifiedAuthModal({
   const [otpCode, setOtpCode] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [checkingEmail, setCheckingEmail] = useState(false);
+  // Tracks whether the OTP screen is for signup confirmation or sign-in magic link
+  const [otpContext, setOtpContext] = useState<"signup" | "signin">("signup");
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -60,6 +62,7 @@ export default function UnifiedAuthModal({
       setOtpCode("");
       setResendCooldown(0);
       setCheckingEmail(false);
+      setOtpContext("signup");
     }
   }, [isOpen, getInitialStep]);
 
@@ -172,17 +175,9 @@ export default function UnifiedAuthModal({
           return;
         }
 
-        // Send an explicit OTP code for verification
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          email,
-          options: { shouldCreateUser: false },
-        });
-
-        if (otpError) {
-          console.error("Failed to send OTP:", otpError);
-        }
-
-        setResendCooldown(30);
+        // signUp() already sends the confirmation token — no need for a separate OTP call
+        setOtpContext("signup");
+        setResendCooldown(60);
         setLoading(false);
         setStep("verify-otp");
         return;
@@ -243,10 +238,12 @@ export default function UnifiedAuthModal({
   // OTP Verification
   // ──────────────────────────────────────────────────────────
 
+  const expectedOtpLength = 6;
+
   const handleVerifyOtp = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (otpCode.length !== 8) {
-      setError("Please enter the 8-digit code.");
+    if (otpCode.length !== expectedOtpLength) {
+      setError(`Please enter the ${expectedOtpLength}-digit code.`);
       return;
     }
 
@@ -264,7 +261,7 @@ export default function UnifiedAuthModal({
       const { error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otpCode,
-        type: "email",
+        type: otpContext === "signup" ? "signup" : "email",
       });
 
       if (verifyError) {
@@ -301,15 +298,29 @@ export default function UnifiedAuthModal({
       }
 
       const supabase = createClient();
-      const { error: resendError } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      });
 
-      if (resendError) {
-        setError(resendError.message);
-        setLoading(false);
-        return;
+      if (otpContext === "signup") {
+        // For signup confirmation, use the dedicated resend API
+        const { error: resendError } = await supabase.auth.resend({
+          type: "signup",
+          email,
+        });
+        if (resendError) {
+          setError(resendError.message);
+          setLoading(false);
+          return;
+        }
+      } else {
+        // For sign-in OTP, send a new magic code
+        const { error: resendError } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false },
+        });
+        if (resendError) {
+          setError(resendError.message);
+          setLoading(false);
+          return;
+        }
       }
 
       setResendCooldown(60);
@@ -355,6 +366,7 @@ export default function UnifiedAuthModal({
         return;
       }
 
+      setOtpContext("signin");
       setResendCooldown(30);
       setLoading(false);
       setStep("verify-otp");
@@ -674,9 +686,9 @@ export default function UnifiedAuthModal({
           )}
 
           <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <OtpInput value={otpCode} onChange={setOtpCode} disabled={loading} />
+            <OtpInput value={otpCode} onChange={setOtpCode} disabled={loading} length={expectedOtpLength} />
 
-            <Button type="submit" loading={loading} fullWidth size="lg" disabled={otpCode.length !== 8}>
+            <Button type="submit" loading={loading} fullWidth size="lg" disabled={otpCode.length !== expectedOtpLength}>
               Verify
             </Button>
 

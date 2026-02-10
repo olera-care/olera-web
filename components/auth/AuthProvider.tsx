@@ -11,7 +11,7 @@ import {
 } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
-import { setDeferredAction } from "@/lib/deferred-action";
+import { setDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type AuthModalView = "sign-in" | "sign-up";
 
@@ -518,6 +518,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   const openAuth = useCallback((options: OpenAuthOptions = {}) => {
     if (options.deferred) {
       setDeferredAction(options.deferred);
+    } else if (options.intent) {
+      // Clear stale deferred actions when an explicit intent is set.
+      // Prevents e.g. a prior "Inquire" returnUrl from overriding
+      // the post-auth redirect for "List your organization".
+      clearDeferredAction();
     }
     // Persist intent to sessionStorage for OAuth redirects
     if (options.intent || options.providerType || options.claimProfile) {

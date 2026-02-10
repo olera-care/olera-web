@@ -295,6 +295,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       if (!session?.user) {
         clearAuthCache();
         setState({ ...EMPTY_STATE, isLoading: false });
+        // Allow the SIGNED_IN listener to handle sign-ups that happen after page load
+        initHandlingRef.current = false;
         console.timeEnd("[olera] init");
         return;
       }

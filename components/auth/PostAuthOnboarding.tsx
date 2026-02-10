@@ -192,7 +192,10 @@ export default function PostAuthOnboarding({
     claimProfileOverride?: Profile | null,
     claimIdOverride?: string | null
   ) => {
-    if (!user) return;
+    if (!user) {
+      setError("Session not found. Please close this dialog and try again.");
+      return;
+    }
     setLoading(true);
     setError("");
 

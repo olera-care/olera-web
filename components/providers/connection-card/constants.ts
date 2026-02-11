@@ -65,16 +65,6 @@ export const RECIPIENT_OPTIONS = [
 ];
 
 // ============================================================
-// Contact Preference Options
-// ============================================================
-
-export const CONTACT_OPTIONS = [
-  { label: "Call me", value: "call" as const },
-  { label: "Text me", value: "text" as const },
-  { label: "Email me", value: "email" as const },
-];
-
-// ============================================================
 // Display helpers
 // ============================================================
 

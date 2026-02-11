@@ -5,7 +5,6 @@ import CardTopSection from "./CardTopSection";
 import CardBottomSection from "./CardBottomSection";
 import DefaultActions from "./DefaultActions";
 import IntentCapture from "./IntentCapture";
-import IdentityCapture from "./IdentityCapture";
 import ConfirmationState from "./ConfirmationState";
 import PendingState from "./PendingState";
 import InactiveState from "./InactiveState";
@@ -70,19 +69,27 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           />
         )}
 
-        {hook.cardState === "identity" && (
-          <IdentityCapture
-            providerName={providerName}
-            intentData={hook.intentData}
-            identityData={hook.identityData}
-            submitting={hook.submitting}
-            error={hook.error}
-            onEditIntent={() => hook.editIntentStep(0)}
-            onSetContactPref={hook.setContactPref}
-            onSetPhone={hook.setPhone}
-            onSubmit={hook.submitRequest}
-            onBack={hook.goBackFromIdentity}
-          />
+        {hook.cardState === "submitting" && (
+          <div className="text-center py-6">
+            {!hook.error ? (
+              <>
+                <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
+                <p className="text-base font-semibold text-gray-700">
+                  Sending your request to {providerName}...
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-base text-red-600 mb-3">{hook.error}</p>
+                <button
+                  onClick={() => hook.submitRequest()}
+                  className="px-6 py-2.5 bg-primary-600 text-white rounded-[10px] text-sm font-semibold cursor-pointer border-none hover:bg-primary-500 transition-colors"
+                >
+                  Retry
+                </button>
+              </>
+            )}
+          </div>
         )}
 
         {hook.cardState === "confirmation" && (
@@ -90,7 +97,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             providerName={providerName}
             phone={phone}
             responseTime={responseTime}
-            notificationEmail={hook.identityData.email || "your email"}
+            notificationEmail={hook.notificationEmail}
           />
         )}
 

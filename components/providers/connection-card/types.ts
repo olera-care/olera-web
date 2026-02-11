@@ -5,11 +5,11 @@
 export type CardState =
   | "default" // State 1: All users on landing
   | "intent" // State 2: Intent capture (steps 1-3)
-  | "identity" // State 2 continued: contact preference + phone (after auth)
-  | "returning" // State 3: Returning user (not reachable until auth)
-  | "confirmation" // State 4: Request sent
-  | "pending" // State 5: Existing request
-  | "inactive"; // State 6: Provider not accepting
+  | "submitting" // State 3: Auto-submitting after auth
+  | "returning" // State 4: Returning user (not reachable until auth)
+  | "confirmation" // State 5: Request sent
+  | "pending" // State 6: Existing request
+  | "inactive"; // State 7: Provider not accepting
 
 export type IntentStep = 0 | 1 | 2;
 
@@ -28,22 +28,12 @@ export type UrgencyValue =
   | "few_months"
   | "researching";
 
-export type ContactPreference = "call" | "text" | "email";
-
 export interface IntentData {
   careRecipient: CareRecipient | null;
   careType: CareTypeValue | null;
   careTypeOtherText: string;
   urgency: UrgencyValue | null;
   additionalNotes: string;
-}
-
-export interface IdentityData {
-  email: string;
-  firstName: string;
-  lastName: string;
-  contactPreference: ContactPreference | null;
-  phone: string;
 }
 
 export interface ConnectionCardProps {

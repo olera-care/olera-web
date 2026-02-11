@@ -45,8 +45,28 @@ export default function PortalSavedPage() {
         </p>
       </div>
 
+      {/* Browse banner */}
+      {savedProviders.length > 0 && (
+        <div className="mb-6 px-5 py-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between gap-4 flex-wrap shadow-sm">
+          <div>
+            <p className="text-sm font-medium text-gray-900">
+              Looking for more options?
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Discover more providers that match your care needs.
+            </p>
+          </div>
+          <Link
+            href="/browse"
+            className="px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap bg-primary-600 hover:bg-primary-500 text-white"
+          >
+            Browse more
+          </Link>
+        </div>
+      )}
+
       {savedProviders.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {savedProviders.map((entry) => (
             <ProviderCard
               key={entry.providerId}

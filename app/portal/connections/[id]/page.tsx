@@ -46,11 +46,13 @@ export default function ConnectionDetailPage() {
     const fetchConnection = async () => {
       const supabase = createClient();
 
+      // Fetch by primary key — fast single-row lookup
       const { data, error: fetchError } = await supabase
         .from("connections")
-        .select("*")
+        .select(
+          "id, type, status, from_profile_id, to_profile_id, message, created_at, updated_at"
+        )
         .eq("id", connectionId)
-        .or(`to_profile_id.eq.${activeProfile.id},from_profile_id.eq.${activeProfile.id}`)
         .single();
 
       if (fetchError || !data) {
@@ -61,14 +63,28 @@ export default function ConnectionDetailPage() {
 
       const conn = data as Connection;
 
-      // Fetch both profiles
+      // Verify this user owns this connection
+      if (
+        conn.from_profile_id !== activeProfile.id &&
+        conn.to_profile_id !== activeProfile.id
+      ) {
+        setError("Connection not found.");
+        setLoading(false);
+        return;
+      }
+
+      // Fetch both profiles (only the columns we display)
       const profileIds = [conn.from_profile_id, conn.to_profile_id];
       const { data: profiles } = await supabase
         .from("business_profiles")
-        .select("*")
+        .select(
+          "id, display_name, description, image_url, city, state, address, zip, type, email, phone, website, slug, care_types, metadata"
+        )
         .in("id", profileIds);
 
-      const profileMap = new Map((profiles as Profile[] || []).map((p) => [p.id, p]));
+      const profileMap = new Map(
+        ((profiles as Profile[]) || []).map((p) => [p.id, p])
+      );
 
       setConnection({
         ...conn,

@@ -10,24 +10,6 @@ interface ConfirmationStateProps {
   notificationEmail: string;
 }
 
-function CheckIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="text-primary-600"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-
 export default function ConfirmationState({
   providerName,
   phone,
@@ -37,20 +19,34 @@ export default function ConfirmationState({
   return (
     <>
       {/* Success banner */}
-      <div className="px-4 py-5 bg-primary-50 rounded-[10px] text-center mb-4">
-        <div className="mb-2.5">
-          <CheckIcon />
+      <div className="px-5 py-6 bg-gradient-to-b from-primary-50 to-primary-50/40 rounded-[10px] text-center mb-4 border border-primary-100">
+        <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-primary-600"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
         </div>
-        <p className="text-base font-semibold text-gray-900 mb-2">
-          Request sent to {providerName}
+        <p className="text-base font-bold text-gray-900 mb-1.5">
+          You&apos;re connected!
         </p>
         <p className="text-sm text-gray-600 leading-relaxed">
+          Your request has been sent to {providerName}.
           {responseTime && (
             <>
-              They usually respond within {responseTime}.
-              <br />
+              {" "}They usually respond within {responseTime}.
             </>
           )}
+        </p>
+        <p className="text-xs text-gray-500 mt-2">
           We&apos;ll notify you at {notificationEmail}
         </p>
       </div>
@@ -61,7 +57,7 @@ export default function ConfirmationState({
       {/* View connections */}
       <Link
         href="/portal/connections"
-        className="block w-full mt-2 py-3 border border-gray-200 rounded-[10px] text-sm font-medium text-primary-600 text-center hover:bg-gray-50 transition-colors"
+        className="block w-full mt-2 py-3 bg-primary-600 hover:bg-primary-500 rounded-[10px] text-sm font-semibold text-white text-center transition-colors"
       >
         View Your Connections
       </Link>
@@ -69,7 +65,7 @@ export default function ConfirmationState({
       {/* Browse similar */}
       <Link
         href="/browse"
-        className="block w-full text-center text-sm text-primary-600 font-medium mt-3.5 underline decoration-primary-600/25 underline-offset-2 hover:decoration-primary-600/50 transition-colors"
+        className="block w-full text-center text-sm text-primary-600 font-medium mt-3 hover:text-primary-500 transition-colors"
       >
         Browse similar providers nearby &rarr;
       </Link>

@@ -50,23 +50,44 @@ export default function ConnectionsPage() {
     }
 
     try {
-      console.time("[olera] fetchConnections");
       const supabase = createClient();
+      const cols =
+        "id, type, status, from_profile_id, to_profile_id, message, created_at, updated_at";
 
-      // Fetch ALL connections involving this profile (inbound and outbound)
-      console.time("[olera] query: connections");
-      const { data, error: fetchError } = await supabase
-        .from("connections")
-        .select("*")
-        .or(`to_profile_id.eq.${activeProfile.id},from_profile_id.eq.${activeProfile.id}`)
-        .neq("type", "save")
-        .order("created_at", { ascending: false });
-      console.timeEnd("[olera] query: connections");
+      // Two parallel eq queries instead of one OR — each uses its own index
+      const [inboundRes, outboundRes] = await Promise.all([
+        supabase
+          .from("connections")
+          .select(cols)
+          .eq("to_profile_id", activeProfile.id)
+          .neq("type", "save")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("connections")
+          .select(cols)
+          .eq("from_profile_id", activeProfile.id)
+          .neq("type", "save")
+          .order("created_at", { ascending: false }),
+      ]);
 
-      if (fetchError) throw new Error(fetchError.message);
+      if (inboundRes.error) throw new Error(inboundRes.error.message);
+      if (outboundRes.error) throw new Error(outboundRes.error.message);
 
-      // Fetch associated profiles
-      const connectionData = (data || []) as Connection[];
+      // Merge and dedupe (a connection could match both directions)
+      const seen = new Set<string>();
+      const connectionData: Connection[] = [];
+      for (const c of [
+        ...(inboundRes.data || []),
+        ...(outboundRes.data || []),
+      ] as Connection[]) {
+        if (!seen.has(c.id)) {
+          seen.add(c.id);
+          connectionData.push(c);
+        }
+      }
+      connectionData.sort((a, b) => b.created_at.localeCompare(a.created_at));
+
+      // Fetch associated profiles in one batch
       const profileIds = new Set<string>();
       connectionData.forEach((c) => {
         profileIds.add(c.from_profile_id);
@@ -75,12 +96,12 @@ export default function ConnectionsPage() {
 
       let profiles: Profile[] = [];
       if (profileIds.size > 0) {
-        console.time("[olera] query: connection profiles");
         const { data: profileData } = await supabase
           .from("business_profiles")
-          .select("id, display_name, city, state, type, email, phone, slug, image_url")
+          .select(
+            "id, display_name, city, state, type, email, phone, slug, image_url"
+          )
           .in("id", Array.from(profileIds));
-        console.timeEnd("[olera] query: connection profiles");
         profiles = (profileData as Profile[]) || [];
       }
 
@@ -101,7 +122,6 @@ export default function ConnectionsPage() {
       setError(msg);
     } finally {
       setLoading(false);
-      console.timeEnd("[olera] fetchConnections");
     }
   }, [activeProfile]);
 
@@ -258,6 +278,37 @@ export default function ConnectionsPage() {
   );
 }
 
+/** Parse the connection message JSON and extract human-readable notes */
+function parseConnectionMessage(message: string | null): string | null {
+  if (!message) return null;
+  try {
+    const parsed = JSON.parse(message);
+    // Show additional_notes if provided by the user
+    if (parsed.additional_notes && typeof parsed.additional_notes === "string") {
+      return parsed.additional_notes;
+    }
+    return null;
+  } catch {
+    // If it's not JSON (plain text message), return as-is
+    return message;
+  }
+}
+
+/** Extract care type from the connection message JSON */
+function parseCareType(message: string | null): string | null {
+  if (!message) return null;
+  try {
+    const parsed = JSON.parse(message);
+    const raw = parsed.care_type;
+    if (!raw || typeof raw !== "string") return null;
+    return raw
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c: string) => c.toUpperCase());
+  } catch {
+    return null;
+  }
+}
+
 function ConnectionCard({
   connection,
   activeProfileId,
@@ -273,7 +324,6 @@ function ConnectionCard({
   responding: boolean;
   onStatusUpdate: (id: string, status: "accepted" | "declined" | "archived") => void;
 }) {
-  // Determine which profile is "the other party"
   const isInbound = connection.to_profile_id === activeProfileId;
   const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
   const otherName = otherProfile?.display_name || "Unknown";
@@ -281,15 +331,20 @@ function ConnectionCard({
     .filter(Boolean)
     .join(", ");
 
-  // Connection type label
   const typeLabel =
     connection.type === "inquiry"
-      ? isInbound ? "Inquiry received" : "Inquiry sent"
+      ? isInbound ? "Received" : "Sent"
       : connection.type === "invitation"
-      ? isInbound ? "Invitation received" : "Invitation sent"
+      ? isInbound ? "Received" : "Sent"
       : connection.type === "application"
-      ? isInbound ? "Application received" : "Application sent"
-      : connection.type;
+      ? isInbound ? "Received" : "Sent"
+      : "";
+
+  const typeIcon =
+    connection.type === "inquiry" ? "Inquiry"
+    : connection.type === "invitation" ? "Invitation"
+    : connection.type === "application" ? "Application"
+    : connection.type;
 
   const statusBadge: Record<string, { variant: "default" | "pending" | "verified" | "trial"; label: string }> = {
     pending: { variant: "pending", label: "Pending" },
@@ -301,76 +356,88 @@ function ConnectionCard({
   const badge = statusBadge[connection.status] || statusBadge.pending;
   const createdAt = new Date(connection.created_at).toLocaleDateString(
     "en-US",
-    { month: "short", day: "numeric", year: "numeric" }
+    { month: "short", day: "numeric" }
   );
 
-  // Should we blur details?
   const shouldBlur = isProvider && !hasFullAccess && isInbound;
+  const noteText = parseConnectionMessage(connection.message);
+  const careType = parseCareType(connection.message);
+  const imageUrl = otherProfile?.image_url;
+  const initial = otherName.charAt(0).toUpperCase();
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 hover:shadow-sm hover:border-gray-300 transition-all duration-150">
       <Link
         href={`/portal/connections/${connection.id}`}
-        className="block p-6"
+        className="block px-5 py-4"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          {/* Avatar */}
+          <div className="shrink-0">
+            {imageUrl && !shouldBlur ? (
+              <img
+                src={imageUrl}
+                alt={otherName}
+                className="w-11 h-11 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-11 h-11 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-base font-bold">
+                {shouldBlur ? "?" : initial}
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-3 flex-wrap mb-1">
-              <h3 className="text-lg font-semibold text-gray-900">
+            <div className="flex items-center justify-between gap-2 mb-0.5">
+              <h3 className="text-base font-semibold text-gray-900 truncate">
                 {shouldBlur ? blurName(otherName) : otherName}
               </h3>
               <Badge variant={badge.variant}>{badge.label}</Badge>
-              <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
-                {typeLabel}
-              </span>
             </div>
 
-            {otherLocation && (
-              <p className="text-base text-gray-500 mb-2">
-                {shouldBlur ? "***" : otherLocation}
-              </p>
-            )}
+            <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+              {otherLocation && !shouldBlur && (
+                <span>{otherLocation}</span>
+              )}
+              {otherLocation && !shouldBlur && careType && (
+                <span className="text-gray-300">&middot;</span>
+              )}
+              {careType && !shouldBlur && (
+                <span>{careType}</span>
+              )}
+              {shouldBlur && <span>***</span>}
+            </div>
 
-            {otherProfile && (
-              <p className="text-sm text-gray-400 mb-2">
-                {otherProfile.type === "organization"
-                  ? "Organization"
-                  : otherProfile.type === "caregiver"
-                  ? "Caregiver"
-                  : "Family"}
-              </p>
-            )}
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span>{typeIcon} {typeLabel}</span>
+              <span className="text-gray-300">&middot;</span>
+              <span>{createdAt}</span>
+            </div>
 
-            {connection.message && (
-              <div className="mt-3 bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-500 mb-1">Note:</p>
-                <p className="text-base text-gray-700">
-                  {shouldBlur
-                    ? blurText(connection.message)
-                    : connection.message}
-                </p>
-              </div>
+            {noteText && (
+              <p className="mt-2 text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 line-clamp-2">
+                {shouldBlur ? blurText(noteText) : noteText}
+              </p>
             )}
 
             {shouldBlur && (
-              <p className="mt-3 text-sm text-warm-600 font-medium">
-                Upgrade to Pro to see full details and respond.
+              <p className="mt-2 text-xs text-warm-600 font-medium">
+                Upgrade to see full details
               </p>
             )}
-
-            <div className="flex items-center justify-between mt-3">
-              <p className="text-sm text-gray-400">{createdAt}</p>
-              <span className="text-sm text-primary-600 font-medium">
-                View details &rarr;
-              </span>
-            </div>
           </div>
+
+          {/* Chevron */}
+          <svg className="w-5 h-5 text-gray-300 shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </div>
       </Link>
 
-      {/* Quick actions — outside the link to avoid nested interactives */}
+      {/* Quick actions — outside the link */}
       {isInbound && hasFullAccess && connection.status === "pending" && (
-        <div className="px-6 pb-6 -mt-2 flex gap-3">
+        <div className="px-5 pb-4 -mt-1 flex gap-2">
           <Button
             size="sm"
             onClick={() => onStatusUpdate(connection.id, "accepted")}
@@ -389,43 +456,41 @@ function ConnectionCard({
         </div>
       )}
 
-      {/* Accepted: show scheduling CTA + quick actions */}
-      {connection.status === "accepted" && otherProfile && (
-        <div className="px-6 pb-6 -mt-2">
-          <div className="bg-primary-50 rounded-lg p-4">
-            <div className="flex flex-wrap gap-2">
-              {/* Primary CTA: Propose a time */}
-              {otherProfile.email && (
-                <a
-                  href={`mailto:${otherProfile.email}?subject=${encodeURIComponent(`Schedule a meeting — ${otherProfile.display_name}`)}&body=${encodeURIComponent(`Hi ${otherProfile.display_name.split(" ")[0]},\n\nI'd like to schedule a time to connect. Would any of these times work?\n\n- \n- \n\nBest regards`)}`}
-                  className="inline-flex items-center gap-1.5 bg-primary-600 text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Propose a Time
-                </a>
-              )}
-              {otherProfile.phone && (
-                <a
-                  href={`tel:${otherProfile.phone}`}
-                  className="inline-flex items-center gap-1.5 bg-white text-primary-700 text-sm font-medium px-3 py-2 rounded-lg border border-primary-200 hover:bg-primary-100 transition-colors"
-                >
-                  Call
-                </a>
-              )}
-              {otherProfile.slug && (
-                <Link
-                  href={`/provider/${otherProfile.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 bg-white text-primary-700 text-sm font-medium px-3 py-2 rounded-lg border border-primary-200 hover:bg-primary-100 transition-colors"
-                >
-                  Profile
-                </Link>
-              )}
-            </div>
-          </div>
+      {/* Accepted: quick actions */}
+      {connection.status === "accepted" && otherProfile && !shouldBlur && (
+        <div className="px-5 pb-4 -mt-1 flex gap-2 flex-wrap">
+          {otherProfile.email && (
+            <a
+              href={`mailto:${otherProfile.email}?subject=${encodeURIComponent(`Schedule a meeting — ${otherProfile.display_name}`)}`}
+              className="inline-flex items-center gap-1.5 bg-primary-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-primary-700 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Schedule
+            </a>
+          )}
+          {otherProfile.phone && (
+            <a
+              href={`tel:${otherProfile.phone}`}
+              className="inline-flex items-center gap-1.5 text-primary-700 text-xs font-medium px-3 py-1.5 rounded-lg border border-primary-200 hover:bg-primary-50 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Call
+            </a>
+          )}
+          {otherProfile.slug && (
+            <Link
+              href={`/provider/${otherProfile.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-primary-700 text-xs font-medium px-3 py-1.5 rounded-lg border border-primary-200 hover:bg-primary-50 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Profile
+            </Link>
+          )}
         </div>
       )}
     </div>

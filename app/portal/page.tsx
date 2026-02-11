@@ -25,15 +25,13 @@ export default function PortalDashboard() {
 
     const fetchCounts = async () => {
       try {
-        console.time("[olera] dashboard: inquiry count");
         const supabase = createClient();
         const column = isProvider ? "to_profile_id" : "from_profile_id";
         const { count, error } = await supabase
           .from("connections")
-          .select("*", { count: "exact", head: true })
+          .select("id", { count: "exact", head: true })
           .eq(column, activeProfile.id)
           .eq("type", "inquiry");
-        console.timeEnd("[olera] dashboard: inquiry count");
 
         if (error) {
           console.error("[olera] dashboard count error:", error.message);

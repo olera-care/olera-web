@@ -24,9 +24,24 @@ export default function PendingState({
   return (
     <>
       {/* Status banner */}
-      <div className="px-4 py-5 bg-gray-50 rounded-[10px] text-center mb-4 border border-gray-100">
-        <p className="text-sm font-semibold text-gray-800 mb-1.5">
-          &check; Request sent {dateStr}
+      <div className="px-4 py-5 bg-primary-50 rounded-[10px] text-center mb-4 border border-primary-100">
+        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-primary-600"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <p className="text-sm font-semibold text-gray-900 mb-1">
+          Request sent {dateStr}
         </p>
         <p className="text-[13px] text-gray-500">
           Waiting for {providerName} to respond

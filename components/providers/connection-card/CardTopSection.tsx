@@ -84,7 +84,7 @@ export default function CardTopSection({
               <span className="text-xl font-bold text-gray-900">
                 {oleraScore.toFixed(1)}
               </span>
-              <div className="flex flex-col items-end">
+              <div className="flex flex-col items-start">
                 <div className="flex gap-px items-center">
                   {[0, 1, 2, 3, 4].map((i) => (
                     <StarIcon key={i} filled={i < Math.round(oleraScore)} />

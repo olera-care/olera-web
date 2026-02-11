@@ -73,11 +73,26 @@ export function useConnectionCard(props: ConnectionCardProps) {
     const checkExisting = async () => {
       const supabase = createClient();
       const profileIds = profiles.map((p) => p.id);
+
+      // Resolve provider ID: if it's not a UUID (iOS provider), look up the business_profiles record
+      let resolvedId = providerId;
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(providerId);
+      if (!isUUID) {
+        const { data: profile } = await supabase
+          .from("business_profiles")
+          .select("id")
+          .eq("source_provider_id", providerId)
+          .limit(1)
+          .single();
+        if (!profile) return; // No business_profiles record = no existing connection
+        resolvedId = profile.id;
+      }
+
       const { data } = await supabase
         .from("connections")
         .select("id, created_at")
         .in("from_profile_id", profileIds)
-        .eq("to_profile_id", providerId)
+        .eq("to_profile_id", resolvedId)
         .eq("type", "inquiry")
         .order("created_at", { ascending: false })
         .limit(1)

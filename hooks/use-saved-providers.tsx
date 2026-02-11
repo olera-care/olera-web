@@ -15,9 +15,7 @@ import {
   getAnonSaves,
   addAnonSave,
   removeAnonSave,
-  isAnonSaved,
   clearAnonSaves,
-  ANON_SAVE_LIMIT,
   type SavedProviderEntry,
 } from "@/lib/saved-providers";
 
@@ -60,7 +58,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
   // Anonymous saves (from sessionStorage)
   const [anonSaves, setAnonSaves] = useState<SavedProviderEntry[]>([]);
-  // Authenticated saves — set of provider IDs + full entries
+  // Authenticated saves — keyed by original provider ID (iOS slug or UUID)
   const [dbSaveIds, setDbSaveIds] = useState<Set<string>>(new Set());
   const [dbSaves, setDbSaves] = useState<SavedProviderEntry[]>([]);
 
@@ -89,22 +87,28 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
         .order("created_at", { ascending: false });
 
       if (data) {
-        setDbSaveIds(new Set(data.map((r) => r.to_profile_id)));
-        setDbSaves(
-          data.map((r) => {
-            const meta = r.message ? JSON.parse(r.message) : {};
-            return {
-              providerId: r.to_profile_id,
-              slug: meta.slug || r.to_profile_id,
-              name: meta.name || "Unknown Provider",
-              location: meta.location || "",
-              careTypes: meta.careTypes || [],
-              image: meta.image || null,
-              rating: meta.rating || undefined,
-              savedAt: r.created_at,
-            };
-          })
-        );
+        const ids = new Set<string>();
+        const entries: SavedProviderEntry[] = [];
+
+        for (const r of data) {
+          const meta = r.message ? JSON.parse(r.message) : {};
+          // Use the originalProviderId (iOS slug) if stored, otherwise fall back to to_profile_id
+          const originalId = meta.originalProviderId || r.to_profile_id;
+          ids.add(originalId);
+          entries.push({
+            providerId: originalId,
+            slug: meta.slug || originalId,
+            name: meta.name || "Unknown Provider",
+            location: meta.location || "",
+            careTypes: meta.careTypes || [],
+            image: meta.image || null,
+            rating: meta.rating || undefined,
+            savedAt: r.created_at,
+          });
+        }
+
+        setDbSaveIds(ids);
+        setDbSaves(entries);
       }
     };
 
@@ -122,39 +126,34 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     migrationDone.current = true;
 
     const migrate = async () => {
-      const supabase = createClient();
-
-      const rows = saves.map((s) => ({
-        from_profile_id: activeProfile.id,
-        to_profile_id: s.providerId,
-        type: "save" as const,
-        status: "pending" as const,
-        message: JSON.stringify({
-          name: s.name,
-          slug: s.slug,
-          location: s.location,
-          careTypes: s.careTypes,
-          image: s.image,
-          rating: s.rating,
-        }),
-      }));
-
-      // Insert all, ignoring duplicates
-      for (const row of rows) {
-        await supabase
-          .from("connections")
-          .insert(row)
-          .then(({ error }) => {
-            if (error && error.code !== "23505") {
-              console.error("Migration save error:", error.message);
-            }
+      // Migrate each save via API (handles FK resolution)
+      for (const s of saves) {
+        try {
+          await fetch("/api/connections/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              providerId: s.providerId,
+              providerName: s.name,
+              providerSlug: s.slug,
+              providerMeta: {
+                location: s.location,
+                careTypes: s.careTypes,
+                image: s.image,
+                rating: s.rating,
+              },
+            }),
           });
+        } catch (err) {
+          console.error("Migration save error:", err);
+        }
       }
 
       clearAnonSaves();
       setAnonSaves([]);
 
       // Refresh DB saves
+      const supabase = createClient();
       const { data } = await supabase
         .from("connections")
         .select("to_profile_id, message, created_at")
@@ -163,22 +162,27 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
         .order("created_at", { ascending: false });
 
       if (data) {
-        setDbSaveIds(new Set(data.map((r) => r.to_profile_id)));
-        setDbSaves(
-          data.map((r) => {
-            const meta = r.message ? JSON.parse(r.message) : {};
-            return {
-              providerId: r.to_profile_id,
-              slug: meta.slug || r.to_profile_id,
-              name: meta.name || "Unknown Provider",
-              location: meta.location || "",
-              careTypes: meta.careTypes || [],
-              image: meta.image || null,
-              rating: meta.rating || undefined,
-              savedAt: r.created_at,
-            };
-          })
-        );
+        const ids = new Set<string>();
+        const entries: SavedProviderEntry[] = [];
+
+        for (const r of data) {
+          const meta = r.message ? JSON.parse(r.message) : {};
+          const originalId = meta.originalProviderId || r.to_profile_id;
+          ids.add(originalId);
+          entries.push({
+            providerId: originalId,
+            slug: meta.slug || originalId,
+            name: meta.name || "Unknown Provider",
+            location: meta.location || "",
+            careTypes: meta.careTypes || [],
+            image: meta.image || null,
+            rating: meta.rating || undefined,
+            savedAt: r.created_at,
+          });
+        }
+
+        setDbSaveIds(ids);
+        setDbSaves(entries);
       }
     };
 
@@ -200,20 +204,20 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
       if (currentlySaved) {
         // ── Unsave ──
         if (user && activeProfile && isSupabaseConfigured()) {
-          // DB unsave (optimistic)
+          // Optimistic local update
           setDbSaveIds((prev) => {
             const next = new Set(prev);
             next.delete(provider.providerId);
             return next;
           });
           setDbSaves((prev) => prev.filter((s) => s.providerId !== provider.providerId));
-          const supabase = createClient();
-          await supabase
-            .from("connections")
-            .delete()
-            .eq("from_profile_id", activeProfile.id)
-            .eq("to_profile_id", provider.providerId)
-            .eq("type", "save");
+
+          // Delete via API
+          fetch("/api/connections/save", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ providerId: provider.providerId }),
+          }).catch((err) => console.error("Unsave error:", err));
         } else {
           // Anonymous unsave
           removeAnonSave(provider.providerId);
@@ -222,7 +226,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
       } else {
         // ── Save ──
         if (user && activeProfile && isSupabaseConfigured()) {
-          // DB save (optimistic)
+          // Optimistic local update
           setDbSaveIds((prev) => new Set(prev).add(provider.providerId));
           setDbSaves((prev) => [
             {
@@ -237,28 +241,23 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             },
             ...prev,
           ]);
-          const supabase = createClient();
-          await supabase
-            .from("connections")
-            .insert({
-              from_profile_id: activeProfile.id,
-              to_profile_id: provider.providerId,
-              type: "save" as const,
-              status: "pending" as const,
-              message: JSON.stringify({
-                name: provider.name,
-                slug: provider.slug,
+
+          // Save via API (handles FK resolution)
+          fetch("/api/connections/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              providerId: provider.providerId,
+              providerName: provider.name,
+              providerSlug: provider.slug,
+              providerMeta: {
                 location: provider.location,
                 careTypes: provider.careTypes,
                 image: provider.image,
                 rating: provider.rating,
-              }),
-            })
-            .then(({ error }) => {
-              if (error && error.code !== "23505") {
-                console.error("Save error:", error.message);
-              }
-            });
+              },
+            }),
+          }).catch((err) => console.error("Save error:", err));
         } else {
           // Anonymous save
           const added = addAnonSave({

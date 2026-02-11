@@ -117,10 +117,9 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6 lg:mb-8">Profile</h1>
-
-      {/* Mobile tabs */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Mobile: header + horizontal tabs */}
+      <h1 className="text-2xl font-bold text-gray-900 mb-6 lg:hidden">Profile</h1>
       <div className="lg:hidden mb-6 flex gap-2 overflow-x-auto scrollbar-hide">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
@@ -141,34 +140,37 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
         })}
       </div>
 
-      <div className="flex gap-8 lg:gap-12">
-        {/* Desktop vertical nav */}
-        <nav className="hidden lg:block w-[220px] shrink-0">
-          <div className="sticky top-24 space-y-1">
-            {NAV_ITEMS.map((item) => {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={[
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-150",
-                    isActive
-                      ? "bg-gray-100 font-semibold text-gray-900"
-                      : "text-gray-600 hover:bg-gray-50",
-                  ].join(" ")}
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.iconBg} ${item.iconColor}`}>
-                    {item.icon}
-                  </div>
-                  {item.label}
-                </Link>
-              );
-            })}
+      <div className="flex gap-8 lg:gap-10">
+        {/* Desktop nav card — sticky white card */}
+        <div className="hidden lg:block w-[240px] shrink-0">
+          <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5">
+            <h1 className="text-xl font-bold text-gray-900 mb-4 px-1">Profile</h1>
+            <nav className="space-y-1">
+              {NAV_ITEMS.map((item) => {
+                const isActive = pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={[
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
+                      isActive
+                        ? "bg-gray-100 font-semibold text-gray-900"
+                        : "text-gray-600 hover:bg-gray-50",
+                    ].join(" ")}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${item.iconBg} ${item.iconColor}`}>
+                      {item.icon}
+                    </div>
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
-        </nav>
+        </div>
 
-        {/* Content */}
+        {/* Content — scrollable */}
         <div className="flex-1 min-w-0">
           {children}
         </div>

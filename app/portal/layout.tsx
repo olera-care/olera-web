@@ -143,7 +143,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
       <div className="flex gap-8 lg:gap-10">
         {/* Desktop nav card — sticky white card */}
         <div className="hidden lg:block w-[240px] shrink-0">
-          <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5">
+          <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5 h-[600px]">
             <h1 className="text-xl font-bold text-gray-900 mb-4 px-1">Profile</h1>
             <nav className="space-y-1">
               {NAV_ITEMS.map((item) => {

@@ -12,8 +12,8 @@ export default function Pill({ label, selected, onClick, small }: PillProps) {
     <button
       onClick={onClick}
       className={`
-        ${small ? "px-3.5 py-2 text-sm rounded-full" : "px-4 py-3 text-base rounded-xl"}
-        border-[1.5px] font-normal text-center cursor-pointer transition-all duration-150
+        ${small ? "px-3.5 py-2 text-sm rounded-full" : "px-4 py-3 text-[15px] rounded-xl"}
+        whitespace-nowrap border-[1.5px] font-normal text-center cursor-pointer transition-all duration-150
         ${
           selected
             ? "border-primary-600 bg-primary-50 text-primary-700 font-semibold shadow-sm"
@@ -21,7 +21,7 @@ export default function Pill({ label, selected, onClick, small }: PillProps) {
         }
       `}
     >
-      {selected && <span className="mr-1">&#10003;</span>}
+      {selected && <span className="mr-1 text-sm">&#10003;</span>}
       {label}
     </button>
   );

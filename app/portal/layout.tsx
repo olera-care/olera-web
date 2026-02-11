@@ -10,36 +10,17 @@ const NAV_ITEMS = [
   {
     label: "Profile",
     href: "/portal/profile",
-    iconBg: "bg-primary-100",
-    iconColor: "text-primary-600",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-      </svg>
-    ),
+    icon3d: "https://img.icons8.com/3d-fluency/94/user-male-circle.png",
   },
   {
     label: "My Connections",
     href: "/portal/connections",
-    iconBg: "bg-amber-100",
-    iconColor: "text-amber-600",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-      </svg>
-    ),
+    icon3d: "https://img.icons8.com/3d-fluency/94/chat.png",
   },
   {
     label: "Account Settings",
     href: "/portal/settings",
-    iconBg: "bg-gray-200",
-    iconColor: "text-gray-600",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
+    icon3d: "https://img.icons8.com/3d-fluency/94/gear.png",
   },
 ];
 
@@ -142,9 +123,9 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
 
       <div className="flex gap-8 lg:gap-10">
         {/* Desktop nav card — sticky white card */}
-        <div className="hidden lg:block w-[240px] shrink-0">
-          <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5 h-[600px]">
-            <h1 className="text-xl font-bold text-gray-900 mb-4 px-1">Profile</h1>
+        <div className="hidden lg:block w-[270px] shrink-0">
+          <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5 h-[calc(100vh-112px)] flex flex-col">
+            <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Profile</h1>
             <nav className="space-y-1">
               {NAV_ITEMS.map((item) => {
                 const isActive = pathname.startsWith(item.href);
@@ -153,20 +134,36 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
                     key={item.href}
                     href={item.href}
                     className={[
-                      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
+                      "flex items-center gap-3.5 px-3 py-3 rounded-xl text-[15px] font-medium transition-all duration-150",
                       isActive
                         ? "bg-gray-100 font-semibold text-gray-900"
                         : "text-gray-600 hover:bg-gray-50",
                     ].join(" ")}
                   >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${item.iconBg} ${item.iconColor}`}>
-                      {item.icon}
-                    </div>
+                    <img
+                      src={item.icon3d}
+                      alt=""
+                      className="w-10 h-10 shrink-0"
+                      loading="eager"
+                    />
                     {item.label}
                   </Link>
                 );
               })}
             </nav>
+
+            {/* Bottom link — pushed down */}
+            <div className="mt-auto pt-4 border-t border-gray-100">
+              <Link
+                href="/browse"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Browse more providers
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
 

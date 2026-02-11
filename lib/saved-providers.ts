@@ -1,5 +1,5 @@
 /**
- * SessionStorage helpers for anonymous provider saves.
+ * LocalStorage helpers for anonymous provider saves.
  *
  * Anonymous users can save up to ANON_SAVE_LIMIT providers locally.
  * After authenticating, these are migrated to the database.
@@ -15,13 +15,14 @@ export interface SavedProviderEntry {
   location: string;
   careTypes: string[];
   image: string | null;
+  rating?: number;
   savedAt: string;
 }
 
 function readStorage(): SavedProviderEntry[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -30,7 +31,7 @@ function readStorage(): SavedProviderEntry[] {
 
 function writeStorage(entries: SavedProviderEntry[]) {
   if (typeof window === "undefined") return;
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
 }
 
 export function getAnonSaves(): SavedProviderEntry[] {
@@ -67,5 +68,5 @@ export function removeAnonSave(providerId: string): void {
 
 export function clearAnonSaves(): void {
   if (typeof window === "undefined") return;
-  sessionStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_KEY);
 }

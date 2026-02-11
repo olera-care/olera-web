@@ -30,6 +30,7 @@ export interface SaveProviderData {
   location: string;
   careTypes: string[];
   image: string | null;
+  rating?: number;
 }
 
 interface SavedProvidersContextValue {
@@ -99,6 +100,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
               location: meta.location || "",
               careTypes: meta.careTypes || [],
               image: meta.image || null,
+              rating: meta.rating || undefined,
               savedAt: r.created_at,
             };
           })
@@ -133,6 +135,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
           location: s.location,
           careTypes: s.careTypes,
           image: s.image,
+          rating: s.rating,
         }),
       }));
 
@@ -171,6 +174,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
               location: meta.location || "",
               careTypes: meta.careTypes || [],
               image: meta.image || null,
+              rating: meta.rating || undefined,
               savedAt: r.created_at,
             };
           })
@@ -228,6 +232,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
               location: provider.location,
               careTypes: provider.careTypes,
               image: provider.image,
+              rating: provider.rating,
               savedAt: new Date().toISOString(),
             },
             ...prev,
@@ -246,6 +251,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
                 location: provider.location,
                 careTypes: provider.careTypes,
                 image: provider.image,
+                rating: provider.rating,
               }),
             })
             .then(({ error }) => {
@@ -262,6 +268,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             location: provider.location,
             careTypes: provider.careTypes,
             image: provider.image,
+            rating: provider.rating,
           });
 
           if (!added) {

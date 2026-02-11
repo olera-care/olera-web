@@ -277,6 +277,7 @@ export default async function ProviderPage({
                   location: locationStr,
                   careTypes: profile.care_types || [],
                   image: images[0] || null,
+                  rating: rating || undefined,
                 }}
               />
             </div>

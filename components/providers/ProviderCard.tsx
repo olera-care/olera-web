@@ -234,6 +234,7 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
                 location: provider.address,
                 careTypes: [provider.primaryCategory],
                 image: provider.image,
+                rating: provider.rating || undefined,
               });
             }}
             className={`w-9 h-9 bg-white/95 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white shadow-sm transition-all duration-200 ${isSaved ? 'scale-110' : ''}`}

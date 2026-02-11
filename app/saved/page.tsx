@@ -15,6 +15,7 @@ function toProvider(entry: {
   location: string;
   careTypes: string[];
   image: string | null;
+  rating?: number;
 }): Provider {
   return {
     id: entry.providerId,
@@ -22,13 +23,22 @@ function toProvider(entry: {
     name: entry.name,
     image: entry.image || "/placeholder-provider.jpg",
     address: entry.location,
-    rating: 0,
+    rating: entry.rating || 0,
     priceRange: "Contact for pricing",
     primaryCategory: entry.careTypes[0] || "Senior Care",
     careTypes: entry.careTypes,
     highlights: [],
     verified: false,
   };
+}
+
+function handleShare() {
+  const url = typeof window !== "undefined" ? window.location.href : "";
+  if (navigator.share) {
+    navigator.share({ title: "My Saved Providers — Olera", url });
+  } else {
+    navigator.clipboard.writeText(url);
+  }
 }
 
 export default function SavedProvidersPage() {
@@ -41,45 +51,65 @@ export default function SavedProvidersPage() {
         {/* Header */}
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-              Saved Providers
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              Saved providers
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-base text-gray-500 mt-1">
               {savedProviders.length > 0
                 ? `${savedProviders.length} provider${savedProviders.length !== 1 ? "s" : ""} saved`
                 : "Providers you save will appear here"}
             </p>
           </div>
           {savedProviders.length > 0 && (
-            <Link
-              href="/browse"
-              className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors hidden sm:block"
+            <button
+              onClick={handleShare}
+              className="flex items-center justify-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors"
             >
-              Browse more →
-            </Link>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share
+            </button>
           )}
         </div>
 
-        {/* Anonymous user banner */}
-        {!user && savedProviders.length > 0 && (
+        {/* Banner — auth-aware */}
+        {savedProviders.length > 0 && (
           <div className="mb-6 px-5 py-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between gap-4 flex-wrap shadow-sm">
             <div>
               <p className="text-sm font-medium text-gray-900">
-                Keep your saves across sessions
+                {user
+                  ? "Looking for more options?"
+                  : "Keep your saves across sessions"}
               </p>
               <p className="text-sm text-gray-500 mt-0.5">
-                Create a free account to save more than 3 providers and access
-                them anytime.
+                {user
+                  ? "Discover more providers that match your care needs."
+                  : "Create a free account to save more than 3 providers and access them anytime."}
               </p>
             </div>
-            <button
-              onClick={() =>
-                openAuth({ defaultMode: "sign-up", intent: "family" })
-              }
-              className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
-            >
-              Create account
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/browse"
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
+                  user
+                    ? "bg-primary-600 hover:bg-primary-500 text-white"
+                    : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                Browse more
+              </Link>
+              {!user && (
+                <button
+                  onClick={() =>
+                    openAuth({ defaultMode: "sign-up", intent: "family" })
+                  }
+                  className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Create account
+                </button>
+              )}
+            </div>
           </div>
         )}
 

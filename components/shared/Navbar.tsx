@@ -13,7 +13,6 @@ import { useSavedProviders } from "@/hooks/use-saved-providers";
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const isPortalRoute = pathname?.startsWith("/portal");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
@@ -131,8 +130,7 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Center — Primary navigation (page-centered, hidden on portal & mobile) */}
-            {!isPortalRoute && (
+            {/* Center — Primary navigation (page-centered, hidden on mobile) */}
               <div className="hidden lg:flex items-center gap-1">
                 {/* Find Care trigger */}
                 <div onMouseEnter={() => setIsFindCareOpen(true)}>
@@ -180,7 +178,6 @@ export default function Navbar() {
                   </Link>
                 ))}
               </div>
-            )}
 
             {/* Right — Account menu (flex-1, align right) */}
             <div className="flex-1 flex items-center justify-end">
@@ -446,9 +443,7 @@ export default function Navbar() {
           {isMobileMenuOpen && (
             <div className="lg:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col space-y-1">
-                {/* Public nav items — hidden on portal routes */}
-                {!isPortalRoute && (
-                  <>
+                {/* Public nav items */}
                     <button
                       type="button"
                       onClick={() => setIsMobileCareOpen((prev) => !prev)}
@@ -513,8 +508,6 @@ export default function Navbar() {
                     </Link>
 
                     <hr className="border-gray-100" />
-                  </>
-                )}
 
                 {/* Account section */}
                 {hasSession ? (
@@ -647,15 +640,13 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Find Care Mega Menu — only on public pages */}
-      {!isPortalRoute && (
-        <FindCareMegaMenu
-          isOpen={isFindCareOpen}
-          onClose={() => setIsFindCareOpen(false)}
-          onMouseEnter={() => setIsFindCareOpen(true)}
-          onMouseLeave={() => setIsFindCareOpen(false)}
-        />
-      )}
+      {/* Find Care Mega Menu */}
+      <FindCareMegaMenu
+        isOpen={isFindCareOpen}
+        onClose={() => setIsFindCareOpen(false)}
+        onMouseEnter={() => setIsFindCareOpen(true)}
+        onMouseLeave={() => setIsFindCareOpen(false)}
+      />
     </>
   );
 }

@@ -130,6 +130,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
           // Only use as previous intent if core fields are present
           if (restored.careRecipient && restored.careType && restored.urgency) {
             setPreviousIntent(restored);
+            setIntentData(restored);
+            setCardState("returning");
           }
         } catch {
           // Invalid JSON — ignore

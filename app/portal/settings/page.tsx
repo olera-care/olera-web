@@ -55,8 +55,7 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-lg text-gray-600 mt-1">
+        <p className="text-lg text-gray-600">
           Manage your account and subscription.
         </p>
       </div>

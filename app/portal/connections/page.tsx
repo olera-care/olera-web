@@ -183,8 +183,7 @@ export default function ConnectionsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Connections</h1>
-        <p className="text-lg text-gray-600 mt-1">
+        <p className="text-lg text-gray-600">
           {isProvider
             ? "Manage inquiries, invitations, and applications."
             : "Your connections with care providers."}

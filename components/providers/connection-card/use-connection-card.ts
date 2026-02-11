@@ -54,7 +54,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     isActive,
   } = props;
 
-  const { user, account, activeProfile, openAuth, refreshAccountData } =
+  const { user, account, activeProfile, profiles, openAuth, refreshAccountData } =
     useAuth();
   const savedProviders = useSavedProviders();
   const phoneRevealTriggered = useRef(false);
@@ -106,16 +106,19 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // ── Check for existing connection (logged-in users) ──
   useEffect(() => {
-    if (!user || !activeProfile || !isSupabaseConfigured()) return;
+    if (!user || !profiles.length || !isSupabaseConfigured()) return;
 
     const checkExisting = async () => {
       const supabase = createClient();
+      const profileIds = profiles.map((p) => p.id);
       const { data } = await supabase
         .from("connections")
         .select("id, created_at")
-        .eq("from_profile_id", activeProfile.id)
+        .in("from_profile_id", profileIds)
         .eq("to_profile_id", providerId)
         .eq("type", "inquiry")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .single();
 
       if (data) {
@@ -125,7 +128,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     };
 
     checkExisting();
-  }, [user, activeProfile, providerId]);
+  }, [user, profiles, providerId]);
 
   // ── Handle deferred phone reveal after auth ──
   useEffect(() => {

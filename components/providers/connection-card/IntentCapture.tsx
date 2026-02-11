@@ -92,17 +92,6 @@ export default function IntentCapture({
               />
             ))}
           </div>
-          <button
-            onClick={onNext}
-            disabled={!canProceed}
-            className={`w-full py-3.5 border-none rounded-[10px] text-base font-semibold cursor-pointer transition-all duration-200 ${
-              canProceed
-                ? "bg-primary-600 text-white hover:bg-primary-500"
-                : "bg-gray-200 text-gray-400 cursor-default"
-            }`}
-          >
-            Next
-          </button>
         </>
       )}
 
@@ -122,17 +111,6 @@ export default function IntentCapture({
               />
             ))}
           </div>
-          <button
-            onClick={onNext}
-            disabled={!canProceed}
-            className={`w-full py-3.5 border-none rounded-[10px] text-base font-semibold cursor-pointer transition-all duration-200 ${
-              canProceed
-                ? "bg-primary-600 text-white hover:bg-primary-500"
-                : "bg-gray-200 text-gray-400 cursor-default"
-            }`}
-          >
-            Next
-          </button>
         </>
       )}
 
@@ -164,30 +142,33 @@ export default function IntentCapture({
             placeholder="e.g., My mom needs help 3 mornings a week, mostly with getting ready and meals..."
             className="w-full px-3 py-3 rounded-lg border border-gray-200 text-sm text-gray-700 resize-none h-16 outline-none focus:border-primary-600 transition-colors mb-4 box-border"
           />
-
-          <button
-            onClick={onNext}
-            disabled={!canProceed}
-            className={`w-full py-3.5 border-none rounded-[10px] text-base font-semibold cursor-pointer transition-all duration-200 ${
-              canProceed
-                ? "bg-primary-600 text-white hover:bg-primary-500"
-                : "bg-gray-200 text-gray-400 cursor-default"
-            }`}
-          >
-            {isResearching
-              ? `Save ${providerName} for later`
-              : "Continue"}
-          </button>
         </>
       )}
 
-      {/* Back link */}
-      <button
-        onClick={onBack}
-        className="block w-full text-center text-sm text-gray-500 mt-3 cursor-pointer bg-transparent border-none hover:text-gray-600 transition-colors"
-      >
-        &larr; Back
-      </button>
+      {/* Action row — Back + Next horizontally */}
+      <div className="flex items-center justify-between mt-1">
+        <button
+          onClick={onBack}
+          className="text-sm text-gray-500 cursor-pointer bg-transparent border-none hover:text-gray-700 transition-colors font-medium"
+        >
+          &larr; Back
+        </button>
+        <button
+          onClick={onNext}
+          disabled={!canProceed}
+          className={`px-8 py-2.5 border-none rounded-[10px] text-sm font-semibold cursor-pointer transition-all duration-200 ${
+            canProceed
+              ? "bg-primary-600 text-white hover:bg-primary-500"
+              : "bg-gray-200 text-gray-400 cursor-default"
+          }`}
+        >
+          {intentStep === 2
+            ? isResearching
+              ? `Save for later`
+              : "Continue"
+            : "Next"}
+        </button>
+      </div>
     </>
   );
 }

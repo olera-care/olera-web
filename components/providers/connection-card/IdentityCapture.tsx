@@ -143,18 +143,26 @@ export default function IdentityCapture({
             </div>
           </div>
 
-          {/* Continue button */}
-          <button
-            onClick={onNext}
-            disabled={!canContinue}
-            className={`w-full py-3.5 border-none rounded-[10px] text-base font-semibold cursor-pointer transition-all duration-200 ${
-              canContinue
-                ? "bg-primary-600 text-white hover:bg-primary-500"
-                : "bg-gray-200 text-gray-400 cursor-default"
-            }`}
-          >
-            Continue
-          </button>
+          {/* Action row */}
+          <div className="flex items-center justify-between mt-1">
+            <button
+              onClick={onBack}
+              className="text-sm text-gray-500 cursor-pointer bg-transparent border-none hover:text-gray-700 transition-colors font-medium"
+            >
+              &larr; Back
+            </button>
+            <button
+              onClick={onNext}
+              disabled={!canContinue}
+              className={`px-8 py-2.5 border-none rounded-[10px] text-sm font-semibold cursor-pointer transition-all duration-200 ${
+                canContinue
+                  ? "bg-primary-600 text-white hover:bg-primary-500"
+                  : "bg-gray-200 text-gray-400 cursor-default"
+              }`}
+            >
+              Continue
+            </button>
+          </div>
         </>
       )}
 
@@ -202,28 +210,28 @@ export default function IdentityCapture({
             </div>
           )}
 
-          {/* Submit button */}
-          <button
-            onClick={onSubmit}
-            disabled={!canSubmit || submitting}
-            className={`w-full py-3.5 border-none rounded-[10px] text-base font-semibold cursor-pointer transition-all duration-200 ${
-              canSubmit && !submitting
-                ? "bg-primary-600 text-white hover:bg-primary-500"
-                : "bg-gray-200 text-gray-400 cursor-default"
-            }`}
-          >
-            {submitting ? "Sending..." : "Send Connection Request"}
-          </button>
+          {/* Action row */}
+          <div className="flex items-center justify-between mt-1">
+            <button
+              onClick={onBack}
+              className="text-sm text-gray-500 cursor-pointer bg-transparent border-none hover:text-gray-700 transition-colors font-medium"
+            >
+              &larr; Back
+            </button>
+            <button
+              onClick={onSubmit}
+              disabled={!canSubmit || submitting}
+              className={`px-8 py-2.5 border-none rounded-[10px] text-sm font-semibold cursor-pointer transition-all duration-200 ${
+                canSubmit && !submitting
+                  ? "bg-primary-600 text-white hover:bg-primary-500"
+                  : "bg-gray-200 text-gray-400 cursor-default"
+              }`}
+            >
+              {submitting ? "Sending..." : "Send Request"}
+            </button>
+          </div>
         </>
       )}
-
-      {/* Back link */}
-      <button
-        onClick={onBack}
-        className="block w-full text-center text-sm text-gray-500 mt-3 cursor-pointer bg-transparent border-none hover:text-gray-600 transition-colors"
-      >
-        &larr; Back
-      </button>
     </>
   );
 }

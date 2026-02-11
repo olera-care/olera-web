@@ -14,8 +14,8 @@ export default function CompletedAnswer({
   return (
     <div className="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg mb-1.5 border border-gray-100">
       <div>
-        <span className="text-xs text-gray-400">{label}</span>
-        <p className="text-sm text-gray-800 font-medium mt-0.5">{value}</p>
+        <span className="text-sm text-gray-400">{label}</span>
+        <p className="text-base text-gray-800 font-medium mt-0.5">{value}</p>
       </div>
       <button
         onClick={onEdit}

@@ -294,6 +294,22 @@ export default function ConnectionsPage() {
     );
   };
 
+  const handleWithdraw = (connectionId: string) => {
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId
+          ? { ...c, status: "expired" as Connection["status"], metadata: { ...(c.metadata || {}), withdrawn: true } }
+          : c
+      )
+    );
+    closeDrawer();
+  };
+
+  const handleHide = (connectionId: string) => {
+    setConnections((prev) => prev.filter((c) => c.id !== connectionId));
+    closeDrawer();
+  };
+
   // ── Loading ──
 
   if (loading) {
@@ -442,7 +458,7 @@ export default function ConnectionsPage() {
         </div>
       )}
 
-      <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} />
+      <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} onWithdraw={handleWithdraw} onHide={handleHide} />
     </div>
   );
 }
@@ -450,25 +466,38 @@ export default function ConnectionsPage() {
 // ── Tab Empty States ──
 
 function TabEmptyState({ tab }: { tab: ConnectionTab }) {
-  const messages: Record<ConnectionTab, { title: string; subtitle: string }> = {
+  const config: Record<ConnectionTab, { icon: string; title: string; subtitle: string; cta?: { label: string; href: string } }> = {
     active: {
-      title: "No active requests.",
-      subtitle: "Pending and viewed connections appear here.",
+      icon: "📨",
+      title: "No active requests yet",
+      subtitle: "When you reach out to a provider, your pending requests will show up here. Browse providers to get started.",
+      cta: { label: "Browse providers", href: "/browse" },
     },
     responded: {
-      title: "No responses yet.",
-      subtitle: "When a provider replies, you\u2019ll see it here.",
+      icon: "💬",
+      title: "No responses yet",
+      subtitle: "When a provider replies to your request, their response will appear here. Most providers respond within a few hours.",
     },
     past: {
-      title: "No past connections.",
-      subtitle: "Expired, withdrawn, and declined connections appear here.",
+      icon: "📂",
+      title: "No past connections",
+      subtitle: "Expired, withdrawn, and declined connections will be archived here for your reference.",
     },
   };
-  const msg = messages[tab];
+  const { icon, title, subtitle, cta } = config[tab];
   return (
-    <div className="py-12 text-center">
-      <p className="text-sm text-gray-500">{msg.title}</p>
-      <p className="text-xs text-gray-400 mt-1">{msg.subtitle}</p>
+    <div className="py-16 text-center max-w-[360px] mx-auto">
+      <span className="text-4xl block mb-3">{icon}</span>
+      <h3 className="text-base font-semibold text-gray-700">{title}</h3>
+      <p className="text-sm text-gray-400 mt-1.5 leading-relaxed">{subtitle}</p>
+      {cta && (
+        <Link
+          href={cta.href}
+          className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors"
+        >
+          {cta.label}
+        </Link>
+      )}
     </div>
   );
 }

@@ -163,8 +163,8 @@ export default function MatchesPage() {
   if (!hasRequiredFields) {
     return (
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Matches</h2>
-        <p className="text-sm text-gray-500 mb-8">
+        <h2 className="text-[22px] font-bold text-gray-900">Matches</h2>
+        <p className="text-sm text-gray-500 mt-1 mb-8">
           Discover providers or let them find you.
         </p>
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
@@ -189,8 +189,8 @@ export default function MatchesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Matches</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-[22px] font-bold text-gray-900">Matches</h2>
+          <p className="text-sm text-gray-500 mt-1">
             Discover providers or let them find you.
           </p>
         </div>

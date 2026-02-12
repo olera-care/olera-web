@@ -10,17 +10,17 @@ const NAV_ITEMS = [
   {
     label: "Profile",
     href: "/portal/profile",
-    icon3d: "https://img.icons8.com/3d-fluency/94/user-male-circle.png",
+    iconSrc: "https://cdn.lordicon.com/dklbhvrt.json",
   },
   {
     label: "My Connections",
     href: "/portal/connections",
-    icon3d: "https://img.icons8.com/3d-fluency/94/chat.png",
+    iconSrc: "https://cdn.lordicon.com/uvextprq.json",
   },
   {
     label: "Account Settings",
     href: "/portal/settings",
-    icon3d: "https://img.icons8.com/3d-fluency/94/gear.png",
+    iconSrc: "https://cdn.lordicon.com/lecprnjb.json",
   },
 ];
 
@@ -140,11 +140,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
                         : "text-gray-600 hover:bg-gray-50",
                     ].join(" ")}
                   >
-                    <img
-                      src={item.icon3d}
-                      alt=""
-                      className="w-10 h-10 shrink-0"
-                      loading="eager"
+                    <lord-icon
+                      src={item.iconSrc}
+                      trigger="hover"
+                      colors={`primary:${isActive ? "#199087" : "#6b7280"}`}
+                      style={{ width: "40px", height: "40px" }}
                     />
                     {item.label}
                   </Link>
@@ -156,7 +156,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
             <div className="mt-auto pt-4 border-t border-gray-100">
               <Link
                 href="/browse"
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Browse more providers
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

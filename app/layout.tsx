@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/shared/Navbar";
 import Footer from "@/components/shared/Footer";
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-50 min-h-screen flex flex-col font-sans">
+        <Script src="https://cdn.lordicon.com/lordicon.js" strategy="afterInteractive" />
         <AuthProvider>
           <SavedProvidersProvider>
           <NavbarProvider>

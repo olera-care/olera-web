@@ -5,11 +5,12 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
-import type { Connection, ConnectionStatus, Profile } from "@/lib/types";
+import type { Connection, Profile } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
+import ConnectionDrawer from "@/components/portal/ConnectionDrawer";
 
 interface ConnectionWithProfile extends Connection {
   fromProfile: Profile | null;
@@ -72,8 +73,10 @@ export default function ConnectionsPage() {
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [responding, setResponding] = useState(false);
+
+  // Drawer state
+  const [drawerConnectionId, setDrawerConnectionId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isProvider =
     activeProfile?.type === "organization" ||
@@ -197,57 +200,39 @@ export default function ConnectionsPage() {
   // ── Group connections ──
   const grouped = groupConnections(connections, activeProfile?.id || "", isProvider);
 
-  const handleStatusUpdate = async (
-    connectionId: string,
-    newStatus: "accepted" | "declined" | "archived"
-  ) => {
-    if (!isSupabaseConfigured() || !activeProfile) return;
-    setResponding(true);
-    try {
-      const supabase = createClient();
-      const { error: updateError } = await supabase
-        .from("connections")
-        .update({ status: newStatus })
-        .eq("id", connectionId);
-      if (updateError) throw new Error(updateError.message);
-      setConnections((prev) =>
-        prev.map((c) => (c.id === connectionId ? { ...c, status: newStatus } : c))
-      );
-    } catch (err: unknown) {
-      const msg =
-        err && typeof err === "object" && "message" in err
-          ? (err as { message: string }).message
-          : String(err);
-      setError(msg);
-    } finally {
-      setResponding(false);
-    }
+  const openDrawer = (id: string) => {
+    setDrawerConnectionId(id);
+    setDrawerOpen(true);
   };
 
-  const selectedConnection = connections.find((c) => c.id === selectedId) || null;
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    // Delay clearing connectionId so the close animation finishes
+    setTimeout(() => setDrawerConnectionId(null), 300);
+  };
+
+  const handleStatusChange = (connectionId: string, newStatus: string) => {
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId ? { ...c, status: newStatus as Connection["status"] } : c
+      )
+    );
+  };
 
   if (loading) {
     return (
       <div className="text-center py-16">
         <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
-        <p className="mt-4 text-gray-500">Loading connections...</p>
+        <p className="mt-4 text-gray-500 text-base">Loading connections...</p>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <p className="text-lg text-gray-600">
-          {isProvider
-            ? "Manage inquiries, invitations, and applications."
-            : "Your connections with care providers."}
-        </p>
-      </div>
-
+    <div className="space-y-6">
       {error && (
         <div
-          className="mb-6 bg-red-50 text-red-700 px-4 py-3 rounded-lg text-base flex items-center justify-between"
+          className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between"
           role="alert"
         >
           <span>{error}</span>
@@ -278,93 +263,63 @@ export default function ConnectionsPage() {
           }
         />
       ) : (
-        <div className="flex gap-0 lg:gap-0">
-          {/* ── Left: Connection List ── */}
-          <div
-            className={`w-full lg:w-[360px] lg:shrink-0 ${
-              selectedId ? "hidden lg:block" : ""
-            }`}
-          >
-            {grouped.needsAttention.length > 0 && (
-              <ConnectionGroup
-                title="Needs Attention"
-                icon={
-                  <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
-                    <path d="M10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                  </svg>
-                }
-                connections={grouped.needsAttention}
-                activeProfileId={activeProfile?.id || ""}
-                isProvider={isProvider}
-                hasFullAccess={hasFullAccess}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-                variant="attention"
-              />
-            )}
-
-            {grouped.active.length > 0 && (
-              <ConnectionGroup
-                title="Active"
-                connections={grouped.active}
-                activeProfileId={activeProfile?.id || ""}
-                isProvider={isProvider}
-                hasFullAccess={hasFullAccess}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-              />
-            )}
-
-            {grouped.past.length > 0 && (
-              <ConnectionGroup
-                title="Past"
-                connections={grouped.past}
-                activeProfileId={activeProfile?.id || ""}
-                isProvider={isProvider}
-                hasFullAccess={hasFullAccess}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-                variant="muted"
-              />
-            )}
-
-            {isProvider && !hasFullAccess && connections.length > 0 && (
-              <div className="mt-6">
-                <UpgradePrompt context="view full details and respond to connections" />
-              </div>
-            )}
-          </div>
-
-          {/* ── Right: Detail Panel ── */}
-          <div
-            className={`flex-1 min-w-0 ${
-              selectedId
-                ? "block"
-                : "hidden lg:flex lg:items-center lg:justify-center"
-            } lg:border-l lg:border-gray-200 lg:ml-6 lg:pl-6`}
-          >
-            {selectedConnection ? (
-              <DetailPanel
-                connection={selectedConnection}
-                activeProfileId={activeProfile?.id || ""}
-                isProvider={isProvider}
-                hasFullAccess={hasFullAccess}
-                responding={responding}
-                onStatusUpdate={handleStatusUpdate}
-                onBack={() => setSelectedId(null)}
-              />
-            ) : (
-              <div className="text-center py-16 text-gray-400">
-                <svg className="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        <div>
+          {grouped.needsAttention.length > 0 && (
+            <ConnectionGroup
+              title="Needs Attention"
+              icon={
+                <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
+                  <path d="M10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                 </svg>
-                <p className="text-sm font-medium">Select a connection to view details</p>
-              </div>
-            )}
-          </div>
+              }
+              connections={grouped.needsAttention}
+              activeProfileId={activeProfile?.id || ""}
+              isProvider={isProvider}
+              hasFullAccess={hasFullAccess}
+              onSelect={openDrawer}
+              variant="attention"
+            />
+          )}
+
+          {grouped.active.length > 0 && (
+            <ConnectionGroup
+              title="Active"
+              connections={grouped.active}
+              activeProfileId={activeProfile?.id || ""}
+              isProvider={isProvider}
+              hasFullAccess={hasFullAccess}
+              onSelect={openDrawer}
+            />
+          )}
+
+          {grouped.past.length > 0 && (
+            <ConnectionGroup
+              title="Past"
+              connections={grouped.past}
+              activeProfileId={activeProfile?.id || ""}
+              isProvider={isProvider}
+              hasFullAccess={hasFullAccess}
+              onSelect={openDrawer}
+              variant="muted"
+            />
+          )}
+
+          {isProvider && !hasFullAccess && connections.length > 0 && (
+            <div className="mt-6">
+              <UpgradePrompt context="view full details and respond to connections" />
+            </div>
+          )}
         </div>
       )}
+
+      {/* Connection Drawer */}
+      <ConnectionDrawer
+        connectionId={drawerConnectionId}
+        isOpen={drawerOpen}
+        onClose={closeDrawer}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 }
@@ -388,7 +343,6 @@ function groupConnections(
     if (c.status === "declined" || c.status === "archived") {
       past.push(c);
     } else if (isProvider) {
-      // Provider: new pending inbound = needs attention, accepted = active
       const isInbound = c.to_profile_id === activeProfileId;
       if (c.status === "pending" && isInbound) {
         needsAttention.push(c);
@@ -396,7 +350,6 @@ function groupConnections(
         active.push(c);
       }
     } else {
-      // Care seeker: accepted (provider responded) = needs attention, pending = active
       if (c.status === "accepted") {
         needsAttention.push(c);
       } else {
@@ -417,7 +370,6 @@ function ConnectionGroup({
   activeProfileId,
   isProvider,
   hasFullAccess,
-  selectedId,
   onSelect,
   variant = "normal",
 }: {
@@ -427,22 +379,21 @@ function ConnectionGroup({
   activeProfileId: string;
   isProvider: boolean;
   hasFullAccess: boolean;
-  selectedId: string | null;
   onSelect: (id: string) => void;
   variant?: "normal" | "attention" | "muted";
 }) {
   return (
-    <div className="mb-5">
-      <div className="flex items-center gap-2 mb-2 px-1">
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-2.5 px-1">
         {icon}
-        <h3 className={`text-xs font-semibold uppercase tracking-wider ${
+        <h3 className={`text-sm font-semibold uppercase tracking-wider ${
           variant === "muted" ? "text-gray-400" : "text-gray-500"
         }`}>
           {title}
         </h3>
-        <span className="text-xs text-gray-400">({connections.length})</span>
+        <span className="text-sm text-gray-400">({connections.length})</span>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         {connections.map((connection) => (
           <ConnectionCard
             key={connection.id}
@@ -450,7 +401,6 @@ function ConnectionGroup({
             activeProfileId={activeProfileId}
             isProvider={isProvider}
             hasFullAccess={hasFullAccess}
-            isSelected={selectedId === connection.id}
             onSelect={onSelect}
             variant={variant}
           />
@@ -467,7 +417,6 @@ function ConnectionCard({
   activeProfileId,
   isProvider,
   hasFullAccess,
-  isSelected,
   onSelect,
   variant,
 }: {
@@ -475,7 +424,6 @@ function ConnectionCard({
   activeProfileId: string;
   isProvider: boolean;
   hasFullAccess: boolean;
-  isSelected: boolean;
   onSelect: (id: string) => void;
   variant: "normal" | "attention" | "muted";
 }) {
@@ -507,23 +455,19 @@ function ConnectionCard({
   const initial = otherName.charAt(0).toUpperCase();
 
   return (
-    <div
-      className={`rounded-lg border transition-colors group ${
-        isSelected
-          ? "border-primary-200 bg-primary-50/40"
-          : variant === "attention"
+    <button
+      type="button"
+      onClick={() => onSelect(connection.id)}
+      className={`w-full text-left rounded-xl border transition-colors group cursor-pointer ${
+        variant === "attention"
           ? "border-amber-100 bg-amber-50/30 hover:bg-amber-50/60"
           : variant === "muted"
           ? "border-gray-100 bg-gray-50/50 hover:bg-gray-50"
-          : "border-gray-100 bg-white hover:bg-gray-50"
+          : "border-gray-200 bg-white hover:bg-gray-50"
       }`}
     >
-      <button
-        type="button"
-        onClick={() => onSelect(connection.id)}
-        className="block w-full text-left px-3.5 py-2.5 cursor-pointer bg-transparent border-none"
-      >
-        <div className="flex items-center gap-3">
+      <div className="px-4 py-3.5">
+        <div className="flex items-center gap-3.5">
           {/* Avatar */}
           <div className="shrink-0">
             {imageUrl && !shouldBlur ? (
@@ -531,11 +475,11 @@ function ConnectionCard({
               <img
                 src={imageUrl}
                 alt={otherName}
-                className="w-9 h-9 rounded-lg object-cover"
+                className="w-11 h-11 rounded-xl object-cover"
               />
             ) : (
               <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white"
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white"
                 style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
               >
                 {shouldBlur ? "?" : initial}
@@ -548,19 +492,19 @@ function ConnectionCard({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
                 {variant === "attention" && (
-                  <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
                   </svg>
                 )}
-                <h3 className="text-sm font-semibold text-gray-900 truncate leading-snug">
+                <h3 className="text-base font-semibold text-gray-900 truncate leading-snug">
                   {shouldBlur ? blurName(otherName) : otherName}
                 </h3>
               </div>
-              <Badge variant={badge.variant} className="!text-xs !px-2 !py-0.5 shrink-0">
+              <Badge variant={badge.variant} className="!text-xs !px-2.5 !py-0.5 shrink-0">
                 {badge.label}
               </Badge>
             </div>
-            <p className="text-xs text-gray-400 truncate mt-0.5">
+            <p className="text-sm text-gray-500 truncate mt-0.5">
               {careTypeLabel} &middot; {createdAt}
               {!shouldBlur && otherLocation ? ` \u00b7 ${otherLocation}` : ""}
             </p>
@@ -571,375 +515,7 @@ function ConnectionCard({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </div>
-      </button>
-    </div>
-  );
-}
-
-// ── Detail Panel ──
-
-function DetailPanel({
-  connection,
-  activeProfileId,
-  isProvider,
-  hasFullAccess,
-  responding,
-  onStatusUpdate,
-  onBack,
-}: {
-  connection: ConnectionWithProfile;
-  activeProfileId: string;
-  isProvider: boolean;
-  hasFullAccess: boolean;
-  responding: boolean;
-  onStatusUpdate: (id: string, status: "accepted" | "declined" | "archived") => void;
-  onBack: () => void;
-}) {
-  const isInbound = connection.to_profile_id === activeProfileId;
-  const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
-  const shouldBlur = isProvider && !hasFullAccess && isInbound;
-
-  const otherName = otherProfile?.display_name || "Unknown";
-  const otherLocation = otherProfile
-    ? [otherProfile.city, otherProfile.state].filter(Boolean).join(", ")
-    : "";
-  const imageUrl = otherProfile?.image_url;
-  const initial = otherName.charAt(0).toUpperCase();
-  const parsedMsg = parseMessage(connection.message);
-
-  const categoryLabel = otherProfile?.category
-    ? otherProfile.category.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
-    : otherProfile?.type === "organization"
-    ? "Organization"
-    : otherProfile?.type === "caregiver"
-    ? "Caregiver"
-    : "Family";
-
-  const profileHref = otherProfile
-    ? (otherProfile.type === "organization" || otherProfile.type === "caregiver") && otherProfile.slug
-      ? `/provider/${otherProfile.slug}`
-      : `/profile/${otherProfile.id}`
-    : "#";
-
-  const createdDate = new Date(connection.created_at).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const shortDate = new Date(connection.created_at).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-
-  const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; dot: string }> = {
-    pending: { label: "Pending", color: "text-amber-700", bg: "bg-amber-50", dot: "bg-amber-400" },
-    accepted: { label: "Connected", color: "text-emerald-700", bg: "bg-emerald-50", dot: "bg-emerald-400" },
-    declined: { label: "Declined", color: "text-gray-500", bg: "bg-gray-100", dot: "bg-gray-400" },
-    archived: { label: "Archived", color: "text-gray-500", bg: "bg-gray-100", dot: "bg-gray-400" },
-  };
-  const status = STATUS_CONFIG[connection.status] || STATUS_CONFIG.pending;
-
-  // Build natural language summary for chat bubble
-  const buildSummary = () => {
-    if (!parsedMsg) return null;
-    const parts: string[] = [];
-    if (parsedMsg.careType) {
-      parts.push(`I'm looking for ${parsedMsg.careType.toLowerCase()}`);
-    }
-    if (parsedMsg.careRecipient) {
-      parts.push(`for ${parsedMsg.careRecipient.toLowerCase()}`);
-    }
-    if (parsedMsg.urgency) {
-      parts.push(`needed ${parsedMsg.urgency.toLowerCase()}`);
-    }
-    return parts.length > 0
-      ? `Hi, ${parts.join(" ")}.`
-      : null;
-  };
-
-  const summary = buildSummary();
-
-  return (
-    <div className="w-full">
-      {/* Mobile back button */}
-      <button
-        type="button"
-        onClick={onBack}
-        className="lg:hidden flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to connections
-      </button>
-
-      {/* ── Provider Info ── */}
-      <div className="flex items-start gap-4 mb-5">
-        <div className="shrink-0">
-          {imageUrl && !shouldBlur ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imageUrl}
-              alt={otherName}
-              className="w-14 h-14 rounded-xl object-cover"
-            />
-          ) : (
-            <div
-              className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold text-white"
-              style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
-            >
-              {shouldBlur ? "?" : initial}
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-bold text-gray-900 leading-snug">
-            {shouldBlur ? blurName(otherName) : otherName}
-          </h2>
-          {!shouldBlur && otherLocation && (
-            <p className="text-sm text-gray-500 mt-0.5">{otherLocation}</p>
-          )}
-          {!shouldBlur && (
-            <p className="text-xs text-gray-400 mt-0.5">{categoryLabel}</p>
-          )}
-          {otherProfile && !shouldBlur && (
-            <Link
-              href={profileHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mt-1"
-            >
-              View provider profile
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </Link>
-          )}
-        </div>
       </div>
-
-      {/* Status badge */}
-      <div className="mb-5">
-        <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${status.bg} ${status.color}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-          {status.label}
-        </span>
-      </div>
-
-      {/* ── Conversation Thread ── */}
-      <div className="border-t border-gray-100 pt-5">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-          Conversation
-        </p>
-
-        <div className="space-y-4">
-          {/* Connection request bubble (care seeker's message) */}
-          {!shouldBlur && (
-            <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
-              <div className={`max-w-[85%] ${isInbound ? "" : ""}`}>
-                <div className={`rounded-2xl px-4 py-3 ${
-                  isInbound
-                    ? "bg-gray-100 text-gray-800 rounded-tl-sm"
-                    : "bg-primary-600 text-white rounded-tr-sm"
-                }`}>
-                  <p className={`text-[10px] font-semibold uppercase tracking-wider mb-1.5 ${
-                    isInbound ? "text-gray-400" : "text-primary-100"
-                  }`}>
-                    Connection request
-                  </p>
-                  {summary && (
-                    <p className="text-sm leading-relaxed">{summary}</p>
-                  )}
-                  {parsedMsg?.notes && (
-                    <p className={`text-sm italic mt-1.5 ${
-                      isInbound ? "text-gray-600" : "text-primary-100"
-                    }`}>
-                      &ldquo;{parsedMsg.notes}&rdquo;
-                    </p>
-                  )}
-                </div>
-                <p className={`text-[10px] mt-1 ${
-                  isInbound ? "text-left" : "text-right"
-                } text-gray-400`}>
-                  {shortDate}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* System notes based on status */}
-          <SystemNote
-            connection={connection}
-            otherName={shouldBlur ? blurName(otherName) : otherName}
-            createdDate={createdDate}
-            shouldBlur={shouldBlur}
-          />
-
-          {/* Provider responded message (if accepted) */}
-          {connection.status === "accepted" && !shouldBlur && otherProfile && isInbound && (
-            <div className="flex justify-start">
-              <div className="max-w-[85%]">
-                <div className="bg-gray-100 text-gray-800 rounded-2xl rounded-tl-sm px-4 py-3">
-                  <p className="text-sm leading-relaxed">
-                    {otherName} has accepted your connection request. You can now get in touch directly.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-          {connection.status === "accepted" && !shouldBlur && otherProfile && !isInbound && (
-            <div className="flex justify-end">
-              <div className="max-w-[85%]">
-                <div className="bg-primary-600 text-white rounded-2xl rounded-tr-sm px-4 py-3">
-                  <p className="text-sm leading-relaxed">
-                    You accepted this connection. Reach out to start the conversation.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Message Input (placeholder) ── */}
-      {(connection.status === "pending" || connection.status === "accepted") && !shouldBlur && (
-        <div className="mt-5 pt-4 border-t border-gray-100">
-          <div className="flex gap-2">
-            <div className="flex-1 bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-400 cursor-not-allowed">
-              {connection.status === "accepted"
-                ? "Reply to provider..."
-                : "Add a message..."}
-            </div>
-            <button
-              type="button"
-              disabled
-              className="px-4 py-3 rounded-xl bg-gray-100 text-gray-300 text-sm font-medium cursor-not-allowed"
-            >
-              Send
-            </button>
-          </div>
-          <p className="text-[10px] text-gray-400 mt-1.5 text-center">
-            Messaging coming soon
-          </p>
-        </div>
-      )}
-
-      {/* ── Upgrade Prompt (blurred) ── */}
-      {shouldBlur && (
-        <div className="mt-5">
-          <UpgradePrompt context="view full details and respond" />
-        </div>
-      )}
-
-      {/* ── Provider Actions: Pending Inbound ── */}
-      {isInbound && hasFullAccess && connection.status === "pending" && (
-        <div className="mt-5 pt-4 border-t border-gray-100 flex gap-3">
-          <Button
-            onClick={() => onStatusUpdate(connection.id, "accepted")}
-            loading={responding}
-            className="flex-1"
-          >
-            Accept
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => onStatusUpdate(connection.id, "declined")}
-            loading={responding}
-            className="flex-1"
-          >
-            Decline
-          </Button>
-        </div>
-      )}
-
-      {/* ── Get in Touch: Accepted ── */}
-      {connection.status === "accepted" && otherProfile && !shouldBlur && (
-        <div className="mt-5 pt-4 border-t border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Get in touch
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {otherProfile.phone && (
-              <a
-                href={`tel:${otherProfile.phone}`}
-                className="inline-flex items-center gap-1.5 bg-primary-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-primary-700 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                {otherProfile.phone}
-              </a>
-            )}
-            {otherProfile.email && (
-              <a
-                href={`mailto:${otherProfile.email}?subject=${encodeURIComponent(`Scheduling a visit \u2014 ${otherProfile.display_name}`)}`}
-                className="inline-flex items-center gap-1.5 text-gray-700 text-sm font-medium px-4 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Email
-              </a>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── Declined Action ── */}
-      {connection.status === "declined" && !shouldBlur && (
-        <div className="mt-5 pt-4 border-t border-gray-100">
-          <Link
-            href="/browse"
-            className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-          >
-            Browse similar providers &rarr;
-          </Link>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── System Notes ──
-
-function SystemNote({
-  connection,
-  otherName,
-  createdDate,
-  shouldBlur,
-}: {
-  connection: ConnectionWithProfile;
-  otherName: string;
-  createdDate: string;
-  shouldBlur: boolean;
-}) {
-  let text: string | null = null;
-  let color = "text-gray-500 bg-gray-100";
-
-  switch (connection.status) {
-    case "pending":
-      text = "Sent \u00b7 Providers typically respond within a few hours";
-      break;
-    case "accepted":
-      text = shouldBlur ? "Provider responded" : `\u2713 ${otherName} responded`;
-      color = "text-emerald-700 bg-emerald-50";
-      break;
-    case "declined":
-      text = shouldBlur ? "Provider isn't taking new clients" : `${otherName} isn't taking new clients`;
-      color = "text-gray-500 bg-gray-100";
-      break;
-    case "archived":
-      text = `Connection archived on ${createdDate}`;
-      break;
-  }
-
-  if (!text) return null;
-
-  return (
-    <div className="flex justify-center">
-      <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${color}`}>
-        {text}
-      </span>
-    </div>
+    </button>
   );
 }

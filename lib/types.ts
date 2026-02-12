@@ -146,6 +146,7 @@ export interface FamilyMetadata {
   budget_max?: number;
   relationship_to_recipient?: string;
   // Enrichment fields
+  country?: string;
   contact_preference?: "call" | "text" | "email";
   payment_methods?: string[];
   living_situation?: string;
@@ -176,7 +177,7 @@ export interface DeferredAction {
 // ============================================================
 
 export interface AuthState {
-  user: { id: string; email: string } | null;
+  user: { id: string; email: string; email_confirmed_at?: string } | null;
   account: Account | null;
   activeProfile: Profile | null;
   profiles: Profile[];

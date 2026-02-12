@@ -205,25 +205,22 @@ export default function SettingsPage() {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="text-lg text-gray-600">
-          Manage your account and preferences.
-        </p>
-      </div>
-
+    <div className="space-y-6">
       {justUpgraded && (
-        <div className="mb-6 bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-lg text-base">
+        <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base">
           Your subscription is now active. You have full access to all features.
         </div>
       )}
 
       {/* ── Notifications ── */}
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Notifications
-        </h2>
-        <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
+      <section className="bg-white rounded-2xl border border-gray-200">
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-bold text-gray-900">Notifications</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Choose how you&apos;d like to be notified.
+          </p>
+        </div>
+        <div className="divide-y divide-gray-100">
           <NotificationRow
             title="Connection updates"
             description="When a provider responds or messages you"
@@ -255,12 +252,18 @@ export default function SettingsPage() {
       </section>
 
       {/* ── Account ── */}
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Account</h2>
-        <div className="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
+      <section className="bg-white rounded-2xl border border-gray-200">
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-bold text-gray-900">Account</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage your login credentials.
+          </p>
+        </div>
+        <div className="divide-y divide-gray-100">
           <AccountRow
             label="Email"
             value={user?.email || "Not set"}
+            verified={!!user?.email_confirmed_at}
             isEditing={editingField === "email"}
             editValue={fieldValue}
             onEditChange={setFieldValue}
@@ -306,7 +309,7 @@ export default function SettingsPage() {
 
       {/* ── Add Provider Profile (family only) ── */}
       {isFamily && (
-        <section className="mb-8">
+        <section>
           <Link
             href="/onboarding"
             className="flex items-center gap-4 bg-white rounded-2xl border border-gray-200 p-6 hover:border-primary-200 hover:bg-primary-50/20 transition-colors group"
@@ -353,149 +356,153 @@ export default function SettingsPage() {
 
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <section className="bg-white rounded-2xl border border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">
             Subscription
-          </h2>
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <p className="text-lg font-semibold text-gray-900">
-                Current plan:
-              </p>
-              {membership?.status === "active" && (
-                <Badge variant="pro">Pro</Badge>
-              )}
-              {(membership?.status === "free" ||
-                membership?.status === "trialing" ||
-                !membership) && <Badge variant="default">Free</Badge>}
-              {membership?.status === "past_due" && (
-                <Badge variant="pending">Past Due</Badge>
-              )}
-              {membership?.status === "canceled" && (
-                <Badge variant="default">Canceled</Badge>
-              )}
-            </div>
+          </h3>
 
-            {freeRemaining !== null && (
-              <div className="mb-4">
-                <p className="text-base text-gray-600">
-                  You have{" "}
-                  <span className="font-semibold text-gray-900">
-                    {freeRemaining} of {FREE_CONNECTION_LIMIT}
-                  </span>{" "}
-                  free connections remaining.
-                  {freeRemaining === 0
-                    ? " Upgrade to Pro to continue connecting."
-                    : " Upgrade to Pro for unlimited connections."}
-                </p>
-              </div>
-            )}
-
+          <div className="flex items-center gap-3 mb-4">
+            <p className="text-base font-semibold text-gray-900">
+              Current plan:
+            </p>
             {membership?.status === "active" && (
-              <div className="mb-4">
-                <p className="text-base text-gray-600">
-                  You have unlimited access to all Pro features.
-                </p>
-                {membership.billing_cycle && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    Billed{" "}
-                    {membership.billing_cycle === "annual"
-                      ? "annually"
-                      : "monthly"}
-                    {membership.current_period_ends_at &&
-                      ` \u00b7 Next billing date: ${new Date(
-                        membership.current_period_ends_at
-                      ).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}`}
-                  </p>
-                )}
-              </div>
+              <Badge variant="pro">Pro</Badge>
             )}
-
+            {(membership?.status === "free" ||
+              membership?.status === "trialing" ||
+              !membership) && <Badge variant="default">Free</Badge>}
             {membership?.status === "past_due" && (
-              <div className="mb-4 bg-warm-50 text-warm-700 px-4 py-3 rounded-lg text-base">
-                Your last payment failed. Please update your payment method.
-              </div>
+              <Badge variant="pending">Past Due</Badge>
             )}
-
-            {membership?.status !== "active" && (
-              <div className="space-y-4">
-                {error && (
-                  <div
-                    className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-base"
-                    role="alert"
-                  >
-                    {error}
-                  </div>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-primary-300 transition-colors">
-                    <p className="text-lg font-semibold text-gray-900">
-                      Monthly
-                    </p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                      $25
-                      <span className="text-base font-normal text-gray-500">
-                        /mo
-                      </span>
-                    </p>
-                    <Button
-                      fullWidth
-                      className="mt-4"
-                      onClick={() => handleUpgrade("monthly")}
-                      loading={loading === "monthly"}
-                      disabled={loading !== null}
-                    >
-                      Subscribe Monthly
-                    </Button>
-                  </div>
-                  <div className="border-2 border-primary-300 rounded-xl p-5 relative">
-                    <div className="absolute -top-3 right-4 bg-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                      Save 17%
-                    </div>
-                    <p className="text-lg font-semibold text-gray-900">
-                      Annual
-                    </p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                      $249
-                      <span className="text-base font-normal text-gray-500">
-                        /yr
-                      </span>
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">~$20.75/mo</p>
-                    <Button
-                      fullWidth
-                      className="mt-4"
-                      onClick={() => handleUpgrade("annual")}
-                      loading={loading === "annual"}
-                      disabled={loading !== null}
-                    >
-                      Subscribe Annually
-                    </Button>
-                  </div>
-                </div>
-              </div>
+            {membership?.status === "canceled" && (
+              <Badge variant="default">Canceled</Badge>
             )}
           </div>
+
+          {freeRemaining !== null && (
+            <div className="mb-4">
+              <p className="text-base text-gray-600">
+                You have{" "}
+                <span className="font-semibold text-gray-900">
+                  {freeRemaining} of {FREE_CONNECTION_LIMIT}
+                </span>{" "}
+                free connections remaining.
+                {freeRemaining === 0
+                  ? " Upgrade to Pro to continue connecting."
+                  : " Upgrade to Pro for unlimited connections."}
+              </p>
+            </div>
+          )}
+
+          {membership?.status === "active" && (
+            <div className="mb-4">
+              <p className="text-base text-gray-600">
+                You have unlimited access to all Pro features.
+              </p>
+              {membership.billing_cycle && (
+                <p className="text-base text-gray-500 mt-1">
+                  Billed{" "}
+                  {membership.billing_cycle === "annual"
+                    ? "annually"
+                    : "monthly"}
+                  {membership.current_period_ends_at &&
+                    ` \u00b7 Next billing date: ${new Date(
+                      membership.current_period_ends_at
+                    ).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}`}
+                </p>
+              )}
+            </div>
+          )}
+
+          {membership?.status === "past_due" && (
+            <div className="mb-4 bg-warm-50 text-warm-700 px-4 py-3 rounded-xl text-base">
+              Your last payment failed. Please update your payment method.
+            </div>
+          )}
+
+          {membership?.status !== "active" && (
+            <div className="space-y-4">
+              {error && (
+                <div
+                  className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base"
+                  role="alert"
+                >
+                  {error}
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-primary-300 transition-colors">
+                  <p className="text-lg font-semibold text-gray-900">
+                    Monthly
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                    $25
+                    <span className="text-base font-normal text-gray-500">
+                      /mo
+                    </span>
+                  </p>
+                  <Button
+                    fullWidth
+                    className="mt-4"
+                    onClick={() => handleUpgrade("monthly")}
+                    loading={loading === "monthly"}
+                    disabled={loading !== null}
+                  >
+                    Subscribe Monthly
+                  </Button>
+                </div>
+                <div className="border-2 border-primary-300 rounded-xl p-5 relative">
+                  <div className="absolute -top-3 right-4 bg-primary-600 text-white text-sm font-semibold px-3 py-1 rounded-full">
+                    Save 17%
+                  </div>
+                  <p className="text-lg font-semibold text-gray-900">
+                    Annual
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                    $249
+                    <span className="text-base font-normal text-gray-500">
+                      /yr
+                    </span>
+                  </p>
+                  <p className="text-base text-gray-500 mt-1">~$20.75/mo</p>
+                  <Button
+                    fullWidth
+                    className="mt-4"
+                    onClick={() => handleUpgrade("annual")}
+                    loading={loading === "annual"}
+                    disabled={loading !== null}
+                  >
+                    Subscribe Annually
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
       {/* ── Delete Account ── */}
-      <section className="mb-8">
-        <div className="pt-4">
+      <section className="bg-white rounded-2xl border border-gray-200 p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">
+              Delete account
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Permanently remove your profile and all connection history.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors shrink-0 ml-4"
           >
-            Delete account
+            Delete
           </button>
-          <p className="text-xs text-gray-400 mt-1">
-            Permanently remove your profile and all connection history.
-          </p>
         </div>
       </section>
 
@@ -530,7 +537,7 @@ export default function SettingsPage() {
             associated data. This action cannot be undone.
           </p>
           {deleteError && (
-            <div className="mb-4 bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm">
+            <div className="mb-4 bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base">
               {deleteError}
             </div>
           )}
@@ -543,14 +550,14 @@ export default function SettingsPage() {
             >
               Cancel
             </Button>
-            <button
-              type="button"
+            <Button
+              variant="danger"
+              fullWidth
               onClick={handleDelete}
-              disabled={deleting}
-              className="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
+              loading={deleting}
             >
-              {deleting ? "Deleting..." : "Delete Account"}
-            </button>
+              Delete Account
+            </Button>
           </div>
         </div>
       </Modal>
@@ -587,16 +594,16 @@ function NotificationRow({
   return (
     <div className="px-6 py-4 flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-gray-900">{title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+        <p className="text-base font-semibold text-gray-900">{title}</p>
+        <p className="text-sm text-gray-500 mt-0.5">{description}</p>
       </div>
       <div className="flex items-center gap-4 shrink-0">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500">Email</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Email</span>
           <Toggle on={emailOn} onToggle={() => onToggle("email")} />
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500">SMS</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">SMS</span>
           <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
         </div>
       </div>
@@ -613,13 +620,13 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       role="switch"
       aria-checked={on}
       onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
         on ? "bg-primary-600" : "bg-gray-200"
       }`}
     >
       <span
-        className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
-          on ? "translate-x-[18px]" : "translate-x-[3px]"
+        className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+          on ? "translate-x-[25px]" : "translate-x-[3px]"
         }`}
       />
     </button>
@@ -631,6 +638,7 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 function AccountRow({
   label,
   value,
+  verified,
   isEditing,
   editValue,
   onEditChange,
@@ -646,6 +654,7 @@ function AccountRow({
 }: {
   label: string;
   value: string;
+  verified?: boolean;
   isEditing: boolean;
   editValue: string;
   onEditChange: (v: string) => void;
@@ -663,10 +672,10 @@ function AccountRow({
     <div className="px-6 py-4">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-gray-500">{label}</p>
+          <p className="text-sm font-medium text-gray-500">{label}</p>
           {isEditing ? (
             isPassword ? (
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-base text-gray-600 mt-1">
                 We&apos;ll send a password reset link to your email.
               </p>
             ) : (
@@ -675,31 +684,41 @@ function AccountRow({
                 value={editValue}
                 onChange={(e) => onEditChange(e.target.value)}
                 placeholder={placeholder}
-                className="mt-1 w-full text-sm text-gray-900 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="mt-1 w-full text-base text-gray-900 border border-gray-300 rounded-xl px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 autoFocus
               />
             )
           ) : (
-            <p className="text-sm text-gray-900 mt-0.5">{value}</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-base text-gray-900">{value}</p>
+              {verified && (
+                <span className="inline-flex items-center gap-1 text-sm text-green-600 font-medium">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Verified
+                </span>
+              )}
+            </div>
           )}
         </div>
         {!isEditing && (
           <button
             type="button"
             onClick={onStartEdit}
-            className="text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
+            className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
           >
             {isPassword ? "Change" : "Edit"}
           </button>
         )}
       </div>
       {isEditing && (
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-3">
           <button
             type="button"
             onClick={onSave}
             disabled={saving}
-            className="text-xs font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
+            className="text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50"
           >
             {saving
               ? "Saving..."
@@ -711,14 +730,14 @@ function AccountRow({
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="text-xs font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50"
+            className="text-sm font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50"
           >
             Cancel
           </button>
         </div>
       )}
-      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-      {success && <p className="text-xs text-green-600 mt-1">{success}</p>}
+      {error && <p className="text-sm text-red-600 mt-1">{error}</p>}
+      {success && <p className="text-sm text-green-600 mt-1">{success}</p>}
     </div>
   );
 }

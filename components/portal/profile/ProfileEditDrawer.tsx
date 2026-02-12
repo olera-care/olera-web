@@ -9,6 +9,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
 const STEPS = [
+  "Basic Info",
   "Contact Information",
   "Care Preferences",
   "Payment & Benefits",
@@ -81,6 +82,10 @@ export default function ProfileEditDrawer({
 
   // Form state
   const meta = (profile.metadata || {}) as FamilyMetadata;
+  const [displayName, setDisplayName] = useState(profile.display_name || "");
+  const [country, setCountry] = useState(meta.country || "");
+  const [city, setCity] = useState(profile.city || "");
+  const [state, setState] = useState(profile.state || "");
   const [email, setEmail] = useState(profile.email || userEmail || "");
   const [phone, setPhone] = useState(profile.phone || "");
   const [contactPref, setContactPref] = useState<string>(meta.contact_preference || "");
@@ -113,6 +118,10 @@ export default function ProfileEditDrawer({
   // Sync from profile when it changes (after save + refresh)
   useEffect(() => {
     const m = (profile.metadata || {}) as FamilyMetadata;
+    setDisplayName(profile.display_name || "");
+    setCountry(m.country || "");
+    setCity(profile.city || "");
+    setState(profile.state || "");
     setEmail(profile.email || userEmail || "");
     setPhone(profile.phone || "");
     setContactPref(m.contact_preference || "");
@@ -151,6 +160,7 @@ export default function ProfileEditDrawer({
 
       const merged = {
         ...(current?.metadata || {}),
+        country: country || undefined,
         contact_preference: contactPref || undefined,
         relationship_to_recipient: careRecipient || undefined,
         timeline: timeline || undefined,
@@ -165,6 +175,9 @@ export default function ProfileEditDrawer({
       await supabase
         .from("business_profiles")
         .update({
+          display_name: displayName || null,
+          city: city || null,
+          state: state || null,
           email: email || null,
           phone: phone || null,
           description: notes || null,
@@ -179,7 +192,7 @@ export default function ProfileEditDrawer({
     } finally {
       savingRef.current = false;
     }
-  }, [profile.id, email, phone, contactPref, careRecipient, careTypes, timeline, notes, payments, living, schedule, careLocation, language, about, onSaved]);
+  }, [profile.id, displayName, country, city, state, email, phone, contactPref, careRecipient, careTypes, timeline, notes, payments, living, schedule, careLocation, language, about, onSaved]);
 
   // Auto-save on selection changes (pills)
   const handlePillSave = useCallback((setter: () => void) => {
@@ -205,8 +218,8 @@ export default function ProfileEditDrawer({
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Edit Profile</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Step {step + 1} of {STEPS.length} &middot; {STEPS[step]}</p>
+            <h3 className="text-xl font-bold text-gray-900">Edit Profile</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Step {step + 1} of {STEPS.length} &middot; {STEPS[step]}</p>
           </div>
           <button type="button" onClick={handleClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +235,7 @@ export default function ProfileEditDrawer({
               key={i}
               type="button"
               onClick={() => { saveToDb(); setStep(i); }}
-              className={`flex-1 h-1 rounded-full transition-colors ${i <= step ? "bg-primary-600" : "bg-gray-200"}`}
+              className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? "bg-primary-600" : "bg-gray-200"}`}
             />
           ))}
         </div>
@@ -232,13 +245,28 @@ export default function ProfileEditDrawer({
           {step === 0 && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">Contact Information</h4>
-                <p className="text-xs text-gray-400 mb-5">How providers can reach you.</p>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Basic Info</h4>
+                <p className="text-sm text-gray-500 mb-5">Your name and where you&apos;re located.</p>
+              </div>
+              <Input label="Display name" value={displayName} onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="Your full name" />
+              <Input label="Country" value={country} onChange={(e) => setCountry((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. United States, Ghana" />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="City" value={city} onChange={(e) => setCity((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. Houston" />
+                <Input label="State / Region" value={state} onChange={(e) => setState((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. TX" />
+              </div>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="space-y-5">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Contact Information</h4>
+                <p className="text-sm text-gray-500 mb-5">How providers can reach you.</p>
               </div>
               <Input label="Email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
               <Input label="Phone number" type="tel" placeholder="(555) 123-4567" value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">How would you like providers to contact you?</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2.5">How would you like providers to contact you?</label>
                 <div className="flex flex-wrap gap-2">
                   {CONTACT_METHODS.map((m) => (
                     <Pill key={m} label={m} selected={contactPref === m.toLowerCase()} onClick={() => { setContactPref(m.toLowerCase()); setTimeout(saveToDb, 50); }} small />
@@ -248,14 +276,14 @@ export default function ProfileEditDrawer({
             </div>
           )}
 
-          {step === 1 && (
+          {step === 2 && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">Care Preferences</h4>
-                <p className="text-xs text-gray-400 mb-5">What kind of care are you looking for?</p>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Care Preferences</h4>
+                <p className="text-sm text-gray-500 mb-5">What kind of care are you looking for?</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">Who needs care?</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2.5">Who needs care?</label>
                 <div className="flex gap-2">
                   {CARE_RECIPIENTS.map((r) => (
                     <Pill key={r} label={r} selected={careRecipient === r} onClick={() => { setCareRecipient(r); setTimeout(saveToDb, 50); }} small />
@@ -263,7 +291,7 @@ export default function ProfileEditDrawer({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">Type of care</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2.5">Type of care</label>
                 <div className="flex flex-col gap-1.5">
                   {CARE_TYPES.map((ct) => (
                     <Pill key={ct} label={ct} selected={careTypes.includes(ct)} onClick={() => { setCareTypes((prev) => prev.includes(ct) ? prev.filter((x) => x !== ct) : [...prev, ct]); setTimeout(saveToDb, 50); }} small />
@@ -271,7 +299,7 @@ export default function ProfileEditDrawer({
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">How soon do you need care?</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2.5">How soon do you need care?</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {TIMELINES.map((t) => (
                     <Pill key={t.value} label={t.label} selected={timeline === t.value} onClick={() => { setTimeline(t.value); setTimeout(saveToDb, 50); }} small />
@@ -282,11 +310,11 @@ export default function ProfileEditDrawer({
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">Payment & Benefits</h4>
-                <p className="text-xs text-gray-400 mb-5">How are you planning to pay for care? Select all that apply.</p>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Payment & Benefits</h4>
+                <p className="text-sm text-gray-500 mb-5">How are you planning to pay for care? Select all that apply.</p>
               </div>
               <div className="flex flex-col gap-2">
                 {PAYMENT_OPTIONS.map((opt) => (
@@ -299,22 +327,22 @@ export default function ProfileEditDrawer({
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-100/60 transition-colors"
               >
-                <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">Not sure what you qualify for?</p>
-                  <p className="text-xs text-gray-500">Benefits Finder &rarr;</p>
+                  <p className="text-base font-semibold text-gray-800">Not sure what you qualify for?</p>
+                  <p className="text-sm text-gray-500">Benefits Finder &rarr;</p>
                 </div>
               </a>
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">Living Situation</h4>
-                <p className="text-xs text-gray-400 mb-5">Where does the person who needs care live?</p>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Living Situation</h4>
+                <p className="text-sm text-gray-500 mb-5">Where does the person who needs care live?</p>
               </div>
               <div className="flex flex-col gap-2">
                 {LIVING_OPTIONS.map((opt) => (
@@ -324,14 +352,14 @@ export default function ProfileEditDrawer({
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">Schedule & Location</h4>
-                <p className="text-xs text-gray-400 mb-5">When and where is care needed?</p>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Schedule & Location</h4>
+                <p className="text-sm text-gray-500 mb-5">When and where is care needed?</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">What times of day?</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2.5">What times of day?</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {SCHEDULE_OPTIONS.map((opt) => (
                     <Pill key={opt} label={opt} selected={schedule === opt} onClick={() => { setSchedule(opt); setTimeout(saveToDb, 50); }} small />
@@ -342,14 +370,14 @@ export default function ProfileEditDrawer({
             </div>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <div className="space-y-5">
               <div>
-                <h4 className="text-[15px] font-semibold text-gray-900 mb-1">Language & More</h4>
-                <p className="text-xs text-gray-400 mb-5">Any additional preferences or details.</p>
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Language & More</h4>
+                <p className="text-sm text-gray-500 mb-5">Any additional preferences or details.</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">Language preference</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2.5">Language preference</label>
                 <div className="flex flex-wrap gap-2">
                   {LANGUAGE_OPTIONS.map((opt) => (
                     <Pill key={opt} label={opt} selected={language === opt} onClick={() => { setLanguage(opt); setTimeout(saveToDb, 50); }} small />
@@ -358,7 +386,7 @@ export default function ProfileEditDrawer({
               </div>
               <div>
                 <Input label="About the care situation" as="textarea" rows={4} value={about} onChange={(e) => setAbout((e.target as HTMLTextAreaElement).value)} onBlur={() => saveToDb()} placeholder="Tell providers more about daily life and what you're looking for..." maxLength={500} />
-                <p className="text-xs text-gray-400 mt-1 text-right">{about.length}/500</p>
+                <p className="text-sm text-gray-400 mt-1 text-right">{about.length}/500</p>
               </div>
             </div>
           )}
@@ -367,12 +395,12 @@ export default function ProfileEditDrawer({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between shrink-0 bg-white">
           {step > 0 ? (
-            <Button variant="secondary" size="sm" onClick={() => { saveToDb(); setStep(step - 1); }}>&larr; Back</Button>
+            <Button variant="secondary" size="md" onClick={() => { saveToDb(); setStep(step - 1); }}>&larr; Back</Button>
           ) : <div />}
           {step < STEPS.length - 1 ? (
-            <Button size="sm" onClick={() => { saveToDb(); setStep(step + 1); }}>Next: {STEPS[step + 1]} &rarr;</Button>
+            <Button size="md" onClick={() => { saveToDb(); setStep(step + 1); }}>Next: {STEPS[step + 1]} &rarr;</Button>
           ) : (
-            <Button size="sm" onClick={handleClose}>Done &#10003;</Button>
+            <Button size="md" onClick={handleClose}>Done &#10003;</Button>
           )}
         </div>
       </div>

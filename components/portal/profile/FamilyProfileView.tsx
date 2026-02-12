@@ -118,7 +118,7 @@ export default function FamilyProfileView() {
   };
 
   // --- Derived display values ---
-  const location = [profile.city, profile.state].filter(Boolean).join(", ");
+  const location = [profile.city, profile.state, meta.country].filter(Boolean).join(", ");
   const careTypesDisplay = profile.care_types?.length
     ? profile.care_types.join(", ")
     : null;
@@ -175,7 +175,7 @@ export default function FamilyProfileView() {
                       d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  <span className="text-[10px] font-medium">Add photo</span>
+                  <span className="text-xs font-medium">Add photo</span>
                 </div>
               )}
               {imageUploading && (
@@ -187,35 +187,31 @@ export default function FamilyProfileView() {
           </div>
 
           {/* Name + location */}
-          <div className="min-w-0">
-            <h2 className="text-xl font-bold text-gray-900 truncate">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl font-bold text-gray-900 truncate">
               {profile.display_name || "Your Name"}
             </h2>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-base text-gray-500 mt-0.5">
               {location || "Location not set"}
               <span className="mx-1.5 text-gray-300">&middot;</span>
               Family care seeker
             </p>
-            {userEmail && (
-              <span className="inline-flex items-center gap-1 mt-1.5 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full font-medium">
-                <svg
-                  className="w-3 h-3"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Email verified
-              </span>
-            )}
           </div>
+
+          {/* Edit basic info */}
+          <button
+            type="button"
+            onClick={() => openDrawer(0)}
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+            aria-label="Edit basic info"
+          >
+            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </button>
         </div>
         {imageError && (
-          <p className="text-xs text-red-600 mt-3">{imageError}</p>
+          <p className="text-sm text-red-600 mt-3">{imageError}</p>
         )}
       </section>
 
@@ -223,20 +219,20 @@ export default function FamilyProfileView() {
       {percentage < 100 && (
         <section className="bg-gradient-to-r from-primary-50 to-teal-50 rounded-2xl border border-primary-100 p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-gray-900">
+            <h3 className="text-lg font-bold text-gray-900">
               Profile completeness
             </h3>
-            <span className="text-sm font-bold text-primary-700">
+            <span className="text-base font-bold text-primary-700">
               {percentage}%
             </span>
           </div>
-          <div className="w-full h-2 bg-white/60 rounded-full overflow-hidden mb-3">
+          <div className="w-full h-2.5 bg-white/60 rounded-full overflow-hidden mb-3">
             <div
               className="h-full bg-primary-600 rounded-full transition-all duration-500"
               style={{ width: `${percentage}%` }}
             />
           </div>
-          <p className="text-xs text-gray-600 mb-3 leading-relaxed">
+          <p className="text-sm text-gray-600 mb-3 leading-relaxed">
             Keep your information up to date so providers can understand your
             needs. Add a photo and payment details to help providers respond
             faster.
@@ -244,7 +240,7 @@ export default function FamilyProfileView() {
           <button
             type="button"
             onClick={() => openDrawer(firstIncompleteStep)}
-            className="text-sm font-semibold text-primary-700 hover:text-primary-800 transition-colors"
+            className="text-base font-semibold text-primary-700 hover:text-primary-800 transition-colors"
           >
             Complete your profile &rarr;
           </button>
@@ -254,12 +250,12 @@ export default function FamilyProfileView() {
       {/* ── Contact Information ── */}
       <section className="bg-white rounded-2xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-base font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900">
             Contact Information
           </h3>
-          <EditButton onClick={() => openDrawer(0)} />
+          <EditButton onClick={() => openDrawer(1)} />
         </div>
-        <p className="text-xs text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           How providers can reach you. This is shared when you connect.
         </p>
 
@@ -267,13 +263,13 @@ export default function FamilyProfileView() {
           <ViewRow
             label="Email"
             value={profile.email || userEmail || null}
-            onAction={() => openDrawer(0)}
+            onAction={() => openDrawer(1)}
           />
           <ViewRow
             label="Phone"
             value={profile.phone}
             emptyText="Not added yet"
-            onAction={() => openDrawer(0)}
+            onAction={() => openDrawer(1)}
             actionLabel={profile.phone ? "Edit" : "+ Add"}
           />
           <ViewRow
@@ -285,7 +281,7 @@ export default function FamilyProfileView() {
                 : null
             }
             emptyText="Not set yet"
-            onAction={() => openDrawer(0)}
+            onAction={() => openDrawer(1)}
             actionLabel={meta.contact_preference ? "Edit" : "+ Add"}
           />
         </div>
@@ -294,12 +290,12 @@ export default function FamilyProfileView() {
       {/* ── Care Preferences ── */}
       <section className="bg-white rounded-2xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-base font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900">
             Care Preferences
           </h3>
-          <EditButton onClick={() => openDrawer(1)} />
+          <EditButton onClick={() => openDrawer(2)} />
         </div>
-        <p className="text-xs text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           Auto-filled from your connection request. Shared with every provider
           you connect with.
         </p>
@@ -308,23 +304,23 @@ export default function FamilyProfileView() {
           <ViewRow
             label="Who needs care"
             value={meta.relationship_to_recipient || null}
-            onAction={() => openDrawer(1)}
+            onAction={() => openDrawer(2)}
           />
           <ViewRow
             label="Type of care"
             value={careTypesDisplay}
-            onAction={() => openDrawer(1)}
+            onAction={() => openDrawer(2)}
           />
           <ViewRow
             label="Timeline"
             value={timelineDisplay}
-            onAction={() => openDrawer(1)}
+            onAction={() => openDrawer(2)}
           />
           <ViewRow
             label="Additional notes"
             value={profile.description || null}
             emptyText="None"
-            onAction={() => openDrawer(1)}
+            onAction={() => openDrawer(2)}
           />
         </div>
       </section>
@@ -332,12 +328,12 @@ export default function FamilyProfileView() {
       {/* ── Payment & Benefits ── */}
       <section className="bg-white rounded-2xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-base font-bold text-gray-900">
+          <h3 className="text-lg font-bold text-gray-900">
             Payment & Benefits
           </h3>
-          <EditButton onClick={() => openDrawer(2)} />
+          <EditButton onClick={() => openDrawer(3)} />
         </div>
-        <p className="text-xs text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           How are you planning to pay for care? Select all that apply.
         </p>
 
@@ -346,14 +342,14 @@ export default function FamilyProfileView() {
             {meta.payment_methods.map((method) => (
               <span
                 key={method}
-                className="px-3 py-1.5 text-sm font-medium rounded-full bg-primary-50 text-primary-700 border border-primary-100"
+                className="px-3.5 py-2 text-base font-medium rounded-full bg-primary-50 text-primary-700 border border-primary-100"
               >
                 {method}
               </span>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400 italic mb-4">
+          <p className="text-base text-gray-400 italic mb-4">
             No payment methods selected
           </p>
         )}
@@ -379,10 +375,10 @@ export default function FamilyProfileView() {
             />
           </svg>
           <div>
-            <p className="text-sm font-semibold text-gray-800">
+            <p className="text-base font-semibold text-gray-800">
               Not sure what benefits you qualify for?
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-sm text-gray-500">
               Use our Benefits Finder to discover programs in your area &rarr;
             </p>
           </div>
@@ -391,10 +387,10 @@ export default function FamilyProfileView() {
 
       {/* ── More About Your Situation (Enrichment) ── */}
       <section className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h3 className="text-base font-bold text-gray-900 mb-1">
+        <h3 className="text-lg font-bold text-gray-900 mb-1">
           More About Your Situation
         </h3>
-        <p className="text-xs text-gray-400 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           Help providers understand your needs better.
         </p>
 
@@ -402,7 +398,7 @@ export default function FamilyProfileView() {
           <EnrichmentCard
             icon={
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -418,12 +414,12 @@ export default function FamilyProfileView() {
             label="Living situation"
             prompt="Where does the person who needs care live?"
             value={meta.living_situation || null}
-            onClick={() => openDrawer(3)}
+            onClick={() => openDrawer(4)}
           />
           <EnrichmentCard
             icon={
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -439,12 +435,12 @@ export default function FamilyProfileView() {
             label="Schedule preference"
             prompt="What times of day do you need care?"
             value={meta.schedule_preference || null}
-            onClick={() => openDrawer(4)}
+            onClick={() => openDrawer(5)}
           />
           <EnrichmentCard
             icon={
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -466,12 +462,12 @@ export default function FamilyProfileView() {
             label="Care location"
             prompt="What area is care needed in?"
             value={meta.care_location || null}
-            onClick={() => openDrawer(4)}
+            onClick={() => openDrawer(5)}
           />
           <EnrichmentCard
             icon={
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -487,12 +483,12 @@ export default function FamilyProfileView() {
             label="Language preference"
             prompt="Any language needs for the caregiver?"
             value={meta.language_preference || null}
-            onClick={() => openDrawer(5)}
+            onClick={() => openDrawer(6)}
           />
           <EnrichmentCard
             icon={
               <svg
-                className="w-5 h-5"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -514,7 +510,7 @@ export default function FamilyProfileView() {
                   : meta.about_situation
                 : null
             }
-            onClick={() => openDrawer(5)}
+            onClick={() => openDrawer(6)}
             fullWidth
           />
         </div>
@@ -540,7 +536,7 @@ function EditButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="text-xs font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+      className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
     >
       Edit
     </button>
@@ -561,19 +557,19 @@ function ViewRow({
   actionLabel?: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-1.5">
+    <div className="flex items-center justify-between py-2">
       <div className="min-w-0">
-        <p className="text-xs font-medium text-gray-500">{label}</p>
+        <p className="text-sm font-medium text-gray-500">{label}</p>
         {value ? (
-          <p className="text-sm text-gray-900 mt-0.5">{value}</p>
+          <p className="text-base text-gray-900 mt-0.5">{value}</p>
         ) : (
-          <p className="text-sm text-gray-400 italic mt-0.5">{emptyText}</p>
+          <p className="text-base text-gray-400 italic mt-0.5">{emptyText}</p>
         )}
       </div>
       <button
         type="button"
         onClick={onAction}
-        className="text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
+        className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
       >
         {actionLabel}
       </button>
@@ -615,13 +611,13 @@ function EnrichmentCard({
           {icon}
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-800">{label}</p>
+          <p className="text-base font-semibold text-gray-800">{label}</p>
           {value ? (
-            <p className="text-xs text-primary-700 mt-0.5 font-medium">
+            <p className="text-sm text-primary-700 mt-0.5 font-medium">
               {value}
             </p>
           ) : (
-            <p className="text-xs text-gray-400 mt-0.5">{prompt}</p>
+            <p className="text-sm text-gray-400 mt-0.5">{prompt}</p>
           )}
         </div>
       </div>

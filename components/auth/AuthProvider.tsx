@@ -309,7 +309,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const hasCachedData = !!cached?.account;
 
       setState({
-        user: { id: userId, email: session.user.email! },
+        user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
         account: cached?.account ?? null,
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],
@@ -380,7 +380,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         const cached = getCachedAuthData(userId);
         setState((prev) => ({
           ...prev,
-          user: { id: userId, email: session.user.email! },
+          user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
           account: cached?.account ?? prev.account,
           activeProfile: cached?.activeProfile ?? prev.activeProfile,
           profiles: cached?.profiles ?? prev.profiles,
@@ -436,7 +436,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             cacheAuthData(session.user.id, data);
             setState((prev) => ({
               ...prev,
-              user: { id: session.user.id, email: session.user.email! },
+              user: { id: session.user.id, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
               account: data.account,
               activeProfile: data.activeProfile,
               profiles: data.profiles,

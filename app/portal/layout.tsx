@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
-const NAV_ITEMS = [
+const ALL_NAV_ITEMS = [
   {
     label: "Profile",
     href: "/portal/profile",
@@ -16,6 +16,12 @@ const NAV_ITEMS = [
     label: "My Connections",
     href: "/portal/connections",
     iconSrc: "https://cdn.lordicon.com/uvextprq.json",
+  },
+  {
+    label: "Matches",
+    href: "/portal/matches",
+    iconSrc: "https://cdn.lordicon.com/jkzgajyr.json",
+    familyOnly: true,
   },
   {
     label: "Account Settings",
@@ -78,6 +84,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  // Filter nav items based on profile type
+  const navItems = ALL_NAV_ITEMS.filter(
+    (item) => !("familyOnly" in item && item.familyOnly) || activeProfile?.type === "family"
+  );
+
   // Account exists but no profile yet — direct to onboarding
   if (!activeProfile) {
     return (
@@ -102,7 +113,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
       {/* Mobile: header + horizontal tabs */}
       <h1 className="text-2xl font-bold text-gray-900 mb-6 lg:hidden">Profile</h1>
       <div className="lg:hidden mb-6 flex gap-2 overflow-x-auto scrollbar-hide">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link
@@ -127,7 +138,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
           <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5 h-[calc(100vh-112px)] flex flex-col">
             <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Profile</h1>
             <nav className="space-y-1">
-              {NAV_ITEMS.map((item) => {
+              {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
                   <Link

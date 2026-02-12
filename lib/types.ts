@@ -34,7 +34,7 @@ export type MembershipStatus =
   | "free";
 export type BillingCycle = "monthly" | "annual";
 
-export type ConnectionType = "inquiry" | "save" | "application" | "invitation";
+export type ConnectionType = "inquiry" | "save" | "application" | "invitation" | "dismiss";
 export type ConnectionStatus = "pending" | "accepted" | "declined" | "archived";
 
 // ============================================================
@@ -158,6 +158,10 @@ export interface FamilyMetadata {
     connection_updates?: { email?: boolean; sms?: boolean };
     saved_provider_alerts?: { email?: boolean; sms?: boolean };
     profile_reminders?: { email?: boolean; sms?: boolean };
+  };
+  care_post?: {
+    status: "draft" | "active" | "paused";
+    published_at?: string;
   };
 }
 

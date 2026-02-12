@@ -34,7 +34,7 @@ export type MembershipStatus =
   | "free";
 export type BillingCycle = "monthly" | "annual";
 
-export type ConnectionType = "inquiry" | "save" | "application" | "invitation" | "dismiss";
+export type ConnectionType = "inquiry" | "save" | "match" | "request" | "application" | "invitation" | "dismiss";
 export type ConnectionStatus = "pending" | "accepted" | "declined" | "expired" | "archived";
 
 // ============================================================

@@ -12,7 +12,6 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
 import ConnectionDrawer from "@/components/portal/ConnectionDrawer";
-import ConnectionDetailPanel from "@/components/portal/ConnectionDetailPanel";
 import type { ConnectionWithProfile } from "@/components/portal/ConnectionDetailPanel";
 import {
   getFamilyDisplayStatus,
@@ -114,10 +113,9 @@ export default function ConnectionsPage() {
 
   // ── Family-specific state ──
   const [activeTab, setActiveTab] = useState<ConnectionTab>("active");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds());
 
-  // ── Provider drawer state (kept for provider view) ──
+  // ── Drawer state (shared by provider & family views) ──
   const [drawerConnectionId, setDrawerConnectionId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -266,9 +264,14 @@ export default function ConnectionsPage() {
 
   // ── Handlers ──
 
-  const handleSelectFamily = (id: string) => {
-    setSelectedId(id);
-    // Mark as read
+  const openDrawer = (id: string) => {
+    setDrawerConnectionId(id);
+    setDrawerOpen(true);
+  };
+
+  const openFamilyDrawer = (id: string) => {
+    openDrawer(id);
+    // Mark responded connections as read
     const conn = connections.find((c) => c.id === id);
     if (conn && conn.status === "accepted" && !readIds.has(id)) {
       const updated = new Set(readIds);
@@ -276,77 +279,6 @@ export default function ConnectionsPage() {
       setReadIds(updated);
       persistReadIds(updated);
     }
-  };
-
-  // Mobile: navigate to detail page
-  const handleSelectMobile = (id: string) => {
-    router.push(`/portal/connections/${id}`);
-  };
-
-  const handleWithdraw = async (connectionId: string) => {
-    try {
-      const res = await fetch("/api/connections/withdraw", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to withdraw");
-      }
-      // Update local state
-      setConnections((prev) =>
-        prev.map((c) =>
-          c.id === connectionId
-            ? { ...c, status: "expired" as Connection["status"], metadata: { ...c.metadata, withdrawn: true } }
-            : c
-        )
-      );
-      setSelectedId(null);
-    } catch (err) {
-      console.error("Withdraw error:", err);
-    }
-  };
-
-  const handleHide = async (connectionId: string) => {
-    try {
-      const res = await fetch("/api/connections/hide", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to remove");
-      }
-      // Update local state
-      setConnections((prev) =>
-        prev.map((c) =>
-          c.id === connectionId
-            ? { ...c, metadata: { ...c.metadata, hidden: true } }
-            : c
-        )
-      );
-      setSelectedId(null);
-    } catch (err) {
-      console.error("Hide error:", err);
-    }
-  };
-
-  const handleConnectAgain = async (connection: ConnectionWithProfile) => {
-    // Navigate to the provider page where they can send a new request
-    const profile = connection.toProfile;
-    if (profile?.slug) {
-      router.push(`/provider/${profile.slug}`);
-    } else if (profile?.source_provider_id) {
-      router.push(`/providers/${profile.source_provider_id}`);
-    }
-  };
-
-  // Provider drawer handlers
-  const openDrawer = (id: string) => {
-    setDrawerConnectionId(id);
-    setDrawerOpen(true);
   };
 
   const closeDrawer = () => {
@@ -421,11 +353,7 @@ export default function ConnectionsPage() {
     );
   }
 
-  // ── Family view — 3-tab split layout ──
-
-  const selectedConnection = selectedId
-    ? connections.find((c) => c.id === selectedId) || null
-    : null;
+  // ── Family view — 3-tab layout with drawer ──
 
   const currentTabConnections = tabbed[activeTab];
 
@@ -450,160 +378,71 @@ export default function ConnectionsPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       {error && (
-        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between mb-4" role="alert">
+        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between" role="alert">
           <span>{error}</span>
           <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-4">Retry</button>
         </div>
       )}
 
-      {/* Split layout — hidden on mobile, show list-only on small screens */}
-      <div className="hidden lg:flex" style={{ minHeight: "calc(100vh - 180px)" }}>
-        {/* ── Left Panel: List ── */}
-        <div className="w-[380px] shrink-0 flex flex-col">
-          {/* Header */}
-          <div className="mb-5">
-            <h2 className="text-[22px] font-bold text-gray-900">My Connections</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Track your care provider requests and responses.
-            </p>
-          </div>
+      {/* Header */}
+      <div>
+        <h2 className="text-[22px] font-bold text-gray-900">My Connections</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Track your care provider requests and responses.
+        </p>
+      </div>
 
-          {/* Tab bar */}
-          <div className="flex gap-1 mb-4 bg-gray-100 p-0.5 rounded-xl">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => { setActiveTab(tab.id); setSelectedId(null); }}
-                className={[
-                  "flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-semibold transition-all relative",
-                  activeTab === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
-              >
-                {tab.label}
-                <span className={[
-                  "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
-                  activeTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
-                ].join(" ")}>
-                  {tab.count}
-                </span>
-                {tab.badge > 0 && (
-                  <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Connection list */}
-          <div className="flex-1 overflow-y-auto pr-4 space-y-1.5">
-            {currentTabConnections.length === 0 ? (
-              <TabEmptyState tab={activeTab} />
-            ) : (
-              currentTabConnections.map((connection) => {
-                const unread = isConnectionUnread(connection, readIds);
-                return (
-                  <FamilyConnectionCard
-                    key={connection.id}
-                    connection={connection}
-                    activeProfileId={activeProfile?.id || ""}
-                    selected={selectedId === connection.id}
-                    unread={unread}
-                    onSelect={handleSelectFamily}
-                  />
-                );
-              })
+      {/* Tab bar */}
+      <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl max-w-md">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={[
+              "flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-semibold transition-all relative",
+              activeTab === tab.id
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700",
+            ].join(" ")}
+          >
+            {tab.label}
+            <span className={[
+              "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
+              activeTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
+            ].join(" ")}>
+              {tab.count}
+            </span>
+            {tab.badge > 0 && (
+              <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
             )}
-          </div>
-        </div>
-
-        {/* ── Right Panel: Detail ── */}
-        <div className="flex-1 min-w-0">
-          {selectedConnection ? (
-            <ConnectionDetailPanel
-              connection={selectedConnection}
-              activeProfileId={activeProfile?.id || ""}
-              onClose={() => setSelectedId(null)}
-              onWithdraw={handleWithdraw}
-              onHide={handleHide}
-              onConnectAgain={handleConnectAgain}
-            />
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center border-l border-gray-200">
-              <div className="text-center px-10">
-                <div className="text-4xl mb-3">💬</div>
-                <p className="text-sm font-medium text-gray-500">Select a connection</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Click on a provider to view the conversation.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+          </button>
+        ))}
       </div>
 
-      {/* ── Mobile layout — list only ── */}
-      <div className="lg:hidden">
-        {/* Header */}
-        <div className="mb-5">
-          <h2 className="text-xl font-bold text-gray-900">My Connections</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Track your care provider requests and responses.
-          </p>
+      {/* Connection grid */}
+      {currentTabConnections.length === 0 ? (
+        <TabEmptyState tab={activeTab} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {currentTabConnections.map((connection) => {
+            const unread = isConnectionUnread(connection, readIds);
+            return (
+              <FamilyConnectionCard
+                key={connection.id}
+                connection={connection}
+                activeProfileId={activeProfile?.id || ""}
+                unread={unread}
+                onSelect={openFamilyDrawer}
+              />
+            );
+          })}
         </div>
+      )}
 
-        {/* Tab bar */}
-        <div className="flex gap-1 mb-4 bg-gray-100 p-0.5 rounded-xl">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={[
-                "flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-semibold transition-all relative",
-                activeTab === tab.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              ].join(" ")}
-            >
-              {tab.label}
-              <span className={[
-                "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
-                activeTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
-              ].join(" ")}>
-                {tab.count}
-              </span>
-              {tab.badge > 0 && (
-                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Connection list */}
-        <div className="space-y-1.5">
-          {currentTabConnections.length === 0 ? (
-            <TabEmptyState tab={activeTab} />
-          ) : (
-            currentTabConnections.map((connection) => {
-              const unread = isConnectionUnread(connection, readIds);
-              return (
-                <FamilyConnectionCard
-                  key={connection.id}
-                  connection={connection}
-                  activeProfileId={activeProfile?.id || ""}
-                  selected={false}
-                  unread={unread}
-                  onSelect={handleSelectMobile}
-                />
-              );
-            })
-          )}
-        </div>
-      </div>
+      <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} />
     </div>
   );
 }
@@ -639,13 +478,11 @@ function TabEmptyState({ tab }: { tab: ConnectionTab }) {
 function FamilyConnectionCard({
   connection,
   activeProfileId,
-  selected,
   unread,
   onSelect,
 }: {
   connection: ConnectionWithProfile;
   activeProfileId: string;
-  selected: boolean;
   unread: boolean;
   onSelect: (id: string) => void;
 }) {
@@ -678,58 +515,58 @@ function FamilyConnectionCard({
     <button
       type="button"
       onClick={() => onSelect(connection.id)}
-      className={[
-        "w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all",
-        selected
-          ? "bg-emerald-50/50 border-emerald-600/30"
-          : "bg-white border-gray-200 hover:bg-gray-50",
-      ].join(" ")}
+      className="w-full text-left rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors group cursor-pointer"
     >
-      {/* Avatar */}
-      <div className="relative shrink-0">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imageUrl}
-            alt={otherName}
-            className="w-11 h-11 rounded-xl object-cover"
-          />
-        ) : (
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white"
-            style={{ background: avatarGradient(otherName) }}
-          >
-            {initial}
+      <div className="px-4 py-3.5">
+        <div className="flex items-start gap-3.5">
+          {/* Avatar */}
+          <div className="relative shrink-0 mt-0.5">
+            {imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageUrl}
+                alt={otherName}
+                className="w-11 h-11 rounded-xl object-cover"
+              />
+            ) : (
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white"
+                style={{ background: avatarGradient(otherName) }}
+              >
+                {initial}
+              </div>
+            )}
+            {unread && (
+              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
+            )}
           </div>
-        )}
-        {unread && (
-          <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
-        )}
-      </div>
 
-      {/* Content */}
-      <div className="min-w-0 flex-1">
-        <span
-          className={[
-            "text-sm text-gray-900 truncate block leading-snug",
-            unread ? "font-bold" : "font-semibold",
-          ].join(" ")}
-        >
-          {otherName}
-        </span>
-        <span className="text-xs text-gray-500 block truncate">{careTypeLabel}</span>
-        <span className="text-[11px] text-gray-400 block mt-0.5">
-          {createdAt}{otherLocation ? ` \u00b7 ${otherLocation}` : ""}
-        </span>
+          {/* Content */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs text-gray-400 leading-tight">{careTypeLabel}</p>
+                <h3 className={[
+                  "text-base text-gray-900 truncate leading-snug",
+                  unread ? "font-bold" : "font-semibold",
+                ].join(" ")}>
+                  {otherName}
+                </h3>
+                <p className="text-sm text-gray-500 truncate mt-0.5">
+                  {createdAt}{otherLocation ? ` \u00b7 ${otherLocation}` : ""}
+                </p>
+              </div>
+              {/* Status badge */}
+              <span
+                className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 mt-0.5 ${statusConfig.bg} ${statusConfig.color}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                {statusConfig.label}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Status badge */}
-      <span
-        className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 ${statusConfig.bg} ${statusConfig.color}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-        {statusConfig.label}
-      </span>
     </button>
   );
 }

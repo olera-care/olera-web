@@ -69,19 +69,27 @@ export async function POST(request: Request) {
       .filter(Boolean);
 
     if (providerCategories.length === 0 || !profile.state) {
+      console.log("[matches] No match criteria — care_types:", profile.care_types, "state:", profile.state, "mapped:", providerCategories);
       return NextResponse.json({ providers: [], totalCount: 0 });
     }
 
+    console.log("[matches] Searching — state:", profile.state, "categories:", providerCategories, "care_types:", profile.care_types);
+
     // Get dismissed & connected provider IDs to exclude
+    // Dismiss connections use type "save" with metadata.dismissed=true (DB constraint only allows 'inquiry','save','match','request')
+    // Also exclude inquiry connections (active connection requests)
     const { data: existingConnections } = await supabase
       .from("connections")
-      .select("to_profile_id")
+      .select("to_profile_id, type, metadata")
       .eq("from_profile_id", profile.id)
-      .in("type", ["dismiss", "inquiry"]);
+      .in("type", ["save", "inquiry"]);
 
-    const excludeProfileIds = (existingConnections || []).map(
-      (c: { to_profile_id: string }) => c.to_profile_id
-    );
+    // Filter: exclude inquiry connections + save connections that are dismissed
+    const excludeProfileIds = (existingConnections || [])
+      .filter((c: { type: string; metadata?: Record<string, unknown> }) =>
+        c.type === "inquiry" || (c.type === "save" && (c.metadata as Record<string, unknown>)?.dismissed)
+      )
+      .map((c: { to_profile_id: string }) => c.to_profile_id);
 
     // Also get source_provider_ids for those profiles so we can exclude from olera-providers
     let excludeProviderIds: string[] = [];
@@ -113,7 +121,8 @@ export async function POST(request: Request) {
       .not("deleted", "is", true)
       .eq("state", profile.state)
       .or(categoryFilter)
-      .not("provider_images", "is", null);
+      .not("provider_images", "is", null)
+      .neq("provider_images", "");
 
     // Exclude already-dismissed/connected providers
     if (excludeProviderIds.length > 0) {
@@ -145,6 +154,8 @@ export async function POST(request: Request) {
       console.error("Matches fetch error:", error);
       return NextResponse.json({ error: "Failed to fetch matches" }, { status: 500 });
     }
+
+    console.log("[matches] Results:", count, "providers, excluded:", excludeProviderIds.length, "provider IDs");
 
     return NextResponse.json({
       providers: providers || [],

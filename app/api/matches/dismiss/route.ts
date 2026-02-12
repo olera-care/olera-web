@@ -141,11 +141,14 @@ export async function POST(request: Request) {
     }
 
     // Create dismiss connection
+    // DB constraint: type IN ('inquiry','save','match','request'), status IN ('pending','accepted','declined','expired')
+    // Use type "save" with metadata.dismissed to record dismissals within the constraint
     const { error: connError } = await supabase.from("connections").insert({
       from_profile_id: account.active_profile_id,
       to_profile_id: toProfileId,
-      type: "dismiss",
-      status: "archived",
+      type: "save",
+      status: "declined",
+      metadata: { dismissed: true },
     });
 
     if (connError) {

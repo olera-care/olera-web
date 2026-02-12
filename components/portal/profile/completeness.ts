@@ -32,7 +32,10 @@ const FIELD_CHECKS: {
   { weight: 5, step: 5, check: (p) => !!(p.metadata as FamilyMetadata)?.schedule_preference },
   { weight: 5, step: 5, check: (p) => !!(p.metadata as FamilyMetadata)?.care_location },
   // Step 6: Language & about
-  { weight: 5, step: 6, check: (p) => !!(p.metadata as FamilyMetadata)?.language_preference },
+  { weight: 5, step: 6, check: (p) => {
+    const lang = (p.metadata as FamilyMetadata)?.language_preference;
+    return Array.isArray(lang) ? lang.length > 0 : !!lang;
+  }},
   { weight: 5, step: 6, check: (p) => !!(p.metadata as FamilyMetadata)?.about_situation },
 ];
 

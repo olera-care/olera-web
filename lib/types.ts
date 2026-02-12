@@ -152,7 +152,7 @@ export interface FamilyMetadata {
   living_situation?: string;
   schedule_preference?: string;
   care_location?: string;
-  language_preference?: string;
+  language_preference?: string | string[];
   about_situation?: string;
   notification_prefs?: {
     connection_updates?: { email?: boolean; sms?: boolean };

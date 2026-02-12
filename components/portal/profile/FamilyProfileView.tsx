@@ -5,7 +5,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness } from "./completeness";
-import ProfileEditDrawer from "./ProfileEditDrawer";
+import ProfileEditDrawer, { BenefitsFinderBanner } from "./ProfileEditDrawer";
 
 const TIMELINE_LABELS: Record<string, string> = {
   immediate: "As soon as possible",
@@ -354,35 +354,7 @@ export default function FamilyProfileView() {
           </p>
         )}
 
-        {/* Benefits Finder callout */}
-        <a
-          href="/benefits"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-100/60 transition-colors"
-        >
-          <svg
-            className="w-5 h-5 text-amber-600 shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-            />
-          </svg>
-          <div>
-            <p className="text-base font-semibold text-gray-800">
-              Not sure what benefits you qualify for?
-            </p>
-            <p className="text-sm text-gray-500">
-              Use our Benefits Finder to discover programs in your area &rarr;
-            </p>
-          </div>
-        </a>
+        <BenefitsFinderBanner />
       </section>
 
       {/* ── More About Your Situation (Enrichment) ── */}
@@ -482,7 +454,11 @@ export default function FamilyProfileView() {
             }
             label="Language preference"
             prompt="Any language needs for the caregiver?"
-            value={meta.language_preference || null}
+            value={
+              Array.isArray(meta.language_preference)
+                ? meta.language_preference.join(", ")
+                : meta.language_preference || null
+            }
             onClick={() => openDrawer(6)}
           />
           <EnrichmentCard

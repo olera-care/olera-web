@@ -21,11 +21,16 @@ const STEPS = [
 const CONTACT_METHODS = ["Call", "Text", "Email"] as const;
 const CARE_RECIPIENTS = ["Myself", "A loved one"];
 const CARE_TYPES = [
-  "Help with daily activities",
-  "Company & companionship",
-  "Skilled nursing",
-  "Personal care",
-  "Memory & dementia support",
+  "Home Care",
+  "Home Health Care",
+  "Assisted Living",
+  "Memory Care",
+  "Nursing Home",
+  "Independent Living",
+  "Hospice Care",
+  "Adult Day Care",
+  "Rehabilitation",
+  "Private Caregiver",
 ];
 const TIMELINES = [
   { value: "immediate", label: "As soon as possible" },
@@ -57,7 +62,7 @@ const SCHEDULE_OPTIONS = [
   "Full-time",
   "Flexible",
 ];
-const LANGUAGE_OPTIONS = ["English", "Spanish", "Both", "Other"];
+const LANGUAGE_OPTIONS = ["English", "Spanish", "French", "Mandarin", "Other"];
 
 interface Props {
   isOpen: boolean;
@@ -66,6 +71,14 @@ interface Props {
   profile: BusinessProfile;
   userEmail: string;
   onSaved: () => Promise<void>;
+}
+
+/** Safely read language_preference from metadata (handles legacy string values) */
+function readLanguages(meta: FamilyMetadata): string[] {
+  const v = meta.language_preference;
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string" && v) return [v];
+  return [];
 }
 
 export default function ProfileEditDrawer({
@@ -97,10 +110,11 @@ export default function ProfileEditDrawer({
   const [living, setLiving] = useState(meta.living_situation || "");
   const [schedule, setSchedule] = useState(meta.schedule_preference || "");
   const [careLocation, setCareLocation] = useState(meta.care_location || "");
-  const [language, setLanguage] = useState(meta.language_preference || "");
+  const [languages, setLanguages] = useState<string[]>(readLanguages(meta));
   const [about, setAbout] = useState(meta.about_situation || "");
 
   const savingRef = useRef(false);
+  const saveToDbRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => { if (isOpen) setStep(initialStep); }, [isOpen, initialStep]);
@@ -133,7 +147,7 @@ export default function ProfileEditDrawer({
     setLiving(m.living_situation || "");
     setSchedule(m.schedule_preference || "");
     setCareLocation(m.care_location || "");
-    setLanguage(m.language_preference || "");
+    setLanguages(readLanguages(m));
     setAbout(m.about_situation || "");
   }, [profile, userEmail]);
 
@@ -168,7 +182,7 @@ export default function ProfileEditDrawer({
         living_situation: living || undefined,
         schedule_preference: schedule || undefined,
         care_location: careLocation || undefined,
-        language_preference: language || undefined,
+        language_preference: languages.length > 0 ? languages : undefined,
         about_situation: about || undefined,
       };
 
@@ -192,14 +206,15 @@ export default function ProfileEditDrawer({
     } finally {
       savingRef.current = false;
     }
-  }, [profile.id, displayName, country, city, state, email, phone, contactPref, careRecipient, careTypes, timeline, notes, payments, living, schedule, careLocation, language, about, onSaved]);
+  }, [profile.id, displayName, country, city, state, email, phone, contactPref, careRecipient, careTypes, timeline, notes, payments, living, schedule, careLocation, languages, about, onSaved]);
 
-  // Auto-save on selection changes (pills)
-  const handlePillSave = useCallback((setter: () => void) => {
-    setter();
-    // Defer save to next tick so state updates
-    setTimeout(() => saveToDb(), 50);
-  }, [saveToDb]);
+  // Keep ref in sync so deferred pill saves always use the latest function
+  saveToDbRef.current = saveToDb;
+
+  /** Schedule a save on next tick — pill selections update state then save via ref */
+  const deferredSave = useCallback(() => {
+    setTimeout(() => saveToDbRef.current(), 50);
+  }, []);
 
   const handleClose = () => {
     saveToDb();
@@ -269,7 +284,7 @@ export default function ProfileEditDrawer({
                 <label className="block text-sm font-medium text-gray-600 mb-2.5">How would you like providers to contact you?</label>
                 <div className="flex flex-wrap gap-2">
                   {CONTACT_METHODS.map((m) => (
-                    <Pill key={m} label={m} selected={contactPref === m.toLowerCase()} onClick={() => { setContactPref(m.toLowerCase()); setTimeout(saveToDb, 50); }} small />
+                    <Pill key={m} label={m} selected={contactPref === m.toLowerCase()} onClick={() => { setContactPref(m.toLowerCase()); deferredSave(); }} small />
                   ))}
                 </div>
               </div>
@@ -286,15 +301,15 @@ export default function ProfileEditDrawer({
                 <label className="block text-sm font-medium text-gray-600 mb-2.5">Who needs care?</label>
                 <div className="flex gap-2">
                   {CARE_RECIPIENTS.map((r) => (
-                    <Pill key={r} label={r} selected={careRecipient === r} onClick={() => { setCareRecipient(r); setTimeout(saveToDb, 50); }} small />
+                    <Pill key={r} label={r} selected={careRecipient === r} onClick={() => { setCareRecipient(r); deferredSave(); }} small />
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2.5">Type of care</label>
-                <div className="flex flex-col gap-1.5">
+                <label className="block text-sm font-medium text-gray-600 mb-2.5">Type of care needed</label>
+                <div className="flex flex-wrap gap-1.5">
                   {CARE_TYPES.map((ct) => (
-                    <Pill key={ct} label={ct} selected={careTypes.includes(ct)} onClick={() => { setCareTypes((prev) => prev.includes(ct) ? prev.filter((x) => x !== ct) : [...prev, ct]); setTimeout(saveToDb, 50); }} small />
+                    <Pill key={ct} label={ct} selected={careTypes.includes(ct)} onClick={() => { setCareTypes((prev) => prev.includes(ct) ? prev.filter((x) => x !== ct) : [...prev, ct]); deferredSave(); }} small />
                   ))}
                 </div>
               </div>
@@ -302,7 +317,7 @@ export default function ProfileEditDrawer({
                 <label className="block text-sm font-medium text-gray-600 mb-2.5">How soon do you need care?</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {TIMELINES.map((t) => (
-                    <Pill key={t.value} label={t.label} selected={timeline === t.value} onClick={() => { setTimeline(t.value); setTimeout(saveToDb, 50); }} small />
+                    <Pill key={t.value} label={t.label} selected={timeline === t.value} onClick={() => { setTimeline(t.value); deferredSave(); }} small />
                   ))}
                 </div>
               </div>
@@ -316,25 +331,12 @@ export default function ProfileEditDrawer({
                 <h4 className="text-lg font-semibold text-gray-900 mb-1">Payment & Benefits</h4>
                 <p className="text-sm text-gray-500 mb-5">How are you planning to pay for care? Select all that apply.</p>
               </div>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
                 {PAYMENT_OPTIONS.map((opt) => (
-                  <Pill key={opt} label={opt} selected={payments.includes(opt)} onClick={() => { setPayments((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); setTimeout(saveToDb, 50); }} small />
+                  <Pill key={opt} label={opt} selected={payments.includes(opt)} onClick={() => { setPayments((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
                 ))}
               </div>
-              <a
-                href="/benefits"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-100 hover:bg-amber-100/60 transition-colors"
-              >
-                <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-                <div>
-                  <p className="text-base font-semibold text-gray-800">Not sure what you qualify for?</p>
-                  <p className="text-sm text-gray-500">Benefits Finder &rarr;</p>
-                </div>
-              </a>
+              <BenefitsFinderBanner />
             </div>
           )}
 
@@ -346,7 +348,7 @@ export default function ProfileEditDrawer({
               </div>
               <div className="flex flex-col gap-2">
                 {LIVING_OPTIONS.map((opt) => (
-                  <Pill key={opt} label={opt} selected={living === opt} onClick={() => { setLiving(opt); setTimeout(saveToDb, 50); }} small />
+                  <Pill key={opt} label={opt} selected={living === opt} onClick={() => { setLiving(opt); deferredSave(); }} small />
                 ))}
               </div>
             </div>
@@ -362,7 +364,7 @@ export default function ProfileEditDrawer({
                 <label className="block text-sm font-medium text-gray-600 mb-2.5">What times of day?</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {SCHEDULE_OPTIONS.map((opt) => (
-                    <Pill key={opt} label={opt} selected={schedule === opt} onClick={() => { setSchedule(opt); setTimeout(saveToDb, 50); }} small />
+                    <Pill key={opt} label={opt} selected={schedule === opt} onClick={() => { setSchedule(opt); deferredSave(); }} small />
                   ))}
                 </div>
               </div>
@@ -380,7 +382,7 @@ export default function ProfileEditDrawer({
                 <label className="block text-sm font-medium text-gray-600 mb-2.5">Language preference</label>
                 <div className="flex flex-wrap gap-2">
                   {LANGUAGE_OPTIONS.map((opt) => (
-                    <Pill key={opt} label={opt} selected={language === opt} onClick={() => { setLanguage(opt); setTimeout(saveToDb, 50); }} small />
+                    <Pill key={opt} label={opt} selected={languages.includes(opt)} onClick={() => { setLanguages((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
                   ))}
                 </div>
               </div>
@@ -408,4 +410,29 @@ export default function ProfileEditDrawer({
   );
 
   return createPortal(drawerContent, document.body);
+}
+
+/** Benefits Finder CTA — reusable across drawer and profile view */
+export function BenefitsFinderBanner() {
+  return (
+    <a
+      href="/benefits"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 hover:border-amber-300 hover:shadow-sm transition-all group"
+    >
+      <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 group-hover:bg-amber-200 transition-colors">
+        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-base font-semibold text-gray-900">Not sure what you qualify for?</p>
+        <p className="text-sm text-amber-700 font-medium">Try our Benefits Finder</p>
+      </div>
+      <svg className="w-5 h-5 text-amber-300 shrink-0 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </a>
+  );
 }

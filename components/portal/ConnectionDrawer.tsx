@@ -322,11 +322,12 @@ export default function ConnectionDrawer({
 
   const summary = buildSummary();
 
-  // Contact info available?
-  const hasPhone = !shouldBlur && otherProfile?.phone;
-  const hasEmail = !shouldBlur && otherProfile?.email;
-  const hasWebsite = !shouldBlur && otherProfile?.website;
-  const hasContact = hasPhone || hasEmail || hasWebsite;
+  // Contact info — only shown after connection is accepted
+  const isAccepted = connection?.status === "accepted";
+  const hasPhone = isAccepted && !shouldBlur && otherProfile?.phone;
+  const hasEmail = isAccepted && !shouldBlur && otherProfile?.email;
+  const hasWebsite = isAccepted && !shouldBlur && otherProfile?.website;
+
 
   const drawerContent = (
     <div
@@ -427,35 +428,40 @@ export default function ConnectionDrawer({
                       </span>
                     </div>
                     {otherProfile && !shouldBlur && (
-                      <Link
-                        href={profileHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mt-2"
-                      >
-                        View provider profile
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </Link>
+                      <div className="flex items-center gap-2.5 mt-2 flex-wrap">
+                        {hasPhone && (
+                          <>
+                            <a
+                              href={`tel:${otherProfile.phone}`}
+                              className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                            >
+                              <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
+                              {otherProfile.phone}
+                            </a>
+                            <span className="text-gray-200">|</span>
+                          </>
+                        )}
+                        <Link
+                          href={profileHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                        >
+                          View provider profile
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                        </Link>
+                      </div>
                     )}
                   </div>
                 </div>
 
-                {/* Contact info — shown whenever available */}
-                {hasContact && (
+                {/* Contact info (email/website) — phone is shown inline above */}
+                {(hasEmail || hasWebsite) && (
                   <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5">
-                    {hasPhone && (
-                      <a
-                        href={`tel:${otherProfile!.phone}`}
-                        className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-primary-600 transition-colors"
-                      >
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        {otherProfile!.phone}
-                      </a>
-                    )}
                     {hasEmail && (
                       <a
                         href={`mailto:${otherProfile!.email}`}

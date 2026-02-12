@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
@@ -37,6 +36,9 @@ export default function SettingsPage() {
   const [fieldSaving, setFieldSaving] = useState(false);
   const [fieldError, setFieldError] = useState("");
   const [fieldSuccess, setFieldSuccess] = useState("");
+
+  // Add provider profile
+  const [showProviderModal, setShowProviderModal] = useState(false);
 
   // Delete account
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -310,9 +312,10 @@ export default function SettingsPage() {
       {/* ── Add Provider Profile (family only) ── */}
       {isFamily && (
         <section>
-          <Link
-            href="/onboarding"
-            className="flex items-center gap-4 bg-white rounded-2xl border border-gray-200 p-6 hover:border-primary-200 hover:bg-primary-50/20 transition-colors group"
+          <button
+            type="button"
+            onClick={() => setShowProviderModal(true)}
+            className="w-full text-left flex items-center gap-4 bg-white rounded-2xl border border-gray-200 p-6 hover:border-primary-200 hover:bg-primary-50/20 transition-colors group"
           >
             <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
               <svg
@@ -350,9 +353,60 @@ export default function SettingsPage() {
                 d="M9 5l7 7-7 7"
               />
             </svg>
-          </Link>
+          </button>
         </section>
       )}
+
+      {/* Add Provider Profile Confirmation Modal */}
+      <Modal
+        isOpen={showProviderModal}
+        onClose={() => setShowProviderModal(false)}
+        title="Add a Provider Profile"
+        size="sm"
+      >
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+            <svg
+              className="w-6 h-6 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+              />
+            </svg>
+          </div>
+          <p className="text-base text-gray-700 mb-2">
+            Want to list your care services?
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Setting up a provider profile lets families find and connect with you
+            on Olera. Your family profile will remain active.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setShowProviderModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              onClick={() => {
+                setShowProviderModal(false);
+                router.push("/onboarding?intent=provider");
+              }}
+            >
+              Continue to setup
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ── Subscription (providers only) ── */}
       {isProvider && (

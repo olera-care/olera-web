@@ -221,93 +221,150 @@ export default function Navbar() {
                     </button>
 
                     {isUserMenuOpen && (
-                      <div className="absolute right-0 mt-2.5 w-60 bg-white rounded-2xl shadow-xl ring-1 ring-black/[0.06] py-1.5 z-50">
-                        {/* User identity header */}
-                        <div className="px-4 py-2.5 border-b border-gray-100">
-                          <p className="text-[15px] font-semibold text-gray-900 truncate">
-                            {displayName}
-                          </p>
-                          {profileTypeLabel && (
-                            <p className="text-xs text-primary-600 font-medium mt-0.5">
-                              {profileTypeLabel}
+                      <div className="absolute right-0 mt-2.5 w-64 bg-white rounded-2xl shadow-xl ring-1 ring-black/[0.06] py-1 z-50">
+                        {/* Identity header with pill badge */}
+                        <div className="px-5 pt-4 pb-3">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="text-[15px] font-semibold text-gray-900 truncate">
+                              {displayName}
                             </p>
-                          )}
-                          <p className="text-sm text-gray-500 truncate mt-0.5">
+                            {profileTypeLabel && (
+                              <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
+                                {profileTypeLabel}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 truncate">
                             {user?.email}
                           </p>
                         </div>
+
+                        <div className="mx-4 border-t border-gray-100" />
+
                         {isFullyLoaded ? (
                           hasProfile ? (
-                            <div className="px-1.5 py-1">
-                              <Link
-                                href="/portal"
-                                className="block px-3.5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                                onClick={() => setIsUserMenuOpen(false)}
-                              >
-                                Dashboard
-                              </Link>
-                              <Link
-                                href="/portal/profile"
-                                className="block px-3.5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                                onClick={() => setIsUserMenuOpen(false)}
-                              >
-                                Edit Profile
-                              </Link>
-                              <Link
-                                href="/portal/connections"
-                                className="block px-3.5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
-                                onClick={() => setIsUserMenuOpen(false)}
-                              >
-                                {isProvider ? "Connections" : "My Inquiries"}
-                              </Link>
-                              {isProvider && (
+                            <>
+                              {/* Tier 1 — Core portal links */}
+                              <div className="px-2 py-1.5">
                                 <Link
-                                  href="/portal/settings"
-                                  className="block px-3.5 py-2.5 text-[15px] text-gray-700 hover:bg-gray-50 rounded-xl transition-colors"
+                                  href="/portal/profile"
+                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                                   onClick={() => setIsUserMenuOpen(false)}
                                 >
-                                  Settings
+                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                    <circle cx="12" cy="7" r="4" />
+                                  </svg>
+                                  Profile
                                 </Link>
-                              )}
-                            </div>
+                                <Link
+                                  href="/portal/connections"
+                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                                  </svg>
+                                  <span className="flex-1">{isProvider ? "Connections" : "My Connections"}</span>
+                                </Link>
+                              </div>
+
+                              <div className="mx-4 border-t border-gray-100" />
+
+                              {/* Tier 2 — Help & resources */}
+                              <div className="px-2 py-1.5">
+                                <Link
+                                  href="/benefits"
+                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                  </svg>
+                                  Benefits Center
+                                </Link>
+                                <Link
+                                  href="/help"
+                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                  </svg>
+                                  Help Center
+                                </Link>
+                              </div>
+
+                              <div className="mx-4 border-t border-gray-100" />
+
+                              {/* Tier 3 — Account settings */}
+                              <div className="px-2 py-1.5">
+                                <Link
+                                  href="/portal/settings"
+                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                                  </svg>
+                                  Account Settings
+                                </Link>
+                              </div>
+                            </>
                           ) : (
-                            <div className="px-1.5 py-1">
+                            <div className="px-2 py-1.5">
                               <Link
                                 href="/onboarding"
-                                className="block px-3.5 py-2.5 text-[15px] text-primary-600 hover:bg-primary-50 rounded-xl transition-colors font-medium"
+                                className="flex items-center gap-3 px-3 py-2.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors font-medium"
                                 onClick={() => setIsUserMenuOpen(false)}
                               >
+                                <svg className="w-[18px] h-[18px] text-primary-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                  <circle cx="12" cy="7" r="4" />
+                                </svg>
                                 Complete your profile
                               </Link>
                             </div>
                           )
                         ) : (
-                          <div className="px-4 py-3 text-sm text-gray-400">
+                          <div className="px-5 py-3 text-sm text-gray-400">
                             Loading account...
                           </div>
                         )}
+
                         {/* Profile switcher — only when account data loaded */}
                         {isFullyLoaded && (
-                          <div className="mx-3.5 border-t border-gray-100" />
+                          <div className="mx-4 border-t border-gray-100" />
                         )}
                         {isFullyLoaded && (
-                          <div className="px-1.5 py-1">
+                          <div className="px-2 py-1">
                             <ProfileSwitcher
                               onSwitch={() => setIsUserMenuOpen(false)}
                               variant="dropdown"
                             />
                           </div>
                         )}
-                        <div className="mx-3.5 border-t border-gray-100" />
-                        <div className="px-1.5 py-1">
+
+                        <div className="mx-4 border-t border-gray-100" />
+
+                        {/* Sign out with icon */}
+                        <div className="px-2 py-1.5 pb-2">
                           <button
                             type="button"
                             onClick={() => {
                               setIsUserMenuOpen(false);
                               signOut(() => router.push("/"));
                             }}
-                            className="w-full text-left px-3.5 py-2.5 text-[15px] text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                            className="w-full text-left flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           >
+                            <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                              <polyline points="16 17 21 12 16 7" />
+                              <line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
                             Sign out
                           </button>
                         </div>
@@ -512,52 +569,108 @@ export default function Navbar() {
                 {/* Account section */}
                 {hasSession ? (
                   <>
+                    {/* Identity header */}
+                    <div className="flex items-center gap-2 py-2">
+                      <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
+                        {initials}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                          {profileTypeLabel && (
+                            <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
+                              {profileTypeLabel}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                      </div>
+                    </div>
+
                     {isFullyLoaded ? (
                       hasProfile ? (
                         <>
-                          <Link
-                            href="/portal"
-                            className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            Dashboard
-                          </Link>
+                          {/* Tier 1 — Core portal */}
                           <Link
                             href="/portal/profile"
-                            className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
-                            Edit Profile
+                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            Profile
                           </Link>
                           <Link
                             href="/portal/connections"
-                            className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
-                            {isProvider ? "Connections" : "My Inquiries"}
+                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                            </svg>
+                            {isProvider ? "Connections" : "My Connections"}
                           </Link>
-                          {isProvider && (
-                            <Link
-                              href="/portal/settings"
-                              className="block py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              Settings
-                            </Link>
-                          )}
+
+                          <hr className="border-gray-100" />
+
+                          {/* Tier 2 — Help & resources */}
+                          <Link
+                            href="/benefits"
+                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                            Benefits Center
+                          </Link>
+                          <Link
+                            href="/help"
+                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                              <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                            Help Center
+                          </Link>
+
+                          <hr className="border-gray-100" />
+
+                          {/* Tier 3 — Account settings */}
+                          <Link
+                            href="/portal/settings"
+                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="3" />
+                              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                            </svg>
+                            Account Settings
+                          </Link>
                         </>
                       ) : (
                         <Link
                           href="/onboarding"
-                          className="block py-3 text-primary-600 hover:text-primary-700 font-medium"
+                          className="flex items-center gap-3 py-3 text-primary-600 hover:text-primary-700 font-medium"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
+                          <svg className="w-[18px] h-[18px] text-primary-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
                           Complete your profile
                         </Link>
                       )
                     ) : (
                       <p className="py-3 text-sm text-gray-400">Loading account...</p>
                     )}
+
                     {/* Profile switcher — only when account loaded */}
                     {isFullyLoaded && (
                       <div className="border-t border-gray-100 pt-2">
@@ -567,14 +680,23 @@ export default function Navbar() {
                         />
                       </div>
                     )}
+
+                    <hr className="border-gray-100" />
+
+                    {/* Sign out with icon */}
                     <button
                       type="button"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         signOut(() => router.push("/"));
                       }}
-                      className="text-left text-red-600 hover:text-red-700 font-medium"
+                      className="flex items-center gap-3 text-left py-3 text-red-600 hover:text-red-700 font-medium"
                     >
+                      <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
                       Sign out
                     </button>
                   </>

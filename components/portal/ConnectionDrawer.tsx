@@ -690,10 +690,10 @@ export default function ConnectionDrawer({
                       <div className={`rounded-2xl px-4 py-3 ${
                         isInbound
                           ? "bg-gray-100 text-gray-800 rounded-tl-sm"
-                          : "bg-primary-600 text-white rounded-tr-sm"
+                          : "bg-gray-800 text-white rounded-tr-sm"
                       }`}>
                         <p className={`text-xs font-semibold uppercase tracking-wider mb-1.5 ${
-                          isInbound ? "text-gray-400" : "text-primary-100"
+                          isInbound ? "text-gray-400" : "text-gray-400"
                         }`}>
                           Connection request
                         </p>
@@ -702,7 +702,7 @@ export default function ConnectionDrawer({
                         )}
                         {parsedMsg?.notes && (
                           <p className={`text-base italic mt-1.5 ${
-                            isInbound ? "text-gray-600" : "text-primary-100"
+                            isInbound ? "text-gray-600" : "text-gray-400"
                           }`}>
                             &ldquo;{parsedMsg.notes}&rdquo;
                           </p>
@@ -748,7 +748,7 @@ export default function ConnectionDrawer({
                 {connection.status === "accepted" && !shouldBlur && isInbound && (
                   <div className="flex justify-end">
                     <div className="max-w-[85%]">
-                      <div className="bg-primary-600 text-white rounded-2xl rounded-tr-sm px-4 py-3">
+                      <div className="bg-gray-800 text-white rounded-2xl rounded-tr-sm px-4 py-3">
                         <p className="text-base leading-relaxed">
                           You accepted this connection. Reach out to start the conversation.
                         </p>
@@ -771,7 +771,7 @@ export default function ConnectionDrawer({
                       <div className="max-w-[85%]">
                         <div className={`rounded-2xl px-4 py-3 ${
                           isOwn
-                            ? "bg-primary-600 text-white rounded-tr-sm"
+                            ? "bg-gray-800 text-white rounded-tr-sm"
                             : "bg-gray-100 text-gray-800 rounded-tl-sm"
                         }`}>
                           <p className="text-base leading-relaxed">{msg.text}</p>
@@ -862,8 +862,8 @@ export default function ConnectionDrawer({
                   </div>
                 )}
                 {connection.status === "expired" && (
-                  <div className="space-y-3">
-                    <Link href={profileHref}>
+                  <div className="flex gap-3">
+                    <Link href={profileHref} className="flex-1">
                       <button
                         type="button"
                         className="w-full min-h-[44px] rounded-xl bg-primary-600 text-white text-base font-semibold hover:bg-primary-700 transition-colors"
@@ -874,7 +874,7 @@ export default function ConnectionDrawer({
                     <button
                       type="button"
                       onClick={() => setConfirmAction("remove")}
-                      className="w-full min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+                      className="flex-1 min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-gray-500 hover:bg-gray-50 transition-colors"
                     >
                       Remove from list
                     </button>

@@ -59,7 +59,7 @@ export default function SettingsPage() {
   // ── Notification toggle ──
   const handleNotifToggle = useCallback(
     async (
-      key: "connection_updates" | "saved_provider_alerts" | "profile_reminders",
+      key: "connection_updates" | "saved_provider_alerts" | "match_updates" | "profile_reminders",
       channel: "email" | "sms"
     ) => {
       if (!activeProfile || !isSupabaseConfigured()) return;
@@ -239,6 +239,15 @@ export default function SettingsPage() {
             smsOn={notifPrefs.saved_provider_alerts?.sms ?? false}
             onToggle={(channel) =>
               handleNotifToggle("saved_provider_alerts", channel)
+            }
+          />
+          <NotificationRow
+            title="Match updates"
+            description="New provider matches and care post responses"
+            emailOn={notifPrefs.match_updates?.email ?? true}
+            smsOn={notifPrefs.match_updates?.sms ?? false}
+            onToggle={(channel) =>
+              handleNotifToggle("match_updates", channel)
             }
           />
           <NotificationRow
@@ -622,7 +631,7 @@ export default function SettingsPage() {
 // ── Helper: default notification values ──
 
 function getDefault(
-  key: "connection_updates" | "saved_provider_alerts" | "profile_reminders",
+  key: "connection_updates" | "saved_provider_alerts" | "match_updates" | "profile_reminders",
   channel: "email" | "sms"
 ): boolean {
   if (channel === "email") return true;

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
@@ -11,13 +12,18 @@ import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
 import ConnectionDrawer from "@/components/portal/ConnectionDrawer";
+import ConnectionDetailPanel from "@/components/portal/ConnectionDetailPanel";
+import type { ConnectionWithProfile } from "@/components/portal/ConnectionDetailPanel";
+import {
+  getFamilyDisplayStatus,
+  getConnectionTab,
+  isConnectionUnread,
+  FAMILY_STATUS_CONFIG,
+  type ConnectionTab,
+} from "@/lib/connection-utils";
 
-interface ConnectionWithProfile extends Connection {
-  fromProfile: Profile | null;
-  toProfile: Profile | null;
-}
+// ── Helpers ──
 
-// ── Parse connection.message JSON ──
 function parseMessage(message: string | null): {
   careRecipient?: string;
   careType?: string;
@@ -44,7 +50,6 @@ function parseMessage(message: string | null): {
   }
 }
 
-// ── Deterministic gradient for fallback avatars ──
 function avatarGradient(name: string): string {
   const gradients = [
     "linear-gradient(135deg, #0ea5e9, #6366f1)",
@@ -68,15 +73,34 @@ function blurName(name: string): string {
   return name.split(" ").map((p) => p.charAt(0) + "***").join(" ");
 }
 
+// ── Read state from localStorage ──
+
+function getReadIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const stored = localStorage.getItem("olera_read_connections");
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function persistReadIds(ids: Set<string>) {
+  try {
+    localStorage.setItem("olera_read_connections", JSON.stringify([...ids]));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+// ── Main Page ──
+
 export default function ConnectionsPage() {
   const { activeProfile, membership } = useAuth();
+  const router = useRouter();
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Drawer state
-  const [drawerConnectionId, setDrawerConnectionId] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isProvider =
     activeProfile?.type === "organization" ||
@@ -88,6 +112,16 @@ export default function ConnectionsPage() {
     "view_inquiry_details"
   );
 
+  // ── Family-specific state ──
+  const [activeTab, setActiveTab] = useState<ConnectionTab>("active");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds());
+
+  // ── Provider drawer state (kept for provider view) ──
+  const [drawerConnectionId, setDrawerConnectionId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // ── Fetch connections ──
   const fetchConnections = useCallback(async () => {
     if (!activeProfile || !isSupabaseConfigured()) {
       setLoading(false);
@@ -97,7 +131,7 @@ export default function ConnectionsPage() {
     try {
       const supabase = createClient();
       const cols =
-        "id, type, status, from_profile_id, to_profile_id, message, created_at, updated_at";
+        "id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at";
 
       const [inboundRes, outboundRes] = await Promise.all([
         supabase
@@ -197,9 +231,119 @@ export default function ConnectionsPage() {
     fetchConnections();
   }, [fetchConnections]);
 
-  // ── Group connections ──
-  const grouped = groupConnections(connections, activeProfile?.id || "", isProvider);
+  // ── Tab grouping (family view) ──
+  const tabbed = useMemo(() => {
+    const active: ConnectionWithProfile[] = [];
+    const responded: ConnectionWithProfile[] = [];
+    const past: ConnectionWithProfile[] = [];
 
+    for (const c of connections) {
+      // Hide soft-deleted connections
+      if (c.metadata?.hidden) continue;
+
+      const displayStatus = getFamilyDisplayStatus(c);
+      const tab = getConnectionTab(displayStatus);
+
+      if (tab === "active") active.push(c);
+      else if (tab === "responded") responded.push(c);
+      else past.push(c);
+    }
+
+    return { active, responded, past };
+  }, [connections]);
+
+  // Unread count for responded tab
+  const unreadCount = useMemo(
+    () => tabbed.responded.filter((c) => isConnectionUnread(c, readIds)).length,
+    [tabbed.responded, readIds]
+  );
+
+  // ── Provider grouping (preserved) ──
+  const providerGrouped = useMemo(
+    () => groupConnections(connections, activeProfile?.id || "", isProvider),
+    [connections, activeProfile?.id, isProvider]
+  );
+
+  // ── Handlers ──
+
+  const handleSelectFamily = (id: string) => {
+    setSelectedId(id);
+    // Mark as read
+    const conn = connections.find((c) => c.id === id);
+    if (conn && conn.status === "accepted" && !readIds.has(id)) {
+      const updated = new Set(readIds);
+      updated.add(id);
+      setReadIds(updated);
+      persistReadIds(updated);
+    }
+  };
+
+  // Mobile: navigate to detail page
+  const handleSelectMobile = (id: string) => {
+    router.push(`/portal/connections/${id}`);
+  };
+
+  const handleWithdraw = async (connectionId: string) => {
+    try {
+      const res = await fetch("/api/connections/withdraw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to withdraw");
+      }
+      // Update local state
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === connectionId
+            ? { ...c, status: "expired" as Connection["status"], metadata: { ...c.metadata, withdrawn: true } }
+            : c
+        )
+      );
+      setSelectedId(null);
+    } catch (err) {
+      console.error("Withdraw error:", err);
+    }
+  };
+
+  const handleHide = async (connectionId: string) => {
+    try {
+      const res = await fetch("/api/connections/hide", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to remove");
+      }
+      // Update local state
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === connectionId
+            ? { ...c, metadata: { ...c.metadata, hidden: true } }
+            : c
+        )
+      );
+      setSelectedId(null);
+    } catch (err) {
+      console.error("Hide error:", err);
+    }
+  };
+
+  const handleConnectAgain = async (connection: ConnectionWithProfile) => {
+    // Navigate to the provider page where they can send a new request
+    const profile = connection.toProfile;
+    if (profile?.slug) {
+      router.push(`/provider/${profile.slug}`);
+    } else if (profile?.source_provider_id) {
+      router.push(`/providers/${profile.source_provider_id}`);
+    }
+  };
+
+  // Provider drawer handlers
   const openDrawer = (id: string) => {
     setDrawerConnectionId(id);
     setDrawerOpen(true);
@@ -207,7 +351,6 @@ export default function ConnectionsPage() {
 
   const closeDrawer = () => {
     setDrawerOpen(false);
-    // Delay clearing connectionId so the close animation finishes
     setTimeout(() => setDrawerConnectionId(null), 300);
   };
 
@@ -219,6 +362,8 @@ export default function ConnectionsPage() {
     );
   };
 
+  // ── Loading ──
+
   if (loading) {
     return (
       <div className="text-center py-16">
@@ -228,103 +373,368 @@ export default function ConnectionsPage() {
     );
   }
 
+  // ── Provider view (preserved) ──
+
+  if (isProvider) {
+    return (
+      <div className="space-y-6">
+        {error && (
+          <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between" role="alert">
+            <span>{error}</span>
+            <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-4">Retry</button>
+          </div>
+        )}
+
+        {connections.length === 0 ? (
+          <EmptyState
+            title="No connections yet"
+            description="When families or caregivers reach out, their connections will appear here."
+          />
+        ) : (
+          <div>
+            {providerGrouped.needsAttention.length > 0 && (
+              <ProviderConnectionGroup
+                title="Needs Attention"
+                icon={<svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" /><path d="M10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" /></svg>}
+                connections={providerGrouped.needsAttention}
+                activeProfileId={activeProfile?.id || ""}
+                isProvider={true}
+                hasFullAccess={hasFullAccess}
+                onSelect={openDrawer}
+                variant="attention"
+              />
+            )}
+            {providerGrouped.active.length > 0 && (
+              <ProviderConnectionGroup title="Active" connections={providerGrouped.active} activeProfileId={activeProfile?.id || ""} isProvider={true} hasFullAccess={hasFullAccess} onSelect={openDrawer} />
+            )}
+            {providerGrouped.past.length > 0 && (
+              <ProviderConnectionGroup title="Past" connections={providerGrouped.past} activeProfileId={activeProfile?.id || ""} isProvider={true} hasFullAccess={hasFullAccess} onSelect={openDrawer} variant="muted" />
+            )}
+            {!hasFullAccess && connections.length > 0 && (
+              <div className="mt-6"><UpgradePrompt context="view full details and respond to connections" /></div>
+            )}
+          </div>
+        )}
+
+        <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} />
+      </div>
+    );
+  }
+
+  // ── Family view — 3-tab split layout ──
+
+  const selectedConnection = selectedId
+    ? connections.find((c) => c.id === selectedId) || null
+    : null;
+
+  const currentTabConnections = tabbed[activeTab];
+
+  const tabs: { id: ConnectionTab; label: string; count: number; badge: number }[] = [
+    { id: "active", label: "Active", count: tabbed.active.length, badge: 0 },
+    { id: "responded", label: "Responded", count: tabbed.responded.length, badge: unreadCount },
+    { id: "past", label: "Past", count: tabbed.past.length, badge: 0 },
+  ];
+
+  if (connections.length === 0 && !error) {
+    return (
+      <EmptyState
+        title="No connections yet"
+        description="Browse providers and connect to get started."
+        action={
+          <Link href="/browse">
+            <Button>Browse Providers</Button>
+          </Link>
+        }
+      />
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div>
       {error && (
-        <div
-          className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between"
-          role="alert"
-        >
+        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between mb-4" role="alert">
           <span>{error}</span>
-          <button
-            type="button"
-            onClick={() => { setError(""); setLoading(true); fetchConnections(); }}
-            className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-4"
-          >
-            Retry
-          </button>
+          <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-4">Retry</button>
         </div>
       )}
 
-      {connections.length === 0 ? (
-        <EmptyState
-          title="No connections yet"
-          description={
-            isProvider
-              ? "When families or caregivers reach out, their connections will appear here."
-              : "Browse providers and connect to get started."
-          }
-          action={
-            !isProvider ? (
-              <Link href="/browse">
-                <Button>Browse Providers</Button>
-              </Link>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div>
-          {grouped.needsAttention.length > 0 && (
-            <ConnectionGroup
-              title="Needs Attention"
-              icon={
-                <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
-                  <path d="M10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
-              }
-              connections={grouped.needsAttention}
-              activeProfileId={activeProfile?.id || ""}
-              isProvider={isProvider}
-              hasFullAccess={hasFullAccess}
-              onSelect={openDrawer}
-              variant="attention"
-            />
-          )}
+      {/* Split layout — hidden on mobile, show list-only on small screens */}
+      <div className="hidden lg:flex" style={{ minHeight: "calc(100vh - 180px)" }}>
+        {/* ── Left Panel: List ── */}
+        <div className="w-[380px] shrink-0 flex flex-col">
+          {/* Header */}
+          <div className="mb-5">
+            <h2 className="text-[22px] font-bold text-gray-900">My Connections</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Track your care provider requests and responses.
+            </p>
+          </div>
 
-          {grouped.active.length > 0 && (
-            <ConnectionGroup
-              title="Active"
-              connections={grouped.active}
-              activeProfileId={activeProfile?.id || ""}
-              isProvider={isProvider}
-              hasFullAccess={hasFullAccess}
-              onSelect={openDrawer}
-            />
-          )}
+          {/* Tab bar */}
+          <div className="flex gap-1 mb-4 bg-gray-100 p-0.5 rounded-xl">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => { setActiveTab(tab.id); setSelectedId(null); }}
+                className={[
+                  "flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-semibold transition-all relative",
+                  activeTab === tab.id
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                ].join(" ")}
+              >
+                {tab.label}
+                <span className={[
+                  "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
+                  activeTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
+                ].join(" ")}>
+                  {tab.count}
+                </span>
+                {tab.badge > 0 && (
+                  <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
+                )}
+              </button>
+            ))}
+          </div>
 
-          {grouped.past.length > 0 && (
-            <ConnectionGroup
-              title="Past"
-              connections={grouped.past}
-              activeProfileId={activeProfile?.id || ""}
-              isProvider={isProvider}
-              hasFullAccess={hasFullAccess}
-              onSelect={openDrawer}
-              variant="muted"
-            />
-          )}
+          {/* Connection list */}
+          <div className="flex-1 overflow-y-auto pr-4 space-y-1.5">
+            {currentTabConnections.length === 0 ? (
+              <TabEmptyState tab={activeTab} />
+            ) : (
+              currentTabConnections.map((connection) => {
+                const unread = isConnectionUnread(connection, readIds);
+                return (
+                  <FamilyConnectionCard
+                    key={connection.id}
+                    connection={connection}
+                    activeProfileId={activeProfile?.id || ""}
+                    selected={selectedId === connection.id}
+                    unread={unread}
+                    onSelect={handleSelectFamily}
+                  />
+                );
+              })
+            )}
+          </div>
+        </div>
 
-          {isProvider && !hasFullAccess && connections.length > 0 && (
-            <div className="mt-6">
-              <UpgradePrompt context="view full details and respond to connections" />
+        {/* ── Right Panel: Detail ── */}
+        <div className="flex-1 min-w-0">
+          {selectedConnection ? (
+            <ConnectionDetailPanel
+              connection={selectedConnection}
+              activeProfileId={activeProfile?.id || ""}
+              onClose={() => setSelectedId(null)}
+              onWithdraw={handleWithdraw}
+              onHide={handleHide}
+              onConnectAgain={handleConnectAgain}
+            />
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center border-l border-gray-200">
+              <div className="text-center px-10">
+                <div className="text-4xl mb-3">💬</div>
+                <p className="text-sm font-medium text-gray-500">Select a connection</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Click on a provider to view the conversation.
+                </p>
+              </div>
             </div>
           )}
         </div>
-      )}
+      </div>
 
-      {/* Connection Drawer */}
-      <ConnectionDrawer
-        connectionId={drawerConnectionId}
-        isOpen={drawerOpen}
-        onClose={closeDrawer}
-        onStatusChange={handleStatusChange}
-      />
+      {/* ── Mobile layout — list only ── */}
+      <div className="lg:hidden">
+        {/* Header */}
+        <div className="mb-5">
+          <h2 className="text-xl font-bold text-gray-900">My Connections</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Track your care provider requests and responses.
+          </p>
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex gap-1 mb-4 bg-gray-100 p-0.5 rounded-xl">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={[
+                "flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-semibold transition-all relative",
+                activeTab === tab.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700",
+              ].join(" ")}
+            >
+              {tab.label}
+              <span className={[
+                "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
+                activeTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
+              ].join(" ")}>
+                {tab.count}
+              </span>
+              {tab.badge > 0 && (
+                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Connection list */}
+        <div className="space-y-1.5">
+          {currentTabConnections.length === 0 ? (
+            <TabEmptyState tab={activeTab} />
+          ) : (
+            currentTabConnections.map((connection) => {
+              const unread = isConnectionUnread(connection, readIds);
+              return (
+                <FamilyConnectionCard
+                  key={connection.id}
+                  connection={connection}
+                  activeProfileId={activeProfile?.id || ""}
+                  selected={false}
+                  unread={unread}
+                  onSelect={handleSelectMobile}
+                />
+              );
+            })
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-// ── Grouping Logic ──
+// ── Tab Empty States ──
+
+function TabEmptyState({ tab }: { tab: ConnectionTab }) {
+  const messages: Record<ConnectionTab, { title: string; subtitle: string }> = {
+    active: {
+      title: "No active requests.",
+      subtitle: "Pending and viewed connections appear here.",
+    },
+    responded: {
+      title: "No responses yet.",
+      subtitle: "When a provider replies, you\u2019ll see it here.",
+    },
+    past: {
+      title: "No past connections.",
+      subtitle: "Expired, withdrawn, and declined connections appear here.",
+    },
+  };
+  const msg = messages[tab];
+  return (
+    <div className="py-12 text-center">
+      <p className="text-sm text-gray-500">{msg.title}</p>
+      <p className="text-xs text-gray-400 mt-1">{msg.subtitle}</p>
+    </div>
+  );
+}
+
+// ── Family Connection Card ──
+
+function FamilyConnectionCard({
+  connection,
+  activeProfileId,
+  selected,
+  unread,
+  onSelect,
+}: {
+  connection: ConnectionWithProfile;
+  activeProfileId: string;
+  selected: boolean;
+  unread: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const isInbound = connection.to_profile_id === activeProfileId;
+  const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
+  const otherName = otherProfile?.display_name || "Unknown";
+  const otherLocation = [otherProfile?.city, otherProfile?.state]
+    .filter(Boolean)
+    .join(", ");
+
+  const parsedMsg = parseMessage(connection.message);
+  const careTypeLabel =
+    parsedMsg?.careType ||
+    connection.type
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c: string) => c.toUpperCase());
+
+  const displayStatus = getFamilyDisplayStatus(connection);
+  const statusConfig = FAMILY_STATUS_CONFIG[displayStatus];
+
+  const createdAt = new Date(connection.created_at).toLocaleDateString(
+    "en-US",
+    { month: "short", day: "numeric" }
+  );
+
+  const imageUrl = otherProfile?.image_url;
+  const initial = otherName.charAt(0).toUpperCase();
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(connection.id)}
+      className={[
+        "w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl border transition-all",
+        selected
+          ? "bg-emerald-50/50 border-emerald-600/30"
+          : "bg-white border-gray-200 hover:bg-gray-50",
+      ].join(" ")}
+    >
+      {/* Avatar */}
+      <div className="relative shrink-0">
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt={otherName}
+            className="w-11 h-11 rounded-xl object-cover"
+          />
+        ) : (
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white"
+            style={{ background: avatarGradient(otherName) }}
+          >
+            {initial}
+          </div>
+        )}
+        {unread && (
+          <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="min-w-0 flex-1">
+        <span
+          className={[
+            "text-sm text-gray-900 truncate block leading-snug",
+            unread ? "font-bold" : "font-semibold",
+          ].join(" ")}
+        >
+          {otherName}
+        </span>
+        <span className="text-xs text-gray-500 block truncate">{careTypeLabel}</span>
+        <span className="text-[11px] text-gray-400 block mt-0.5">
+          {createdAt}{otherLocation ? ` \u00b7 ${otherLocation}` : ""}
+        </span>
+      </div>
+
+      {/* Status badge */}
+      <span
+        className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 ${statusConfig.bg} ${statusConfig.color}`}
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+        {statusConfig.label}
+      </span>
+    </button>
+  );
+}
+
+// ── Provider Grouping (preserved from original) ──
 
 function groupConnections(
   connections: ConnectionWithProfile[],
@@ -361,9 +771,9 @@ function groupConnections(
   return { needsAttention, active, past };
 }
 
-// ── Connection Group ──
+// ── Provider Connection Group (preserved from original) ──
 
-function ConnectionGroup({
+function ProviderConnectionGroup({
   title,
   icon,
   connections,
@@ -395,7 +805,7 @@ function ConnectionGroup({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {connections.map((connection) => (
-          <ConnectionCard
+          <ProviderConnectionCard
             key={connection.id}
             connection={connection}
             activeProfileId={activeProfileId}
@@ -410,9 +820,9 @@ function ConnectionGroup({
   );
 }
 
-// ── Connection Card ──
+// ── Provider Connection Card (preserved from original) ──
 
-function ConnectionCard({
+function ProviderConnectionCard({
   connection,
   activeProfileId,
   isProvider,
@@ -468,15 +878,10 @@ function ConnectionCard({
     >
       <div className="px-4 py-3.5">
         <div className="flex items-start gap-3.5">
-          {/* Avatar */}
           <div className="shrink-0 mt-0.5">
             {imageUrl && !shouldBlur ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageUrl}
-                alt={otherName}
-                className="w-11 h-11 rounded-xl object-cover"
-              />
+              <img src={imageUrl} alt={otherName} className="w-11 h-11 rounded-xl object-cover" />
             ) : (
               <div
                 className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white"
@@ -486,8 +891,6 @@ function ConnectionCard({
               </div>
             )}
           </div>
-
-          {/* Content */}
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">

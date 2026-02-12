@@ -35,7 +35,7 @@ export type MembershipStatus =
 export type BillingCycle = "monthly" | "annual";
 
 export type ConnectionType = "inquiry" | "save" | "application" | "invitation" | "dismiss";
-export type ConnectionStatus = "pending" | "accepted" | "declined" | "archived";
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "expired" | "archived";
 
 // ============================================================
 // Table Row Types
@@ -110,6 +110,7 @@ export interface Connection {
   type: ConnectionType;
   status: ConnectionStatus;
   message: string | null;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -157,6 +158,7 @@ export interface FamilyMetadata {
   notification_prefs?: {
     connection_updates?: { email?: boolean; sms?: boolean };
     saved_provider_alerts?: { email?: boolean; sms?: boolean };
+    match_updates?: { email?: boolean; sms?: boolean };
     profile_reminders?: { email?: boolean; sms?: boolean };
   };
   care_post?: {

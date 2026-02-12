@@ -29,6 +29,11 @@ Commit current changes to git with a well-formed commit message.
    - Show current branch and remote status
    - Only push if user confirms
 
+7. **Ask about PR**:
+   - If user wants to open a PR, **default the base branch to `staging`** (not `main`)
+   - Use: `gh pr create --base staging`
+   - Only target `main` if the user explicitly asks for a production/hotfix PR
+
 ## Commit Message Examples
 
 ```

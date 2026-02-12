@@ -208,7 +208,7 @@ export default function MatchesPage() {
             key={tab.id}
             onClick={() => setSubTab(tab.id)}
             className={[
-              "px-5 py-2 rounded-lg text-[13px] font-semibold transition-all",
+              "px-5 py-2 rounded-lg text-sm font-semibold transition-all",
               subTab === tab.id
                 ? "bg-white text-gray-900 shadow-sm"
                 : "text-gray-500 hover:text-gray-700",

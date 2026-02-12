@@ -155,7 +155,7 @@ export default function CarePostView({
             Post your care need and qualified providers in your area can reach
             out to you directly.
           </p>
-          <p className="text-[13px] text-gray-400 mb-6 max-w-[380px] mx-auto">
+          <p className="text-sm text-gray-400 mb-6 max-w-[380px] mx-auto">
             Your existing profile details will be used — no extra forms to fill
             out.
           </p>
@@ -199,10 +199,10 @@ export default function CarePostView({
           Back
         </button>
 
-        <h3 className="text-[17px] font-bold text-gray-900 mb-1">
+        <h3 className="text-lg font-bold text-gray-900 mb-1">
           Review your care post
         </h3>
-        <p className="text-[13px] text-gray-500 mb-5">
+        <p className="text-sm text-gray-500 mb-5">
           This is what providers will see. Make sure everything looks right
           before publishing.
         </p>
@@ -215,7 +215,7 @@ export default function CarePostView({
                 {initials}
               </div>
               <div>
-                <p className="text-[15px] font-semibold text-gray-900">
+                <p className="text-base font-semibold text-gray-900">
                   {activeProfile.display_name || "Your name"}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -248,7 +248,7 @@ export default function CarePostView({
                   </div>
                   <p
                     className={[
-                      "text-[13px] mt-0.5",
+                      "text-sm mt-0.5",
                       f.value
                         ? "text-gray-800 font-medium"
                         : "text-gray-400 italic",
@@ -262,7 +262,7 @@ export default function CarePostView({
                 ) : (
                   <Link
                     href="/portal/profile"
-                    className="text-[11px] text-primary-600 font-semibold hover:text-primary-700"
+                    className="text-xs text-primary-600 font-semibold hover:text-primary-700"
                   >
                     + Add
                   </Link>
@@ -285,7 +285,7 @@ export default function CarePostView({
               </span>
               <Link
                 href="/portal/profile"
-                className="text-[11px] text-primary-600 font-medium ml-auto underline underline-offset-2 decoration-primary-600/30 hover:text-primary-700"
+                className="text-xs text-primary-600 font-medium ml-auto underline underline-offset-2 decoration-primary-600/30 hover:text-primary-700"
               >
                 Edit profile
               </Link>
@@ -340,7 +340,7 @@ export default function CarePostView({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-primary-600" />
-          <span className="text-[13px] font-semibold text-primary-600">
+          <span className="text-sm font-semibold text-primary-600">
             Active care post
           </span>
         </div>
@@ -350,11 +350,11 @@ export default function CarePostView({
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="p-6">
           {/* Title */}
-          <h3 className="text-[17px] font-bold text-gray-900 mb-1">
+          <h3 className="text-lg font-bold text-gray-900 mb-1">
             {careTypeDisplay || "Care"} for{" "}
             {relationshipDisplay?.toLowerCase() || "a loved one"}
           </h3>
-          <p className="text-[13px] text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             {profileLocation || "Location not set"}
             {timelineDisplay && ` · Needed ${timelineDisplay.toLowerCase()}`}
           </p>
@@ -374,7 +374,7 @@ export default function CarePostView({
                 <span className="text-xs text-gray-400 min-w-[80px]">
                   {f.label}
                 </span>
-                <span className="text-[13px] text-gray-800 font-medium text-right flex-1">
+                <span className="text-sm text-gray-800 font-medium text-right flex-1">
                   {f.value || "—"}
                 </span>
               </div>
@@ -394,7 +394,7 @@ export default function CarePostView({
             </span>
             <Link
               href="/portal/profile"
-              className="text-[11px] text-primary-600 font-medium ml-auto underline underline-offset-2 decoration-primary-600/30 hover:text-primary-700"
+              className="text-xs text-primary-600 font-medium ml-auto underline underline-offset-2 decoration-primary-600/30 hover:text-primary-700"
             >
               Edit profile
             </Link>
@@ -403,14 +403,14 @@ export default function CarePostView({
           {/* Edit / Deactivate buttons */}
           <div className="flex gap-2.5">
             <Link href="/portal/profile" className="flex-1">
-              <button className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              <button className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                 <PencilIcon /> Edit post
               </button>
             </Link>
             <button
               onClick={handleDeactivate}
               disabled={deactivating}
-              className="px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-red-800 hover:bg-red-50 transition-colors disabled:opacity-50"
+              className="px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-red-800 hover:bg-red-50 transition-colors disabled:opacity-50"
             >
               {deactivating ? "..." : "Deactivate"}
             </button>
@@ -421,7 +421,7 @@ export default function CarePostView({
         <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
           <Link
             href="/portal/connections"
-            className="block w-full text-center px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-[13px] font-semibold text-primary-600 hover:bg-primary-50 transition-colors"
+            className="block w-full text-center px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-primary-600 hover:bg-primary-50 transition-colors"
           >
             View all in My Connections →
           </Link>

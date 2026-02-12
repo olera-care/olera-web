@@ -97,13 +97,18 @@ export async function POST(request: Request) {
         .filter(Boolean) as string[];
     }
 
+    // Build category filter using ilike (provider_category can be pipe-separated like "Assisted Living | Independent Living")
+    const categoryFilter = providerCategories
+      .map((cat: string) => `provider_category.ilike.%${cat}%`)
+      .join(",");
+
     // Query olera-providers
     let query = supabase
       .from("olera-providers")
       .select("*", { count: "exact" })
       .not("deleted", "is", true)
       .eq("state", profile.state)
-      .in("provider_category", providerCategories)
+      .or(categoryFilter)
       .not("provider_images", "is", null);
 
     // Exclude already-dismissed/connected providers

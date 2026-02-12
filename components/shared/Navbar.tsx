@@ -267,6 +267,18 @@ export default function Navbar() {
                                   </svg>
                                   <span className="flex-1">{isProvider ? "Connections" : "My Connections"}</span>
                                 </Link>
+                                {activeProfile?.type === "family" && (
+                                  <Link
+                                    href="/portal/matches"
+                                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                    onClick={() => setIsUserMenuOpen(false)}
+                                  >
+                                    <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                      <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                                    </svg>
+                                    Matches
+                                  </Link>
+                                )}
                               </div>
 
                               <div className="mx-4 border-t border-gray-100" />
@@ -612,6 +624,18 @@ export default function Navbar() {
                             </svg>
                             {isProvider ? "Connections" : "My Connections"}
                           </Link>
+                          {activeProfile?.type === "family" && (
+                            <Link
+                              href="/portal/matches"
+                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                              </svg>
+                              Matches
+                            </Link>
+                          )}
 
                           <hr className="border-gray-100" />
 

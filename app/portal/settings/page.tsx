@@ -227,7 +227,7 @@ export default function SettingsPage() {
             title="Connection updates"
             description="When a provider responds or messages you"
             emailOn={notifPrefs.connection_updates?.email ?? true}
-            smsOn={notifPrefs.connection_updates?.sms ?? true}
+            smsOn={notifPrefs.connection_updates?.sms ?? false}
             onToggle={(channel) =>
               handleNotifToggle("connection_updates", channel)
             }
@@ -625,8 +625,8 @@ function getDefault(
   key: "connection_updates" | "saved_provider_alerts" | "profile_reminders",
   channel: "email" | "sms"
 ): boolean {
-  if (key === "connection_updates") return true;
   if (channel === "email") return true;
+  // SMS defaults: all off except explicitly enabled
   return false;
 }
 

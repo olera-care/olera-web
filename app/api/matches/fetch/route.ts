@@ -98,8 +98,12 @@ export async function POST(request: Request) {
     }
 
     // Build category filter using ilike (provider_category can be pipe-separated like "Assisted Living | Independent Living")
-    const categoryFilter = providerCategories
-      .map((cat: string) => `provider_category.ilike.%${cat}%`)
+    // Replace parentheses with _ wildcard — PostgREST .or() uses () for logical grouping
+    const categoryFilter = [...new Set<string>(providerCategories)]
+      .map((cat: string) => {
+        const escaped = cat.replace(/[()]/g, "_");
+        return `provider_category.ilike.%${escaped}%`;
+      })
       .join(",");
 
     // Query olera-providers

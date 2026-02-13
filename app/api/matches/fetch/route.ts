@@ -20,6 +20,33 @@ const categoryToSupabaseCategory: Record<string, string> = {
 /** Dismissals older than this many days are ignored so matches refresh */
 const DISMISS_COOLDOWN_DAYS = 7;
 
+/** Normalize state input to 2-letter uppercase code (olera-providers format) */
+const STATE_NAME_TO_CODE: Record<string, string> = {
+  alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA",
+  colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA",
+  hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA",
+  kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD",
+  massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS",
+  missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV",
+  "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY",
+  "north carolina": "NC", "north dakota": "ND", ohio: "OH", oklahoma: "OK",
+  oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC",
+  "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT",
+  virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI",
+  wyoming: "WY", "district of columbia": "DC",
+};
+
+function normalizeState(raw: string): string {
+  const trimmed = raw.trim();
+  // Already a 2-letter code
+  if (/^[A-Za-z]{2}$/.test(trimmed)) return trimmed.toUpperCase();
+  // Full state name
+  const code = STATE_NAME_TO_CODE[trimmed.toLowerCase()];
+  if (code) return code;
+  // Fallback: uppercase whatever was provided
+  return trimmed.toUpperCase();
+}
+
 const MATCH_COLUMNS =
   "provider_id, provider_name, provider_logo, provider_images, provider_category, provider_description, city, state, google_rating, lower_price, upper_price";
 
@@ -80,7 +107,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ providers: [], totalCount: 0 });
     }
 
-    console.log("[matches] Searching — state:", profile.state, "categories:", providerCategories, "care_types:", profile.care_types);
+    const matchState = normalizeState(profile.state);
+    console.log("[matches] Searching — state:", profile.state, "→", matchState, "categories:", providerCategories, "care_types:", profile.care_types);
 
     // Get recently dismissed & active connection provider IDs to exclude
     // Only exclude dismissals from the last N days so matches refresh over time
@@ -166,7 +194,7 @@ export async function POST(request: Request) {
         .from("olera-providers")
         .select(MATCH_COLUMNS, { count: "exact" })
         .not("deleted", "is", true)
-        .eq("state", profile.state)
+        .eq("state", matchState)
         .or(categoryFilter);
 
       if (excludeFilter) {
@@ -194,7 +222,7 @@ export async function POST(request: Request) {
         .from("olera-providers")
         .select(MATCH_COLUMNS, { count: "exact" })
         .not("deleted", "is", true)
-        .eq("state", profile.state);
+        .eq("state", matchState);
 
       if (excludeFilter) {
         broadQuery = broadQuery.not("provider_id", "in", excludeFilter);

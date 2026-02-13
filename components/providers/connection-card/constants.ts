@@ -51,3 +51,28 @@ export const URGENCY_LABELS: Record<UrgencyValue, string> = {
   few_months: "In a few months",
   researching: "Just researching",
 };
+
+// ============================================================
+// Profile → CTA Mappings (for pre-filling intent from profile)
+// ============================================================
+
+/** Profile relationship_to_recipient → CTA CareRecipient */
+export const RECIPIENT_FROM_PROFILE: Record<string, CareRecipient> = {
+  Myself: "self",
+};
+
+/** Profile timeline → CTA UrgencyValue */
+export const URGENCY_FROM_TIMELINE: Record<string, UrgencyValue> = {
+  immediate: "asap",
+  within_1_month: "within_month",
+  within_3_months: "few_months",
+  exploring: "researching",
+};
+
+/** Profile care type display name → CTA CareTypeValue */
+export const CARE_TYPE_FROM_DISPLAY: Record<string, CareTypeValue> = {
+  "Home Care": "home_care",
+  "Home Health Care": "home_health",
+  "Assisted Living": "assisted_living",
+  "Memory Care": "memory_care",
+};

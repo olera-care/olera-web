@@ -5,7 +5,12 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
-import { mapProviderCareTypes } from "./constants";
+import {
+  mapProviderCareTypes,
+  RECIPIENT_FROM_PROFILE,
+  URGENCY_FROM_TIMELINE,
+  CARE_TYPE_FROM_DISPLAY,
+} from "./constants";
 import type {
   CardState,
   IntentStep,
@@ -26,6 +31,37 @@ const INITIAL_INTENT: IntentData = {
 
 // Module-level cache for iOS provider UUID resolution
 const resolvedIdCache = new Map<string, string>();
+
+/** Build intent data from profile metadata when no prior connection intent exists */
+function buildIntentFromProfile(profile: {
+  metadata?: Record<string, unknown>;
+  care_types?: string[];
+}): IntentData | null {
+  const meta = profile.metadata || {};
+  const recipient = meta.relationship_to_recipient as string | undefined;
+  const timeline = meta.timeline as string | undefined;
+  const careTypes = profile.care_types || [];
+
+  const careRecipient = recipient
+    ? RECIPIENT_FROM_PROFILE[recipient] || "other"
+    : null;
+
+  const urgency = timeline ? URGENCY_FROM_TIMELINE[timeline] || null : null;
+
+  let careType: IntentData["careType"] = null;
+  for (const ct of careTypes) {
+    const mapped = CARE_TYPE_FROM_DISPLAY[ct];
+    if (mapped) {
+      careType = mapped;
+      break;
+    }
+  }
+
+  if (careRecipient && careType && urgency) {
+    return { careRecipient, careType, urgency };
+  }
+  return null;
+}
 
 export function useConnectionCard(props: ConnectionCardProps) {
   const {
@@ -60,7 +96,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
 
-  // ── Resolve initial state for anonymous users ──
+  // ── Resolve initial state — show optimistic UI immediately ──
   useEffect(() => {
     if (authLoading) return;
 
@@ -69,12 +105,29 @@ export function useConnectionCard(props: ConnectionCardProps) {
       return;
     }
 
-    // Anonymous user — show default immediately (no DB queries needed)
+    // Anonymous user — show default immediately
     if (!user) {
       setCardState("default");
+      return;
     }
-    // Logged-in user stays at "loading" until checkExisting runs
-  }, [authLoading, user, isActive]);
+
+    // Logged-in user — try optimistic render from profile data (skip skeleton)
+    if (activeProfile) {
+      const profileIntent = buildIntentFromProfile({
+        metadata: activeProfile.metadata as Record<string, unknown> | undefined,
+        care_types: activeProfile.care_types ?? undefined,
+      });
+      if (profileIntent) {
+        setPreviousIntent(profileIntent);
+        setIntentData(profileIntent);
+        setCardState("returning");
+        return;
+      }
+    }
+
+    // Logged-in but no profile data to pre-fill — show default instead of skeleton
+    setCardState("default");
+  }, [authLoading, user, isActive, activeProfile]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
@@ -164,24 +217,34 @@ export function useConnectionCard(props: ConnectionCardProps) {
           if (restored.careRecipient && restored.careType && restored.urgency) {
             setPreviousIntent(restored);
             setIntentData(restored);
-
-            // If there was a past connection to THIS provider, or any prior intent → returning
-            if (connectionResult.data || true) {
-              setCardState("returning");
-              return;
-            }
+            setCardState("returning");
+            return;
           }
         } catch {
           // Invalid JSON — ignore
         }
       }
 
-      // No connection, no previous intent → default
+      // Fallback: try to build intent from profile metadata
+      if (activeProfile) {
+        const profileIntent = buildIntentFromProfile({
+          metadata: activeProfile.metadata as Record<string, unknown> | undefined,
+          care_types: activeProfile.care_types ?? undefined,
+        });
+        if (profileIntent) {
+          setPreviousIntent(profileIntent);
+          setIntentData(profileIntent);
+          setCardState("returning");
+          return;
+        }
+      }
+
+      // No connection, no previous intent, no profile data → default
       setCardState("default");
     };
 
     checkExisting();
-  }, [user, profiles, providerId, isActive]);
+  }, [user, profiles, providerId, isActive, activeProfile]);
 
   // ── Handle deferred phone reveal after auth ──
   useEffect(() => {

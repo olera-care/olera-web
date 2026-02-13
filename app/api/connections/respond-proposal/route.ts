@@ -12,8 +12,8 @@ interface ThreadMessage {
 /**
  * POST /api/connections/respond-proposal
  *
- * Accept or decline a time proposal.
- * Body: { connectionId, action: "accept" | "decline", acceptedSlotIndex?: number }
+ * Accept or decline a single time proposal.
+ * Body: { connectionId, action: "accept" | "decline" }
  */
 export async function POST(request: Request) {
   try {
@@ -28,10 +28,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { connectionId, action, acceptedSlotIndex } = body as {
+    const { connectionId, action } = body as {
       connectionId?: string;
       action?: string;
-      acceptedSlotIndex?: number;
     };
 
     if (!connectionId || !action) {
@@ -44,13 +43,6 @@ export async function POST(request: Request) {
     if (action !== "accept" && action !== "decline") {
       return NextResponse.json(
         { error: "action must be 'accept' or 'decline'" },
-        { status: 400 }
-      );
-    }
-
-    if (action === "accept" && (acceptedSlotIndex === undefined || acceptedSlotIndex === null)) {
-      return NextResponse.json(
-        { error: "acceptedSlotIndex is required for accept" },
         { status: 400 }
       );
     }
@@ -122,7 +114,6 @@ export async function POST(request: Request) {
 
     const displayName = userProfile?.display_name || "Someone";
     const now = new Date().toISOString();
-    const slots = (timeProposal.slots as Array<{ date: string; time: string; timezone: string }>) || [];
     const stepType = (timeProposal.type as string) || "call";
 
     const stepNoun =
@@ -131,15 +122,11 @@ export async function POST(request: Request) {
       stepType === "visit" ? "home visit" : "call";
 
     if (action === "accept") {
-      const slot = slots[acceptedSlotIndex!];
-      if (!slot) {
-        return NextResponse.json(
-          { error: "Invalid slot index" },
-          { status: 400 }
-        );
-      }
+      const date = timeProposal.date as string;
+      const time = timeProposal.time as string;
+      const timezone = timeProposal.timezone as string;
 
-      const d = new Date(`${slot.date}T${slot.time}:00`);
+      const d = new Date(`${date}T${time}:00`);
       const timeLabel = d.toLocaleDateString("en-US", {
         weekday: "short",
         month: "short",
@@ -151,9 +138,9 @@ export async function POST(request: Request) {
 
       const scheduledCall = {
         type: stepType,
-        date: slot.date,
-        time: slot.time,
-        timezone: slot.timezone,
+        date,
+        time,
+        timezone,
         proposed_by: timeProposal.from_profile_id,
         confirmed_at: now,
         status: "confirmed",
@@ -166,7 +153,15 @@ export async function POST(request: Request) {
         type: "time_accepted",
       };
 
-      const updatedThread = [...existingThread, threadMessage];
+      // Send a prep nudge as a system message
+      const nudgeMessage: ThreadMessage = {
+        from_profile_id: "system",
+        text: `Your ${stepNoun} is set for ${timeLabel}. This is a great time to share any details that will make the conversation productive.`,
+        created_at: new Date(Date.now() + 100).toISOString(),
+        type: "system",
+      };
+
+      const updatedThread = [...existingThread, threadMessage, nudgeMessage];
 
       const { error: updateError } = await adminDb
         .from("connections")
@@ -177,7 +172,6 @@ export async function POST(request: Request) {
             time_proposal: {
               ...timeProposal,
               status: "accepted",
-              accepted_slot_index: acceptedSlotIndex,
               resolved_at: now,
             },
             scheduled_call: scheduledCall,
@@ -196,7 +190,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         thread: updatedThread,
-        time_proposal: { ...timeProposal, status: "accepted", accepted_slot_index: acceptedSlotIndex, resolved_at: now },
+        time_proposal: { ...timeProposal, status: "accepted", resolved_at: now },
         scheduled_call: scheduledCall,
         next_step_request: null,
       });
@@ -205,7 +199,7 @@ export async function POST(request: Request) {
     // action === "decline"
     const threadMessage: ThreadMessage = {
       from_profile_id: profileId,
-      text: `${displayName} declined the proposed ${stepNoun} times`,
+      text: `${displayName}: that time doesn't work for me`,
       created_at: now,
       type: "system",
     };

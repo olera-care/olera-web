@@ -10,17 +10,11 @@ interface ThreadMessage {
   next_step?: string;
 }
 
-interface TimeSlot {
-  date: string;
-  time: string;
-  timezone: string;
-}
-
 /**
  * POST /api/connections/propose-times
  *
- * Creates a structured time proposal on a connection.
- * Body: { connectionId, slots: [{ date, time, timezone }] }
+ * Proposes a single time for a call/consultation/visit.
+ * Body: { connectionId, date, time, timezone }
  */
 export async function POST(request: Request) {
   try {
@@ -35,33 +29,18 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { connectionId, slots } = body as {
+    const { connectionId, date, time, timezone } = body as {
       connectionId?: string;
-      slots?: TimeSlot[];
+      date?: string;
+      time?: string;
+      timezone?: string;
     };
 
-    if (!connectionId || !slots || !Array.isArray(slots) || slots.length === 0) {
+    if (!connectionId || !date || !time || !timezone) {
       return NextResponse.json(
-        { error: "connectionId and at least one slot are required" },
+        { error: "connectionId, date, time, and timezone are required" },
         { status: 400 }
       );
-    }
-
-    if (slots.length > 3) {
-      return NextResponse.json(
-        { error: "Maximum 3 time slots allowed" },
-        { status: 400 }
-      );
-    }
-
-    // Validate each slot
-    for (const slot of slots) {
-      if (!slot.date || !slot.time || !slot.timezone) {
-        return NextResponse.json(
-          { error: "Each slot must have date, time, and timezone" },
-          { status: 400 }
-        );
-      }
     }
 
     // Get user's active profile
@@ -129,27 +108,27 @@ export async function POST(request: Request) {
     const nextStepReq = existingMeta.next_step_request as Record<string, unknown> | null;
     const stepType = (nextStepReq?.type as string) || "call";
 
-    // Build the time proposal
+    // Build the time proposal (single slot)
     const timeProposal = {
       id: `tp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       from_profile_id: profileId,
       type: stepType,
-      slots,
+      date,
+      time,
+      timezone,
       status: "pending",
       created_at: now,
     };
 
-    // Format slots for thread message
-    const slotDescriptions = slots.map((s) => {
-      const d = new Date(`${s.date}T${s.time}:00`);
-      return d.toLocaleDateString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      }) + " at " + d.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      });
+    // Format for thread message
+    const d = new Date(`${date}T${time}:00`);
+    const timeLabel = d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }) + " at " + d.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
     });
 
     const stepNoun =
@@ -159,7 +138,7 @@ export async function POST(request: Request) {
 
     const threadMessage: ThreadMessage = {
       from_profile_id: profileId,
-      text: `${displayName} suggested ${slots.length === 1 ? "a time" : "times"} for ${stepNoun}: ${slotDescriptions.join(", ")}`,
+      text: `${displayName} suggested ${timeLabel} for ${stepNoun}`,
       created_at: now,
       type: "time_proposal",
     };

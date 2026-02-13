@@ -71,17 +71,15 @@ export default function MatchCard({
         )}
 
         {/* Gradient overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-[100px] bg-gradient-to-t from-black/55 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-[120px] bg-gradient-to-t from-black/60 to-transparent" />
 
-        {/* Care type tag */}
-        <div className="absolute bottom-14 left-5">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/45 backdrop-blur-sm text-[11px] font-semibold text-white uppercase tracking-wide">
-            {categoryDisplay}
-          </span>
-        </div>
-
-        {/* Name + location overlay */}
-        <div className="absolute bottom-3.5 left-5 right-5">
+        {/* Category + Name + Location — stacked to avoid overlap */}
+        <div className="absolute bottom-3.5 left-5 right-5 flex flex-col gap-1.5">
+          <div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/45 backdrop-blur-sm text-[11px] font-semibold text-white uppercase tracking-wide">
+              {categoryDisplay}
+            </span>
+          </div>
           <p className="text-[22px] font-bold text-white mb-0.5 drop-shadow-sm truncate">
             {provider.provider_name}
           </p>

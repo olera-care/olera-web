@@ -246,6 +246,15 @@ export default function ConnectionDrawer({
   const [nextStepSending, setNextStepSending] = useState(false);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
+  // ── Time proposal state ──
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [proposalSlots, setProposalSlots] = useState<Array<{ date: string; time: string; timezone: string }>>([
+    { date: "", time: "", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+  ]);
+  const [proposalSending, setProposalSending] = useState(false);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
+  const [respondingProposal, setRespondingProposal] = useState(false);
+
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
@@ -596,10 +605,12 @@ export default function ConnectionDrawer({
                 ...((prev.metadata as Record<string, unknown>) || {}),
                 thread: data.thread,
                 next_step_request: null,
+                time_proposal: null,
               },
             }
           : null
       );
+      setShowTimePicker(false);
       requestAnimationFrame(() => {
         conversationRef.current?.scrollTo({
           top: conversationRef.current.scrollHeight,
@@ -608,6 +619,131 @@ export default function ConnectionDrawer({
       });
     } catch {
       setError("Failed to cancel request");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ── Propose times handler ──
+  const handleProposeTimes = async () => {
+    if (!connection) return;
+    const validSlots = proposalSlots.filter((s) => s.date && s.time);
+    if (validSlots.length === 0) return;
+
+    setProposalSending(true);
+    try {
+      const res = await fetch("/api/connections/propose-times", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId: connection.id, slots: validSlots }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to propose times");
+      }
+      const data = await res.json();
+      setConnection((prev) =>
+        prev
+          ? {
+              ...prev,
+              metadata: {
+                ...((prev.metadata as Record<string, unknown>) || {}),
+                thread: data.thread,
+                time_proposal: data.time_proposal,
+              },
+            }
+          : null
+      );
+      setShowTimePicker(false);
+      setProposalSlots([{ date: "", time: "", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }]);
+      requestAnimationFrame(() => {
+        conversationRef.current?.scrollTo({ top: conversationRef.current.scrollHeight, behavior: "smooth" });
+      });
+    } catch (err: unknown) {
+      const msg = err && typeof err === "object" && "message" in err ? (err as { message: string }).message : "Failed to propose times";
+      setError(msg);
+    } finally {
+      setProposalSending(false);
+    }
+  };
+
+  // ── Respond to proposal handler ──
+  const handleRespondProposal = async (action: "accept" | "decline", slotIndex?: number) => {
+    if (!connection) return;
+    setRespondingProposal(true);
+    try {
+      const res = await fetch("/api/connections/respond-proposal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId: connection.id,
+          action,
+          acceptedSlotIndex: slotIndex,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to respond");
+      }
+      const data = await res.json();
+      setConnection((prev) =>
+        prev
+          ? {
+              ...prev,
+              metadata: {
+                ...((prev.metadata as Record<string, unknown>) || {}),
+                thread: data.thread,
+                time_proposal: data.time_proposal,
+                scheduled_call: data.scheduled_call,
+                next_step_request: data.next_step_request,
+              },
+            }
+          : null
+      );
+      setSelectedSlotIndex(null);
+      requestAnimationFrame(() => {
+        conversationRef.current?.scrollTo({ top: conversationRef.current.scrollHeight, behavior: "smooth" });
+      });
+    } catch (err: unknown) {
+      const msg = err && typeof err === "object" && "message" in err ? (err as { message: string }).message : "Failed to respond";
+      setError(msg);
+    } finally {
+      setRespondingProposal(false);
+    }
+  };
+
+  // ── Cancel scheduled call handler ──
+  const handleCancelScheduledCall = async () => {
+    if (!connection) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch("/api/connections/cancel-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId: connection.id }),
+      });
+      if (!res.ok) throw new Error("Failed to cancel call");
+      const data = await res.json();
+      setConnection((prev) => {
+        if (!prev) return prev;
+        const meta = (prev.metadata as Record<string, unknown>) || {};
+        return {
+          ...prev,
+          metadata: {
+            ...meta,
+            thread: data.thread,
+            scheduled_call: data.scheduled_call,
+            next_step_request: null,
+            time_proposal: null,
+          },
+        };
+      });
+      setConfirmAction(null);
+      requestAnimationFrame(() => {
+        conversationRef.current?.scrollTo({ top: conversationRef.current.scrollHeight, behavior: "smooth" });
+      });
+    } catch {
+      setError("Failed to cancel call");
     } finally {
       setActionLoading(false);
     }
@@ -674,6 +810,19 @@ export default function ConnectionDrawer({
 
   // Next step request from metadata
   const nextStepRequest = connMetadata?.next_step_request as { type: string; note: string | null; created_at: string } | null;
+
+  // Time proposal from metadata
+  const timeProposal = connMetadata?.time_proposal as {
+    id: string; from_profile_id: string; type: string;
+    slots: Array<{ date: string; time: string; timezone: string }>;
+    status: string; accepted_slot_index?: number; created_at: string;
+  } | null;
+
+  // Scheduled call from metadata
+  const scheduledCall = connMetadata?.scheduled_call as {
+    type: string; date: string; time: string; timezone: string;
+    proposed_by: string; confirmed_at: string; status: string;
+  } | null;
 
   // Whether message input should show (pending or accepted, not blurred)
   const showMessageInput =
@@ -873,6 +1022,160 @@ export default function ConnectionDrawer({
             );
           }
 
+          // Time proposal — interactive card
+          if (msg.type === "time_proposal") {
+            const isProposalActive = timeProposal?.status === "pending" && timeProposal?.created_at === msg.created_at;
+            const isProposalResolved = timeProposal?.status === "accepted" && timeProposal?.created_at === msg.created_at;
+            const proposalData = isProposalActive || isProposalResolved ? timeProposal : null;
+            const canRespond = isProposalActive && !isOwn;
+
+            return (
+              <div key={i}>
+                {showSeparator && (
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="flex-1 border-t border-gray-100" />
+                    <span className="text-xs font-medium text-gray-400">
+                      {formatDateSeparator(msg.created_at)}
+                    </span>
+                    <div className="flex-1 border-t border-gray-100" />
+                  </div>
+                )}
+                <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
+                  <div className="max-w-[85%] w-full">
+                    <div className={`rounded-2xl overflow-hidden border ${
+                      isProposalResolved
+                        ? "bg-emerald-50 border-emerald-200"
+                        : isOwn ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+                    }`}>
+                      <div className={`flex items-center gap-2 px-4 py-2 border-b ${
+                        isProposalResolved
+                          ? "border-emerald-200 bg-emerald-100/50"
+                          : isOwn ? "border-gray-700" : "border-gray-100 bg-gray-50"
+                      }`}>
+                        <svg className={`w-3.5 h-3.5 ${isProposalResolved ? "text-emerald-600" : isOwn ? "text-gray-400" : "text-gray-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className={`text-xs font-bold uppercase tracking-wider ${
+                          isProposalResolved ? "text-emerald-700" : isOwn ? "text-gray-300" : "text-gray-600"
+                        }`}>
+                          {isProposalResolved ? "Time Confirmed" : "Suggested Times"}
+                        </span>
+                      </div>
+                      <div className="px-4 py-3 space-y-2">
+                        {proposalData?.slots.map((slot, si) => {
+                          const d = new Date(`${slot.date}T${slot.time}:00`);
+                          const label = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+                            + " \u00b7 " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+                            + " " + slot.timezone.replace(/_/g, " ").split("/").pop();
+                          const isAcceptedSlot = isProposalResolved && proposalData.accepted_slot_index === si;
+                          const isDeclinedSlot = isProposalResolved && proposalData.accepted_slot_index !== si;
+
+                          return (
+                            <label
+                              key={si}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                                isAcceptedSlot ? "bg-emerald-100 border border-emerald-300" :
+                                isDeclinedSlot ? "opacity-40 line-through" :
+                                canRespond ? "hover:bg-gray-50 cursor-pointer border border-gray-100" :
+                                isOwn ? "border border-gray-600" : "border border-gray-100"
+                              }`}
+                            >
+                              {canRespond && (
+                                <input
+                                  type="radio"
+                                  name="slot-select"
+                                  checked={selectedSlotIndex === si}
+                                  onChange={() => setSelectedSlotIndex(si)}
+                                  className="w-4 h-4 text-primary-600"
+                                />
+                              )}
+                              {isAcceptedSlot && (
+                                <svg className="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                              <span className={`text-sm ${
+                                isAcceptedSlot ? "font-semibold text-emerald-800" :
+                                isOwn && !isProposalResolved ? "text-white" : "text-gray-800"
+                              }`}>
+                                {label}
+                              </span>
+                            </label>
+                          );
+                        })}
+                        {/* If no proposalData, just show the text */}
+                        {!proposalData && (
+                          <p className={`text-sm leading-relaxed ${isOwn ? "text-white" : "text-gray-800"}`}>
+                            {msg.text}
+                          </p>
+                        )}
+                      </div>
+                      {canRespond && (
+                        <div className="px-4 pb-3 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => selectedSlotIndex !== null && handleRespondProposal("accept", selectedSlotIndex)}
+                            disabled={selectedSlotIndex === null || respondingProposal}
+                            className="flex-[2] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                          >
+                            {respondingProposal ? "..." : "Accept Selected"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowTimePicker(true);
+                              setProposalSlots([{ date: "", time: "", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }]);
+                            }}
+                            className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Suggest Different
+                          </button>
+                        </div>
+                      )}
+                      {canRespond && (
+                        <div className="px-4 pb-3 pt-0">
+                          <button
+                            type="button"
+                            onClick={() => handleRespondProposal("decline")}
+                            disabled={respondingProposal}
+                            className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className={`text-xs mt-1 ${isOwn ? "text-right" : "text-left"} text-gray-400`}>
+                      {msgDate}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // Time accepted — confirmation card
+          if (msg.type === "time_accepted") {
+            return (
+              <div key={i}>
+                {showSeparator && (
+                  <div className="flex items-center gap-3 py-1">
+                    <div className="flex-1 border-t border-emerald-100" />
+                    <span className="text-xs font-medium text-emerald-600">
+                      {formatDateSeparator(msg.created_at)}
+                    </span>
+                    <div className="flex-1 border-t border-emerald-100" />
+                  </div>
+                )}
+                <div className="flex justify-center">
+                  <span className="text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-medium">
+                    {msg.text}
+                  </span>
+                </div>
+              </div>
+            );
+          }
+
           return (
             <div key={i}>
               {showSeparator && (
@@ -941,6 +1244,315 @@ export default function ConnectionDrawer({
   };
 
   // ── Action Bar: Request Status ──
+  // ── Time slot picker (inline) ──
+  const TIME_OPTIONS = Array.from({ length: 23 }, (_, i) => {
+    const hour = 9 + Math.floor(i / 2);
+    const min = i % 2 === 0 ? "00" : "30";
+    if (hour > 20) return null;
+    const h24 = `${String(hour).padStart(2, "0")}:${min}`;
+    const d = new Date(`2026-01-01T${h24}:00`);
+    const label = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    return { value: h24, label };
+  }).filter(Boolean) as Array<{ value: string; label: string }>;
+
+  const US_TIMEZONES = [
+    { value: "America/New_York", label: "Eastern" },
+    { value: "America/Chicago", label: "Central" },
+    { value: "America/Denver", label: "Mountain" },
+    { value: "America/Los_Angeles", label: "Pacific" },
+    { value: "America/Anchorage", label: "Alaska" },
+    { value: "Pacific/Honolulu", label: "Hawaii" },
+  ];
+
+  // Get tomorrow's date as minimum
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split("T")[0];
+
+  const renderTimePicker = () => {
+    const validSlots = proposalSlots.filter((s) => s.date && s.time);
+
+    return (
+      <div className="space-y-3">
+        {proposalSlots.map((slot, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <input
+              type="date"
+              min={minDate}
+              value={slot.date}
+              onChange={(e) => {
+                const updated = [...proposalSlots];
+                updated[i] = { ...updated[i], date: e.target.value };
+                setProposalSlots(updated);
+              }}
+              className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            />
+            <select
+              value={slot.time}
+              onChange={(e) => {
+                const updated = [...proposalSlots];
+                updated[i] = { ...updated[i], time: e.target.value };
+                setProposalSlots(updated);
+              }}
+              className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="">Time</option>
+              {TIME_OPTIONS.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+            {proposalSlots.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setProposalSlots(proposalSlots.filter((_, j) => j !== i))}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        ))}
+
+        {/* Timezone selector (shared across all slots) */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-500">Timezone:</span>
+          <select
+            value={proposalSlots[0]?.timezone || "America/New_York"}
+            onChange={(e) => {
+              setProposalSlots(proposalSlots.map((s) => ({ ...s, timezone: e.target.value })));
+            }}
+            className="flex-1 px-2 py-1 text-xs border border-gray-200 rounded-lg"
+          >
+            {US_TIMEZONES.map((tz) => (
+              <option key={tz.value} value={tz.value}>{tz.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {proposalSlots.length < 3 && (
+          <button
+            type="button"
+            onClick={() => setProposalSlots([...proposalSlots, { date: "", time: "", timezone: proposalSlots[0]?.timezone || "America/New_York" }])}
+            className="text-xs text-primary-600 hover:text-primary-700 font-medium transition-colors"
+          >
+            + Add another time
+          </button>
+        )}
+
+        <div className="flex gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => { setShowTimePicker(false); setProposalSlots([{ date: "", time: "", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }]); }}
+            className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleProposeTimes}
+            disabled={validSlots.length === 0 || proposalSending}
+            className="flex-[2] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+          >
+            {proposalSending ? "Sending..." : `Send ${validSlots.length || ""} Time${validSlots.length !== 1 ? "s" : ""}`}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ── Scheduled call status bar ──
+  const renderScheduledCallStatus = () => {
+    if (!scheduledCall || scheduledCall.status !== "confirmed") return null;
+
+    const d = new Date(`${scheduledCall.date}T${scheduledCall.time}:00`);
+    const dateLabel = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    const timeLabel = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    const tzLabel = scheduledCall.timezone.replace(/_/g, " ").split("/").pop();
+    const proposedByOther = scheduledCall.proposed_by !== activeProfile?.id;
+
+    // Check if call time has passed
+    const callDateTime = new Date(`${scheduledCall.date}T${scheduledCall.time}:00`);
+    const isPast = callDateTime < new Date();
+
+    return (
+      <div className={`p-3 rounded-xl border ${isPast ? "border-gray-200 bg-gray-50/50" : "border-emerald-200 bg-emerald-50/40"}`}>
+        <div className="flex items-center gap-2 mb-1">
+          <svg className={`w-4 h-4 ${isPast ? "text-gray-400" : "text-emerald-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <p className={`text-sm font-semibold ${isPast ? "text-gray-600" : "text-gray-900"}`}>
+            {isPast ? "Call was scheduled" : `${scheduledCall.type === "call" ? "Call" : scheduledCall.type === "consultation" ? "Consultation" : "Visit"} confirmed`}
+          </p>
+        </div>
+        <p className={`text-sm ${isPast ? "text-gray-400" : "text-gray-700"} ml-6 mb-2`}>
+          {dateLabel} &middot; {timeLabel} {tzLabel}
+        </p>
+        {!isPast && (
+          <div className="flex items-center gap-3 ml-6">
+            <button
+              type="button"
+              onClick={() => {
+                import("@/lib/ics").then(({ generateICS, downloadICS }) => {
+                  const ics = generateICS({
+                    date: scheduledCall.date,
+                    time: scheduledCall.time,
+                    timezone: scheduledCall.timezone,
+                    title: `${scheduledCall.type === "call" ? "Call" : scheduledCall.type === "consultation" ? "Consultation" : "Visit"} with ${otherName} — Olera`,
+                    description: `Scheduled via Olera`,
+                  });
+                  downloadICS(ics);
+                });
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Add to Calendar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowTimePicker(true);
+                setProposalSlots([{ date: "", time: "", timezone: scheduledCall.timezone }]);
+              }}
+              className="text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Reschedule
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelScheduledCall}
+              disabled={actionLoading}
+              className="text-xs font-medium text-red-400 hover:text-red-600 transition-colors"
+            >
+              {actionLoading ? "..." : "Cancel call"}
+            </button>
+          </div>
+        )}
+        {isPast && (
+          <div className="ml-6 mt-1">
+            <p className="text-xs text-gray-400 mb-2">How did the call go?</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTimePicker(true);
+                  setProposalSlots([{ date: "", time: "", timezone: scheduledCall.timezone }]);
+                }}
+                className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Reschedule
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ── Pre-qualification prompts (computed from existing data) ──
+  const renderPreQualPrompts = () => {
+    if (!scheduledCall || scheduledCall.status !== "confirmed") return null;
+    const callDate = new Date(`${scheduledCall.date}T${scheduledCall.time}:00`);
+    if (callDate < new Date()) return null;
+
+    const prompts: Array<{ label: string; completed: boolean; prefill: string }> = [];
+
+    if (!isProvider) {
+      // Family prompts
+      const hasCareType = !!(parsedMsg?.careType);
+      const hasUrgency = !!(parsedMsg?.urgency);
+      prompts.push({
+        label: "Confirm care needs and schedule",
+        completed: hasCareType && hasUrgency,
+        prefill: "For our call, I want to confirm our care needs: ",
+      });
+
+      const familyMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+      const hasBudget = !!(familyMeta.budget_min || familyMeta.budget_max) || thread.some((m) => m.from_profile_id === activeProfile?.id && (m.text.includes("$") || m.text.toLowerCase().includes("budget")));
+      prompts.push({
+        label: "Share budget range",
+        completed: hasBudget,
+        prefill: "Our budget range is approximately ",
+      });
+
+      const hasLocation = !!(activeProfile?.city && activeProfile?.state);
+      prompts.push({
+        label: "Confirm location and service type",
+        completed: hasLocation && hasCareType,
+        prefill: "We're located in ",
+      });
+    } else {
+      // Provider prompts
+      const hasRepliedSinceConfirm = thread.some(
+        (m) => m.from_profile_id === activeProfile?.id && new Date(m.created_at) > new Date(scheduledCall.confirmed_at)
+      );
+      prompts.push({
+        label: "Review care needs",
+        completed: hasRepliedSinceConfirm,
+        prefill: "I've reviewed your care needs and ",
+      });
+
+      const providerMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+      if (activeProfile?.type === "caregiver") {
+        prompts.push({
+          label: "Confirm availability and rates",
+          completed: !!(providerMeta.hourly_rate_min),
+          prefill: "My availability is ",
+        });
+      } else {
+        prompts.push({
+          label: "Prepare service information",
+          completed: !!(activeProfile?.description),
+          prefill: "Here's what our services include: ",
+        });
+      }
+    }
+
+    const completedCount = prompts.filter((p) => p.completed).length;
+    if (completedCount === prompts.length) return null;
+
+    return (
+      <div className="mt-2 p-3 rounded-xl border border-gray-100 bg-gray-50/40">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-gray-600">Prepare for your call</p>
+          <span className="text-[10px] text-gray-400">{completedCount} of {prompts.length}</span>
+        </div>
+        <div className="space-y-1.5">
+          {prompts.map((prompt, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => {
+                if (!prompt.completed) {
+                  setMessageText(prompt.prefill);
+                  requestAnimationFrame(() => messageInputRef.current?.focus());
+                }
+              }}
+              className={`flex items-center gap-2 w-full text-left px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                prompt.completed
+                  ? "text-gray-400"
+                  : "text-gray-700 hover:bg-white"
+              }`}
+            >
+              {prompt.completed ? (
+                <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <span className="w-3.5 h-3.5 border border-gray-300 rounded shrink-0" />
+              )}
+              <span className={prompt.completed ? "line-through" : ""}>{prompt.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderRequestStatus = () => {
     if (!nextStepRequest) return null;
 
@@ -956,7 +1568,7 @@ export default function ConnectionDrawer({
     const isRequester = requestThreadMsg?.from_profile_id === activeProfile?.id;
     const timeAgo = relativeTime(nextStepRequest.created_at);
 
-    // ── Responder view: action card ──
+    // ── Responder view: action card with structured time picker ──
     if (!isRequester) {
       return (
         <div className="p-3 rounded-xl border border-primary-100 bg-primary-50/40">
@@ -966,31 +1578,31 @@ export default function ConnectionDrawer({
           {nextStepRequest.note && (
             <p className="text-xs text-gray-500 italic mb-2">&ldquo;{nextStepRequest.note}&rdquo;</p>
           )}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                const prefix = nextStepRequest.type === "call"
-                  ? "I'm available for a call "
-                  : nextStepRequest.type === "consultation"
-                  ? "I'm available for a consultation "
-                  : "I'm available for a visit ";
-                setMessageText(prefix);
-                requestAnimationFrame(() => messageInputRef.current?.focus());
-              }}
-              className="flex-[2] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Share Your Availability
-            </button>
-            <button
-              type="button"
-              onClick={handleCancelNextStep}
-              disabled={actionLoading}
-              className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-            >
-              {actionLoading ? "..." : "Decline"}
-            </button>
-          </div>
+
+          {showTimePicker ? (
+            renderTimePicker()
+          ) : (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowTimePicker(true);
+                  setProposalSlots([{ date: "", time: "", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }]);
+                }}
+                className="flex-[2] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Suggest Times
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelNextStep}
+                disabled={actionLoading}
+                className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? "..." : "Decline"}
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -1279,6 +1891,25 @@ export default function ConnectionDrawer({
               </div>
             )}
 
+            {/* ── UPCOMING CALL CHIP ── */}
+            {scheduledCall?.status === "confirmed" && !shouldBlur && (() => {
+              const cd = new Date(`${scheduledCall.date}T${scheduledCall.time}:00`);
+              const isPast = cd < new Date();
+              if (isPast) return null;
+              const lbl = cd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+                + " \u00b7 " + cd.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+              return (
+                <div className="px-6 pb-2 shrink-0">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100">
+                    <PhoneIcon className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-xs font-medium text-emerald-700">
+                      Upcoming {scheduledCall.type} &middot; {lbl}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* ── CONVERSATION ── */}
             <>
               <div ref={conversationRef} className="flex-1 overflow-y-auto min-h-0 px-6 py-4">
@@ -1288,7 +1919,22 @@ export default function ConnectionDrawer({
               {/* ── ACTION BAR: Fixed between conversation and input ── */}
               {isAccepted && !shouldBlur && (
                 <div className="shrink-0 px-6 py-3 border-t border-gray-100 transition-all duration-200">
-                  {nextStepRequest ? (
+                  {/* Priority: scheduled call > time picker open > active proposal waiting > next step request > default */}
+                  {scheduledCall?.status === "confirmed" ? (
+                    showTimePicker ? (
+                      <div className="p-3 rounded-xl border border-gray-200 bg-gray-50/40">
+                        <p className="text-sm font-medium text-gray-900 mb-2">Reschedule — suggest new times</p>
+                        {renderTimePicker()}
+                      </div>
+                    ) : (
+                      <>{renderScheduledCallStatus()}{renderPreQualPrompts()}</>
+                    )
+                  ) : showTimePicker ? (
+                    <div className="p-3 rounded-xl border border-primary-100 bg-primary-50/40">
+                      <p className="text-sm font-medium text-gray-900 mb-2">Suggest times for {nextStepRequest?.type === "consultation" ? "a consultation" : nextStepRequest?.type === "visit" ? "a visit" : "a call"}</p>
+                      {renderTimePicker()}
+                    </div>
+                  ) : nextStepRequest ? (
                     renderRequestStatus()
                   ) : !isProvider ? (
                     /* ── Family: Schedule CTA with contextual microcopy ── */

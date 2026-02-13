@@ -212,6 +212,7 @@ export async function POST(request: Request) {
           ...existingMeta,
           thread: updatedThread,
           next_step_request: null,
+          time_proposal: null,
         },
       })
       .eq("id", connectionId)

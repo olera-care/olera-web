@@ -113,7 +113,7 @@ export default function ConnectionsPage() {
   );
 
   // ── Tab & read state (shared) ──
-  const [activeTab, setActiveTab] = useState<ConnectionTab>("active");
+  const [activeTab, setActiveTab] = useState<ConnectionTab>("connected");
   const [providerTab, setProviderTab] = useState<ProviderConnectionTab>("attention");
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds());
 
@@ -489,8 +489,8 @@ export default function ConnectionsPage() {
   const currentTabConnections = tabbed[activeTab];
 
   const tabs: { id: ConnectionTab; label: string; count: number; badge: number }[] = [
-    { id: "active", label: "Active", count: tabbed.active.length, badge: 0 },
     { id: "connected", label: "Connected", count: tabbed.connected.length, badge: unreadCount },
+    { id: "active", label: "Pending", count: tabbed.active.length, badge: 0 },
     { id: "past", label: "Past", count: tabbed.past.length, badge: 0 },
   ];
 
@@ -584,14 +584,14 @@ function TabEmptyState({ tab }: { tab: ConnectionTab }) {
   const config: Record<ConnectionTab, { icon: string; title: string; subtitle: string; cta?: { label: string; href: string } }> = {
     active: {
       icon: "📨",
-      title: "No active requests yet",
-      subtitle: "When you reach out to a provider, your pending requests will show up here. Browse providers to get started.",
-      cta: { label: "Browse providers", href: "/browse" },
+      title: "No pending requests",
+      subtitle: "When you reach out to a provider, your pending requests will show up here.",
     },
     connected: {
       icon: "💬",
       title: "No connections yet",
-      subtitle: "When a provider accepts your request, your connection will appear here. Most providers respond within a few hours.",
+      subtitle: "When a provider accepts your request, your conversations will appear here. Browse providers to get started.",
+      cta: { label: "Browse providers", href: "/browse" },
     },
     past: {
       icon: "📂",

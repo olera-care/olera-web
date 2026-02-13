@@ -170,8 +170,8 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
                 className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
               >
                 {activeProfile?.type === "organization" || activeProfile?.type === "caregiver"
-                  ? "Browse families seeking care"
-                  : "Browse more providers"}
+                  ? "Discover families"
+                  : "Browse providers"}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>

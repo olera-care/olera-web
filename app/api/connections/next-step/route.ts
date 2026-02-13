@@ -198,7 +198,7 @@ export async function POST(request: Request) {
     // System cancellation note
     const cancelMessage: ThreadMessage = {
       from_profile_id: profileId,
-      text: `${displayName} cancelled the ${cancelLabel.toLowerCase()}`,
+      text: `${cancelLabel} cancelled`,
       created_at: now,
       type: "system",
     };

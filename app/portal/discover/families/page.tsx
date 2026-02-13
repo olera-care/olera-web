@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
@@ -358,6 +359,25 @@ function FamilyCard({
               sentLabel="Request Sent"
               fullWidth
             />
+          </div>
+        )}
+
+        {hasAccess && alreadyConnected && (
+          <div className="mt-3">
+            <Link
+              href="/portal/connections"
+              className={`block w-full text-center text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors ${
+                connectionStatus === "accepted"
+                  ? "bg-gray-900 text-white hover:bg-gray-800"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {connectionStatus === "accepted"
+                ? "Message"
+                : connectionStatus === "pending"
+                ? "Awaiting reply"
+                : "View connection"}
+            </Link>
           </div>
         )}
       </div>

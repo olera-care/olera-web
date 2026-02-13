@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
     const threadMessage: ThreadMessage = {
       from_profile_id: profileId,
-      text: `${displayName} cancelled the scheduled call`,
+      text: `Call cancelled`,
       created_at: now,
       type: "system",
     };

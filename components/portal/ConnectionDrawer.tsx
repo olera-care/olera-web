@@ -926,7 +926,16 @@ export default function ConnectionDrawer({
           const thisDate = getDateKey(msg.created_at);
           const showSeparator = thisDate !== prevDate;
 
-          // System messages
+          // Is next message from same sender? Only show timestamp on last in group
+          const nextMsg = thread[i + 1];
+          const isLastInGroup = !nextMsg
+            || nextMsg.from_profile_id !== msg.from_profile_id
+            || nextMsg.type === "system"
+            || nextMsg.type === "time_accepted"
+            || msg.type === "system"
+            || msg.type === "time_accepted";
+
+          // System messages — inline, no timestamp
           if (msg.type === "system") {
             return (
               <div key={i}>
@@ -982,9 +991,11 @@ export default function ConnectionDrawer({
                       <p className={`text-[11px] font-medium uppercase tracking-wide mb-0.5 text-gray-400`}>{stepLabel}</p>
                       <p className="text-sm leading-relaxed">{msg.text}</p>
                     </div>
-                    <p className={`text-[11px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
-                      {msgDate}
-                    </p>
+                    {isLastInGroup && (
+                      <p className={`text-[11px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
+                        {msgDate}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1067,9 +1078,11 @@ export default function ConnectionDrawer({
                         <p className="text-sm leading-relaxed">{msg.text}</p>
                       </div>
                     )}
-                    <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
-                      {msgDate}
-                    </p>
+                    {isLastInGroup && (
+                      <p className={`text-[11px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
+                        {msgDate}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1118,9 +1131,11 @@ export default function ConnectionDrawer({
                   }`}>
                     <p className="text-sm leading-relaxed">{msg.text}</p>
                   </div>
-                  <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
-                    {msgDate}
-                  </p>
+                  {isLastInGroup && (
+                    <p className={`text-[11px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
+                      {msgDate}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

@@ -148,20 +148,12 @@ export async function POST(request: Request) {
 
       const threadMessage: ThreadMessage = {
         from_profile_id: profileId,
-        text: `${displayName} confirmed the ${stepNoun} for ${timeLabel}`,
+        text: `${stepNoun} confirmed \u00b7 ${timeLabel}`,
         created_at: now,
         type: "time_accepted",
       };
 
-      // Send a prep nudge as a system message
-      const nudgeMessage: ThreadMessage = {
-        from_profile_id: "system",
-        text: `Your ${stepNoun} is set for ${timeLabel}. This is a great time to share any details that will make the conversation productive.`,
-        created_at: new Date(Date.now() + 100).toISOString(),
-        type: "system",
-      };
-
-      const updatedThread = [...existingThread, threadMessage, nudgeMessage];
+      const updatedThread = [...existingThread, threadMessage];
 
       const { error: updateError } = await adminDb
         .from("connections")
@@ -199,7 +191,7 @@ export async function POST(request: Request) {
     // action === "decline"
     const threadMessage: ThreadMessage = {
       from_profile_id: profileId,
-      text: `${displayName}: that time doesn't work for me`,
+      text: `Time declined`,
       created_at: now,
       type: "system",
     };

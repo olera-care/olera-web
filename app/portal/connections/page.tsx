@@ -610,7 +610,7 @@ function ConnectionCard({
       onClick={() => onSelect(connection.id)}
       className={`w-full text-left rounded-xl border transition-colors group cursor-pointer ${
         muted
-          ? "border-gray-100 bg-gray-50/50 hover:bg-gray-50"
+          ? "border-gray-200 bg-gray-50/50 hover:bg-gray-100"
           : "border-gray-200 bg-white hover:bg-gray-50"
       }`}
     >

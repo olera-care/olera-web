@@ -1265,8 +1265,8 @@ export default function ConnectionDrawer({
                 </div>
               )}
 
-              {/* Provider Actions: Pending Inbound */}
-              {isInbound && hasFullAccess && connection.status === "pending" && (
+              {/* Provider Actions: Pending Inbound — always shown, even on free tier */}
+              {isInbound && connection.status === "pending" && (
                 <div className="mt-4 flex gap-3">
                   <Button
                     size="sm"
@@ -1339,6 +1339,41 @@ export default function ConnectionDrawer({
                 </div>
 
                 {renderMessageInput()}
+
+                {/* ── Provider: Accepted — Next Steps + End Connection ── */}
+                {isProvider && !shouldBlur && connection.status === "accepted" && (
+                  <div className="shrink-0 px-6 py-5 border-t border-gray-100 space-y-5">
+                    {nextStepRequest ? renderRequestStatus() : renderNextSteps()}
+                    <div className="pt-3 border-t border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAction("end")}
+                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        End connection
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Provider: Past Connection Actions ── */}
+                {isProvider && !shouldBlur && (connection.status === "declined" || connection.status === "expired" || connection.status === "archived") && (
+                  <div className="shrink-0 px-6 py-4 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmAction("remove")}
+                      className="flex items-center gap-2 text-base text-gray-500 hover:text-gray-700 transition-colors min-h-[44px]"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Remove from list
+                    </button>
+                  </div>
+                )}
 
                 {/* ── Family: Withdraw (pending outbound) ── */}
                 {!isProvider && !isInbound && connection.status === "pending" && (
@@ -1462,14 +1497,14 @@ export default function ConnectionDrawer({
                 End your connection with {otherName}?
               </h4>
               <p className="text-base text-gray-600 mt-2 leading-relaxed">
-                They&apos;ll be notified that you&apos;re no longer looking. You can always reconnect later.
+                They&apos;ll be notified that this connection has ended. You can always reconnect later.
               </p>
               <div className="mt-3 flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
                 <svg className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="text-xs text-amber-800 leading-relaxed">
-                  The provider will be notified that you&apos;ve ended this connection.
+                  {otherName} will be notified that you&apos;ve ended this connection.
                 </p>
               </div>
               <div className="flex gap-3 mt-5">

@@ -430,6 +430,58 @@ export default function ConnectionDrawer({
     }
   };
 
+  const handleReconnect = async () => {
+    if (!connection) return;
+    // Determine the other profile (provider) from connection data
+    const isInb = connection.to_profile_id === activeProfile?.id;
+    const provider = isInb ? connection.fromProfile : connection.toProfile;
+    if (!provider) return;
+
+    setActionLoading(true);
+    setError("");
+    try {
+      // Re-use the original intent data from the connection message
+      const parsed = parseMessage(connection.message);
+      const res = await fetch("/api/connections/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: provider.source_provider_id || provider.id,
+          providerName: provider.display_name,
+          providerSlug: provider.slug,
+          intentData: {
+            careRecipient: parsed?.careRecipient?.toLowerCase().replace(/ /g, "_") || null,
+            careType: parsed?.careType?.toLowerCase().replace(/ /g, "_") || null,
+            urgency: parsed?.urgency?.toLowerCase().replace(/ /g, "_") || null,
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to reconnect");
+      }
+
+      setConfirmAction(null);
+      setInlineSuccess("reconnect");
+      setTimeout(() => {
+        setConnection((prev) =>
+          prev ? { ...prev, status: "pending" as ConnectionStatus } : null
+        );
+        setInlineSuccess(null);
+        onStatusChange?.(connection.id, "pending" as ConnectionStatus);
+      }, 2000);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Failed to reconnect";
+      setError(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleEndConnection = async () => {
     if (!connection) return;
     setActionLoading(true);
@@ -1444,31 +1496,31 @@ export default function ConnectionDrawer({
                       </button>
                     </div>
                   </div>
+                ) : inlineSuccess === "reconnect" ? (
+                  <div className="px-3 py-2.5 bg-emerald-50 rounded-lg text-center border border-emerald-200">
+                    <p className="text-xs font-semibold text-emerald-800">Reconnected! Track in your Active tab.</p>
+                  </div>
                 ) : (
                   <>
-                    {connection.status === "declined" && (
-                      <div className="flex gap-3 mb-3">
-                        <Link href="/browse" className="flex-1">
-                          <button
-                            type="button"
-                            className="w-full min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-primary-600 hover:bg-primary-50 transition-colors"
-                          >
-                            Browse similar &rarr;
-                          </button>
-                        </Link>
-                      </div>
-                    )}
                     {connection.status === "expired" && (
-                      <div className="flex gap-3 mb-3">
-                        <Link href={profileHref} className="flex-1">
-                          <button
-                            type="button"
-                            className="w-full min-h-[44px] rounded-xl bg-primary-600 text-white text-base font-semibold hover:bg-primary-700 transition-colors"
-                          >
-                            {isEnded ? "Reconnect" : "Connect again"}
-                          </button>
-                        </Link>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={handleReconnect}
+                        disabled={actionLoading}
+                        className="w-full min-h-[44px] rounded-xl bg-primary-600 text-white text-base font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 mb-3"
+                      >
+                        {actionLoading ? "Reconnecting..." : isEnded ? "Reconnect" : "Connect again"}
+                      </button>
+                    )}
+                    {connection.status === "declined" && (
+                      <Link href="/browse" className="block mb-3">
+                        <button
+                          type="button"
+                          className="w-full min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                        >
+                          Browse similar &rarr;
+                        </button>
+                      </Link>
                     )}
                     <div
                       onClick={() => setConfirmAction("remove")}

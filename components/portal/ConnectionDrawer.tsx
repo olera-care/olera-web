@@ -684,25 +684,25 @@ export default function ConnectionDrawer({
     otherProfile?.category === "home_care_agency" ||
     otherProfile?.category === "home_health_agency";
 
-  // Next steps definitions — restrained neutral styling
+  // Next steps definitions — teal-accented styling
   const nextSteps: NextStepDef[] = [
     {
       id: "call",
       label: "Request a call",
       desc: "Provider will receive your phone number",
       msg: "would like to request a phone call",
-      iconBg: "bg-gray-100",
-      iconBorder: "border-gray-200",
-      icon: <PhoneIcon className="w-4 h-4 text-gray-500" />,
+      iconBg: "bg-primary-50",
+      iconBorder: "border-primary-100",
+      icon: <PhoneIcon className="w-4 h-4 text-primary-600" />,
     },
     {
       id: "consultation",
       label: "Request a consultation",
       desc: "Request a free in-person or virtual visit",
       msg: "would like to request a consultation",
-      iconBg: "bg-gray-100",
-      iconBorder: "border-gray-200",
-      icon: <ClipboardIcon className="w-4 h-4 text-gray-500" />,
+      iconBg: "bg-primary-50",
+      iconBorder: "border-primary-100",
+      icon: <ClipboardIcon className="w-4 h-4 text-primary-600" />,
     },
     ...(isHomeCareProvider
       ? [
@@ -711,9 +711,9 @@ export default function ConnectionDrawer({
             label: "Request a home visit",
             desc: "Request an in-home assessment",
             msg: "would like to request a home visit",
-            iconBg: "bg-gray-100",
-            iconBorder: "border-gray-200",
-            icon: <HomeIcon className="w-4 h-4 text-gray-500" />,
+            iconBg: "bg-primary-50",
+            iconBorder: "border-primary-100",
+            icon: <HomeIcon className="w-4 h-4 text-primary-600" />,
           },
         ]
       : []),
@@ -972,14 +972,14 @@ export default function ConnectionDrawer({
               setNextStepConfirm(step);
               setNextStepNote("");
             }}
-            className="flex items-center gap-3 w-full px-3 py-3 rounded-xl border border-gray-200 bg-white text-left hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 w-full px-3.5 py-3.5 rounded-xl border border-gray-200 bg-white text-left hover:border-primary-200 hover:bg-primary-25 transition-all group"
           >
             <div className={`w-8 h-8 rounded-lg ${step.iconBg} flex items-center justify-center shrink-0`}>{step.icon}</div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-gray-900">{step.label}</p>
               <p className="text-xs text-gray-500 mt-0.5">{step.desc}</p>
             </div>
-            <ChevronRightIcon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 group-hover:text-primary-500 transition-colors shrink-0" />
           </button>
         ))}
       </div>
@@ -995,9 +995,9 @@ export default function ConnectionDrawer({
       nextStepRequest.type === "consultation" ? "Request a consultation" :
       nextStepRequest.type === "visit" ? "Request a home visit" : "Request";
     const stepIcon =
-      nextStepRequest.type === "call" ? <PhoneIcon className="w-4 h-4 text-gray-500" /> :
-      nextStepRequest.type === "consultation" ? <ClipboardIcon className="w-4 h-4 text-gray-500" /> :
-      <HomeIcon className="w-4 h-4 text-gray-500" />;
+      nextStepRequest.type === "call" ? <PhoneIcon className="w-4 h-4 text-primary-600" /> :
+      nextStepRequest.type === "consultation" ? <ClipboardIcon className="w-4 h-4 text-primary-600" /> :
+      <HomeIcon className="w-4 h-4 text-primary-600" />;
 
     const sentDate = new Date(nextStepRequest.created_at).toLocaleDateString("en-US", {
       month: "short",
@@ -1052,7 +1052,7 @@ export default function ConnectionDrawer({
         >
           <div className="px-6 pt-6 pb-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
                 {nextStepConfirm.icon}
               </div>
               <h3 className="text-lg font-bold text-gray-900">{nextStepConfirm.label}</h3>

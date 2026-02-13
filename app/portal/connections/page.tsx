@@ -2,12 +2,10 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
 import type { Connection, Profile } from "@/lib/types";
-import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
@@ -16,9 +14,13 @@ import type { ConnectionWithProfile } from "@/components/portal/ConnectionDetail
 import {
   getFamilyDisplayStatus,
   getConnectionTab,
+  getProviderDisplayStatus,
+  getProviderConnectionTab,
   isConnectionUnread,
   FAMILY_STATUS_CONFIG,
+  PROVIDER_STATUS_CONFIG,
   type ConnectionTab,
+  type ProviderConnectionTab,
 } from "@/lib/connection-utils";
 
 // ── Helpers ──
@@ -96,7 +98,6 @@ function persistReadIds(ids: Set<string>) {
 
 export default function ConnectionsPage() {
   const { activeProfile, membership } = useAuth();
-  const router = useRouter();
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -111,8 +112,9 @@ export default function ConnectionsPage() {
     "view_inquiry_details"
   );
 
-  // ── Family-specific state ──
+  // ── Tab & read state (shared) ──
   const [activeTab, setActiveTab] = useState<ConnectionTab>("active");
+  const [providerTab, setProviderTab] = useState<ProviderConnectionTab>("attention");
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds());
 
   // ── Drawer state (shared by provider & family views) ──
@@ -177,42 +179,49 @@ export default function ConnectionsPage() {
           )
           .in("id", Array.from(profileIds));
         profiles = (profileData as Profile[]) || [];
-
-        const missingImageIds = profiles
-          .filter((p) => !p.image_url && p.source_provider_id)
-          .map((p) => p.source_provider_id as string);
-
-        if (missingImageIds.length > 0) {
-          const { data: iosProviders } = await supabase
-            .from("olera-providers")
-            .select("provider_id, provider_logo, provider_images")
-            .in("provider_id", missingImageIds);
-
-          if (iosProviders?.length) {
-            const iosMap = new Map(
-              iosProviders.map((p: { provider_id: string; provider_logo: string | null; provider_images: string | null }) => [
-                p.provider_id,
-                p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
-              ])
-            );
-            profiles = profiles.map((p) => {
-              if (!p.image_url && p.source_provider_id && iosMap.has(p.source_provider_id)) {
-                return { ...p, image_url: iosMap.get(p.source_provider_id) || null };
-              }
-              return p;
-            });
-          }
-        }
       }
 
-      const profileMap = new Map(profiles.map((p) => [p.id, p]));
-      const enriched: ConnectionWithProfile[] = connectionData.map((c) => ({
-        ...c,
-        fromProfile: profileMap.get(c.from_profile_id) || null,
-        toProfile: profileMap.get(c.to_profile_id) || null,
-      }));
+      // Render immediately with available data (gradient avatars for missing images)
+      const buildEnriched = (profileList: Profile[]) => {
+        const profileMap = new Map(profileList.map((p) => [p.id, p]));
+        return connectionData.map((c) => ({
+          ...c,
+          fromProfile: profileMap.get(c.from_profile_id) || null,
+          toProfile: profileMap.get(c.to_profile_id) || null,
+        }));
+      };
 
-      setConnections(enriched);
+      setConnections(buildEnriched(profiles));
+      setLoading(false);
+
+      // Resolve iOS images in the background (non-blocking)
+      const missingImageIds = profiles
+        .filter((p) => !p.image_url && p.source_provider_id)
+        .map((p) => p.source_provider_id as string);
+
+      if (missingImageIds.length > 0) {
+        supabase
+          .from("olera-providers")
+          .select("provider_id, provider_logo, provider_images")
+          .in("provider_id", missingImageIds)
+          .then(({ data: iosProviders }) => {
+            if (iosProviders?.length) {
+              const iosMap = new Map(
+                iosProviders.map((p: { provider_id: string; provider_logo: string | null; provider_images: string | null }) => [
+                  p.provider_id,
+                  p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
+                ])
+              );
+              const updatedProfiles = profiles.map((p) => {
+                if (!p.image_url && p.source_provider_id && iosMap.has(p.source_provider_id)) {
+                  return { ...p, image_url: iosMap.get(p.source_provider_id) || null };
+                }
+                return p;
+              });
+              setConnections(buildEnriched(updatedProfiles));
+            }
+          });
+      }
     } catch (err: unknown) {
       console.error("[olera] fetchConnections failed:", err);
       const msg =
@@ -232,34 +241,53 @@ export default function ConnectionsPage() {
   // ── Tab grouping (family view) ──
   const tabbed = useMemo(() => {
     const active: ConnectionWithProfile[] = [];
-    const responded: ConnectionWithProfile[] = [];
+    const connected: ConnectionWithProfile[] = [];
     const past: ConnectionWithProfile[] = [];
 
     for (const c of connections) {
-      // Hide soft-deleted connections
       if (c.metadata?.hidden) continue;
 
       const displayStatus = getFamilyDisplayStatus(c);
       const tab = getConnectionTab(displayStatus);
 
       if (tab === "active") active.push(c);
-      else if (tab === "responded") responded.push(c);
+      else if (tab === "connected") connected.push(c);
       else past.push(c);
     }
 
-    return { active, responded, past };
+    return { active, connected, past };
   }, [connections]);
 
-  // Unread count for responded tab
+  // Unread count for connected tab
   const unreadCount = useMemo(
-    () => tabbed.responded.filter((c) => isConnectionUnread(c, readIds)).length,
-    [tabbed.responded, readIds]
+    () => tabbed.connected.filter((c) => isConnectionUnread(c, readIds)).length,
+    [tabbed.connected, readIds]
   );
 
-  // ── Provider grouping (preserved) ──
-  const providerGrouped = useMemo(
-    () => groupConnections(connections, activeProfile?.id || "", isProvider),
-    [connections, activeProfile?.id, isProvider]
+  // ── Provider tab grouping ──
+  const providerTabbed = useMemo(() => {
+    const attention: ConnectionWithProfile[] = [];
+    const active: ConnectionWithProfile[] = [];
+    const past: ConnectionWithProfile[] = [];
+
+    const pid = activeProfile?.id || "";
+    for (const c of connections) {
+      if (c.metadata?.hidden) continue;
+      const isInbound = c.to_profile_id === pid;
+      const displayStatus = getProviderDisplayStatus(c, isInbound);
+      const tab = getProviderConnectionTab(displayStatus);
+      if (tab === "attention") attention.push(c);
+      else if (tab === "active") active.push(c);
+      else past.push(c);
+    }
+
+    return { attention, active, past };
+  }, [connections, activeProfile?.id]);
+
+  // Pre-fetched connection data for instant drawer rendering
+  const preloadedConnection = useMemo(
+    () => (drawerConnectionId ? connections.find((c) => c.id === drawerConnectionId) ?? null : null),
+    [drawerConnectionId, connections]
   );
 
   // ── Handlers ──
@@ -269,21 +297,24 @@ export default function ConnectionsPage() {
     setDrawerOpen(true);
   };
 
-  const openFamilyDrawer = (id: string) => {
+  const openAndMarkRead = (id: string) => {
     openDrawer(id);
-    // Mark responded connections as read
-    const conn = connections.find((c) => c.id === id);
-    if (conn && conn.status === "accepted" && !readIds.has(id)) {
-      const updated = new Set(readIds);
-      updated.add(id);
-      setReadIds(updated);
-      persistReadIds(updated);
+    // Mark connections as read
+    if (!readIds.has(id)) {
+      const conn = connections.find((c) => c.id === id);
+      if (conn && (conn.status === "accepted" || (isProvider && conn.status === "pending"))) {
+        const updated = new Set(readIds);
+        updated.add(id);
+        setReadIds(updated);
+        persistReadIds(updated);
+      }
     }
   };
 
   const closeDrawer = () => {
     setDrawerOpen(false);
     setTimeout(() => setDrawerConnectionId(null), 300);
+    fetchConnections();
   };
 
   const handleStatusChange = (connectionId: string, newStatus: string) => {
@@ -310,20 +341,70 @@ export default function ConnectionsPage() {
     closeDrawer();
   };
 
-  // ── Loading ──
+  // ── Loading — skeleton cards ──
 
   if (loading) {
     return (
-      <div className="text-center py-16">
-        <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
-        <p className="mt-4 text-gray-500 text-base">Loading connections...</p>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-[22px] font-bold text-gray-900">My Connections</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Track your care provider requests and responses.
+          </p>
+        </div>
+        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl max-w-md">
+          {["Active", "Connected", "Past"].map((label) => (
+            <div key={label} className="flex-1 flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-gray-400">
+              {label}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="rounded-xl border border-gray-200 bg-white animate-pulse">
+              <div className="px-4 py-3.5">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-gray-200 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="h-3 w-20 bg-gray-200 rounded mb-2" />
+                    <div className="h-4 w-36 bg-gray-200 rounded mb-2" />
+                    <div className="h-3 w-24 bg-gray-200 rounded" />
+                  </div>
+                  <div className="h-5 w-16 bg-gray-200 rounded-lg shrink-0 mt-0.5" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  // ── Provider view (preserved) ──
+  // ── Provider view — 3-tab layout mirroring family ──
 
   if (isProvider) {
+    const providerTabs: { id: ProviderConnectionTab; label: string; count: number; badge: number }[] = [
+      { id: "attention", label: "Needs Attention", count: providerTabbed.attention.length, badge: providerTabbed.attention.length },
+      { id: "active", label: "Active", count: providerTabbed.active.length, badge: 0 },
+      { id: "past", label: "Past", count: providerTabbed.past.length, badge: 0 },
+    ];
+
+    const currentProviderConnections = providerTabbed[providerTab];
+
+    if (connections.length === 0 && !error) {
+      return (
+        <EmptyState
+          title="No connections yet"
+          description="When families reach out or you connect with them, their requests will appear here."
+          action={
+            <Link href="/portal/discover/families">
+              <Button>Discover Families</Button>
+            </Link>
+          }
+        />
+      );
+    }
+
     return (
       <div className="space-y-6">
         {error && (
@@ -333,38 +414,66 @@ export default function ConnectionsPage() {
           </div>
         )}
 
-        {connections.length === 0 ? (
-          <EmptyState
-            title="No connections yet"
-            description="When families or caregivers reach out, their connections will appear here."
-          />
+        {/* Header */}
+        <div>
+          <h2 className="text-[22px] font-bold text-gray-900">Connections</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage inquiries from families and your outreach.
+          </p>
+        </div>
+
+        {/* Tab bar */}
+        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl max-w-lg">
+          {providerTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setProviderTab(tab.id)}
+              className={[
+                "flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all relative",
+                providerTab === tab.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700",
+              ].join(" ")}
+            >
+              {tab.label}
+              <span className={[
+                "text-xs font-semibold px-1.5 py-0.5 rounded-md",
+                providerTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
+              ].join(" ")}>
+                {tab.count}
+              </span>
+              {tab.badge > 0 && providerTab !== tab.id && (
+                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Connection grid */}
+        {currentProviderConnections.length === 0 ? (
+          <ProviderTabEmptyState tab={providerTab} />
         ) : (
-          <div>
-            {providerGrouped.needsAttention.length > 0 && (
-              <ProviderConnectionGroup
-                title="Needs Attention"
-                icon={<svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" /><path d="M10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" /></svg>}
-                connections={providerGrouped.needsAttention}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {currentProviderConnections.map((connection) => (
+              <ProviderConnectionCard
+                key={connection.id}
+                connection={connection}
                 activeProfileId={activeProfile?.id || ""}
                 isProvider={true}
                 hasFullAccess={hasFullAccess}
-                onSelect={openDrawer}
-                variant="attention"
+                onSelect={openAndMarkRead}
+                variant={providerTab === "attention" ? "attention" : providerTab === "past" ? "muted" : "normal"}
               />
-            )}
-            {providerGrouped.active.length > 0 && (
-              <ProviderConnectionGroup title="Active" connections={providerGrouped.active} activeProfileId={activeProfile?.id || ""} isProvider={true} hasFullAccess={hasFullAccess} onSelect={openDrawer} />
-            )}
-            {providerGrouped.past.length > 0 && (
-              <ProviderConnectionGroup title="Past" connections={providerGrouped.past} activeProfileId={activeProfile?.id || ""} isProvider={true} hasFullAccess={hasFullAccess} onSelect={openDrawer} variant="muted" />
-            )}
-            {!hasFullAccess && connections.length > 0 && (
-              <div className="mt-6"><UpgradePrompt context="view full details and respond to connections" /></div>
-            )}
+            ))}
           </div>
         )}
 
-        <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} />
+        {!hasFullAccess && connections.length > 0 && (
+          <UpgradePrompt context="view full details and respond to connections" />
+        )}
+
+        <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} onWithdraw={handleWithdraw} onHide={handleHide} preloadedConnection={preloadedConnection} />
       </div>
     );
   }
@@ -375,7 +484,7 @@ export default function ConnectionsPage() {
 
   const tabs: { id: ConnectionTab; label: string; count: number; badge: number }[] = [
     { id: "active", label: "Active", count: tabbed.active.length, badge: 0 },
-    { id: "responded", label: "Responded", count: tabbed.responded.length, badge: unreadCount },
+    { id: "connected", label: "Connected", count: tabbed.connected.length, badge: unreadCount },
     { id: "past", label: "Past", count: tabbed.past.length, badge: 0 },
   ];
 
@@ -451,14 +560,14 @@ export default function ConnectionsPage() {
                 connection={connection}
                 activeProfileId={activeProfile?.id || ""}
                 unread={unread}
-                onSelect={openFamilyDrawer}
+                onSelect={openAndMarkRead}
               />
             );
           })}
         </div>
       )}
 
-      <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} onWithdraw={handleWithdraw} onHide={handleHide} />
+      <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} onWithdraw={handleWithdraw} onHide={handleHide} preloadedConnection={preloadedConnection} />
     </div>
   );
 }
@@ -473,10 +582,10 @@ function TabEmptyState({ tab }: { tab: ConnectionTab }) {
       subtitle: "When you reach out to a provider, your pending requests will show up here. Browse providers to get started.",
       cta: { label: "Browse providers", href: "/browse" },
     },
-    responded: {
+    connected: {
       icon: "💬",
-      title: "No responses yet",
-      subtitle: "When a provider replies to your request, their response will appear here. Most providers respond within a few hours.",
+      title: "No connections yet",
+      subtitle: "When a provider accepts your request, your connection will appear here. Most providers respond within a few hours.",
     },
     past: {
       icon: "📂",
@@ -600,88 +709,32 @@ function FamilyConnectionCard({
   );
 }
 
-// ── Provider Grouping (preserved from original) ──
+// ── Provider Tab Empty States ──
 
-function groupConnections(
-  connections: ConnectionWithProfile[],
-  activeProfileId: string,
-  isProvider: boolean
-): {
-  needsAttention: ConnectionWithProfile[];
-  active: ConnectionWithProfile[];
-  past: ConnectionWithProfile[];
-} {
-  const needsAttention: ConnectionWithProfile[] = [];
-  const active: ConnectionWithProfile[] = [];
-  const past: ConnectionWithProfile[] = [];
-
-  for (const c of connections) {
-    if (c.status === "declined" || c.status === "archived") {
-      past.push(c);
-    } else if (isProvider) {
-      const isInbound = c.to_profile_id === activeProfileId;
-      if (c.status === "pending" && isInbound) {
-        needsAttention.push(c);
-      } else {
-        active.push(c);
-      }
-    } else {
-      if (c.status === "accepted") {
-        needsAttention.push(c);
-      } else {
-        active.push(c);
-      }
-    }
-  }
-
-  return { needsAttention, active, past };
-}
-
-// ── Provider Connection Group (preserved from original) ──
-
-function ProviderConnectionGroup({
-  title,
-  icon,
-  connections,
-  activeProfileId,
-  isProvider,
-  hasFullAccess,
-  onSelect,
-  variant = "normal",
-}: {
-  title: string;
-  icon?: React.ReactNode;
-  connections: ConnectionWithProfile[];
-  activeProfileId: string;
-  isProvider: boolean;
-  hasFullAccess: boolean;
-  onSelect: (id: string) => void;
-  variant?: "normal" | "attention" | "muted";
-}) {
+function ProviderTabEmptyState({ tab }: { tab: ProviderConnectionTab }) {
+  const config: Record<ProviderConnectionTab, { icon: string; title: string; subtitle: string }> = {
+    attention: {
+      icon: "📨",
+      title: "No pending requests",
+      subtitle: "New family inquiries will appear here for you to review and respond to.",
+    },
+    active: {
+      icon: "💬",
+      title: "No active connections",
+      subtitle: "When you connect with families, your active conversations will show up here.",
+    },
+    past: {
+      icon: "📂",
+      title: "No past connections",
+      subtitle: "Expired, declined, and ended connections will be archived here.",
+    },
+  };
+  const { icon, title, subtitle } = config[tab];
   return (
-    <div className="mb-6">
-      <div className="flex items-center gap-2 mb-2.5 px-1">
-        {icon}
-        <h3 className={`text-sm font-semibold uppercase tracking-wider ${
-          variant === "muted" ? "text-gray-400" : "text-gray-500"
-        }`}>
-          {title}
-        </h3>
-        <span className="text-sm text-gray-400">({connections.length})</span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {connections.map((connection) => (
-          <ProviderConnectionCard
-            key={connection.id}
-            connection={connection}
-            activeProfileId={activeProfileId}
-            isProvider={isProvider}
-            hasFullAccess={hasFullAccess}
-            onSelect={onSelect}
-            variant={variant}
-          />
-        ))}
-      </div>
+    <div className="py-16 text-center max-w-[360px] mx-auto">
+      <span className="text-4xl block mb-3">{icon}</span>
+      <h3 className="text-base font-semibold text-gray-700">{title}</h3>
+      <p className="text-sm text-gray-400 mt-1.5 leading-relaxed">{subtitle}</p>
     </div>
   );
 }
@@ -713,13 +766,8 @@ function ProviderConnectionCard({
   const parsedMsg = parseMessage(connection.message);
   const careTypeLabel = parsedMsg?.careType || connection.type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
 
-  const statusBadge: Record<string, { variant: "default" | "pending" | "verified" | "trial"; label: string }> = {
-    pending: { variant: "pending", label: "Pending" },
-    accepted: { variant: "verified", label: "Responded" },
-    declined: { variant: "default", label: "Declined" },
-    archived: { variant: "default", label: "Archived" },
-  };
-  const badge = statusBadge[connection.status] || statusBadge.pending;
+  const displayStatus = getProviderDisplayStatus(connection, isInbound);
+  const statusConfig = PROVIDER_STATUS_CONFIG[displayStatus];
 
   const createdAt = new Date(connection.created_at).toLocaleDateString(
     "en-US",
@@ -776,9 +824,12 @@ function ProviderConnectionCard({
                   {!shouldBlur && otherLocation ? ` \u00b7 ${otherLocation}` : ""}
                 </p>
               </div>
-              <Badge variant={badge.variant} className="!text-xs !px-2.5 !py-0.5 shrink-0 mt-0.5">
-                {badge.label}
-              </Badge>
+              <span
+                className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 mt-0.5 ${statusConfig.bg} ${statusConfig.color}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                {statusConfig.label}
+              </span>
             </div>
           </div>
         </div>

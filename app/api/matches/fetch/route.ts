@@ -117,7 +117,7 @@ export async function POST(request: Request) {
     // Query olera-providers
     let query = supabase
       .from("olera-providers")
-      .select("*", { count: "exact" })
+      .select("provider_id, provider_name, provider_logo, provider_images, provider_category, provider_description, city, state, google_rating, lower_price, upper_price", { count: "exact" })
       .not("deleted", "is", true)
       .eq("state", profile.state)
       .or(categoryFilter)

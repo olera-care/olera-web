@@ -22,12 +22,26 @@ const CARE_TYPE_OPTIONS = [
   { label: "Nursing Home", value: "Nursing Home" },
 ];
 
+// Map ProfileCategory slug → display name (must match getCategoryDisplayName output)
+const PROFILE_CATEGORY_DISPLAY: Record<string, string> = {
+  home_care_agency: "Home Care",
+  home_health_agency: "Home Health",
+  hospice_agency: "Hospice",
+  assisted_living: "Assisted Living",
+  independent_living: "Independent Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+  inpatient_hospice: "Hospice",
+  rehab_facility: "Rehabilitation",
+  adult_day_care: "Adult Day Care",
+  wellness_center: "Wellness Center",
+  private_caregiver: "Home Care",
+};
+
 /** Map web business_profiles category to a display label */
 function profileCategoryLabel(category: string | null): string {
   if (!category) return "Senior Care";
-  return category
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c: string) => c.toUpperCase());
+  return PROFILE_CATEGORY_DISPLAY[category] || "Senior Care";
 }
 
 /** Convert a web business_profiles row to ProviderCardData */

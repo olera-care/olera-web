@@ -73,6 +73,22 @@ const CARE_TYPE_TO_SUPABASE: Record<string, string> = {
   "independent-living": "Independent Living",
 };
 
+// Map ProfileCategory slug → display name (must match getCategoryDisplayName output)
+const PROFILE_CATEGORY_DISPLAY: Record<string, string> = {
+  home_care_agency: "Home Care",
+  home_health_agency: "Home Health",
+  hospice_agency: "Hospice",
+  assisted_living: "Assisted Living",
+  independent_living: "Independent Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+  inpatient_hospice: "Hospice",
+  rehab_facility: "Rehabilitation",
+  adult_day_care: "Adult Day Care",
+  wellness_center: "Wellness Center",
+  private_caregiver: "Home Care",
+};
+
 /** Convert a web business_profiles row to ProviderCardData */
 function profileToCardFormat(p: Profile): ProviderCardData {
   const location = [p.city, p.state].filter(Boolean).join(", ");
@@ -85,9 +101,7 @@ function profileToCardFormat(p: Profile): ProviderCardData {
     address: location,
     rating: 0,
     priceRange: "Contact for pricing",
-    primaryCategory: p.category
-      ? p.category.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
-      : "Senior Care",
+    primaryCategory: (p.category && PROFILE_CATEGORY_DISPLAY[p.category]) || "Senior Care",
     careTypes: p.care_types || [],
     highlights: p.care_types?.slice(0, 2) || [],
     acceptedPayments: [],
@@ -213,6 +227,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
   // Provider data from Supabase
   const [providers, setProviders] = useState<ProviderCardData[]>([]);
+  const [webProviderIds, setWebProviderIds] = useState<Set<string>>(new Set());
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
 
   // Fetch providers from Supabase (both iOS directory + web-created profiles)
@@ -300,6 +315,9 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       if (iosResult.error) {
         console.error("Browse iOS fetch error:", iosResult.error.message);
       }
+
+      // Track web-created provider IDs for "Recently Added" section
+      setWebProviderIds(new Set(webCards.map((c) => c.id)));
 
       // Merge: web-created first, then iOS directory
       setProviders([...webCards, ...iosCards]);
@@ -538,6 +556,15 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const nursingHomeProviders = useMemo(
     () => filteredProviders.filter((p) => p.primaryCategory === "Nursing Home").slice(0, 8),
     [filteredProviders]
+  );
+
+  // Web-created providers that were recently added (ensures new providers are visible)
+  const recentlyAddedProviders = useMemo(
+    () => filteredProviders
+      .filter((p) => webProviderIds.has(p.id))
+      .slice(0, 8)
+      .map((p) => ({ ...p, badge: "New" })),
+    [filteredProviders, webProviderIds]
   );
 
   const isMapView = viewMode === "map";
@@ -1012,6 +1039,13 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
             {isAllTypes ? (
               <>
+                {recentlyAddedProviders.length > 0 && (
+                  <CarouselSection
+                    title={`Recently Added in ${searchLocation}`}
+                    providers={recentlyAddedProviders}
+                    scrollId="recently-added-scroll"
+                  />
+                )}
                 <CarouselSection
                   title={`Top Rated Providers in ${searchLocation}`}
                   providers={topRatedProviders}
@@ -1040,6 +1074,13 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               </>
             ) : filteredProviders.length > 0 ? (
               <>
+                {recentlyAddedProviders.length > 0 && (
+                  <CarouselSection
+                    title={`Recently Added ${careTypeLabel} in ${searchLocation}`}
+                    providers={recentlyAddedProviders}
+                    scrollId="recently-added-scroll"
+                  />
+                )}
                 <CarouselSection
                   title={`Top Rated ${careTypeLabel} in ${searchLocation}`}
                   providers={topRatedProviders}

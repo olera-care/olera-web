@@ -296,6 +296,14 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       // Run both queries in parallel
       const [iosResult, webResult] = await Promise.all([iosQuery, webQuery]);
 
+      // DEBUG: Log web query results to troubleshoot visibility
+      console.log("[Browse Debug] web query result:", {
+        error: webResult.error?.message || null,
+        count: webResult.data?.length ?? 0,
+        data: webResult.data,
+        filters: { careType, searchLocation },
+      });
+
       const iosCards = iosResult.error
         ? []
         : (iosResult.data as SupabaseProvider[]).map(toCardFormat);
@@ -303,6 +311,12 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       let webCards = webResult.error
         ? []
         : (webResult.data as Profile[]).map(profileToCardFormat);
+
+      // DEBUG: Log care type filtering
+      if (careType && careType !== "all" && webCards.length > 0) {
+        const filterLabel = careType.replace(/-/g, " ").toLowerCase();
+        console.log("[Browse Debug] care type filter:", { filterLabel, webCardCareTypes: webCards.map(c => ({ name: c.name, careTypes: c.careTypes })) });
+      }
 
       // Client-side care type filter for web profiles (naming differs from iOS)
       if (careType && careType !== "all" && webCards.length > 0) {
@@ -315,6 +329,8 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       if (iosResult.error) {
         console.error("Browse iOS fetch error:", iosResult.error.message);
       }
+
+      console.log("[Browse Debug] final merge:", { webCards: webCards.length, iosCards: iosCards.length, webCardNames: webCards.map(c => c.name) });
 
       // Track web-created provider IDs for "Recently Added" section
       setWebProviderIds(new Set(webCards.map((c) => c.id)));

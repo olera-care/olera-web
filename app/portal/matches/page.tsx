@@ -96,7 +96,7 @@ export default function MatchesPage() {
 
   // View profile handler
   const handleViewProfile = useCallback((provider: Provider) => {
-    window.open(`/providers/${provider.provider_id}`, "_blank");
+    window.open(`/provider/${provider.provider_id}`, "_blank");
   }, []);
 
   // Send connection request

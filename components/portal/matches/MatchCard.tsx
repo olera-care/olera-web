@@ -49,6 +49,17 @@ export default function MatchCard({
 
   const priceDisplay = formatPriceRange(provider);
 
+  // Infer payment tags from category (olera-providers table lacks payment columns)
+  const paymentTags: string[] = [];
+  if (provider.lower_price || provider.upper_price) paymentTags.push("Private pay");
+  const cat = provider.provider_category?.toLowerCase() || "";
+  if (cat.includes("nursing home") || cat.includes("home health") || cat.includes("hospice")) {
+    paymentTags.push("Medicare");
+  }
+  if (cat.includes("nursing home") || cat.includes("hospice")) {
+    paymentTags.push("Medicaid");
+  }
+
   return (
     <div className="w-full rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100">
       {/* Photo area */}
@@ -164,12 +175,22 @@ export default function MatchCard({
           </p>
         )}
 
-        {/* Pricing */}
-        {priceDisplay && (
-          <div className="flex items-center gap-1.5">
-            <span className="text-[15px] font-bold text-gray-900">
-              {priceDisplay}
-            </span>
+        {/* Pricing + payment tags */}
+        {(priceDisplay || paymentTags.length > 0) && (
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {priceDisplay && (
+              <span className="text-[15px] font-bold text-gray-900">
+                {priceDisplay}
+              </span>
+            )}
+            {paymentTags.map((tag) => (
+              <span
+                key={tag}
+                className="text-[11px] text-primary-700 bg-primary-50 px-2.5 py-1 rounded-md font-semibold"
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         )}
       </div>

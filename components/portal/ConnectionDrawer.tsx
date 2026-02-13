@@ -113,39 +113,6 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-// SVG icons for status header
-function PaperAirplaneIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-    </svg>
-  );
-}
-
-function BellOutlineIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-    </svg>
-  );
-}
-
-function CheckCircleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
-function MinusCircleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
-}
-
 /** Deterministic gradient for fallback avatars */
 function avatarGradient(name: string): string {
   const gradients = [
@@ -695,24 +662,6 @@ export default function ConnectionDrawer({
       })
     : "";
 
-  // Build natural language summary for chat bubble
-  const buildSummary = () => {
-    if (!parsedMsg) return null;
-    const parts: string[] = [];
-    if (parsedMsg.careType) {
-      parts.push(`I'm looking for ${parsedMsg.careType.toLowerCase()}`);
-    }
-    if (parsedMsg.careRecipient) {
-      parts.push(`for ${parsedMsg.careRecipient.toLowerCase()}`);
-    }
-    if (parsedMsg.urgency) {
-      parts.push(`needed ${parsedMsg.urgency.toLowerCase()}`);
-    }
-    return parts.length > 0 ? `Hi, ${parts.join(" ")}.` : null;
-  };
-
-  const summary = buildSummary();
-
   // Contact info — only shown after connection is accepted
   const isAccepted = connection?.status === "accepted";
   const hasPhone = isAccepted && !shouldBlur && otherProfile?.phone;
@@ -788,110 +737,52 @@ export default function ConnectionDrawer({
 
   // ── Conversation thread rendering ──
   const renderConversation = () => {
-    // Collect all displayable items with dates for separator logic
     const requestDate = connection?.created_at ? getDateKey(connection.created_at) : "";
 
     return (
-      <div className="space-y-4">
-        {/* Date separator for request */}
-        <div className="flex items-center gap-3 py-1">
-          <div className="flex-1 border-t border-gray-100" />
-          <span className="text-xs font-medium text-gray-400">
-            {connection?.created_at ? formatDateSeparator(connection.created_at) : ""}
-          </span>
-          <div className="flex-1 border-t border-gray-100" />
-        </div>
-
-        {/* Connection request bubble */}
-        {!shouldBlur && (
-          <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
-            <div className="max-w-[85%]">
-              <div className={`rounded-2xl px-4 py-3 ${
-                isInbound
-                  ? "bg-gray-100 text-gray-800 rounded-tl-sm"
-                  : "bg-gray-800 text-white rounded-tr-sm"
-              }`}>
-                {/* Care type tag */}
-                {parsedMsg?.careType && (
-                  <span className={`inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2 ${
-                    isInbound ? "bg-gray-200 text-gray-600" : "bg-gray-700 text-gray-300"
-                  }`}>
-                    {parsedMsg.careType}
-                  </span>
-                )}
-                <p className={`text-xs font-semibold uppercase tracking-wider mb-1.5 ${
-                  isInbound ? "text-gray-400" : "text-gray-400"
+      <div className="space-y-3">
+        {/* Family's note (if any) as the first message */}
+        {!shouldBlur && parsedMsg?.notes && (
+          <>
+            <div className="flex items-center gap-3 py-1">
+              <div className="flex-1 border-t border-gray-100" />
+              <span className="text-xs font-medium text-gray-400">
+                {connection?.created_at ? formatDateSeparator(connection.created_at) : ""}
+              </span>
+              <div className="flex-1 border-t border-gray-100" />
+            </div>
+            <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
+              <div className="max-w-[85%]">
+                <div className={`rounded-2xl px-4 py-3 ${
+                  isInbound
+                    ? "bg-gray-100 text-gray-800 rounded-tl-sm"
+                    : "bg-gray-800 text-white rounded-tr-sm"
                 }`}>
-                  {isInbound ? `Request from ${otherName}` : "Your request"}
-                </p>
-                {summary && (
-                  <p className="text-base leading-relaxed">{summary}</p>
-                )}
-                {parsedMsg?.notes && (
-                  <p className={`text-base italic mt-1.5 ${
-                    isInbound ? "text-gray-600" : "text-gray-400"
-                  }`}>
-                    &ldquo;{parsedMsg.notes}&rdquo;
-                  </p>
-                )}
-              </div>
-              <p className={`text-xs mt-1 ${
-                isInbound ? "text-left" : "text-right"
-              } text-gray-400`}>
-                {!isInbound && (
-                  <>
-                    <span className="text-amber-500">{"\u25CF"}</span>{" "}
-                    {profilePercentage}% profile shared{" \u00b7 "}
-                  </>
-                )}
-                {shortDate}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* System banner (replaces old SystemNote pill) */}
-        <SystemBanner
-          connection={connection!}
-          otherName={shouldBlur ? blurName(otherName) : otherName}
-          shouldBlur={shouldBlur}
-          metadata={connMetadata}
-          isInbound={isInbound}
-          isProvider={!!isProvider}
-          careType={parsedMsg?.careType}
-        />
-
-        {/* Acceptance message — warmer, action-oriented copy */}
-        {connection!.status === "accepted" && !shouldBlur && otherProfile && !isInbound && (
-          <div className="flex justify-start">
-            <div className="max-w-[85%]">
-              <div className="bg-emerald-50 text-emerald-900 rounded-2xl rounded-tl-sm px-4 py-3 border border-emerald-100">
-                <p className="text-base leading-relaxed">
-                  Great news &mdash; <strong>{otherName}</strong> accepted your request. Send a message or schedule a call to take the next step.
+                  <p className="text-sm leading-relaxed">{parsedMsg.notes}</p>
+                </div>
+                <p className={`text-xs mt-1 ${isInbound ? "text-left" : "text-right"} text-gray-400`}>
+                  {shortDate}
                 </p>
               </div>
             </div>
+          </>
+        )}
+
+        {/* Connected milestone marker */}
+        {connection!.status === "accepted" && !shouldBlur && (
+          <div className="flex items-center gap-3 py-1">
+            <div className="flex-1 border-t border-emerald-100" />
+            <span className="text-xs font-medium text-emerald-600">
+              Connected
+            </span>
+            <div className="flex-1 border-t border-emerald-100" />
           </div>
         )}
 
-        {connection!.status === "accepted" && !shouldBlur && isInbound && (
-          <div className="flex justify-end">
-            <div className="max-w-[85%]">
-              <div className="bg-emerald-50 text-emerald-900 rounded-2xl rounded-tr-sm px-4 py-3 border border-emerald-100">
-                <p className="text-base leading-relaxed">
-                  You&apos;re connected with <strong>{otherName}</strong>. Send a message to introduce yourself and learn about their care needs.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Empty thread guidance (accepted, no messages yet) */}
-        {connection!.status === "accepted" && !shouldBlur && thread.length === 0 && (
-          <div className="flex justify-center py-2">
-            <p className="text-sm text-gray-400 italic">
-              No messages yet. A quick introduction goes a long way.
-            </p>
+        {/* Upgrade Prompt (blurred) */}
+        {shouldBlur && (
+          <div className="py-5">
+            <UpgradePrompt context="view full details and respond" />
           </div>
         )}
 
@@ -1012,12 +903,6 @@ export default function ConnectionDrawer({
           );
         })}
 
-        {/* Upgrade Prompt (blurred) */}
-        {shouldBlur && (
-          <div className="py-5">
-            <UpgradePrompt context="view full details and respond" />
-          </div>
-        )}
       </div>
     );
   };
@@ -1056,7 +941,7 @@ export default function ConnectionDrawer({
     );
   };
 
-  // ── Request Status Card (B3 + B5) ──
+  // ── Action Bar: Request Status ──
   const renderRequestStatus = () => {
     if (!nextStepRequest) return null;
 
@@ -1064,10 +949,6 @@ export default function ConnectionDrawer({
       nextStepRequest.type === "call" ? "a call" :
       nextStepRequest.type === "consultation" ? "a consultation" :
       nextStepRequest.type === "visit" ? "a home visit" : "a next step";
-    const stepIcon =
-      nextStepRequest.type === "call" ? <PhoneIcon className="w-4 h-4 text-gray-500" /> :
-      nextStepRequest.type === "consultation" ? <ClipboardIcon className="w-4 h-4 text-gray-500" /> :
-      <HomeIcon className="w-4 h-4 text-gray-500" />;
 
     // Determine if current user is the requester or the responder
     const requestThreadMsg = thread.find(
@@ -1076,193 +957,66 @@ export default function ConnectionDrawer({
     const isRequester = requestThreadMsg?.from_profile_id === activeProfile?.id;
     const timeAgo = relativeTime(nextStepRequest.created_at);
 
-    // ── Responder view (B3): action card ──
+    // ── Responder view: action card ──
     if (!isRequester) {
       return (
-        <div>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-            Action Needed
+        <div className="p-3 rounded-xl border border-primary-100 bg-primary-50/40">
+          <p className="text-sm font-medium text-gray-900 mb-1">
+            {otherName} would like to schedule {stepNoun}
           </p>
-          <div className="p-4 rounded-xl border border-primary-200/50 bg-primary-50/30">
-            <div className="flex items-center gap-2.5 mb-2">
-              {stepIcon}
-              <span className="text-sm font-bold text-gray-900">
-                {otherName} would like to schedule {stepNoun}
-              </span>
-            </div>
-            {nextStepRequest.note && (
-              <p className="text-xs text-gray-600 italic mb-3 leading-relaxed">
-                &ldquo;{nextStepRequest.note}&rdquo;
-              </p>
-            )}
-            <p className="text-xs text-gray-500 mb-3">
-              Requested {timeAgo}
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  const prefix = nextStepRequest.type === "call"
-                    ? "I'm available for a call "
-                    : nextStepRequest.type === "consultation"
-                    ? "I'm available for a consultation "
-                    : "I'm available for a visit ";
-                  setMessageText(prefix);
-                  requestAnimationFrame(() => {
-                    messageInputRef.current?.focus();
-                  });
-                }}
-                className="flex-[2] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Suggest times
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelNextStep}
-                disabled={actionLoading}
-                className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                {actionLoading ? "..." : "Decline"}
-              </button>
-            </div>
+          {nextStepRequest.note && (
+            <p className="text-xs text-gray-500 italic mb-2">&ldquo;{nextStepRequest.note}&rdquo;</p>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const prefix = nextStepRequest.type === "call"
+                  ? "I'm available for a call "
+                  : nextStepRequest.type === "consultation"
+                  ? "I'm available for a consultation "
+                  : "I'm available for a visit ";
+                setMessageText(prefix);
+                requestAnimationFrame(() => messageInputRef.current?.focus());
+              }}
+              className="flex-[2] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Share Your Availability
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelNextStep}
+              disabled={actionLoading}
+              className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              {actionLoading ? "..." : "Decline"}
+            </button>
           </div>
         </div>
       );
     }
 
-    // ── Requester view: status card with relative time (B5) ──
+    // ── Requester view: compact inline status ──
     return (
-      <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-          Request Status
-        </p>
-        <div className="p-4 rounded-xl border border-amber-200/50 bg-amber-50/30">
-          <div className="flex items-center gap-2.5 mb-3">
-            {stepIcon}
-            <span className="text-sm font-bold text-gray-900">
-              {nextStepRequest.type === "call" ? "Call requested" :
-               nextStepRequest.type === "consultation" ? "Consultation requested" :
-               nextStepRequest.type === "visit" ? "Home visit requested" : "Requested"}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-            <span className="text-xs font-semibold text-amber-700">Requested {timeAgo}</span>
-          </div>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Waiting for {otherName} to suggest available times
+      <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-amber-50/50 border border-amber-100">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-gray-900">
+            {nextStepRequest.type === "call" ? "Call" :
+             nextStepRequest.type === "consultation" ? "Consultation" :
+             "Home visit"} requested &middot; {timeAgo}
           </p>
-          {nextStepRequest.type === "call" && (
-            <p className="text-xs text-gray-600 mt-2 bg-white px-3 py-2 rounded-lg border border-gray-200 flex items-center gap-2">
-              <PhoneIcon className="w-3 h-3 text-gray-400 shrink-0" />
-              Your phone number was shared
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={handleCancelNextStep}
-            disabled={actionLoading}
-            className="mt-3 px-3 py-1.5 text-xs font-medium text-red-600 bg-white border border-gray-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-          >
-            {actionLoading ? "..." : "Cancel request"}
-          </button>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Waiting for {otherName} to share availability
+          </p>
         </div>
-      </div>
-    );
-  };
-
-  // ── Sidebar: Status Header (Rover-inspired) ──
-  const renderStatusHeader = () => {
-    if (!connection) return null;
-
-    let icon: React.ReactNode;
-    let heading: string;
-    let supportText: string;
-    let bgClass: string;
-    let textClass: string;
-    let iconClass: string;
-
-    if (isEnded) {
-      icon = <MinusCircleIcon className="w-6 h-6" />;
-      heading = "Connection ended";
-      supportText = "You can reconnect anytime.";
-      bgClass = "bg-gray-50";
-      textClass = "text-gray-500";
-      iconClass = "text-gray-400";
-    } else if (isWithdrawn) {
-      icon = <MinusCircleIcon className="w-6 h-6" />;
-      heading = "Request withdrawn";
-      supportText = "This request was withdrawn.";
-      bgClass = "bg-gray-50";
-      textClass = "text-gray-500";
-      iconClass = "text-gray-400";
-    } else {
-      switch (connection.status) {
-        case "pending":
-          if (isInbound) {
-            icon = <BellOutlineIcon className="w-6 h-6" />;
-            heading = "New request";
-            const careLabel = parsedMsg?.careType?.toLowerCase() || "care";
-            supportText = `${shouldBlur ? blurName(otherName) : otherName} is looking for ${careLabel}. Review their request and respond.`;
-            bgClass = "bg-amber-50";
-            textClass = "text-amber-800";
-            iconClass = "text-amber-500";
-          } else {
-            icon = <PaperAirplaneIcon className="w-6 h-6" />;
-            heading = isProvider ? "Message sent" : "Request sent";
-            supportText = isProvider
-              ? `Sent to ${otherName}. Waiting for their response.`
-              : `Sent to ${otherName}. Most providers respond within a few hours.`;
-            bgClass = "bg-blue-50";
-            textClass = "text-blue-800";
-            iconClass = "text-blue-500";
-          }
-          break;
-        case "accepted":
-          icon = <CheckCircleIcon className="w-6 h-6" />;
-          heading = "Connected";
-          supportText = isInbound
-            ? `You're connected. Send a message to get started.`
-            : `${otherName} accepted. Send a message or schedule a call.`;
-          bgClass = "bg-emerald-50";
-          textClass = "text-emerald-800";
-          iconClass = "text-emerald-500";
-          break;
-        case "declined":
-          icon = <MinusCircleIcon className="w-6 h-6" />;
-          heading = "Not available";
-          supportText = isInbound
-            ? "You declined this request."
-            : `${otherName} isn't available right now.`;
-          bgClass = "bg-gray-50";
-          textClass = "text-gray-600";
-          iconClass = "text-gray-400";
-          break;
-        case "expired":
-          icon = <MinusCircleIcon className="w-6 h-6" />;
-          heading = "Expired";
-          supportText = "This request expired. No response was received.";
-          bgClass = "bg-gray-50";
-          textClass = "text-gray-500";
-          iconClass = "text-gray-400";
-          break;
-        default:
-          icon = <MinusCircleIcon className="w-6 h-6" />;
-          heading = "Archived";
-          supportText = "";
-          bgClass = "bg-gray-50";
-          textClass = "text-gray-500";
-          iconClass = "text-gray-400";
-      }
-    }
-
-    return (
-      <div className={`rounded-xl p-4 ${bgClass}`}>
-        <div className={`${iconClass} mb-2`}>{icon}</div>
-        <h3 className={`text-base font-bold ${textClass}`}>{heading}</h3>
-        {supportText && (
-          <p className={`text-sm mt-1 leading-relaxed ${textClass} opacity-80`}>{supportText}</p>
-        )}
+        <button
+          type="button"
+          onClick={handleCancelNextStep}
+          disabled={actionLoading}
+          className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors shrink-0"
+        >
+          {actionLoading ? "..." : "Cancel"}
+        </button>
       </div>
     );
   };
@@ -1385,8 +1139,8 @@ export default function ConnectionDrawer({
 
         {connection && !loading && (
           <>
-            {/* ── Provider Info (shrink-0, full width) ── */}
-            <div className="px-6 pt-6 pb-5 shrink-0">
+            {/* ── HEADER: Who + Status + Profile Link + Contact ── */}
+            <div className="px-6 pt-5 pb-4 shrink-0">
               <div className="flex items-start gap-4">
                 {/* Avatar */}
                 <div className="shrink-0">
@@ -1395,11 +1149,11 @@ export default function ConnectionDrawer({
                     <img
                       src={imageUrl}
                       alt={otherName}
-                      className="w-14 h-14 rounded-xl object-cover"
+                      className="w-12 h-12 rounded-xl object-cover"
                     />
                   ) : (
                     <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold text-white"
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white"
                       style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
                     >
                       {shouldBlur ? "?" : initial}
@@ -1411,14 +1165,13 @@ export default function ConnectionDrawer({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      {!shouldBlur && (
-                        <p className="text-sm text-gray-400 leading-tight">{categoryLabel}</p>
-                      )}
-                      <h2 className="text-xl font-bold text-gray-900 leading-snug">
+                      <h2 className="text-lg font-bold text-gray-900 leading-snug">
                         {shouldBlur ? blurName(otherName) : otherName}
                       </h2>
-                      {otherLocation && !shouldBlur && (
-                        <p className="text-base text-gray-500 mt-0.5">{otherLocation}</p>
+                      {!shouldBlur && (
+                        <p className="text-sm text-gray-500 leading-tight">
+                          {categoryLabel}{otherLocation ? ` \u00b7 ${otherLocation}` : ""}
+                        </p>
                       )}
                     </div>
                     {/* Status pill */}
@@ -1427,26 +1180,44 @@ export default function ConnectionDrawer({
                       {status.label}
                     </span>
                   </div>
+                  {/* Profile link + inline contact */}
                   {otherProfile && !shouldBlur && (
-                    <div className="flex items-center gap-2.5 mt-2">
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                       <Link
                         href={profileHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
                       >
-                        View {otherProfile.type === "family" ? "family" : "provider"} profile
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        View profile
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                       </Link>
+                      {hasPhone && (
+                        <a
+                          href={`tel:${otherProfile.phone}`}
+                          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-600 transition-colors"
+                        >
+                          <PhoneIcon className="w-3 h-3" />
+                          {otherProfile.phone}
+                        </a>
+                      )}
+                      {hasEmail && (
+                        <a
+                          href={`mailto:${otherProfile.email}`}
+                          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-600 transition-colors"
+                        >
+                          <EmailIcon className="w-3 h-3" />
+                          {otherProfile.email}
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
 
-
-              {/* Provider Actions: Pending Inbound — always shown, even on free tier */}
+              {/* Accept / Decline (pending inbound only) */}
               {isInbound && connection.status === "pending" && (
                 <div className="mt-4 flex gap-3">
                   <Button
@@ -1470,104 +1241,82 @@ export default function ConnectionDrawer({
               )}
             </div>
 
-            {/* ── Divider ── */}
-            <div className="mx-6 border-t border-gray-100 shrink-0" />
-
-            {/* ═══ TWO-COLUMN LAYOUT (Responded Drawer) ═══ */}
-            {/* ═══ SINGLE-COLUMN LAYOUT (all states) ═══ */}
-            <>
-              {/* Status header */}
-              <div className="px-6 pt-4 pb-2 shrink-0">
-                {renderStatusHeader()}
-              </div>
-
-              {/* Compact inline contact (accepted only) */}
-              {isAccepted && !shouldBlur && hasAnyContact && (
-                <div className="px-6 pb-2 shrink-0">
-                  <div className="flex flex-wrap gap-2">
-                    {hasPhone && (
-                      <a
-                        href={`tel:${otherProfile!.phone}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-primary-600 hover:bg-primary-50 transition-colors"
-                      >
-                        <PhoneIcon className="w-3 h-3" />
-                        {otherProfile!.phone}
-                      </a>
-                    )}
-                    {hasEmail && (
-                      <a
-                        href={`mailto:${otherProfile!.email}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        <EmailIcon className="w-3 h-3 text-gray-400" />
-                        {otherProfile!.email}
-                      </a>
-                    )}
-                    {hasWebsite && (
-                      <a
-                        href={otherProfile!.website!.startsWith("http") ? otherProfile!.website! : `https://${otherProfile!.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-                      >
-                        <GlobeIcon className="w-3 h-3 text-gray-400" />
-                        {otherProfile!.website!.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Compact inline next-step CTA (accepted, no active request) */}
-              {isAccepted && !shouldBlur && !nextStepRequest && (
-                <div className="px-6 pb-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNextStepConfirm(nextSteps[0]);
-                      setNextStepNote("");
-                    }}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors"
-                  >
-                    <PhoneIcon className="w-3.5 h-3.5" />
-                    Schedule a Call
-                  </button>
-                  {nextSteps.length > 1 && (
-                    <div className="flex justify-center gap-4 mt-2">
-                      {nextSteps.slice(1).map((step) => (
-                        <button
-                          key={step.id}
-                          type="button"
-                          onClick={() => {
-                            setNextStepConfirm(step);
-                            setNextStepNote("");
-                          }}
-                          className="text-xs font-medium text-gray-500 hover:text-primary-600 transition-colors"
-                        >
-                          {step.label}
-                        </button>
-                      ))}
-                    </div>
+            {/* ── CONTEXT CARD: Pinned request summary ── */}
+            {parsedMsg && !shouldBlur && (
+              <div className="px-6 pb-3 shrink-0">
+                <div className="bg-gray-50 rounded-xl px-4 py-3">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {[parsedMsg.careType, parsedMsg.careRecipient ? `For ${parsedMsg.careRecipient}` : null, parsedMsg.urgency].filter(Boolean).join(" \u00b7 ")}
+                  </p>
+                  {/* Pending hint line */}
+                  {connection.status === "pending" && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {isInbound
+                        ? "Review their request and respond when ready"
+                        : isProvider
+                        ? `Sent ${shortDate} \u00b7 Waiting for a response`
+                        : `Sent ${shortDate} \u00b7 Most providers respond within a few hours`}
+                    </p>
+                  )}
+                  {connection.status !== "pending" && (
+                    <p className="text-xs text-gray-400 mt-1">{isInbound ? "Received" : "Sent"} {shortDate}</p>
                   )}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Compact request status (accepted, active request) */}
-              {isAccepted && !shouldBlur && nextStepRequest && (
-                <div className="px-6 pb-3 shrink-0">
-                  {renderRequestStatus()}
-                </div>
-              )}
-
-              <div ref={conversationRef} className="flex-1 overflow-y-auto min-h-0 px-6 py-5">
+            {/* ── CONVERSATION ── */}
+            <>
+              <div ref={conversationRef} className="flex-1 overflow-y-auto min-h-0 px-6 py-4">
                 {renderConversation()}
               </div>
 
-              {renderMessageInput()}
-
-              {/* ── Accepted: End Connection ── */}
+              {/* ── ACTION BAR: Fixed between conversation and input ── */}
               {isAccepted && !shouldBlur && (
                 <div className="shrink-0 px-6 py-3 border-t border-gray-100">
+                  {nextStepRequest ? (
+                    renderRequestStatus()
+                  ) : !isProvider ? (
+                    /* Family: Schedule CTA */
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNextStepConfirm(nextSteps[0]);
+                          setNextStepNote("");
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors"
+                      >
+                        <PhoneIcon className="w-3.5 h-3.5" />
+                        Schedule a Call
+                      </button>
+                      {nextSteps.length > 1 && (
+                        <div className="flex justify-center gap-4 mt-2">
+                          {nextSteps.slice(1).map((step) => (
+                            <button
+                              key={step.id}
+                              type="button"
+                              onClick={() => {
+                                setNextStepConfirm(step);
+                                setNextStepNote("");
+                              }}
+                              className="text-xs font-medium text-gray-500 hover:text-primary-600 transition-colors"
+                            >
+                              {step.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {renderMessageInput()}
+
+              {/* ── FOOTER: End / Withdraw / Past actions ── */}
+              {isAccepted && !shouldBlur && (
+                <div className="shrink-0 px-6 py-2.5 border-t border-gray-100">
                   <button
                     type="button"
                     onClick={() => setConfirmAction("end")}
@@ -1759,84 +1508,3 @@ export default function ConnectionDrawer({
   return createPortal(drawerContent, document.body);
 }
 
-// ── System Banner (Rover-inspired — replaces SystemNote pills) ──
-
-function SystemBanner({
-  connection,
-  otherName,
-  shouldBlur,
-  metadata,
-  isInbound,
-  isProvider,
-  careType,
-}: {
-  connection: ConnectionDetail;
-  otherName: string;
-  shouldBlur: boolean;
-  metadata?: Record<string, unknown>;
-  isInbound: boolean;
-  isProvider: boolean;
-  careType?: string;
-}) {
-  let text: string | null = null;
-  let bgColor = "bg-gray-50 border-gray-100";
-  let textColor = "text-gray-500";
-  let iconColor = "text-gray-400";
-
-  switch (connection.status) {
-    case "pending":
-      if (isInbound) {
-        const care = careType?.toLowerCase() || "care";
-        text = `${otherName} is looking for ${care}`;
-        bgColor = "bg-amber-50 border-amber-100";
-        textColor = "text-amber-800";
-        iconColor = "text-amber-500";
-      } else {
-        text = isProvider
-          ? `Message sent \u00b7 Waiting for ${otherName} to respond`
-          : `Request sent \u00b7 Most providers respond within a few hours`;
-        bgColor = "bg-blue-50 border-blue-100";
-        textColor = "text-blue-700";
-        iconColor = "text-blue-400";
-      }
-      break;
-    case "accepted":
-      text = shouldBlur
-        ? "Connected"
-        : isInbound
-        ? `Connected \u00b7 Send a message to get started`
-        : `Connected \u00b7 You can now message ${otherName} directly`;
-      bgColor = "bg-emerald-50 border-emerald-100";
-      textColor = "text-emerald-700";
-      iconColor = "text-emerald-500";
-      break;
-    case "declined":
-      text = shouldBlur
-        ? "Not available"
-        : isInbound
-        ? "You declined this request"
-        : `${otherName} isn\u2019t available right now`;
-      break;
-    case "archived":
-      text = metadata?.ended
-        ? "Connection ended \u00b7 You can reconnect anytime"
-        : "Connection archived";
-      break;
-    case "expired":
-      text = metadata?.withdrawn
-        ? "You withdrew this request"
-        : "This request expired \u00b7 No response was received";
-      break;
-  }
-
-  if (!text) return null;
-
-  return (
-    <div className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border ${bgColor}`}>
-      <svg className={`w-4 h-4 shrink-0 ${iconColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <p className={`text-sm leading-snug ${textColor}`}>{text}</p>
-    </div>
-  );
-}

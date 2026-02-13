@@ -884,12 +884,10 @@ export default function ConnectionDrawer({
           return (
             <div key={i}>
               {showSeparator && (
-                <div className="flex items-center gap-3 py-1">
-                  <div className="flex-1 border-t border-gray-100" />
-                  <span className="text-xs font-medium text-gray-400">
+                <div className="flex justify-center py-1">
+                  <span className="text-[11px] font-medium text-gray-400">
                     {formatDateSeparator(msg.created_at)}
                   </span>
-                  <div className="flex-1 border-t border-gray-100" />
                 </div>
               )}
               <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
@@ -1198,7 +1196,7 @@ export default function ConnectionDrawer({
 
             {/* ── ACTION CARD: Next step (only when connected, no active request, family) ── */}
             {isAccepted && !shouldBlur && !isProvider && !nextStepRequest && (
-              <div className="shrink-0 px-7 py-3 border-t border-gray-100">
+              <div className="shrink-0 px-7 pt-2.5 pb-1 border-t border-gray-100">
                 {nextStepConfirm ? (
                   /* Expanded inline form — uses matching card colors */
                   <div className={`p-3.5 rounded-xl border ${nextStepConfirm.cardBg} ${nextStepConfirm.cardBorder}`}>

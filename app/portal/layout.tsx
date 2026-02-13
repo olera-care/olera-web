@@ -166,10 +166,12 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
             {/* Bottom link — pushed down */}
             <div className="mt-auto pt-4 border-t border-gray-100">
               <Link
-                href="/browse"
+                href={activeProfile?.type === "organization" || activeProfile?.type === "caregiver" ? "/portal/discover/families" : "/browse"}
                 className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
               >
-                Browse more providers
+                {activeProfile?.type === "organization" || activeProfile?.type === "caregiver"
+                  ? "Browse families seeking care"
+                  : "Browse more providers"}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>

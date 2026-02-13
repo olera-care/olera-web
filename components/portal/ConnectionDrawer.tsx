@@ -883,39 +883,30 @@ export default function ConnectionDrawer({
     const requestDate = connection?.created_at ? getDateKey(connection.created_at) : "";
 
     return (
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {/* Family's note (if any) as the first message */}
         {!shouldBlur && parsedMsg?.notes && (
-          <>
-            <div className="flex items-center gap-2 py-0.5">
-              <div className="flex-1 border-t border-gray-50" />
-              <span className="text-[10px] text-gray-300">
-                {connection?.created_at ? formatDateSeparator(connection.created_at) : ""}
-              </span>
-              <div className="flex-1 border-t border-gray-50" />
-            </div>
-            <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
-              <div className="max-w-[80%]">
-                <div className={`rounded-xl px-3 py-2 ${
-                  isInbound
-                    ? "bg-gray-50 text-gray-700 rounded-tl-sm"
-                    : "bg-gray-800 text-white rounded-tr-sm"
-                }`}>
-                  <p className="text-[13px] leading-relaxed">{parsedMsg.notes}</p>
-                </div>
-                <p className={`text-[10px] mt-0.5 ${isInbound ? "text-left" : "text-right"} text-gray-300`}>
-                  {shortDate}
-                </p>
+          <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
+            <div className="max-w-[80%]">
+              <div className={`rounded-xl px-3.5 py-2.5 ${
+                isInbound
+                  ? "bg-gray-50 text-gray-700 rounded-tl-sm"
+                  : "bg-gray-800 text-white rounded-tr-sm"
+              }`}>
+                <p className="text-sm leading-relaxed">{parsedMsg.notes}</p>
               </div>
+              <p className={`text-[11px] mt-0.5 ${isInbound ? "text-left" : "text-right"} text-gray-300`}>
+                {shortDate}
+              </p>
             </div>
-          </>
+          </div>
         )}
 
         {/* Connected milestone marker */}
         {connection!.status === "accepted" && !shouldBlur && (
           <div className="flex items-center gap-2 py-0.5">
             <div className="flex-1 border-t border-gray-100" />
-            <span className="text-[10px] text-gray-400">
+            <span className="text-[11px] text-gray-400">
               Connected
             </span>
             <div className="flex-1 border-t border-gray-100" />
@@ -941,15 +932,15 @@ export default function ConnectionDrawer({
               <div key={i}>
                 {showSeparator && (
                   <div className="flex items-center gap-2 py-0.5">
-                    <div className="flex-1 border-t border-gray-50" />
-                    <span className="text-[10px] text-gray-300">
+                    <div className="flex-1 border-t border-gray-100" />
+                    <span className="text-[11px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
-                    <div className="flex-1 border-t border-gray-50" />
+                    <div className="flex-1 border-t border-gray-100" />
                   </div>
                 )}
-                <div className="flex justify-center">
-                  <span className="text-[11px] text-gray-400 px-2 py-1">
+                <div className="flex justify-center py-0.5">
+                  <span className="text-xs text-gray-400">
                     {msg.text}
                   </span>
                 </div>
@@ -976,24 +967,22 @@ export default function ConnectionDrawer({
               <div key={i}>
                 {showSeparator && (
                   <div className="flex items-center gap-2 py-0.5">
-                    <div className="flex-1 border-t border-gray-50" />
-                    <span className="text-[10px] text-gray-300">
+                    <div className="flex-1 border-t border-gray-100" />
+                    <span className="text-[11px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
-                    <div className="flex-1 border-t border-gray-50" />
+                    <div className="flex-1 border-t border-gray-100" />
                   </div>
                 )}
                 <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
                   <div className="max-w-[80%]">
-                    <div className={`rounded-xl px-3 py-2 ${
+                    <div className={`rounded-xl px-3.5 py-2.5 ${
                       isOwn ? "bg-gray-800 text-white rounded-tr-sm" : "bg-gray-50 text-gray-700 rounded-tl-sm"
                     }`}>
-                      <p className={`text-[10px] font-medium uppercase tracking-wide mb-0.5 ${
-                        isOwn ? "text-gray-400" : "text-gray-400"
-                      }`}>{stepLabel}</p>
-                      <p className="text-[13px] leading-relaxed">{msg.text}</p>
+                      <p className={`text-[11px] font-medium uppercase tracking-wide mb-0.5 text-gray-400`}>{stepLabel}</p>
+                      <p className="text-sm leading-relaxed">{msg.text}</p>
                     </div>
-                    <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
+                    <p className={`text-[11px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
                       {msgDate}
                     </p>
                   </div>
@@ -1021,7 +1010,7 @@ export default function ConnectionDrawer({
                 {showSeparator && (
                   <div className="flex items-center gap-2 py-0.5">
                     <div className="flex-1 border-t border-gray-50" />
-                    <span className="text-[10px] text-gray-300">
+                    <span className="text-[11px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
                     <div className="flex-1 border-t border-gray-50" />
@@ -1037,7 +1026,7 @@ export default function ConnectionDrawer({
                       }`}>
                         <div className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
-                            <span className={`text-[13px] font-medium ${
+                            <span className={`text-sm font-medium ${
                               isProposalResolved ? "text-gray-700" : isOwn ? "text-white" : "text-gray-800"
                             }`}>
                               {slotLabel}
@@ -1049,7 +1038,7 @@ export default function ConnectionDrawer({
                             )}
                           </div>
                           {isProposalResolved && (
-                            <p className="text-[10px] text-gray-400 mt-0.5">Confirmed</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">Confirmed</p>
                           )}
                         </div>
                         {canRespond && (
@@ -1058,7 +1047,7 @@ export default function ConnectionDrawer({
                               type="button"
                               onClick={() => handleRespondProposal("accept")}
                               disabled={respondingProposal}
-                              className="flex-1 px-2.5 py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+                              className="flex-1 px-2.5 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
                             >
                               {respondingProposal ? "..." : "Confirm"}
                             </button>
@@ -1075,7 +1064,7 @@ export default function ConnectionDrawer({
                       </div>
                     ) : (
                       <div className={`rounded-xl px-3 py-2 ${isOwn ? "bg-gray-800 text-white rounded-tr-sm" : "bg-gray-50 text-gray-700 rounded-tl-sm"}`}>
-                        <p className="text-[13px] leading-relaxed">{msg.text}</p>
+                        <p className="text-sm leading-relaxed">{msg.text}</p>
                       </div>
                     )}
                     <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
@@ -1094,14 +1083,14 @@ export default function ConnectionDrawer({
                 {showSeparator && (
                   <div className="flex items-center gap-2 py-0.5">
                     <div className="flex-1 border-t border-gray-50" />
-                    <span className="text-[10px] text-gray-300">
+                    <span className="text-[11px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
                     <div className="flex-1 border-t border-gray-50" />
                   </div>
                 )}
-                <div className="flex justify-center">
-                  <span className="text-[11px] text-gray-400 px-2 py-1">
+                <div className="flex justify-center py-0.5">
+                  <span className="text-xs text-gray-400">
                     {msg.text}
                   </span>
                 </div>
@@ -1114,7 +1103,7 @@ export default function ConnectionDrawer({
               {showSeparator && (
                 <div className="flex items-center gap-2 py-0.5">
                   <div className="flex-1 border-t border-gray-50" />
-                  <span className="text-[10px] text-gray-300">
+                  <span className="text-[11px] text-gray-300">
                     {formatDateSeparator(msg.created_at)}
                   </span>
                   <div className="flex-1 border-t border-gray-50" />
@@ -1127,7 +1116,7 @@ export default function ConnectionDrawer({
                       ? "bg-gray-800 text-white rounded-tr-sm"
                       : "bg-gray-50 text-gray-700 rounded-tl-sm"
                   }`}>
-                    <p className="text-[13px] leading-relaxed">{msg.text}</p>
+                    <p className="text-sm leading-relaxed">{msg.text}</p>
                   </div>
                   <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
                     {msgDate}
@@ -1161,13 +1150,13 @@ export default function ConnectionDrawer({
             }}
             placeholder={messagePlaceholder}
             disabled={sending}
-            className="flex-1 bg-gray-50 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 placeholder:text-gray-300 min-h-[40px] outline-none focus:ring-1 focus:ring-gray-300 focus:bg-white transition-colors disabled:opacity-50"
+            className="flex-1 bg-gray-50 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-300 min-h-[40px] outline-none focus:ring-1 focus:ring-gray-300 focus:bg-white transition-colors disabled:opacity-50"
           />
           <button
             type="button"
             onClick={handleSendMessage}
             disabled={sending || !messageText.trim()}
-            className="px-3 py-2.5 rounded-lg bg-gray-900 text-white text-[13px] font-medium min-h-[40px] hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="px-3 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-medium min-h-[40px] hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {sending ? "..." : "Send"}
           </button>
@@ -1213,7 +1202,7 @@ export default function ConnectionDrawer({
               type="button"
               disabled={proposalSending}
               onClick={() => handleProposeTime(opt.date, opt.time, proposalTimezone)}
-              className="w-full text-left px-3 py-2 rounded-lg text-[13px] text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="w-full text-left px-3 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               {opt.label}
             </button>
@@ -1286,7 +1275,7 @@ export default function ConnectionDrawer({
             type="button"
             onClick={() => specificDate && specificTime && handleProposeTime(specificDate, specificTime, proposalTimezone)}
             disabled={!specificDate || !specificTime || proposalSending}
-            className="flex-[2] px-3 py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+            className="flex-[2] px-3 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             {proposalSending ? "Sending..." : "Suggest This Time"}
           </button>
@@ -1327,7 +1316,7 @@ export default function ConnectionDrawer({
           <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <p className="text-[13px] font-medium text-gray-700 truncate">
+          <p className="text-sm font-medium text-gray-700 truncate">
             {dateLabel} &middot; {timeLabel}
           </p>
         </div>
@@ -1416,7 +1405,7 @@ export default function ConnectionDrawer({
             <button
               type="button"
               onClick={() => { setShowTimePicker(true); setPickerMode("quick"); }}
-              className="flex-[2] px-3 py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
+              className="flex-[2] px-3 py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
             >
               Suggest a Time
             </button>
@@ -1478,7 +1467,7 @@ export default function ConnectionDrawer({
                 value={nextStepNote}
                 onChange={(e) => setNextStepNote(e.target.value)}
                 placeholder="Add a note (optional)"
-                className="w-full px-3 py-2 rounded-lg border border-gray-100 text-[13px] text-gray-900 placeholder:text-gray-300 outline-none focus:ring-1 focus:ring-gray-300 resize-vertical min-h-[50px]"
+                className="w-full px-3 py-2 rounded-lg border border-gray-100 text-sm text-gray-900 placeholder:text-gray-300 outline-none focus:ring-1 focus:ring-gray-300 resize-vertical min-h-[50px]"
               />
             </div>
           </div>
@@ -1498,7 +1487,7 @@ export default function ConnectionDrawer({
               type="button"
               onClick={() => handleNextStepRequest(nextStepConfirm)}
               disabled={nextStepSending}
-              className="flex-[2] py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="flex-[2] py-2 text-sm font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               {nextStepSending ? "Sending..." : "Send Request"}
             </button>
@@ -1732,7 +1721,7 @@ export default function ConnectionDrawer({
                           setNextStepConfirm(nextSteps[0]);
                           setNextStepNote("");
                         }}
-                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-gray-900 text-white text-[13px] font-medium hover:bg-gray-800 transition-colors"
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
                       >
                         <PhoneIcon className="w-3 h-3" />
                         Schedule a Call

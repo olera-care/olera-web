@@ -128,55 +128,6 @@ function blurName(name: string): string {
     .join(" ");
 }
 
-function ConfirmDialog({
-  title,
-  description,
-  confirmLabel,
-  confirmVariant = "danger",
-  onConfirm,
-  onCancel,
-  loading,
-}: {
-  title: string;
-  description: string;
-  confirmLabel: string;
-  confirmVariant?: "danger" | "primary";
-  onConfirm: () => void;
-  onCancel: () => void;
-  loading: boolean;
-}) {
-  return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-2xl p-6 mx-6 shadow-lg max-w-[400px] w-full">
-        <h4 className="text-lg font-bold text-gray-900">{title}</h4>
-        <p className="text-base text-gray-600 mt-2 leading-relaxed">{description}</p>
-        <div className="flex gap-3 mt-5">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="flex-1 min-h-[44px] text-base font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={loading}
-            className={`flex-1 min-h-[44px] text-base font-semibold text-white rounded-xl transition-colors disabled:opacity-50 ${
-              confirmVariant === "danger"
-                ? "bg-red-600 hover:bg-red-700"
-                : "bg-primary-600 hover:bg-primary-700"
-            }`}
-          >
-            {loading ? "..." : confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── SVG Icons ──
 
 const PhoneIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -456,7 +407,7 @@ export default function ConnectionDrawer({
     }
   };
 
-  const handleHide = async () => {
+  const handleHideInline = async () => {
     if (!connection) return;
     setActionLoading(true);
     try {
@@ -467,7 +418,11 @@ export default function ConnectionDrawer({
       });
       if (!res.ok) throw new Error("Failed to hide");
       setConfirmAction(null);
-      onHide?.(connection.id);
+      setInlineSuccess("remove");
+      setTimeout(() => {
+        setInlineSuccess(null);
+        onHide?.(connection.id);
+      }, 2000);
     } catch {
       setError("Failed to remove connection");
     } finally {
@@ -1381,16 +1336,41 @@ export default function ConnectionDrawer({
             {/* Provider: Past Connection Actions */}
             {isProvider && !shouldBlur && (connection.status === "declined" || connection.status === "expired" || connection.status === "archived") && (
               <div className="shrink-0 px-7 py-3 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setConfirmAction("remove")}
-                  className="flex items-center gap-2 text-base text-gray-500 hover:text-gray-700 transition-colors min-h-[44px]"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Remove from list
-                </button>
+                {inlineSuccess === "remove" ? (
+                  <div className="px-3 py-2.5 bg-gray-100 rounded-lg text-center">
+                    <p className="text-xs font-semibold text-gray-900">Removed from list</p>
+                  </div>
+                ) : confirmAction === "remove" ? (
+                  <div className="px-3 py-2.5 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-xs font-semibold text-gray-900 mb-2">Remove from your list? You can always reconnect later.</p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAction(null)}
+                        disabled={actionLoading}
+                        className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleHideInline}
+                        disabled={actionLoading}
+                        className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
+                      >
+                        {actionLoading ? "..." : "Remove"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => setConfirmAction("remove")}
+                    className="flex items-center gap-1.5 cursor-pointer py-1"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                    <span className="text-xs text-gray-500">Remove from list</span>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1438,43 +1418,66 @@ export default function ConnectionDrawer({
             {/* Family: Past Connection Actions (declined / expired / withdrawn / ended) */}
             {!isProvider && !shouldBlur && (connection.status === "declined" || connection.status === "expired") && (
               <div className="shrink-0 px-7 py-4 border-t border-gray-100">
-                {connection.status === "declined" && (
-                  <div className="flex gap-3">
-                    <Link href="/browse" className="flex-1">
+                {inlineSuccess === "remove" ? (
+                  <div className="px-3 py-2.5 bg-gray-100 rounded-lg text-center">
+                    <p className="text-xs font-semibold text-gray-900">Removed from list</p>
+                  </div>
+                ) : confirmAction === "remove" ? (
+                  <div className="px-3 py-2.5 bg-red-50 rounded-lg border border-red-200">
+                    <p className="text-xs font-semibold text-gray-900 mb-2">Remove from your list? You can always reconnect later.</p>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        className="w-full min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                        onClick={() => setConfirmAction(null)}
+                        disabled={actionLoading}
+                        className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                       >
-                        Browse similar &rarr;
+                        Cancel
                       </button>
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmAction("remove")}
-                      className="flex-1 min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-                    >
-                      Remove from list
-                    </button>
-                  </div>
-                )}
-                {connection.status === "expired" && (
-                  <div className="flex gap-3">
-                    <Link href={profileHref} className="flex-1">
                       <button
                         type="button"
-                        className="w-full min-h-[44px] rounded-xl bg-primary-600 text-white text-base font-semibold hover:bg-primary-700 transition-colors"
+                        onClick={handleHideInline}
+                        disabled={actionLoading}
+                        className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
                       >
-                        {isEnded ? "Reconnect" : "Connect again"}
+                        {actionLoading ? "..." : "Remove"}
                       </button>
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmAction("remove")}
-                      className="flex-1 min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-                    >
-                      Remove from list
-                    </button>
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    {connection.status === "declined" && (
+                      <div className="flex gap-3 mb-3">
+                        <Link href="/browse" className="flex-1">
+                          <button
+                            type="button"
+                            className="w-full min-h-[44px] rounded-xl border border-gray-200 text-base font-medium text-primary-600 hover:bg-primary-50 transition-colors"
+                          >
+                            Browse similar &rarr;
+                          </button>
+                        </Link>
+                      </div>
+                    )}
+                    {connection.status === "expired" && (
+                      <div className="flex gap-3 mb-3">
+                        <Link href={profileHref} className="flex-1">
+                          <button
+                            type="button"
+                            className="w-full min-h-[44px] rounded-xl bg-primary-600 text-white text-base font-semibold hover:bg-primary-700 transition-colors"
+                          >
+                            {isEnded ? "Reconnect" : "Connect again"}
+                          </button>
+                        </Link>
+                      </div>
+                    )}
+                    <div
+                      onClick={() => setConfirmAction("remove")}
+                      className="flex items-center gap-1.5 cursor-pointer py-1"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                      <span className="text-xs text-gray-500">Remove from list</span>
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -1490,18 +1493,7 @@ export default function ConnectionDrawer({
           </>
         )}
 
-        {/* ── Confirm Dialog Overlay (remove only — withdraw/end use inline confirmations) ── */}
-        {confirmAction === "remove" && (
-          <ConfirmDialog
-            title="Remove from list?"
-            description="This connection will be removed from your list. You can always reconnect later."
-            confirmLabel="Remove"
-            confirmVariant="danger"
-            onConfirm={handleHide}
-            onCancel={() => setConfirmAction(null)}
-            loading={actionLoading}
-          />
-        )}
+        {/* Remove confirmation is now inline — no modal overlay needed */}
       </div>
     </div>
   );

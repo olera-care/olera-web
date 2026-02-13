@@ -689,7 +689,7 @@ export default function ConnectionDrawer({
     {
       id: "call",
       label: "Request a call",
-      desc: "Provider will receive your phone number",
+      desc: "",
       msg: "would like to request a phone call",
       iconBg: "bg-primary-50",
       iconBorder: "border-primary-100",
@@ -698,7 +698,7 @@ export default function ConnectionDrawer({
     {
       id: "consultation",
       label: "Request a consultation",
-      desc: "Request a free in-person or virtual visit",
+      desc: "",
       msg: "would like to request a consultation",
       iconBg: "bg-primary-50",
       iconBorder: "border-primary-100",
@@ -708,8 +708,8 @@ export default function ConnectionDrawer({
       ? [
           {
             id: "visit",
-            label: "Request a home visit",
-            desc: "Request an in-home assessment",
+            label: "Request an in-home assessment",
+            desc: "",
             msg: "would like to request a home visit",
             iconBg: "bg-primary-50",
             iconBorder: "border-primary-100",
@@ -972,13 +972,10 @@ export default function ConnectionDrawer({
               setNextStepConfirm(step);
               setNextStepNote("");
             }}
-            className="flex items-center gap-3 w-full px-3.5 py-3.5 rounded-xl border border-gray-200 bg-white text-left hover:border-primary-200 hover:bg-primary-25 transition-all group"
+            className="flex items-center gap-3 w-full h-[52px] px-3.5 rounded-xl border border-gray-200 bg-white text-left hover:border-primary-200 hover:bg-primary-25 transition-all group"
           >
             <div className={`w-8 h-8 rounded-lg ${step.iconBg} flex items-center justify-center shrink-0`}>{step.icon}</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{step.label}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{step.desc}</p>
-            </div>
+            <p className="flex-1 min-w-0 text-sm font-semibold text-gray-900">{step.label}</p>
             <ChevronRightIcon className="w-3.5 h-3.5 text-gray-300 group-hover:text-primary-500 transition-colors shrink-0" />
           </button>
         ))}

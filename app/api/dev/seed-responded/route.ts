@@ -52,14 +52,24 @@ export async function POST() {
       (existingConnections ?? []).map((c) => c.to_profile_id as string)
     );
 
-    // Backfill contact info on already-connected providers missing it
+    // Backfill contact info on any connected providers (any status) missing it
+    const { data: allConnections } = await supabase
+      .from("connections")
+      .select("to_profile_id")
+      .eq("from_profile_id", userProfileId)
+      .eq("type", "inquiry");
+
+    const allConnectedProviderIds = new Set(
+      (allConnections ?? []).map((c) => c.to_profile_id as string)
+    );
+
     let backfilledContactId: string | null = null;
-    if (existingProviderIds.size > 0) {
-      const existingIds = Array.from(existingProviderIds);
+    if (allConnectedProviderIds.size > 0) {
+      const allIds = Array.from(allConnectedProviderIds);
       const { data: connectedProfiles } = await supabase
         .from("business_profiles")
         .select("id, display_name, phone, email, website")
-        .in("id", existingIds);
+        .in("id", allIds);
 
       const needsContact = (connectedProfiles ?? []).find(
         (p) => !p.phone && !p.email && !p.website

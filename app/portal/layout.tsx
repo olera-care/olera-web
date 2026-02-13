@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
@@ -33,6 +35,8 @@ const ALL_NAV_ITEMS = [
 export default function PortalLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, account, activeProfile, isLoading, fetchError, refreshAccountData } = useAuth();
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const completeness = useProfileCompleteness(activeProfile ?? null, user?.email);
 
   // Brief spinner while getSession() runs (reads local storage — very fast)
   if (isLoading) {
@@ -108,6 +112,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  const showNudge =
+    activeProfile?.type === "family" &&
+    completeness.percentage < 60 &&
+    !nudgeDismissed;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Mobile: header + horizontal tabs */}
@@ -162,6 +171,57 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
                 );
               })}
             </nav>
+
+            {/* Profile completeness nudge */}
+            {showNudge && (
+              <div className="mt-4 mx-1 p-4 bg-gray-50 rounded-xl border border-gray-200 relative">
+                <button
+                  onClick={() => setNudgeDismissed(true)}
+                  className="absolute top-2.5 right-2.5 text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+                <div className="flex items-center gap-3 mb-2.5">
+                  {/* Progress ring */}
+                  <div className="relative w-10 h-10 shrink-0">
+                    <svg width="40" height="40" viewBox="0 0 40 40">
+                      <circle cx="20" cy="20" r="16" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                      <circle
+                        cx="20"
+                        cy="20"
+                        r="16"
+                        fill="none"
+                        stroke="#199087"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(completeness.percentage / 100) * 100.53} 100.53`}
+                        transform="rotate(-90 20 20)"
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-gray-700">
+                      {completeness.percentage}%
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-bold text-gray-900 leading-tight">
+                      Your profile is incomplete
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[12px] text-gray-500 leading-relaxed mb-3">
+                  Complete profiles get more responses from providers.
+                </p>
+                <Link href="/portal/profile">
+                  <button className="w-full px-3 py-2 bg-primary-600 text-white text-[13px] font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                    Complete profile
+                  </button>
+                </Link>
+              </div>
+            )}
 
             {/* Bottom link — pushed down */}
             <div className="mt-auto pt-4 border-t border-gray-100">

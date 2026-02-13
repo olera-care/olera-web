@@ -28,6 +28,7 @@ export default function MatchCardStack({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animDirection, setAnimDirection] = useState<AnimDirection>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const prevProvidersRef = useRef(providers);
 
@@ -67,33 +68,27 @@ export default function MatchCardStack({
   );
 
   const handleDismiss = useCallback(() => {
-    if (!provider || animDirection) return;
+    if (!provider || animDirection || showConfirmation) return;
     advance("left", () => onDismiss(provider));
-  }, [provider, animDirection, advance, onDismiss]);
+  }, [provider, animDirection, showConfirmation, advance, onDismiss]);
 
   const handleConnect = useCallback(() => {
-    if (!provider || animDirection) return;
+    if (!provider || animDirection || showConfirmation) return;
+    // Fire connection request immediately (optimistic)
     onConnect(provider);
-  }, [provider, animDirection, onConnect]);
+    // Show inline confirmation overlay
+    setShowConfirmation(true);
+    // After 2 seconds, clear overlay and advance card
+    setTimeout(() => {
+      setShowConfirmation(false);
+      advance("right", () => {});
+    }, 2000);
+  }, [provider, animDirection, showConfirmation, onConnect, advance]);
 
   const handleViewProfile = useCallback(() => {
     if (!provider) return;
     onViewProfile(provider);
   }, [provider, onViewProfile]);
-
-  // After connect confirmation, advance the card
-  // This is called from the parent after the modal confirms
-  const advanceAfterConnect = useCallback(() => {
-    advance("right", () => {});
-  }, [advance]);
-
-  // Expose advanceAfterConnect via ref pattern
-  useEffect(() => {
-    if (containerRef.current) {
-      (containerRef.current as HTMLDivElement & { advanceCard?: () => void }).advanceCard =
-        advanceAfterConnect;
-    }
-  }, [advanceAfterConnect]);
 
   // Keyboard support
   useEffect(() => {
@@ -206,6 +201,31 @@ export default function MatchCardStack({
             total={providers.length}
             onViewProfile={handleViewProfile}
           />
+
+          {/* Inline confirmation overlay */}
+          {showConfirmation && (
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-2xl bg-white/95">
+              {/* Green check circle */}
+              <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mb-3">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#16a34a"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <p className="text-lg font-bold text-gray-900">Request sent</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Track responses in My Connections
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -213,7 +233,7 @@ export default function MatchCardStack({
       <MatchActions
         onDismiss={handleDismiss}
         onConnect={handleConnect}
-        disabled={!!animDirection}
+        disabled={!!animDirection || showConfirmation}
       />
     </div>
   );

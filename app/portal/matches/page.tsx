@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { Provider } from "@/lib/types/provider";
-import type { FamilyMetadata } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import MatchCardStack from "@/components/portal/matches/MatchCardStack";
 import MatchSortBar from "@/components/portal/matches/MatchSortBar";
-import ConnectionConfirmModal from "@/components/portal/matches/ConnectionConfirmModal";
 import CarePostView from "@/components/portal/matches/CarePostView";
 
 type SortOption = "relevance" | "closest" | "highest_rated";
@@ -25,11 +23,6 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Connection modal state
-  const [confirmProvider, setConfirmProvider] = useState<Provider | null>(null);
-  const cardStackRef = useRef<HTMLDivElement>(null);
-
-  const meta = (activeProfile?.metadata || {}) as FamilyMetadata;
   const hasRequiredFields =
     activeProfile?.care_types?.length && activeProfile?.state;
 
@@ -89,28 +82,16 @@ export default function MatchesPage() {
     }
   }, []);
 
-  // Connect handler — opens modal
-  const handleConnect = useCallback((provider: Provider) => {
-    setConfirmProvider(provider);
-  }, []);
-
-  // View profile handler
-  const handleViewProfile = useCallback((provider: Provider) => {
-    window.open(`/provider/${provider.provider_id}`, "_blank");
-  }, []);
-
-  // Send connection request
-  const handleSendRequest = useCallback(async () => {
-    if (!confirmProvider) return;
-
+  // Connect handler — sends request immediately (card stack shows inline overlay)
+  const handleConnect = useCallback(async (provider: Provider) => {
     try {
       const res = await fetch("/api/connections/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          providerId: confirmProvider.provider_id,
-          providerName: confirmProvider.provider_name,
-          providerSlug: confirmProvider.provider_id,
+          providerId: provider.provider_id,
+          providerName: provider.provider_name,
+          providerSlug: provider.provider_id,
         }),
       });
 
@@ -118,20 +99,15 @@ export default function MatchesPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to send request");
       }
-
-      setConfirmProvider(null);
-
-      // Advance the card stack
-      const stack = cardStackRef.current as HTMLDivElement & {
-        advanceCard?: () => void;
-      };
-      if (stack?.advanceCard) {
-        stack.advanceCard();
-      }
     } catch (err) {
       console.error("Connection request error:", err);
     }
-  }, [confirmProvider]);
+  }, []);
+
+  // View profile handler
+  const handleViewProfile = useCallback((provider: Provider) => {
+    window.open(`/provider/${provider.provider_id}`, "_blank");
+  }, []);
 
   // Sort change
   const handleSortChange = useCallback((newSort: SortOption) => {
@@ -240,16 +216,14 @@ export default function MatchesPage() {
               )}
 
               <div className="min-h-[560px]">
-                <div ref={cardStackRef}>
-                  <MatchCardStack
-                    providers={providers}
-                    onDismiss={handleDismiss}
-                    onConnect={handleConnect}
-                    onViewProfile={handleViewProfile}
-                    onRefresh={() => fetchMatches(sort)}
-                    isLoading={loading}
-                  />
-                </div>
+                <MatchCardStack
+                  providers={providers}
+                  onDismiss={handleDismiss}
+                  onConnect={handleConnect}
+                  onViewProfile={handleViewProfile}
+                  onRefresh={() => fetchMatches(sort)}
+                  isLoading={loading}
+                />
               </div>
             </>
           )}
@@ -266,15 +240,6 @@ export default function MatchesPage() {
         />
       )}
 
-      {/* Connection Confirm Modal */}
-      <ConnectionConfirmModal
-        isOpen={!!confirmProvider}
-        onClose={() => setConfirmProvider(null)}
-        onConfirm={handleSendRequest}
-        provider={confirmProvider}
-        activeProfile={activeProfile}
-        userEmail={user?.email}
-      />
     </div>
   );
 }

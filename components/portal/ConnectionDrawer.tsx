@@ -793,6 +793,7 @@ export default function ConnectionDrawer({
     : "";
 
   // Contact info — only shown after connection is accepted
+  const isPending = connection?.status === "pending";
   const isAccepted = connection?.status === "accepted";
   const hasPhone = isAccepted && !shouldBlur && otherProfile?.phone;
   const hasEmail = isAccepted && !shouldBlur && otherProfile?.email;
@@ -1780,6 +1781,51 @@ export default function ConnectionDrawer({
                         : "This family seems interested \u2014 let them know you\u2019re available for a call"}
                     </p>
                   )}
+                </div>
+              )}
+
+              {/* ── PENDING ACTION BAR: Guide family to share more while waiting ── */}
+              {isPending && !shouldBlur && !isProvider && (
+                <div className="shrink-0 px-5 py-3 border-t border-gray-50">
+                  <p className="text-xs text-gray-500 mb-2.5">
+                    {thread.length === 0
+                      ? "While you wait, share more details to help them understand your needs."
+                      : "Providers respond faster when they can see a complete picture."}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (messageInputRef.current) {
+                          messageInputRef.current.focus();
+                        }
+                      }}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      Add a message
+                    </button>
+                    <Link
+                      href="/portal/profile"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-gray-900 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Update profile
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* ── PENDING ACTION BAR: Provider view — nudge to respond ── */}
+              {isPending && !shouldBlur && isProvider && isInbound && (
+                <div className="shrink-0 px-5 py-3 border-t border-gray-50">
+                  <p className="text-xs text-gray-500 mb-2.5">
+                    This family is waiting for your response. Send a message or accept to start the conversation.
+                  </p>
                 </div>
               )}
 

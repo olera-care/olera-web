@@ -251,7 +251,7 @@ export default function ConnectionDrawer({
   const [pickerMode, setPickerMode] = useState<"quick" | "specific">("quick");
   const [specificDate, setSpecificDate] = useState("");
   const [specificTime, setSpecificTime] = useState("");
-  const [proposalTimezone, setProposalTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [proposalTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [proposalSending, setProposalSending] = useState(false);
   const [respondingProposal, setRespondingProposal] = useState(false);
   const [showOverflowMenu, setShowOverflowMenu] = useState(false);
@@ -883,27 +883,27 @@ export default function ConnectionDrawer({
     const requestDate = connection?.created_at ? getDateKey(connection.created_at) : "";
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         {/* Family's note (if any) as the first message */}
         {!shouldBlur && parsedMsg?.notes && (
           <>
-            <div className="flex items-center gap-3 py-1">
-              <div className="flex-1 border-t border-gray-100" />
-              <span className="text-xs font-medium text-gray-400">
+            <div className="flex items-center gap-2 py-0.5">
+              <div className="flex-1 border-t border-gray-50" />
+              <span className="text-[10px] text-gray-300">
                 {connection?.created_at ? formatDateSeparator(connection.created_at) : ""}
               </span>
-              <div className="flex-1 border-t border-gray-100" />
+              <div className="flex-1 border-t border-gray-50" />
             </div>
             <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
-              <div className="max-w-[85%]">
-                <div className={`rounded-2xl px-4 py-3 ${
+              <div className="max-w-[80%]">
+                <div className={`rounded-xl px-3 py-2 ${
                   isInbound
-                    ? "bg-gray-100 text-gray-800 rounded-tl-sm"
+                    ? "bg-gray-50 text-gray-700 rounded-tl-sm"
                     : "bg-gray-800 text-white rounded-tr-sm"
                 }`}>
-                  <p className="text-sm leading-relaxed">{parsedMsg.notes}</p>
+                  <p className="text-[13px] leading-relaxed">{parsedMsg.notes}</p>
                 </div>
-                <p className={`text-xs mt-1 ${isInbound ? "text-left" : "text-right"} text-gray-400`}>
+                <p className={`text-[10px] mt-0.5 ${isInbound ? "text-left" : "text-right"} text-gray-300`}>
                   {shortDate}
                 </p>
               </div>
@@ -913,12 +913,12 @@ export default function ConnectionDrawer({
 
         {/* Connected milestone marker */}
         {connection!.status === "accepted" && !shouldBlur && (
-          <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 border-t border-emerald-100" />
-            <span className="text-xs font-medium text-emerald-600">
+          <div className="flex items-center gap-2 py-0.5">
+            <div className="flex-1 border-t border-gray-100" />
+            <span className="text-[10px] text-gray-400">
               Connected
             </span>
-            <div className="flex-1 border-t border-emerald-100" />
+            <div className="flex-1 border-t border-gray-100" />
           </div>
         )}
 
@@ -940,16 +940,16 @@ export default function ConnectionDrawer({
             return (
               <div key={i}>
                 {showSeparator && (
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="flex-1 border-t border-gray-100" />
-                    <span className="text-xs font-medium text-gray-400">
+                  <div className="flex items-center gap-2 py-0.5">
+                    <div className="flex-1 border-t border-gray-50" />
+                    <span className="text-[10px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
-                    <div className="flex-1 border-t border-gray-100" />
+                    <div className="flex-1 border-t border-gray-50" />
                   </div>
                 )}
                 <div className="flex justify-center">
-                  <span className="text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">
+                  <span className="text-[11px] text-gray-400 px-2 py-1">
                     {msg.text}
                   </span>
                 </div>
@@ -965,50 +965,35 @@ export default function ConnectionDrawer({
             minute: "2-digit",
           });
 
-          // Next step request — structured card styling
+          // Next step request — compact card
           if (msg.type === "next_step_request") {
             const stepLabel =
               msg.next_step === "call" ? "Call requested" :
               msg.next_step === "consultation" ? "Consultation requested" :
               msg.next_step === "visit" ? "Home visit requested" : "Request";
-            const StepIcon = msg.next_step === "call" ? PhoneIcon :
-              msg.next_step === "consultation" ? ClipboardIcon : HomeIcon;
 
             return (
               <div key={i}>
                 {showSeparator && (
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="flex-1 border-t border-gray-100" />
-                    <span className="text-xs font-medium text-gray-400">
+                  <div className="flex items-center gap-2 py-0.5">
+                    <div className="flex-1 border-t border-gray-50" />
+                    <span className="text-[10px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
-                    <div className="flex-1 border-t border-gray-100" />
+                    <div className="flex-1 border-t border-gray-50" />
                   </div>
                 )}
                 <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                  <div className="max-w-[85%]">
-                    <div className={`rounded-2xl overflow-hidden border ${
-                      isOwn
-                        ? "bg-gray-800 border-gray-700"
-                        : "bg-white border-gray-200"
+                  <div className="max-w-[80%]">
+                    <div className={`rounded-xl px-3 py-2 ${
+                      isOwn ? "bg-gray-800 text-white rounded-tr-sm" : "bg-gray-50 text-gray-700 rounded-tl-sm"
                     }`}>
-                      <div className={`flex items-center gap-2 px-4 py-2 border-b ${
-                        isOwn ? "border-gray-700 bg-gray-750" : "border-gray-100 bg-gray-50"
-                      }`}>
-                        <StepIcon className={`w-3.5 h-3.5 ${isOwn ? "text-gray-400" : "text-gray-500"}`} />
-                        <span className={`text-xs font-bold uppercase tracking-wider ${
-                          isOwn ? "text-gray-300" : "text-gray-600"
-                        }`}>
-                          {stepLabel}
-                        </span>
-                      </div>
-                      <div className="px-4 py-3">
-                        <p className={`text-base leading-relaxed ${
-                          isOwn ? "text-white" : "text-gray-800"
-                        }`}>{msg.text}</p>
-                      </div>
+                      <p className={`text-[10px] font-medium uppercase tracking-wide mb-0.5 ${
+                        isOwn ? "text-gray-400" : "text-gray-400"
+                      }`}>{stepLabel}</p>
+                      <p className="text-[13px] leading-relaxed">{msg.text}</p>
                     </div>
-                    <p className={`text-xs mt-1 ${isOwn ? "text-right" : "text-left"} text-gray-400`}>
+                    <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
                       {msgDate}
                     </p>
                   </div>
@@ -1034,50 +1019,46 @@ export default function ConnectionDrawer({
             return (
               <div key={i}>
                 {showSeparator && (
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="flex-1 border-t border-gray-100" />
-                    <span className="text-xs font-medium text-gray-400">
+                  <div className="flex items-center gap-2 py-0.5">
+                    <div className="flex-1 border-t border-gray-50" />
+                    <span className="text-[10px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
-                    <div className="flex-1 border-t border-gray-100" />
+                    <div className="flex-1 border-t border-gray-50" />
                   </div>
                 )}
                 <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                  <div className="max-w-[85%]">
+                  <div className="max-w-[80%]">
                     {proposalData && slotLabel ? (
-                      <div className={`rounded-2xl overflow-hidden border ${
+                      <div className={`rounded-xl overflow-hidden ${
                         isProposalResolved
-                          ? "bg-emerald-50 border-emerald-200"
-                          : isOwn ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+                          ? "bg-gray-50 border border-gray-100"
+                          : isOwn ? "bg-gray-800" : "bg-gray-50 border border-gray-100"
                       }`}>
-                        <div className="px-4 py-3">
-                          <div className="flex items-center gap-2 mb-1">
-                            <svg className={`w-3.5 h-3.5 ${isProposalResolved ? "text-emerald-600" : isOwn ? "text-gray-400" : "text-gray-500"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span className={`text-sm font-semibold ${
-                              isProposalResolved ? "text-emerald-800" : isOwn ? "text-white" : "text-gray-900"
+                        <div className="px-3 py-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[13px] font-medium ${
+                              isProposalResolved ? "text-gray-700" : isOwn ? "text-white" : "text-gray-800"
                             }`}>
                               {slotLabel}
                             </span>
                             {isProposalResolved && (
-                              <svg className="w-4 h-4 text-emerald-600 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5 text-emerald-500 ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
                             )}
                           </div>
                           {isProposalResolved && (
-                            <p className="text-xs text-emerald-600 font-medium">Confirmed</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">Confirmed</p>
                           )}
                         </div>
-                        {/* Tap to confirm / decline — only for the other party */}
                         {canRespond && (
-                          <div className="px-4 pb-3 flex gap-2">
+                          <div className="px-3 pb-2.5 flex gap-2">
                             <button
                               type="button"
                               onClick={() => handleRespondProposal("accept")}
                               disabled={respondingProposal}
-                              className="flex-1 px-3 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                              className="flex-1 px-2.5 py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
                             >
                               {respondingProposal ? "..." : "Confirm"}
                             </button>
@@ -1085,7 +1066,7 @@ export default function ConnectionDrawer({
                               type="button"
                               onClick={() => handleRespondProposal("decline")}
                               disabled={respondingProposal}
-                              className="px-3 py-2.5 text-sm font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                              className="px-2.5 py-2 text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
                             >
                               Doesn&apos;t work
                             </button>
@@ -1093,12 +1074,11 @@ export default function ConnectionDrawer({
                         )}
                       </div>
                     ) : (
-                      /* Fallback for old/resolved proposals without data */
-                      <div className={`rounded-2xl px-4 py-3 ${isOwn ? "bg-gray-800 text-white rounded-tr-sm" : "bg-gray-100 text-gray-800 rounded-tl-sm"}`}>
-                        <p className="text-sm leading-relaxed">{msg.text}</p>
+                      <div className={`rounded-xl px-3 py-2 ${isOwn ? "bg-gray-800 text-white rounded-tr-sm" : "bg-gray-50 text-gray-700 rounded-tl-sm"}`}>
+                        <p className="text-[13px] leading-relaxed">{msg.text}</p>
                       </div>
                     )}
-                    <p className={`text-xs mt-1 ${isOwn ? "text-right" : "text-left"} text-gray-400`}>
+                    <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
                       {msgDate}
                     </p>
                   </div>
@@ -1112,16 +1092,16 @@ export default function ConnectionDrawer({
             return (
               <div key={i}>
                 {showSeparator && (
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="flex-1 border-t border-emerald-100" />
-                    <span className="text-xs font-medium text-emerald-600">
+                  <div className="flex items-center gap-2 py-0.5">
+                    <div className="flex-1 border-t border-gray-50" />
+                    <span className="text-[10px] text-gray-300">
                       {formatDateSeparator(msg.created_at)}
                     </span>
-                    <div className="flex-1 border-t border-emerald-100" />
+                    <div className="flex-1 border-t border-gray-50" />
                   </div>
                 )}
                 <div className="flex justify-center">
-                  <span className="text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-medium">
+                  <span className="text-[11px] text-gray-400 px-2 py-1">
                     {msg.text}
                   </span>
                 </div>
@@ -1132,24 +1112,24 @@ export default function ConnectionDrawer({
           return (
             <div key={i}>
               {showSeparator && (
-                <div className="flex items-center gap-3 py-1">
-                  <div className="flex-1 border-t border-gray-100" />
-                  <span className="text-xs font-medium text-gray-400">
+                <div className="flex items-center gap-2 py-0.5">
+                  <div className="flex-1 border-t border-gray-50" />
+                  <span className="text-[10px] text-gray-300">
                     {formatDateSeparator(msg.created_at)}
                   </span>
-                  <div className="flex-1 border-t border-gray-100" />
+                  <div className="flex-1 border-t border-gray-50" />
                 </div>
               )}
               <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                <div className="max-w-[85%]">
-                  <div className={`rounded-2xl px-4 py-3 ${
+                <div className="max-w-[80%]">
+                  <div className={`rounded-xl px-3 py-2 ${
                     isOwn
                       ? "bg-gray-800 text-white rounded-tr-sm"
-                      : "bg-gray-100 text-gray-800 rounded-tl-sm"
+                      : "bg-gray-50 text-gray-700 rounded-tl-sm"
                   }`}>
-                    <p className="text-base leading-relaxed">{msg.text}</p>
+                    <p className="text-[13px] leading-relaxed">{msg.text}</p>
                   </div>
-                  <p className={`text-xs mt-1 ${isOwn ? "text-right" : "text-left"} text-gray-400`}>
+                  <p className={`text-[10px] mt-0.5 ${isOwn ? "text-right" : "text-left"} text-gray-300`}>
                     {msgDate}
                   </p>
                 </div>
@@ -1166,7 +1146,7 @@ export default function ConnectionDrawer({
   const renderMessageInput = () => {
     if (!showMessageInput) return null;
     return (
-      <div className="shrink-0 px-6 py-4 border-t border-gray-100">
+      <div className="shrink-0 px-5 py-3 border-t border-gray-50">
         <div className="flex gap-2">
           <input
             ref={messageInputRef}
@@ -1181,13 +1161,13 @@ export default function ConnectionDrawer({
             }}
             placeholder={messagePlaceholder}
             disabled={sending}
-            className="flex-1 bg-gray-100 rounded-xl px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 min-h-[44px] outline-none focus:ring-2 focus:ring-primary-500 focus:bg-white transition-colors disabled:opacity-50"
+            className="flex-1 bg-gray-50 rounded-lg px-3 py-2.5 text-[13px] text-gray-900 placeholder:text-gray-300 min-h-[40px] outline-none focus:ring-1 focus:ring-gray-300 focus:bg-white transition-colors disabled:opacity-50"
           />
           <button
             type="button"
             onClick={handleSendMessage}
             disabled={sending || !messageText.trim()}
-            className="px-4 py-3 rounded-xl bg-primary-600 text-white text-base font-medium min-h-[44px] hover:bg-primary-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="px-3 py-2.5 rounded-lg bg-gray-900 text-white text-[13px] font-medium min-h-[40px] hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {sending ? "..." : "Send"}
           </button>
@@ -1226,32 +1206,34 @@ export default function ConnectionDrawer({
     if (pickerMode === "quick") {
       const options = getQuickPickOptions();
       return (
-        <div className="space-y-2">
+        <div className="space-y-1">
           {options.map((opt, i) => (
             <button
               key={i}
               type="button"
               disabled={proposalSending}
               onClick={() => handleProposeTime(opt.date, opt.time, proposalTimezone)}
-              className="w-full text-left px-3 py-2.5 rounded-lg border border-gray-100 text-sm text-gray-800 hover:bg-primary-50 hover:border-primary-200 transition-colors disabled:opacity-50"
+              className="w-full text-left px-3 py-2 rounded-lg text-[13px] text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               {opt.label}
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => setPickerMode("specific")}
-            className="w-full text-left px-3 py-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            Pick a specific time...
-          </button>
-          <button
-            type="button"
-            onClick={() => { setShowTimePicker(false); setPickerMode("quick"); }}
-            className="w-full text-center px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Cancel
-          </button>
+          <div className="flex items-center justify-between pt-1">
+            <button
+              type="button"
+              onClick={() => setPickerMode("specific")}
+              className="text-[11px] text-gray-300 hover:text-gray-500 transition-colors"
+            >
+              Pick exact time...
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowTimePicker(false); setPickerMode("quick"); }}
+              className="text-[11px] text-gray-300 hover:text-gray-500 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       );
     }
@@ -1272,19 +1254,19 @@ export default function ConnectionDrawer({
     }).filter(Boolean) as Array<{ value: string; label: string }>;
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div className="flex gap-2">
           <input
             type="date"
             min={minDate}
             value={specificDate}
             onChange={(e) => setSpecificDate(e.target.value)}
-            className="flex-1 px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            className="flex-1 px-2 py-1.5 text-xs border border-gray-100 rounded-lg focus:ring-1 focus:ring-gray-300 focus:border-gray-300"
           />
           <select
             value={specificTime}
             onChange={(e) => setSpecificTime(e.target.value)}
-            className="flex-1 px-2.5 py-2 text-sm border border-gray-200 rounded-lg focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            className="flex-1 px-2 py-1.5 text-xs border border-gray-100 rounded-lg focus:ring-1 focus:ring-gray-300 focus:border-gray-300"
           >
             <option value="">Time</option>
             {TIME_OPTIONS.map((t) => (
@@ -1296,7 +1278,7 @@ export default function ConnectionDrawer({
           <button
             type="button"
             onClick={() => { setPickerMode("quick"); setSpecificDate(""); setSpecificTime(""); }}
-            className="flex-1 px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex-1 text-[11px] text-gray-400 hover:text-gray-600 transition-colors"
           >
             Back
           </button>
@@ -1304,7 +1286,7 @@ export default function ConnectionDrawer({
             type="button"
             onClick={() => specificDate && specificTime && handleProposeTime(specificDate, specificTime, proposalTimezone)}
             disabled={!specificDate || !specificTime || proposalSending}
-            className="flex-[2] px-3 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+            className="flex-[2] px-3 py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
           >
             {proposalSending ? "Sending..." : "Suggest This Time"}
           </button>
@@ -1324,14 +1306,14 @@ export default function ConnectionDrawer({
 
     if (isPast) {
       return (
-        <div className="p-3 rounded-xl border border-gray-200 bg-gray-50/50">
-          <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-400">
             Call was {dateLabel} &middot; {timeLabel}
           </p>
           <button
             type="button"
             onClick={() => { setShowTimePicker(true); setPickerMode("quick"); }}
-            className="text-xs font-medium text-primary-600 hover:text-primary-700 mt-1.5 transition-colors"
+            className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
           >
             Schedule another
           </button>
@@ -1340,35 +1322,55 @@ export default function ConnectionDrawer({
     }
 
     return (
-      <div className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <p className="text-sm font-semibold text-gray-900">
-                {dateLabel} &middot; {timeLabel}
-              </p>
-            </div>
-          </div>
-          {/* Overflow menu for reschedule/cancel */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <svg className="w-3.5 h-3.5 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <p className="text-[13px] font-medium text-gray-700 truncate">
+            {dateLabel} &middot; {timeLabel}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Add to Calendar */}
+          <button
+            type="button"
+            onClick={() => {
+              import("@/lib/ics").then(({ generateICS, downloadICS }) => {
+                const ics = generateICS({
+                  date: scheduledCall.date,
+                  time: scheduledCall.time,
+                  timezone: scheduledCall.timezone,
+                  title: `${scheduledCall.type === "call" ? "Call" : scheduledCall.type === "consultation" ? "Consultation" : "Visit"} with ${otherName} — Olera`,
+                  description: "Scheduled via Olera",
+                });
+                downloadICS(ics);
+              });
+            }}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Calendar
+          </button>
+          {/* Overflow */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowOverflowMenu(!showOverflowMenu)}
-              className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+              className="p-1 text-gray-300 hover:text-gray-500 transition-colors"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
               </svg>
             </button>
             {showOverflowMenu && (
-              <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+              <div className="absolute right-0 top-7 bg-white border border-gray-100 rounded-lg shadow-md py-0.5 z-10 min-w-[120px]">
                 <button
                   type="button"
                   onClick={() => { setShowOverflowMenu(false); setShowTimePicker(true); setPickerMode("quick"); }}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   Reschedule
                 </button>
@@ -1376,36 +1378,14 @@ export default function ConnectionDrawer({
                   type="button"
                   onClick={() => { setShowOverflowMenu(false); handleCancelScheduledCall(); }}
                   disabled={actionLoading}
-                  className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                  className="w-full text-left px-3 py-1.5 text-xs text-red-400 hover:bg-red-50 transition-colors"
                 >
-                  Cancel call
+                  Cancel
                 </button>
               </div>
             )}
           </div>
         </div>
-        {/* Primary action: Add to Calendar */}
-        <button
-          type="button"
-          onClick={() => {
-            import("@/lib/ics").then(({ generateICS, downloadICS }) => {
-              const ics = generateICS({
-                date: scheduledCall.date,
-                time: scheduledCall.time,
-                timezone: scheduledCall.timezone,
-                title: `${scheduledCall.type === "call" ? "Call" : scheduledCall.type === "consultation" ? "Consultation" : "Visit"} with ${otherName} — Olera`,
-                description: "Scheduled via Olera",
-              });
-              downloadICS(ics);
-            });
-          }}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          Add to Calendar
-        </button>
       </div>
     );
   };
@@ -1423,24 +1403,20 @@ export default function ConnectionDrawer({
       (m) => m.type === "next_step_request" && m.created_at === nextStepRequest.created_at
     );
     const isRequester = requestThreadMsg?.from_profile_id === activeProfile?.id;
-    const timeAgo = relativeTime(nextStepRequest.created_at);
 
-    // ── Responder view: action card with structured time picker ──
+    // ── Responder view ──
     if (!isRequester) {
       return (
-        <div className="p-3 rounded-xl border border-primary-100 bg-primary-50/40">
-          <p className="text-sm font-medium text-gray-900 mb-1">
-            {otherName} would like to schedule {stepNoun}
+        <div>
+          <p className="text-xs text-gray-500 mb-2">
+            {otherName} wants to schedule {stepNoun}
+            {nextStepRequest.note && <span className="italic"> — &ldquo;{nextStepRequest.note}&rdquo;</span>}
           </p>
-          {nextStepRequest.note && (
-            <p className="text-xs text-gray-500 italic mb-2">&ldquo;{nextStepRequest.note}&rdquo;</p>
-          )}
-
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => { setShowTimePicker(true); setPickerMode("quick"); }}
-              className="flex-[2] px-3 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              className="flex-[2] px-3 py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors"
             >
               Suggest a Time
             </button>
@@ -1448,7 +1424,7 @@ export default function ConnectionDrawer({
               type="button"
               onClick={handleCancelNextStep}
               disabled={actionLoading}
-              className="flex-1 px-3 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 px-3 py-2 text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
             >
               {actionLoading ? "..." : "Decline"}
             </button>
@@ -1457,39 +1433,19 @@ export default function ConnectionDrawer({
       );
     }
 
-    // ── Requester view: compact inline status ──
-    // Check if the other party has sent any regular messages after the request
-    const otherRepliedAfterRequest = thread.some(
-      (m) =>
-        m.from_profile_id === otherProfile?.id &&
-        m.type !== "system" &&
-        m.type !== "next_step_request" &&
-        new Date(m.created_at) > new Date(nextStepRequest.created_at)
-    );
-
+    // ── Requester view ──
     return (
-      <div className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl ${
-        otherRepliedAfterRequest
-          ? "bg-emerald-50/50 border border-emerald-100"
-          : "bg-amber-50/50 border border-amber-100"
-      }`}>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-900">
-            {nextStepRequest.type === "call" ? "Call" :
-             nextStepRequest.type === "consultation" ? "Consultation" :
-             "Home visit"} requested
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {otherRepliedAfterRequest
-              ? `${otherName} responded \u2014 check their message above`
-              : <>Waiting for {otherName} &mdash; most respond within a few hours</>}
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-gray-500">
+          {nextStepRequest.type === "call" ? "Call" :
+           nextStepRequest.type === "consultation" ? "Consultation" :
+           "Visit"} requested &middot; Waiting for {otherName}
+        </p>
         <button
           type="button"
           onClick={handleCancelNextStep}
           disabled={actionLoading}
-          className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors shrink-0"
+          className="text-xs text-gray-400 hover:text-red-500 transition-colors shrink-0"
         >
           {actionLoading ? "..." : "Cancel"}
         </button>
@@ -1502,42 +1458,31 @@ export default function ConnectionDrawer({
     if (!nextStepConfirm) return null;
 
     return (
-      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40">
+      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30">
         <div
-          className="bg-white rounded-2xl shadow-xl max-w-[420px] w-full mx-6 overflow-hidden"
+          className="bg-white rounded-xl shadow-lg max-w-[380px] w-full mx-6 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-                {nextStepConfirm.icon}
-              </div>
-              <h3 className="text-lg font-bold text-gray-900">{nextStepConfirm.label}</h3>
-            </div>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              A request will be sent to <strong className="text-gray-700">{otherName}</strong> asking them to suggest available times.
+          <div className="px-5 pt-5 pb-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">{nextStepConfirm.label}</h3>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              {otherName} will be asked to suggest available times.
             </p>
             {nextStepConfirm.id === "call" && (
-              <div className="mt-3 flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-                <PhoneIcon className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
-                <p className="text-xs text-amber-800 leading-relaxed">
-                  Your phone number will be shared with the provider so they can call you directly.
-                </p>
-              </div>
+              <p className="text-[11px] text-gray-400 mt-2">
+                Your phone number will be shared so they can call you directly.
+              </p>
             )}
-            <div className="mt-4">
-              <label className="text-xs font-semibold text-gray-600 block mb-2">
-                Add a note (optional)
-              </label>
+            <div className="mt-3">
               <textarea
                 value={nextStepNote}
                 onChange={(e) => setNextStepNote(e.target.value)}
-                placeholder="e.g., Afternoons work best, any day except Wednesday..."
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary-500 resize-vertical min-h-[60px]"
+                placeholder="Add a note (optional)"
+                className="w-full px-3 py-2 rounded-lg border border-gray-100 text-[13px] text-gray-900 placeholder:text-gray-300 outline-none focus:ring-1 focus:ring-gray-300 resize-vertical min-h-[50px]"
               />
             </div>
           </div>
-          <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex gap-3">
+          <div className="px-5 py-3 border-t border-gray-50 flex gap-2">
             <button
               type="button"
               onClick={() => {
@@ -1545,7 +1490,7 @@ export default function ConnectionDrawer({
                 setNextStepNote("");
               }}
               disabled={nextStepSending}
-              className="flex-1 min-h-[44px] text-sm font-medium text-gray-600 border border-gray-200 bg-white rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 py-2 text-[13px] text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
@@ -1553,7 +1498,7 @@ export default function ConnectionDrawer({
               type="button"
               onClick={() => handleNextStepRequest(nextStepConfirm)}
               disabled={nextStepSending}
-              className="flex-[2] min-h-[44px] text-sm font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50"
+              className="flex-[2] py-2 text-[13px] font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               {nextStepSending ? "Sending..." : "Send Request"}
             </button>
@@ -1583,8 +1528,8 @@ export default function ConnectionDrawer({
         className={`absolute right-0 top-0 h-full w-full bg-white shadow-xl flex flex-col transition-transform duration-300 ease-out max-w-[480px] ${visible ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header */}
-        <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
-          <h3 className="text-xl font-bold text-gray-900">Connection</h3>
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+          <h3 className="text-base font-semibold text-gray-900">Connection</h3>
           <button
             type="button"
             onClick={() => onCloseRef.current()}
@@ -1616,8 +1561,8 @@ export default function ConnectionDrawer({
         {connection && !loading && (
           <>
             {/* ── HEADER: Who + Status + Profile Link + Contact ── */}
-            <div className="px-6 pt-5 pb-4 shrink-0">
-              <div className="flex items-start gap-4">
+            <div className="px-5 pt-4 pb-3 shrink-0">
+              <div className="flex items-start gap-3">
                 {/* Avatar */}
                 <div className="shrink-0">
                   {imageUrl && !shouldBlur ? (
@@ -1625,11 +1570,11 @@ export default function ConnectionDrawer({
                     <img
                       src={imageUrl}
                       alt={otherName}
-                      className="w-12 h-12 rounded-xl object-cover"
+                      className="w-10 h-10 rounded-lg object-cover"
                     />
                   ) : (
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white"
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold text-white"
                       style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
                     >
                       {shouldBlur ? "?" : initial}
@@ -1641,50 +1586,50 @@ export default function ConnectionDrawer({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <h2 className="text-lg font-bold text-gray-900 leading-snug">
+                      <h2 className="text-sm font-semibold text-gray-900 leading-snug">
                         {shouldBlur ? blurName(otherName) : otherName}
                       </h2>
                       {!shouldBlur && (
-                        <p className="text-sm text-gray-500 leading-tight">
+                        <p className="text-xs text-gray-400 leading-tight">
                           {categoryLabel}{otherLocation ? ` \u00b7 ${otherLocation}` : ""}
                         </p>
                       )}
                     </div>
                     {/* Status pill */}
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${status.bg} ${status.color}`}>
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0 ${status.bg} ${status.color}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                       {status.label}
                     </span>
                   </div>
                   {/* Profile link + inline contact */}
                   {otherProfile && !shouldBlur && (
-                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                    <div className="flex items-center gap-2.5 mt-1 flex-wrap">
                       <Link
                         href={profileHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                        className="inline-flex items-center gap-0.5 text-[11px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
                       >
                         View profile
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
                       </Link>
                       {hasPhone && (
                         <a
                           href={`tel:${otherProfile.phone}`}
-                          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-600 transition-colors"
+                          className="inline-flex items-center gap-0.5 text-[11px] text-gray-400 hover:text-primary-600 transition-colors"
                         >
-                          <PhoneIcon className="w-3 h-3" />
+                          <PhoneIcon className="w-2.5 h-2.5" />
                           {otherProfile.phone}
                         </a>
                       )}
                       {hasEmail && (
                         <a
                           href={`mailto:${otherProfile.email}`}
-                          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-primary-600 transition-colors"
+                          className="inline-flex items-center gap-0.5 text-[11px] text-gray-400 hover:text-primary-600 transition-colors"
                         >
-                          <EmailIcon className="w-3 h-3" />
+                          <EmailIcon className="w-2.5 h-2.5" />
                           {otherProfile.email}
                         </a>
                       )}
@@ -1719,25 +1664,12 @@ export default function ConnectionDrawer({
 
             {/* ── CONTEXT CARD: Pinned request summary ── */}
             {parsedMsg && !shouldBlur && (
-              <div className="px-6 pb-3 shrink-0">
-                <div className="bg-gray-50 rounded-xl px-4 py-3">
-                  <p className="text-sm text-gray-700 leading-relaxed">
-                    {[parsedMsg.careType, parsedMsg.careRecipient ? `For ${parsedMsg.careRecipient}` : null, parsedMsg.urgency].filter(Boolean).join(" \u00b7 ")}
-                  </p>
-                  {/* Pending hint line */}
-                  {connection.status === "pending" && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      {isInbound
-                        ? "Review their request and respond when ready"
-                        : isProvider
-                        ? `Sent ${shortDate} \u00b7 Waiting for a response`
-                        : `Sent ${shortDate} \u00b7 Most providers respond within a few hours`}
-                    </p>
-                  )}
-                  {connection.status !== "pending" && (
-                    <p className="text-xs text-gray-400 mt-1">{isInbound ? "Received" : "Sent"} {shortDate}</p>
-                  )}
-                </div>
+              <div className="px-5 pb-2 shrink-0">
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  {[parsedMsg.careType, parsedMsg.careRecipient ? `For ${parsedMsg.careRecipient}` : null, parsedMsg.urgency].filter(Boolean).join(" \u00b7 ")}
+                  {" \u00b7 "}
+                  <span className="text-gray-400">{isInbound ? "Received" : "Sent"} {shortDate}</span>
+                </p>
               </div>
             )}
 
@@ -1749,45 +1681,50 @@ export default function ConnectionDrawer({
               const lbl = cd.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
                 + " \u00b7 " + cd.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
               return (
-                <div className="px-6 pb-2 shrink-0">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 border border-emerald-100">
-                    <PhoneIcon className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-xs font-medium text-emerald-700">
-                      Upcoming {scheduledCall.type} &middot; {lbl}
-                    </span>
-                  </div>
+                <div className="px-5 pb-1.5 shrink-0">
+                  <p className="text-[11px] text-gray-400">
+                    Call {lbl}
+                  </p>
                 </div>
               );
             })()}
 
             {/* ── CONVERSATION ── */}
             <>
-              <div ref={conversationRef} className="flex-1 overflow-y-auto min-h-0 px-6 py-4">
+              <div ref={conversationRef} className="flex-1 overflow-y-auto min-h-0 px-5 py-3">
                 {renderConversation()}
               </div>
 
               {/* ── ACTION BAR: Fixed between conversation and input ── */}
               {isAccepted && !shouldBlur && (
-                <div className="shrink-0 px-6 py-3 border-t border-gray-100 transition-all duration-200">
+                <div className="shrink-0 px-5 py-2.5 border-t border-gray-50 transition-all duration-200">
                   {/* Priority: scheduled call > time picker > next step request > default */}
                   {scheduledCall?.status === "confirmed" ? (
                     showTimePicker ? (
-                      <div className="p-3 rounded-xl border border-gray-200 bg-gray-50/40">
-                        <p className="text-sm font-medium text-gray-900 mb-2">Suggest a new time</p>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-medium text-gray-500">Rescheduling</p>
+                          <button
+                            type="button"
+                            onClick={() => { setShowTimePicker(false); setPickerMode("quick"); }}
+                            className="text-xs text-gray-400 hover:text-gray-600"
+                          >
+                            Keep current time
+                          </button>
+                        </div>
                         {renderTimePicker()}
                       </div>
                     ) : (
                       renderScheduledCallStatus()
                     )
                   ) : showTimePicker ? (
-                    <div className="p-3 rounded-xl border border-primary-100 bg-primary-50/40">
-                      <p className="text-sm font-medium text-gray-900 mb-2">Suggest a time</p>
+                    <div>
                       {renderTimePicker()}
                     </div>
                   ) : nextStepRequest ? (
                     renderRequestStatus()
                   ) : !isProvider ? (
-                    /* ── Family: Schedule CTA with contextual microcopy ── */
+                    /* ── Family: Schedule CTA ── */
                     <div>
                       <button
                         type="button"
@@ -1795,33 +1732,22 @@ export default function ConnectionDrawer({
                           setNextStepConfirm(nextSteps[0]);
                           setNextStepNote("");
                         }}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 shadow-sm transition-all duration-150"
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-gray-900 text-white text-[13px] font-medium hover:bg-gray-800 transition-colors"
                       >
-                        <PhoneIcon className="w-3.5 h-3.5" />
+                        <PhoneIcon className="w-3 h-3" />
                         Schedule a Call
                       </button>
-                      <p className="text-xs text-gray-400 text-center mt-2 leading-relaxed">
-                        {thread.length === 0
-                          ? "A quick call is the best way to see if it\u2019s a good fit"
-                          : thread.length <= 3
-                          ? "Ready to take the next step?"
-                          : "You\u2019ve been chatting \u2014 a call can help you decide faster"}
-                      </p>
-                      {/* Progressive disclosure for secondary options */}
                       {nextSteps.length > 1 && (
-                        <div className="mt-2 text-center">
+                        <div className="mt-1.5 text-center">
                           <button
                             type="button"
                             onClick={() => setShowMoreOptions(!showMoreOptions)}
-                            className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors inline-flex items-center gap-1"
+                            className="text-[11px] text-gray-300 hover:text-gray-500 transition-colors"
                           >
                             Other options
-                            <svg className={`w-3 h-3 transition-transform duration-150 ${showMoreOptions ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
                           </button>
                           {showMoreOptions && (
-                            <div className="flex justify-center gap-4 mt-2">
+                            <div className="flex justify-center gap-3 mt-1">
                               {nextSteps.slice(1).map((step) => (
                                 <button
                                   key={step.id}
@@ -1830,7 +1756,7 @@ export default function ConnectionDrawer({
                                     setNextStepConfirm(step);
                                     setNextStepNote("");
                                   }}
-                                  className="text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                                  className="text-[11px] text-gray-500 hover:text-gray-700 transition-colors"
                                 >
                                   {step.label}
                                 </button>
@@ -1842,11 +1768,11 @@ export default function ConnectionDrawer({
                     </div>
                   ) : (
                     /* ── Provider: Soft contextual guidance ── */
-                    <p className="text-xs text-gray-400 text-center italic leading-relaxed">
+                    <p className="text-[11px] text-gray-300 text-center leading-relaxed">
                       {thread.length === 0
                         ? "Introduce yourself and share what makes your care approach unique"
                         : thread.length <= 3
-                        ? "Families often appreciate knowing your availability and rates"
+                        ? "Families appreciate knowing your availability and rates"
                         : "This family seems interested \u2014 let them know you\u2019re available for a call"}
                     </p>
                   )}
@@ -1857,15 +1783,12 @@ export default function ConnectionDrawer({
 
               {/* ── FOOTER: End / Withdraw / Past actions ── */}
               {isAccepted && !shouldBlur && (
-                <div className="shrink-0 px-6 py-2.5 border-t border-gray-100">
+                <div className="shrink-0 px-5 py-2 border-t border-gray-50">
                   <button
                     type="button"
                     onClick={() => setConfirmAction("end")}
-                    className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-[11px] text-gray-300 hover:text-gray-500 transition-colors"
                   >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
                     End connection
                   </button>
                 </div>

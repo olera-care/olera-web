@@ -198,6 +198,11 @@ export default function ConnectionsPage() {
     for (const c of connections) {
       if (c.metadata?.hidden) continue;
 
+      // Hide provider-initiated (inbound) connections from the family view
+      // until the reverse flow (provider → care seeker) is fully designed.
+      const isInbound = c.to_profile_id === activeProfile?.id;
+      if (isInbound) continue;
+
       const displayStatus = getFamilyDisplayStatus(c);
       const tab = getConnectionTab(displayStatus);
 

@@ -1076,11 +1076,23 @@ export default function ConnectionDetailContent({
                       </p>
                     )}
                   </div>
-                  {/* Status pill */}
-                  <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${status.bg} ${status.color}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                    {status.label}
-                  </span>
+                  {/* Status pill + Close button */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${status.bg} ${status.color}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                      {status.label}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                      aria-label="Close"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 {/* Profile link + inline contact */}
                 {otherProfile && !shouldBlur && (

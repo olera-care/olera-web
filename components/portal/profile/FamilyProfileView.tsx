@@ -139,6 +139,7 @@ export default function FamilyProfileView() {
       selectedId={editStep !== null ? String(editStep) : null}
       onBack={() => setEditStep(null)}
       backLabel="Back to profile"
+      expandWhenEmpty
       left={
         <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">
@@ -358,17 +359,6 @@ export default function FamilyProfileView() {
             initialStep={editStep}
           />
         ) : null
-      }
-      emptyState={
-        <div className="text-center px-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
-            <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </div>
-          <p className="text-sm font-medium text-gray-900">Select a section to edit</p>
-          <p className="text-xs text-gray-500 mt-1">Click any section on the left to update your profile</p>
-        </div>
       }
     />
   );

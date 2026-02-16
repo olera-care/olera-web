@@ -216,14 +216,9 @@ export default function SettingsPage() {
       )}
 
       {/* ── Notifications ── */}
-      <section className="border-b border-gray-100 pb-2">
-        <div className="px-6 pt-6 pb-2">
-          <h3 className="text-lg font-bold text-gray-900">Notifications</h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Choose how you&apos;d like to be notified.
-          </p>
-        </div>
-        <div className="divide-y divide-gray-100">
+      <section className="rounded-xl border border-gray-100 p-5">
+        <h3 className="text-base font-semibold text-gray-900 mb-4">Notifications</h3>
+        <div className="space-y-4">
           <NotificationRow
             title="Connection updates"
             description="When a provider responds or messages you"
@@ -264,14 +259,9 @@ export default function SettingsPage() {
       </section>
 
       {/* ── Account ── */}
-      <section className="border-b border-gray-100 pb-2">
-        <div className="px-6 pt-6 pb-2">
-          <h3 className="text-lg font-bold text-gray-900">Account</h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage your login credentials.
-          </p>
-        </div>
-        <div className="divide-y divide-gray-100">
+      <section className="rounded-xl border border-gray-100 p-5">
+        <h3 className="text-base font-semibold text-gray-900 mb-4">Account</h3>
+        <div className="space-y-4">
           <AccountRow
             label="Email"
             value={user?.email || "Not set"}
@@ -420,8 +410,8 @@ export default function SettingsPage() {
 
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
-        <section className="border-b border-gray-100 pb-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">
+        <section className="rounded-xl border border-gray-100 p-5">
+          <h3 className="text-base font-semibold text-gray-900 mb-4">
             Subscription
           </h3>
 
@@ -550,7 +540,7 @@ export default function SettingsPage() {
       )}
 
       {/* ── Delete Account ── */}
-      <section className="pb-6">
+      <section className="rounded-xl border border-gray-100 p-5">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-base font-semibold text-gray-900">
@@ -657,10 +647,10 @@ function NotificationRow({
   onToggle: (channel: "email" | "sms") => void;
 }) {
   return (
-    <div className="px-6 py-4 flex items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <p className="text-base font-semibold text-gray-900">{title}</p>
-        <p className="text-sm text-gray-500 mt-0.5">{description}</p>
+        <p className="text-sm font-semibold text-gray-900">{title}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
       </div>
       <div className="flex items-center gap-4 shrink-0">
         <div className="flex items-center gap-2">
@@ -734,10 +724,10 @@ function AccountRow({
   isPassword?: boolean;
 }) {
   return (
-    <div className="px-6 py-4">
+    <div>
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-500">{label}</p>
+          <p className="text-xs font-medium text-gray-500">{label}</p>
           {isEditing ? (
             isPassword ? (
               <p className="text-base text-gray-600 mt-1">

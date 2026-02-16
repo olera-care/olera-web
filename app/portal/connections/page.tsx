@@ -13,12 +13,15 @@ import SplitViewLayout from "@/components/portal/SplitViewLayout";
 import ConnectionDetailContent from "@/components/portal/ConnectionDetailContent";
 import ConnectionListItem from "@/components/portal/ConnectionListItem";
 import type { ConnectionWithProfile } from "@/components/portal/ConnectionListItem";
+import { avatarGradient, blurName, parseMessage } from "@/components/portal/ConnectionDetailContent";
 import {
   getFamilyDisplayStatus,
   getConnectionTab,
   getProviderDisplayStatus,
   getProviderConnectionTab,
   isConnectionUnread,
+  FAMILY_STATUS_CONFIG,
+  PROVIDER_STATUS_CONFIG,
   type ConnectionTab,
   type ProviderConnectionTab,
 } from "@/lib/connection-utils";
@@ -373,71 +376,113 @@ export default function ConnectionsPage() {
         { id: "past" as const, label: "Past", count: tabbed.past.length, badge: 0 },
       ];
 
-  // ── Split layout ──
+  // ── Layout mode ──
+
+  const hasSelection = selectedConnectionId !== null;
+
+  // Shared tab bar
+  const tabBar = (
+    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => {
+            if (isProvider) setProviderTab(tab.id as ProviderConnectionTab);
+            else setActiveTab(tab.id as ConnectionTab);
+          }}
+          className={[
+            "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all relative",
+            currentTab === tab.id
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700",
+          ].join(" ")}
+        >
+          {tab.label}
+          <span className={[
+            "text-[10px] font-semibold px-1 py-0.5 rounded",
+            currentTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
+          ].join(" ")}>
+            {tab.count}
+          </span>
+          {tab.badge > 0 && currentTab !== tab.id && (
+            <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />
+          )}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <SplitViewLayout
       selectedId={selectedConnectionId}
       onBack={clearSelection}
+      expandWhenEmpty
       left={
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="px-4 pt-4 pb-2 shrink-0">
-            <h2 className="text-lg font-bold text-gray-900">
-              {isProvider ? "Connections" : "My Connections"}
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {isProvider
-                ? "Manage inquiries and outreach"
-                : "Track your provider requests"}
-            </p>
-          </div>
+        hasSelection ? (
+          /* ── Compact list mode (split view) ── */
+          <div className="flex flex-col h-full">
+            <div className="px-4 pt-4 pb-2 shrink-0">
+              <h2 className="text-lg font-bold text-gray-900">
+                {isProvider ? "Connections" : "My Connections"}
+              </h2>
+            </div>
 
-          {/* Error */}
-          {error && (
-            <div className="px-4 pb-2 shrink-0">
-              <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs flex items-center justify-between" role="alert">
-                <span>{error}</span>
-                <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-xs font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
+            <div className="sticky top-0 z-10 bg-white px-4 pb-2 shrink-0">
+              {tabBar}
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {currentConnections.length === 0 ? (
+                isProvider ? (
+                  <ProviderTabEmptyState tab={providerTab} />
+                ) : (
+                  <TabEmptyState tab={activeTab} />
+                )
+              ) : (
+                currentConnections.map((connection) => {
+                  const unread = !isProvider && isConnectionUnread(connection, readIds);
+                  return (
+                    <ConnectionListItem
+                      key={connection.id}
+                      connection={connection}
+                      activeProfileId={activeProfile?.id || ""}
+                      selected={connection.id === selectedConnectionId}
+                      unread={unread}
+                      onSelect={selectAndMarkRead}
+                      isProvider={isProvider}
+                      hasFullAccess={hasFullAccess}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </div>
+        ) : (
+          /* ── Card grid mode (full width) ── */
+          <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="mb-6">
+              <h2 className="text-[22px] font-bold text-gray-900">
+                {isProvider ? "Connections" : "My Connections"}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {isProvider
+                  ? "Manage inquiries from families and your outreach."
+                  : "Track your care provider requests and responses."}
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-4">
+                <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs flex items-center justify-between" role="alert">
+                  <span>{error}</span>
+                  <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-xs font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Tab bar — sticky within scroll container */}
-          <div className="sticky top-0 z-10 bg-white px-4 pb-2 shrink-0">
-            <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => {
-                    if (isProvider) setProviderTab(tab.id as ProviderConnectionTab);
-                    else setActiveTab(tab.id as ConnectionTab);
-                  }}
-                  className={[
-                    "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all relative",
-                    currentTab === tab.id
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-500 hover:text-gray-700",
-                  ].join(" ")}
-                >
-                  {tab.label}
-                  <span className={[
-                    "text-[10px] font-semibold px-1 py-0.5 rounded",
-                    currentTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
-                  ].join(" ")}>
-                    {tab.count}
-                  </span>
-                  {tab.badge > 0 && currentTab !== tab.id && (
-                    <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
+            <div className="mb-6">{tabBar}</div>
 
-          {/* Connection list */}
-          <div className="flex-1 overflow-y-auto">
             {currentConnections.length === 0 ? (
               isProvider ? (
                 <ProviderTabEmptyState tab={providerTab} />
@@ -445,31 +490,31 @@ export default function ConnectionsPage() {
                 <TabEmptyState tab={activeTab} />
               )
             ) : (
-              currentConnections.map((connection) => {
-                const unread = !isProvider && isConnectionUnread(connection, readIds);
-                return (
-                  <ConnectionListItem
-                    key={connection.id}
-                    connection={connection}
-                    activeProfileId={activeProfile?.id || ""}
-                    selected={connection.id === selectedConnectionId}
-                    unread={unread}
-                    onSelect={selectAndMarkRead}
-                    isProvider={isProvider}
-                    hasFullAccess={hasFullAccess}
-                  />
-                );
-              })
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {currentConnections.map((connection) => {
+                  const unread = !isProvider && isConnectionUnread(connection, readIds);
+                  return (
+                    <ConnectionGridCard
+                      key={connection.id}
+                      connection={connection}
+                      activeProfileId={activeProfile?.id || ""}
+                      unread={unread}
+                      onSelect={selectAndMarkRead}
+                      isProvider={isProvider}
+                      hasFullAccess={hasFullAccess}
+                    />
+                  );
+                })}
+              </div>
             )}
 
-            {/* Provider upgrade prompt */}
             {isProvider && !hasFullAccess && connections.length > 0 && (
-              <div className="px-4 py-4">
+              <div className="mt-6">
                 <UpgradePrompt context="view full details and respond to connections" />
               </div>
             )}
           </div>
-        </div>
+        )
       }
       right={
         selectedConnectionId ? (
@@ -484,17 +529,6 @@ export default function ConnectionsPage() {
             showHeader={false}
           />
         ) : null
-      }
-      emptyState={
-        <div className="text-center px-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
-            <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          </div>
-          <p className="text-sm font-medium text-gray-900">Select a connection</p>
-          <p className="text-xs text-gray-500 mt-1">Choose from the list to view details</p>
-        </div>
       }
     />
   );
@@ -566,5 +600,107 @@ function ProviderTabEmptyState({ tab }: { tab: ProviderConnectionTab }) {
       <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
       <p className="text-xs text-gray-400 mt-1 leading-relaxed">{subtitle}</p>
     </div>
+  );
+}
+
+// ── Connection Grid Card (full-width default view) ──
+
+function ConnectionGridCard({
+  connection,
+  activeProfileId,
+  unread,
+  onSelect,
+  isProvider,
+  hasFullAccess,
+}: {
+  connection: ConnectionWithProfile;
+  activeProfileId: string;
+  unread: boolean;
+  onSelect: (id: string) => void;
+  isProvider: boolean;
+  hasFullAccess: boolean;
+}) {
+  const isInbound = connection.to_profile_id === activeProfileId;
+  const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
+  const otherName = otherProfile?.display_name || "Unknown";
+  const otherLocation = [otherProfile?.city, otherProfile?.state]
+    .filter(Boolean)
+    .join(", ");
+
+  const parsedMsg = parseMessage(connection.message);
+  const careTypeLabel =
+    parsedMsg?.careType ||
+    connection.type
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c: string) => c.toUpperCase());
+
+  const shouldBlur = isProvider && !hasFullAccess && isInbound;
+
+  const statusConfig = isProvider
+    ? PROVIDER_STATUS_CONFIG[getProviderDisplayStatus(connection, isInbound)]
+    : FAMILY_STATUS_CONFIG[getFamilyDisplayStatus(connection)];
+
+  const createdAt = new Date(connection.created_at).toLocaleDateString(
+    "en-US",
+    { month: "short", day: "numeric" }
+  );
+
+  const imageUrl = otherProfile?.image_url;
+  const initial = otherName.charAt(0).toUpperCase();
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(connection.id)}
+      className="w-full text-left rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:bg-gray-50/50 transition-colors cursor-pointer"
+    >
+      <div className="flex items-start gap-3.5">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          {imageUrl && !shouldBlur ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt={otherName}
+              className="w-11 h-11 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white"
+              style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
+            >
+              {shouldBlur ? "?" : initial}
+            </div>
+          )}
+          {unread && (
+            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-[15px] font-semibold text-gray-900 truncate">
+              {shouldBlur ? blurName(otherName) : otherName}
+            </h3>
+            <span className="text-[11px] text-gray-400 shrink-0">{createdAt}</span>
+          </div>
+          {otherLocation && (
+            <p className="text-xs text-gray-500 mt-0.5">{otherLocation}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">{careTypeLabel}</p>
+        </div>
+      </div>
+
+      {/* Footer: status badge */}
+      <div className="mt-3 flex items-center justify-between">
+        <span
+          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md ${statusConfig.bg} ${statusConfig.color}`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+          {statusConfig.label}
+        </span>
+      </div>
+    </button>
   );
 }

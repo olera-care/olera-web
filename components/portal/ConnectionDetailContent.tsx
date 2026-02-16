@@ -1166,63 +1166,50 @@ export default function ConnectionDetailContent({
             {renderConversation()}
           </div>
 
-          {/* ── ACTION CARD: Next step (only when connected, no active request, family) ── */}
-          {isAccepted && !shouldBlur && !isProvider && !nextStepRequest && (
+          {/* ── EXPANDED FORM: Next step (only when connected, confirming, family) ── */}
+          {isAccepted && !shouldBlur && !isProvider && !nextStepRequest && nextStepConfirm && (
             <div className="shrink-0 px-7 pt-2.5 pb-1 border-t border-gray-100">
-              {nextStepConfirm ? (
-                /* Expanded inline form — uses matching card colors */
-                <div className={`p-3.5 rounded-xl border ${nextStepConfirm.cardBg} ${nextStepConfirm.cardBorder}`}>
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <span className="text-base">{nextStepConfirm.emoji}</span>
-                    <span className="text-[13px] font-semibold text-gray-900">{nextStepConfirm.label}</span>
-                  </div>
-                  {nextStepConfirm.id === "call" && (
-                    <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
-                      <PhoneIcon className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
-                      <p className="text-xs text-amber-800 leading-relaxed">
-                        Your phone number will be shared with the provider.
-                      </p>
-                    </div>
-                  )}
-                  <p className="text-[11px] font-medium text-gray-600 mb-1">Add a note (optional)</p>
-                  <textarea
-                    value={nextStepNote}
-                    onChange={(e) => setNextStepNote(e.target.value)}
-                    placeholder={nextStepConfirm.id === "visit"
-                      ? "e.g., Mornings work best, we\u2019re in a single-story home..."
-                      : "e.g., Afternoons work best, any day except Wednesday..."}
-                    className="w-full px-2.5 py-2 rounded-lg border border-gray-200 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary-500 resize-none min-h-[44px] bg-white"
-                  />
-                  <div className="flex gap-2 mt-2.5">
-                    <button
-                      type="button"
-                      onClick={() => { setNextStepConfirm(null); setNextStepNote(""); }}
-                      disabled={nextStepSending}
-                      className="flex-1 py-2 text-xs font-medium text-gray-600 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleNextStepRequest(nextStepConfirm)}
-                      disabled={nextStepSending}
-                      className="flex-1 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
-                    >
-                      {nextStepSending ? "Sending..." : "Send Request"}
-                    </button>
-                  </div>
+              <div className={`p-3.5 rounded-xl border ${nextStepConfirm.cardBg} ${nextStepConfirm.cardBorder}`}>
+                <div className="flex items-center gap-2.5 mb-3">
+                  <span className="text-base">{nextStepConfirm.emoji}</span>
+                  <span className="text-[13px] font-semibold text-gray-900">{nextStepConfirm.label}</span>
                 </div>
-              ) : (
-                /* Idle — single action card */
-                <div
-                  onClick={() => { setNextStepConfirm(primaryNextStep); setNextStepNote(""); }}
-                  className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border cursor-pointer transition-all hover:shadow-sm ${primaryNextStep.cardBg} ${primaryNextStep.cardBorder}`}
-                >
-                  <span className="text-base">{primaryNextStep.emoji}</span>
-                  <span className="flex-1 text-[13px] font-semibold text-gray-900">{primaryNextStep.label}</span>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                {nextStepConfirm.id === "call" && (
+                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+                    <PhoneIcon className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      Your phone number will be shared with the provider.
+                    </p>
+                  </div>
+                )}
+                <p className="text-[11px] font-medium text-gray-600 mb-1">Add a note (optional)</p>
+                <textarea
+                  value={nextStepNote}
+                  onChange={(e) => setNextStepNote(e.target.value)}
+                  placeholder={nextStepConfirm.id === "visit"
+                    ? "e.g., Mornings work best, we\u2019re in a single-story home..."
+                    : "e.g., Afternoons work best, any day except Wednesday..."}
+                  className="w-full px-2.5 py-2 rounded-lg border border-gray-200 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-primary-500 resize-none min-h-[44px] bg-white"
+                />
+                <div className="flex gap-2 mt-2.5">
+                  <button
+                    type="button"
+                    onClick={() => { setNextStepConfirm(null); setNextStepNote(""); }}
+                    disabled={nextStepSending}
+                    className="flex-1 py-2 text-xs font-medium text-gray-600 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNextStepRequest(nextStepConfirm)}
+                    disabled={nextStepSending}
+                    className="flex-1 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  >
+                    {nextStepSending ? "Sending..." : "Send Request"}
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -1339,12 +1326,27 @@ export default function ConnectionDetailContent({
                   </div>
                 </div>
               ) : (
-                <div
-                  onClick={() => setConfirmAction("end")}
-                  className="flex items-center gap-1.5 cursor-pointer py-1"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
-                  <span className="text-xs text-gray-500">End connection</span>
+                <div className="flex items-center justify-between py-1">
+                  <div
+                    onClick={() => setConfirmAction("end")}
+                    className="flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                    <span className="text-xs text-gray-500">End connection</span>
+                  </div>
+                  {/* Next step CTA — inline link */}
+                  {!isProvider && !nextStepRequest && !nextStepConfirm && (
+                    <div
+                      onClick={() => { setNextStepConfirm(primaryNextStep); setNextStepNote(""); }}
+                      className="flex items-center gap-1.5 cursor-pointer group"
+                    >
+                      <span className="text-sm">{primaryNextStep.emoji}</span>
+                      <span className="text-xs font-semibold text-primary-600 group-hover:text-primary-700 transition-colors">
+                        {primaryNextStep.label}
+                      </span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary-400"><polyline points="9 18 15 12 9 6" /></svg>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

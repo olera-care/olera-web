@@ -141,10 +141,10 @@ export default function FamilyProfileView() {
       backLabel="Back to profile"
       expandWhenEmpty
       left={
-        <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="space-y-6">
+        <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-5">
       {/* ── Profile Header ── */}
-      <section className="rounded-2xl border border-gray-100 overflow-hidden">
+      <section className="rounded-2xl bg-white shadow-xs overflow-hidden">
         <div className="p-6 flex items-center gap-5">
           {/* Avatar */}
           <div className="relative shrink-0">
@@ -160,7 +160,7 @@ export default function FamilyProfileView() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={imageUploading}
-              className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 hover:border-primary-300 transition-colors cursor-pointer flex items-center justify-center group relative"
+              className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative"
             >
               {profile.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -203,21 +203,38 @@ export default function FamilyProfileView() {
 
           {/* Name + location */}
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 truncate">
+            <h2 className="text-2xl font-bold text-gray-900 truncate tracking-tight">
               {profile.display_name || "Your Name"}
             </h2>
-            <p className="text-base text-gray-500 mt-0.5">
+            <p className="text-base text-gray-500 mt-1">
               {location || "Location not set"}
               <span className="mx-1.5 text-gray-300">&middot;</span>
               Family care seeker
             </p>
+            {percentage < 100 && (
+              <div className="flex items-center gap-2.5 mt-2.5">
+                <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      percentage >= 80 ? "bg-primary-500" : "bg-warning-400"
+                    }`}
+                    style={{ width: `${percentage}%` }}
+                  />
+                </div>
+                <span className={`text-xs font-medium ${
+                  percentage >= 80 ? "text-primary-600" : "text-warning-600"
+                }`}>
+                  {percentage}%
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Edit basic info */}
           <button
             type="button"
             onClick={() => openEdit(0)}
-            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+            className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
             aria-label="Edit basic info"
           >
             <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,27 +242,6 @@ export default function FamilyProfileView() {
             </svg>
           </button>
         </div>
-
-        {/* Completeness row — hidden at 100% */}
-        {percentage < 100 && (
-          <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-[5px] bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    percentage >= 80 ? "bg-primary-600" : "bg-amber-500"
-                  }`}
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
-              <span className={`text-[13px] font-semibold shrink-0 ${
-                percentage >= 80 ? "text-primary-700" : "text-amber-700"
-              }`}>
-                {percentage}% complete
-              </span>
-            </div>
-          </div>
-        )}
 
         {imageError && (
           <p className="text-sm text-red-600 px-6 pb-4">{imageError}</p>
@@ -259,7 +255,7 @@ export default function FamilyProfileView() {
         status={sectionStatus[1]}
         onEdit={() => openEdit(1)}
       >
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-50">
           <ViewRow label="Email" value={profile.email || userEmail || null} />
           <ViewRow label="Phone" value={profile.phone} />
           <ViewRow
@@ -281,7 +277,7 @@ export default function FamilyProfileView() {
         status={sectionStatus[2]}
         onEdit={() => openEdit(2)}
       >
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-50">
           <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
           <ViewRow label="Type of care" value={careTypesDisplay} />
           <ViewRow label="Timeline" value={timelineDisplay} />
@@ -301,7 +297,7 @@ export default function FamilyProfileView() {
             {meta.payment_methods.map((method) => (
               <span
                 key={method}
-                className="px-3.5 py-2 text-[15px] font-medium rounded-full bg-primary-50 text-primary-700 border border-primary-100"
+                className="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary-50 text-primary-700"
               >
                 {method}
               </span>
@@ -320,7 +316,7 @@ export default function FamilyProfileView() {
         status={combineSectionStatus()}
         onEdit={() => openEdit(4)}
       >
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-50">
           <ViewRow label="Living situation" value={meta.living_situation || null} />
           <ViewRow label="Schedule preference" value={meta.schedule_preference || null} />
           <ViewRow label="Care location" value={meta.care_location || null} />
@@ -369,8 +365,8 @@ export default function FamilyProfileView() {
 function SectionBadge({ status }: { status: SectionStatus | undefined }) {
   if (!status || status === "complete") {
     return (
-      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100">
-        <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-50">
+        <svg className="w-3 h-3 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
         </svg>
       </span>
@@ -379,7 +375,7 @@ function SectionBadge({ status }: { status: SectionStatus | undefined }) {
 
   const label = status === "empty" ? "Not added" : "Incomplete";
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning-50 text-warning-700">
       {label}
     </span>
   );
@@ -411,17 +407,17 @@ function SectionCard({
           onEdit();
         }
       }}
-      className="rounded-xl border border-gray-100 p-5 cursor-pointer hover:border-gray-200 hover:bg-gray-50/50 transition-colors"
+      className="rounded-xl bg-white shadow-xs p-6 cursor-pointer hover:shadow-sm transition-all duration-200"
     >
       {/* Header row */}
-      <div className="flex items-center gap-2.5 mb-0.5">
-        <h3 className="text-[17px] font-bold text-gray-900">{title}</h3>
+      <div className="flex items-center gap-2.5 mb-1">
+        <h3 className="text-[17px] font-semibold text-gray-900">{title}</h3>
         <SectionBadge status={status} />
-        <span className="ml-auto text-[14px] font-semibold text-primary-600">
+        <span className="ml-auto text-[14px] font-medium text-primary-600">
           {editLabel}
         </span>
       </div>
-      <p className="text-[13px] text-gray-500 mb-5">{subtitle}</p>
+      <p className="text-[13px] text-gray-400 mb-5">{subtitle}</p>
 
       {/* Content — stop click propagation so internal links/buttons work */}
       <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
@@ -439,12 +435,12 @@ function ViewRow({
   value: string | null;
 }) {
   return (
-    <div className="py-3">
-      <p className="text-[13px] text-gray-500">{label}</p>
+    <div className="py-3.5">
+      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
       {value ? (
-        <p className="text-[15px] text-gray-900 mt-0.5">{value}</p>
+        <p className="text-[15px] text-gray-900 mt-1">{value}</p>
       ) : (
-        <p className="text-[15px] text-amber-600 italic mt-0.5">Not provided</p>
+        <p className="text-[15px] text-gray-300 mt-1">&mdash;</p>
       )}
     </div>
   );

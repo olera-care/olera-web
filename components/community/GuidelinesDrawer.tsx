@@ -8,7 +8,7 @@ interface GuidelinesDrawerProps {
   onClose: () => void;
 }
 
-const GUIDELINES = [
+export const GUIDELINES = [
   {
     title: "Be Respectful & Supportive",
     icon: (

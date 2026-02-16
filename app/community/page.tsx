@@ -3,7 +3,7 @@
 import { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ForumPostCardV3 from "@/components/community/ForumPostCardV3";
-import GuidelinesDrawer from "@/components/community/GuidelinesDrawer";
+import { GUIDELINES } from "@/components/community/GuidelinesDrawer";
 import PostContent from "@/components/community/PostContent";
 import CommentThread from "@/components/community/CommentThread";
 import SplitViewLayout from "@/components/portal/SplitViewLayout";
@@ -101,14 +101,14 @@ function CommunityPageContent() {
       if (e.key === "Escape") {
         if (showComposer) {
           resetComposer();
-        } else if (selectedPost) {
+        } else if (selectedPost || showGuidelines) {
           handleClosePost();
         }
       }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [showComposer, selectedPost, activeCategory]);
+  }, [showComposer, selectedPost, showGuidelines, activeCategory]);
 
   // Auto-focus composer title
   useEffect(() => {
@@ -180,6 +180,7 @@ function CommunityPageContent() {
   };
 
   const handlePostClick = (post: ForumPost) => {
+    setShowGuidelines(false);
     const params = new URLSearchParams();
     if (activeCategory !== "all") params.set("category", activeCategory);
     params.set("post", post.slug);
@@ -187,6 +188,16 @@ function CommunityPageContent() {
   };
 
   const handleClosePost = () => {
+    setShowGuidelines(false);
+    const params = new URLSearchParams();
+    if (activeCategory !== "all") params.set("category", activeCategory);
+    const url = params.toString() ? `/community?${params}` : "/community";
+    router.push(url, { scroll: false });
+  };
+
+  const handleOpenGuidelines = () => {
+    setShowGuidelines(true);
+    // Clear post selection from URL
     const params = new URLSearchParams();
     if (activeCategory !== "all") params.set("category", activeCategory);
     const url = params.toString() ? `/community?${params}` : "/community";
@@ -413,13 +424,12 @@ function CommunityPageContent() {
   );
 
   // ══════════════════════════════════════════════════════════
-  // RIGHT panel — Post detail (like Edit Profile panel)
-  // Only appears when a post is clicked
+  // RIGHT panel — Post detail OR Guidelines
   // ══════════════════════════════════════════════════════════
 
-  const postDetail = selectedPost ? (
+  const rightPanelContent = selectedPost ? (
     <div className="flex flex-col h-full">
-      {/* Header — matches ProfileEditContent header */}
+      {/* Header */}
       <div className="px-7 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div className="min-w-0 mr-4">
           <h3 className="text-lg font-semibold text-gray-900">Discussion</h3>
@@ -435,8 +445,6 @@ function CommunityPageContent() {
           </svg>
         </button>
       </div>
-
-      {/* Content — scrollable */}
       <div ref={detailPanelRef} className="flex-1 overflow-y-auto">
         <div className="px-7 py-6 border-b border-gray-100">
           <PostContent post={selectedPost} />
@@ -446,7 +454,69 @@ function CommunityPageContent() {
         </div>
       </div>
     </div>
+  ) : showGuidelines ? (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="px-7 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3 min-w-0 mr-4">
+          <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+            <svg className="w-4.5 h-4.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Community Guidelines</h3>
+        </div>
+        <button
+          onClick={handleClosePost}
+          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors flex-shrink-0"
+          aria-label="Close"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div ref={detailPanelRef} className="flex-1 overflow-y-auto">
+        {/* Intro */}
+        <div className="px-7 py-6 border-b border-gray-100 bg-gray-50/50">
+          <p className="text-gray-600 leading-relaxed text-[15px]">
+            Our community thrives when everyone feels welcome, heard, and supported.
+            These guidelines help us maintain a safe and helpful space for caregivers
+            and families navigating senior care together.
+          </p>
+        </div>
+        {/* Guidelines list */}
+        <div className="px-7 py-6 space-y-6">
+          {GUIDELINES.map((guideline, index) => (
+            <div key={index} className="flex gap-4">
+              <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-600">
+                {guideline.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-gray-900 mb-1.5">{guideline.title}</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">{guideline.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Footer note */}
+        <div className="px-7 py-5 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex items-start gap-3 text-sm text-gray-500">
+            <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p>
+              Violations of these guidelines may result in content removal or account restrictions.
+              If you see something concerning, please use the report feature on any post or comment.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   ) : null;
+
+  // Compute the selectedId for SplitViewLayout
+  const splitViewSelectedId = selectedPostId ?? (showGuidelines ? "guidelines" : null);
 
   // ══════════════════════════════════════════════════════════
   // LAYOUT: Sidebar (categories) + SplitViewLayout (posts + detail)
@@ -513,8 +583,10 @@ function CommunityPageContent() {
             {/* Bottom — Community Guidelines */}
             <div className="mt-auto pt-4 border-t border-gray-100">
               <button
-                onClick={() => setShowGuidelines(true)}
-                className="w-full flex items-center gap-3.5 px-3 py-3 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors group"
+                onClick={handleOpenGuidelines}
+                className={`w-full flex items-center gap-3.5 px-3 py-3 rounded-xl transition-colors group ${
+                  showGuidelines ? "bg-gray-100 text-gray-900" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
               >
                 <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-50 transition-colors">
                   <svg className="w-4 h-4 text-gray-500 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -533,19 +605,17 @@ function CommunityPageContent() {
         {/* ── Content area — SplitViewLayout (posts + detail panel) ── */}
         <div className="flex-1 min-w-0">
           <SplitViewLayout
-            selectedId={selectedPostId}
+            selectedId={splitViewSelectedId}
             onBack={handleClosePost}
             backLabel="Back to discussions"
             expandWhenEmpty
             equalWidth
             left={postsFeed}
-            right={postDetail}
+            right={rightPanelContent}
           />
         </div>
       </div>
 
-      {/* Guidelines Drawer */}
-      <GuidelinesDrawer isOpen={showGuidelines} onClose={() => setShowGuidelines(false)} />
     </main>
   );
 }

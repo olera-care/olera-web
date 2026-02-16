@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
-import Badge from "@/components/ui/Badge";
 import ConnectionCard from "@/components/providers/connection-card";
 import ImageCarousel from "@/components/providers/ImageCarousel";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -18,10 +17,8 @@ import ClaimBadge from "@/components/providers/ClaimBadge";
 import {
   getInitials,
   formatCategory,
-  buildQuickFacts,
   getSimilarProviders,
   getDefaultQA,
-  type QuickFact,
 } from "@/lib/provider-utils";
 
 // Extended metadata type that includes mock-specific fields
@@ -42,15 +39,6 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
 
 // --- Inline SVG icon components ---
 
-function MapPinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
-
 function StarIcon({ className, filled = true }: { className?: string; filled?: boolean }) {
   return filled ? (
     <svg className={className} fill="currentColor" viewBox="0 0 20 20">
@@ -70,41 +58,6 @@ function CheckIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
-// Quick fact icon mapping
-const factIcons: Record<QuickFact["icon"], (props: { className?: string }) => React.JSX.Element> = {
-  category: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-    </svg>
-  ),
-  location: MapPinIcon,
-  calendar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-  users: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
-  ),
-  award: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-    </svg>
-  ),
-  shield: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  dollar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-};
 
 // ============================================================
 // Page Component
@@ -182,23 +135,10 @@ export default async function ProviderPage({
   const reviewCount = meta?.review_count;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
   const staff = meta?.staff;
-  const badge = meta?.badge;
   const acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
-
-  const quickFacts = buildQuickFacts({
-    category: profile.category,
-    city: profile.city,
-    state: profile.state,
-    yearFounded: meta?.year_founded,
-    bedCount: meta?.bed_count,
-    yearsExperience: meta?.years_experience,
-    acceptsMedicaid: meta?.accepts_medicaid,
-    acceptsMedicare: meta?.accepts_medicare,
-    priceRange,
-  });
 
   const similarProviders = await getSimilarProviders(profile.category, profile.slug, 4);
 
@@ -209,13 +149,6 @@ export default async function ProviderPage({
 
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
-
-  const details: { label: string; value: string; icon: string }[] = [];
-  if (meta?.year_founded) details.push({ label: "Year Founded", value: String(meta.year_founded), icon: "calendar" });
-  if (meta?.bed_count) details.push({ label: "Capacity", value: `${meta.bed_count} beds`, icon: "users" });
-  if (meta?.years_experience) details.push({ label: "Experience", value: `${meta.years_experience} years`, icon: "award" });
-  if (meta?.accepts_medicaid !== undefined) details.push({ label: "Medicaid", value: meta.accepts_medicaid ? "Accepted" : "Not accepted", icon: "shield" });
-  if (meta?.accepts_medicare !== undefined) details.push({ label: "Medicare", value: meta.accepts_medicare ? "Accepted" : "Not accepted", icon: "shield" });
 
   // ============================================================
   // Section navigation items (built dynamically based on available data)

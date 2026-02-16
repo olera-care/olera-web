@@ -42,13 +42,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
       {/* Middle section — state-dependent */}
       <div className="px-5 py-5">
-        {hook.cardState === "loading" && (
-          <div className="animate-pulse space-y-3">
-            <div className="h-11 bg-gray-100 rounded-[10px]" />
-            <div className="h-10 bg-gray-100 rounded-[10px]" />
-          </div>
-        )}
-
         {hook.cardState === "default" && (
           <DefaultActions
             phone={phone}

@@ -79,7 +79,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const connectionAuthTriggered = useRef(false);
 
   // ── State machine ──
-  const [cardState, setCardState] = useState<CardState>("loading");
+  // Start at "default" so the CTA is always interactive immediately —
+  // no loading skeleton. Effects may upgrade to returning/pending/responded.
+  const [cardState, setCardState] = useState<CardState>(
+    isActive === false ? "inactive" : "default"
+  );
   const [intentStep, setIntentStep] = useState<IntentStep>(0);
   const [intentData, setIntentData] = useState<IntentData>(INITIAL_INTENT);
 
@@ -96,23 +100,12 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
 
-  // ── Resolve initial state — show optimistic UI immediately ──
+  // ── Resolve initial state — upgrade to "returning" if profile has intent data ──
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !isActive) return;
 
-    if (!isActive) {
-      setCardState("inactive");
-      return;
-    }
-
-    // Anonymous user — show default immediately
-    if (!user) {
-      setCardState("default");
-      return;
-    }
-
-    // Logged-in user — try optimistic render from profile data (skip skeleton)
-    if (activeProfile) {
+    // Logged-in user with profile data — try optimistic "returning" render
+    if (user && activeProfile) {
       const profileIntent = buildIntentFromProfile({
         metadata: activeProfile.metadata as Record<string, unknown> | undefined,
         care_types: activeProfile.care_types ?? undefined,
@@ -121,12 +114,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
         setPreviousIntent(profileIntent);
         setIntentData(profileIntent);
         setCardState("returning");
-        return;
       }
     }
-
-    // Logged-in but no profile data to pre-fill — show default instead of skeleton
-    setCardState("default");
   }, [authLoading, user, isActive, activeProfile]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──

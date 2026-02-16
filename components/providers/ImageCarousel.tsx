@@ -17,7 +17,7 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
   const next = () => setCurrent((c) => (c === images.length - 1 ? 0 : c + 1));
 
   return (
-    <div className={`group/carousel relative rounded-lg overflow-hidden bg-gray-100 ${className || "h-[400px]"}`}>
+    <div className={`group/carousel relative rounded-xl overflow-hidden bg-gray-100 ${className || "h-[400px]"}`}>
       <img
         src={images[current]}
         alt={`${alt} - Image ${current + 1}`}

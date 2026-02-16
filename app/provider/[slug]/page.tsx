@@ -13,6 +13,7 @@ import CareServicesList from "@/components/providers/CareServicesList";
 import QASectionV2 from "@/components/providers/QASectionV2";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
+import ReportListingLink from "@/components/providers/ReportListingLink";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import {
   getInitials,
@@ -249,12 +250,12 @@ export default async function ProviderPage({
         {/* -- Identity: Category + Provider Name + Location + Share/Save -- */}
         <div className="mb-4">
           {categoryLabel && (
-            <p className="text-primary-600 text-sm font-semibold uppercase tracking-wider mb-1">
+            <p className="text-primary-600 text-sm font-semibold uppercase tracking-[0.12em] mb-1">
               {categoryLabel}
             </p>
           )}
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight tracking-tight flex items-center gap-2">
               {profile.display_name}
               {profile.claim_state === "claimed" && (
                 <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -283,7 +284,7 @@ export default async function ProviderPage({
             </div>
           </div>
           {profile.address && (
-            <p className="text-base text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               {profile.address}
             </p>
           )}
@@ -330,7 +331,7 @@ export default async function ProviderPage({
 
             {/* 1. Unclaimed Banner */}
             {profile.claim_state === "unclaimed" && (
-              <div className="pb-12">
+              <div className="pb-10">
                 <div className="bg-warm-50 border border-warm-100 rounded-xl p-4 md:p-5">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-start gap-3">
@@ -361,8 +362,8 @@ export default async function ProviderPage({
 
             {/* 2. About */}
             {profile.description && (
-              <div id="about" className="pb-12 first:pt-0 scroll-mt-20">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <div id="about" className="pb-10 first:pt-0 scroll-mt-20">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-4">
                   About {profile.display_name}
                 </h2>
                 <ExpandableText text={profile.description} maxLength={150} />
@@ -371,18 +372,18 @@ export default async function ProviderPage({
 
             {/* 3. Care Services */}
             {profile.care_types && profile.care_types.length > 0 && (
-              <div id="services" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Care Services</h2>
+              <div id="services" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Care Services</h2>
                 <CareServicesList services={profile.care_types} initialCount={9} />
               </div>
             )}
 
             {/* 4. Detailed Pricing */}
             {pricingDetails.length > 0 && (
-              <div id="pricing" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="pricing" className="py-10 scroll-mt-20 border-t border-gray-200">
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Prices at {profile.display_name}</h2>
+                    <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">Prices at {profile.display_name}</h2>
                     <p className="text-sm text-gray-400 mt-1">Last updated on 01/15/2025</p>
                   </div>
                   <button className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
@@ -407,8 +408,8 @@ export default async function ProviderPage({
 
             {/* 5. Payment & Insurance */}
             {(acceptedPayments.length > 0 || meta?.accepts_medicaid || meta?.accepts_medicare) && (
-              <div id="payment" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Acceptable Payment Options</h2>
+              <div id="payment" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Acceptable Payment Options</h2>
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   {acceptedPayments.map((payment) => (
                     <div key={payment} className="flex items-center gap-2.5">
@@ -428,8 +429,8 @@ export default async function ProviderPage({
 
             {/* 7. Staff Screening & Safety */}
             {staffScreening && (
-              <div id="safety" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Staff Screening &amp; Safety</h2>
+              <div id="safety" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Staff Screening &amp; Safety</h2>
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   {[
                     { label: "Background Checked", verified: staffScreening.background_checked },
@@ -447,8 +448,8 @@ export default async function ProviderPage({
 
             {/* 8. Meet Our Team */}
             {staff && (
-              <div id="team" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Meet Our Team</h2>
+              <div id="team" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Meet Our Team</h2>
                 <div className="flex items-start gap-4">
                   {staff.image ? (
                     <img
@@ -474,7 +475,7 @@ export default async function ProviderPage({
 
             {/* 9. Q&A */}
             {defaultQA.length > 0 && (
-              <div id="qa" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="qa" className="py-10 scroll-mt-20 border-t border-gray-200">
                 <QASectionV2
                   providerName={profile.display_name}
                   providerImage={images[0]}
@@ -484,12 +485,12 @@ export default async function ProviderPage({
             )}
 
             {/* 11. Disclaimer */}
-            <div className="py-12 border-t border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Disclaimer</h2>
+            <div className="py-10 border-t border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-3">Disclaimer</h2>
               <p className="text-sm text-gray-500 leading-relaxed">
                 We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
               </p>
-              <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-100">
+              <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                 <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
                 <Link
                   href={`/for-providers/claim/${profile.slug}`}
@@ -519,6 +520,7 @@ export default async function ProviderPage({
                 isActive={profile.is_active}
                 responseTime={null}
               />
+              <ReportListingLink />
             </div>
           </div>
         </div>
@@ -625,7 +627,7 @@ export default async function ProviderPage({
       {similarProviders.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <div className="border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-6">
               Similar providers nearby
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

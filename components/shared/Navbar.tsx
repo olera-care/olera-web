@@ -22,7 +22,7 @@ export default function Navbar() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
-  const { savedCount } = useSavedProviders();
+  const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
   const [heartPulse, setHeartPulse] = useState(false);
   const prevSavedCount = useRef(savedCount);
 
@@ -95,15 +95,20 @@ export default function Navbar() {
     setIsFindCareOpen(false);
   }, [pathname]);
 
-  // Pulse heart icon when a new provider is saved
+  // Pulse heart icon only on user-initiated saves (not initial data load)
   useEffect(() => {
+    if (!savedInitialized) {
+      // Still loading — sync ref without pulsing
+      prevSavedCount.current = savedCount;
+      return;
+    }
     if (savedCount > prevSavedCount.current) {
       setHeartPulse(true);
       const timer = setTimeout(() => setHeartPulse(false), 600);
       return () => clearTimeout(timer);
     }
     prevSavedCount.current = savedCount;
-  }, [savedCount]);
+  }, [savedCount, savedInitialized]);
 
   return (
     <>

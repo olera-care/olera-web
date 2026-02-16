@@ -37,6 +37,8 @@ interface SavedProvidersContextValue {
   savedCount: number;
   anonSaves: SavedProviderEntry[];
   savedProviders: SavedProviderEntry[];
+  /** True after the initial data load (anon + DB) has settled */
+  hasInitialized: boolean;
 }
 
 const SavedProvidersContext = createContext<SavedProvidersContextValue | null>(
@@ -63,6 +65,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
   const [dbSaves, setDbSaves] = useState<SavedProviderEntry[]>([]);
 
   const migrationDone = useRef(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Hydrate anonymous saves from sessionStorage on mount
   useEffect(() => {
@@ -74,6 +77,8 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
     if (!activeProfile || !isSupabaseConfigured()) {
       setDbSaveIds(new Set());
       setDbSaves([]);
+      // Anonymous user or no profile yet — mark initialized after anon hydration
+      if (!user) setHasInitialized(true);
       return;
     }
 
@@ -110,10 +115,11 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
         setDbSaveIds(ids);
         setDbSaves(entries);
       }
+      setHasInitialized(true);
     };
 
     fetchDbSaves();
-  }, [activeProfile]);
+  }, [activeProfile, user]);
 
   // Migrate anonymous saves to DB when user authenticates
   useEffect(() => {
@@ -296,7 +302,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
   return (
     <SavedProvidersContext.Provider
-      value={{ isSaved, toggleSave, savedCount, anonSaves, savedProviders }}
+      value={{ isSaved, toggleSave, savedCount, anonSaves, savedProviders, hasInitialized }}
     >
       {children}
     </SavedProvidersContext.Provider>

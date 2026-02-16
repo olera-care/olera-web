@@ -421,7 +421,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     () => [...filteredProviders]
       .sort((a, b) => b.rating - a.rating)
       .slice(0, 8)
-      .map((p) => ({ ...p, badge: "Top Rated" })),
+      .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -429,7 +429,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     () => filteredProviders
       .filter((p) => p.acceptedPayments?.includes("Medicaid"))
       .slice(0, 8)
-      .map((p) => ({ ...p, badge: undefined })), // No badge for affordable section
+      .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -438,7 +438,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       [...filteredProviders]
         .sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0))
         .slice(0, 8)
-        .map((p) => ({ ...p, badge: "Top Rated" })),
+        .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -446,7 +446,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     () => filteredProviders
       .filter((p) => p.verified)
       .slice(0, 8)
-      .map((p) => ({ ...p, badge: "Featured" })),
+      .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -896,19 +896,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                 List
               </button>
               <button
-                onClick={() => setViewMode("grid")}
-                className={`flex items-center gap-1.5 h-8 px-3 text-sm font-medium rounded-lg transition-all ${
-                  viewMode === "grid"
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Grid
-              </button>
-              <button
                 onClick={() => setViewMode("map")}
                 className={`flex items-center gap-1.5 h-8 px-3 text-sm font-medium rounded-lg transition-all ${
                   viewMode === "map"
@@ -1002,40 +989,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           </div>
         )}
 
-        {/* Grid View */}
-        {viewMode === "grid" && (
-          <div className="min-h-[calc(100vh-200px)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[94px] pb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {careTypeLabel} in {searchLocation}
-              </h1>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                {filteredProviders.length} {filteredProviders.length === 1 ? "result" : "results"}
-              </span>
-            </div>
-
-            {filteredProviders.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {paginatedProviders.map((provider, index) => (
-                    <ProviderCard key={`${provider.id}-${index}`} provider={provider} />
-                  ))}
-                </div>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredProviders.length}
-                  itemsPerPage={PROVIDERS_PER_PAGE}
-                  onPageChange={setCurrentPage}
-                  itemLabel="providers"
-                  className="mt-8"
-                />
-              </>
-            ) : (
-              <EmptyState onClear={clearFilters} />
-            )}
-          </div>
-        )}
+        {/* Grid View — hidden for now */}
 
         {/* Map View */}
         {viewMode === "map" && (

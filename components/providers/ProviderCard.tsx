@@ -193,34 +193,8 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
 
         {/* Top badges row */}
         <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
-          {/* Dynamic Badge (Top Rated, New, Featured, etc.) */}
-          <div>
-            {provider.badge && (
-              <div className="relative group/badge">
-                <div className="bg-warm-500 text-white text-xs font-semibold px-3 rounded-full shadow-md h-9 flex items-center gap-1.5">
-                  {provider.badge}
-                  <svg
-                    className="w-4 h-4 opacity-80"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                {/* Tooltip */}
-                <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover/badge:opacity-100 group-hover/badge:visible transition-all duration-200 z-30">
-                  {provider.badge === "Top Rated" && "This provider is among the highest-rated in your area based on family reviews and care quality."}
-                  {provider.badge === "New" && "This provider recently joined Olera and is accepting new residents."}
-                  {provider.badge === "Featured" && "This provider is featured for exceptional service and care standards."}
-                  <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45" />
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Badge pills hidden for now */}
+          <div />
 
           {/* Heart/Save Button - Larger touch target with save state */}
           <button

@@ -392,7 +392,7 @@ export default function ConnectionsPage() {
             else setActiveTab(tab.id as ConnectionTab);
           }}
           className={[
-            "flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold transition-all relative",
+            "flex-1 flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all relative",
             currentTab === tab.id
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700",
@@ -400,7 +400,7 @@ export default function ConnectionsPage() {
         >
           {tab.label}
           <span className={[
-            "text-[10px] font-semibold px-1 py-0.5 rounded",
+            "text-xs font-semibold px-1.5 py-0.5 rounded",
             currentTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
           ].join(" ")}>
             {tab.count}

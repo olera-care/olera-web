@@ -26,6 +26,7 @@ export default function Navbar() {
   const [heartPulse, setHeartPulse] = useState(false);
   const prevSavedCount = useRef(savedCount);
   const isPortal = pathname.startsWith("/portal");
+  const isCommunity = pathname.startsWith("/community");
 
   // Show auth pill as soon as we know a user session exists.
   // Full dropdown content requires account data.
@@ -114,7 +115,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 bg-white ${isPortal ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`sticky top-0 z-50 bg-white ${isPortal || isCommunity ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"

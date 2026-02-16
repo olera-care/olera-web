@@ -199,25 +199,16 @@ export default function ProfileEditContent({
       <div className="px-7 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div>
           <h3 className="text-xl font-bold text-gray-900">Edit Profile</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Step {step + 1} of {STEPS.length} &middot; {STEPS[step]}</p>
+          <p className="text-sm mt-0.5">
+            <span className="font-semibold text-gray-900">Step {step + 1}</span>
+            <span className="text-gray-400"> of {STEPS.length} &middot; {STEPS[step]}</span>
+          </p>
         </div>
         <button type="button" onClick={handleClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-      </div>
-
-      {/* Step progress bar */}
-      <div className="flex gap-1 px-7 pt-3 shrink-0">
-        {STEPS.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => { saveToDb(); setStep(i); }}
-            className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? "bg-primary-600" : "bg-gray-200"}`}
-          />
-        ))}
       </div>
 
       {/* Content */}

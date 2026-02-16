@@ -294,7 +294,7 @@ function CommunityPageContent() {
         </div>
 
         {/* Composer */}
-        <div className={`px-5 sm:px-6 ${showComposer ? "py-5" : "py-4"} transition-all duration-200 ${showComposer ? "relative z-20" : ""}`}>
+        <div className={`px-8 ${showComposer ? "py-6" : "py-6"} transition-all duration-200 ${showComposer ? "relative z-20" : ""}`}>
           {!showComposer ? (
             <div className="space-y-3">
               <div className="flex items-end justify-between">
@@ -387,7 +387,7 @@ function CommunityPageContent() {
       </div>
 
       {/* ── Posts list ── */}
-      <div className="px-5 sm:px-6 py-4">
+      <div className="px-8 py-6">
         <div className="space-y-3">
           {paginatedPosts.length > 0 ? (
             paginatedPosts.map((post) => (
@@ -430,7 +430,7 @@ function CommunityPageContent() {
   const rightPanelContent = selectedPost ? (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-7 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
+      <div className="px-8 py-6 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div className="min-w-0 mr-4">
           <h3 className="text-lg font-semibold text-gray-900">Discussion</h3>
           <p className="text-sm text-gray-500 mt-0.5 truncate">{selectedPost.title}</p>
@@ -446,10 +446,10 @@ function CommunityPageContent() {
         </button>
       </div>
       <div ref={detailPanelRef} className="flex-1 overflow-y-auto">
-        <div className="px-7 py-6 border-b border-gray-100">
+        <div className="px-8 py-6 border-b border-gray-100">
           <PostContent post={selectedPost} />
         </div>
-        <div className="px-7 py-6">
+        <div className="px-8 py-6">
           <CommentThread comments={getCommentsByPostId(selectedPost.id)} postId={selectedPost.id} />
         </div>
       </div>
@@ -457,7 +457,7 @@ function CommunityPageContent() {
   ) : showGuidelines ? (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-7 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
+      <div className="px-8 py-6 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3 min-w-0 mr-4">
           <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
             <svg className="w-4.5 h-4.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -478,7 +478,7 @@ function CommunityPageContent() {
       </div>
       <div ref={detailPanelRef} className="flex-1 overflow-y-auto">
         {/* Intro */}
-        <div className="px-7 py-6 border-b border-gray-100 bg-gray-50/50">
+        <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50">
           <p className="text-gray-600 leading-relaxed text-[15px]">
             Our community thrives when everyone feels welcome, heard, and supported.
             These guidelines help us maintain a safe and helpful space for caregivers
@@ -486,7 +486,7 @@ function CommunityPageContent() {
           </p>
         </div>
         {/* Guidelines list */}
-        <div className="px-7 py-6 space-y-6">
+        <div className="px-8 py-6 space-y-6">
           {GUIDELINES.map((guideline, index) => (
             <div key={index} className="flex gap-4">
               <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-600">
@@ -500,7 +500,7 @@ function CommunityPageContent() {
           ))}
         </div>
         {/* Footer note */}
-        <div className="px-7 py-5 border-t border-gray-100 bg-gray-50/50">
+        <div className="px-8 py-6 border-t border-gray-100 bg-gray-50/50">
           <div className="flex items-start gap-3 text-sm text-gray-500">
             <svg className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -528,7 +528,7 @@ function CommunityPageContent() {
       <div className="flex bg-white min-h-[calc(100vh-64px)]">
         {/* ── Desktop sidebar — Categories (mirrors portal sidebar) ── */}
         <aside className="hidden lg:block w-[320px] shrink-0">
-          <div className="sticky top-16 h-[calc(100vh-64px)] border-r border-gray-200 flex flex-col px-6 pt-6 pb-6">
+          <div className="sticky top-16 h-[calc(100vh-64px)] border-r border-gray-200 flex flex-col px-8 pt-6 pb-6">
             <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Community</h1>
 
             {/* Search */}
@@ -626,7 +626,7 @@ function MountingSkeleton() {
     <main>
       <div className="flex bg-white min-h-[calc(100vh-64px)]">
         <div className="hidden lg:block w-[320px] shrink-0 border-r border-gray-200">
-          <div className="px-6 pt-6 space-y-4">
+          <div className="px-8 pt-6 space-y-4">
             <div className="h-7 bg-gray-100 rounded-lg animate-pulse w-28" />
             <div className="h-9 bg-gray-100 rounded-lg animate-pulse" />
             <div className="space-y-1.5">
@@ -636,7 +636,7 @@ function MountingSkeleton() {
             </div>
           </div>
         </div>
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex-1 px-8 py-6">
           <div className="h-28 bg-white rounded-xl border border-gray-200 animate-pulse mb-4" />
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (

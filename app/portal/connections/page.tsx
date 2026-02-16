@@ -84,55 +84,18 @@ export default function ConnectionsPage() {
       const cols =
         "id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at";
 
-      const [inboundRes, outboundRes] = await Promise.all([
-        supabase
-          .from("connections")
-          .select(cols)
-          .eq("to_profile_id", activeProfile.id)
-          .neq("type", "save")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("connections")
-          .select(cols)
-          .eq("from_profile_id", activeProfile.id)
-          .neq("type", "save")
-          .order("created_at", { ascending: false }),
-      ]);
+      // Single query for both inbound + outbound connections
+      const { data: rawConnections, error: connError } = await supabase
+        .from("connections")
+        .select(cols)
+        .or(`to_profile_id.eq.${activeProfile.id},from_profile_id.eq.${activeProfile.id}`)
+        .neq("type", "save")
+        .order("created_at", { ascending: false });
 
-      if (inboundRes.error) throw new Error(inboundRes.error.message);
-      if (outboundRes.error) throw new Error(outboundRes.error.message);
+      if (connError) throw new Error(connError.message);
 
-      const seen = new Set<string>();
-      const connectionData: Connection[] = [];
-      for (const c of [
-        ...(inboundRes.data || []),
-        ...(outboundRes.data || []),
-      ] as Connection[]) {
-        if (!seen.has(c.id)) {
-          seen.add(c.id);
-          connectionData.push(c);
-        }
-      }
-      connectionData.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      const connectionData = (rawConnections || []) as Connection[];
 
-      const profileIds = new Set<string>();
-      connectionData.forEach((c) => {
-        profileIds.add(c.from_profile_id);
-        profileIds.add(c.to_profile_id);
-      });
-
-      let profiles: Profile[] = [];
-      if (profileIds.size > 0) {
-        const { data: profileData } = await supabase
-          .from("business_profiles")
-          .select(
-            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id"
-          )
-          .in("id", Array.from(profileIds));
-        profiles = (profileData as Profile[]) || [];
-      }
-
-      // Render immediately with available data (gradient avatars for missing images)
       const buildEnriched = (profileList: Profile[]) => {
         const profileMap = new Map(profileList.map((p) => [p.id, p]));
         return connectionData.map((c) => ({
@@ -142,36 +105,56 @@ export default function ConnectionsPage() {
         }));
       };
 
-      setConnections(buildEnriched(profiles));
+      // Show connections immediately with gradient avatars
+      setConnections(buildEnriched([]));
       setLoading(false);
 
-      // Resolve iOS images in the background (non-blocking)
-      const missingImageIds = profiles
-        .filter((p) => !p.image_url && p.source_provider_id)
-        .map((p) => p.source_provider_id as string);
+      // Fetch profiles in background, then enrich
+      const profileIds = new Set<string>();
+      connectionData.forEach((c) => {
+        profileIds.add(c.from_profile_id);
+        profileIds.add(c.to_profile_id);
+      });
 
-      if (missingImageIds.length > 0) {
-        supabase
-          .from("olera-providers")
-          .select("provider_id, provider_logo, provider_images")
-          .in("provider_id", missingImageIds)
-          .then(({ data: iosProviders }) => {
-            if (iosProviders?.length) {
-              const iosMap = new Map(
-                iosProviders.map((p: { provider_id: string; provider_logo: string | null; provider_images: string | null }) => [
-                  p.provider_id,
-                  p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
-                ])
-              );
-              const updatedProfiles = profiles.map((p) => {
-                if (!p.image_url && p.source_provider_id && iosMap.has(p.source_provider_id)) {
-                  return { ...p, image_url: iosMap.get(p.source_provider_id) || null };
-                }
-                return p;
-              });
-              setConnections(buildEnriched(updatedProfiles));
-            }
-          });
+      if (profileIds.size > 0) {
+        const { data: profileData } = await supabase
+          .from("business_profiles")
+          .select(
+            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id"
+          )
+          .in("id", Array.from(profileIds));
+        const profiles = (profileData as Profile[]) || [];
+
+        setConnections(buildEnriched(profiles));
+
+        // Resolve iOS images in the background (non-blocking)
+        const missingImageIds = profiles
+          .filter((p) => !p.image_url && p.source_provider_id)
+          .map((p) => p.source_provider_id as string);
+
+        if (missingImageIds.length > 0) {
+          supabase
+            .from("olera-providers")
+            .select("provider_id, provider_logo, provider_images")
+            .in("provider_id", missingImageIds)
+            .then(({ data: iosProviders }) => {
+              if (iosProviders?.length) {
+                const iosMap = new Map(
+                  iosProviders.map((p: { provider_id: string; provider_logo: string | null; provider_images: string | null }) => [
+                    p.provider_id,
+                    p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
+                  ])
+                );
+                const updatedProfiles = profiles.map((p) => {
+                  if (!p.image_url && p.source_provider_id && iosMap.has(p.source_provider_id)) {
+                    return { ...p, image_url: iosMap.get(p.source_provider_id) || null };
+                  }
+                  return p;
+                });
+                setConnections(buildEnriched(updatedProfiles));
+              }
+            });
+        }
       }
     } catch (err: unknown) {
       console.error("[olera] fetchConnections failed:", err);
@@ -311,16 +294,19 @@ export default function ConnectionsPage() {
             </div>
           ))}
         </div>
-        <div className="space-y-1">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse px-4 py-3 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-200 shrink-0" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="animate-pulse rounded-xl border border-gray-100 p-5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="h-3.5 w-32 bg-gray-200 rounded mb-1.5" />
-                  <div className="h-3 w-48 bg-gray-200 rounded" />
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="h-3 w-16 bg-gray-200 rounded" />
+                    <div className="h-3 w-12 bg-gray-200 rounded" />
+                  </div>
+                  <div className="h-4 w-36 bg-gray-200 rounded mb-1.5" />
+                  <div className="h-3 w-44 bg-gray-200 rounded" />
                 </div>
-                <div className="h-5 w-16 bg-gray-200 rounded-md shrink-0" />
               </div>
             </div>
           ))}
@@ -393,6 +379,7 @@ export default function ConnectionsPage() {
           onClick={() => {
             if (isProvider) setProviderTab(tab.id as ProviderConnectionTab);
             else setActiveTab(tab.id as ConnectionTab);
+            setSelectedConnectionId(null);
           }}
           className={[
             "flex-1 flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all relative",

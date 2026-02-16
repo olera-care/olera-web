@@ -160,13 +160,9 @@ export default function CarePostView({
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Let providers find you
           </h3>
-          <p className="text-sm text-gray-500 mb-2 leading-relaxed max-w-[380px] mx-auto">
-            Post your care need and qualified providers in your area can reach
-            out to you directly.
-          </p>
-          <p className="text-sm text-gray-400 mb-6 max-w-[380px] mx-auto">
-            Your existing profile details will be used — no extra forms to fill
-            out.
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-[380px] mx-auto">
+            Post your care need so qualified providers in your area can reach
+            out to you directly. We&apos;ll use your existing profile details.
           </p>
           <Button size="sm" onClick={() => setStep("review")}>
             Create Care Post

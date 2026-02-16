@@ -240,12 +240,9 @@ export default function FamilyProfileView() {
           <button
             type="button"
             onClick={() => openEdit(0)}
-            className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
-            aria-label="Edit basic info"
+            className="shrink-0 self-start mt-1 text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
           >
-            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
+            Edit
           </button>
         </div>
 

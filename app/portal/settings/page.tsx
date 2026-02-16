@@ -209,7 +209,10 @@ export default function SettingsPage() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 h-full overflow-y-auto">
     <div className="space-y-5 max-w-2xl">
-      <h2 className="text-xl font-semibold text-gray-900">Account Settings</h2>
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900">Account Settings</h2>
+        <p className="text-sm text-gray-500 mt-1">Manage your notifications, login, and preferences.</p>
+      </div>
       {justUpgraded && (
         <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base">
           Your subscription is now active. You have full access to all features.
@@ -337,7 +340,7 @@ export default function SettingsPage() {
               <p className="text-[15px] font-semibold text-gray-900">
                 Add a provider profile
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-xs text-gray-400">
                 List your care services on Olera and connect with families.
               </p>
             </div>

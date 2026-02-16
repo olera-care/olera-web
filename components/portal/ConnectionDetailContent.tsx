@@ -1042,7 +1042,7 @@ export default function ConnectionDetailContent({
       {connection && !loading && (
         <>
           {/* ── HEADER: Who + Status + Profile Link + Contact ── */}
-          <div className="px-7 pt-5 pb-4 shrink-0">
+          <div className="px-7 pt-5 pb-4 shrink-0 border-b border-gray-100">
             <div className="flex items-start gap-4">
               {/* Avatar */}
               <div className="shrink-0">
@@ -1051,11 +1051,11 @@ export default function ConnectionDetailContent({
                   <img
                     src={imageUrl}
                     alt={otherName}
-                    className="w-12 h-12 rounded-xl object-cover"
+                    className="w-14 h-14 rounded-xl object-cover"
                   />
                 ) : (
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white"
+                    className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold text-white"
                     style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
                   >
                     {shouldBlur ? "?" : initial}
@@ -1128,6 +1128,12 @@ export default function ConnectionDetailContent({
                     )}
                   </div>
                 )}
+                {/* Request summary (folded from context card) */}
+                {parsedMsg && !shouldBlur && (
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    {[parsedMsg.careType, parsedMsg.careRecipient ? `For ${parsedMsg.careRecipient}` : null, parsedMsg.urgency, `${isInbound ? "Received" : "Sent"} ${shortDate}`].filter(Boolean).join(" · ")}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1154,29 +1160,6 @@ export default function ConnectionDetailContent({
               </div>
             )}
           </div>
-
-          {/* ── CONTEXT CARD: Pinned request summary ── */}
-          {parsedMsg && !shouldBlur && (
-            <div className="px-7 pb-3 shrink-0">
-              <div className="bg-gray-50 rounded-xl px-4 py-3">
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {[parsedMsg.careType, parsedMsg.careRecipient ? `For ${parsedMsg.careRecipient}` : null, parsedMsg.urgency].filter(Boolean).join(" \u00b7 ")}
-                </p>
-                {connection.status === "pending" && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    {isInbound
-                      ? "Review their request and respond when ready"
-                      : isProvider
-                      ? `Sent ${shortDate} \u00b7 Waiting for a response`
-                      : `Sent ${shortDate} \u00b7 Most providers respond within a few hours`}
-                  </p>
-                )}
-                {connection.status !== "pending" && (
-                  <p className="text-xs text-gray-400 mt-1">{isInbound ? "Received" : "Sent"} {shortDate}</p>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* ── CONVERSATION ── */}
           <div ref={conversationRef} className="flex-1 overflow-y-auto min-h-0 px-7 py-4">

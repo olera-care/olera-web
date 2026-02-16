@@ -173,27 +173,33 @@ export default function MatchesPage() {
         </div>
       </div>
 
-      {/* Sub-tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-0.5 rounded-xl w-fit">
-        {(
-          [
-            { id: "foryou", label: "For You" },
-            { id: "carepost", label: "My Care Post" },
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setSubTab(tab.id)}
-            className={[
-              "px-5 py-2 rounded-lg text-sm font-semibold transition-all",
-              subTab === tab.id
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700",
-            ].join(" ")}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Tabs + Sort row */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl w-fit">
+          {(
+            [
+              { id: "foryou", label: "For You" },
+              { id: "carepost", label: "My Care Post" },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setSubTab(tab.id)}
+              className={[
+                "px-5 py-2 rounded-lg text-sm font-semibold transition-all",
+                subTab === tab.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700",
+              ].join(" ")}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {subTab === "foryou" && !loading && providers.length > 0 && (
+          <MatchSortBar sort={sort} onSortChange={handleSortChange} />
+        )}
       </div>
 
       {/* For You view */}
@@ -207,26 +213,16 @@ export default function MatchesPage() {
               </Button>
             </div>
           ) : (
-            <>
-              {!loading && providers.length > 0 && (
-                <MatchSortBar
-                  matchCount={totalCount}
-                  sort={sort}
-                  onSortChange={handleSortChange}
-                />
-              )}
-
-              <div className="min-h-[560px]">
-                <MatchCardStack
-                  providers={providers}
-                  onDismiss={handleDismiss}
-                  onConnect={handleConnect}
-                  onViewProfile={handleViewProfile}
-                  onRefresh={() => fetchMatches(sort)}
-                  isLoading={loading}
-                />
-              </div>
-            </>
+            <div className="min-h-[600px]">
+              <MatchCardStack
+                providers={providers}
+                onDismiss={handleDismiss}
+                onConnect={handleConnect}
+                onViewProfile={handleViewProfile}
+                onRefresh={() => fetchMatches(sort)}
+                isLoading={loading}
+              />
+            </div>
           )}
         </>
       )}

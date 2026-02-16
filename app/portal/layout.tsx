@@ -118,133 +118,133 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
     !nudgeDismissed;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Mobile: header + horizontal tabs */}
-      <h1 className="text-2xl font-bold text-gray-900 mb-6 lg:hidden">Profile</h1>
-      <div className="lg:hidden mb-6 flex gap-2 overflow-x-auto scrollbar-hide">
-        {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={[
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150",
-                isActive
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-600 hover:bg-gray-100",
-              ].join(" ")}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-      </div>
+    <div className="flex bg-white min-h-[calc(100vh-64px)]">
+      {/* ── Desktop sidebar — full-height, edge-to-edge, Airbnb-style ── */}
+      <aside className="hidden lg:block w-[270px] shrink-0">
+        <div className="sticky top-16 h-[calc(100vh-64px)] border-r border-gray-200 flex flex-col px-5 pt-6 pb-5">
+          <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Profile</h1>
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    "flex items-center gap-3.5 px-3 py-3 rounded-xl text-[15px] font-medium transition-all duration-150",
+                    isActive
+                      ? "bg-gray-100 font-semibold text-gray-900"
+                      : "text-gray-600 hover:bg-gray-50",
+                  ].join(" ")}
+                >
+                  <lord-icon
+                    src={item.iconSrc}
+                    trigger="hover"
+                    colors={`primary:${isActive ? "#199087" : "#6b7280"}`}
+                    style={{ width: "40px", height: "40px" }}
+                  />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-      <div className="flex gap-8 lg:gap-10">
-        {/* Desktop nav card — sticky white card */}
-        <div className="hidden lg:block w-[270px] shrink-0">
-          <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5 h-[calc(100vh-112px)] flex flex-col">
-            <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Profile</h1>
-            <nav className="space-y-1">
-              {navItems.map((item) => {
-                const isActive = pathname.startsWith(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={[
-                      "flex items-center gap-3.5 px-3 py-3 rounded-xl text-[15px] font-medium transition-all duration-150",
-                      isActive
-                        ? "bg-gray-100 font-semibold text-gray-900"
-                        : "text-gray-600 hover:bg-gray-50",
-                    ].join(" ")}
-                  >
-                    <lord-icon
-                      src={item.iconSrc}
-                      trigger="hover"
-                      colors={`primary:${isActive ? "#199087" : "#6b7280"}`}
-                      style={{ width: "40px", height: "40px" }}
-                    />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Bottom section — pushed down */}
-            <div className="mt-auto pt-4 border-t border-gray-100">
-              {/* Profile completeness nudge */}
-              {showNudge && (
-                <div className="mb-3 px-3 py-2.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 relative">
-                  <button
-                    onClick={() => setNudgeDismissed(true)}
-                    className="absolute top-2 right-2 text-amber-400 hover:text-amber-600 transition-colors"
-                    aria-label="Dismiss"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
+          {/* Bottom section — pushed down */}
+          <div className="mt-auto pt-4 border-t border-gray-100">
+            {/* Profile completeness nudge */}
+            {showNudge && (
+              <div className="mb-3 px-3 py-2.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 relative">
+                <button
+                  onClick={() => setNudgeDismissed(true)}
+                  className="absolute top-2 right-2 text-amber-400 hover:text-amber-600 transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+                <div className="flex items-center gap-2.5">
+                  <div className="relative w-8 h-8 shrink-0">
+                    <svg width="32" height="32" viewBox="0 0 32 32">
+                      <circle cx="16" cy="16" r="13" fill="none" stroke="#fcd34d" strokeWidth="2.5" />
+                      <circle
+                        cx="16"
+                        cy="16"
+                        r="13"
+                        fill="none"
+                        stroke="#d97706"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(completeness.percentage / 100) * 81.68} 81.68`}
+                        transform="rotate(-90 16 16)"
+                      />
                     </svg>
-                  </button>
-                  <div className="flex items-center gap-2.5">
-                    <div className="relative w-8 h-8 shrink-0">
-                      <svg width="32" height="32" viewBox="0 0 32 32">
-                        <circle cx="16" cy="16" r="13" fill="none" stroke="#fcd34d" strokeWidth="2.5" />
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="13"
-                          fill="none"
-                          stroke="#d97706"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeDasharray={`${(completeness.percentage / 100) * 81.68} 81.68`}
-                          transform="rotate(-90 16 16)"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-amber-700">
-                        {completeness.percentage}%
-                      </span>
-                    </div>
-                    <div className="pr-4">
-                      <p className="text-[12px] font-semibold text-amber-900 leading-tight">
-                        Your profile is incomplete
-                      </p>
-                      <p className="text-[11px] text-amber-700/80 leading-snug mt-0.5">
-                        Complete profiles get more responses.
-                      </p>
-                    </div>
+                    <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-amber-700">
+                      {completeness.percentage}%
+                    </span>
                   </div>
-                  <Link
-                    href="/portal/profile"
-                    className="flex items-center gap-1 mt-2 text-[12px] font-medium text-amber-700 hover:text-amber-900 transition-colors"
-                  >
-                    Complete profile
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14" />
-                      <path d="M12 5l7 7-7 7" />
-                    </svg>
-                  </Link>
+                  <div className="pr-4">
+                    <p className="text-[12px] font-semibold text-amber-900 leading-tight">
+                      Your profile is incomplete
+                    </p>
+                    <p className="text-[11px] text-amber-700/80 leading-snug mt-0.5">
+                      Complete profiles get more responses.
+                    </p>
+                  </div>
                 </div>
-              )}
-              <Link
-                href="/browse"
-                className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                Browse more providers
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </div>
+                <Link
+                  href="/portal/profile"
+                  className="flex items-center gap-1 mt-2 text-[12px] font-medium text-amber-700 hover:text-amber-900 transition-colors"
+                >
+                  Complete profile
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14" />
+                    <path d="M12 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            )}
+            <Link
+              href="/browse"
+              className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
+            >
+              Browse more providers
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Content area ── */}
+      <div className="flex-1 min-w-0">
+        {/* Mobile: header + horizontal tabs */}
+        <div className="lg:hidden px-4 sm:px-6 pt-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile</h1>
+          <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-hide">
+            {navItems.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150",
+                    isActive
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-600 hover:bg-gray-100",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
-        {/* Content — scrollable */}
-        <div className="flex-1 min-w-0">
-          {children}
-        </div>
+        {children}
       </div>
     </div>
   );

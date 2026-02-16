@@ -138,7 +138,7 @@ export default function MatchesPage() {
   // Profile guard
   if (!hasRequiredFields) {
     return (
-      <div>
+      <div className="px-4 sm:px-6 lg:px-8 py-6"><div>
         <h2 className="text-[22px] font-bold text-gray-900">Matches</h2>
         <p className="text-sm text-gray-500 mt-1 mb-8">
           Discover providers or let them find you.
@@ -156,11 +156,12 @@ export default function MatchesPage() {
             <Button size="sm">Complete profile</Button>
           </Link>
         </div>
-      </div>
+      </div></div>
     );
   }
 
   return (
+    <div className="px-4 sm:px-6 lg:px-8 py-6">
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
@@ -240,6 +241,7 @@ export default function MatchesPage() {
         />
       )}
 
+    </div>
     </div>
   );
 }

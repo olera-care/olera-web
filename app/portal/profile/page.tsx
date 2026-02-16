@@ -478,7 +478,7 @@ export default function PortalProfilePage() {
     : "Keep your information up to date so agencies and families can find you.";
 
   return (
-    <div>
+    <div className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <p className="text-lg text-gray-600">{profileLabel}</p>
@@ -504,7 +504,7 @@ export default function PortalProfilePage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Profile photo
           </h2>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="pb-6 mb-2 border-b border-gray-100">
             <div className="flex items-center gap-6">
               {/* Image preview */}
               <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
@@ -577,7 +577,7 @@ export default function PortalProfilePage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Basic information
           </h2>
-          <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200">
+          <div className="space-y-6 pb-6 mb-2 border-b border-gray-100">
             <Input
               label={isOrg ? "Organization name" : "Display name"}
               name="display_name"
@@ -637,7 +637,7 @@ export default function PortalProfilePage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Contact information
           </h2>
-          <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200">
+          <div className="space-y-6 pb-6 mb-2 border-b border-gray-100">
             <Input
               label="Phone"
               name="phone"
@@ -676,7 +676,7 @@ export default function PortalProfilePage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Location
           </h2>
-          <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200">
+          <div className="space-y-6 pb-6 mb-2 border-b border-gray-100">
             <Input
               label="Street address"
               name="address"
@@ -720,7 +720,7 @@ export default function PortalProfilePage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Care types offered
           </h2>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="pb-6 mb-2 border-b border-gray-100">
             <div className="flex flex-wrap gap-2">
               {CARE_TYPES.map((ct) => (
                 <button
@@ -747,7 +747,7 @@ export default function PortalProfilePage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Organization details
             </h2>
-            <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200">
+            <div className="space-y-6 pb-6 mb-2 border-b border-gray-100">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="License number"
@@ -911,7 +911,7 @@ export default function PortalProfilePage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Caregiver details
             </h2>
-            <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200">
+            <div className="space-y-6 pb-6 mb-2 border-b border-gray-100">
               <Input
                 label="Years of experience"
                 name="years_experience"

@@ -286,6 +286,7 @@ export default function ConnectionsPage() {
 
   if (loading) {
     return (
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="space-y-6">
         <div>
           <h2 className="text-[22px] font-bold text-gray-900">
@@ -319,6 +320,7 @@ export default function ConnectionsPage() {
           ))}
         </div>
       </div>
+      </div>
     );
   }
 
@@ -326,25 +328,27 @@ export default function ConnectionsPage() {
 
   if (connections.length === 0 && !error) {
     return (
-      <EmptyState
-        title="No connections yet"
-        description={
-          isProvider
-            ? "When families reach out or you connect with them, their requests will appear here."
-            : "Browse providers and connect to get started."
-        }
-        action={
-          isProvider ? (
-            <Link href="/portal/discover/families">
-              <Button>Discover Families</Button>
-            </Link>
-          ) : (
-            <Link href="/browse">
-              <Button>Browse Providers</Button>
-            </Link>
-          )
-        }
-      />
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <EmptyState
+          title="No connections yet"
+          description={
+            isProvider
+              ? "When families reach out or you connect with them, their requests will appear here."
+              : "Browse providers and connect to get started."
+          }
+          action={
+            isProvider ? (
+              <Link href="/portal/discover/families">
+                <Button>Discover Families</Button>
+              </Link>
+            ) : (
+              <Link href="/browse">
+                <Button>Browse Providers</Button>
+              </Link>
+            )
+          }
+        />
+      </div>
     );
   }
 

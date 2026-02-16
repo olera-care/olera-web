@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/shared/Navbar";
-import Footer from "@/components/shared/Footer";
+import ConditionalFooter from "@/components/shared/ConditionalFooter";
 import AuthProvider from "@/components/auth/AuthProvider";
 import GlobalUnifiedAuthModal from "@/components/auth/GlobalUnifiedAuthModal";
 import { SavedProvidersProvider } from "@/hooks/use-saved-providers";
@@ -36,7 +36,7 @@ export default function RootLayout({
           <NavbarProvider>
             <Navbar />
             <main className="flex-grow">{children}</main>
-            <Footer />
+            <ConditionalFooter />
             <GlobalUnifiedAuthModal />
           </NavbarProvider>
           </SavedProvidersProvider>

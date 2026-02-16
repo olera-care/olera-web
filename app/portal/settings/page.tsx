@@ -207,6 +207,7 @@ export default function SettingsPage() {
   };
 
   return (
+    <div className="px-4 sm:px-6 lg:px-8 py-6">
     <div className="space-y-6">
       {justUpgraded && (
         <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base">
@@ -215,7 +216,7 @@ export default function SettingsPage() {
       )}
 
       {/* ── Notifications ── */}
-      <section className="bg-white rounded-2xl border border-gray-200">
+      <section className="border-b border-gray-100 pb-2">
         <div className="px-6 pt-6 pb-2">
           <h3 className="text-lg font-bold text-gray-900">Notifications</h3>
           <p className="text-sm text-gray-500 mt-1">
@@ -263,7 +264,7 @@ export default function SettingsPage() {
       </section>
 
       {/* ── Account ── */}
-      <section className="bg-white rounded-2xl border border-gray-200">
+      <section className="border-b border-gray-100 pb-2">
         <div className="px-6 pt-6 pb-2">
           <h3 className="text-lg font-bold text-gray-900">Account</h3>
           <p className="text-sm text-gray-500 mt-1">
@@ -324,7 +325,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setShowProviderModal(true)}
-            className="w-full text-left flex items-center gap-4 bg-white rounded-2xl border border-gray-200 p-6 hover:border-primary-200 hover:bg-primary-50/20 transition-colors group"
+            className="w-full text-left flex items-center gap-4 rounded-xl border border-gray-100 p-5 hover:border-primary-200 hover:bg-primary-50/20 transition-colors group"
           >
             <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
               <svg
@@ -419,7 +420,7 @@ export default function SettingsPage() {
 
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
-        <section className="bg-white rounded-2xl border border-gray-200 p-6">
+        <section className="border-b border-gray-100 pb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">
             Subscription
           </h3>
@@ -549,7 +550,7 @@ export default function SettingsPage() {
       )}
 
       {/* ── Delete Account ── */}
-      <section className="bg-white rounded-2xl border border-gray-200 p-6">
+      <section className="pb-6">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-base font-semibold text-gray-900">
@@ -624,6 +625,7 @@ export default function SettingsPage() {
           </div>
         </div>
       </Modal>
+    </div>
     </div>
   );
 }

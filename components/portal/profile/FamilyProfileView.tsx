@@ -5,7 +5,8 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
-import ProfileEditDrawer, { BenefitsFinderBanner } from "./ProfileEditDrawer";
+import ProfileEditContent, { BenefitsFinderBanner } from "./ProfileEditContent";
+import SplitViewLayout from "@/components/portal/SplitViewLayout";
 
 const TIMELINE_LABELS: Record<string, string> = {
   immediate: "As soon as possible",
@@ -22,8 +23,7 @@ const CONTACT_PREF_LABELS: Record<string, string> = {
 
 export default function FamilyProfileView() {
   const { user, activeProfile, refreshAccountData } = useAuth();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerStep, setDrawerStep] = useState(0);
+  const [editStep, setEditStep] = useState<number | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [imageError, setImageError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,9 +39,8 @@ export default function FamilyProfileView() {
 
   if (!profile) return null;
 
-  const openDrawer = (step: number) => {
-    setDrawerStep(step);
-    setDrawerOpen(true);
+  const openEdit = (step: number) => {
+    setEditStep(step);
   };
 
   const handleSaved = async () => {
@@ -136,9 +135,15 @@ export default function FamilyProfileView() {
   };
 
   return (
-    <div className="space-y-6">
+    <SplitViewLayout
+      selectedId={editStep !== null ? String(editStep) : null}
+      onBack={() => setEditStep(null)}
+      backLabel="Back to profile"
+      left={
+        <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="space-y-6">
       {/* ── Profile Header ── */}
-      <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+      <section className="rounded-2xl border border-gray-100 overflow-hidden">
         <div className="p-6 flex items-center gap-5">
           {/* Avatar */}
           <div className="relative shrink-0">
@@ -210,7 +215,7 @@ export default function FamilyProfileView() {
           {/* Edit basic info */}
           <button
             type="button"
-            onClick={() => openDrawer(0)}
+            onClick={() => openEdit(0)}
             className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
             aria-label="Edit basic info"
           >
@@ -251,7 +256,7 @@ export default function FamilyProfileView() {
         title="Contact Information"
         subtitle="How providers can reach you. This is shared when you connect."
         status={sectionStatus[1]}
-        onEdit={() => openDrawer(1)}
+        onEdit={() => openEdit(1)}
       >
         <div className="divide-y divide-gray-100">
           <ViewRow label="Email" value={profile.email || userEmail || null} />
@@ -273,7 +278,7 @@ export default function FamilyProfileView() {
         title="Care Preferences"
         subtitle="Auto-filled from your connection request. Shared with every provider you connect with."
         status={sectionStatus[2]}
-        onEdit={() => openDrawer(2)}
+        onEdit={() => openEdit(2)}
       >
         <div className="divide-y divide-gray-100">
           <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
@@ -288,7 +293,7 @@ export default function FamilyProfileView() {
         title="Payment & Benefits"
         subtitle="How are you planning to pay for care?"
         status={sectionStatus[3]}
-        onEdit={() => openDrawer(3)}
+        onEdit={() => openEdit(3)}
       >
         {meta.payment_methods && meta.payment_methods.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-4">
@@ -312,7 +317,7 @@ export default function FamilyProfileView() {
         title="More About Your Situation"
         subtitle="Help providers understand your needs better."
         status={combineSectionStatus()}
-        onEdit={() => openDrawer(4)}
+        onEdit={() => openEdit(4)}
       >
         <div className="divide-y divide-gray-100">
           <ViewRow label="Living situation" value={meta.living_situation || null} />
@@ -339,16 +344,33 @@ export default function FamilyProfileView() {
         </div>
       </SectionCard>
 
-      {/* ── Edit Drawer ── */}
-      <ProfileEditDrawer
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        initialStep={drawerStep}
-        profile={profile}
-        userEmail={userEmail}
-        onSaved={handleSaved}
-      />
     </div>
+    </div>
+      }
+      right={
+        editStep !== null ? (
+          <ProfileEditContent
+            key={editStep}
+            profile={profile}
+            userEmail={userEmail}
+            onSaved={handleSaved}
+            onClose={() => setEditStep(null)}
+            initialStep={editStep}
+          />
+        ) : null
+      }
+      emptyState={
+        <div className="text-center px-8">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
+            <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </div>
+          <p className="text-sm font-medium text-gray-900">Select a section to edit</p>
+          <p className="text-xs text-gray-500 mt-1">Click any section on the left to update your profile</p>
+        </div>
+      }
+    />
   );
 }
 
@@ -399,7 +421,7 @@ function SectionCard({
           onEdit();
         }
       }}
-      className="bg-white rounded-2xl border border-gray-200 p-6 cursor-pointer hover:border-gray-300 transition-colors"
+      className="rounded-xl border border-gray-100 p-5 cursor-pointer hover:border-gray-200 hover:bg-gray-50/50 transition-colors"
     >
       {/* Header row */}
       <div className="flex items-center gap-2.5 mb-0.5">

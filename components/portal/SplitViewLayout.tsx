@@ -28,7 +28,7 @@ export default function SplitViewLayout({
   const hasSelection = selectedId !== null;
 
   return (
-    <div className="flex h-[calc(100vh-88px)] -mt-2">
+    <div className="flex h-[calc(100vh-64px)]">
       {/* ── Left: Master list ── */}
       <div
         className={`

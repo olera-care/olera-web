@@ -1,12 +1,6 @@
 "use client";
 
 import type { Connection, Profile } from "@/lib/types";
-import {
-  getFamilyDisplayStatus,
-  getProviderDisplayStatus,
-  FAMILY_STATUS_CONFIG,
-  PROVIDER_STATUS_CONFIG,
-} from "@/lib/connection-utils";
 import { avatarGradient, blurName, parseMessage } from "./ConnectionDetailContent";
 
 export interface ConnectionWithProfile extends Connection {
@@ -50,11 +44,6 @@ export default function ConnectionListItem({
 
   const shouldBlur = isProvider && !hasFullAccess && isInbound;
 
-  // Get status config based on role
-  const statusConfig = isProvider
-    ? PROVIDER_STATUS_CONFIG[getProviderDisplayStatus(connection, isInbound)]
-    : FAMILY_STATUS_CONFIG[getFamilyDisplayStatus(connection)];
-
   const createdAt = new Date(connection.created_at).toLocaleDateString(
     "en-US",
     { month: "short", day: "numeric" }
@@ -63,34 +52,16 @@ export default function ConnectionListItem({
   const imageUrl = otherProfile?.image_url;
   const initial = otherName.charAt(0).toUpperCase();
 
-  // Thread preview: last message text
-  const thread = (connection.metadata as Record<string, unknown>)?.thread as
-    | { text: string; type?: string }[]
-    | undefined;
-  const lastMsg = thread?.length ? thread[thread.length - 1] : null;
-  const preview =
-    lastMsg?.type === "system"
-      ? lastMsg.text
-      : lastMsg?.text
-      ? lastMsg.text.length > 60
-        ? lastMsg.text.slice(0, 60) + "..."
-        : lastMsg.text
-      : parsedMsg?.notes
-      ? parsedMsg.notes.length > 60
-        ? parsedMsg.notes.slice(0, 60) + "..."
-        : parsedMsg.notes
-      : careTypeLabel;
-
   return (
     <button
       type="button"
       onClick={() => onSelect(connection.id)}
       className={[
         "w-full text-left transition-colors cursor-pointer",
-        "px-4 py-3 border-b border-gray-100",
+        "px-4 py-3.5 border-b border-gray-100 border-l-2",
         selected
-          ? "bg-primary-50/60"
-          : "bg-white hover:bg-gray-50/80",
+          ? "bg-primary-50/60 border-l-primary-600"
+          : "bg-white hover:bg-gray-50/80 border-l-transparent",
       ].join(" ")}
     >
       <div className="flex items-center gap-3">
@@ -129,20 +100,12 @@ export default function ConnectionListItem({
             </h3>
             <span className="text-[11px] text-gray-400 shrink-0">{createdAt}</span>
           </div>
-          <div className="flex items-center justify-between gap-2 mt-0.5">
-            <p className={[
-              "text-xs truncate",
-              unread ? "text-gray-600" : "text-gray-400",
-            ].join(" ")}>
-              {preview}
-            </p>
-            <span
-              className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 ${statusConfig.bg} ${statusConfig.color}`}
-            >
-              <span className={`w-1 h-1 rounded-full ${statusConfig.dot}`} />
-              {statusConfig.label}
-            </span>
-          </div>
+          <p className={[
+            "text-xs truncate mt-0.5",
+            unread ? "text-gray-600" : "text-gray-400",
+          ].join(" ")}>
+            {[otherLocation, careTypeLabel].filter(Boolean).join(" · ")}
+          </p>
         </div>
       </div>
     </button>

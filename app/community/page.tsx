@@ -236,174 +236,179 @@ function CommunityPageContent() {
   // ══════════════════════════════════════════════════════════
 
   const postsFeed = (
-    <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Mobile: Search + Category pills */}
-      <div className="lg:hidden space-y-4 mb-5">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search discussions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-          <div className="flex gap-2 min-w-max pb-1">
-            <button
-              onClick={() => handleCategoryChange("all")}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeCategory === "all"
-                  ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              All
-            </button>
-            {ALL_CARE_TYPES.map((careType) => (
+    <div>
+      {/* ── Sticky composer header — flush, no side/top padding ── */}
+      <div className={`sticky top-0 z-20 bg-white border-b border-gray-200 ${showComposer ? "shadow-md" : ""}`}>
+        {/* Mobile: Search + Category pills */}
+        <div className="lg:hidden px-4 pt-4 space-y-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search discussions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+            <div className="flex gap-2 min-w-max pb-1">
               <button
-                key={careType}
-                onClick={() => handleCategoryChange(careType)}
+                onClick={() => handleCategoryChange("all")}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  activeCategory === careType
+                  activeCategory === "all"
                     ? "bg-gray-900 text-white"
                     : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                 }`}
               >
-                {CARE_TYPE_CONFIG[careType].label}
+                All
               </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Composer card */}
-      <div className={`p-4 bg-white rounded-xl border border-gray-200 shadow-sm mb-4 transition-shadow duration-200 ${showComposer ? "shadow-lg relative z-20" : ""}`}>
-        {!showComposer ? (
-          <div className="space-y-3">
-            <div className="flex items-end justify-between">
-              <div>
-                <p className="text-sm text-gray-500">{getGreeting()}</p>
-                <h2 className="text-xl font-semibold text-gray-900">What&apos;s on your mind today?</h2>
-              </div>
-              <div className="relative" ref={sortMenuRef}>
+              {ALL_CARE_TYPES.map((careType) => (
                 <button
-                  onClick={() => setShowSortMenu(!showSortMenu)}
-                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  key={careType}
+                  onClick={() => handleCategoryChange(careType)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    activeCategory === careType
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  }`}
                 >
-                  Sort: {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  {CARE_TYPE_CONFIG[careType].label}
                 </button>
-                {showSortMenu && (
-                  <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                    {SORT_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => { setSortBy(option.value); setShowSortMenu(false); }}
-                        className={`w-full px-3 py-2 text-left text-sm transition-colors ${
-                          sortBy === option.value ? "bg-gray-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div
-              onClick={() => setShowComposer(true)}
-              className="flex items-center gap-3 pl-3 pr-1.5 py-1.5 bg-white border border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-primary-600 font-medium text-xs">JD</span>
-              </div>
-              <span className="flex-1 text-left text-gray-500 text-sm font-medium">Start a discussion...</span>
-              <button className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">Post</button>
+              ))}
             </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-primary-600 font-medium text-sm">JD</span>
-              </div>
-              <div className="flex-1 space-y-3">
-                <div>
-                  <input ref={titleInputRef} type="text" value={composerTitle} onChange={(e) => handleTitleChange(e.target.value)} placeholder="Discussion title..."
-                    className={`w-full px-0 py-2 text-lg font-medium text-gray-900 placeholder-gray-400 border-0 border-b focus:outline-none bg-transparent ${composerErrors.title ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-primary-500"}`} />
-                  {composerErrors.title && <p className="mt-1 text-sm text-red-500">{composerErrors.title}</p>}
-                </div>
-                <div>
-                  <textarea value={composerText} onChange={(e) => handleContentChange(e.target.value)} placeholder="Share your thoughts, questions, or experiences..."
-                    className={`w-full px-0 py-2 text-gray-700 placeholder-gray-400 resize-none focus:outline-none bg-transparent ${composerErrors.content ? "border-b border-red-400" : ""}`} rows={4} />
-                  {composerErrors.content && <p className="mt-1 text-sm text-red-500">{composerErrors.content}</p>}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-              <div>
-                <select value={composerCategory} onChange={(e) => handleCategorySelect(e.target.value)}
-                  className={`text-sm bg-gray-50 border rounded-lg pl-3 pr-10 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M3%205l3%203%203-3%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.75rem_center] bg-no-repeat ${composerErrors.category ? "border-red-400" : "border-gray-200"} ${composerCategory ? 'text-gray-900' : 'text-gray-500'}`}>
-                  <option value="">Select category</option>
-                  <option value="home-health">Home Health</option>
-                  <option value="home-care">Home Care</option>
-                  <option value="assisted-living">Assisted Living</option>
-                  <option value="memory-care">Memory Care</option>
-                  <option value="nursing-homes">Nursing Homes</option>
-                  <option value="independent-living">Independent Living</option>
-                </select>
-                {composerErrors.category && <p className="mt-1 text-sm text-red-500">{composerErrors.category}</p>}
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={resetComposer} className="px-4 py-2 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">Cancel</button>
-                <button onClick={handlePostSubmit} className="px-5 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors">Post Discussion</button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Composer overlay */}
-      {showComposer && <div className="fixed inset-0 z-10" onClick={resetComposer} />}
-
-      {/* Posts */}
-      <div className="space-y-3">
-        {paginatedPosts.length > 0 ? (
-          paginatedPosts.map((post) => (
-            <ForumPostCardV3
-              key={post.id}
-              post={post}
-              isSelected={post.id === selectedPostId}
-              onClick={() => handlePostClick(post)}
-            />
-          ))
-        ) : (
-          <div className="py-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No discussions found</h3>
-            <p className="text-gray-500">{searchQuery ? "Try different keywords or browse all topics." : "Be the first to start a discussion!"}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex justify-center">
-          <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={posts.length} itemsPerPage={POSTS_PER_PAGE}
-            onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            itemLabel="discussions" showItemCount={false} />
         </div>
-      )}
+
+        {/* Composer */}
+        <div className={`px-5 sm:px-6 ${showComposer ? "py-5" : "py-4"} transition-all duration-200 ${showComposer ? "relative z-20" : ""}`}>
+          {!showComposer ? (
+            <div className="space-y-3">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">{getGreeting()}</p>
+                  <h2 className="text-xl font-semibold text-gray-900">What&apos;s on your mind today?</h2>
+                </div>
+                <div className="relative" ref={sortMenuRef}>
+                  <button
+                    onClick={() => setShowSortMenu(!showSortMenu)}
+                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    Sort: {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showSortMenu && (
+                    <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                      {SORT_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => { setSortBy(option.value); setShowSortMenu(false); }}
+                          className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+                            sortBy === option.value ? "bg-gray-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div
+                onClick={() => setShowComposer(true)}
+                className="flex items-center gap-3 pl-3 pr-1.5 py-1.5 bg-white border border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-600 font-medium text-xs">JD</span>
+                </div>
+                <span className="flex-1 text-left text-gray-500 text-sm font-medium">Start a discussion...</span>
+                <button className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">Post</button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-600 font-medium text-sm">JD</span>
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <input ref={titleInputRef} type="text" value={composerTitle} onChange={(e) => handleTitleChange(e.target.value)} placeholder="Discussion title..."
+                      className={`w-full px-0 py-2 text-lg font-medium text-gray-900 placeholder-gray-400 border-0 border-b focus:outline-none bg-transparent ${composerErrors.title ? "border-red-400 focus:border-red-500" : "border-gray-200 focus:border-primary-500"}`} />
+                    {composerErrors.title && <p className="mt-1 text-sm text-red-500">{composerErrors.title}</p>}
+                  </div>
+                  <div>
+                    <textarea value={composerText} onChange={(e) => handleContentChange(e.target.value)} placeholder="Share your thoughts, questions, or experiences..."
+                      className={`w-full px-0 py-2 text-gray-700 placeholder-gray-400 resize-none focus:outline-none bg-transparent ${composerErrors.content ? "border-b border-red-400" : ""}`} rows={4} />
+                    {composerErrors.content && <p className="mt-1 text-sm text-red-500">{composerErrors.content}</p>}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div>
+                  <select value={composerCategory} onChange={(e) => handleCategorySelect(e.target.value)}
+                    className={`text-sm bg-gray-50 border rounded-lg pl-3 pr-10 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M3%205l3%203%203-3%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.75rem_center] bg-no-repeat ${composerErrors.category ? "border-red-400" : "border-gray-200"} ${composerCategory ? 'text-gray-900' : 'text-gray-500'}`}>
+                    <option value="">Select category</option>
+                    <option value="home-health">Home Health</option>
+                    <option value="home-care">Home Care</option>
+                    <option value="assisted-living">Assisted Living</option>
+                    <option value="memory-care">Memory Care</option>
+                    <option value="nursing-homes">Nursing Homes</option>
+                    <option value="independent-living">Independent Living</option>
+                  </select>
+                  {composerErrors.category && <p className="mt-1 text-sm text-red-500">{composerErrors.category}</p>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={resetComposer} className="px-4 py-2 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">Cancel</button>
+                  <button onClick={handlePostSubmit} className="px-5 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors">Post Discussion</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Composer overlay */}
+        {showComposer && <div className="fixed inset-0 z-10" onClick={resetComposer} />}
+      </div>
+
+      {/* ── Posts list ── */}
+      <div className="px-5 sm:px-6 py-4">
+        <div className="space-y-3">
+          {paginatedPosts.length > 0 ? (
+            paginatedPosts.map((post) => (
+              <ForumPostCardV3
+                key={post.id}
+                post={post}
+                isSelected={post.id === selectedPostId}
+                onClick={() => handlePostClick(post)}
+              />
+            ))
+          ) : (
+            <div className="py-12 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No discussions found</h3>
+              <p className="text-gray-500">{searchQuery ? "Try different keywords or browse all topics." : "Be the first to start a discussion!"}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center">
+            <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={posts.length} itemsPerPage={POSTS_PER_PAGE}
+              onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              itemLabel="discussions" showItemCount={false} />
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -532,6 +537,7 @@ function CommunityPageContent() {
             onBack={handleClosePost}
             backLabel="Back to discussions"
             expandWhenEmpty
+            equalWidth
             left={postsFeed}
             right={postDetail}
           />

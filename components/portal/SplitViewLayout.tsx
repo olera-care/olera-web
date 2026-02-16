@@ -17,6 +17,8 @@ interface SplitViewLayoutProps {
   backLabel?: string;
   /** When true, left panel takes full width when nothing is selected (no empty state shown) */
   expandWhenEmpty?: boolean;
+  /** When true, left and right panels share equal width (50/50) instead of 480px fixed left */
+  equalWidth?: boolean;
 }
 
 export default function SplitViewLayout({
@@ -27,6 +29,7 @@ export default function SplitViewLayout({
   emptyState,
   backLabel = "Back",
   expandWhenEmpty = false,
+  equalWidth = false,
 }: SplitViewLayoutProps) {
   const hasSelection = selectedId !== null;
   const isExpanded = expandWhenEmpty && !hasSelection;
@@ -37,8 +40,14 @@ export default function SplitViewLayout({
       <div
         className={`
           h-full overflow-y-auto
-          ${hasSelection ? "hidden lg:block lg:w-[480px] lg:shrink-0" : ""}
-          ${isExpanded ? "w-full" : !hasSelection ? "w-full lg:w-[480px] lg:shrink-0 lg:block" : ""}
+          ${hasSelection
+            ? `hidden lg:block ${equalWidth ? "lg:w-1/2" : "lg:w-[480px]"} lg:shrink-0`
+            : ""}
+          ${isExpanded
+            ? "w-full"
+            : !hasSelection
+              ? `w-full ${equalWidth ? "lg:w-1/2" : "lg:w-[480px]"} lg:shrink-0 lg:block`
+              : ""}
         `}
       >
         {left}
@@ -48,7 +57,7 @@ export default function SplitViewLayout({
       {!isExpanded && (
         <div
           className={`
-            w-full lg:flex-1 lg:block
+            w-full ${equalWidth ? "lg:w-1/2" : "lg:flex-1"} lg:block
             h-full overflow-y-auto
             border-l border-gray-200
             bg-white

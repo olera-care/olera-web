@@ -125,7 +125,7 @@ export default function ConnectionDetailPage() {
 
   if (loading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
+      <div className="px-8 py-6">
         <div className="text-center py-16">
           <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
         </div>
@@ -135,7 +135,7 @@ export default function ConnectionDetailPage() {
 
   if (!connection) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
+      <div className="px-8 py-6">
         <div className="text-center py-16">
           <h2 className="text-xl font-bold text-gray-900 mb-2">Connection not found</h2>
           <Link href="/portal/connections" className="text-primary-600 hover:underline">
@@ -165,7 +165,7 @@ export default function ConnectionDetailPage() {
   const badge = statusBadge[connection.status] || statusBadge.pending;
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-6">
+    <div className="px-8 py-6">
       <div className="mb-6">
         <Link
           href="/portal/connections"

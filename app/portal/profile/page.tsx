@@ -443,7 +443,7 @@ export default function PortalProfilePage() {
     : "Keep your information up to date so agencies and families can find you.";
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-6">
+    <div className="px-8 py-6">
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <p className="text-lg text-gray-600">{profileLabel}</p>

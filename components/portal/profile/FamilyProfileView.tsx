@@ -114,8 +114,9 @@ export default function FamilyProfileView() {
       onBack={() => setEditStep(null)}
       backLabel="Back to profile"
       expandWhenEmpty
+      equalWidth
       left={
-        <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="h-full overflow-y-auto px-8 py-6">
         <div className="space-y-5 max-w-2xl">
       {/* ── Page Title ── */}
       <div>

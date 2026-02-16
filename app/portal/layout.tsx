@@ -120,7 +120,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex bg-white min-h-[calc(100vh-64px)]">
       {/* ── Desktop sidebar — full-height, edge-to-edge, Airbnb-style ── */}
-      <aside className="hidden lg:block w-[270px] shrink-0">
+      <aside className="hidden lg:block w-[320px] shrink-0">
         <div className="sticky top-16 h-[calc(100vh-64px)] border-r border-gray-200 flex flex-col px-8 pt-6 pb-6">
           <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Profile</h1>
           <nav className="space-y-1">
@@ -221,7 +221,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
       {/* ── Content area ── */}
       <div className="flex-1 min-w-0">
         {/* Mobile: header + horizontal tabs */}
-        <div className="lg:hidden px-4 sm:px-6 pt-6">
+        <div className="lg:hidden px-8 pt-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile</h1>
           <div className="mb-6 flex gap-2 overflow-x-auto scrollbar-hide">
             {navItems.map((item) => {

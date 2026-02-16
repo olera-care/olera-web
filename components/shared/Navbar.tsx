@@ -221,9 +221,14 @@ export default function Navbar() {
                       <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                       </svg>
-                      <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                        {initials}
-                      </div>
+                      {activeProfile?.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={activeProfile.image_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                          {initials}
+                        </div>
+                      )}
                     </button>
 
                     {isUserMenuOpen && (
@@ -589,9 +594,14 @@ export default function Navbar() {
                   <>
                     {/* Identity header */}
                     <div className="flex items-center gap-2 py-2">
-                      <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
-                        {initials}
-                      </div>
+                      {activeProfile?.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={activeProfile.image_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
+                          {initials}
+                        </div>
+                      )}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>

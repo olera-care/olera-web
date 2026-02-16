@@ -949,9 +949,7 @@ export default function ConnectionDetailContent({
     if (!nextStepRequest) return null;
 
     const stepNoun =
-      nextStepRequest.type === "call" ? "a call" :
-      nextStepRequest.type === "consultation" ? "a consultation" :
-      nextStepRequest.type === "visit" ? "a home visit" : "a next step";
+      nextStepRequest.type === "visit" ? "a home visit" : "a consultation";
 
     // Determine if current user is the requester or the responder
     const requestThreadMsg = thread.find(
@@ -973,11 +971,9 @@ export default function ConnectionDetailContent({
             <button
               type="button"
               onClick={() => {
-                const prefix = nextStepRequest.type === "call"
-                  ? "I'm available for a call "
-                  : nextStepRequest.type === "consultation"
-                  ? "I'm available for a consultation "
-                  : "I'm available for a visit ";
+                const prefix = nextStepRequest.type === "visit"
+                  ? "I'm available for a visit "
+                  : "I'm available for a consultation ";
                 setMessageText(prefix);
                 requestAnimationFrame(() => messageInputRef.current?.focus());
               }}
@@ -1238,65 +1234,40 @@ export default function ConnectionDetailContent({
           {/* ── CONSOLIDATED FOOTER: request status + end connection ── */}
           {isAccepted && !shouldBlur && (
             <div className="shrink-0 px-7 py-3 border-t border-gray-100">
-              {/* Request status (family requester only — compact single line) */}
-              {nextStepRequest && !isProvider && (
-                (() => {
-                  const requestThreadMsg = thread.find(
-                    (m) => m.type === "next_step_request" && m.created_at === nextStepRequest.created_at
-                  );
-                  const isRequester = requestThreadMsg?.from_profile_id === activeProfile?.id;
-                  if (!isRequester) return null;
+              {/* Cancel request confirmation (expands full-width when active) */}
+              {nextStepRequest && !isProvider && (() => {
+                const requestThreadMsg = thread.find(
+                  (m) => m.type === "next_step_request" && m.created_at === nextStepRequest.created_at
+                );
+                const isRequester = requestThreadMsg?.from_profile_id === activeProfile?.id;
+                if (!isRequester || !confirmCancelNextStep) return null;
 
-                  const stepEmoji = nextStepRequest.type === "call" ? "\u{1F4DE}" : nextStepRequest.type === "visit" ? "\u{1F3E0}" : "\u{1FA7A}";
-                  const statusLabel = nextStepRequest.type === "call" ? "Call requested"
-                    : nextStepRequest.type === "visit" ? "Home visit requested"
-                    : "Consultation requested";
-                  const typeLabel = nextStepRequest.type === "call" ? "call"
-                    : nextStepRequest.type === "consultation" ? "consultation" : "home visit";
+                const typeLabel = nextStepRequest.type === "visit" ? "home visit" : "consultation";
 
-                  if (confirmCancelNextStep) {
-                    return (
-                      <div className="px-3 py-2.5 bg-red-50 rounded-lg border border-red-200 mb-2">
-                        <p className="text-xs font-semibold text-gray-900 mb-2">Cancel this {typeLabel} request?</p>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setConfirmCancelNextStep(false)}
-                            disabled={actionLoading}
-                            className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-                          >
-                            Keep it
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleCancelNextStep}
-                            disabled={actionLoading}
-                            className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
-                          >
-                            {actionLoading ? "..." : "Cancel request"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div className="flex items-center justify-between py-1 mb-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm">{stepEmoji}</span>
-                        <span className="text-xs text-gray-600">{statusLabel}</span>
-                      </div>
+                return (
+                  <div className="px-3 py-2.5 bg-red-50 rounded-lg border border-red-200 mb-2">
+                    <p className="text-xs font-semibold text-gray-900 mb-2">Cancel this {typeLabel} request?</p>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => setConfirmCancelNextStep(true)}
-                        className="text-[11px] font-medium text-red-700 hover:text-red-900 transition-colors"
+                        onClick={() => setConfirmCancelNextStep(false)}
+                        disabled={actionLoading}
+                        className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                       >
-                        Cancel request
+                        Keep it
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelNextStep}
+                        disabled={actionLoading}
+                        className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
+                      >
+                        {actionLoading ? "..." : "Cancel request"}
                       </button>
                     </div>
-                  );
-                })()
-              )}
+                  </div>
+                );
+              })()}
 
               {/* End connection */}
               {inlineSuccess === "end" ? (
@@ -1334,19 +1305,52 @@ export default function ConnectionDetailContent({
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                     <span className="text-xs text-gray-500">End connection</span>
                   </div>
-                  {/* Next step CTA — inline link */}
-                  {!isProvider && !nextStepRequest && !nextStepConfirm && (
-                    <div
-                      onClick={() => { setNextStepConfirm(primaryNextStep); setNextStepNote(""); }}
-                      className="flex items-center gap-1.5 cursor-pointer group"
-                    >
-                      <span className="text-sm">{primaryNextStep.emoji}</span>
-                      <span className="text-xs font-semibold text-primary-600 group-hover:text-primary-700 transition-colors">
-                        {primaryNextStep.label}
-                      </span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary-400"><polyline points="9 18 15 12 9 6" /></svg>
-                    </div>
-                  )}
+                  {/* Right side: either request status or CTA link */}
+                  {!isProvider && (() => {
+                    // Active request — show status + cancel
+                    if (nextStepRequest && !confirmCancelNextStep) {
+                      const requestThreadMsg = thread.find(
+                        (m) => m.type === "next_step_request" && m.created_at === nextStepRequest.created_at
+                      );
+                      const isRequester = requestThreadMsg?.from_profile_id === activeProfile?.id;
+                      if (isRequester) {
+                        const stepEmoji = nextStepRequest.type === "visit" ? "\u{1F3E0}" : "\u{1FA7A}";
+                        const statusLabel = nextStepRequest.type === "visit" ? "Home visit requested" : "Consultation requested";
+                        return (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm">{stepEmoji}</span>
+                              <span className="text-xs text-gray-500">{statusLabel}</span>
+                            </div>
+                            <span className="text-gray-300">&middot;</span>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmCancelNextStep(true)}
+                              className="text-xs font-medium text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        );
+                      }
+                    }
+                    // No request — show CTA link
+                    if (!nextStepRequest && !nextStepConfirm) {
+                      return (
+                        <div
+                          onClick={() => { setNextStepConfirm(primaryNextStep); setNextStepNote(""); }}
+                          className="flex items-center gap-1.5 cursor-pointer group"
+                        >
+                          <span className="text-sm">{primaryNextStep.emoji}</span>
+                          <span className="text-xs font-semibold text-primary-600 group-hover:text-primary-700 transition-colors">
+                            {primaryNextStep.label}
+                          </span>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-primary-400"><polyline points="9 18 15 12 9 6" /></svg>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
             </div>

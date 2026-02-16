@@ -67,6 +67,16 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
   const migrationDone = useRef(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
+  // Reset initialization flag on auth transitions so the Navbar
+  // doesn't misinterpret DB-load count changes as user-initiated saves
+  const prevUserId = useRef(user?.id);
+  useEffect(() => {
+    if (user?.id !== prevUserId.current) {
+      prevUserId.current = user?.id;
+      setHasInitialized(false);
+    }
+  }, [user?.id]);
+
   // Hydrate anonymous saves from sessionStorage on mount
   useEffect(() => {
     setAnonSaves(getAnonSaves());

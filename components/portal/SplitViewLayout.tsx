@@ -37,8 +37,8 @@ export default function SplitViewLayout({
       <div
         className={`
           h-full overflow-y-auto
-          ${hasSelection ? "hidden lg:block lg:w-[420px] lg:shrink-0" : ""}
-          ${isExpanded ? "w-full" : !hasSelection ? "w-full lg:w-[420px] lg:shrink-0 lg:block" : ""}
+          ${hasSelection ? "hidden lg:block lg:w-[480px] lg:shrink-0" : ""}
+          ${isExpanded ? "w-full" : !hasSelection ? "w-full lg:w-[480px] lg:shrink-0 lg:block" : ""}
         `}
       >
         {left}

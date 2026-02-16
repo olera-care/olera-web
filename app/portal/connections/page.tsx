@@ -679,27 +679,21 @@ function ConnectionGridCard({
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-[15px] font-semibold text-gray-900 truncate">
-              {shouldBlur ? blurName(otherName) : otherName}
-            </h3>
+          {/* Status + date metadata row */}
+          <div className="flex items-center justify-between gap-2 mb-0.5">
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
+              <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+              {statusConfig.label}
+            </span>
             <span className="text-[11px] text-gray-400 shrink-0">{createdAt}</span>
           </div>
-          {otherLocation && (
-            <p className="text-xs text-gray-500 mt-0.5">{otherLocation}</p>
-          )}
-          <p className="text-xs text-gray-500 mt-1">{careTypeLabel}</p>
+          <h3 className="text-[15px] font-semibold text-gray-900 truncate">
+            {shouldBlur ? blurName(otherName) : otherName}
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5 truncate">
+            {[otherLocation, careTypeLabel].filter(Boolean).join(" · ")}
+          </p>
         </div>
-      </div>
-
-      {/* Footer: status badge */}
-      <div className="mt-3 flex items-center justify-between">
-        <span
-          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md ${statusConfig.bg} ${statusConfig.color}`}
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-          {statusConfig.label}
-        </span>
       </div>
     </button>
   );

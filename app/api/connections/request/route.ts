@@ -321,6 +321,69 @@ export async function POST(request: Request) {
       );
     }
 
+    // 7. Sync intent data back to user's family profile
+    if (intentData) {
+      try {
+        const { data: currentProfile } = await db
+          .from("business_profiles")
+          .select("metadata, care_types")
+          .eq("id", fromProfileId)
+          .single();
+
+        if (currentProfile) {
+          const currentMeta = (currentProfile.metadata || {}) as Record<string, unknown>;
+          const currentCareTypes: string[] = currentProfile.care_types || [];
+          const updates: Record<string, unknown> = {};
+
+          // Map CTA recipient → profile relationship_to_recipient
+          const recipientMap: Record<string, string> = {
+            self: "Myself",
+            parent: "A loved one",
+            spouse: "A loved one",
+            other: "A loved one",
+          };
+          if (intentData.careRecipient && recipientMap[intentData.careRecipient]) {
+            currentMeta.relationship_to_recipient = recipientMap[intentData.careRecipient];
+          }
+
+          // Map CTA urgency → profile timeline
+          const timelineMap: Record<string, string> = {
+            asap: "immediate",
+            within_month: "within_1_month",
+            few_months: "within_3_months",
+            researching: "exploring",
+          };
+          if (intentData.urgency && timelineMap[intentData.urgency]) {
+            currentMeta.timeline = timelineMap[intentData.urgency];
+          }
+
+          updates.metadata = currentMeta;
+
+          // Map CTA careType → profile care_types display name
+          const careTypeMap: Record<string, string> = {
+            home_care: "Home Care",
+            home_health: "Home Health Care",
+            assisted_living: "Assisted Living",
+            memory_care: "Memory Care",
+          };
+          if (intentData.careType && careTypeMap[intentData.careType]) {
+            const displayName = careTypeMap[intentData.careType];
+            if (!currentCareTypes.includes(displayName)) {
+              updates.care_types = [...currentCareTypes, displayName];
+            }
+          }
+
+          await db
+            .from("business_profiles")
+            .update(updates)
+            .eq("id", fromProfileId);
+        }
+      } catch (syncErr) {
+        // Non-blocking — connection was created, profile sync is best-effort
+        console.error("Failed to sync intent to profile:", syncErr);
+      }
+    }
+
     return NextResponse.json({ status: "created" });
   } catch (err) {
     console.error("Connection request error:", err);

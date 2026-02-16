@@ -233,7 +233,7 @@ export default async function ProviderPage({
             <div>
               {/* Image Carousel */}
               {images.length > 0 && (
-                <div className="relative">
+                <div className="relative pb-6 mb-2 border-b border-gray-100">
                   <ImageCarousel images={images} alt={profile.display_name} className="h-[420px]" />
                   {/* Claim status badge — positioned outside overflow-hidden via outer relative wrapper */}
                   <div className="absolute top-4 left-4 z-20">

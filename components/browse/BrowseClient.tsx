@@ -926,7 +926,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               ref={mapListingsRef}
               className="w-full lg:flex-1 h-full overflow-y-auto bg-gray-50"
             >
-              <div className="px-4 sm:px-6 lg:pr-6 pt-6 pb-8" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
+              <div className="px-4 sm:px-6 lg:pr-6 pt-6 pb-16" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <h1 className="text-2xl font-bold text-gray-900">
                     {careTypeLabel} in {searchLocation}
@@ -939,7 +939,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                 {filteredProviders.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      {filteredProviders.map((provider, index) => (
+                      {paginatedProviders.map((provider, index) => (
                         <div
                           key={`${provider.id}-${index}`}
                           onMouseEnter={() => setHoveredProviderId(provider.id)}
@@ -954,7 +954,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                       totalPages={totalPages}
                       totalItems={filteredProviders.length}
                       itemsPerPage={PROVIDERS_PER_PAGE}
-                      onPageChange={setCurrentPage}
+                      onPageChange={(page) => {
+                        setCurrentPage(page);
+                        mapListingsRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
                       itemLabel="providers"
                       className="mt-6"
                     />

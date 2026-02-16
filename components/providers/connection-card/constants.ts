@@ -59,6 +59,7 @@ export const URGENCY_LABELS: Record<UrgencyValue, string> = {
 /** Profile relationship_to_recipient → CTA CareRecipient */
 export const RECIPIENT_FROM_PROFILE: Record<string, CareRecipient> = {
   Myself: "self",
+  "A loved one": "parent",
 };
 
 /** Profile timeline → CTA UrgencyValue */

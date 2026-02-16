@@ -396,7 +396,9 @@ export default function ConnectionsPage() {
             {tab.count}
           </span>
           {tab.badge > 0 && currentTab !== tab.id && (
-            <span className="absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />
+            <span className="text-[10px] font-bold text-primary-600 bg-primary-50 rounded-full w-4 h-4 flex items-center justify-center">
+              {tab.badge}
+            </span>
           )}
         </button>
       ))}
@@ -679,9 +681,6 @@ function ConnectionGridCard({
               {shouldBlur ? "?" : initial}
             </div>
           )}
-          {unread && (
-            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
-          )}
         </div>
 
         {/* Content */}
@@ -694,10 +693,16 @@ function ConnectionGridCard({
             </span>
             <span className="text-xs text-gray-400 shrink-0">{createdAt}</span>
           </div>
-          <h3 className="text-sm font-semibold text-gray-900 truncate">
+          <h3 className={[
+            "text-sm truncate",
+            unread ? "font-bold text-gray-900" : "font-normal text-gray-500",
+          ].join(" ")}>
             {shouldBlur ? blurName(otherName) : otherName}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5 truncate">
+          <p className={[
+            "text-xs mt-0.5 truncate",
+            unread ? "text-gray-600" : "text-gray-400",
+          ].join(" ")}>
             {[otherLocation, careTypeLabel].filter(Boolean).join(" · ")}
           </p>
         </div>

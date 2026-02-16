@@ -329,13 +329,11 @@ export default function PortalProfilePage() {
 
     setImageError("");
 
-    // Validate file type
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       setImageError("Please upload a JPEG, PNG, or WebP image.");
       return;
     }
 
-    // Validate file size
     if (file.size > MAX_IMAGE_SIZE) {
       setImageError("Image must be under 5MB.");
       return;
@@ -344,62 +342,29 @@ export default function PortalProfilePage() {
     setImageUploading(true);
 
     try {
-      if (!isSupabaseConfigured()) {
-        setImageError("Storage is not configured.");
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("profileId", activeProfile.id);
+
+      const res = await fetch("/api/profile/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setImageError(data.error || "Upload failed.");
         return;
       }
 
-      const supabase = createClient();
-      const ext = file.name.split(".").pop() || "jpg";
-      const fileName = `${activeProfile.id}-${Date.now()}.${ext}`;
-      const filePath = `profile-images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("profile-images")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: true,
-          contentType: file.type,
-        });
-
-      if (uploadError) {
-        // Storage bucket may not exist yet — surface a clear message
-        if (
-          uploadError.message?.includes("not found") ||
-          uploadError.message?.includes("Bucket")
-        ) {
-          setImageError(
-            "Image storage is not configured yet. This feature requires a Supabase Storage bucket to be created. Please contact your developer."
-          );
-        } else {
-          setImageError(`Upload failed: ${uploadError.message}`);
-        }
-        return;
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("profile-images")
-        .getPublicUrl(filePath);
-
-      const publicUrl = urlData.publicUrl;
-
-      // Update profile with new image URL
-      const { error: updateError } = await supabase
-        .from("business_profiles")
-        .update({ image_url: publicUrl })
-        .eq("id", activeProfile.id);
-
-      if (updateError) throw updateError;
-
-      setImageUrl(publicUrl);
+      const { imageUrl: newUrl } = await res.json();
+      setImageUrl(newUrl);
       await refreshAccountData();
     } catch (err) {
       console.error("Image upload error:", err);
       setImageError("Failed to upload image. Please try again.");
     } finally {
       setImageUploading(false);
-      // Reset the input so the same file can be re-selected
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };

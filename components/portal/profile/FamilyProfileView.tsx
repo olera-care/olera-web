@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
 import ProfileEditContent, { BenefitsFinderBanner } from "./ProfileEditContent";
@@ -67,45 +66,20 @@ export default function FamilyProfileView() {
 
     setImageUploading(true);
     try {
-      if (!isSupabaseConfigured()) {
-        setImageError("Storage is not configured.");
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("profileId", profile.id);
+
+      const res = await fetch("/api/profile/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setImageError(data.error || "Upload failed.");
         return;
       }
-      const supabase = createClient();
-      const ext = file.name.split(".").pop() || "jpg";
-      const fileName = `${profile.id}-${Date.now()}.${ext}`;
-      const filePath = `profile-images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("profile-images")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: true,
-          contentType: file.type,
-        });
-
-      if (uploadError) {
-        if (
-          uploadError.message?.includes("not found") ||
-          uploadError.message?.includes("Bucket")
-        ) {
-          setImageError(
-            "Image storage is not configured yet. Please contact your developer."
-          );
-        } else {
-          setImageError(`Upload failed: ${uploadError.message}`);
-        }
-        return;
-      }
-
-      const { data: urlData } = supabase.storage
-        .from("profile-images")
-        .getPublicUrl(filePath);
-
-      await supabase
-        .from("business_profiles")
-        .update({ image_url: urlData.publicUrl })
-        .eq("id", profile.id);
 
       await refreshAccountData();
     } catch {
@@ -169,12 +143,38 @@ export default function FamilyProfileView() {
               className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative"
             >
               {profile.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={profile.image_url}
-                  alt={profile.display_name}
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={profile.image_url}
+                    alt={profile.display_name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-full flex flex-col items-center justify-center gap-0.5">
+                    <svg
+                      className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    <span className="text-[10px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      Change
+                    </span>
+                  </div>
+                </>
               ) : (
                 <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-primary-500 transition-colors">
                   <svg

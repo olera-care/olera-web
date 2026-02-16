@@ -82,9 +82,6 @@ export default function ConnectionListItem({
               {shouldBlur ? "?" : initial}
             </div>
           )}
-          {unread && (
-            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
-          )}
         </div>
 
         {/* Content */}
@@ -93,7 +90,7 @@ export default function ConnectionListItem({
             <h3
               className={[
                 "text-sm truncate leading-snug",
-                unread ? "font-bold text-gray-900" : "font-semibold text-gray-900",
+                unread ? "font-bold text-gray-900" : "font-normal text-gray-500",
               ].join(" ")}
             >
               {shouldBlur ? blurName(otherName) : otherName}

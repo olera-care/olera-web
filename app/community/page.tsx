@@ -527,7 +527,7 @@ function CommunityPageContent() {
     <main className="animate-page-in">
       <div className="flex bg-white min-h-[calc(100vh-64px)]">
         {/* ── Desktop sidebar — Categories (mirrors portal sidebar) ── */}
-        <aside className="hidden lg:block w-[270px] shrink-0">
+        <aside className="hidden lg:block w-[320px] shrink-0">
           <div className="sticky top-16 h-[calc(100vh-64px)] border-r border-gray-200 flex flex-col px-6 pt-6 pb-6">
             <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Community</h1>
 
@@ -625,7 +625,7 @@ function MountingSkeleton() {
   return (
     <main>
       <div className="flex bg-white min-h-[calc(100vh-64px)]">
-        <div className="hidden lg:block w-[270px] shrink-0 border-r border-gray-200">
+        <div className="hidden lg:block w-[320px] shrink-0 border-r border-gray-200">
           <div className="px-6 pt-6 space-y-4">
             <div className="h-7 bg-gray-100 rounded-lg animate-pulse w-28" />
             <div className="h-9 bg-gray-100 rounded-lg animate-pulse" />

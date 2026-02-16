@@ -297,16 +297,14 @@ export default function ConnectionsPage() {
       <div className="px-4 sm:px-6 lg:px-8 py-6">
       <div className="space-y-6">
         <div>
-          <h2 className="text-[22px] font-bold text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-900">
             {isProvider ? "Connections" : "My Connections"}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            {isProvider
-              ? "Manage inquiries from families and your outreach."
-              : "Track your care provider requests and responses."}
+            {isProvider ? "Manage inquiries from families seeking care." : "Track your care provider requests and responses."}
           </p>
         </div>
-        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl max-w-md">
+        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
           {(isProvider ? ["Needs Attention", "Active", "Past"] : ["Active", "Connected", "Past"]).map((label) => (
             <div key={label} className="flex-1 flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-gray-400">
               {label}
@@ -428,7 +426,7 @@ export default function ConnectionsPage() {
           /* ── Compact list mode (split view) ── */
           <div className="flex flex-col h-full">
             <div className="px-4 pt-4 pb-2 shrink-0">
-              <h2 className="text-lg font-bold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900">
                 {isProvider ? "Connections" : "My Connections"}
               </h2>
             </div>
@@ -467,13 +465,11 @@ export default function ConnectionsPage() {
           /* ── Card grid mode (full width) ── */
           <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="mb-6">
-              <h2 className="text-[22px] font-bold text-gray-900">
+              <h2 className="text-xl font-semibold text-gray-900">
                 {isProvider ? "Connections" : "My Connections"}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                {isProvider
-                  ? "Manage inquiries from families and your outreach."
-                  : "Track your care provider requests and responses."}
+                {isProvider ? "Manage inquiries from families seeking care." : "Track your care provider requests and responses."}
               </p>
             </div>
 
@@ -562,18 +558,26 @@ function TabEmptyState({ tab }: { tab: ConnectionTab }) {
   };
   const { icon, title, subtitle, cta } = config[tab];
   return (
-    <div className="py-12 text-center px-6">
-      <span className="text-3xl block mb-2">{icon}</span>
-      <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
-      <p className="text-xs text-gray-400 mt-1 leading-relaxed">{subtitle}</p>
+    <div className="py-16 text-center px-8">
+      <div
+        className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-2xl mx-auto mb-5"
+        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      >
+        {icon}
+      </div>
+      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">{subtitle}</p>
       {cta && (
-        <Link
-          href={cta.href}
-          className="inline-block mt-3 px-4 py-2 rounded-lg bg-primary-600 text-white text-xs font-semibold hover:bg-primary-700 transition-colors"
-        >
-          {cta.label}
+        <Link href={cta.href} className="inline-block mt-5">
+          <Button size="sm">{cta.label}</Button>
         </Link>
       )}
+      <style jsx>{`
+        @keyframes emptyFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -600,10 +604,21 @@ function ProviderTabEmptyState({ tab }: { tab: ProviderConnectionTab }) {
   };
   const { icon, title, subtitle } = config[tab];
   return (
-    <div className="py-12 text-center px-6">
-      <span className="text-3xl block mb-2">{icon}</span>
-      <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
-      <p className="text-xs text-gray-400 mt-1 leading-relaxed">{subtitle}</p>
+    <div className="py-16 text-center px-8">
+      <div
+        className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-2xl mx-auto mb-5"
+        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      >
+        {icon}
+      </div>
+      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">{subtitle}</p>
+      <style jsx>{`
+        @keyframes emptyFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -657,7 +672,7 @@ function ConnectionGridCard({
     <button
       type="button"
       onClick={() => onSelect(connection.id)}
-      className="w-full text-left rounded-xl border border-gray-100 p-4 hover:border-gray-200 hover:bg-gray-50/50 transition-colors cursor-pointer"
+      className="w-full text-left rounded-xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-200 cursor-pointer"
     >
       <div className="flex items-start gap-3.5">
         {/* Avatar */}
@@ -667,11 +682,11 @@ function ConnectionGridCard({
             <img
               src={imageUrl}
               alt={otherName}
-              className="w-11 h-11 rounded-full object-cover"
+              className="w-12 h-12 rounded-full object-cover"
             />
           ) : (
             <div
-              className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white"
+              className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
               style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
             >
               {shouldBlur ? "?" : initial}
@@ -686,13 +701,13 @@ function ConnectionGridCard({
         <div className="min-w-0 flex-1">
           {/* Status + date metadata row */}
           <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400">
+            <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
               <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
               {statusConfig.label}
             </span>
-            <span className="text-[11px] text-gray-400 shrink-0">{createdAt}</span>
+            <span className="text-xs text-gray-400 shrink-0">{createdAt}</span>
           </div>
-          <h3 className="text-[15px] font-semibold text-gray-900 truncate">
+          <h3 className="text-sm font-semibold text-gray-900 truncate">
             {shouldBlur ? blurName(otherName) : otherName}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5 truncate">

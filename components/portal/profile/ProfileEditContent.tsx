@@ -198,14 +198,14 @@ export default function ProfileEditContent({
       {/* Header */}
       <div className="px-7 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Edit Profile</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Edit Profile</h3>
           <p className="text-sm mt-0.5">
             <span className="font-semibold text-gray-900">Step {step + 1}</span>
             <span className="text-gray-400"> of {STEPS.length} &middot; {STEPS[step]}</span>
           </p>
         </div>
-        <button type="button" onClick={handleClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button type="button" onClick={handleClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -215,10 +215,6 @@ export default function ProfileEditContent({
       <div className="flex-1 overflow-y-auto px-7 py-6">
         {step === 0 && (
           <div className="space-y-5">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Basic Info</h4>
-              <p className="text-sm text-gray-500 mb-5">Your name and where you&apos;re located.</p>
-            </div>
             <Input label="Display name" value={displayName} onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="Your full name" />
             <Input label="Country" value={country} onChange={(e) => setCountry((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. United States, Ghana" />
             <div className="grid grid-cols-2 gap-3">
@@ -230,10 +226,6 @@ export default function ProfileEditContent({
 
         {step === 1 && (
           <div className="space-y-5">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Contact Information</h4>
-              <p className="text-sm text-gray-500 mb-5">How providers can reach you.</p>
-            </div>
             <Input label="Email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
             <Input label="Phone number" type="tel" placeholder="(555) 123-4567" value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
             <div>
@@ -249,10 +241,6 @@ export default function ProfileEditContent({
 
         {step === 2 && (
           <div className="space-y-5">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Care Preferences</h4>
-              <p className="text-sm text-gray-500 mb-5">What kind of care are you looking for?</p>
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2.5">Who needs care?</label>
               <div className="flex gap-2">
@@ -283,10 +271,6 @@ export default function ProfileEditContent({
 
         {step === 3 && (
           <div className="space-y-5">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Payment & Benefits</h4>
-              <p className="text-sm text-gray-500 mb-5">How are you planning to pay for care? Select all that apply.</p>
-            </div>
             <div className="flex flex-wrap gap-2">
               {PAYMENT_OPTIONS.map((opt) => (
                 <Pill key={opt} label={opt} selected={payments.includes(opt)} onClick={() => { setPayments((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
@@ -298,10 +282,6 @@ export default function ProfileEditContent({
 
         {step === 4 && (
           <div className="space-y-5">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Living Situation</h4>
-              <p className="text-sm text-gray-500 mb-5">Where does the person who needs care live?</p>
-            </div>
             <div className="flex flex-col gap-2">
               {LIVING_OPTIONS.map((opt) => (
                 <Pill key={opt} label={opt} selected={living === opt} onClick={() => { setLiving(opt); deferredSave(); }} small />
@@ -312,10 +292,6 @@ export default function ProfileEditContent({
 
         {step === 5 && (
           <div className="space-y-5">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Schedule & Location</h4>
-              <p className="text-sm text-gray-500 mb-5">When and where is care needed?</p>
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2.5">What times of day?</label>
               <div className="grid grid-cols-2 gap-1.5">
@@ -330,10 +306,6 @@ export default function ProfileEditContent({
 
         {step === 6 && (
           <div className="space-y-5">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-1">Language & More</h4>
-              <p className="text-sm text-gray-500 mb-5">Any additional preferences or details.</p>
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2.5">Language preference</label>
               <div className="flex flex-wrap gap-2">

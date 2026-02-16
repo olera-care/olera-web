@@ -207,8 +207,9 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-6">
-    <div className="space-y-6">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 h-full overflow-y-auto">
+    <div className="space-y-5 max-w-2xl">
+      <h2 className="text-xl font-semibold text-gray-900">Account Settings</h2>
       {justUpgraded && (
         <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base">
           Your subscription is now active. You have full access to all features.
@@ -216,9 +217,9 @@ export default function SettingsPage() {
       )}
 
       {/* ── Notifications ── */}
-      <section className="rounded-xl border border-gray-100 p-5">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">Notifications</h3>
-        <div className="space-y-4">
+      <section className="rounded-xl bg-white border border-gray-100 p-6">
+        <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Notifications</h3>
+        <div className="divide-y divide-gray-50">
           <NotificationRow
             title="Connection updates"
             description="When a provider responds or messages you"
@@ -259,9 +260,9 @@ export default function SettingsPage() {
       </section>
 
       {/* ── Account ── */}
-      <section className="rounded-xl border border-gray-100 p-5">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">Account</h3>
-        <div className="space-y-4">
+      <section className="rounded-xl bg-white border border-gray-100 p-6">
+        <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Account</h3>
+        <div className="divide-y divide-gray-100">
           <AccountRow
             label="Email"
             value={user?.email || "Not set"}
@@ -315,7 +316,7 @@ export default function SettingsPage() {
           <button
             type="button"
             onClick={() => setShowProviderModal(true)}
-            className="w-full text-left flex items-center gap-4 rounded-xl border border-gray-100 p-5 hover:border-primary-200 hover:bg-primary-50/20 transition-colors group"
+            className="w-full text-left flex items-center gap-4 rounded-xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-200 group"
           >
             <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
               <svg
@@ -333,10 +334,10 @@ export default function SettingsPage() {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">
+              <p className="text-[15px] font-semibold text-gray-900">
                 Add a provider profile
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-400">
                 List your care services on Olera and connect with families.
               </p>
             </div>
@@ -410,8 +411,8 @@ export default function SettingsPage() {
 
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
-        <section className="rounded-xl border border-gray-100 p-5">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">
+        <section className="rounded-xl bg-white border border-gray-100 p-6">
+          <h3 className="text-[15px] font-semibold text-gray-900 mb-5">
             Subscription
           </h3>
 
@@ -540,20 +541,20 @@ export default function SettingsPage() {
       )}
 
       {/* ── Delete Account ── */}
-      <section className="rounded-xl border border-gray-100 p-5">
+      <section className="rounded-xl bg-white border border-gray-100 p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-[15px] font-semibold text-gray-900">
               Delete account
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Permanently remove your profile and all connection history.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors shrink-0 ml-4"
+            className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
           >
             Delete
           </button>
@@ -647,18 +648,18 @@ function NotificationRow({
   onToggle: (channel: "email" | "sms") => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-gray-900">{title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+        <p className="text-sm font-medium text-gray-900">{title}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{description}</p>
       </div>
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex items-center gap-5 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Email</span>
+          <span className="text-xs font-medium text-gray-400">Email</span>
           <Toggle on={emailOn} onToggle={() => onToggle("email")} />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">SMS</span>
+          <span className="text-xs font-medium text-gray-400">SMS</span>
           <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
         </div>
       </div>
@@ -724,13 +725,13 @@ function AccountRow({
   isPassword?: boolean;
 }) {
   return (
-    <div>
+    <div className="py-3.5 first:pt-0 last:pb-0">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-gray-500">{label}</p>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
           {isEditing ? (
             isPassword ? (
-              <p className="text-base text-gray-600 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 We&apos;ll send a password reset link to your email.
               </p>
             ) : (
@@ -739,16 +740,16 @@ function AccountRow({
                 value={editValue}
                 onChange={(e) => onEditChange(e.target.value)}
                 placeholder={placeholder}
-                className="mt-1 w-full text-base text-gray-900 border border-gray-300 rounded-xl px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="mt-1.5 w-full text-[15px] text-gray-900 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 autoFocus
               />
             )
           ) : (
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-base text-gray-900">{value}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-[15px] text-gray-900">{value}</p>
               {verified && (
-                <span className="inline-flex items-center gap-1 text-sm text-green-600 font-medium">
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <span className="inline-flex items-center gap-1 text-xs text-success-600 font-medium">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   Verified
@@ -761,7 +762,7 @@ function AccountRow({
           <button
             type="button"
             onClick={onStartEdit}
-            className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
+            className="text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
           >
             {isPassword ? "Change" : "Edit"}
           </button>

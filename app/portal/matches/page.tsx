@@ -138,14 +138,14 @@ export default function MatchesPage() {
   // Profile guard
   if (!hasRequiredFields) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-6"><div>
-        <h2 className="text-[22px] font-bold text-gray-900">Matches</h2>
+      <div className="px-4 sm:px-6 lg:px-8 py-6 h-full"><div>
+        <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
         <p className="text-sm text-gray-500 mt-1 mb-8">
           Discover providers or let them find you.
         </p>
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
           <span className="text-5xl mb-4 block">📋</span>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Complete your profile first
           </h3>
           <p className="text-sm text-gray-500 mb-6 max-w-[380px] mx-auto leading-relaxed">
@@ -161,12 +161,12 @@ export default function MatchesPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-6">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 h-full">
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-[22px] font-bold text-gray-900">Matches</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
           <p className="text-sm text-gray-500 mt-1">
             Discover providers or let them find you.
           </p>
@@ -175,7 +175,7 @@ export default function MatchesPage() {
 
       {/* Tabs + Sort row */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl w-fit">
+        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit">
           {(
             [
               { id: "foryou", label: "For You" },

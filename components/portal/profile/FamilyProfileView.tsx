@@ -141,10 +141,16 @@ export default function FamilyProfileView() {
       backLabel="Back to profile"
       expandWhenEmpty
       left={
-        <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-5">
+        <div className="h-full overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="space-y-5 max-w-2xl">
+      {/* ── Page Title ── */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900">Profile</h2>
+        <p className="text-sm text-gray-500 mt-1">Your personal information and care preferences.</p>
+      </div>
+
       {/* ── Profile Header ── */}
-      <section className="rounded-2xl bg-white shadow-xs overflow-hidden">
+      <section className="rounded-2xl bg-white border border-gray-100 overflow-hidden">
         <div className="p-6 flex items-center gap-5">
           {/* Avatar */}
           <div className="relative shrink-0">
@@ -251,7 +257,6 @@ export default function FamilyProfileView() {
       {/* ── Contact Information ── */}
       <SectionCard
         title="Contact Information"
-        subtitle="How providers can reach you. This is shared when you connect."
         status={sectionStatus[1]}
         onEdit={() => openEdit(1)}
       >
@@ -273,7 +278,6 @@ export default function FamilyProfileView() {
       {/* ── Care Preferences ── */}
       <SectionCard
         title="Care Preferences"
-        subtitle="Auto-filled from your connection request. Shared with every provider you connect with."
         status={sectionStatus[2]}
         onEdit={() => openEdit(2)}
       >
@@ -288,7 +292,6 @@ export default function FamilyProfileView() {
       {/* ── Payment & Benefits ── */}
       <SectionCard
         title="Payment & Benefits"
-        subtitle="How are you planning to pay for care?"
         status={sectionStatus[3]}
         onEdit={() => openEdit(3)}
       >
@@ -304,7 +307,7 @@ export default function FamilyProfileView() {
             ))}
           </div>
         ) : (
-          <p className="text-[15px] text-amber-600 italic mb-4">Not provided</p>
+          <p className="text-[15px] text-gray-300 mb-4">&mdash;</p>
         )}
         <BenefitsFinderBanner />
       </SectionCard>
@@ -312,7 +315,6 @@ export default function FamilyProfileView() {
       {/* ── More About Your Situation ── */}
       <SectionCard
         title="More About Your Situation"
-        subtitle="Help providers understand your needs better."
         status={combineSectionStatus()}
         onEdit={() => openEdit(4)}
       >
@@ -383,13 +385,11 @@ function SectionBadge({ status }: { status: SectionStatus | undefined }) {
 
 function SectionCard({
   title,
-  subtitle,
   status,
   onEdit,
   children,
 }: {
   title: string;
-  subtitle: string;
   status: SectionStatus | undefined;
   onEdit: () => void;
   children: React.ReactNode;
@@ -407,17 +407,16 @@ function SectionCard({
           onEdit();
         }
       }}
-      className="rounded-xl bg-white shadow-xs p-6 cursor-pointer hover:shadow-sm transition-all duration-200"
+      className="rounded-xl bg-white border border-gray-100 p-6 cursor-pointer hover:border-gray-200 transition-all duration-200"
     >
       {/* Header row */}
-      <div className="flex items-center gap-2.5 mb-1">
-        <h3 className="text-[17px] font-semibold text-gray-900">{title}</h3>
+      <div className="flex items-center gap-2.5 mb-4">
+        <h3 className="text-[15px] font-semibold text-gray-900">{title}</h3>
         <SectionBadge status={status} />
         <span className="ml-auto text-[14px] font-medium text-primary-600">
           {editLabel}
         </span>
       </div>
-      <p className="text-[13px] text-gray-400 mb-5">{subtitle}</p>
 
       {/* Content — stop click propagation so internal links/buttons work */}
       <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>

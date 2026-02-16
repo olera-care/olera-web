@@ -145,10 +145,19 @@ export default function CarePostView({
     return (
       <div className="max-w-[560px]">
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center text-3xl mx-auto mb-4">
+          <div
+            className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center text-3xl mx-auto mb-4"
+            style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+          >
             📣
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <style jsx>{`
+            @keyframes emptyFloat {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-6px); }
+            }
+          `}</style>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Let providers find you
           </h3>
           <p className="text-sm text-gray-500 mb-2 leading-relaxed max-w-[380px] mx-auto">
@@ -200,7 +209,7 @@ export default function CarePostView({
               </svg>
               Back
             </button>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
               Review your care post
             </h3>
             <p className="text-sm text-gray-500">
@@ -370,7 +379,7 @@ export default function CarePostView({
             </div>
             <span className="text-xs text-gray-400">Posted {publishedDate}</span>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
             {careTypeDisplay || "Care"} for{" "}
             {relationshipDisplay?.toLowerCase() || "a loved one"}
           </h3>

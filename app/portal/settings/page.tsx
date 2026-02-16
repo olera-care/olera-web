@@ -44,6 +44,7 @@ export default function SettingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const isProvider =
     activeProfile?.type === "organization" ||
@@ -567,55 +568,81 @@ export default function SettingsPage() {
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete Account"
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeleteConfirmText("");
+          setDeleteError("");
+        }}
+        title="Delete account"
         size="sm"
       >
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
-            <svg
-              className="w-6 h-6 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            This action is permanent and cannot be undone. Deleting your account will:
+          </p>
+          <ul className="space-y-2 mb-5">
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Remove your profile and personal information
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Delete all your connections and message history
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cancel any active subscriptions
+            </li>
+          </ul>
+
+          <div className="mb-5">
+            <label htmlFor="delete-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Type <span className="font-semibold text-gray-900">delete</span> to confirm
+            </label>
+            <input
+              id="delete-confirm"
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="delete"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
+              autoComplete="off"
+            />
           </div>
-          <p className="text-base text-gray-700 mb-2">
-            Are you sure you want to delete your account?
-          </p>
-          <p className="text-sm text-gray-500 mb-6">
-            This will permanently remove your profile, connections, and all
-            associated data. This action cannot be undone.
-          </p>
+
           {deleteError && (
-            <div className="mb-4 bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base">
+            <div className="mb-4 bg-red-50 text-red-700 px-3 py-2.5 rounded-lg text-sm">
               {deleteError}
             </div>
           )}
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={() => setShowDeleteModal(false)}
+
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteConfirmText("");
+                setDeleteError("");
+              }}
               disabled={deleting}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 px-3 py-2"
             >
               Cancel
-            </Button>
-            <Button
-              variant="danger"
-              fullWidth
+            </button>
+            <button
+              type="button"
               onClick={handleDelete}
-              loading={deleting}
+              disabled={deleting || deleteConfirmText !== "delete"}
+              className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
             >
-              Delete Account
-            </Button>
+              {deleting ? "Deleting..." : "Delete my account"}
+            </button>
           </div>
         </div>
       </Modal>

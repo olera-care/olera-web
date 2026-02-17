@@ -4,7 +4,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 /**
  * POST /api/connections/respond-interest
  *
- * Handles care seeker actions on provider-initiated interest (type="application"):
+ * Handles care seeker actions on provider-initiated interest (type="request" + metadata.provider_initiated):
  * - "view"        → marks the card as viewed (removes blue dot)
  * - "accept"      → accepts the provider, creates a mutual connection
  * - "decline"     → declines the provider (can be reconsidered)
@@ -63,10 +63,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify this is an application directed at the current user
-    if (connection.type !== "application") {
+    // Verify this is a provider-initiated request directed at the current user
+    const connMeta = (connection.metadata || {}) as Record<string, unknown>;
+    if (connection.type !== "request" || !connMeta.provider_initiated) {
       return NextResponse.json(
-        { error: "Not an application connection" },
+        { error: "Not a provider-initiated request" },
         { status: 400 }
       );
     }

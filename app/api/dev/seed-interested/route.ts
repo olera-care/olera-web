@@ -14,11 +14,11 @@ function getAdminClient() {
 /**
  * POST /api/dev/seed-interested
  *
- * DEV-ONLY: Seeds 4-6 "application" connections (provider → care seeker)
+ * DEV-ONLY: Seeds 4-6 provider-initiated "request" connections (provider → care seeker)
  * so the "Interested" tab in Matches has data for testing.
  *
- * Each connection uses type="application", status="pending", and includes
- * match_reasons and viewed=false in metadata.
+ * Each connection uses type="request", status="pending", metadata.provider_initiated=true,
+ * and includes match_reasons and viewed=false in metadata.
  */
 export async function POST() {
   try {
@@ -66,7 +66,7 @@ export async function POST() {
       .from("connections")
       .select("from_profile_id")
       .eq("to_profile_id", careSeekerProfileId)
-      .eq("type", "application");
+      .eq("type", "request");
 
     const existingProviderIds = new Set(
       (existingApps ?? []).map((c) => c.from_profile_id as string)
@@ -179,7 +179,7 @@ export async function POST() {
       const { data: inserted, error: insertError } = await db
         .from("connections")
         .insert({
-          type: "application",
+          type: "request",
           status: "pending",
           from_profile_id: provider.id,
           to_profile_id: careSeekerProfileId,
@@ -187,6 +187,7 @@ export async function POST() {
           metadata: {
             match_reasons: matchReasons,
             viewed: false,
+            provider_initiated: true,
           },
           created_at: createdAt.toISOString(),
         })

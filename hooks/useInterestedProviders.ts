@@ -35,20 +35,23 @@ export function useInterestedProviders(
     try {
       const supabase = createClient();
 
-      // Fetch application connections directed at this care seeker
+      // Fetch provider-initiated request connections directed at this care seeker
       const { data: connections, error: connError } = await supabase
         .from("connections")
         .select(
           "id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at"
         )
         .eq("to_profile_id", profileId)
-        .eq("type", "application")
+        .eq("type", "request")
         .in("status", ["pending", "declined"])
         .order("created_at", { ascending: false });
 
       if (connError) throw new Error(connError.message);
 
-      const connData = (connections || []) as Connection[];
+      // Filter to only provider-initiated requests (metadata.provider_initiated = true)
+      const connData = ((connections || []) as Connection[]).filter(
+        (c) => (c.metadata as Record<string, unknown>)?.provider_initiated === true
+      );
 
       // Fetch provider profiles
       const providerIds = connData.map((c) => c.from_profile_id);

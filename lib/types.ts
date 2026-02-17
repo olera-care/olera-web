@@ -141,6 +141,7 @@ export interface CaregiverMetadata {
 }
 
 export interface FamilyMetadata {
+  age?: number;
   care_needs?: string[];
   timeline?: "immediate" | "within_1_month" | "within_3_months" | "exploring";
   budget_min?: number;

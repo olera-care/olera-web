@@ -281,7 +281,9 @@ export default function FamilyProfileView() {
       >
         <div className="divide-y divide-gray-50">
           <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
+          <ViewRow label="Age of person needing care" value={meta.age ? String(meta.age) : null} />
           <ViewRow label="Type of care" value={careTypesDisplay} />
+          <ViewRow label="Care needs" value={meta.care_needs && meta.care_needs.length > 0 ? meta.care_needs.join(", ") : null} />
           <ViewRow label="Timeline" value={timelineDisplay} />
           <ViewRow label="Additional notes" value={profile.description || null} />
         </div>

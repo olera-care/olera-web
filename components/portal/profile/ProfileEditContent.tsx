@@ -46,6 +46,15 @@ const PAYMENT_OPTIONS = [
   "Long-term care insurance",
   "I'm not sure",
 ];
+const CARE_NEED_OPTIONS = [
+  "Personal Care",
+  "Household Tasks",
+  "Health Management",
+  "Companionship",
+  "Financial Help",
+  "Memory Care",
+  "Mobility Help",
+];
 const LIVING_OPTIONS = [
   "Lives alone",
   "Lives with family",
@@ -98,7 +107,9 @@ export default function ProfileEditContent({
   const [phone, setPhone] = useState(profile.phone || "");
   const [contactPref, setContactPref] = useState<string>(meta.contact_preference || "");
   const [careRecipient, setCareRecipient] = useState(meta.relationship_to_recipient || "");
+  const [age, setAge] = useState(meta.age ? String(meta.age) : "");
   const [careTypes, setCareTypes] = useState<string[]>(profile.care_types || []);
+  const [careNeeds, setCareNeeds] = useState<string[]>(meta.care_needs || []);
   const [timeline, setTimeline] = useState(meta.timeline || "");
   const [notes, setNotes] = useState(profile.description || "");
   const [payments, setPayments] = useState<string[]>(meta.payment_methods || []);
@@ -122,7 +133,9 @@ export default function ProfileEditContent({
     setPhone(profile.phone || "");
     setContactPref(m.contact_preference || "");
     setCareRecipient(m.relationship_to_recipient || "");
+    setAge(m.age ? String(m.age) : "");
     setCareTypes(profile.care_types || []);
+    setCareNeeds(m.care_needs || []);
     setTimeline(m.timeline || "");
     setNotes(profile.description || "");
     setPayments(m.payment_methods || []);
@@ -149,8 +162,10 @@ export default function ProfileEditContent({
         country: country || undefined,
         contact_preference: contactPref || undefined,
         relationship_to_recipient: careRecipient || undefined,
+        age: age ? Number(age) : undefined,
         timeline: timeline || undefined,
         payment_methods: payments.length > 0 ? payments : undefined,
+        care_needs: careNeeds.length > 0 ? careNeeds : undefined,
         living_situation: living || undefined,
         schedule_preference: schedule || undefined,
         care_location: careLocation || undefined,
@@ -249,11 +264,20 @@ export default function ProfileEditContent({
                 ))}
               </div>
             </div>
+            <Input label="Age of person needing care" type="number" placeholder="e.g. 72" value={age} onChange={(e) => setAge((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-2.5">Type of care needed</label>
               <div className="flex flex-wrap gap-1.5">
                 {CARE_TYPES.map((ct) => (
                   <Pill key={ct} label={ct} selected={careTypes.includes(ct)} onClick={() => { setCareTypes((prev) => prev.includes(ct) ? prev.filter((x) => x !== ct) : [...prev, ct]); deferredSave(); }} small />
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2.5">Care needs</label>
+              <div className="flex flex-wrap gap-1.5">
+                {CARE_NEED_OPTIONS.map((need) => (
+                  <Pill key={need} label={need} selected={careNeeds.includes(need)} onClick={() => { setCareNeeds((prev) => prev.includes(need) ? prev.filter((x) => x !== need) : [...prev, need]); deferredSave(); }} small />
                 ))}
               </div>
             </div>

@@ -1,4 +1,5 @@
 import type { BenefitsIntakeAnswers, CarePreference, PrimaryNeed } from "@/lib/types/benefits";
+import { PRIMARY_NEEDS } from "@/lib/types/benefits";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -7,6 +8,13 @@ const CARE_PREF_TO_LIVING: Record<CarePreference, string | null> = {
   stayHome: "Lives alone",
   exploringFacility: "Assisted living facility",
   unsure: null,
+};
+
+// Maps care preference → care_location
+const CARE_PREF_TO_LOCATION: Record<CarePreference, string | null> = {
+  stayHome: "At home",
+  exploringFacility: "Facility",
+  unsure: "Not sure yet",
 };
 
 // Maps primary needs → care_types display names (must match CARE_TYPES in ProfileEditContent)
@@ -70,6 +78,29 @@ export function computeBenefitsProfileSync(
       payload.care_types = Array.from(mapped);
       hasChanges = true;
     }
+  }
+
+  // Age → metadata.age (only if empty)
+  if (!meta.age && answers.age) {
+    payload.metadata.age = answers.age;
+    hasChanges = true;
+  }
+
+  // Care preference → care_location (only if empty)
+  if (!meta.care_location && answers.carePreference) {
+    const mapped = CARE_PREF_TO_LOCATION[answers.carePreference];
+    if (mapped) {
+      payload.metadata.care_location = mapped;
+      hasChanges = true;
+    }
+  }
+
+  // Primary needs → care_needs display titles (only if empty)
+  if ((!meta.care_needs || meta.care_needs.length === 0) && answers.primaryNeeds.length > 0) {
+    payload.metadata.care_needs = answers.primaryNeeds.map(
+      (need) => PRIMARY_NEEDS[need].displayTitle
+    );
+    hasChanges = true;
   }
 
   // Medicaid → append to payment_methods (don't overwrite)

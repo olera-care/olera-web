@@ -18,7 +18,7 @@ const STEPS = [
 ];
 
 const CONTACT_METHODS = ["Call", "Text", "Email"] as const;
-const CARE_RECIPIENTS = ["Myself", "A loved one"];
+const CARE_RECIPIENTS = ["Myself", "My parent", "My spouse", "Someone else"];
 const CARE_TYPES = [
   "Home Care",
   "Home Health Care",

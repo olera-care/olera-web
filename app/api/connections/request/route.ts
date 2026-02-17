@@ -22,8 +22,12 @@ const RECIPIENT_DISPLAY: Record<string, string> = {
   self: "myself",
   Myself: "myself",
   parent: "my parent",
+  "My parent": "my parent",
   spouse: "my spouse",
+  "My spouse": "my spouse",
   other: "my loved one",
+  "Someone else": "my loved one",
+  // Backward compat
   "A loved one": "my loved one",
 };
 
@@ -446,9 +450,9 @@ export async function POST(request: Request) {
           // Map CTA recipient → profile relationship_to_recipient
           const recipientMap: Record<string, string> = {
             self: "Myself",
-            parent: "A loved one",
-            spouse: "A loved one",
-            other: "A loved one",
+            parent: "My parent",
+            spouse: "My spouse",
+            other: "Someone else",
           };
           if (intentData.careRecipient && recipientMap[intentData.careRecipient]) {
             currentMeta.relationship_to_recipient = recipientMap[intentData.careRecipient];

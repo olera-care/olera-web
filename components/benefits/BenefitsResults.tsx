@@ -133,26 +133,27 @@ export default function BenefitsResults({
             Your Benefits Results
           </h2>
           <p className="text-sm text-gray-600">
-            Based on your answers, here are programs you may qualify for.
+            {completedAt ? (
+              <>
+                Based on your answers from{" "}
+                {new Date(completedAt).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                {" · "}
+                <button
+                  type="button"
+                  onClick={onStartOver}
+                  className="text-primary-600 hover:text-primary-700 font-medium bg-transparent border-none cursor-pointer p-0 transition-colors"
+                >
+                  Update your answers
+                </button>
+              </>
+            ) : (
+              "Based on your answers, here are programs you may qualify for."
+            )}
           </p>
-          {completedAt && (
-            <p className="text-xs text-gray-400 mt-1.5">
-              Based on your answers from{" "}
-              {new Date(completedAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-              {" · "}
-              <button
-                type="button"
-                onClick={onStartOver}
-                className="text-primary-600 hover:text-primary-700 font-medium bg-transparent border-none cursor-pointer p-0 transition-colors"
-              >
-                Update your answers
-              </button>
-            </p>
-          )}
         </div>
 
         {/* Category filter chips — single horizontal row */}

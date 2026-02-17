@@ -68,6 +68,19 @@ export default function InterestedDetailContent({
   const careTypes = profile?.care_types || [];
   const typeLabel = careTypes[0] || "Care Provider";
 
+  // Category label — human-readable
+  const categoryLabel = profile?.category
+    ? profile.category
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c: string) => c.toUpperCase())
+    : typeLabel;
+
+  // Received date
+  const shortDate = new Date(item.created_at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+
   const matchReasons =
     ((item.metadata as Record<string, unknown>)?.match_reasons as string[]) ||
     [];
@@ -182,42 +195,51 @@ export default function InterestedDetailContent({
                     {name}
                   </h2>
                   <p className="text-sm text-gray-500 leading-tight">
-                    {typeLabel}{location ? ` \u00B7 ${location}` : ""}
+                    {categoryLabel}{location ? ` \u00B7 ${location}` : ""}
                   </p>
                   {googleRating > 0 && (
                     <StarRating rating={googleRating} count={reviewCount} />
                   )}
                 </div>
 
-                {/* Close button */}
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors shrink-0"
-                  aria-label="Close"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                {/* Status pill + Close button */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                    Interested
+                  </span>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+                    aria-label="Close"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
-              {/* View profile link */}
-              {slug && (
-                <div className="mt-1.5">
+              {/* Profile link + received date */}
+              <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                {slug && (
                   <a
                     href={`/provider/${slug}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
                   >
-                    View full profile
+                    View profile
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </a>
-                </div>
-              )}
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-1.5">
+                Reached out {shortDate}
+              </p>
             </div>
           </div>
         </div>

@@ -77,7 +77,7 @@ export function useInterestedProviders(
         if (iosSourceIds.length > 0) {
           const { data: iosProviders } = await supabase
             .from("olera-providers")
-            .select("provider_id, provider_logo, provider_images, google_rating")
+            .select("provider_id, provider_logo, provider_images, google_rating, provider_description, review_count")
             .in("provider_id", iosSourceIds);
 
           if (iosProviders?.length) {
@@ -88,6 +88,8 @@ export function useInterestedProviders(
                   provider_logo: string | null;
                   provider_images: string | null;
                   google_rating: number | null;
+                  provider_description: string | null;
+                  review_count: number | null;
                 }) => [p.provider_id, p]
               )
             );
@@ -98,9 +100,11 @@ export function useInterestedProviders(
                 profileMap.set(id, {
                   ...profile,
                   image_url: profile.image_url || iosImage,
+                  description: profile.description || ios.provider_description || null,
                   metadata: {
                     ...((profile.metadata || {}) as Record<string, unknown>),
                     ...(ios.google_rating ? { google_rating: ios.google_rating } : {}),
+                    ...(ios.review_count ? { review_count: ios.review_count } : {}),
                   } as Profile["metadata"],
                 });
               }

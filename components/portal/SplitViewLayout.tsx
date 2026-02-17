@@ -58,7 +58,7 @@ export default function SplitViewLayout({
         <div
           className={`
             w-full ${equalWidth ? "lg:w-1/2" : "lg:flex-1"} lg:block
-            h-full overflow-y-auto
+            h-full ${hasSelection ? "overflow-hidden" : "overflow-y-auto"}
             border-l border-gray-200
             bg-white
             ${hasSelection ? "block" : "hidden lg:block"}

@@ -197,7 +197,7 @@ export default function InterestedDetailContent({
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h2 className="text-lg font-semibold text-gray-900 leading-snug truncate">
+                <h2 className="text-lg font-semibold text-gray-900 leading-snug">
                   {name}
                 </h2>
                 <p className="text-sm text-gray-500 leading-tight">
@@ -249,26 +249,27 @@ export default function InterestedDetailContent({
           </div>
         </div>
 
-        {/* Accept / Decline buttons — inside header block, same as ConnectionDetailContent */}
+        {/* Accept / Decline buttons — same order and component as ConnectionDetailContent */}
         <div className="mt-4 flex gap-3">
-          <button
-            type="button"
-            onClick={handleDecline}
-            disabled={actionState !== "idle"}
-            className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            {actionState === "declining" ? "Declining..." : "Decline"}
-          </button>
-          <button
-            type="button"
+          <Button
+            size="sm"
             onClick={handleAccept}
             disabled={actionState !== "idle"}
-            className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+            loading={actionState === "accepting"}
+            className="flex-1"
           >
-            {actionState === "accepting"
-              ? "Connecting..."
-              : "Accept & Connect"}
-          </button>
+            Accept &amp; Connect
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleDecline}
+            disabled={actionState !== "idle"}
+            loading={actionState === "declining"}
+            className="flex-1"
+          >
+            Decline
+          </Button>
         </div>
       </div>
 

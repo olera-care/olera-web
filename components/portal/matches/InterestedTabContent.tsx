@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, type ReactNode } from "react";
 import Button from "@/components/ui/Button";
 import SplitViewLayout from "@/components/portal/SplitViewLayout";
 import InterestedCard from "@/components/portal/matches/InterestedCard";
@@ -15,17 +15,28 @@ interface InterestedTabContentProps {
   profileId: string;
   hasCarePost: boolean;
   onSwitchToCarePost: () => void;
+  /** Called when selection state changes so parent can adjust layout */
+  onSelectionChange?: (hasSelection: boolean) => void;
+  /** Parent's sub-tab bar to include in left panel header during split view */
+  matchesTabBar?: ReactNode;
 }
 
 export default function InterestedTabContent({
   profileId,
   hasCarePost,
   onSwitchToCarePost,
+  onSelectionChange,
+  matchesTabBar,
 }: InterestedTabContentProps) {
   const { pending, declined, loading, refetch, updateLocal } =
     useInterestedProviders(profileId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [declinedExpanded, setDeclinedExpanded] = useState(false);
+
+  // Notify parent when selection state changes (for layout adjustments)
+  useEffect(() => {
+    onSelectionChange?.(selectedId !== null);
+  }, [selectedId, onSelectionChange]);
 
   const selectedItem = useMemo(
     () =>
@@ -247,13 +258,17 @@ export default function InterestedTabContent({
       equalWidth
       left={
         hasSelection ? (
-          /* ── Compact list mode (split view) ── */
+          /* ── Compact list mode (split view) — mirrors connections/page.tsx lines 417-453 ── */
           <div className="flex flex-col h-full">
             <div className="px-4 pt-4 pb-2 shrink-0">
-              <h3 className="text-sm font-semibold text-gray-900">
-                Interested Providers
-              </h3>
+              <h2 className="text-lg font-semibold text-gray-900">Matches</h2>
             </div>
+
+            {matchesTabBar && (
+              <div className="sticky top-0 z-10 bg-white px-4 pb-2 shrink-0">
+                {matchesTabBar}
+              </div>
+            )}
 
             <div className="flex-1 overflow-y-auto">
               {pending.map((item) => (
@@ -300,7 +315,7 @@ export default function InterestedTabContent({
           </div>
         ) : (
           /* ── Full-width card grid mode ── */
-          <div className="h-full overflow-y-auto">
+          <div className="h-full overflow-y-auto px-8 py-6">
             {/* Pending cards grid */}
             {pending.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

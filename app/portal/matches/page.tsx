@@ -27,6 +27,9 @@ export default function MatchesPage() {
   const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
   const hasCarePost = carePostStatus === "active";
 
+  // Track when InterestedTabContent is in split view mode
+  const [interestedSplitView, setInterestedSplitView] = useState(false);
+
   // For You state
   const [providers, setProviders] = useState<Provider[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -171,53 +174,65 @@ export default function MatchesPage() {
     );
   }
 
+  // ── Sub-tab bar (shared between normal view and split view left panel) ──
+  const matchesTabBar = (
+    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit">
+      {(
+        [
+          { id: "foryou", label: "For You", badge: 0 },
+          { id: "carepost", label: "My Care Post", badge: 0 },
+          { id: "interested", label: "Interested", badge: pendingCount },
+        ] as const
+      ).map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setSubTab(tab.id)}
+          className={[
+            "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5",
+            subTab === tab.id
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700",
+          ].join(" ")}
+        >
+          {tab.label}
+          {tab.badge > 0 && subTab !== tab.id && (
+            <span className="text-[10px] font-bold text-primary-600 bg-primary-50 rounded-full w-4 h-4 flex items-center justify-center">
+              {tab.badge}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
+  // When Interested tab is in split view, render without wrapper so
+  // SplitViewLayout aligns with the sidebar (matching Connections page)
+  const isInterestedSplitView = subTab === "interested" && interestedSplitView;
+
   return (
-    <div className="px-8 py-6 h-full">
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Discover providers or let them find you.
-          </p>
-        </div>
-      </div>
+    <div className={isInterestedSplitView ? "h-full" : "px-8 py-6 h-full"}>
+      {/* Header + Tabs — hidden when Interested split view is active
+          (they move into the split view's left panel instead) */}
+      {!isInterestedSplitView && (
+        <>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Discover providers or let them find you.
+              </p>
+            </div>
+          </div>
 
-      {/* Tabs + Sort row */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit">
-          {(
-            [
-              { id: "foryou", label: "For You", badge: 0 },
-              { id: "carepost", label: "My Care Post", badge: 0 },
-              { id: "interested", label: "Interested", badge: pendingCount },
-            ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setSubTab(tab.id)}
-              className={[
-                "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5",
-                subTab === tab.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              ].join(" ")}
-            >
-              {tab.label}
-              {tab.badge > 0 && subTab !== tab.id && (
-                <span className="text-[10px] font-bold text-primary-600 bg-primary-50 rounded-full w-4 h-4 flex items-center justify-center">
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+          <div className="flex items-center justify-between mb-6">
+            {matchesTabBar}
 
-        {subTab === "foryou" && !loading && providers.length > 0 && (
-          <MatchSortBar sort={sort} onSortChange={handleSortChange} />
-        )}
-      </div>
+            {subTab === "foryou" && !loading && providers.length > 0 && (
+              <MatchSortBar sort={sort} onSortChange={handleSortChange} />
+            )}
+          </div>
+        </>
+      )}
 
       {/* For You view */}
       {subTab === "foryou" && (
@@ -254,16 +269,16 @@ export default function MatchesPage() {
         />
       )}
 
-      {/* Interested view */}
+      {/* Interested view — always at same tree position to preserve state */}
       {subTab === "interested" && activeProfile && (
         <InterestedTabContent
           profileId={activeProfile.id}
           hasCarePost={hasCarePost}
           onSwitchToCarePost={() => setSubTab("carepost")}
+          onSelectionChange={setInterestedSplitView}
+          matchesTabBar={matchesTabBar}
         />
       )}
-
-    </div>
     </div>
   );
 }

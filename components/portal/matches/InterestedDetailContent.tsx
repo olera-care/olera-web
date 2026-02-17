@@ -13,6 +13,40 @@ interface InterestedDetailContentProps {
   onDecline: (id: string) => Promise<void>;
 }
 
+function StarRating({ rating, count }: { rating: number; count?: number }) {
+  const full = Math.floor(rating);
+  const hasHalf = rating - full >= 0.3;
+  const empty = 5 - full - (hasHalf ? 1 : 0);
+
+  return (
+    <div className="flex items-center gap-1.5 mt-1">
+      <span className="text-sm font-bold text-gray-900">{rating.toFixed(1)}</span>
+      <div className="flex items-center gap-0.5">
+        {Array.from({ length: full }).map((_, i) => (
+          <svg key={`f${i}`} className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+        {hasHalf && (
+          <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <defs><clipPath id="half"><rect x="0" y="0" width="10" height="20" /></clipPath></defs>
+            <path clipPath="url(#half)" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            <path fill="#e5e7eb" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" clipPath="url(#halfR)" />
+          </svg>
+        )}
+        {Array.from({ length: empty }).map((_, i) => (
+          <svg key={`e${i}`} className="w-3.5 h-3.5 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
+      {count !== undefined && count > 0 && (
+        <span className="text-xs text-gray-400">({count})</span>
+      )}
+    </div>
+  );
+}
+
 export default function InterestedDetailContent({
   item,
   onClose,
@@ -38,15 +72,21 @@ export default function InterestedDetailContent({
     ((item.metadata as Record<string, unknown>)?.match_reasons as string[]) ||
     [];
 
-  // Provider metadata for pricing/payment
-  const provMeta = (profile?.metadata || {}) as OrganizationMetadata;
+  // Provider metadata for pricing/payment/rating
+  const provMeta = (profile?.metadata || {}) as OrganizationMetadata & Record<string, unknown>;
   const priceRange = provMeta.price_range || "Contact for pricing";
   const acceptsMedicaid = provMeta.accepts_medicaid;
   const acceptsMedicare = provMeta.accepts_medicare;
+  const acceptsPrivateInsurance = provMeta.accepts_private_insurance;
   const paymentMethods: string[] = [];
   if (acceptsMedicaid) paymentMethods.push("Medicaid");
   if (acceptsMedicare) paymentMethods.push("Medicare");
+  if (acceptsPrivateInsurance) paymentMethods.push("Private insurance");
   if (paymentMethods.length === 0) paymentMethods.push("Contact provider");
+
+  // Rating from iOS data (stored in metadata by hook)
+  const googleRating = (provMeta.google_rating as number) || 0;
+  const reviewCount = (provMeta.review_count as number) || undefined;
 
   const handleAccept = async () => {
     setActionState("accepting");
@@ -72,43 +112,24 @@ export default function InterestedDetailContent({
     return (
       <div className="flex flex-col h-full">
         {/* Close button */}
-        <div className="flex justify-end px-6 pt-4">
+        <div className="flex justify-end px-7 pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+            aria-label="Close"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="flex-1 flex items-center justify-center px-6">
+        <div className="flex-1 flex items-center justify-center px-7">
           <div className="text-center">
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <svg
-                className="w-8 h-8 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -131,63 +152,79 @@ export default function InterestedDetailContent({
     <div className="flex flex-col h-full">
       {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Header */}
-        <div className="px-6 pt-5 pb-4 border-b border-gray-100">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3.5">
-              {/* Avatar */}
+        {/* Header — matches ConnectionDetailContent style */}
+        <div className="px-7 pt-5 pb-4 border-b border-gray-100">
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="shrink-0">
               {imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={imageUrl}
                   alt={name}
-                  className="w-12 h-12 rounded-full object-cover shrink-0"
+                  className="w-14 h-14 rounded-xl object-cover"
                 />
               ) : (
                 <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+                  className="w-14 h-14 rounded-xl flex items-center justify-center text-lg font-bold text-white"
                   style={{ background: avatarGradient(name) }}
                 >
                   {initial}
                 </div>
               )}
-
-              <div className="min-w-0">
-                <h2 className="text-base font-bold text-gray-900 truncate">
-                  {name}
-                </h2>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {typeLabel} {location && `\u00B7 ${location}`}
-                </p>
-              </div>
             </div>
 
-            {/* Close button */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+            {/* Info */}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold text-gray-900 leading-snug truncate">
+                    {name}
+                  </h2>
+                  <p className="text-sm text-gray-500 leading-tight">
+                    {typeLabel}{location ? ` \u00B7 ${location}` : ""}
+                  </p>
+                  {googleRating > 0 && (
+                    <StarRating rating={googleRating} count={reviewCount} />
+                  )}
+                </div>
+
+                {/* Close button */}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors shrink-0"
+                  aria-label="Close"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* View profile link */}
+              {slug && (
+                <div className="mt-1.5">
+                  <a
+                    href={`/provider/${slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    View full profile
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Match reasons */}
         {matchReasons.length > 0 && (
-          <div className="px-6 py-4 border-b border-gray-100">
+          <div className="px-7 py-4 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
               Why this provider reached out
             </h3>
@@ -195,18 +232,8 @@ export default function InterestedDetailContent({
               {matchReasons.map((reason) => (
                 <div key={reason} className="flex items-start gap-2.5">
                   <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <svg
-                      className="w-3 h-3 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
+                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                   <span className="text-sm text-gray-700">{reason}</span>
@@ -218,7 +245,7 @@ export default function InterestedDetailContent({
 
         {/* About */}
         {description && (
-          <div className="px-6 py-4 border-b border-gray-100">
+          <div className="px-7 py-4 border-b border-gray-100">
             <h3 className="text-sm font-semibold text-gray-900 mb-2">About</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
               {description}
@@ -227,7 +254,7 @@ export default function InterestedDetailContent({
         )}
 
         {/* Pricing & Payment */}
-        <div className="px-6 py-4 border-b border-gray-100">
+        <div className="px-7 py-4 border-b border-gray-100">
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -252,37 +279,10 @@ export default function InterestedDetailContent({
             </div>
           </div>
         </div>
-
-        {/* View full profile link */}
-        {slug && (
-          <div className="px-6 py-4">
-            <a
-              href={`/provider/${slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors inline-flex items-center gap-1"
-            >
-              View full profile
-              <svg
-                className="w-3.5 h-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </a>
-          </div>
-        )}
       </div>
 
       {/* Sticky action buttons */}
-      <div className="shrink-0 px-6 py-4 border-t border-gray-200 bg-white">
+      <div className="shrink-0 px-7 py-4 border-t border-gray-200 bg-white">
         <div className="flex gap-3">
           <button
             type="button"

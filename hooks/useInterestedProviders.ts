@@ -69,16 +69,16 @@ export function useInterestedProviders(
           ((profiles as Profile[]) || []).map((p) => [p.id, p])
         );
 
-        // Resolve iOS images for providers missing image_url
-        const missingImageIds = ((profiles as Profile[]) || [])
-          .filter((p) => !p.image_url && p.source_provider_id)
+        // Resolve iOS data (images + ratings) from olera-providers
+        const iosSourceIds = ((profiles as Profile[]) || [])
+          .filter((p) => p.source_provider_id)
           .map((p) => p.source_provider_id as string);
 
-        if (missingImageIds.length > 0) {
+        if (iosSourceIds.length > 0) {
           const { data: iosProviders } = await supabase
             .from("olera-providers")
-            .select("provider_id, provider_logo, provider_images")
-            .in("provider_id", missingImageIds);
+            .select("provider_id, provider_logo, provider_images, google_rating")
+            .in("provider_id", iosSourceIds);
 
           if (iosProviders?.length) {
             const iosMap = new Map(
@@ -87,23 +87,21 @@ export function useInterestedProviders(
                   provider_id: string;
                   provider_logo: string | null;
                   provider_images: string | null;
-                }) => [
-                  p.provider_id,
-                  p.provider_logo ||
-                    p.provider_images?.split(" | ")[0] ||
-                    null,
-                ]
+                  google_rating: number | null;
+                }) => [p.provider_id, p]
               )
             );
             for (const [id, profile] of profileMap) {
-              if (
-                !profile.image_url &&
-                profile.source_provider_id &&
-                iosMap.has(profile.source_provider_id)
-              ) {
+              if (profile.source_provider_id && iosMap.has(profile.source_provider_id)) {
+                const ios = iosMap.get(profile.source_provider_id)!;
+                const iosImage = ios.provider_logo || ios.provider_images?.split(" | ")[0] || null;
                 profileMap.set(id, {
                   ...profile,
-                  image_url: iosMap.get(profile.source_provider_id) || null,
+                  image_url: profile.image_url || iosImage,
+                  metadata: {
+                    ...((profile.metadata || {}) as Record<string, unknown>),
+                    ...(ios.google_rating ? { google_rating: ios.google_rating } : {}),
+                  } as Profile["metadata"],
                 });
               }
             }

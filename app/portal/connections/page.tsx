@@ -396,7 +396,7 @@ export default function ConnectionsPage() {
             {tab.count}
           </span>
           {tab.badge > 0 && currentTab !== tab.id && (
-            <span className="text-[10px] font-bold text-primary-600 bg-primary-50 rounded-full w-4 h-4 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-white bg-primary-600 rounded-full w-4 h-4 flex items-center justify-center">
               {tab.badge}
             </span>
           )}

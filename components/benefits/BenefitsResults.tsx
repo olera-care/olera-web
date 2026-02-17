@@ -125,71 +125,78 @@ export default function BenefitsResults({
   return (
     <>
     <div className="w-full">
-      {/* Header */}
-      <div className="text-center mb-5">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
-          Your Benefits Results
-        </h2>
-        <p className="text-sm text-gray-600">
-          Based on your answers, here are programs you may qualify for.
-        </p>
-        {completedAt && (
-          <p className="text-xs text-gray-400 mt-1.5">
-            Based on your answers from{" "}
-            {new Date(completedAt).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-            {" · "}
-            <button
-              type="button"
-              onClick={onStartOver}
-              className="text-primary-600 hover:text-primary-700 font-medium bg-transparent border-none cursor-pointer p-0 transition-colors"
-            >
-              Update your answers
-            </button>
+      {/* Header + pills — wider container so pills aren't clipped */}
+      <div className="max-w-2xl mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-5">
+          <h2 className="text-xl font-bold text-gray-900 mb-1">
+            Your Benefits Results
+          </h2>
+          <p className="text-sm text-gray-600">
+            Based on your answers, here are programs you may qualify for.
           </p>
-        )}
-      </div>
+          {completedAt && (
+            <p className="text-xs text-gray-400 mt-1.5">
+              Based on your answers from{" "}
+              {new Date(completedAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+              {" · "}
+              <button
+                type="button"
+                onClick={onStartOver}
+                className="text-primary-600 hover:text-primary-700 font-medium bg-transparent border-none cursor-pointer p-0 transition-colors"
+              >
+                Update your answers
+              </button>
+            </p>
+          )}
+        </div>
 
-      {/* Category filter chips — horizontal scroll for narrow layout */}
-      {presentCategories.length > 1 && (
-        <div className="overflow-x-auto -mx-4 px-4 mb-4 scrollbar-hide">
-          <div className="flex gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60 w-max">
-            <button
-              onClick={() => setActiveFilter("all")}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                activeFilter === "all"
-                  ? "bg-gray-900 text-white shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              All ({matchedPrograms.length})
-            </button>
-            {presentCategories.map((cat) => {
-              const info = BENEFIT_CATEGORIES[cat];
-              const count = matchedPrograms.filter(
-                (m) => m.program.category === cat
-              ).length;
-              return (
+        {/* Category filter chips — centered, with horizontal scroll as fallback */}
+        {presentCategories.length > 1 && (
+          <div className="flex justify-center mb-4">
+            <div className="overflow-x-auto max-w-full scrollbar-hide">
+              <div className="flex gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60 w-max">
                 <button
-                  key={cat}
-                  onClick={() => setActiveFilter(cat)}
+                  onClick={() => setActiveFilter("all")}
                   className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    activeFilter === cat
+                    activeFilter === "all"
                       ? "bg-gray-900 text-white shadow-sm"
                       : "text-gray-600 hover:bg-gray-100"
                   }`}
                 >
-                  {info?.icon} {info?.displayTitle} ({count})
+                  All ({matchedPrograms.length})
                 </button>
-              );
-            })}
+                {presentCategories.map((cat) => {
+                  const info = BENEFIT_CATEGORIES[cat];
+                  const count = matchedPrograms.filter(
+                    (m) => m.program.category === cat
+                  ).length;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setActiveFilter(cat)}
+                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                        activeFilter === cat
+                          ? "bg-gray-900 text-white shadow-sm"
+                          : "text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {info?.icon} {info?.displayTitle} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
+      {/* Program cards — narrow container for readability */}
+      <div className="max-w-lg mx-auto px-4">
       {/* Program cards grouped by category, with AAA card after 3rd card */}
       {(() => {
         // Flatten all grouped cards into a sequential list
@@ -241,6 +248,7 @@ export default function BenefitsResults({
           &larr; Start over with different answers
         </button>
       </div>
+      </div>{/* end max-w-lg cards container */}
     </div>
 
     {/* Sticky footer */}

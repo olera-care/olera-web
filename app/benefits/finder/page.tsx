@@ -33,6 +33,7 @@ export default function BenefitsFinderPage() {
     if (restoredRef.current) return;
     if (!activeProfile) return;
 
+    // Fast path: check in-memory auth context
     const meta = (activeProfile.metadata || {}) as FamilyMetadata;
     if (meta.benefits_results?.results && meta.benefits_results?.answers) {
       restoredRef.current = true;
@@ -41,7 +42,31 @@ export default function BenefitsFinderPage() {
       setLocationDisplay(meta.benefits_results.location_display || "");
       setCompletedAt(meta.benefits_results.completed_at || null);
       setPageState("results");
+      return;
     }
+
+    // Fallback: auth context may be stale if user navigated away before
+    // refreshAccountData() completed — check DB directly
+    (async () => {
+      if (!isSupabaseConfigured()) return;
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", activeProfile.id)
+        .single();
+
+      if (restoredRef.current) return; // another path restored while we queried
+      const dbMeta = (data?.metadata || {}) as FamilyMetadata;
+      if (dbMeta.benefits_results?.results && dbMeta.benefits_results?.answers) {
+        restoredRef.current = true;
+        setResult(dbMeta.benefits_results.results as unknown as BenefitsSearchResult);
+        setIntakeAnswers(dbMeta.benefits_results.answers as unknown as BenefitsIntakeAnswers);
+        setLocationDisplay(dbMeta.benefits_results.location_display || "");
+        setCompletedAt(dbMeta.benefits_results.completed_at || null);
+        setPageState("results");
+      }
+    })();
   }, [activeProfile]);
 
   // Handle post-auth deferred action (anonymous user who clicked Save → auth → return)
@@ -166,8 +191,9 @@ export default function BenefitsFinderPage() {
       // Cache for anonymous → auth flow
       setBenefitsIntakeCache(answers, locDisplay, data);
 
-      // Persist to profile for logged-in users
-      persistResults(answers, locDisplay, data);
+      // Persist to profile for logged-in users (awaited so DB write
+      // completes before user can navigate away)
+      await persistResults(answers, locDisplay, data);
     } catch (err) {
       setErrorMsg(
         err instanceof Error ? err.message : "Failed to find matching programs"

@@ -105,7 +105,7 @@ export default function BenefitsResults({
 
       {/* Category filter chips */}
       {presentCategories.length > 1 && (
-        <div className="inline-flex flex-wrap gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60 mb-4">
+        <div className="flex flex-wrap gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60 mb-4">
           <button
             onClick={() => setActiveFilter("all")}
             className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
@@ -192,24 +192,24 @@ export default function BenefitsResults({
     </div>
 
     {/* Sticky footer */}
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] z-50">
-      <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-gray-900">What&apos;s next?</p>
-          <p className="text-xs text-gray-500">
-            You qualify for {matchedPrograms.length} programs. Take the next step.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] z-50">
+      <div className="max-w-lg mx-auto px-5 py-4">
+        <p className="text-base font-bold text-gray-900 mb-0.5">
+          What&apos;s next?
+        </p>
+        <p className="text-sm text-gray-500 mb-3">
+          You qualify for {matchedPrograms.length} programs. Take the next step.
+        </p>
+        <div className="flex gap-3">
           <a
             href={browseHref}
-            className="inline-flex items-center gap-1 px-3.5 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg text-sm font-medium no-underline hover:bg-gray-50 transition-colors whitespace-nowrap"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 border border-gray-300 bg-white text-gray-700 rounded-xl text-sm font-semibold no-underline hover:bg-gray-50 transition-colors"
           >
             Find providers &rarr;
           </a>
           <a
             href="/portal/matches?tab=carepost"
-            className="inline-flex items-center gap-1 px-3.5 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium no-underline hover:bg-primary-500 transition-colors whitespace-nowrap"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold no-underline hover:bg-primary-500 transition-colors"
           >
             Let providers find you
           </a>

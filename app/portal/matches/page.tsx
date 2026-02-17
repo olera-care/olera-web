@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { Provider } from "@/lib/types/provider";
@@ -17,7 +18,11 @@ type SubTab = "foryou" | "carepost" | "interested";
 
 export default function MatchesPage() {
   const { activeProfile, user, refreshAccountData } = useAuth();
-  const [subTab, setSubTab] = useState<SubTab>("foryou");
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab");
+  const [subTab, setSubTab] = useState<SubTab>(
+    initialTab === "carepost" || initialTab === "interested" ? initialTab : "foryou"
+  );
   const { pendingCount } = useInterestedProviders(activeProfile?.id);
   const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
   const hasCarePost = carePostStatus === "active";

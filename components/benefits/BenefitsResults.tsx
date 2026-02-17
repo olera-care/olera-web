@@ -253,9 +253,9 @@ export default function BenefitsResults({
 
     {/* Sticky footer — horizontal: text left, buttons right, aligned with navbar */}
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-8">
         <div className="shrink-0">
-          <p className="text-base font-bold text-gray-900 mb-0.5">
+          <p className="text-base font-bold text-gray-900 mb-1">
             What&apos;s next?
           </p>
           <p className="text-sm text-gray-500">

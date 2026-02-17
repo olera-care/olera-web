@@ -1,7 +1,7 @@
 "use client";
 
 import type { Connection, Profile } from "@/lib/types";
-import { avatarGradient, blurName, parseMessage } from "./ConnectionDetailContent";
+import { avatarGradient, blurName } from "./ConnectionDetailContent";
 
 export interface ConnectionWithProfile extends Connection {
   fromProfile: Profile | null;
@@ -35,12 +35,6 @@ export default function ConnectionListItem({
     .filter(Boolean)
     .join(", ");
 
-  const parsedMsg = parseMessage(connection.message);
-  const careTypeLabel =
-    parsedMsg?.careType ||
-    connection.type
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c: string) => c.toUpperCase());
 
   const shouldBlur = isProvider && !hasFullAccess && isInbound;
 
@@ -101,7 +95,7 @@ export default function ConnectionListItem({
             "text-xs truncate mt-0.5",
             unread ? "text-gray-600" : "text-gray-400",
           ].join(" ")}>
-            {[otherLocation, careTypeLabel].filter(Boolean).join(" · ")}
+            {otherLocation}
           </p>
         </div>
       </div>

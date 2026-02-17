@@ -685,6 +685,7 @@ export default function ConnectionDetailContent({
 
   // Thread messages from metadata
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
+  const autoIntro = connMetadata?.auto_intro as string | undefined;
 
   // Next step request from metadata
   const nextStepRequest = connMetadata?.next_step_request as { type: string; note: string | null; created_at: string } | null;
@@ -746,8 +747,8 @@ export default function ConnectionDetailContent({
 
     return (
       <div className="space-y-4">
-        {/* Family's note (if any) as the first message */}
-        {!shouldBlur && parsedMsg?.notes && (
+        {/* Auto-generated intro message (from care seeker) */}
+        {!shouldBlur && autoIntro && (
           <>
             <div className="flex justify-center py-1">
               <span className="text-[11px] font-medium text-gray-400">
@@ -761,7 +762,7 @@ export default function ConnectionDetailContent({
                     ? "bg-gray-100 text-gray-800 rounded-tl-sm"
                     : "bg-primary-800 text-white rounded-tr-sm"
                 }`}>
-                  <p className="text-sm leading-relaxed">{parsedMsg.notes}</p>
+                  <p className="text-sm leading-relaxed">{autoIntro}</p>
                 </div>
                 <p className={`text-xs mt-1 ${isInbound ? "text-left" : "text-right"} text-gray-400`}>
                   {shortDate}
@@ -769,6 +770,24 @@ export default function ConnectionDetailContent({
               </div>
             </div>
           </>
+        )}
+
+        {/* Family's personal note (if any) */}
+        {!shouldBlur && parsedMsg?.notes && (
+          <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
+            <div className="max-w-[85%]">
+              <div className={`rounded-2xl px-4 py-3 ${
+                isInbound
+                  ? "bg-gray-100 text-gray-800 rounded-tl-sm"
+                  : "bg-primary-800 text-white rounded-tr-sm"
+              }`}>
+                <p className="text-sm leading-relaxed">{parsedMsg.notes}</p>
+              </div>
+              <p className={`text-xs mt-1 ${isInbound ? "text-left" : "text-right"} text-gray-400`}>
+                {shortDate}
+              </p>
+            </div>
+          </div>
         )}
 
         {/* Connected milestone marker */}
@@ -1124,10 +1143,10 @@ export default function ConnectionDetailContent({
                     )}
                   </div>
                 )}
-                {/* Request summary (folded from context card) */}
-                {parsedMsg && !shouldBlur && (
+                {/* Request date */}
+                {connection && !shouldBlur && (
                   <p className="text-xs text-gray-400 mt-1.5">
-                    {[parsedMsg.careType, parsedMsg.careRecipient ? `For ${parsedMsg.careRecipient}` : null, parsedMsg.urgency, `${isInbound ? "Received" : "Sent"} ${shortDate}`].filter(Boolean).join(" · ")}
+                    {isInbound ? "Received" : "Sent"} {shortDate}
                   </p>
                 )}
               </div>

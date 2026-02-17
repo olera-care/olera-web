@@ -13,7 +13,7 @@ import SplitViewLayout from "@/components/portal/SplitViewLayout";
 import ConnectionDetailContent from "@/components/portal/ConnectionDetailContent";
 import ConnectionListItem from "@/components/portal/ConnectionListItem";
 import type { ConnectionWithProfile } from "@/components/portal/ConnectionListItem";
-import { avatarGradient, blurName, parseMessage } from "@/components/portal/ConnectionDetailContent";
+import { avatarGradient, blurName } from "@/components/portal/ConnectionDetailContent";
 import {
   getFamilyDisplayStatus,
   getConnectionTab,
@@ -637,13 +637,6 @@ function ConnectionGridCard({
     .filter(Boolean)
     .join(", ");
 
-  const parsedMsg = parseMessage(connection.message);
-  const careTypeLabel =
-    parsedMsg?.careType ||
-    connection.type
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c: string) => c.toUpperCase());
-
   const shouldBlur = isProvider && !hasFullAccess && isInbound;
 
   const statusConfig = isProvider
@@ -704,7 +697,7 @@ function ConnectionGridCard({
             "text-xs mt-0.5 truncate",
             unread ? "text-gray-600" : "text-gray-400",
           ].join(" ")}>
-            {[otherLocation, careTypeLabel].filter(Boolean).join(" · ")}
+            {otherLocation}
           </p>
         </div>
       </div>

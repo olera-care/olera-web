@@ -1,27 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BENEFIT_CATEGORIES } from "@/lib/types/benefits";
 import type {
   BenefitsSearchResult,
+  BenefitsIntakeAnswers,
   BenefitCategory,
   BenefitMatch,
 } from "@/lib/types/benefits";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { syncBenefitsToProfile } from "@/lib/benefits-profile-sync";
+import { useSavedBenefits } from "@/hooks/use-saved-benefits";
 
 interface BenefitsResultsProps {
   result: BenefitsSearchResult;
+  intakeAnswers: BenefitsIntakeAnswers | null;
+  locationDisplay: string;
   onStartOver: () => void;
 }
 
 export default function BenefitsResults({
   result,
+  intakeAnswers,
+  locationDisplay,
   onStartOver,
 }: BenefitsResultsProps) {
   const [activeFilter, setActiveFilter] = useState<BenefitCategory | "all">(
     "all"
   );
+  const { activeProfile } = useAuth();
+  const { isBenefitSaved, saveBenefit } = useSavedBenefits();
+  const syncedRef = useRef(false);
+
+  // Silently sync intake answers to profile (once, for logged-in users)
+  useEffect(() => {
+    if (syncedRef.current || !intakeAnswers || !activeProfile) return;
+    syncedRef.current = true;
+    syncBenefitsToProfile(intakeAnswers, locationDisplay, activeProfile.id);
+  }, [intakeAnswers, locationDisplay, activeProfile]);
 
   const { matchedPrograms, localAAA } = result;
 
@@ -126,7 +144,12 @@ export default function BenefitsResults({
               {info?.icon} {info?.displayTitle}
             </h3>
             {programs.map((m) => (
-              <ProgramCard key={m.id} match={m} />
+              <ProgramCard
+                key={m.id}
+                match={m}
+                isSaved={isBenefitSaved(m.program.name)}
+                onSave={() => saveBenefit(m.program.name)}
+              />
             ))}
           </div>
         );

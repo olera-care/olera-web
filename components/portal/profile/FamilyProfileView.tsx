@@ -307,6 +307,23 @@ export default function FamilyProfileView() {
         ) : (
           <p className="text-[15px] text-gray-300 mb-4">&mdash;</p>
         )}
+        {meta.saved_benefits && meta.saved_benefits.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              Saved Benefits
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {meta.saved_benefits.map((benefit) => (
+                <span
+                  key={benefit}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-amber-50 text-amber-700 border border-amber-200"
+                >
+                  {benefit}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <BenefitsFinderBanner />
       </SectionCard>
 

@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import BenefitsIntakeForm from "@/components/benefits/BenefitsIntakeForm";
 import BenefitsResults from "@/components/benefits/BenefitsResults";
 import type { BenefitsIntakeAnswers, BenefitsSearchResult } from "@/lib/types/benefits";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import {
+  setBenefitsIntakeCache,
+  getBenefitsIntakeCache,
+  clearBenefitsIntakeCache,
+} from "@/lib/benefits-intake-cache";
+import { syncBenefitsToProfile } from "@/lib/benefits-profile-sync";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { FamilyMetadata } from "@/lib/types";
 
 type PageState = "intake" | "loading" | "results" | "error";
 
@@ -11,8 +21,62 @@ export default function BenefitsPage() {
   const [pageState, setPageState] = useState<PageState>("intake");
   const [result, setResult] = useState<BenefitsSearchResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [intakeAnswers, setIntakeAnswers] = useState<BenefitsIntakeAnswers | null>(null);
+  const [locationDisplay, setLocationDisplay] = useState("");
+  const { user, activeProfile, refreshAccountData } = useAuth();
+  const deferredHandled = useRef(false);
 
-  async function handleSubmit(answers: BenefitsIntakeAnswers) {
+  // Handle post-auth deferred action (anonymous user who clicked Save → auth → return)
+  useEffect(() => {
+    if (deferredHandled.current) return;
+    if (!user || !activeProfile) return;
+
+    const deferred = getDeferredAction();
+    if (deferred?.action !== "save_benefit") return;
+
+    deferredHandled.current = true;
+    clearDeferredAction();
+
+    const cached = getBenefitsIntakeCache();
+    if (cached) {
+      syncBenefitsToProfile(cached.answers, cached.locationDisplay, activeProfile.id);
+      setIntakeAnswers(cached.answers);
+      setLocationDisplay(cached.locationDisplay);
+      if (cached.result) {
+        setResult(cached.result);
+        setPageState("results");
+      }
+      clearBenefitsIntakeCache();
+    }
+
+    if (deferred.benefitProgramName) {
+      const saveBenefit = async () => {
+        if (!isSupabaseConfigured()) return;
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", activeProfile.id)
+          .single();
+        const meta = (data?.metadata || {}) as FamilyMetadata;
+        const current = meta.saved_benefits || [];
+        if (!current.includes(deferred.benefitProgramName!)) {
+          await supabase
+            .from("business_profiles")
+            .update({
+              metadata: { ...meta, saved_benefits: [...current, deferred.benefitProgramName!] },
+            })
+            .eq("id", activeProfile.id);
+          await refreshAccountData();
+        }
+      };
+      saveBenefit().catch(console.error);
+    }
+  }, [user, activeProfile, refreshAccountData]);
+
+  async function handleSubmit(answers: BenefitsIntakeAnswers, locDisplay: string) {
+    setIntakeAnswers(answers);
+    setLocationDisplay(locDisplay);
     setPageState("loading");
     setErrorMsg(null);
 
@@ -31,6 +95,7 @@ export default function BenefitsPage() {
       const data: BenefitsSearchResult = await res.json();
       setResult(data);
       setPageState("results");
+      setBenefitsIntakeCache(answers, locDisplay, data);
     } catch (err) {
       setErrorMsg(
         err instanceof Error ? err.message : "Failed to find matching programs"
@@ -42,6 +107,8 @@ export default function BenefitsPage() {
   function handleStartOver() {
     setResult(null);
     setErrorMsg(null);
+    setIntakeAnswers(null);
+    setLocationDisplay("");
     setPageState("intake");
   }
 
@@ -80,7 +147,12 @@ export default function BenefitsPage() {
 
         {/* Results */}
         {pageState === "results" && result && (
-          <BenefitsResults result={result} onStartOver={handleStartOver} />
+          <BenefitsResults
+            result={result}
+            intakeAnswers={intakeAnswers}
+            locationDisplay={locationDisplay}
+            onStartOver={handleStartOver}
+          />
         )}
 
         {/* Error */}

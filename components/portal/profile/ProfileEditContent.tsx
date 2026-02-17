@@ -276,6 +276,23 @@ export default function ProfileEditContent({
                 <Pill key={opt} label={opt} selected={payments.includes(opt)} onClick={() => { setPayments((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
               ))}
             </div>
+            {meta.saved_benefits && meta.saved_benefits.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Saved from Benefits Finder
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {meta.saved_benefits.map((benefit) => (
+                    <span
+                      key={benefit}
+                      className="px-3.5 py-2 text-sm rounded-full border-[1.5px] border-amber-300 bg-amber-50 text-amber-700 font-normal"
+                    >
+                      {benefit}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <BenefitsFinderBanner />
           </div>
         )}

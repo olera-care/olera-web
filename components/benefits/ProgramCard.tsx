@@ -6,6 +6,8 @@ import type { BenefitMatch } from "@/lib/types/benefits";
 
 interface ProgramCardProps {
   match: BenefitMatch;
+  isSaved?: boolean;
+  onSave?: () => void;
 }
 
 const TIER_COLORS: Record<string, string> = {
@@ -14,7 +16,7 @@ const TIER_COLORS: Record<string, string> = {
   "Worth Exploring": "bg-gray-100 text-gray-700",
 };
 
-export default function ProgramCard({ match }: ProgramCardProps) {
+export default function ProgramCard({ match, isSaved, onSave }: ProgramCardProps) {
   const [expanded, setExpanded] = useState(false);
   const { program, matchScore, matchReasons, tierLabel } = match;
   const category = BENEFIT_CATEGORIES[program.category];
@@ -134,6 +136,31 @@ export default function ProgramCard({ match }: ProgramCardProps) {
               >
                 Apply Online
               </a>
+            )}
+            {onSave && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSave();
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                  isSaved
+                    ? "bg-primary-600 text-white border border-primary-600"
+                    : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {isSaved ? (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Saved
+                  </>
+                ) : (
+                  "Save"
+                )}
+              </button>
             )}
           </div>
         </div>

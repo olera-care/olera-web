@@ -186,14 +186,16 @@ export default function BenefitsFinderPage() {
 
       const data: BenefitsSearchResult = await res.json();
       setResult(data);
-      setPageState("results");
 
       // Cache for anonymous → auth flow
       setBenefitsIntakeCache(answers, locDisplay, data);
 
-      // Persist to profile for logged-in users (awaited so DB write
-      // completes before user can navigate away)
+      // Persist BEFORE showing results — BenefitsResults mounts a useEffect
+      // that calls syncBenefitsToProfile (read-modify-write on metadata).
+      // If we show results first, the sync can overwrite benefits_results.
       await persistResults(answers, locDisplay, data);
+
+      setPageState("results");
     } catch (err) {
       setErrorMsg(
         err instanceof Error ? err.message : "Failed to find matching programs"

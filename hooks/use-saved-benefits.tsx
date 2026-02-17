@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { FamilyMetadata } from "@/lib/types";
 
 export function useSavedBenefits() {
-  const { user, activeProfile, openAuth, refreshAccountData } = useAuth();
+  const { user, account, activeProfile, openAuth, refreshAccountData } = useAuth();
+  const creatingProfile = useRef(false);
 
   const savedBenefits: string[] = useMemo(() => {
     if (!activeProfile) return [];
@@ -20,8 +21,8 @@ export function useSavedBenefits() {
 
   const saveBenefit = useCallback(
     async (programName: string) => {
-      // Auth gate for anonymous users
-      if (!user || !activeProfile) {
+      // Not logged in at all → auth gate
+      if (!user) {
         openAuth({
           defaultMode: "sign-up",
           intent: "family",
@@ -34,6 +35,72 @@ export function useSavedBenefits() {
                 : "/benefits/finder",
           },
         });
+        return;
+      }
+
+      // Logged in but no profile → auto-create a minimal family profile
+      if (!activeProfile) {
+        if (creatingProfile.current) return;
+        creatingProfile.current = true;
+
+        try {
+          const displayName =
+            account?.display_name || user.email?.split("@")[0] || "Family";
+
+          const res = await fetch("/api/auth/create-profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              intent: "family",
+              displayName,
+            }),
+          });
+
+          if (!res.ok) {
+            console.error("[olera] Auto-create profile failed:", await res.text());
+            return;
+          }
+
+          // Refresh so activeProfile is populated
+          await refreshAccountData();
+
+          // Now save the benefit using the fresh profile
+          const supabase = createClient();
+          const { data: freshAccount } = await supabase
+            .from("accounts")
+            .select("active_profile_id")
+            .eq("user_id", user.id)
+            .single();
+
+          if (freshAccount?.active_profile_id) {
+            const { data: profile } = await supabase
+              .from("business_profiles")
+              .select("metadata")
+              .eq("id", freshAccount.active_profile_id)
+              .single();
+
+            const meta = (profile?.metadata || {}) as FamilyMetadata;
+            const currentSaved = meta.saved_benefits || [];
+
+            if (!currentSaved.includes(programName)) {
+              await supabase
+                .from("business_profiles")
+                .update({
+                  metadata: {
+                    ...meta,
+                    saved_benefits: [...currentSaved, programName],
+                  },
+                })
+                .eq("id", freshAccount.active_profile_id);
+
+              await refreshAccountData();
+            }
+          }
+        } catch (err) {
+          console.error("[olera] Failed to create profile and save benefit:", err);
+        } finally {
+          creatingProfile.current = false;
+        }
         return;
       }
 
@@ -70,7 +137,7 @@ export function useSavedBenefits() {
         console.error("[olera] Failed to save benefit:", err);
       }
     },
-    [user, activeProfile, savedBenefits, openAuth, refreshAccountData]
+    [user, account, activeProfile, savedBenefits, openAuth, refreshAccountData]
   );
 
   return { savedBenefits, isBenefitSaved, saveBenefit };

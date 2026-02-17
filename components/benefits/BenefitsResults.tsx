@@ -32,7 +32,7 @@ export default function BenefitsResults({
   const [activeFilter, setActiveFilter] = useState<BenefitCategory | "all">(
     "all"
   );
-  const { activeProfile } = useAuth();
+  const { user, activeProfile, openAuth } = useAuth();
   const { isBenefitSaved, saveBenefit } = useSavedBenefits();
   const syncedRef = useRef(false);
 
@@ -87,10 +87,40 @@ export default function BenefitsResults({
     );
   }
 
-  // Build browse link with location from intake
-  const browseHref = locationDisplay
-    ? `/browse?location=${encodeURIComponent(locationDisplay)}`
-    : "/browse";
+  // Map intake care preference + needs to browse page care type param
+  const getBrowseCareType = (): string | null => {
+    if (!intakeAnswers) return null;
+    const needs = intakeAnswers.primaryNeeds || [];
+    if (needs.includes("memoryCare")) return "memory-care";
+    if (needs.includes("healthManagement")) return "home-health";
+    if (intakeAnswers.carePreference === "exploringFacility") return "assisted-living";
+    if (needs.includes("personalCare") || needs.includes("householdTasks") || needs.includes("companionship"))
+      return "home-care";
+    return null;
+  };
+
+  // Build browse link with location and care type from intake
+  const browseParams = new URLSearchParams();
+  if (locationDisplay) browseParams.set("location", locationDisplay);
+  const careType = getBrowseCareType();
+  if (careType) browseParams.set("type", careType);
+  const browseHref = browseParams.toString() ? `/browse?${browseParams}` : "/browse";
+
+  // Auth-gated handler for "Let providers find you"
+  const handleLetProvidersFind = () => {
+    if (!user) {
+      openAuth({
+        defaultMode: "sign-up",
+        intent: "family",
+        deferred: {
+          action: "create_profile" as const,
+          returnUrl: "/portal/matches?tab=carepost",
+        },
+      });
+      return;
+    }
+    window.location.href = "/portal/matches?tab=carepost";
+  };
 
   return (
     <>
@@ -227,12 +257,13 @@ export default function BenefitsResults({
           >
             Find providers &rarr;
           </a>
-          <a
-            href="/portal/matches?tab=carepost"
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold no-underline hover:bg-primary-500 transition-colors"
+          <button
+            type="button"
+            onClick={handleLetProvidersFind}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold border-none cursor-pointer hover:bg-primary-500 transition-colors"
           >
             Let providers find you
-          </a>
+          </button>
         </div>
       </div>
     </div>

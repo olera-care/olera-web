@@ -248,29 +248,6 @@ export default function InterestedDetailContent({
             </p>
           </div>
         </div>
-
-        {/* Accept / Decline buttons — same order and component as ConnectionDetailContent */}
-        <div className="mt-4 flex gap-3">
-          <Button
-            size="sm"
-            onClick={handleAccept}
-            disabled={actionState !== "idle"}
-            loading={actionState === "accepting"}
-            className="flex-1"
-          >
-            Accept &amp; Connect
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleDecline}
-            disabled={actionState !== "idle"}
-            loading={actionState === "declining"}
-            className="flex-1"
-          >
-            Decline
-          </Button>
-        </div>
       </div>
 
       {/* ── CONTENT: scrollable middle area (match reasons, about, pricing) ── */}
@@ -329,6 +306,31 @@ export default function InterestedDetailContent({
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── FOOTER: Accept / Decline buttons pinned to bottom ── */}
+      <div className="shrink-0 px-7 py-4 border-t border-gray-100">
+        <div className="flex gap-3">
+          <Button
+            size="sm"
+            onClick={handleAccept}
+            disabled={actionState !== "idle"}
+            loading={actionState === "accepting"}
+            className="flex-1"
+          >
+            Accept &amp; Connect
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleDecline}
+            disabled={actionState !== "idle"}
+            loading={actionState === "declining"}
+            className="flex-1"
+          >
+            Decline
+          </Button>
         </div>
       </div>
     </div>

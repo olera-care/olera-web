@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import type { InterestedProvider } from "@/hooks/useInterestedProviders";
 import type { OrganizationMetadata } from "@/lib/types";
@@ -56,6 +56,12 @@ export default function InterestedDetailContent({
   const [actionState, setActionState] = useState<
     "idle" | "accepting" | "declining" | "accepted"
   >("idle");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll position when switching between providers
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [item.id]);
 
   const profile = item.providerProfile;
   const name = profile?.display_name || "Unknown Provider";
@@ -164,7 +170,7 @@ export default function InterestedDetailContent({
   return (
     <div className="flex flex-col h-full">
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {/* Header — matches ConnectionDetailContent style */}
         <div className="px-7 pt-5 pb-4 border-b border-gray-100">
           <div className="flex items-start gap-4">

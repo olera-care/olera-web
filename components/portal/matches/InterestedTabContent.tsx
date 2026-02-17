@@ -314,8 +314,8 @@ export default function InterestedTabContent({
             </div>
           </div>
         ) : (
-          /* ── Full-width card grid mode ── */
-          <div className="h-full overflow-y-auto px-8 py-6">
+          /* ── Full-width card grid mode (parent MatchesPage provides px-8 py-6) ── */
+          <div className="h-full overflow-y-auto">
             {/* Pending cards grid */}
             {pending.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

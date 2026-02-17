@@ -278,6 +278,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
+      // Handle duplicate connection (user already has pending/accepted)
+      if (data.status === "duplicate") {
+        if (data.created_at) {
+          setPendingRequestDate(data.created_at);
+        }
+        await refreshAccountData();
+        return;
+      }
+
       // Refresh auth data so active profile is up-to-date
       await refreshAccountData();
 
@@ -400,6 +409,12 @@ export function useConnectionCard(props: ConnectionCardProps) {
     }
   }, [user, intentData, submitRequest, openAuth, providerId, providerSlug]);
 
+  const signIn = useCallback(() => {
+    openAuth({ defaultMode: "sign-in" });
+    // No deferred action — after auth, Effect 2 naturally detects
+    // existing connections and sets the correct state.
+  }, [openAuth]);
+
   const editFromReturning = useCallback(() => {
     setIntentStep(0);
     setCardState("intent");
@@ -448,6 +463,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     resetFlow,
     editFromReturning,
     connect,
+    signIn,
 
     // Auto-advancing field setters
     selectRecipient,

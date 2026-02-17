@@ -7,6 +7,7 @@ interface DefaultActionsProps {
   phoneRevealed: boolean;
   onConnect: () => void;
   onRevealPhone: () => void;
+  onSignIn: () => void;
 }
 
 export default function DefaultActions({
@@ -14,6 +15,7 @@ export default function DefaultActions({
   phoneRevealed,
   onConnect,
   onRevealPhone,
+  onSignIn,
 }: DefaultActionsProps) {
   return (
     <>
@@ -40,6 +42,17 @@ export default function DefaultActions({
           Connect to see full number
         </p>
       )}
+
+      {/* Sign-in nudge for returning users */}
+      <p className="text-xs text-gray-400 text-center mt-3">
+        Already connected?{" "}
+        <button
+          onClick={onSignIn}
+          className="text-primary-600 hover:text-primary-500 font-medium bg-transparent border-none cursor-pointer p-0 underline underline-offset-2 transition-colors"
+        >
+          Sign in
+        </button>
+      </p>
     </>
   );
 }

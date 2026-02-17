@@ -126,7 +126,7 @@ export default function BenefitsResults({
     <>
     <div className="w-full">
       {/* Header + pills — wide container so all pills fit on desktop */}
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-5">
           <h2 className="text-xl font-bold text-gray-900 mb-1">
@@ -155,11 +155,11 @@ export default function BenefitsResults({
           )}
         </div>
 
-        {/* Category filter chips — centered, wraps on smaller screens */}
+        {/* Category filter chips — single horizontal row */}
         {presentCategories.length > 1 && (
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-4 overflow-x-auto scrollbar-hide">
             <div>
-              <div className="flex flex-wrap justify-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60">
+              <div className="flex gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60">
                 <button
                   onClick={() => setActiveFilter("all")}
                   className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${

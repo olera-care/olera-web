@@ -20,6 +20,8 @@ interface BenefitsResultsProps {
   locationDisplay: string;
   onStartOver: () => void;
   completedAt?: string | null;
+  /** True when results were restored from a previous session (not freshly generated) */
+  isRestored?: boolean;
 }
 
 export default function BenefitsResults({
@@ -28,6 +30,7 @@ export default function BenefitsResults({
   locationDisplay,
   onStartOver,
   completedAt,
+  isRestored,
 }: BenefitsResultsProps) {
   const [activeFilter, setActiveFilter] = useState<BenefitCategory | "all">(
     "all"
@@ -133,7 +136,7 @@ export default function BenefitsResults({
             Your Benefits Results
           </h2>
           <p className="text-sm text-gray-600">
-            {completedAt ? (
+            {isRestored && completedAt ? (
               <>
                 Based on your answers from{" "}
                 {new Date(completedAt).toLocaleDateString("en-US", {

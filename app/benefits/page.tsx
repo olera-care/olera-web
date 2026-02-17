@@ -273,6 +273,7 @@ export default function BenefitsPage() {
             locationDisplay={locationDisplay}
             onStartOver={handleStartOver}
             completedAt={completedAt}
+            isRestored={restoredRef.current}
           />
         </div>
       )}

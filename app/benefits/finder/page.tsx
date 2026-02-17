@@ -135,6 +135,7 @@ export default function BenefitsFinderPage() {
         .eq("id", activeProfile.id);
 
       setCompletedAt(now);
+      await refreshAccountData();
     } catch (err) {
       console.error("[olera] Failed to persist benefits results:", err);
     }

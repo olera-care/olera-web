@@ -126,7 +126,7 @@ export default function BenefitsResults({
     <>
     <div className="w-full">
       {/* Header */}
-      <div className="mb-5">
+      <div className="text-center mb-5">
         <h2 className="text-xl font-bold text-gray-900 mb-1">
           Your Benefits Results
         </h2>
@@ -155,36 +155,38 @@ export default function BenefitsResults({
 
       {/* Category filter chips */}
       {presentCategories.length > 1 && (
-        <div className="flex flex-wrap gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60 mb-4">
-          <button
-            onClick={() => setActiveFilter("all")}
-            className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              activeFilter === "all"
-                ? "bg-gray-900 text-white shadow-sm"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            All ({matchedPrograms.length})
-          </button>
-          {presentCategories.map((cat) => {
-            const info = BENEFIT_CATEGORIES[cat];
-            const count = matchedPrograms.filter(
-              (m) => m.program.category === cat
-            ).length;
-            return (
-              <button
-                key={cat}
-                onClick={() => setActiveFilter(cat)}
-                className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                  activeFilter === cat
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100"
-                }`}
-              >
-                {info?.icon} {info?.displayTitle} ({count})
-              </button>
-            );
-          })}
+        <div className="flex justify-center mb-4">
+          <div className="inline-flex flex-wrap justify-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60">
+            <button
+              onClick={() => setActiveFilter("all")}
+              className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                activeFilter === "all"
+                  ? "bg-gray-900 text-white shadow-sm"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              All ({matchedPrograms.length})
+            </button>
+            {presentCategories.map((cat) => {
+              const info = BENEFIT_CATEGORIES[cat];
+              const count = matchedPrograms.filter(
+                (m) => m.program.category === cat
+              ).length;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setActiveFilter(cat)}
+                  className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                    activeFilter === cat
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {info?.icon} {info?.displayTitle} ({count})
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 

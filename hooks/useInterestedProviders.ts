@@ -136,6 +136,29 @@ export function useInterestedProviders(
     fetchData();
   }, [fetchData]);
 
+  // Listen for cross-instance "viewed" events so the sidebar badge updates
+  // even though it uses a separate hook instance from InterestedTabContent.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { connectionId } = (e as CustomEvent).detail;
+      setAll((prev) =>
+        prev.map((c) =>
+          c.id === connectionId
+            ? {
+                ...c,
+                metadata: {
+                  ...((c.metadata as Record<string, unknown>) || {}),
+                  viewed: true,
+                } as InterestedProvider["metadata"],
+              }
+            : c
+        )
+      );
+    };
+    window.addEventListener("olera:interested-viewed", handler);
+    return () => window.removeEventListener("olera:interested-viewed", handler);
+  }, []);
+
   const updateLocal = useCallback(
     (connectionId: string, update: Partial<InterestedProvider> | "remove") => {
       setAll((prev) => {

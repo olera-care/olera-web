@@ -63,6 +63,11 @@ export default function InterestedTabContent({
           },
         });
 
+        // Notify other hook instances (sidebar badge) to update
+        window.dispatchEvent(
+          new CustomEvent("olera:interested-viewed", { detail: { connectionId: id } })
+        );
+
         // Fire API call
         try {
           await fetch("/api/connections/respond-interest", {

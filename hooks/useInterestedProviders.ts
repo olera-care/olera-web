@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, Profile } from "@/lib/types";
 
@@ -25,6 +25,11 @@ export function useInterestedProviders(
   const [all, setAll] = useState<InterestedProvider[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Track IDs marked as viewed locally — survives refetches so optimistic
+  // state isn't overwritten by stale DB data (the view API call may still
+  // be in-flight when refetch() fires).
+  const viewedIdsRef = useRef(new Set<string>());
 
   const fetchData = useCallback(async () => {
     if (!profileId || !isSupabaseConfigured()) {
@@ -113,10 +118,23 @@ export function useInterestedProviders(
         }
       }
 
-      const enriched: InterestedProvider[] = connData.map((c) => ({
-        ...c,
-        providerProfile: profileMap.get(c.from_profile_id) || null,
-      }));
+      const enriched: InterestedProvider[] = connData.map((c) => {
+        const base = {
+          ...c,
+          providerProfile: profileMap.get(c.from_profile_id) || null,
+        };
+        // Preserve locally-viewed state even if DB hasn't been updated yet
+        if (viewedIdsRef.current.has(c.id)) {
+          return {
+            ...base,
+            metadata: {
+              ...((base.metadata as Record<string, unknown>) || {}),
+              viewed: true,
+            } as InterestedProvider["metadata"],
+          };
+        }
+        return base;
+      });
 
       setAll(enriched);
       setError(null);
@@ -141,6 +159,7 @@ export function useInterestedProviders(
   useEffect(() => {
     const handler = (e: Event) => {
       const { connectionId } = (e as CustomEvent).detail;
+      viewedIdsRef.current.add(connectionId);
       setAll((prev) =>
         prev.map((c) =>
           c.id === connectionId

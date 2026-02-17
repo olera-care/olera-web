@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
+import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
@@ -37,6 +38,9 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
   const { user, account, activeProfile, isLoading, fetchError, refreshAccountData } = useAuth();
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const completeness = useProfileCompleteness(activeProfile ?? null, user?.email);
+  const { pendingCount: interestedCount } = useInterestedProviders(
+    activeProfile?.type === "family" ? activeProfile?.id : undefined
+  );
 
   // Brief spinner while getSession() runs (reads local storage — very fast)
   if (isLoading) {
@@ -144,6 +148,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
                     style={{ width: "40px", height: "40px" }}
                   />
                   {item.label}
+                  {item.label === "Matches" && interestedCount > 0 && (
+                    <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full w-5 h-5 flex items-center justify-center">
+                      {interestedCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

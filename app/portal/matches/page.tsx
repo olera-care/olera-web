@@ -4,17 +4,23 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { Provider } from "@/lib/types/provider";
+import type { FamilyMetadata } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import MatchCardStack from "@/components/portal/matches/MatchCardStack";
 import MatchSortBar from "@/components/portal/matches/MatchSortBar";
 import CarePostView from "@/components/portal/matches/CarePostView";
+import InterestedTabContent from "@/components/portal/matches/InterestedTabContent";
+import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 
 type SortOption = "relevance" | "closest" | "highest_rated";
-type SubTab = "foryou" | "carepost";
+type SubTab = "foryou" | "carepost" | "interested";
 
 export default function MatchesPage() {
   const { activeProfile, user, refreshAccountData } = useAuth();
   const [subTab, setSubTab] = useState<SubTab>("foryou");
+  const { pendingCount } = useInterestedProviders(activeProfile?.id);
+  const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
+  const hasCarePost = carePostStatus === "active";
 
   // For You state
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -178,21 +184,27 @@ export default function MatchesPage() {
         <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit">
           {(
             [
-              { id: "foryou", label: "For You" },
-              { id: "carepost", label: "My Care Post" },
+              { id: "foryou", label: "For You", badge: 0 },
+              { id: "carepost", label: "My Care Post", badge: 0 },
+              { id: "interested", label: "Interested", badge: pendingCount },
             ] as const
           ).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setSubTab(tab.id)}
               className={[
-                "px-5 py-2 rounded-lg text-sm font-semibold transition-all",
+                "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5",
                 subTab === tab.id
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-700",
               ].join(" ")}
             >
               {tab.label}
+              {tab.badge > 0 && subTab !== tab.id && (
+                <span className="text-[10px] font-bold text-primary-600 bg-primary-50 rounded-full w-4 h-4 flex items-center justify-center">
+                  {tab.badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -234,6 +246,15 @@ export default function MatchesPage() {
           userEmail={user?.email}
           onPublish={handlePublish}
           onDeactivate={handleDeactivate}
+        />
+      )}
+
+      {/* Interested view */}
+      {subTab === "interested" && activeProfile && (
+        <InterestedTabContent
+          profileId={activeProfile.id}
+          hasCarePost={hasCarePost}
+          onSwitchToCarePost={() => setSubTab("carepost")}
         />
       )}
 

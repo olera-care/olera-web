@@ -181,10 +181,10 @@ export default function ConnectionsPage() {
     for (const c of connections) {
       if (c.metadata?.hidden) continue;
 
-      // Hide provider-initiated (inbound) connections from the family view
-      // until the reverse flow (provider → care seeker) is fully designed.
+      // Hide inbound connections from the family view, except accepted
+      // applications (provider-initiated interest that was accepted).
       const isInbound = c.to_profile_id === activeProfile?.id;
-      if (isInbound) continue;
+      if (isInbound && !(c.type === "application" && c.status === "accepted")) continue;
 
       const displayStatus = getFamilyDisplayStatus(c);
       const tab = getConnectionTab(displayStatus);
@@ -699,6 +699,11 @@ function ConnectionGridCard({
           ].join(" ")}>
             {otherLocation}
           </p>
+          {connection.type === "application" && (
+            <p className="text-[11px] text-primary-600 mt-1 font-medium">
+              Provider reached out
+            </p>
+          )}
         </div>
       </div>
     </button>

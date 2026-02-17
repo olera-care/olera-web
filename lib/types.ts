@@ -167,6 +167,12 @@ export interface FamilyMetadata {
     status: "draft" | "active" | "paused";
     published_at?: string;
   };
+  benefits_results?: {
+    answers: Record<string, unknown>;
+    results: Record<string, unknown>;
+    location_display: string;
+    completed_at: string;
+  };
 }
 
 // ============================================================

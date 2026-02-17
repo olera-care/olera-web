@@ -23,8 +23,26 @@ export default function BenefitsFinderPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [intakeAnswers, setIntakeAnswers] = useState<BenefitsIntakeAnswers | null>(null);
   const [locationDisplay, setLocationDisplay] = useState("");
+  const [completedAt, setCompletedAt] = useState<string | null>(null);
   const { user, activeProfile, refreshAccountData } = useAuth();
   const deferredHandled = useRef(false);
+  const restoredRef = useRef(false);
+
+  // Restore saved results for returning logged-in users
+  useEffect(() => {
+    if (restoredRef.current) return;
+    if (!activeProfile) return;
+
+    const meta = (activeProfile.metadata || {}) as FamilyMetadata;
+    if (meta.benefits_results?.results && meta.benefits_results?.answers) {
+      restoredRef.current = true;
+      setResult(meta.benefits_results.results as unknown as BenefitsSearchResult);
+      setIntakeAnswers(meta.benefits_results.answers as unknown as BenefitsIntakeAnswers);
+      setLocationDisplay(meta.benefits_results.location_display || "");
+      setCompletedAt(meta.benefits_results.completed_at || null);
+      setPageState("results");
+    }
+  }, [activeProfile]);
 
   // Handle post-auth deferred action (anonymous user who clicked Save → auth → return)
   useEffect(() => {
@@ -84,6 +102,44 @@ export default function BenefitsFinderPage() {
     }
   }, [user, activeProfile, refreshAccountData]);
 
+  // Persist benefits results to profile metadata
+  async function persistResults(
+    answers: BenefitsIntakeAnswers,
+    locDisplay: string,
+    searchResult: BenefitsSearchResult
+  ) {
+    if (!activeProfile || !isSupabaseConfigured()) return;
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", activeProfile.id)
+        .single();
+
+      const meta = (data?.metadata || {}) as FamilyMetadata;
+      const now = new Date().toISOString();
+      await supabase
+        .from("business_profiles")
+        .update({
+          metadata: {
+            ...meta,
+            benefits_results: {
+              answers: answers as unknown as Record<string, unknown>,
+              results: searchResult as unknown as Record<string, unknown>,
+              location_display: locDisplay,
+              completed_at: now,
+            },
+          },
+        })
+        .eq("id", activeProfile.id);
+
+      setCompletedAt(now);
+    } catch (err) {
+      console.error("[olera] Failed to persist benefits results:", err);
+    }
+  }
+
   async function handleSubmit(answers: BenefitsIntakeAnswers, locDisplay: string) {
     setIntakeAnswers(answers);
     setLocationDisplay(locDisplay);
@@ -108,6 +164,9 @@ export default function BenefitsFinderPage() {
 
       // Cache for anonymous → auth flow
       setBenefitsIntakeCache(answers, locDisplay, data);
+
+      // Persist to profile for logged-in users
+      persistResults(answers, locDisplay, data);
     } catch (err) {
       setErrorMsg(
         err instanceof Error ? err.message : "Failed to find matching programs"
@@ -121,6 +180,7 @@ export default function BenefitsFinderPage() {
     setErrorMsg(null);
     setIntakeAnswers(null);
     setLocationDisplay("");
+    setCompletedAt(null);
     setPageState("intake");
   }
 
@@ -164,6 +224,7 @@ export default function BenefitsFinderPage() {
             intakeAnswers={intakeAnswers}
             locationDisplay={locationDisplay}
             onStartOver={handleStartOver}
+            completedAt={completedAt}
           />
         )}
 

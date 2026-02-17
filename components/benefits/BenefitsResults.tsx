@@ -251,26 +251,28 @@ export default function BenefitsResults({
       </div>{/* end max-w-lg cards container */}
     </div>
 
-    {/* Sticky footer */}
+    {/* Sticky footer — horizontal: text left, buttons right, aligned with navbar */}
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] z-50">
-      <div className="max-w-lg mx-auto px-5 py-4">
-        <p className="text-base font-bold text-gray-900 mb-0.5">
-          What&apos;s next?
-        </p>
-        <p className="text-sm text-gray-500 mb-3">
-          You qualify for {matchedPrograms.length} programs. Take the next step.
-        </p>
-        <div className="flex gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-8">
+        <div className="shrink-0">
+          <p className="text-base font-bold text-gray-900 mb-0.5">
+            What&apos;s next?
+          </p>
+          <p className="text-sm text-gray-500">
+            You qualify for {matchedPrograms.length} programs. Take the next step.
+          </p>
+        </div>
+        <div className="flex gap-3 shrink-0">
           <a
             href={browseHref}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 border border-gray-300 bg-white text-gray-700 rounded-xl text-sm font-semibold no-underline hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 border border-gray-300 bg-white text-gray-700 rounded-xl text-sm font-semibold no-underline hover:bg-gray-50 transition-colors"
           >
             Find providers &rarr;
           </a>
           <button
             type="button"
             onClick={handleLetProvidersFind}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold border-none cursor-pointer hover:bg-primary-500 transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold border-none cursor-pointer hover:bg-primary-500 transition-colors"
           >
             Let providers find you
           </button>

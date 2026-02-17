@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+
+// Admin client bypasses RLS — needed to insert inbound connections
+// (from_profile_id != authenticated user)
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey);
+}
 
 /**
  * POST /api/dev/seed-interested
@@ -144,6 +154,10 @@ export async function POST() {
       return reasons.slice(0, 3);
     }
 
+    // Use admin client to bypass RLS for inbound connection inserts
+    const admin = getAdminClient();
+    const db = admin || supabase;
+
     // Stagger creation dates for realistic ordering
     const now = new Date();
     const insertedIds: string[] = [];
@@ -161,7 +175,7 @@ export async function POST() {
       const createdAt = new Date(now);
       createdAt.setHours(createdAt.getHours() - i * 6 - Math.floor(Math.random() * 4));
 
-      const { data: inserted, error: insertError } = await supabase
+      const { data: inserted, error: insertError } = await db
         .from("connections")
         .insert({
           type: "application",

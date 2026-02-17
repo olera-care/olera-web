@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
  * Lightweight hook that counts unread (accepted) connections for a profile.
  * Only fetches connection IDs (no joins) and checks against localStorage read state.
+ *
+ * Listens for "olera:connection-read" custom events so the count updates
+ * immediately when a connection is opened on the Connections page.
  */
 export function useUnreadConnectionsCount(profileId: string | undefined): number {
   const [count, setCount] = useState(0);
 
-  useEffect(() => {
+  const recount = useCallback(() => {
     if (!profileId || !isSupabaseConfigured()) return;
 
     (async () => {
@@ -24,7 +27,6 @@ export function useUnreadConnectionsCount(profileId: string | undefined): number
 
       if (!data) return;
 
-      // Check against localStorage read state
       let readIds = new Set<string>();
       try {
         const stored = localStorage.getItem("olera_read_connections");
@@ -36,6 +38,18 @@ export function useUnreadConnectionsCount(profileId: string | undefined): number
       setCount(data.filter((c) => !readIds.has(c.id)).length);
     })();
   }, [profileId]);
+
+  // Initial count
+  useEffect(() => {
+    recount();
+  }, [recount]);
+
+  // Re-count when a connection is marked as read
+  useEffect(() => {
+    const handler = () => recount();
+    window.addEventListener("olera:connection-read", handler);
+    return () => window.removeEventListener("olera:connection-read", handler);
+  }, [recount]);
 
   return count;
 }

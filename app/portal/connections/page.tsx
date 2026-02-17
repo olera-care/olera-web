@@ -240,6 +240,8 @@ export default function ConnectionsPage() {
         updated.add(id);
         setReadIds(updated);
         persistReadIds(updated);
+        // Notify sidebar badge hook to re-count
+        window.dispatchEvent(new CustomEvent("olera:connection-read"));
       }
     }
   };

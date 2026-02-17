@@ -159,10 +159,16 @@ export function useInterestedProviders(
     [all]
   );
 
+  // Badge count = only unviewed pending items (not total pending)
+  const pendingCount = useMemo(
+    () => pending.filter((c) => !(c.metadata as Record<string, unknown>)?.viewed).length,
+    [pending]
+  );
+
   return {
     pending,
     declined,
-    pendingCount: pending.length,
+    pendingCount,
     loading,
     error,
     refetch: fetchData,

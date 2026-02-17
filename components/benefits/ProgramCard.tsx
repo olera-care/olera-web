@@ -108,7 +108,7 @@ export default function ProgramCard({ match, isSaved, onSave }: ProgramCardProps
           </div>
 
           {/* Actions */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {program.phone && (
               <a
                 href={`tel:${program.phone}`}
@@ -144,7 +144,7 @@ export default function ProgramCard({ match, isSaved, onSave }: ProgramCardProps
                   e.stopPropagation();
                   onSave();
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                className={`ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                   isSaved
                     ? "bg-primary-600 text-white border border-primary-600"
                     : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"

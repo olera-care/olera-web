@@ -161,6 +161,7 @@ export async function POST() {
     // Stagger creation dates for realistic ordering
     const now = new Date();
     const insertedIds: string[] = [];
+    const errors: { provider: string; error: string; code?: string }[] = [];
 
     for (let i = 0; i < selected.length; i++) {
       const provider = selected[i];
@@ -194,6 +195,7 @@ export async function POST() {
 
       if (insertError) {
         console.error(`Insert error for provider ${provider.id}:`, insertError);
+        errors.push({ provider: provider.display_name, error: insertError.message, code: insertError.code });
         continue;
       }
 
@@ -204,6 +206,8 @@ export async function POST() {
       status: "seeded",
       count: insertedIds.length,
       connectionIds: insertedIds,
+      hasAdmin: !!admin,
+      errors,
       providers: selected.map((p) => ({
         profile_id: p.id,
         name: p.display_name,

@@ -62,19 +62,33 @@ export async function POST() {
       (existingApps ?? []).map((c) => c.from_profile_id as string)
     );
 
-    // Find provider profiles near care seeker's city
-    const { data: providers, error: providerError } = await supabase
+    // Find provider profiles — prefer same city, fall back to any
+    let providers: typeof providerResult.data = null;
+    type ProviderResult = { data: { id: string; display_name: string; image_url: string | null; city: string | null; state: string | null; care_types: string[]; category: string | null; description: string | null; metadata: Record<string, unknown> }[] | null; error: unknown };
+    const providerResult: ProviderResult = await supabase
       .from("business_profiles")
       .select("id, display_name, image_url, city, state, care_types, category, description, metadata")
       .eq("type", "organization")
       .eq("city", seekerCity)
       .limit(20);
 
-    if (providerError) {
-      return NextResponse.json(
-        { error: "Failed to query providers" },
-        { status: 500 }
-      );
+    providers = providerResult.data;
+
+    // Fall back to any organization if no city matches
+    if (!providers || providers.length === 0) {
+      const { data: fallback, error: fallbackError } = await supabase
+        .from("business_profiles")
+        .select("id, display_name, image_url, city, state, care_types, category, description, metadata")
+        .eq("type", "organization")
+        .limit(20);
+
+      if (fallbackError) {
+        return NextResponse.json(
+          { error: "Failed to query providers" },
+          { status: 500 }
+        );
+      }
+      providers = fallback;
     }
 
     // Filter out existing and pick 5

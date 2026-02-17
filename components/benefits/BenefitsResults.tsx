@@ -153,10 +153,10 @@ export default function BenefitsResults({
         )}
       </div>
 
-      {/* Category filter chips */}
+      {/* Category filter chips — horizontal scroll for narrow layout */}
       {presentCategories.length > 1 && (
-        <div className="flex justify-center mb-4">
-          <div className="inline-flex flex-wrap justify-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60">
+        <div className="overflow-x-auto -mx-4 px-4 mb-4 scrollbar-hide">
+          <div className="flex gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60 w-max">
             <button
               onClick={() => setActiveFilter("all")}
               className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${

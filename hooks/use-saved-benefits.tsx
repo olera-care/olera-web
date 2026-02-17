@@ -32,7 +32,7 @@ export function useSavedBenefits() {
             returnUrl:
               typeof window !== "undefined"
                 ? window.location.pathname + window.location.search
-                : "/benefits/finder",
+                : "/benefits",
           },
         });
         return;

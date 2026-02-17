@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
+import { useUnreadConnectionsCount } from "@/hooks/useUnreadConnectionsCount";
 import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
@@ -41,6 +42,7 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
   const { pendingCount: interestedCount } = useInterestedProviders(
     activeProfile?.type === "family" ? activeProfile?.id : undefined
   );
+  const unreadConnectionsCount = useUnreadConnectionsCount(activeProfile?.id);
 
   // Brief spinner while getSession() runs (reads local storage — very fast)
   if (isLoading) {
@@ -151,6 +153,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
                   {item.label === "Matches" && interestedCount > 0 && (
                     <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full w-5 h-5 flex items-center justify-center">
                       {interestedCount}
+                    </span>
+                  )}
+                  {item.label === "My Connections" && unreadConnectionsCount > 0 && (
+                    <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full w-5 h-5 flex items-center justify-center">
+                      {unreadConnectionsCount}
                     </span>
                   )}
                 </Link>

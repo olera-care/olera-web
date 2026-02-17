@@ -361,7 +361,7 @@ export default function ConnectionsPage() {
       ]
     : [
         { id: "active" as const, label: "Active", count: tabbed.active.length, badge: 0 },
-        { id: "connected" as const, label: "Connected", count: tabbed.connected.length, badge: unreadCount },
+        { id: "connected" as const, label: "Connected", count: tabbed.connected.length, badge: 0 },
         { id: "past" as const, label: "Past", count: tabbed.past.length, badge: 0 },
       ];
 

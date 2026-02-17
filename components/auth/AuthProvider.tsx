@@ -458,27 +458,32 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [configured, fetchAccountData]);
 
-  // Post-OAuth: detect returning users who need onboarding
+  // Detect authenticated users who haven't completed onboarding and auto-open
   useEffect(() => {
     if (state.isLoading || !state.user) return;
-    // If user is authenticated but hasn't completed onboarding, and we have
-    // a saved intent from a pre-OAuth redirect, auto-open post-auth onboarding
     if (state.account && !state.account.onboarding_completed && !isUnifiedAuthOpen) {
+      // Try to restore saved intent for context (OAuth redirects, CTA clicks)
+      let intent: AuthFlowIntent = null;
+      let providerType: AuthFlowProviderType = null;
       try {
         const saved = sessionStorage.getItem(AUTH_INTENT_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
           sessionStorage.removeItem(AUTH_INTENT_KEY);
-          setUnifiedAuthOptions({
-            intent: parsed.intent,
-            providerType: parsed.providerType,
-            startAtPostAuth: true,
-          });
-          setIsUnifiedAuthOpen(true);
+          intent = parsed.intent;
+          providerType = parsed.providerType;
         }
       } catch {
         // sessionStorage unavailable
       }
+
+      // Always open onboarding — with or without saved intent
+      setUnifiedAuthOptions({
+        intent,
+        providerType,
+        startAtPostAuth: true,
+      });
+      setIsUnifiedAuthOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isLoading, state.user, state.account]);

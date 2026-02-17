@@ -318,7 +318,7 @@ export default function FamilyProfileView() {
               {meta.saved_benefits.map((benefit) => (
                 <span
                   key={benefit}
-                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-amber-50 text-amber-700 border border-amber-200"
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-50 text-gray-600 border border-gray-200"
                 >
                   {benefit}
                 </span>

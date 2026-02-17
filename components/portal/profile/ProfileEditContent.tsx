@@ -309,7 +309,7 @@ export default function ProfileEditContent({
                   {meta.saved_benefits.map((benefit) => (
                     <span
                       key={benefit}
-                      className="px-3.5 py-2 text-sm rounded-full border-[1.5px] border-amber-300 bg-amber-50 text-amber-700 font-normal"
+                      className="px-3.5 py-2 text-sm rounded-full border border-gray-200 bg-gray-50 text-gray-600 font-normal"
                     >
                       {benefit}
                     </span>

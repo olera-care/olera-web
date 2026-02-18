@@ -43,14 +43,15 @@ const CATEGORY_STYLES: Record<CareTypeId | "all", { emoji: string; bg: string; a
 };
 
 // Banner config for right panel — dynamic per category
+// Titles kept short so they never exceed 2 lines at 320px panel width
 const BANNER_COPY: Record<CareTypeId | "all", { title: string; subtitle: string }> = {
   all: { title: "Find the right care provider", subtitle: "We can help you find the right care." },
   "home-health": { title: "Find home health providers", subtitle: "Compare, review, and connect." },
   "home-care": { title: "Find home care providers", subtitle: "Compare, review, and connect." },
-  "assisted-living": { title: "Find assisted living communities", subtitle: "Compare, review, and connect." },
-  "memory-care": { title: "Find memory care communities", subtitle: "Compare, review, and connect." },
-  "nursing-homes": { title: "Find nursing home facilities", subtitle: "Compare, review, and connect." },
-  "independent-living": { title: "Find independent living communities", subtitle: "Compare, review, and connect." },
+  "assisted-living": { title: "Find assisted living providers", subtitle: "Compare, review, and connect." },
+  "memory-care": { title: "Find memory care providers", subtitle: "Compare, review, and connect." },
+  "nursing-homes": { title: "Find nursing home providers", subtitle: "Compare, review, and connect." },
+  "independent-living": { title: "Find independent living providers", subtitle: "Compare, review, and connect." },
 };
 
 const POSTS_PER_PAGE = 10;
@@ -642,17 +643,18 @@ function CommunityPageContent() {
           {!splitViewSelectedId && (
             <aside className="hidden lg:block w-[320px] shrink-0 border-l border-gray-200 h-[calc(100vh-64px)] sticky top-16 overflow-y-auto">
               <div className="p-5">
-                {/* ── Care finder card ── */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2d5a47] to-[#1a3a2c] p-6">
+                {/* Single cohesive card — everything lives inside */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2d5a47] to-[#1a3a2c]">
                   {/* Decorative circles */}
                   <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/[0.06]" />
-                  <div className="absolute top-10 right-3 w-12 h-12 rounded-full bg-white/[0.04]" />
+                  <div className="absolute top-12 right-2 w-14 h-14 rounded-full bg-white/[0.04]" />
 
-                  <div className="relative">
-                    <h3 className="text-[17px] font-bold text-white leading-snug mb-1.5">
+                  {/* Main content */}
+                  <div className="relative px-6 pt-6 pb-5">
+                    <h3 className="text-[17px] font-bold text-white leading-snug min-h-[48px]">
                       {BANNER_COPY[activeCategory].title}
                     </h3>
-                    <p className="text-[13px] text-white/50 leading-relaxed mb-5">
+                    <p className="text-[13px] text-white/50 leading-relaxed mt-1 mb-5">
                       {BANNER_COPY[activeCategory].subtitle}
                     </p>
 
@@ -666,28 +668,28 @@ function CommunityPageContent() {
                       </svg>
                     </Link>
                   </div>
-                </div>
 
-                {/* ── Secondary links ── */}
-                <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
-                  <Link
-                    href="/benefits"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
-                  >
-                    <span className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-sm group-hover:bg-amber-100 transition-colors">
-                      💡
-                    </span>
-                    Check your benefits
-                  </Link>
-                  <Link
-                    href="/resources"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
-                  >
-                    <span className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm group-hover:bg-gray-200 transition-colors">
-                      💬
-                    </span>
-                    Talk to our care team
-                  </Link>
+                  {/* Secondary links — inside the card */}
+                  <div className="relative px-5 pb-5 pt-3 border-t border-white/10 space-y-0.5">
+                    <Link
+                      href="/benefits"
+                      className="flex items-center gap-3 px-2 py-2 rounded-lg text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-xs shrink-0">
+                        💡
+                      </span>
+                      Check your benefits
+                    </Link>
+                    <Link
+                      href="/resources"
+                      className="flex items-center gap-3 px-2 py-2 rounded-lg text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-xs shrink-0">
+                        💬
+                      </span>
+                      Talk to our care team
+                    </Link>
+                  </div>
                 </div>
               </div>
             </aside>

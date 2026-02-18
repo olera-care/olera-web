@@ -345,13 +345,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
         // sessionStorage may fail in private browsing
       }
 
-      // Go straight to pending, fire API in background
-      setCardState("pending");
+      // Show loading spinner if redirect is configured, otherwise pending state
+      setCardState(onConnectionCreated ? "loading" : "pending");
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest(restoredIntent || undefined);
     }
-  }, [user, account, providerId, submitRequest]);
+  }, [user, account, providerId, submitRequest, onConnectionCreated]);
 
   // ── Navigation helpers ──
   const startFlow = useCallback(() => {
@@ -391,8 +391,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
     if (user) {
-      // Go straight to pending, fire API in background
-      setCardState("pending");
+      // If redirect is configured, show a loading spinner instead of the
+      // "Awaiting response" pending state — the user will be navigated
+      // away as soon as the API responds.
+      setCardState(onConnectionCreated ? "loading" : "pending");
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest();
@@ -416,7 +418,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         },
       });
     }
-  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug]);
+  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug, onConnectionCreated]);
 
   const editFromReturning = useCallback(() => {
     setIntentStep(0);

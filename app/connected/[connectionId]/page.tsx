@@ -7,7 +7,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { PROVIDERS_TABLE } from "@/lib/types/provider";
 import SimilarProvidersRow from "@/components/providers/SimilarProvidersRow";
 import BrowseByCareTypeSection from "@/components/home/BrowseByCareTypeSection";
-import Navbar from "@/components/shared/Navbar";
+
 
 interface ProviderInfo {
   name: string;
@@ -115,27 +115,22 @@ function ConnectedPageContent() {
 
   if (notFound) {
     return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Connection not found</h1>
-            <p className="text-gray-500 mb-6">This connection may have been removed or the link is invalid.</p>
-            <Link
-              href="/browse"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
-            >
-              Browse providers
-            </Link>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Connection not found</h1>
+          <p className="text-gray-500 mb-6">This connection may have been removed or the link is invalid.</p>
+          <Link
+            href="/browse"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
+          >
+            Browse providers
+          </Link>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <Navbar />
       <div className="min-h-screen bg-gray-50">
         {/* Section 1: Success Card */}
         <section className="pt-12 pb-4">
@@ -196,7 +191,6 @@ function ConnectedPageContent() {
         {/* Section 3: Browse by Care Type */}
         <BrowseByCareTypeSection />
       </div>
-    </>
   );
 }
 

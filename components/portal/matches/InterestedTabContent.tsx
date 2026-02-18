@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, type ReactNode } from "react";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
 import SplitViewLayout from "@/components/portal/SplitViewLayout";
 import InterestedCard from "@/components/portal/matches/InterestedCard";
@@ -32,6 +33,10 @@ export default function InterestedTabContent({
     useInterestedProviders(profileId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [declinedExpanded, setDeclinedExpanded] = useState(false);
+  const [acceptedInfo, setAcceptedInfo] = useState<{
+    connectionId: string;
+    providerName: string;
+  } | null>(null);
 
   // Notify parent when selection state changes (for layout adjustments)
   useEffect(() => {
@@ -89,6 +94,10 @@ export default function InterestedTabContent({
 
   const handleAccept = useCallback(
     async (id: string) => {
+      // Capture provider info before removal
+      const item = pending.find((c) => c.id === id) || declined.find((c) => c.id === id);
+      const providerName = item?.providerProfile?.display_name || "the provider";
+
       const res = await fetch("/api/connections/respond-interest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -96,15 +105,16 @@ export default function InterestedTabContent({
       });
       if (!res.ok) throw new Error("Failed to accept");
 
-      // Optimistic: remove from interested list after API confirms success.
-      // The detail panel shows its own "accepted" confirmation, so this only
-      // affects the left-side list — the user still sees the confirmation.
+      // Remove from interested list
       updateLocal(id, "remove");
+
+      // Show success panel with connection link
+      setAcceptedInfo({ connectionId: id, providerName });
 
       // Notify sidebar badge to re-fetch unread connections count
       window.dispatchEvent(new CustomEvent("olera:connection-accepted"));
     },
-    [updateLocal]
+    [pending, declined, updateLocal]
   );
 
   const handleDecline = useCallback(
@@ -156,17 +166,10 @@ export default function InterestedTabContent({
   );
 
   const handleCloseDetail = useCallback(() => {
-    // If the selected item was accepted, remove it from the list
-    if (selectedId) {
-      const item = pending.find((c) => c.id === selectedId);
-      // Check if it was accepted (detail panel showed confirmation)
-      // We detect this by checking if the item is still in pending — if it is,
-      // the user just closed without action
-      // After accept, the API changed status to "accepted" so refetch will handle it
-    }
     setSelectedId(null);
+    setAcceptedInfo(null);
     refetch();
-  }, [selectedId, pending, refetch]);
+  }, [refetch]);
 
   // ── Loading state ──
   if (loading) {
@@ -399,7 +402,39 @@ export default function InterestedTabContent({
         )
       }
       right={
-        selectedItem && selectedItem.status === "pending" ? (
+        acceptedInfo ? (
+          /* ── Success panel after accepting ── */
+          <div className="flex flex-col h-full">
+            <div className="flex justify-end px-7 pt-4">
+              <button
+                type="button"
+                onClick={handleCloseDetail}
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+                aria-label="Close"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 flex items-center justify-center px-7">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Connected!</h3>
+                <p className="text-sm text-gray-500 mb-6 max-w-[280px] mx-auto">
+                  You can now start chatting with {acceptedInfo.providerName} in My Connections.
+                </p>
+                <Link href={`/portal/connections/${acceptedInfo.connectionId}`}>
+                  <Button size="sm">View connection</Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        ) : selectedItem && selectedItem.status === "pending" ? (
           <InterestedDetailContent
             item={selectedItem}
             onClose={handleCloseDetail}

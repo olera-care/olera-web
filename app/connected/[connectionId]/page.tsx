@@ -78,23 +78,25 @@ function ConnectedPageContent() {
 
         let imageUrl = profile.image_url;
         let category = profile.category || profile.care_types?.[0] || null;
-        const city = profile.city;
-        const state = profile.state;
+        let city = profile.city;
+        let state = profile.state;
 
-        // If iOS provider, fetch image from olera-providers table
-        if (!imageUrl && profile.source_provider_id) {
+        // Fetch from iOS provider table if we're missing any data
+        if (profile.source_provider_id && (!imageUrl || !category || !city || !state)) {
           const { data: iosProvider } = await supabase
             .from(PROVIDERS_TABLE)
-            .select("provider_images, provider_logo, provider_category")
+            .select("provider_images, provider_logo, provider_category, provider_city, provider_state")
             .eq("provider_id", profile.source_provider_id)
             .single();
 
           if (iosProvider) {
-            imageUrl = iosProvider.provider_logo ||
-              iosProvider.provider_images?.split(" | ")?.[0] || null;
-            if (!category) {
-              category = iosProvider.provider_category;
+            if (!imageUrl) {
+              imageUrl = iosProvider.provider_logo ||
+                iosProvider.provider_images?.split(" | ")?.[0] || null;
             }
+            if (!category) category = iosProvider.provider_category;
+            if (!city) city = iosProvider.provider_city;
+            if (!state) state = iosProvider.provider_state;
           }
         }
 
@@ -102,9 +104,9 @@ function ConnectedPageContent() {
           name: profile.display_name || nameFromParams,
           slug: profile.slug || slugFromParams,
           imageUrl,
-          category,
-          city,
-          state,
+          category: category || categoryFromParams,
+          city: city || cityFromParams,
+          state: state || stateFromParams,
         });
       } catch (err) {
         console.error("[connected] fetch error:", err);

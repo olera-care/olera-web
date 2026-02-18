@@ -166,7 +166,7 @@ export default function ConversationList({
 }: ConversationListProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [pastOpen, setPastOpen] = useState(false);
+  const [archiveOpen, setPastOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [filterOption, setFilterOption] = useState<FilterOption>("all");
@@ -291,7 +291,7 @@ export default function ConversationList({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <span className={`text-base truncate ${isUnread && !isPast ? "font-semibold text-gray-900" : "font-normal text-gray-900"}`}>
+                  <span className={`block text-base truncate ${isUnread && !isPast ? "font-semibold text-gray-900" : "font-normal text-gray-900"}`}>
                     {name}
                   </span>
                 </div>
@@ -573,10 +573,10 @@ export default function ConversationList({
                   className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
                 >
                   <span className="text-sm font-semibold text-gray-500">
-                    Past ({pastConnections.length})
+                    Archived ({pastConnections.length})
                   </span>
                   <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${pastOpen ? "rotate-180" : ""}`}
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${archiveOpen ? "rotate-180" : ""}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -584,7 +584,7 @@ export default function ConversationList({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                {pastOpen && pastConnections.map((conn) => renderConversationItem(conn, true))}
+                {archiveOpen && pastConnections.map((conn) => renderConversationItem(conn, true))}
               </>
             )}
           </>

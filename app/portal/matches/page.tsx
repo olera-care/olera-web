@@ -1,27 +1,23 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { Provider } from "@/lib/types/provider";
 import type { FamilyMetadata } from "@/lib/types";
 import Button from "@/components/ui/Button";
-import MatchCardStack from "@/components/portal/matches/MatchCardStack";
-import MatchSortBar from "@/components/portal/matches/MatchSortBar";
 import CarePostView from "@/components/portal/matches/CarePostView";
 import InterestedTabContent from "@/components/portal/matches/InterestedTabContent";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 
-type SortOption = "relevance" | "closest" | "highest_rated";
-type SubTab = "foryou" | "carepost" | "interested";
+type SubTab = "carepost" | "interested";
 
 export default function MatchesPage() {
   const { activeProfile, user, refreshAccountData } = useAuth();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab");
   const [subTab, setSubTab] = useState<SubTab>(
-    initialTab === "carepost" || initialTab === "interested" ? initialTab : "foryou"
+    initialTab === "interested" ? "interested" : "carepost"
   );
   const { pendingCount } = useInterestedProviders(activeProfile?.id);
   const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
@@ -30,103 +26,8 @@ export default function MatchesPage() {
   // Track when InterestedTabContent is in split view mode
   const [interestedSplitView, setInterestedSplitView] = useState(false);
 
-  // For You state
-  const [providers, setProviders] = useState<Provider[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [sort, setSort] = useState<SortOption>("relevance");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const hasRequiredFields =
     activeProfile?.care_types?.length && activeProfile?.state;
-
-  // Fetch matches
-  const fetchMatches = useCallback(
-    async (sortOption: SortOption) => {
-      if (!hasRequiredFields) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const res = await fetch("/api/matches/fetch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sort: sortOption }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to fetch");
-        }
-
-        const data = await res.json();
-        setProviders(data.providers || []);
-        setTotalCount(data.totalCount || 0);
-      } catch (err) {
-        console.error("Fetch matches error:", err);
-        setError("Failed to load matches. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [hasRequiredFields]
-  );
-
-  useEffect(() => {
-    fetchMatches(sort);
-  }, [sort, fetchMatches]);
-
-  // Dismiss handler
-  const handleDismiss = useCallback(async (provider: Provider) => {
-    try {
-      await fetch("/api/matches/dismiss", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          providerName: provider.provider_name,
-        }),
-      });
-    } catch (err) {
-      console.error("Dismiss error:", err);
-    }
-  }, []);
-
-  // Connect handler — sends request immediately (card stack shows inline overlay)
-  const handleConnect = useCallback(async (provider: Provider) => {
-    try {
-      const res = await fetch("/api/connections/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          providerName: provider.provider_name,
-          providerSlug: provider.provider_id,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to send request");
-      }
-    } catch (err) {
-      console.error("Connection request error:", err);
-    }
-  }, []);
-
-  // View profile handler
-  const handleViewProfile = useCallback((provider: Provider) => {
-    window.open(`/provider/${provider.provider_id}`, "_blank");
-  }, []);
-
-  // Sort change
-  const handleSortChange = useCallback((newSort: SortOption) => {
-    setSort(newSort);
-  }, []);
 
   // Care Post handlers
   const handlePublish = useCallback(async () => {
@@ -179,9 +80,8 @@ export default function MatchesPage() {
     <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit">
       {(
         [
-          { id: "foryou", label: "For You", badge: 0 },
           { id: "carepost", label: "My Care Post", badge: 0 },
-          { id: "interested", label: "Interested", badge: pendingCount },
+          { id: "interested", label: "Interested Providers", badge: pendingCount },
         ] as const
       ).map((tab) => (
         <button
@@ -226,36 +126,7 @@ export default function MatchesPage() {
 
           <div className="flex items-center justify-between mb-6">
             {matchesTabBar}
-
-            {subTab === "foryou" && !loading && providers.length > 0 && (
-              <MatchSortBar sort={sort} onSortChange={handleSortChange} />
-            )}
           </div>
-        </>
-      )}
-
-      {/* For You view */}
-      {subTab === "foryou" && (
-        <>
-          {error ? (
-            <div className="text-center py-16">
-              <p className="text-sm text-red-600 mb-4">{error}</p>
-              <Button size="sm" onClick={() => fetchMatches(sort)}>
-                Retry
-              </Button>
-            </div>
-          ) : (
-            <div className="min-h-[600px]">
-              <MatchCardStack
-                providers={providers}
-                onDismiss={handleDismiss}
-                onConnect={handleConnect}
-                onViewProfile={handleViewProfile}
-                onRefresh={() => fetchMatches(sort)}
-                isLoading={loading}
-              />
-            </div>
-          )}
         </>
       )}
 

@@ -100,6 +100,9 @@ export default function InterestedTabContent({
       // The detail panel shows its own "accepted" confirmation, so this only
       // affects the left-side list — the user still sees the confirmation.
       updateLocal(id, "remove");
+
+      // Notify sidebar badge to re-fetch unread connections count
+      window.dispatchEvent(new CustomEvent("olera:connection-accepted"));
     },
     [updateLocal]
   );

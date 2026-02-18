@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { getServiceClient } from "@/lib/admin";
 
 /**
  * POST /api/connections/respond-interest
@@ -35,8 +36,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // Service role client bypasses RLS — needed because the care seeker is
+    // `to_profile_id` (recipient), but the RLS UPDATE policy on connections
+    // only allows updates when the user owns `from_profile_id` (sender).
+    const admin = getServiceClient();
+
     // Get user's active profile
-    const { data: account } = await supabase
+    const { data: account } = await admin
       .from("accounts")
       .select("active_profile_id")
       .eq("user_id", user.id)
@@ -50,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     // Fetch the connection and verify ownership
-    const { data: connection, error: connError } = await supabase
+    const { data: connection, error: connError } = await admin
       .from("connections")
       .select("id, type, status, from_profile_id, to_profile_id, metadata")
       .eq("id", connectionId)
@@ -84,7 +90,7 @@ export async function POST(request: Request) {
     // ── Handle each action ──
 
     if (action === "view") {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await admin
         .from("connections")
         .update({
           metadata: { ...currentMeta, viewed: true },
@@ -105,12 +111,12 @@ export async function POST(request: Request) {
       try {
         const [{ data: seekerProfile }, { data: providerProfile }] =
           await Promise.all([
-            supabase
+            admin
               .from("business_profiles")
               .select("care_types, metadata, display_name")
               .eq("id", connection.to_profile_id)
               .single(),
-            supabase
+            admin
               .from("business_profiles")
               .select("care_types, display_name")
               .eq("id", connection.from_profile_id)
@@ -140,7 +146,7 @@ export async function POST(request: Request) {
       }
 
       // Update status to accepted
-      const { error: acceptError } = await supabase
+      const { error: acceptError } = await admin
         .from("connections")
         .update({
           status: "accepted",
@@ -164,7 +170,7 @@ export async function POST(request: Request) {
     }
 
     if (action === "decline") {
-      const { error: declineError } = await supabase
+      const { error: declineError } = await admin
         .from("connections")
         .update({
           status: "declined",
@@ -187,7 +193,7 @@ export async function POST(request: Request) {
     if (action === "reconsider") {
       // Move back to pending, clear declined_at
       const { declined_at, ...restMeta } = currentMeta as Record<string, unknown> & { declined_at?: unknown };
-      const { error: reconsiderError } = await supabase
+      const { error: reconsiderError } = await admin
         .from("connections")
         .update({
           status: "pending",

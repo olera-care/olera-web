@@ -44,11 +44,15 @@ export function useUnreadConnectionsCount(profileId: string | undefined): number
     recount();
   }, [recount]);
 
-  // Re-count when a connection is marked as read
+  // Re-count when a connection is marked as read or a new one is accepted
   useEffect(() => {
     const handler = () => recount();
     window.addEventListener("olera:connection-read", handler);
-    return () => window.removeEventListener("olera:connection-read", handler);
+    window.addEventListener("olera:connection-accepted", handler);
+    return () => {
+      window.removeEventListener("olera:connection-read", handler);
+      window.removeEventListener("olera:connection-accepted", handler);
+    };
   }, [recount]);
 
   return count;

@@ -441,8 +441,17 @@ export default function PortalProfilePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Profile</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Your personal information and care preferences.
+          </p>
+        </div>
+      </div>
+
       {/* Pill tabs */}
-      <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit mb-8">
+      <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit mb-6">
         <button
           onClick={() => setActiveTab("profile")}
           className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${

@@ -237,7 +237,8 @@ function InboxContent() {
   }, [selectedId]);
 
   return (
-    <div className="h-[calc(100vh-64px)] max-w-7xl mx-auto flex">
+    <div className="h-[calc(100vh-64px)] bg-white">
+    <div className="h-full flex">
       {/* Left panel — conversation list */}
       <ConversationList
         connections={connections}
@@ -275,6 +276,7 @@ function InboxContent() {
           />
         </div>
       )}
+    </div>
     </div>
   );
 }

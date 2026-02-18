@@ -183,15 +183,8 @@ function ConnectedPageContent() {
           </div>
         </section>
 
-        {/* Section 2: Similar Providers */}
-        {(provider.category || provider.city || provider.state) && (
-          <SimilarProvidersRow
-            category={provider.category || undefined}
-            city={provider.city || undefined}
-            state={provider.state || undefined}
-            excludeSlug={provider.slug}
-          />
-        )}
+        {/* Section 2: You might also like */}
+        <SimilarProvidersRow excludeSlug={provider.slug} />
 
         {/* Section 3: Browse by Care Type */}
         <BrowseByCareTypeSection />

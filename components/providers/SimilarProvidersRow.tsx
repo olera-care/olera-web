@@ -11,16 +11,10 @@ import {
 } from "@/lib/types/provider";
 
 interface SimilarProvidersRowProps {
-  category?: string;
-  city?: string;
-  state?: string;
   excludeSlug?: string;
 }
 
 export default function SimilarProvidersRow({
-  category,
-  city,
-  state,
   excludeSlug,
 }: SimilarProvidersRowProps) {
   const [providers, setProviders] = useState<ProviderCardData[]>([]);
@@ -50,65 +44,26 @@ export default function SimilarProvidersRow({
   }, [updateScrollState, providers]);
 
   useEffect(() => {
-    async function fetchSimilar() {
-      // Need at least location or category to query
-      if (!category && !city && !state) {
-        setProviders([]);
-        setLoading(false);
-        return;
-      }
-
+    async function fetchProviders() {
       setLoading(true);
       try {
         const supabase = createClient();
-        let query = supabase
+        const { data, error } = await supabase
           .from(PROVIDERS_TABLE)
           .select("*")
           .not("deleted", "is", true)
+          .not("google_rating", "is", null)
+          .gte("google_rating", 4.0)
           .not("provider_images", "is", null)
-          .gte("google_rating", 3.5)
-          .order("google_rating", { ascending: false, nullsFirst: false })
-          .limit(12);
-
-        if (category) query = query.ilike("provider_category", `%${category}%`);
-        if (city) query = query.ilike("provider_city", city);
-        if (state) query = query.ilike("provider_state", state);
-
-        const { data, error } = await query;
+          .order("google_rating", { ascending: false })
+          .limit(8);
 
         if (error || !data) {
           setProviders([]);
         } else {
           const formatted = (data as IOSProvider[])
             .map(toCardFormat)
-            .filter((p) => p.slug !== excludeSlug)
-            .slice(0, 8);
-
-          // If location+category returned too few, broaden to just state
-          if (formatted.length < 4 && (city || category)) {
-            let broader_query = supabase
-              .from(PROVIDERS_TABLE)
-              .select("*")
-              .not("deleted", "is", true)
-              .not("provider_images", "is", null)
-              .gte("google_rating", 3.5)
-              .order("google_rating", { ascending: false, nullsFirst: false })
-              .limit(12);
-
-            if (state) broader_query = broader_query.ilike("provider_state", state);
-
-            const { data: broader } = await broader_query;
-
-            if (broader) {
-              const broaderFormatted = (broader as IOSProvider[])
-                .map(toCardFormat)
-                .filter((p) => p.slug !== excludeSlug)
-                .slice(0, 8);
-              setProviders(broaderFormatted);
-              return;
-            }
-          }
-
+            .filter((p) => p.slug !== excludeSlug);
           setProviders(formatted);
         }
       } catch {
@@ -119,8 +74,8 @@ export default function SimilarProvidersRow({
       }
     }
 
-    fetchSimilar();
-  }, [category, city, state, excludeSlug, updateScrollState]);
+    fetchProviders();
+  }, [excludeSlug, updateScrollState]);
 
   const scrollLeft = () => {
     if (scrollRef.current) {

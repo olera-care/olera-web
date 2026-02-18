@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useMemo, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import ForumPostCardV3 from "@/components/community/ForumPostCardV3";
 import { GUIDELINES } from "@/components/community/GuidelinesDrawer";
 import PostContent from "@/components/community/PostContent";
@@ -39,6 +40,17 @@ const CATEGORY_STYLES: Record<CareTypeId | "all", { emoji: string; bg: string; a
   "memory-care": { emoji: "\u{1F9E0}", bg: "bg-purple-100", activeBg: "bg-purple-200" },
   "nursing-homes": { emoji: "\u{1F3E2}", bg: "bg-emerald-100", activeBg: "bg-emerald-200" },
   "independent-living": { emoji: "\u{2600}\u{FE0F}", bg: "bg-orange-100", activeBg: "bg-orange-200" },
+};
+
+// Banner config for right panel — dynamic per category
+const BANNER_COPY: Record<CareTypeId | "all", { title: string; subtitle: string }> = {
+  all: { title: "Find the right care provider", subtitle: "We can help you find the right care." },
+  "home-health": { title: "Find home health providers", subtitle: "Compare, review, and connect." },
+  "home-care": { title: "Find home care providers", subtitle: "Compare, review, and connect." },
+  "assisted-living": { title: "Find assisted living communities", subtitle: "Compare, review, and connect." },
+  "memory-care": { title: "Find memory care communities", subtitle: "Compare, review, and connect." },
+  "nursing-homes": { title: "Find nursing home facilities", subtitle: "Compare, review, and connect." },
+  "independent-living": { title: "Find independent living communities", subtitle: "Compare, review, and connect." },
 };
 
 const POSTS_PER_PAGE = 10;
@@ -626,16 +638,57 @@ function CommunityPageContent() {
             />
           </div>
 
-          {/* ── Right panel — visible only in default state (no post selected) ── */}
+          {/* ── Right panel — Care finder banner (hidden when post selected) ── */}
           {!splitViewSelectedId && (
             <aside className="hidden lg:block w-[320px] shrink-0 border-l border-gray-200 h-[calc(100vh-64px)] sticky top-16 overflow-y-auto">
-              <div className="px-6 py-6 flex flex-col items-center justify-center h-full text-center">
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
+              <div className="p-5">
+                {/* ── Care finder card ── */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2d5a47] to-[#1a3a2c] p-6">
+                  {/* Decorative circles */}
+                  <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/[0.06]" />
+                  <div className="absolute top-10 right-3 w-12 h-12 rounded-full bg-white/[0.04]" />
+
+                  <div className="relative">
+                    <h3 className="text-[17px] font-bold text-white leading-snug mb-1.5">
+                      {BANNER_COPY[activeCategory].title}
+                    </h3>
+                    <p className="text-[13px] text-white/50 leading-relaxed mb-5">
+                      {BANNER_COPY[activeCategory].subtitle}
+                    </p>
+
+                    <Link
+                      href={activeCategory === "all" ? "/browse" : `/browse?type=${activeCategory}`}
+                      className="flex items-center justify-center w-full px-5 py-2.5 bg-white text-gray-900 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors gap-1.5"
+                    >
+                      Find providers
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
-                <p className="text-sm font-medium text-gray-400">Coming soon</p>
+
+                {/* ── Secondary links ── */}
+                <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
+                  <Link
+                    href="/benefits"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-sm group-hover:bg-amber-100 transition-colors">
+                      💡
+                    </span>
+                    Check your benefits
+                  </Link>
+                  <Link
+                    href="/resources"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm group-hover:bg-gray-200 transition-colors">
+                      💬
+                    </span>
+                    Talk to our care team
+                  </Link>
+                </div>
               </div>
             </aside>
           )}

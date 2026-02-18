@@ -12,6 +12,7 @@ import type {
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import FamilyProfileView from "@/components/portal/profile/FamilyProfileView";
+import SettingsPage from "../settings/page";
 
 const ORG_CATEGORIES: { value: ProfileCategory; label: string }[] = [
   { value: "assisted_living", label: "Assisted Living" },
@@ -132,6 +133,7 @@ interface FamilyMeta {
 
 export default function PortalProfilePage() {
   const { activeProfile, refreshAccountData } = useAuth();
+  const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
   const [form, setForm] = useState<FormData>({
     display_name: "",
     description: "",
@@ -239,11 +241,6 @@ export default function PortalProfilePage() {
 
   // activeProfile is guaranteed by the portal layout guard
   if (!activeProfile) return null;
-
-  // Family profiles use the dedicated view-only layout with Edit Drawer
-  if (activeProfile.type === "family") {
-    return <FamilyProfileView />;
-  }
 
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -444,6 +441,36 @@ export default function PortalProfilePage() {
 
   return (
     <div className="px-8 py-6">
+      {/* Pill tabs */}
+      <div className="flex gap-1 p-1 bg-gray-100 rounded-full w-fit mb-8">
+        <button
+          onClick={() => setActiveTab("profile")}
+          className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+            activeTab === "profile"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Profile
+        </button>
+        <button
+          onClick={() => setActiveTab("settings")}
+          className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+            activeTab === "settings"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Account Settings
+        </button>
+      </div>
+
+      {activeTab === "settings" ? (
+        <SettingsPage />
+      ) : activeProfile.type === "family" ? (
+        <FamilyProfileView />
+      ) : (
+      <>
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <p className="text-lg text-gray-600">{profileLabel}</p>
@@ -1032,6 +1059,8 @@ export default function PortalProfilePage() {
           )}
         </div>
       </form>
+      </>
+      )}
     </div>
   );
 }

@@ -246,7 +246,7 @@ export default function ConversationPanel({
       {/* ── Conversation thread ── */}
       <div
         ref={conversationRef}
-        className="flex-1 overflow-y-auto pl-6 pr-[44px] py-6 bg-[#fafafa]"
+        className="flex-1 overflow-y-auto pl-6 pr-[44px] py-6 bg-white"
       >
         <div className="space-y-4">
           {/* Family's initial note */}

@@ -86,6 +86,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // ── UI state ──
   const [phoneRevealed, setPhoneRevealed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const saved = savedProviders.isSaved(providerId);
   const [error, setError] = useState("");
   const [pendingRequestDate, setPendingRequestDate] = useState<string | null>(
@@ -310,6 +311,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           ? (err as { message: string }).message
           : String(err);
       console.error("Connection request error:", msg);
+      setSubmitting(false);
       setError(msg || "Something went wrong. Please try again.");
     }
   }, [
@@ -347,8 +349,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
         // sessionStorage may fail in private browsing
       }
 
-      // Show loading spinner if redirect is configured, otherwise pending state
-      setCardState(onConnectionCreated ? "loading" : "pending");
+      // When redirect is configured, show spinner on the Connect button.
+      // Otherwise fall back to the pending card state.
+      if (onConnectionCreated) {
+        setSubmitting(true);
+      } else {
+        setCardState("pending");
+      }
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest(restoredIntent || undefined);
@@ -393,10 +400,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
     if (user) {
-      // If redirect is configured, show a loading spinner instead of the
-      // "Awaiting response" pending state — the user will be navigated
-      // away as soon as the API responds.
-      setCardState(onConnectionCreated ? "loading" : "pending");
+      // When redirect is configured, keep the current card content and only
+      // show a spinner on the Connect button (submitting). This avoids a
+      // jarring content swap before the page navigates away.
+      if (onConnectionCreated) {
+        setSubmitting(true);
+      } else {
+        setCardState("pending");
+      }
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest();
@@ -459,6 +470,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     intentStep,
     intentData,
     phoneRevealed,
+    submitting,
     saved,
     error,
     pendingRequestDate,

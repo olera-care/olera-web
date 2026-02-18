@@ -25,6 +25,7 @@ export default function Navbar() {
   const { savedCount } = useSavedProviders();
   const [heartPulse, setHeartPulse] = useState(false);
   const prevSavedCount = useRef(savedCount);
+  const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
   // Full dropdown content requires account data.
@@ -130,7 +131,8 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Center — Primary navigation (page-centered, hidden on mobile) */}
+            {/* Center — Primary navigation (page-centered, hidden on mobile + inbox) */}
+              {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
                 {/* Find Care trigger */}
                 <div onMouseEnter={() => setIsFindCareOpen(true)}>
@@ -178,6 +180,7 @@ export default function Navbar() {
                   </Link>
                 ))}
               </div>
+              )}
 
             {/* Right — Account menu (flex-1, align right) */}
             <div className="flex-1 flex items-center justify-end">
@@ -523,7 +526,9 @@ export default function Navbar() {
           {isMobileMenuOpen && (
             <div className="lg:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col space-y-1">
-                {/* Public nav items */}
+                {/* Public nav items (hidden on inbox) */}
+                    {!isMinimalNav && (
+                    <>
                     <button
                       type="button"
                       onClick={() => setIsMobileCareOpen((prev) => !prev)}
@@ -588,6 +593,8 @@ export default function Navbar() {
                     </Link>
 
                     <hr className="border-gray-100" />
+                    </>
+                    )}
 
                 {/* Account section */}
                 {hasSession ? (

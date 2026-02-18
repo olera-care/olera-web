@@ -171,7 +171,7 @@ function ConnectedPageContent() {
 
               {/* Primary CTA */}
               <Link
-                href="/portal/inbox"
+                href={`/portal/inbox?id=${connectionId}`}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors shadow-sm hover:shadow-md"
               >
                 Start Messaging

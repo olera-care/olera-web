@@ -321,34 +321,6 @@ export default function Navbar() {
                                 )}
                               </div>
 
-                              <div className="mx-4 border-t border-gray-100" />
-
-                              {/* Tier 2 — Help & resources */}
-                              <div className="px-2 py-1.5">
-                                <Link
-                                  href="/benefits"
-                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                >
-                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                  </svg>
-                                  Benefits Center
-                                </Link>
-                                <Link
-                                  href="/help"
-                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                >
-                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-                                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                                  </svg>
-                                  Help Center
-                                </Link>
-                              </div>
-
                             </>
                           ) : (
                             <>
@@ -363,19 +335,6 @@ export default function Navbar() {
                                     <circle cx="12" cy="7" r="4" />
                                   </svg>
                                   Complete your profile
-                                </Link>
-                              </div>
-                              <div className="mx-4 border-t border-gray-100" />
-                              <div className="px-2 py-1.5">
-                                <Link
-                                  href="/benefits"
-                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                >
-                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                  </svg>
-                                  Benefits Center
                                 </Link>
                               </div>
                             </>
@@ -687,31 +646,6 @@ export default function Navbar() {
                             </Link>
                           )}
 
-                          <hr className="border-gray-100" />
-
-                          {/* Tier 2 — Help & resources */}
-                          <Link
-                            href="/benefits"
-                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                            </svg>
-                            Benefits Center
-                          </Link>
-                          <Link
-                            href="/help"
-                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-                              <line x1="12" y1="17" x2="12.01" y2="17" />
-                            </svg>
-                            Help Center
-                          </Link>
 
                         </>
                       ) : (
@@ -726,17 +660,6 @@ export default function Navbar() {
                               <circle cx="12" cy="7" r="4" />
                             </svg>
                             Complete your profile
-                          </Link>
-                          <hr className="border-gray-100" />
-                          <Link
-                            href="/benefits"
-                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                            </svg>
-                            Benefits Center
                           </Link>
                         </>
                       )

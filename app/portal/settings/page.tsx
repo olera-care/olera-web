@@ -16,7 +16,7 @@ import Modal from "@/components/ui/Modal";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, account, activeProfile, membership, refreshAccountData } =
+  const { user, account, activeProfile, profiles, membership, refreshAccountData } =
     useAuth();
   const searchParams = useSearchParams();
   const justUpgraded = searchParams.get("upgraded") === "true";
@@ -45,6 +45,12 @@ export default function SettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+  // Remove profile
+  const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
+  const [deletingProfile, setDeletingProfile] = useState(false);
+  const [deleteProfileError, setDeleteProfileError] = useState("");
+  const [deleteProfileConfirmText, setDeleteProfileConfirmText] = useState("");
 
   const isProvider =
     activeProfile?.type === "organization" ||
@@ -178,6 +184,45 @@ export default function SettingsPage() {
       setDeleteError(msg);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  // ── Remove single profile ──
+  const handleDeleteProfile = async () => {
+    if (!activeProfile) return;
+    setDeletingProfile(true);
+    setDeleteProfileError("");
+
+    try {
+      const res = await fetch("/api/auth/delete-profile", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: activeProfile.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.isLastProfile) {
+          setDeleteProfileError(
+            "This is your only profile. To remove it, use \u2018Delete account\u2019 below."
+          );
+          return;
+        }
+        throw new Error(data.error || "Failed to remove profile");
+      }
+
+      await refreshAccountData();
+      setShowDeleteProfileModal(false);
+      setDeleteProfileConfirmText("");
+      router.push("/portal");
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Something went wrong";
+      setDeleteProfileError(msg);
+    } finally {
+      setDeletingProfile(false);
     }
   };
 
@@ -544,6 +589,37 @@ export default function SettingsPage() {
         </section>
       )}
 
+      {/* ── Remove this profile ── */}
+      <section className="rounded-xl bg-white border border-gray-100 p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-[15px] font-semibold text-gray-900">
+              Remove this profile
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              Remove your{" "}
+              <span className="font-medium text-gray-500">
+                {activeProfile?.display_name}
+              </span>{" "}
+              profile. Your account and other profiles will not be affected.
+            </p>
+          </div>
+          {profiles.length > 1 ? (
+            <button
+              type="button"
+              onClick={() => setShowDeleteProfileModal(true)}
+              className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
+            >
+              Remove
+            </button>
+          ) : (
+            <span className="text-xs text-gray-400 shrink-0 ml-4 max-w-[140px] text-right leading-snug">
+              Only profile — use &ldquo;Delete account&rdquo; below
+            </span>
+          )}
+        </div>
+      </section>
+
       {/* ── Delete Account ── */}
       <section className="rounded-xl bg-white border border-gray-100 p-6">
         <div className="flex items-start justify-between">
@@ -552,7 +628,8 @@ export default function SettingsPage() {
               Delete account
             </h3>
             <p className="text-xs text-gray-400 mt-1">
-              Permanently remove your profile and all connection history.
+              Permanently delete your account, all profiles, and all connection
+              history.
             </p>
           </div>
           <button
@@ -585,7 +662,7 @@ export default function SettingsPage() {
               <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-              Remove your profile and personal information
+              Remove all your profiles and personal information
             </li>
             <li className="flex items-start gap-2.5 text-sm text-gray-600">
               <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -642,6 +719,92 @@ export default function SettingsPage() {
               className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
             >
               {deleting ? "Deleting..." : "Delete my account"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Remove Profile Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteProfileModal}
+        onClose={() => {
+          setShowDeleteProfileModal(false);
+          setDeleteProfileConfirmText("");
+          setDeleteProfileError("");
+        }}
+        title="Remove profile"
+        size="sm"
+      >
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            This will permanently remove your{" "}
+            <span className="font-semibold text-gray-900">
+              {activeProfile?.display_name}
+            </span>{" "}
+            profile. Your account and other profiles will not be affected.
+          </p>
+          <ul className="space-y-2 mb-5">
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Remove this profile and its information
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Delete all connections for this profile
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              You can add a new profile later from the profile switcher
+            </li>
+          </ul>
+
+          <div className="mb-5">
+            <label htmlFor="delete-profile-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Type <span className="font-semibold text-gray-900">remove</span> to confirm
+            </label>
+            <input
+              id="delete-profile-confirm"
+              type="text"
+              value={deleteProfileConfirmText}
+              onChange={(e) => setDeleteProfileConfirmText(e.target.value)}
+              placeholder="remove"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
+              autoComplete="off"
+            />
+          </div>
+
+          {deleteProfileError && (
+            <div className="mb-4 bg-red-50 text-red-700 px-3 py-2.5 rounded-lg text-sm">
+              {deleteProfileError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeleteProfileModal(false);
+                setDeleteProfileConfirmText("");
+                setDeleteProfileError("");
+              }}
+              disabled={deletingProfile}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 px-3 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteProfile}
+              disabled={deletingProfile || deleteProfileConfirmText !== "remove"}
+              className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
+            >
+              {deletingProfile ? "Removing..." : "Remove this profile"}
             </button>
           </div>
         </div>

@@ -8,6 +8,7 @@ import type { Connection, Profile } from "@/lib/types";
 import ConversationList from "@/components/messaging/ConversationList";
 import type { ConnectionWithProfile } from "@/components/messaging/ConversationList";
 import ConversationPanel from "@/components/messaging/ConversationPanel";
+import ProviderDetailPanel from "@/components/messaging/ProviderDetailPanel";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -33,6 +34,7 @@ function InboxContent() {
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   // Auto-select from URL param
   useEffect(() => {
@@ -51,21 +53,21 @@ function InboxContent() {
       const supabase = createClient();
       const profileIds = profiles.map((p) => p.id);
 
-      // Fetch inbound and outbound inquiry connections that are active
+      // Fetch inbound and outbound inquiry connections (all statuses for filtering)
       const [outbound, inbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("from_profile_id", profileIds)
           .eq("type", "inquiry")
-          .in("status", ["pending", "accepted"])
+          .in("status", ["pending", "accepted", "declined", "expired", "archived"])
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("to_profile_id", profileIds)
           .eq("type", "inquiry")
-          .in("status", ["pending", "accepted"])
+          .in("status", ["pending", "accepted", "declined", "expired", "archived"])
           .order("updated_at", { ascending: false }),
       ]);
 
@@ -178,26 +180,49 @@ function InboxContent() {
 
   const selectedConnection = connections.find((c) => c.id === selectedId) || null;
 
+  // Determine the "other" profile for the detail panel
+  const isInbound = selectedConnection?.to_profile_id === activeProfile?.id;
+  const otherProfile = selectedConnection
+    ? isInbound ? selectedConnection.fromProfile : selectedConnection.toProfile
+    : null;
+
+  // Close detail panel when switching conversations
+  const handleSelect = useCallback((id: string) => {
+    setSelectedId(id);
+    setDetailOpen(false);
+  }, []);
+
   return (
     <div className="h-[calc(100vh-64px)] flex">
       {/* Left panel — conversation list */}
       <ConversationList
         connections={connections}
         selectedId={selectedId}
-        onSelect={setSelectedId}
+        onSelect={handleSelect}
         loading={loading}
         activeProfileId={activeProfile?.id || ""}
         className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
       />
 
-      {/* Right panel — conversation detail */}
+      {/* Middle panel — conversation detail */}
       <ConversationPanel
         connection={selectedConnection}
         activeProfile={activeProfile ?? null}
         onMessageSent={handleMessageSent}
         onBack={() => setSelectedId(null)}
+        detailOpen={detailOpen}
+        onToggleDetail={() => setDetailOpen((p) => !p)}
         className={`w-full lg:flex-1 ${selectedId ? "flex" : "hidden lg:flex"}`}
       />
+
+      {/* Right panel — provider details */}
+      {detailOpen && otherProfile && (
+        <ProviderDetailPanel
+          profile={otherProfile}
+          onClose={() => setDetailOpen(false)}
+          className="hidden lg:flex w-[360px] shrink-0"
+        />
+      )}
     </div>
   );
 }

@@ -128,6 +128,32 @@ function searchConnections(connections: ConnectionWithProfile[], query: string, 
   });
 }
 
+type FilterOption = "all" | "pending" | "connected";
+
+const FILTER_LABELS: Record<FilterOption, string> = {
+  all: "All",
+  pending: "Pending",
+  connected: "Connected",
+};
+
+/** Read-tracking key for localStorage */
+const READ_KEY = "olera_inbox_read";
+
+function getReadSet(): Set<string> {
+  try {
+    const raw = localStorage.getItem(READ_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function markAsRead(connectionId: string) {
+  const readSet = getReadSet();
+  readSet.add(connectionId);
+  localStorage.setItem(READ_KEY, JSON.stringify([...readSet]));
+}
+
 export default function ConversationList({
   connections,
   selectedId,
@@ -143,9 +169,27 @@ export default function ConversationList({
   const [pastOpen, setPastOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [filterOption, setFilterOption] = useState<FilterOption>("all");
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Load read tracking from localStorage
+  useEffect(() => {
+    setReadIds(getReadSet());
+  }, []);
+
+  // Mark selected conversation as read
+  useEffect(() => {
+    if (selectedId) {
+      markAsRead(selectedId);
+      setReadIds((prev) => new Set([...prev, selectedId]));
+    }
+  }, [selectedId]);
 
   // Track scroll for divider
   const handleScroll = useCallback(() => {
@@ -168,22 +212,30 @@ export default function ConversationList({
     }
   }, [searchOpen]);
 
-  // Close menu on outside click
+  // Close menu / dropdown on outside click
   useEffect(() => {
-    if (!menuOpenId) return;
+    if (!menuOpenId && !filterDropdownOpen) return;
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (menuOpenId && menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpenId(null);
+      }
+      if (filterDropdownOpen && filterDropdownRef.current && !filterDropdownRef.current.contains(e.target as Node)) {
+        setFilterDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpenId]);
+  }, [menuOpenId, filterDropdownOpen]);
 
-  // Apply search or show active connections
-  const filtered = searchOpen
-    ? searchConnections(connections, searchQuery, activeProfileId)
-    : getActiveConnections(connections);
+  // Apply filters
+  const filtered = (() => {
+    if (searchOpen) return searchConnections(connections, searchQuery, activeProfileId);
+    let list = getActiveConnections(connections);
+    if (filterOption === "pending") list = list.filter((c) => c.status === "pending");
+    if (filterOption === "connected") list = list.filter((c) => c.status === "accepted");
+    if (unreadOnly) list = list.filter((c) => !readIds.has(c.id));
+    return list;
+  })();
 
   // Past connections shown separately in accordion (not during search)
   const pastConnections = searchOpen ? [] : getPastConnections(connections);
@@ -198,118 +250,125 @@ export default function ConversationList({
     const careType = getCareType(conn);
     const isSelected = conn.id === selectedId;
     const isMenuOpen = menuOpenId === conn.id;
+    const isUnread = !readIds.has(conn.id);
 
     return (
-      <div
-        key={conn.id}
-        className={`group relative transition-colors ${
-          isSelected
-            ? "bg-primary-50/80"
-            : "hover:bg-gray-50"
-        } ${isPast ? "opacity-60" : ""}`}
-      >
-        <button
-          onClick={() => onSelect(conn.id)}
-          className="w-full text-left flex items-start gap-3.5 px-5 py-5"
+      <div key={conn.id} className="px-3 py-0.5">
+        <div
+          className={`group relative rounded-xl transition-colors ${
+            isSelected
+              ? "bg-primary-50/80"
+              : "hover:bg-gray-50"
+          } ${isPast ? "opacity-60" : ""}`}
         >
-          {/* Avatar */}
-          {otherProfile?.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={otherProfile.image_url}
-              alt={name}
-              className="w-12 h-12 rounded-full object-cover shrink-0 mt-0.5"
-            />
-          ) : (
-            <div
-              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-white text-sm font-bold mt-0.5"
-              style={{ background: avatarGradient(name) }}
-            >
-              {initials}
-            </div>
-          )}
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <span className={`text-base truncate ${isSelected ? "font-bold text-gray-900" : "font-semibold text-gray-900"}`}>
-                {name}
-              </span>
-              {lastMsg && (
-                <span className="text-[13px] text-gray-400 shrink-0">
-                  {formatRelativeTime(lastMsg.timestamp)}
-                </span>
-              )}
-            </div>
-            {careType && (
-              <p className="text-sm text-primary-600 font-medium mt-0.5 truncate">
-                {careType}
-              </p>
-            )}
-            {lastMsg && (
-              <p className="text-[15px] text-gray-500 truncate mt-0.5">
-                {lastMsg.text}
-              </p>
-            )}
-          </div>
-        </button>
-
-        {/* Hover action menu — hidden on past items */}
-        {!isPast && (
-          <div className={`absolute right-5 top-5 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpenId(isMenuOpen ? null : conn.id);
-              }}
-              className="p-1.5 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
-              aria-label="More actions"
-            >
-              <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-              </svg>
-            </button>
-
-            {/* Dropdown */}
-            {isMenuOpen && (
+          <button
+            onClick={() => onSelect(conn.id)}
+            className="w-full text-left flex items-start gap-3.5 px-4 py-4"
+          >
+            {/* Avatar */}
+            {otherProfile?.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={otherProfile.image_url}
+                alt={name}
+                className="w-12 h-12 rounded-full object-cover shrink-0 mt-0.5"
+              />
+            ) : (
               <div
-                ref={menuRef}
-                className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10"
+                className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-white text-sm font-bold mt-0.5"
+                style={{ background: avatarGradient(name) }}
               >
-                {onArchiveConnection && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onArchiveConnection(conn.id);
-                      setMenuOpenId(null);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
-                  >
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                    </svg>
-                    Archive
-                  </button>
-                )}
-                {onHideConnection && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onHideConnection(conn.id);
-                      setMenuOpenId(null);
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
-                  >
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18" />
-                    </svg>
-                    Hide
-                  </button>
-                )}
+                {initials}
               </div>
             )}
-          </div>
-        )}
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  {isUnread && !isPast && (
+                    <span className="w-2 h-2 rounded-full bg-primary-600 shrink-0" />
+                  )}
+                  <span className={`text-base truncate ${isUnread && !isPast ? "font-semibold text-gray-900" : "font-normal text-gray-900"}`}>
+                    {name}
+                  </span>
+                </div>
+                {lastMsg && (
+                  <span className={`text-[13px] shrink-0 ${isUnread && !isPast ? "text-primary-600 font-medium" : "text-gray-400"}`}>
+                    {formatRelativeTime(lastMsg.timestamp)}
+                  </span>
+                )}
+              </div>
+              {careType && (
+                <p className="text-sm text-primary-600 font-medium mt-0.5 truncate">
+                  {careType}
+                </p>
+              )}
+              {lastMsg && (
+                <p className="text-[15px] text-gray-500 truncate mt-0.5">
+                  {lastMsg.text}
+                </p>
+              )}
+            </div>
+          </button>
+
+          {/* Hover action menu — hidden on past items */}
+          {!isPast && (
+            <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpenId(isMenuOpen ? null : conn.id);
+                }}
+                className="p-1.5 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+                aria-label="More actions"
+              >
+                <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                </svg>
+              </button>
+
+              {/* Dropdown */}
+              {isMenuOpen && (
+                <div
+                  ref={menuRef}
+                  className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10"
+                >
+                  {onArchiveConnection && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onArchiveConnection(conn.id);
+                        setMenuOpenId(null);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
+                    >
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                      </svg>
+                      Archive
+                    </button>
+                  )}
+                  {onHideConnection && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onHideConnection(conn.id);
+                        setMenuOpenId(null);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
+                    >
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18" />
+                      </svg>
+                      Hide
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -318,17 +377,19 @@ export default function ConversationList({
   if (loading) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="px-5 py-5">
+        <div className="pl-[44px] pr-5 py-5">
           <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-start gap-3.5 px-5 py-5 animate-pulse">
-              <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
-              <div className="flex-1 space-y-2.5 pt-1">
-                <div className="h-4 bg-gray-100 rounded w-2/3" />
-                <div className="h-3 bg-gray-50 rounded w-1/3" />
-                <div className="h-3 bg-gray-50 rounded w-full" />
+            <div key={i} className="px-3 py-0.5">
+              <div className="flex items-start gap-3.5 px-4 py-4 animate-pulse">
+                <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
+                <div className="flex-1 space-y-2.5 pt-1">
+                  <div className="h-4 bg-gray-100 rounded w-2/3" />
+                  <div className="h-3 bg-gray-50 rounded w-1/3" />
+                  <div className="h-3 bg-gray-50 rounded w-full" />
+                </div>
               </div>
             </div>
           ))}
@@ -341,7 +402,7 @@ export default function ConversationList({
   if (connections.length === 0) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="px-5 py-5">
+        <div className="pl-[44px] pr-5 py-5">
           <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
@@ -372,7 +433,7 @@ export default function ConversationList({
       <div className={`shrink-0 transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
         {searchOpen ? (
           /* Search mode */
-          <div className="px-5 py-4 flex items-center gap-3">
+          <div className="pl-[44px] pr-5 py-4 flex items-center gap-3">
             <div className="flex-1 flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2.5">
               <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -405,7 +466,7 @@ export default function ConversationList({
           </div>
         ) : (
           /* Default mode — title + search icon */
-          <div className="px-5 py-5 flex items-center justify-between">
+          <div className="pl-[44px] pr-5 py-5 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
             <button
               onClick={() => setSearchOpen(true)}
@@ -415,6 +476,65 @@ export default function ConversationList({
               <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Filter pills — Airbnb style, hidden during search */}
+        {!searchOpen && (
+          <div className="pl-[44px] pr-5 pb-4 flex items-center gap-2.5">
+            {/* "All" dropdown pill */}
+            <div className="relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => setFilterDropdownOpen((p) => !p)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                  filterOption !== "all"
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-900 text-white"
+                }`}
+              >
+                {FILTER_LABELS[filterOption]}
+                <svg className={`w-3 h-3 transition-transform ${filterDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {filterDropdownOpen && (
+                <div className="absolute left-0 top-full mt-1.5 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10">
+                  {(Object.keys(FILTER_LABELS) as FilterOption[]).map((key) => (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setFilterOption(key);
+                        setFilterDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                        filterOption === key
+                          ? "text-gray-900 font-semibold bg-gray-50"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {FILTER_LABELS[key]}
+                      {filterOption === key && (
+                        <svg className="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* "Unread" toggle pill */}
+            <button
+              onClick={() => setUnreadOnly((p) => !p)}
+              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                unreadOnly
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              Unread
             </button>
           </div>
         )}
@@ -442,7 +562,7 @@ export default function ConversationList({
               <>
                 <button
                   onClick={() => setPastOpen((p) => !p)}
-                  className="w-full flex items-center justify-between px-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
+                  className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
                 >
                   <span className="text-sm font-semibold text-gray-500">
                     Past ({pastConnections.length})

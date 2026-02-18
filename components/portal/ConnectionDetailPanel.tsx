@@ -324,11 +324,7 @@ export default function ConnectionDetailPanel({
             <div className="px-6 py-4">
               <div className="flex gap-2">
                 <input
-                  placeholder={
-                    isResponded
-                      ? "Reply to provider..."
-                      : "Add a message..."
-                  }
+                  placeholder="Write a message..."
                   className="flex-1 px-3 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary-600 transition-colors"
                   disabled
                 />

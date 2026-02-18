@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileSwitcher from "@/components/shared/ProfileSwitcher";
 import FindCareMegaMenu from "@/components/shared/FindCareMegaMenu";
@@ -16,7 +16,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
-  const { user, account, activeProfile, openAuth, signOut } =
+  const { user, account, activeProfile, profiles, openAuth, signOut } =
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -47,6 +47,22 @@ export default function Navbar() {
       ? "Caregiver"
       : "Family"
     : null;
+
+  // "For Providers" click handler
+  const handleForProviders = useCallback(() => {
+    const hasProviderProfile = profiles.some(
+      (p) => p.type === "organization" || p.type === "caregiver"
+    );
+    if (hasProviderProfile) {
+      router.push("/portal");
+      return;
+    }
+    if (user) {
+      openAuth({ startAtPostAuth: true });
+    } else {
+      openAuth({});
+    }
+  }, [user, profiles, openAuth, router]);
 
   // Track scroll position for navbar background
   useEffect(() => {
@@ -186,6 +202,14 @@ export default function Navbar() {
             <div className="flex-1 flex items-center justify-end">
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center gap-2">
+                {/* For Providers link */}
+                <button
+                  onClick={handleForProviders}
+                  className="text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors px-2"
+                >
+                  For Providers
+                </button>
+
                 {/* Saved providers heart */}
                 <Link
                   href="/saved"
@@ -595,6 +619,16 @@ export default function Navbar() {
                     <hr className="border-gray-100" />
                     </>
                     )}
+
+                {/* For Providers — always visible */}
+                <button
+                  onClick={() => { handleForProviders(); setIsMobileMenuOpen(false); }}
+                  className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
+                >
+                  For Providers
+                </button>
+
+                <hr className="border-gray-100" />
 
                 {/* Account section */}
                 {hasSession ? (

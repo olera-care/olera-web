@@ -254,13 +254,19 @@ function InboxContent() {
         className={`w-full lg:flex-1 ${selectedId ? "flex" : "hidden lg:flex"}`}
       />
 
-      {/* Right panel — provider details */}
-      {detailOpen && otherProfile && (
-        <ProviderDetailPanel
-          profile={otherProfile}
-          onClose={() => setDetailOpen(false)}
-          className="hidden lg:flex w-[360px] shrink-0"
-        />
+      {/* Right panel — provider details (animated width) */}
+      {otherProfile && (
+        <div
+          className={`hidden lg:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
+            detailOpen ? "w-[360px]" : "w-0"
+          }`}
+        >
+          <ProviderDetailPanel
+            profile={otherProfile}
+            onClose={() => setDetailOpen(false)}
+            className="flex w-[360px]"
+          />
+        </div>
       )}
     </div>
   );

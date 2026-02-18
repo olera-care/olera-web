@@ -79,10 +79,10 @@ export default function ProviderDetailPanel({
         <h3 className="text-lg font-semibold text-gray-900">Details</h3>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          className="w-[44px] h-[44px] rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
           aria-label="Close details"
         >
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -92,7 +92,8 @@ export default function ProviderDetailPanel({
       <div className="flex-1 overflow-y-auto">
         {/* Image carousel */}
         {images.length > 0 && (
-          <div className="relative">
+          <div className="relative pl-5 pr-[44px] pt-5">
+            <div className="relative rounded-2xl overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={images[currentImage]}
@@ -134,6 +135,7 @@ export default function ProviderDetailPanel({
                 </div>
               </>
             )}
+            </div>
           </div>
         )}
 

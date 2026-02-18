@@ -305,13 +305,17 @@ export async function POST(request: Request) {
     });
 
     // 6. Insert connection
-    const { error: insertError } = await db.from("connections").insert({
-      from_profile_id: fromProfileId,
-      to_profile_id: toProfileId,
-      type: "inquiry",
-      status: "pending",
-      message: messagePayload,
-    });
+    const { data: newConnection, error: insertError } = await db
+      .from("connections")
+      .insert({
+        from_profile_id: fromProfileId,
+        to_profile_id: toProfileId,
+        type: "inquiry",
+        status: "pending",
+        message: messagePayload,
+      })
+      .select("id")
+      .single();
 
     if (insertError) {
       console.error("Failed to insert connection:", insertError);
@@ -321,7 +325,10 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ status: "created" });
+    return NextResponse.json({
+      status: "created",
+      connectionId: newConnection?.id ?? null,
+    });
   } catch (err) {
     console.error("Connection request error:", err);
     return NextResponse.json(

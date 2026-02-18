@@ -70,6 +70,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     careTypes: providerCareTypes,
     isActive,
+    onConnectionCreated,
   } = props;
 
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
@@ -296,6 +297,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
       if (data.created_at) {
         setPendingRequestDate(data.created_at);
       }
+
+      // Notify parent of new connection (triggers redirect to success page)
+      if (data.connectionId) {
+        onConnectionCreated?.(data.connectionId);
+      }
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -311,6 +317,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     intentData,
     refreshAccountData,
+    onConnectionCreated,
   ]);
 
   // ── Handle deferred connection request after auth ──

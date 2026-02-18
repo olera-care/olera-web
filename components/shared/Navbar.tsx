@@ -247,6 +247,17 @@ export default function Navbar() {
                               {/* Tier 1 — Core portal links */}
                               <div className="px-2 py-1.5">
                                 <Link
+                                  href="/portal/inbox"
+                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                                    <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
+                                  </svg>
+                                  Inbox
+                                </Link>
+                                <Link
                                   href="/portal/profile"
                                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                                   onClick={() => setIsUserMenuOpen(false)}

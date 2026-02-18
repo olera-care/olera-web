@@ -56,11 +56,10 @@ export default function InterestedTabContent({
       // Find the item and mark viewed optimistically
       const item = pending.find((c) => c.id === id);
       if (item && !(item.metadata as Record<string, unknown>)?.viewed) {
+        const prevMeta = item.metadata as Record<string, unknown>;
+
         updateLocal(id, {
-          metadata: {
-            ...(item.metadata as Record<string, unknown>),
-            viewed: true,
-          },
+          metadata: { ...prevMeta, viewed: true },
         });
 
         // Notify other hook instances (sidebar badge) to update
@@ -68,15 +67,20 @@ export default function InterestedTabContent({
           new CustomEvent("olera:interested-viewed", { detail: { connectionId: id } })
         );
 
-        // Fire API call
+        // Fire API call — revert optimistic update on failure
         try {
-          await fetch("/api/connections/respond-interest", {
+          const res = await fetch("/api/connections/respond-interest", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ connectionId: id, action: "view" }),
           });
+          if (!res.ok) {
+            console.error("[InterestedTab] view API failed, reverting");
+            updateLocal(id, { metadata: { ...prevMeta, viewed: false } });
+          }
         } catch {
-          // Non-blocking
+          console.error("[InterestedTab] view API error, reverting");
+          updateLocal(id, { metadata: { ...prevMeta, viewed: false } });
         }
       }
     },
@@ -92,10 +96,12 @@ export default function InterestedTabContent({
       });
       if (!res.ok) throw new Error("Failed to accept");
 
-      // Don't remove yet — let the confirmation state show first
-      // The item will be removed when the detail panel closes
+      // Optimistic: remove from interested list after API confirms success.
+      // The detail panel shows its own "accepted" confirmation, so this only
+      // affects the left-side list — the user still sees the confirmation.
+      updateLocal(id, "remove");
     },
-    []
+    [updateLocal]
   );
 
   const handleDecline = useCallback(

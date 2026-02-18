@@ -84,12 +84,17 @@ export async function POST(request: Request) {
     // ── Handle each action ──
 
     if (action === "view") {
-      await supabase
+      const { error: updateError } = await supabase
         .from("connections")
         .update({
           metadata: { ...currentMeta, viewed: true },
         })
         .eq("id", connectionId);
+
+      if (updateError) {
+        console.error("[respond-interest] view update failed:", updateError);
+        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      }
 
       return NextResponse.json({ success: true });
     }
@@ -135,7 +140,7 @@ export async function POST(request: Request) {
       }
 
       // Update status to accepted
-      await supabase
+      const { error: acceptError } = await supabase
         .from("connections")
         .update({
           status: "accepted",
@@ -150,11 +155,16 @@ export async function POST(request: Request) {
         })
         .eq("id", connectionId);
 
+      if (acceptError) {
+        console.error("[respond-interest] accept update failed:", acceptError);
+        return NextResponse.json({ error: acceptError.message }, { status: 500 });
+      }
+
       return NextResponse.json({ success: true, connectionId });
     }
 
     if (action === "decline") {
-      await supabase
+      const { error: declineError } = await supabase
         .from("connections")
         .update({
           status: "declined",
@@ -166,19 +176,29 @@ export async function POST(request: Request) {
         })
         .eq("id", connectionId);
 
+      if (declineError) {
+        console.error("[respond-interest] decline update failed:", declineError);
+        return NextResponse.json({ error: declineError.message }, { status: 500 });
+      }
+
       return NextResponse.json({ success: true });
     }
 
     if (action === "reconsider") {
       // Move back to pending, clear declined_at
       const { declined_at, ...restMeta } = currentMeta as Record<string, unknown> & { declined_at?: unknown };
-      await supabase
+      const { error: reconsiderError } = await supabase
         .from("connections")
         .update({
           status: "pending",
           metadata: { ...restMeta, viewed: true },
         })
         .eq("id", connectionId);
+
+      if (reconsiderError) {
+        console.error("[respond-interest] reconsider update failed:", reconsiderError);
+        return NextResponse.json({ error: reconsiderError.message }, { status: 500 });
+      }
 
       return NextResponse.json({ success: true });
     }

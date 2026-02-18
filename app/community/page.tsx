@@ -43,15 +43,15 @@ const CATEGORY_STYLES: Record<CareTypeId | "all", { emoji: string; bg: string; a
 };
 
 // Banner config for right panel — dynamic per category
-// Titles kept short so they never exceed 2 lines at 320px panel width
+// Titles kept to single line; CTA button already says "Find providers"
 const BANNER_COPY: Record<CareTypeId | "all", { title: string; subtitle: string }> = {
-  all: { title: "Find the right care provider", subtitle: "We can help you find the right care." },
-  "home-health": { title: "Find home health providers", subtitle: "Compare, review, and connect." },
-  "home-care": { title: "Find home care providers", subtitle: "Compare, review, and connect." },
-  "assisted-living": { title: "Find assisted living providers", subtitle: "Compare, review, and connect." },
-  "memory-care": { title: "Find memory care providers", subtitle: "Compare, review, and connect." },
-  "nursing-homes": { title: "Find nursing home providers", subtitle: "Compare, review, and connect." },
-  "independent-living": { title: "Find independent living providers", subtitle: "Compare, review, and connect." },
+  all: { title: "Find the right care", subtitle: "We can help you find the right care." },
+  "home-health": { title: "Find home health", subtitle: "Compare, review, and connect." },
+  "home-care": { title: "Find home care", subtitle: "Compare, review, and connect." },
+  "assisted-living": { title: "Find assisted living", subtitle: "Compare, review, and connect." },
+  "memory-care": { title: "Find memory care", subtitle: "Compare, review, and connect." },
+  "nursing-homes": { title: "Find nursing homes", subtitle: "Compare, review, and connect." },
+  "independent-living": { title: "Find independent living", subtitle: "Compare, review, and connect." },
 };
 
 const POSTS_PER_PAGE = 10;
@@ -660,7 +660,7 @@ function CommunityPageContent() {
                     </div>
 
                     {/* Title + subtitle as one tight group */}
-                    <div className="min-h-[72px] mb-2.5">
+                    <div className="mb-2.5">
                       <h3 className="text-lg font-bold text-white leading-snug tracking-[-0.01em]">
                         {BANNER_COPY[activeCategory].title}
                       </h3>
@@ -681,9 +681,8 @@ function CommunityPageContent() {
                     </Link>
                   </div>
 
-                  {/* ── Stack 2: Secondary links — separated by subtle divider ── */}
-                  <div className="relative mx-6 border-t border-white/10" />
-                  <div className="relative px-6 pb-5 pt-3 space-y-1">
+                  {/* ── Stack 2: Secondary links ── */}
+                  <div className="relative px-6 pb-5 pt-2 space-y-1">
                     <Link
                       href="/benefits"
                       className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-200"

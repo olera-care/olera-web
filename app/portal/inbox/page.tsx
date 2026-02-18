@@ -192,6 +192,43 @@ function InboxContent() {
     setDetailOpen(false);
   }, []);
 
+  // Hide a connection (sets metadata.hidden = true)
+  const handleHide = useCallback(async (connectionId: string) => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    const conn = connections.find((c) => c.id === connectionId);
+    if (!conn) return;
+
+    const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+    await supabase
+      .from("connections")
+      .update({ metadata: { ...existingMeta, hidden: true } })
+      .eq("id", connectionId);
+
+    // Remove from local state
+    setConnections((prev) => prev.filter((c) => c.id !== connectionId));
+    if (selectedId === connectionId) setSelectedId(null);
+  }, [connections, selectedId]);
+
+  // Archive a connection (sets status = 'archived')
+  const handleArchive = useCallback(async (connectionId: string) => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+
+    await supabase
+      .from("connections")
+      .update({ status: "archived" })
+      .eq("id", connectionId);
+
+    // Update local state
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId ? { ...c, status: "archived" } : c
+      )
+    );
+    if (selectedId === connectionId) setSelectedId(null);
+  }, [selectedId]);
+
   return (
     <div className="h-[calc(100vh-64px)] flex">
       {/* Left panel — conversation list */}
@@ -201,6 +238,8 @@ function InboxContent() {
         onSelect={handleSelect}
         loading={loading}
         activeProfileId={activeProfile?.id || ""}
+        onHideConnection={handleHide}
+        onArchiveConnection={handleArchive}
         className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
       />
 

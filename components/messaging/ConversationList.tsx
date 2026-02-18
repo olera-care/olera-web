@@ -15,17 +15,10 @@ interface ConversationListProps {
   onSelect: (id: string) => void;
   loading: boolean;
   activeProfileId: string;
+  onHideConnection?: (id: string) => void;
+  onArchiveConnection?: (id: string) => void;
   className?: string;
 }
-
-type FilterTab = "all" | "pending" | "connected" | "past";
-
-const FILTERS: { key: FilterTab; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "pending", label: "Pending" },
-  { key: "connected", label: "Connected" },
-  { key: "past", label: "Past" },
-];
 
 /** Deterministic gradient for fallback avatars */
 function avatarGradient(name: string): string {
@@ -51,6 +44,21 @@ interface ThreadMessage {
   text: string;
   created_at: string;
   type?: string;
+}
+
+function getCareType(connection: ConnectionWithProfile): string | null {
+  if (!connection.message) return null;
+  try {
+    const parsed = JSON.parse(connection.message);
+    if (parsed.care_type) {
+      return String(parsed.care_type)
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c: string) => c.toUpperCase());
+    }
+  } catch {
+    // ignore
+  }
+  return null;
 }
 
 function getLastMessage(connection: ConnectionWithProfile): { text: string; timestamp: string } | null {
@@ -99,12 +107,14 @@ function formatRelativeTime(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function filterConnections(connections: ConnectionWithProfile[], filter: FilterTab): ConnectionWithProfile[] {
-  if (filter === "all") return connections;
-  if (filter === "pending") return connections.filter((c) => c.status === "pending");
-  if (filter === "connected") return connections.filter((c) => c.status === "accepted");
-  if (filter === "past") return connections.filter((c) => ["declined", "expired", "archived"].includes(c.status));
-  return connections;
+const PAST_STATUSES = ["declined", "expired", "archived"];
+
+function getActiveConnections(connections: ConnectionWithProfile[]): ConnectionWithProfile[] {
+  return connections.filter((c) => !PAST_STATUSES.includes(c.status));
+}
+
+function getPastConnections(connections: ConnectionWithProfile[]): ConnectionWithProfile[] {
+  return connections.filter((c) => PAST_STATUSES.includes(c.status));
 }
 
 function searchConnections(connections: ConnectionWithProfile[], query: string, activeProfileId: string): ConnectionWithProfile[] {
@@ -124,14 +134,18 @@ export default function ConversationList({
   onSelect,
   loading,
   activeProfileId,
+  onHideConnection,
+  onArchiveConnection,
   className = "",
 }: ConversationListProps) {
-  const [filter, setFilter] = useState<FilterTab>("all");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [pastOpen, setPastOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Track scroll for divider
   const handleScroll = useCallback(() => {
@@ -154,24 +168,166 @@ export default function ConversationList({
     }
   }, [searchOpen]);
 
-  // Apply filters and search
+  // Close menu on outside click
+  useEffect(() => {
+    if (!menuOpenId) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpenId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpenId]);
+
+  // Apply search or show active connections
   const filtered = searchOpen
     ? searchConnections(connections, searchQuery, activeProfileId)
-    : filterConnections(connections, filter);
+    : getActiveConnections(connections);
+
+  // Past connections shown separately in accordion (not during search)
+  const pastConnections = searchOpen ? [] : getPastConnections(connections);
+
+  // Shared conversation item renderer
+  const renderConversationItem = (conn: ConnectionWithProfile, isPast = false) => {
+    const isInbound = conn.to_profile_id === activeProfileId;
+    const otherProfile = isInbound ? conn.fromProfile : conn.toProfile;
+    const name = otherProfile?.display_name || "Unknown";
+    const initials = name.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+    const lastMsg = getLastMessage(conn);
+    const careType = getCareType(conn);
+    const isSelected = conn.id === selectedId;
+    const isMenuOpen = menuOpenId === conn.id;
+
+    return (
+      <div
+        key={conn.id}
+        className={`group relative transition-colors ${
+          isSelected
+            ? "bg-primary-50/80"
+            : "hover:bg-gray-50"
+        } ${isPast ? "opacity-60" : ""}`}
+      >
+        <button
+          onClick={() => onSelect(conn.id)}
+          className="w-full text-left flex items-start gap-3.5 px-5 py-5"
+        >
+          {/* Avatar */}
+          {otherProfile?.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={otherProfile.image_url}
+              alt={name}
+              className="w-12 h-12 rounded-full object-cover shrink-0 mt-0.5"
+            />
+          ) : (
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-white text-sm font-bold mt-0.5"
+              style={{ background: avatarGradient(name) }}
+            >
+              {initials}
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className={`text-base truncate ${isSelected ? "font-bold text-gray-900" : "font-semibold text-gray-900"}`}>
+                {name}
+              </span>
+              {lastMsg && (
+                <span className="text-[13px] text-gray-400 shrink-0">
+                  {formatRelativeTime(lastMsg.timestamp)}
+                </span>
+              )}
+            </div>
+            {careType && (
+              <p className="text-sm text-primary-600 font-medium mt-0.5 truncate">
+                {careType}
+              </p>
+            )}
+            {lastMsg && (
+              <p className="text-[15px] text-gray-500 truncate mt-0.5">
+                {lastMsg.text}
+              </p>
+            )}
+          </div>
+        </button>
+
+        {/* Hover action menu — hidden on past items */}
+        {!isPast && (
+          <div className={`absolute right-5 top-5 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuOpenId(isMenuOpen ? null : conn.id);
+              }}
+              className="p-1.5 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+              aria-label="More actions"
+            >
+              <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+              </svg>
+            </button>
+
+            {/* Dropdown */}
+            {isMenuOpen && (
+              <div
+                ref={menuRef}
+                className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10"
+              >
+                {onArchiveConnection && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onArchiveConnection(conn.id);
+                      setMenuOpenId(null);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                    </svg>
+                    Archive
+                  </button>
+                )}
+                {onHideConnection && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onHideConnection(conn.id);
+                      setMenuOpenId(null);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                    Hide
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Loading state
   if (loading) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-4">
-          <h2 className="text-lg font-bold text-gray-900">Inbox</h2>
+        <div className="px-5 py-5">
+          <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 pl-[44px] pr-5 py-4 animate-pulse">
-              <div className="w-11 h-11 rounded-full bg-gray-100 shrink-0" />
-              <div className="flex-1 space-y-2">
+            <div key={i} className="flex items-start gap-3.5 px-5 py-5 animate-pulse">
+              <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
+              <div className="flex-1 space-y-2.5 pt-1">
                 <div className="h-4 bg-gray-100 rounded w-2/3" />
+                <div className="h-3 bg-gray-50 rounded w-1/3" />
                 <div className="h-3 bg-gray-50 rounded w-full" />
               </div>
             </div>
@@ -185,8 +341,8 @@ export default function ConversationList({
   if (connections.length === 0) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-4">
-          <h2 className="text-lg font-bold text-gray-900">Inbox</h2>
+        <div className="px-5 py-5">
+          <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="text-center">
@@ -196,8 +352,8 @@ export default function ConversationList({
                 <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" strokeWidth={1.5} />
               </svg>
             </div>
-            <p className="text-sm font-medium text-gray-900 mb-1">No conversations yet</p>
-            <p className="text-xs text-gray-500 mb-4">Connect with a provider to start messaging</p>
+            <p className="text-[15px] font-medium text-gray-900 mb-1">No conversations yet</p>
+            <p className="text-sm text-gray-500 mb-4">Connect with a provider to start messaging</p>
             <Link
               href="/browse"
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
@@ -216,8 +372,8 @@ export default function ConversationList({
       <div className={`shrink-0 transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
         {searchOpen ? (
           /* Search mode */
-          <div className="pl-[44px] pr-5 py-3.5 flex items-center gap-3">
-            <div className="flex-1 flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
+          <div className="px-5 py-4 flex items-center gap-3">
+            <div className="flex-1 flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2.5">
               <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -226,8 +382,8 @@ export default function ConversationList({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search all messages"
-                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
+                placeholder="Search conversations"
+                className="flex-1 bg-transparent text-[15px] text-gray-900 placeholder:text-gray-400 outline-none"
               />
               {searchQuery && (
                 <button
@@ -249,8 +405,8 @@ export default function ConversationList({
           </div>
         ) : (
           /* Default mode — title + search icon */
-          <div className="pl-[44px] pr-5 py-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Inbox</h2>
+          <div className="px-5 py-5 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
             <button
               onClick={() => setSearchOpen(true)}
               className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -262,92 +418,48 @@ export default function ConversationList({
             </button>
           </div>
         )}
-
-        {/* Filter tabs — hidden during search */}
-        {!searchOpen && (
-          <div className="pl-[44px] pr-5 pb-3 flex items-center gap-2">
-            {FILTERS.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  filter === f.key
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Conversation list */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && pastConnections.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-6">
-            <p className="text-sm text-gray-500">
+            <p className="text-[15px] text-gray-500">
               {searchOpen ? "No results found" : "No conversations"}
             </p>
           </div>
         ) : (
-          filtered.map((conn) => {
-            const isInbound = conn.to_profile_id === activeProfileId;
-            const otherProfile = isInbound ? conn.fromProfile : conn.toProfile;
-            const name = otherProfile?.display_name || "Unknown";
-            const initials = name.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-            const lastMsg = getLastMessage(conn);
-            const isSelected = conn.id === selectedId;
+          <>
+            {filtered.length === 0 && !searchOpen && (
+              <div className="flex flex-col items-center justify-center py-12 px-6">
+                <p className="text-[15px] text-gray-500">No conversations</p>
+              </div>
+            )}
+            {filtered.map((conn) => renderConversationItem(conn))}
 
-            return (
-              <button
-                key={conn.id}
-                onClick={() => onSelect(conn.id)}
-                className={`w-full text-left flex items-start gap-3 pl-[44px] pr-5 py-4 border-b border-gray-100 transition-colors ${
-                  isSelected
-                    ? "bg-primary-50/80"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                {/* Avatar */}
-                {otherProfile?.image_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={otherProfile.image_url}
-                    alt={name}
-                    className="w-11 h-11 rounded-full object-cover shrink-0"
-                  />
-                ) : (
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-white text-sm font-bold"
-                    style={{ background: avatarGradient(name) }}
+            {/* Past conversations accordion */}
+            {pastConnections.length > 0 && !searchOpen && (
+              <>
+                <button
+                  onClick={() => setPastOpen((p) => !p)}
+                  className="w-full flex items-center justify-between px-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
+                >
+                  <span className="text-sm font-semibold text-gray-500">
+                    Past ({pastConnections.length})
+                  </span>
+                  <svg
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${pastOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    {initials}
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`text-sm truncate ${isSelected ? "font-bold text-gray-900" : "font-semibold text-gray-900"}`}>
-                      {name}
-                    </span>
-                    {lastMsg && (
-                      <span className="text-[11px] text-gray-400 shrink-0">
-                        {formatRelativeTime(lastMsg.timestamp)}
-                      </span>
-                    )}
-                  </div>
-                  {lastMsg && (
-                    <p className="text-[13px] text-gray-500 truncate mt-0.5">
-                      {lastMsg.text}
-                    </p>
-                  )}
-                </div>
-              </button>
-            );
-          })
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {pastOpen && pastConnections.map((conn) => renderConversationItem(conn, true))}
+              </>
+            )}
+          </>
         )}
       </div>
     </div>

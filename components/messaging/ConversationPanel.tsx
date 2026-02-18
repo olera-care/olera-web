@@ -147,8 +147,8 @@ export default function ConversationPanel({
               <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" strokeWidth={1.5} />
             </svg>
           </div>
-          <p className="text-base font-medium text-gray-900 mb-1">Select a conversation</p>
-          <p className="text-sm text-gray-500">Choose from your existing conversations to start messaging</p>
+          <p className="text-lg font-medium text-gray-900 mb-1">Select a conversation</p>
+          <p className="text-[15px] text-gray-500">Choose from your existing conversations to start messaging</p>
         </div>
       </div>
     );
@@ -222,11 +222,11 @@ export default function ConversationPanel({
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <Link href={profileHref} className="text-[15px] font-semibold text-gray-900 hover:underline truncate block">
+          <Link href={profileHref} className="text-lg font-semibold text-gray-900 hover:underline truncate block">
             {otherName}
           </Link>
           {otherProfile?.city || otherProfile?.state ? (
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-sm text-gray-500 truncate">
               {[otherProfile.city, otherProfile.state].filter(Boolean).join(", ")}
             </p>
           ) : null}
@@ -236,7 +236,7 @@ export default function ConversationPanel({
         {onToggleDetail && (
           <button
             onClick={onToggleDetail}
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border rounded-lg transition-colors ${
+            className={`hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium border rounded-lg transition-colors ${
               detailOpen
                 ? "text-primary-700 border-primary-200 bg-primary-50 hover:bg-primary-100"
                 : "text-gray-600 border-gray-200 hover:bg-gray-50"
@@ -257,22 +257,22 @@ export default function ConversationPanel({
           {initialNotes && (
             <>
               <div className="flex justify-center py-3">
-                <span className="text-xs font-semibold text-gray-500">
+                <span className="text-sm font-semibold text-gray-500">
                   {formatDateSeparator(connection.created_at)}
                 </span>
               </div>
               {isInbound ? (
-                <p className="text-xs text-gray-400 mb-1">{otherName} &middot; {formatTime(connection.created_at)}</p>
+                <p className="text-sm text-gray-400 mb-1">{otherName} &middot; {formatTime(connection.created_at)}</p>
               ) : (
-                <p className="text-xs text-gray-400 text-right mb-1">{formatTime(connection.created_at)}</p>
+                <p className="text-sm text-gray-400 text-right mb-1">{formatTime(connection.created_at)}</p>
               )}
               <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
                 <div className={`max-w-[65%] rounded-2xl px-4 py-3 ${
                   isInbound
                     ? "bg-gray-100 text-gray-800"
-                    : "bg-gray-800 text-white"
+                    : "bg-primary-600 text-white"
                 }`}>
-                  <p className="text-[15px] leading-relaxed">{initialNotes}</p>
+                  <p className="text-base leading-relaxed">{initialNotes}</p>
                 </div>
               </div>
             </>
@@ -281,8 +281,8 @@ export default function ConversationPanel({
           {/* Connected milestone */}
           {connection.status === "accepted" && (
             <div className="flex justify-center py-3">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
                 Connected
@@ -303,13 +303,13 @@ export default function ConversationPanel({
                 <div key={i}>
                   {showSeparator && (
                     <div className="flex justify-center py-3">
-                      <span className="text-xs font-semibold text-gray-500">
+                      <span className="text-sm font-semibold text-gray-500">
                         {formatDateSeparator(msg.created_at)}
                       </span>
                     </div>
                   )}
                   <div className="flex justify-center">
-                    <span className="text-xs text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">
+                    <span className="text-[13px] text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full">
                       {msg.text}
                     </span>
                   </div>
@@ -333,7 +333,7 @@ export default function ConversationPanel({
                 <div key={i}>
                   {showSeparator && (
                     <div className="flex justify-center py-3">
-                      <span className="text-xs font-semibold text-gray-500">
+                      <span className="text-sm font-semibold text-gray-500">
                         {formatDateSeparator(msg.created_at)}
                       </span>
                     </div>
@@ -342,15 +342,15 @@ export default function ConversationPanel({
                     <div className="max-w-[65%]">
                       <div className={`rounded-2xl overflow-hidden border ${
                         isOwn
-                          ? "bg-gray-800 border-gray-700"
+                          ? "bg-primary-600 border-primary-500"
                           : "bg-white border-gray-200"
                       }`}>
                         <div className={`flex items-center gap-2 px-4 py-2 border-b ${
-                          isOwn ? "border-gray-700" : "border-gray-100 bg-gray-50"
+                          isOwn ? "border-primary-500" : "border-gray-100 bg-gray-50"
                         }`}>
-                          <StepIcon className={`w-3.5 h-3.5 ${isOwn ? "text-gray-400" : "text-gray-500"}`} />
+                          <StepIcon className={`w-3.5 h-3.5 ${isOwn ? "text-primary-200" : "text-gray-500"}`} />
                           <span className={`text-xs font-bold uppercase tracking-wider ${
-                            isOwn ? "text-gray-400" : "text-gray-600"
+                            isOwn ? "text-primary-200" : "text-gray-600"
                           }`}>
                             {stepLabel}
                           </span>
@@ -361,7 +361,7 @@ export default function ConversationPanel({
                           }`}>{msg.text}</p>
                         </div>
                       </div>
-                      <p className={`text-xs mt-1 ${isOwn ? "text-right" : "text-left"} text-gray-400`}>
+                      <p className={`text-sm mt-1 ${isOwn ? "text-right" : "text-left"} text-gray-400`}>
                         {msgTime}
                       </p>
                     </div>
@@ -375,23 +375,23 @@ export default function ConversationPanel({
               <div key={i}>
                 {showSeparator && (
                   <div className="flex justify-center py-3">
-                    <span className="text-xs font-semibold text-gray-500">
+                    <span className="text-sm font-semibold text-gray-500">
                       {formatDateSeparator(msg.created_at)}
                     </span>
                   </div>
                 )}
                 {isOwn ? (
-                  <p className="text-xs text-gray-400 text-right mb-1">{msgTime}</p>
+                  <p className="text-sm text-gray-400 text-right mb-1">{msgTime}</p>
                 ) : (
-                  <p className="text-xs text-gray-400 mb-1">{otherName} &middot; {msgTime}</p>
+                  <p className="text-sm text-gray-400 mb-1">{otherName} &middot; {msgTime}</p>
                 )}
                 <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[65%] rounded-2xl px-4 py-3 ${
                     isOwn
-                      ? "bg-gray-800 text-white"
+                      ? "bg-primary-600 text-white"
                       : "bg-gray-100 text-gray-800"
                   }`}>
-                    <p className="text-[15px] leading-relaxed">{msg.text}</p>
+                    <p className="text-base leading-relaxed">{msg.text}</p>
                   </div>
                 </div>
               </div>
@@ -406,8 +406,8 @@ export default function ConversationPanel({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </div>
-              <p className="text-sm text-gray-500">No messages yet</p>
-              <p className="text-xs text-gray-400 mt-1">Send the first message to start the conversation</p>
+              <p className="text-[15px] text-gray-500">No messages yet</p>
+              <p className="text-sm text-gray-400 mt-1">Send the first message to start the conversation</p>
             </div>
           )}
         </div>
@@ -416,15 +416,6 @@ export default function ConversationPanel({
       {/* ── Response time hint + Message input ── */}
       {showMessageInput && (
         <div className="shrink-0 border-t border-gray-200 bg-white">
-          {/* Response time hint */}
-          <div className="flex items-center justify-center gap-1.5 py-2.5 bg-gray-50/80 border-b border-gray-100">
-            <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" strokeWidth={1.5} />
-              <path strokeLinecap="round" strokeWidth={1.5} d="M12 6v6l4 2" />
-            </svg>
-            <span className="text-xs text-gray-500">Providers typically respond within a few hours</span>
-          </div>
-
           {/* Input area */}
           <div className="pl-6 pr-[44px] py-4">
             <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
@@ -445,7 +436,7 @@ export default function ConversationPanel({
                 placeholder={messagePlaceholder}
                 disabled={sending}
                 rows={1}
-                className="w-full px-4 pt-3.5 pb-1 text-[15px] text-gray-900 placeholder:text-gray-400 outline-none resize-none disabled:opacity-50 leading-relaxed bg-transparent"
+                className="w-full px-4 pt-3.5 pb-1 text-base text-gray-900 placeholder:text-gray-400 outline-none resize-none disabled:opacity-50 leading-relaxed bg-transparent"
               />
               <div className="flex items-center justify-end px-3 pb-3">
                 <button
@@ -454,7 +445,7 @@ export default function ConversationPanel({
                   disabled={sending || !messageText.trim()}
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                     messageText.trim()
-                      ? "bg-gray-900 text-white hover:bg-gray-800"
+                      ? "bg-primary-600 text-white hover:bg-primary-700"
                       : "bg-gray-200 text-gray-400"
                   }`}
                 >

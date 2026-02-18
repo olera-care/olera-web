@@ -76,13 +76,13 @@ export default function ProviderDetailPanel({
     <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
       {/* Header */}
       <div className="shrink-0 pl-5 pr-[44px] h-[68px] border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900">Details</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Details</h3>
         <button
           onClick={onClose}
           className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
           aria-label="Close details"
         >
-          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -143,16 +143,16 @@ export default function ProviderDetailPanel({
             {profile.display_name}
           </h2>
           {category && (
-            <p className="text-sm text-gray-500 mt-1">{category}</p>
+            <p className="text-[15px] text-gray-500 mt-1">{category}</p>
           )}
           {location && (
-            <p className="text-sm text-gray-500 mt-0.5">{location}</p>
+            <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>
           )}
 
           {/* Description */}
           {profile.description && (
             <div className="mt-4 pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">
+              <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-4">
                 {profile.description}
               </p>
             </div>
@@ -161,12 +161,12 @@ export default function ProviderDetailPanel({
           {/* Care types */}
           {careTypes.length > 0 && (
             <div className="mt-4 pt-4 border-t border-gray-100">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Services</h4>
+              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Services</h4>
               <div className="flex flex-wrap gap-1.5">
                 {careTypes.map((ct) => (
                   <span
                     key={ct}
-                    className="text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
+                    className="text-sm font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full"
                   >
                     {ct}
                   </span>
@@ -178,9 +178,9 @@ export default function ProviderDetailPanel({
           {/* Contact info */}
           {(profile.phone || profile.email || profile.website) && (
             <div className="mt-4 pt-4 border-t border-gray-100 space-y-2.5">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Contact</h4>
+              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Contact</h4>
               {profile.phone && (
-                <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
                   <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
@@ -188,7 +188,7 @@ export default function ProviderDetailPanel({
                 </div>
               )}
               {profile.email && (
-                <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
                   <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
@@ -196,7 +196,7 @@ export default function ProviderDetailPanel({
                 </div>
               )}
               {profile.website && (
-                <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
                   <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
                   </svg>
@@ -218,7 +218,7 @@ export default function ProviderDetailPanel({
         <div className="pl-5 pr-[44px] pb-[44px]">
           <Link
             href={profileHref}
-            className="block w-full text-center py-2.5 text-sm font-semibold text-gray-900 border border-gray-900 rounded-lg hover:bg-gray-900 hover:text-white transition-colors"
+            className="block w-full text-center py-3 text-[15px] font-semibold text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-600 hover:text-white transition-colors"
           >
             View full profile
           </Link>

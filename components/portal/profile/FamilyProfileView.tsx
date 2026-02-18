@@ -270,7 +270,7 @@ export default function FamilyProfileView() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl">
       <div className="rounded-xl bg-white border border-gray-200 divide-y divide-gray-100">
       {/* ── Profile Header ── */}
       <div className={`${editingSection === 0 ? "bg-gray-50/50" : ""} transition-colors`}>

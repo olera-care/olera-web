@@ -253,7 +253,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl">
       {justUpgraded && (
         <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base mb-5">
           Your subscription is now active. You have full access to all features.

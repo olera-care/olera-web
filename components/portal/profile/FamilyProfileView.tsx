@@ -270,9 +270,10 @@ export default function FamilyProfileView() {
   };
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="max-w-2xl mx-auto">
+      <div className="rounded-xl bg-white border border-gray-200 divide-y divide-gray-100">
       {/* ── Profile Header ── */}
-      <section className={`rounded-xl bg-white border ${editingSection === 0 ? "border-primary-200" : "border-gray-100"} overflow-hidden transition-colors`}>
+      <div className={`${editingSection === 0 ? "bg-gray-50/50" : ""} transition-colors`}>
         <div className="p-6 flex items-center gap-5">
           <div className="shrink-0">
             <div className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-xs flex items-center justify-center">
@@ -383,7 +384,7 @@ export default function FamilyProfileView() {
             </div>
           </div>
         )}
-      </section>
+      </div>
 
       {/* ── Contact Information ── */}
       <SectionCard
@@ -579,6 +580,7 @@ export default function FamilyProfileView() {
           <ViewRow label="About the care situation" value={meta.about_situation ? (meta.about_situation.length > 80 ? meta.about_situation.slice(0, 80) + "..." : meta.about_situation) : null} />
         </div>
       </SectionCard>
+      </div>
     </div>
   );
 }
@@ -625,7 +627,7 @@ function SectionCard({
   const editLabel = isEditing ? "Cancel" : status === "empty" ? "Add \u2192" : "Edit";
 
   return (
-    <section className={`rounded-xl bg-white border ${isEditing ? "border-primary-200" : "border-gray-100 hover:border-gray-200"} p-6 transition-all duration-200`}>
+    <div className={`p-6 ${isEditing ? "bg-gray-50/50" : ""} transition-colors`}>
       {/* Header row */}
       <div className="flex items-center gap-2.5 mb-4">
         <h3 className="text-[15px] font-semibold text-gray-900">{title}</h3>
@@ -653,7 +655,7 @@ function SectionCard({
           {children}
         </div>
       )}
-    </section>
+    </div>
   );
 }
 

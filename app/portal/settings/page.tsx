@@ -253,20 +253,16 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full overflow-y-auto">
-    <div className="space-y-5 max-w-2xl">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900">Account Settings</h2>
-        <p className="text-sm text-gray-500 mt-1">Manage your notifications, login, and preferences.</p>
-      </div>
+    <div className="max-w-2xl mx-auto">
       {justUpgraded && (
-        <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base">
+        <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base mb-5">
           Your subscription is now active. You have full access to all features.
         </div>
       )}
 
+      <div className="rounded-xl bg-white border border-gray-200 divide-y divide-gray-100">
       {/* ── Notifications ── */}
-      <section className="rounded-xl bg-white border border-gray-100 p-6">
+      <div className="p-6">
         <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Notifications</h3>
         <div className="divide-y divide-gray-50">
           <NotificationRow
@@ -306,10 +302,10 @@ export default function SettingsPage() {
             }
           />
         </div>
-      </section>
+      </div>
 
       {/* ── Account ── */}
-      <section className="rounded-xl bg-white border border-gray-100 p-6">
+      <div className="p-6">
         <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Account</h3>
         <div className="divide-y divide-gray-100">
           <AccountRow
@@ -357,15 +353,15 @@ export default function SettingsPage() {
             isPassword
           />
         </div>
-      </section>
+      </div>
 
       {/* ── Add Provider Profile (family only) ── */}
       {isFamily && (
-        <section>
+        <div className="p-6">
           <button
             type="button"
             onClick={() => setShowProviderModal(true)}
-            className="w-full text-left flex items-center gap-4 rounded-xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-200 group"
+            className="w-full text-left flex items-center gap-4 rounded-lg p-4 hover:bg-gray-50 transition-colors group -mx-1"
           >
             <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
               <svg
@@ -404,7 +400,7 @@ export default function SettingsPage() {
               />
             </svg>
           </button>
-        </section>
+        </div>
       )}
 
       {/* Add Provider Profile Confirmation Modal */}
@@ -460,7 +456,7 @@ export default function SettingsPage() {
 
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
-        <section className="rounded-xl bg-white border border-gray-100 p-6">
+        <div className="p-6">
           <h3 className="text-[15px] font-semibold text-gray-900 mb-5">
             Subscription
           </h3>
@@ -586,11 +582,11 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
-        </section>
+        </div>
       )}
 
       {/* ── Remove this profile ── */}
-      <section className="rounded-xl bg-white border border-gray-100 p-6">
+      <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-[15px] font-semibold text-gray-900">
@@ -618,10 +614,10 @@ export default function SettingsPage() {
             </span>
           )}
         </div>
-      </section>
+      </div>
 
       {/* ── Delete Account ── */}
-      <section className="rounded-xl bg-white border border-gray-100 p-6">
+      <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-[15px] font-semibold text-gray-900">
@@ -640,7 +636,8 @@ export default function SettingsPage() {
             Delete
           </button>
         </div>
-      </section>
+      </div>
+      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -809,7 +806,6 @@ export default function SettingsPage() {
           </div>
         </div>
       </Modal>
-    </div>
     </div>
   );
 }

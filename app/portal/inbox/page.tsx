@@ -265,14 +265,14 @@ function InboxContent() {
       {/* Right panel — provider details (animated width) */}
       {otherProfile && (
         <div
-          className={`hidden lg:block shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
+          className={`hidden lg:flex shrink-0 overflow-hidden transition-[width] duration-300 ease-in-out ${
             detailOpen ? "w-[360px]" : "w-0"
           }`}
         >
           <ProviderDetailPanel
             profile={otherProfile}
             onClose={() => setDetailOpen(false)}
-            className="flex w-[360px]"
+            className="flex w-[360px] h-full"
           />
         </div>
       )}

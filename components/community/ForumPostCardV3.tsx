@@ -60,7 +60,16 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likeCount);
   const careTypeConfig = CARE_TYPE_CONFIG[post.careType];
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsLiked((prev) => !prev);
+    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+  };
 
   const handleReport = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -201,14 +210,17 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
             No replies
           </span>
         )}
-        {post.likeCount > 0 && (
-          <span className="flex items-center gap-1.5">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            {post.likeCount}
-          </span>
-        )}
+        <button
+          onClick={handleLike}
+          className={`flex items-center gap-1.5 transition-colors ${
+            isLiked ? "text-red-500" : "text-gray-400 hover:text-red-400"
+          }`}
+        >
+          <svg className="w-4 h-4" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+          </svg>
+          {likeCount > 0 && <span>{likeCount}</span>}
+        </button>
         <span className="flex items-center gap-1.5 ml-auto">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

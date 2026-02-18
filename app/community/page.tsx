@@ -388,7 +388,7 @@ function CommunityPageContent() {
 
       {/* ── Posts list ── */}
       <div className="px-8 py-6">
-        <div className="max-w-2xl">
+        <div>
           {/* Section heading */}
           <div className="flex items-baseline gap-2 mb-4">
             <h3 className="text-base font-semibold text-gray-900">

@@ -647,25 +647,29 @@ function CommunityPageContent() {
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a5545] via-[#234a3c] to-[#1b3930] shadow-lg">
                   {/* Decorative background elements */}
                   <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/[0.05]" />
-                  <div className="absolute top-14 right-1 w-16 h-16 rounded-full bg-white/[0.03]" />
+                  <div className="absolute top-16 right-0 w-16 h-16 rounded-full bg-white/[0.03]" />
                   <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/[0.03]" />
 
-                  {/* Main content */}
-                  <div className="relative px-6 pt-7 pb-6">
-                    {/* Hero icon — visual anchor */}
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.12] backdrop-blur-sm flex items-center justify-center mb-5">
-                      <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {/* ── Stack 1: Icon + Title + Subtitle + CTA ── */}
+                  <div className="relative flex flex-col px-6 pt-7 pb-6">
+                    {/* Hero icon */}
+                    <div className="w-11 h-11 rounded-xl bg-white/[0.12] backdrop-blur-sm flex items-center justify-center mb-4">
+                      <svg className="w-5 h-5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                     </div>
 
-                    <h3 className="text-lg font-bold text-white leading-snug min-h-[52px] tracking-[-0.01em]">
-                      {BANNER_COPY[activeCategory].title}
-                    </h3>
-                    <p className="text-[13px] text-white/60 leading-relaxed mt-1.5 mb-6">
-                      {BANNER_COPY[activeCategory].subtitle}
-                    </p>
+                    {/* Title + subtitle as one tight group */}
+                    <div className="min-h-[72px] mb-5">
+                      <h3 className="text-lg font-bold text-white leading-snug tracking-[-0.01em]">
+                        {BANNER_COPY[activeCategory].title}
+                      </h3>
+                      <p className="text-sm text-white/70 leading-relaxed mt-1">
+                        {BANNER_COPY[activeCategory].subtitle}
+                      </p>
+                    </div>
 
+                    {/* Primary CTA */}
                     <Link
                       href={activeCategory === "all" ? "/browse" : `/browse?type=${activeCategory}`}
                       className="group flex items-center justify-center w-full px-5 py-3 bg-white text-gray-900 text-sm font-semibold rounded-xl hover:shadow-md hover:shadow-black/10 transition-all duration-200 gap-2"
@@ -677,33 +681,33 @@ function CommunityPageContent() {
                     </Link>
                   </div>
 
-                  {/* Secondary links */}
-                  <div className="relative px-6 pb-5 space-y-1">
+                  {/* ── Stack 2: Secondary links ── */}
+                  <div className="relative px-6 pb-6 pt-2 space-y-1">
                     <Link
                       href="/benefits"
-                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-[13px] font-medium text-white/55 hover:text-white/90 hover:bg-white/[0.08] transition-all duration-200"
+                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-200"
                     >
-                      <span className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0 group-hover:bg-white/[0.12] transition-colors duration-200">
-                        <svg className="w-4 h-4 text-white/60 group-hover:text-white/80 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="w-8 h-8 rounded-lg bg-white/[0.10] flex items-center justify-center shrink-0 group-hover:bg-white/[0.15] transition-colors duration-200">
+                        <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                       </span>
                       <span className="flex-1">Check your benefits</span>
-                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </Link>
                     <Link
                       href="/resources"
-                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-[13px] font-medium text-white/55 hover:text-white/90 hover:bg-white/[0.08] transition-all duration-200"
+                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-200"
                     >
-                      <span className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0 group-hover:bg-white/[0.12] transition-colors duration-200">
-                        <svg className="w-4 h-4 text-white/60 group-hover:text-white/80 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="w-8 h-8 rounded-lg bg-white/[0.10] flex items-center justify-center shrink-0 group-hover:bg-white/[0.15] transition-colors duration-200">
+                        <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                       </span>
                       <span className="flex-1">Talk to our care team</span>
-                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </Link>

@@ -651,16 +651,16 @@ function CommunityPageContent() {
                   <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/[0.03]" />
 
                   {/* ── Stack 1: Icon + Title + Subtitle + CTA ── */}
-                  <div className="relative flex flex-col px-6 pt-7 pb-6">
+                  <div className="relative flex flex-col px-6 pt-7 pb-2">
                     {/* Hero icon */}
-                    <div className="w-11 h-11 rounded-xl bg-white/[0.12] backdrop-blur-sm flex items-center justify-center mb-4">
+                    <div className="w-11 h-11 rounded-xl bg-white/[0.12] backdrop-blur-sm flex items-center justify-center mb-3.5">
                       <svg className="w-5 h-5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                     </div>
 
                     {/* Title + subtitle as one tight group */}
-                    <div className="min-h-[72px] mb-5">
+                    <div className="min-h-[72px] mb-4">
                       <h3 className="text-lg font-bold text-white leading-snug tracking-[-0.01em]">
                         {BANNER_COPY[activeCategory].title}
                       </h3>

@@ -12,6 +12,7 @@ import Pagination from "@/components/ui/Pagination";
 import { getPostsByCategory, getPostBySlug } from "@/data/mock/forumPosts";
 import { getCommentsByPostId } from "@/data/mock/forumComments";
 import { ForumPost, CareTypeId, CARE_TYPE_CONFIG, ALL_CARE_TYPES } from "@/types/forum";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 // Sort options
 type SortOption = "newest" | "oldest" | "most-likes" | "most-views" | "most-comments";
@@ -59,6 +60,7 @@ const POSTS_PER_PAGE = 10;
 function CommunityPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, openAuth } = useAuth();
 
   // Prevent hydration flash
   const [isMounted, setIsMounted] = useState(false);
@@ -84,6 +86,7 @@ function CommunityPageContent() {
   const [composerErrors, setComposerErrors] = useState({ title: "", content: "", category: "" });
   const [currentPage, setCurrentPage] = useState(1);
   const [showGuidelines, setShowGuidelines] = useState(false);
+  const [bannerStyle, setBannerStyle] = useState<"current" | "whisper" | "soft" | "warm">("current");
 
   const sortMenuRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -234,6 +237,13 @@ function CommunityPageContent() {
     };
     setComposerErrors(errors);
     if (Object.values(errors).some(e => e !== "")) return;
+
+    // Auth gate: prompt sign-in at submit time, preserving draft in state
+    if (!user) {
+      openAuth({ defaultMode: "sign-up", intent: "family" });
+      return;
+    }
+
     console.log("Submitting post:", { title: composerTitle, content: composerText, category: composerCategory });
     resetComposer();
   };
@@ -643,28 +653,83 @@ function CommunityPageContent() {
           {!splitViewSelectedId && (
             <aside className="hidden lg:block w-[320px] shrink-0 border-l border-gray-200 h-[calc(100vh-64px)] sticky top-16 overflow-y-auto">
               <div className="p-5">
+                {/* Style preview toggle (temporary) */}
+                <div className="flex items-center gap-1 mb-3">
+                  {(["current", "whisper", "soft", "warm"] as const).map((style) => (
+                    <button
+                      key={style}
+                      type="button"
+                      onClick={() => setBannerStyle(style)}
+                      className={`text-[10px] font-medium px-2 py-1 rounded-full transition-colors ${
+                        bannerStyle === style
+                          ? "bg-gray-900 text-white"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
+                    >
+                      {style === "current" ? "Current" : style === "whisper" ? "A" : style === "soft" ? "B" : "C"}
+                    </button>
+                  ))}
+                  <span className="text-[10px] text-gray-400 ml-1">
+                    {bannerStyle === "current" ? "Dark" : bannerStyle === "whisper" ? "Whisper" : bannerStyle === "soft" ? "Soft Tint" : "Warm Gradient"}
+                  </span>
+                </div>
+
                 {/* Single cohesive card */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a5545] via-[#234a3c] to-[#1b3930] shadow-lg">
-                  {/* Decorative background elements */}
-                  <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/[0.05]" />
-                  <div className="absolute top-16 right-0 w-16 h-16 rounded-full bg-white/[0.03]" />
-                  <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/[0.03]" />
+                <div className={`relative overflow-hidden rounded-2xl ${
+                  bannerStyle === "current"
+                    ? "bg-gradient-to-br from-[#2a5545] via-[#234a3c] to-[#1b3930] shadow-lg"
+                    : bannerStyle === "whisper"
+                    ? "bg-white border border-gray-200 shadow-xs"
+                    : bannerStyle === "soft"
+                    ? "bg-primary-25 border border-primary-100 shadow-xs"
+                    : "bg-gradient-to-br from-primary-50 via-primary-25 to-white border border-primary-100/80 shadow-sm"
+                }`}>
+                  {/* Decorative background elements — current style only */}
+                  {bannerStyle === "current" && (
+                    <>
+                      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/[0.05]" />
+                      <div className="absolute top-16 right-0 w-16 h-16 rounded-full bg-white/[0.03]" />
+                      <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/[0.03]" />
+                    </>
+                  )}
 
                   {/* ── Stack 1: Icon + Title + Subtitle + CTA ── */}
-                  <div className="relative flex flex-col px-6 pt-7 pb-2">
+                  <div className="relative flex flex-col px-6 pt-6 pb-3">
                     {/* Hero icon */}
-                    <div className="w-11 h-11 rounded-xl bg-white/[0.12] backdrop-blur-sm flex items-center justify-center mb-3.5">
-                      <svg className="w-5 h-5 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3.5 ${
+                      bannerStyle === "current"
+                        ? "bg-white/[0.12] backdrop-blur-sm"
+                        : bannerStyle === "whisper"
+                        ? "bg-primary-50"
+                        : bannerStyle === "soft"
+                        ? "bg-primary-100"
+                        : "bg-primary-100 border border-primary-200/50"
+                    }`}>
+                      <svg className={`w-5 h-5 ${
+                        bannerStyle === "current" ? "text-white/90" : "text-primary-600"
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                     </div>
 
                     {/* Title + subtitle as one tight group */}
                     <div className="mb-2.5">
-                      <h3 className="text-lg font-bold text-white leading-snug tracking-[-0.01em]">
+                      <h3 className={`text-lg font-bold leading-snug tracking-[-0.01em] ${
+                        bannerStyle === "current"
+                          ? "text-white"
+                          : bannerStyle === "warm"
+                          ? "text-primary-900"
+                          : "text-gray-900"
+                      }`}>
                         {BANNER_COPY[activeCategory].title}
                       </h3>
-                      <p className="text-sm text-white/70 leading-relaxed mt-1">
+                      <p className={`text-sm leading-relaxed mt-1 ${
+                        bannerStyle === "current"
+                          ? "text-white/70"
+                          : bannerStyle === "whisper"
+                          ? "text-gray-500"
+                          : "text-gray-600"
+                      }`}>
                         {BANNER_COPY[activeCategory].subtitle}
                       </p>
                     </div>
@@ -672,7 +737,15 @@ function CommunityPageContent() {
                     {/* Primary CTA */}
                     <Link
                       href={activeCategory === "all" ? "/browse" : `/browse?type=${activeCategory}`}
-                      className="group flex items-center justify-center w-full px-5 py-3 bg-white text-gray-900 text-sm font-semibold rounded-xl hover:shadow-md hover:shadow-black/10 transition-all duration-200 gap-2"
+                      className={`group flex items-center justify-center w-full px-5 py-3 text-sm font-semibold rounded-xl transition-all duration-200 gap-2 ${
+                        bannerStyle === "current"
+                          ? "bg-white text-gray-900 hover:shadow-md hover:shadow-black/10"
+                          : bannerStyle === "whisper"
+                          ? "bg-primary-600 text-white hover:bg-primary-700"
+                          : bannerStyle === "soft"
+                          ? "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-sm"
+                          : "bg-primary-600 text-white hover:bg-primary-700 hover:shadow-md"
+                      }`}
                     >
                       Find providers
                       <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -681,36 +754,103 @@ function CommunityPageContent() {
                     </Link>
                   </div>
 
+                  {/* Divider between stacks (light styles only) */}
+                  {bannerStyle !== "current" && (
+                    <div className={`mx-6 ${
+                      bannerStyle === "soft" ? "border-t border-primary-100/60" : bannerStyle === "warm" ? "border-t border-primary-100/40" : "border-t border-gray-100"
+                    }`} />
+                  )}
+
                   {/* ── Stack 2: Secondary links ── */}
                   <div className="relative px-6 pb-5 pt-2 space-y-1">
                     <Link
                       href="/benefits"
-                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-200"
+                      className={`group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                        bannerStyle === "current"
+                          ? "text-white/70 hover:text-white hover:bg-white/[0.08]"
+                          : bannerStyle === "whisper"
+                          ? "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                          : bannerStyle === "soft"
+                          ? "text-gray-600 hover:text-gray-900 hover:bg-primary-50"
+                          : "text-primary-700 hover:text-primary-900 hover:bg-primary-50"
+                      }`}
                     >
-                      <span className="w-8 h-8 rounded-lg bg-white/[0.10] flex items-center justify-center shrink-0 group-hover:bg-white/[0.15] transition-colors duration-200">
-                        <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200 ${
+                        bannerStyle === "current"
+                          ? "bg-white/[0.10] group-hover:bg-white/[0.15]"
+                          : bannerStyle === "whisper"
+                          ? "bg-gray-100 group-hover:bg-primary-50"
+                          : bannerStyle === "soft"
+                          ? "bg-primary-50 group-hover:bg-primary-100"
+                          : "bg-white/80 border border-primary-100 group-hover:bg-primary-50"
+                      }`}>
+                        <svg className={`w-4 h-4 transition-colors ${
+                          bannerStyle === "current"
+                            ? "text-white/70 group-hover:text-white"
+                            : bannerStyle === "whisper"
+                            ? "text-gray-400 group-hover:text-primary-600"
+                            : "text-primary-500 group-hover:text-primary-600"
+                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                       </span>
                       <span className="flex-1">Check your benefits</span>
-                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className={`w-3.5 h-3.5 transition-colors ${
+                        bannerStyle === "current"
+                          ? "text-white/30 group-hover:text-white/60"
+                          : bannerStyle === "whisper"
+                          ? "text-gray-300 group-hover:text-gray-500"
+                          : bannerStyle === "soft"
+                          ? "text-gray-300 group-hover:text-gray-500"
+                          : "text-primary-300 group-hover:text-primary-500"
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </Link>
-                    <Link
-                      href="/resources"
-                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-200"
+                    <button
+                      type="button"
+                      className={`group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-sm font-medium transition-all duration-200 w-full cursor-pointer ${
+                        bannerStyle === "current"
+                          ? "text-white/70 hover:text-white hover:bg-white/[0.08]"
+                          : bannerStyle === "whisper"
+                          ? "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                          : bannerStyle === "soft"
+                          ? "text-gray-600 hover:text-gray-900 hover:bg-primary-50"
+                          : "text-primary-700 hover:text-primary-900 hover:bg-primary-50"
+                      }`}
                     >
-                      <span className="w-8 h-8 rounded-lg bg-white/[0.10] flex items-center justify-center shrink-0 group-hover:bg-white/[0.15] transition-colors duration-200">
-                        <svg className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200 ${
+                        bannerStyle === "current"
+                          ? "bg-white/[0.10] group-hover:bg-white/[0.15]"
+                          : bannerStyle === "whisper"
+                          ? "bg-gray-100 group-hover:bg-primary-50"
+                          : bannerStyle === "soft"
+                          ? "bg-primary-50 group-hover:bg-primary-100"
+                          : "bg-white/80 border border-primary-100 group-hover:bg-primary-50"
+                      }`}>
+                        <svg className={`w-4 h-4 transition-colors ${
+                          bannerStyle === "current"
+                            ? "text-white/70 group-hover:text-white"
+                            : bannerStyle === "whisper"
+                            ? "text-gray-400 group-hover:text-primary-600"
+                            : "text-primary-500 group-hover:text-primary-600"
+                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                       </span>
-                      <span className="flex-1">Talk to our care team</span>
-                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/60 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <span className="flex-1 text-left">Talk to our care team</span>
+                      <svg className={`w-3.5 h-3.5 transition-colors ${
+                        bannerStyle === "current"
+                          ? "text-white/30 group-hover:text-white/60"
+                          : bannerStyle === "whisper"
+                          ? "text-gray-300 group-hover:text-gray-500"
+                          : bannerStyle === "soft"
+                          ? "text-gray-300 group-hover:text-gray-500"
+                          : "text-primary-300 group-hover:text-primary-500"
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>

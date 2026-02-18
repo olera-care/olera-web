@@ -46,6 +46,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           <DefaultActions
             phone={phone}
             phoneRevealed={hook.phoneRevealed}
+            isAuthenticated={hook.isAuthenticated}
             onConnect={hook.startFlow}
             onRevealPhone={hook.revealPhone}
             onSignIn={hook.signIn}

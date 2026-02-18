@@ -36,7 +36,7 @@ const ALL_NAV_ITEMS = [
 
 export default function PortalLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { user, account, activeProfile, isLoading, fetchError, refreshAccountData } = useAuth();
+  const { user, account, activeProfile, isLoading, fetchError, refreshAccountData, openAuth } = useAuth();
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const completeness = useProfileCompleteness(activeProfile ?? null, user?.email);
   const { pendingCount: interestedCount } = useInterestedProviders(
@@ -61,9 +61,20 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             Sign in required
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 mb-6">
             You need to be signed in to access the portal.
           </p>
+          <div className="flex items-center justify-center gap-3">
+            <Button size="sm" onClick={() => openAuth({ defaultMode: "sign-in" })}>
+              Sign in
+            </Button>
+            <Link
+              href="/"
+              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Back to home
+            </Link>
+          </div>
         </div>
       </div>
     );

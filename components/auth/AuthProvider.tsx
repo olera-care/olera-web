@@ -292,16 +292,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       if (cancelled) return;
 
-      if (!session?.user) {
-        clearAuthCache();
-        setState({ ...EMPTY_STATE, isLoading: false });
-        // Allow the SIGNED_IN listener to handle sign-ups that happen after page load
-        initHandlingRef.current = false;
-        console.timeEnd("[olera] init");
-        return;
-      }
+      let userId: string;
+      let userEmail: string | undefined;
+      let emailConfirmedAt: string | undefined;
 
-      const userId = session.user.id;
+      if (session?.user) {
+        userId = session.user.id;
+        userEmail = session.user.email;
+        emailConfirmedAt = session.user.email_confirmed_at ?? undefined;
+      } else {
+        // getSession() reads cookies locally and can fail due to chunking,
+        // timing, or token refresh races (especially in new tabs).
+        // Fall back to getUser() which validates server-side.
+        const { data: { user: validatedUser } } = await supabase.auth.getUser();
+
+        if (cancelled) return;
+
+        if (!validatedUser) {
+          // Truly no session — clear everything
+          clearAuthCache();
+          setState({ ...EMPTY_STATE, isLoading: false });
+          initHandlingRef.current = false;
+          console.timeEnd("[olera] init");
+          return;
+        }
+
+        userId = validatedUser.id;
+        userEmail = validatedUser.email;
+        emailConfirmedAt = validatedUser.email_confirmed_at ?? undefined;
+      }
 
       // Restore cached data immediately — no loading screens, correct
       // initials, full portal rendered on first paint.
@@ -309,7 +328,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const hasCachedData = !!cached?.account;
 
       setState({
-        user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
+        user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
         account: cached?.account ?? null,
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],

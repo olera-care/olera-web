@@ -457,6 +457,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     pendingRequestDate,
     availableCareTypes,
     notificationEmail,
+    isAuthenticated: !!user,
 
     // Navigation
     startFlow,

@@ -380,8 +380,10 @@ export default function Navbar() {
                             </>
                           )
                         ) : (
-                          <div className="px-5 py-3 text-sm text-gray-400">
-                            Loading account...
+                          <div className="px-5 py-3 space-y-2.5">
+                            <div className="h-3.5 w-28 bg-gray-100 rounded animate-pulse" />
+                            <div className="h-3.5 w-36 bg-gray-100 rounded animate-pulse" />
+                            <div className="h-3.5 w-24 bg-gray-100 rounded animate-pulse" />
                           </div>
                         )}
 
@@ -759,7 +761,11 @@ export default function Navbar() {
                         </>
                       )
                     ) : (
-                      <p className="py-3 text-sm text-gray-400">Loading account...</p>
+                      <div className="py-3 space-y-2.5">
+                        <div className="h-3.5 w-28 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-3.5 w-36 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-3.5 w-24 bg-gray-100 rounded animate-pulse" />
+                      </div>
                     )}
 
                     {/* Profile switcher — only when account loaded */}

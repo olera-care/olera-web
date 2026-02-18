@@ -5,6 +5,7 @@ import PhoneButton from "./PhoneButton";
 interface DefaultActionsProps {
   phone: string | null;
   phoneRevealed: boolean;
+  isAuthenticated: boolean;
   onConnect: () => void;
   onRevealPhone: () => void;
   onSignIn: () => void;
@@ -13,6 +14,7 @@ interface DefaultActionsProps {
 export default function DefaultActions({
   phone,
   phoneRevealed,
+  isAuthenticated,
   onConnect,
   onRevealPhone,
   onSignIn,
@@ -43,16 +45,18 @@ export default function DefaultActions({
         </p>
       )}
 
-      {/* Sign-in nudge for returning users */}
-      <p className="text-xs text-gray-400 text-center mt-3">
-        Already connected?{" "}
-        <button
-          onClick={onSignIn}
-          className="text-primary-600 hover:text-primary-500 font-medium bg-transparent border-none cursor-pointer p-0 underline underline-offset-2 transition-colors"
-        >
-          Sign in
-        </button>
-      </p>
+      {/* Sign-in nudge — only for unauthenticated users */}
+      {!isAuthenticated && (
+        <p className="text-xs text-gray-400 text-center mt-3">
+          Already connected?{" "}
+          <button
+            onClick={onSignIn}
+            className="text-primary-600 hover:text-primary-500 font-medium bg-transparent border-none cursor-pointer p-0 underline underline-offset-2 transition-colors"
+          >
+            Sign in
+          </button>
+        </p>
+      )}
     </>
   );
 }

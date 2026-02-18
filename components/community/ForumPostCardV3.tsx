@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ForumPost, CARE_TYPE_CONFIG } from "@/types/forum";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const REPORT_REASONS = [
   { id: "offensive", label: "Offensive or inappropriate" },
@@ -56,6 +57,7 @@ function AuthorAvatar({ author, size = "md" }: { author: ForumPost["author"]; si
 }
 
 export default function ForumPostCardV3({ post, onClick, isSelected, compact }: ForumPostCardV3Props) {
+  const { user, openAuth } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -67,6 +69,10 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    if (!user) {
+      openAuth({ defaultMode: "sign-up", intent: "family" });
+      return;
+    }
     setIsLiked((prev) => !prev);
     setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
   };

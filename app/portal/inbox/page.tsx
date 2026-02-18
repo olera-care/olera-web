@@ -191,8 +191,8 @@ function InboxContent() {
     setSelectedId(id);
   }, []);
 
-  // Hide a connection (sets metadata.hidden = true)
-  const handleHide = useCallback(async (connectionId: string) => {
+  // Report a connection (sets metadata.reported with timestamp, hides from view)
+  const handleReport = useCallback(async (connectionId: string) => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
     const conn = connections.find((c) => c.id === connectionId);
@@ -201,13 +201,21 @@ function InboxContent() {
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
     await supabase
       .from("connections")
-      .update({ metadata: { ...existingMeta, hidden: true } })
+      .update({
+        metadata: {
+          ...existingMeta,
+          reported: true,
+          reported_at: new Date().toISOString(),
+          reported_by: activeProfile?.id,
+          hidden: true,
+        },
+      })
       .eq("id", connectionId);
 
     // Remove from local state
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     if (selectedId === connectionId) setSelectedId(null);
-  }, [connections, selectedId]);
+  }, [connections, selectedId, activeProfile?.id]);
 
   // Archive a connection (sets status = 'archived')
   const handleArchive = useCallback(async (connectionId: string) => {
@@ -237,7 +245,7 @@ function InboxContent() {
         onSelect={handleSelect}
         loading={loading}
         activeProfileId={activeProfile?.id || ""}
-        onHideConnection={handleHide}
+        onReportConnection={handleReport}
         onArchiveConnection={handleArchive}
         className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
       />

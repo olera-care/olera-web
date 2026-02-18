@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type ChangeEvent } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import Pill from "@/components/providers/connection-card/Pill";
@@ -119,6 +119,51 @@ export default function ProfileEditContent({
   const [languages, setLanguages] = useState<string[]>(readLanguages(meta));
   const [about, setAbout] = useState(meta.about_situation || "");
 
+  // Image upload state
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageError("");
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setImageError("Please upload a JPEG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError("Image must be under 5MB.");
+      return;
+    }
+
+    setImageUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("profileId", profile.id);
+
+      const res = await fetch("/api/profile/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setImageError(data.error || "Upload failed.");
+        return;
+      }
+
+      await onSaved();
+    } catch {
+      setImageError("Failed to upload image. Please try again.");
+    } finally {
+      setImageUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const savingRef = useRef(false);
   const saveToDbRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
@@ -230,6 +275,59 @@ export default function ProfileEditContent({
       <div className="flex-1 overflow-y-auto px-7 py-6">
         {step === 0 && (
           <div className="space-y-5">
+            {/* Profile photo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2.5">Profile photo</label>
+              <div className="flex items-center gap-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={imageUploading}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={imageUploading}
+                  className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative shrink-0"
+                >
+                  {profile.image_url ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={profile.image_url} alt={profile.display_name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-full flex flex-col items-center justify-center gap-0.5">
+                        <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="text-[10px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity">Change</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-primary-500 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-[9px] font-medium">Add</span>
+                    </div>
+                  )}
+                  {imageUploading && (
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-full">
+                      <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </button>
+                <div className="text-sm text-gray-500">
+                  <p className="font-medium text-gray-700">{profile.image_url ? "Change photo" : "Add a photo"}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">JPEG, PNG, or WebP. Max 5MB.</p>
+                </div>
+              </div>
+              {imageError && <p className="text-sm text-red-600 mt-2">{imageError}</p>}
+            </div>
+
             <Input label="Display name" value={displayName} onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="Your full name" />
             <Input label="Country" value={country} onChange={(e) => setCountry((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. United States, Ghana" />
             <div className="grid grid-cols-2 gap-3">

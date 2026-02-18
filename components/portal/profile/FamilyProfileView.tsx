@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
@@ -23,9 +23,6 @@ const CONTACT_PREF_LABELS: Record<string, string> = {
 export default function FamilyProfileView() {
   const { user, activeProfile, refreshAccountData } = useAuth();
   const [editStep, setEditStep] = useState<number | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
-  const [imageError, setImageError] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profile = activeProfile as BusinessProfile;
   const meta = (profile?.metadata || {}) as FamilyMetadata;
@@ -44,50 +41,6 @@ export default function FamilyProfileView() {
 
   const handleSaved = async () => {
     await refreshAccountData();
-  };
-
-  // --- Photo upload ---
-  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageError("");
-
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setImageError("Please upload a JPEG, PNG, or WebP image.");
-      return;
-    }
-    if (file.size > MAX_IMAGE_SIZE) {
-      setImageError("Image must be under 5MB.");
-      return;
-    }
-
-    setImageUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("profileId", profile.id);
-
-      const res = await fetch("/api/profile/upload-image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setImageError(data.error || "Upload failed.");
-        return;
-      }
-
-      await refreshAccountData();
-    } catch {
-      setImageError("Failed to upload image. Please try again.");
-    } finally {
-      setImageUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
   };
 
   // --- Derived display values ---
@@ -127,85 +80,24 @@ export default function FamilyProfileView() {
       {/* ── Profile Header ── */}
       <section className="rounded-2xl bg-white border border-gray-100 overflow-hidden">
         <div className="p-6 flex items-center gap-5">
-          {/* Avatar */}
-          <div className="relative shrink-0">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleImageUpload}
-              className="hidden"
-              disabled={imageUploading}
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={imageUploading}
-              className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative"
-            >
+          {/* Avatar (view-only — edit via Edit panel) */}
+          <div className="shrink-0">
+            <div className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-xs flex items-center justify-center">
               {profile.image_url ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={profile.image_url}
-                    alt={profile.display_name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-full flex flex-col items-center justify-center gap-0.5">
-                    <svg
-                      className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    <span className="text-[10px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                      Change
-                    </span>
-                  </div>
-                </>
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.image_url}
+                  alt={profile.display_name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-primary-500 transition-colors">
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
+                <div className="flex flex-col items-center gap-0.5 text-gray-400">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="text-xs font-medium">Add photo</span>
                 </div>
               )}
-              {imageUploading && (
-                <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-full">
-                  <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-            </button>
+            </div>
           </div>
 
           {/* Name + location */}
@@ -247,9 +139,6 @@ export default function FamilyProfileView() {
           </button>
         </div>
 
-        {imageError && (
-          <p className="text-sm text-red-600 px-6 pb-4">{imageError}</p>
-        )}
       </section>
 
       {/* ── Contact Information ── */}

@@ -388,7 +388,7 @@ function CommunityPageContent() {
 
       {/* ── Posts list ── */}
       <div className="px-8 py-6">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl">
           <div className="space-y-3">
             {paginatedPosts.length > 0 ? (
               paginatedPosts.map((post) => (

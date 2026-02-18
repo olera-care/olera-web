@@ -290,17 +290,19 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
+      // If redirect is configured, navigate immediately — skip refresh
+      // to prevent checkExisting from flashing the pending state.
+      if (data.connectionId && onConnectionCreated) {
+        onConnectionCreated(data.connectionId);
+        return;
+      }
+
       // Refresh auth data so active profile is up-to-date
       await refreshAccountData();
 
       // Update date if returned
       if (data.created_at) {
         setPendingRequestDate(data.created_at);
-      }
-
-      // Notify parent of new connection (triggers redirect to success page)
-      if (data.connectionId) {
-        onConnectionCreated?.(data.connectionId);
       }
     } catch (err: unknown) {
       const msg =

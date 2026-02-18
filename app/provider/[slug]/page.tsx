@@ -509,6 +509,9 @@ export default async function ProviderPage({
                 providerId={profile.id}
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
+                providerCategory={profile.category}
+                providerCity={profile.city}
+                providerState={profile.state}
                 priceRange={priceRange}
                 oleraScore={oleraScore}
                 reviewCount={meta?.review_count}

@@ -26,14 +26,17 @@ function ConnectedPageContent() {
   // Instant display from URL search params
   const nameFromParams = searchParams.get("name") || "";
   const slugFromParams = searchParams.get("slug") || "";
+  const categoryFromParams = searchParams.get("category") || null;
+  const cityFromParams = searchParams.get("city") || null;
+  const stateFromParams = searchParams.get("state") || null;
 
   const [provider, setProvider] = useState<ProviderInfo>({
     name: nameFromParams,
     slug: slugFromParams,
     imageUrl: null,
-    category: null,
-    city: null,
-    state: null,
+    category: categoryFromParams,
+    city: cityFromParams,
+    state: stateFromParams,
   });
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -179,9 +182,9 @@ function ConnectedPageContent() {
         </section>
 
         {/* Section 2: Similar Providers */}
-        {provider.category && (
+        {(provider.category || provider.city || provider.state) && (
           <SimilarProvidersRow
-            category={provider.category}
+            category={provider.category || undefined}
             city={provider.city || undefined}
             state={provider.state || undefined}
             excludeSlug={provider.slug}

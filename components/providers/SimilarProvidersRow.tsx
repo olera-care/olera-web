@@ -11,7 +11,7 @@ import {
 } from "@/lib/types/provider";
 
 interface SimilarProvidersRowProps {
-  category: string;
+  category?: string;
   city?: string;
   state?: string;
   excludeSlug?: string;
@@ -51,6 +51,13 @@ export default function SimilarProvidersRow({
 
   useEffect(() => {
     async function fetchSimilar() {
+      // Need at least location or category to query
+      if (!category && !city && !state) {
+        setProviders([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         const supabase = createClient();
@@ -58,13 +65,12 @@ export default function SimilarProvidersRow({
           .from(PROVIDERS_TABLE)
           .select("*")
           .not("deleted", "is", true)
-          .ilike("provider_category", `%${category}%`)
           .not("provider_images", "is", null)
           .gte("google_rating", 3.5)
           .order("google_rating", { ascending: false, nullsFirst: false })
           .limit(12);
 
-        // Filter by location if available
+        if (category) query = query.ilike("provider_category", `%${category}%`);
         if (city) query = query.ilike("provider_city", city);
         if (state) query = query.ilike("provider_state", state);
 
@@ -78,17 +84,20 @@ export default function SimilarProvidersRow({
             .filter((p) => p.slug !== excludeSlug)
             .slice(0, 8);
 
-          // If location filter returned too few, fetch without location
-          if (formatted.length < 4 && (city || state)) {
-            const { data: broader } = await supabase
+          // If location+category returned too few, broaden to just state
+          if (formatted.length < 4 && (city || category)) {
+            let broader_query = supabase
               .from(PROVIDERS_TABLE)
               .select("*")
               .not("deleted", "is", true)
-              .ilike("provider_category", `%${category}%`)
               .not("provider_images", "is", null)
               .gte("google_rating", 3.5)
               .order("google_rating", { ascending: false, nullsFirst: false })
               .limit(12);
+
+            if (state) broader_query = broader_query.ilike("provider_state", state);
+
+            const { data: broader } = await broader_query;
 
             if (broader) {
               const broaderFormatted = (broader as IOSProvider[])

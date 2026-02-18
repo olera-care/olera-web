@@ -191,7 +191,7 @@ export default function ConversationPanel({
   return (
     <div className={`flex flex-col bg-white ${className}`}>
       {/* ── Header ── */}
-      <div className="shrink-0 px-6 h-[68px] border-b border-gray-200 flex items-center gap-3">
+      <div className="shrink-0 pl-6 pr-[44px] h-[68px] border-b border-gray-200 flex items-center gap-3">
         {/* Back button (mobile) */}
         {onBack && (
           <button
@@ -250,9 +250,9 @@ export default function ConversationPanel({
       {/* ── Conversation thread ── */}
       <div
         ref={conversationRef}
-        className="flex-1 overflow-y-auto px-6 py-6"
+        className="flex-1 overflow-y-auto pl-6 pr-[44px] py-6"
       >
-        <div className="space-y-5 max-w-2xl mx-auto">
+        <div className="space-y-5">
           {/* Family's initial note */}
           {initialNotes && (
             <>
@@ -267,7 +267,7 @@ export default function ConversationPanel({
                 <p className="text-xs text-gray-400 text-right mb-1">{formatTime(connection.created_at)}</p>
               )}
               <div className={`flex ${isInbound ? "justify-start" : "justify-end"}`}>
-                <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                <div className={`max-w-[65%] rounded-2xl px-4 py-3 ${
                   isInbound
                     ? "bg-gray-100 text-gray-800"
                     : "bg-gray-800 text-white"
@@ -339,7 +339,7 @@ export default function ConversationPanel({
                     </div>
                   )}
                   <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                    <div className="max-w-[75%]">
+                    <div className="max-w-[65%]">
                       <div className={`rounded-2xl overflow-hidden border ${
                         isOwn
                           ? "bg-gray-800 border-gray-700"
@@ -386,7 +386,7 @@ export default function ConversationPanel({
                   <p className="text-xs text-gray-400 mb-1">{otherName} &middot; {msgTime}</p>
                 )}
                 <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                  <div className={`max-w-[65%] rounded-2xl px-4 py-3 ${
                     isOwn
                       ? "bg-gray-800 text-white"
                       : "bg-gray-100 text-gray-800"
@@ -426,8 +426,8 @@ export default function ConversationPanel({
           </div>
 
           {/* Input area */}
-          <div className="px-6 py-4">
-            <div className="max-w-2xl mx-auto border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
+          <div className="pl-6 pr-[44px] py-4">
+            <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
               <textarea
                 ref={messageInputRef}
                 value={messageText}

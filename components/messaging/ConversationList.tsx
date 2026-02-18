@@ -99,21 +99,6 @@ function formatRelativeTime(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function getStatusBadge(status: string, isInbound: boolean) {
-  if (status === "pending") {
-    return isInbound
-      ? { label: "New", color: "text-amber-700 bg-amber-50" }
-      : { label: "Pending", color: "text-blue-700 bg-blue-50" };
-  }
-  if (status === "accepted") {
-    return { label: "Connected", color: "text-emerald-700 bg-emerald-50" };
-  }
-  if (status === "declined" || status === "expired" || status === "archived") {
-    return { label: "Past", color: "text-gray-500 bg-gray-100" };
-  }
-  return null;
-}
-
 function filterConnections(connections: ConnectionWithProfile[], filter: FilterTab): ConnectionWithProfile[] {
   if (filter === "all") return connections;
   if (filter === "pending") return connections.filter((c) => c.status === "pending");
@@ -313,7 +298,6 @@ export default function ConversationList({
             const name = otherProfile?.display_name || "Unknown";
             const initials = name.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 2);
             const lastMsg = getLastMessage(conn);
-            const badge = getStatusBadge(conn.status, isInbound);
             const isSelected = conn.id === selectedId;
 
             return (
@@ -355,18 +339,11 @@ export default function ConversationList({
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    {lastMsg && (
-                      <p className="text-[13px] text-gray-500 truncate flex-1">
-                        {lastMsg.text}
-                      </p>
-                    )}
-                    {badge && (
-                      <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${badge.color}`}>
-                        {badge.label}
-                      </span>
-                    )}
-                  </div>
+                  {lastMsg && (
+                    <p className="text-[13px] text-gray-500 truncate mt-0.5">
+                      {lastMsg.text}
+                    </p>
+                  )}
                 </div>
               </button>
             );

@@ -443,9 +443,13 @@ export default function PortalProfilePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Profile</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {activeTab === "settings" ? "Account Settings" : "Profile"}
+          </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Your personal information and care preferences.
+            {activeTab === "settings"
+              ? "Manage your notifications, login, and preferences."
+              : "Your personal information and care preferences."}
           </p>
         </div>
       </div>

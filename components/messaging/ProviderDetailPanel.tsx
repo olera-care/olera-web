@@ -75,7 +75,7 @@ export default function ProviderDetailPanel({
   return (
     <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
       {/* Header */}
-      <div className="shrink-0 pl-5 pr-[44px] h-[68px] border-b border-gray-200 flex items-center justify-between">
+      <div className="shrink-0 px-5 h-[68px] border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">Details</h3>
         <button
           onClick={onClose}
@@ -92,7 +92,7 @@ export default function ProviderDetailPanel({
       <div className="flex-1 overflow-y-auto">
         {/* Image carousel */}
         {images.length > 0 && (
-          <div className="relative pl-5 pr-[44px] pt-5">
+          <div className="relative px-5 pt-5">
             <div className="relative rounded-2xl overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -140,7 +140,7 @@ export default function ProviderDetailPanel({
         )}
 
         {/* Provider info */}
-        <div className="pl-5 pr-[44px] py-5">
+        <div className="px-5 py-5">
           <h2 className="text-xl font-bold text-gray-900 leading-tight">
             {profile.display_name}
           </h2>
@@ -217,10 +217,10 @@ export default function ProviderDetailPanel({
         </div>
 
         {/* View full profile link */}
-        <div className="pl-5 pr-[44px] pb-[44px]">
+        <div className="px-5 pb-6">
           <Link
             href={profileHref}
-            className="block w-full text-center py-3 text-[15px] font-semibold text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-600 hover:text-white transition-colors"
+            className="block w-full text-center py-3 text-[15px] font-semibold text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
           >
             View full profile
           </Link>

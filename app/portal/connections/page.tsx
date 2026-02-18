@@ -279,7 +279,7 @@ export default function ConnectionsPage() {
 
   if (loading) {
     return (
-      <div className="px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="space-y-6">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
@@ -322,7 +322,7 @@ export default function ConnectionsPage() {
 
   if (connections.length === 0 && !error) {
     return (
-      <div className="px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <EmptyState
           title="No connections yet"
           description={
@@ -455,7 +455,7 @@ export default function ConnectionsPage() {
           </div>
         ) : (
           /* ── Card grid mode (full width) ── */
-          <div className="h-full overflow-y-auto px-8 py-6">
+          <div className="h-full overflow-y-auto max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
                 {isProvider ? "Connections" : "My Connections"}

@@ -253,7 +253,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="px-8 py-6 h-full overflow-y-auto">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full overflow-y-auto">
     <div className="space-y-5 max-w-2xl">
       <div>
         <h2 className="text-xl font-semibold text-gray-900">Account Settings</h2>

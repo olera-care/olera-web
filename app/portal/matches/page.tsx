@@ -210,7 +210,7 @@ export default function MatchesPage() {
   const isInterestedSplitView = subTab === "interested" && interestedSplitView;
 
   return (
-    <div className={isInterestedSplitView ? "h-full" : "px-8 py-6 h-full"}>
+    <div className={isInterestedSplitView ? "h-full" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full"}>
       {/* Header + Tabs — hidden when Interested split view is active
           (they move into the split view's left panel instead) */}
       {!isInterestedSplitView && (

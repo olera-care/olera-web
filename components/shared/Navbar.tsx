@@ -60,9 +60,9 @@ export default function Navbar() {
       return;
     }
     if (user) {
-      openAuth({ startAtPostAuth: true });
+      openAuth({ startAtPostAuth: true, intent: "provider" });
     } else {
-      openAuth({});
+      openAuth({ intent: "provider" });
     }
   }, [user, profiles, openAuth, router]);
 

@@ -643,51 +643,69 @@ function CommunityPageContent() {
           {!splitViewSelectedId && (
             <aside className="hidden lg:block w-[320px] shrink-0 border-l border-gray-200 h-[calc(100vh-64px)] sticky top-16 overflow-y-auto">
               <div className="p-5">
-                {/* Single cohesive card — everything lives inside */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2d5a47] to-[#1a3a2c]">
-                  {/* Decorative circles */}
-                  <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/[0.06]" />
-                  <div className="absolute top-12 right-2 w-14 h-14 rounded-full bg-white/[0.04]" />
+                {/* Single cohesive card */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a5545] via-[#234a3c] to-[#1b3930] shadow-lg">
+                  {/* Decorative background elements */}
+                  <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/[0.05]" />
+                  <div className="absolute top-14 right-1 w-16 h-16 rounded-full bg-white/[0.03]" />
+                  <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/[0.03]" />
 
                   {/* Main content */}
-                  <div className="relative px-6 pt-6 pb-5">
-                    <h3 className="text-[17px] font-bold text-white leading-snug min-h-[48px]">
+                  <div className="relative px-6 pt-7 pb-6">
+                    {/* Hero icon — visual anchor */}
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.12] backdrop-blur-sm flex items-center justify-center mb-5">
+                      <svg className="w-5 h-5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-white leading-snug min-h-[52px] tracking-[-0.01em]">
                       {BANNER_COPY[activeCategory].title}
                     </h3>
-                    <p className="text-[13px] text-white/50 leading-relaxed mt-1 mb-5">
+                    <p className="text-[13px] text-white/60 leading-relaxed mt-1.5 mb-6">
                       {BANNER_COPY[activeCategory].subtitle}
                     </p>
 
                     <Link
                       href={activeCategory === "all" ? "/browse" : `/browse?type=${activeCategory}`}
-                      className="flex items-center justify-center w-full px-5 py-2.5 bg-white text-gray-900 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors gap-1.5"
+                      className="group flex items-center justify-center w-full px-5 py-3 bg-white text-gray-900 text-sm font-semibold rounded-xl hover:shadow-md hover:shadow-black/10 transition-all duration-200 gap-2"
                     >
                       Find providers
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                     </Link>
                   </div>
 
-                  {/* Secondary links — inside the card */}
-                  <div className="relative px-5 pb-5 pt-3 border-t border-white/10 space-y-0.5">
+                  {/* Secondary links */}
+                  <div className="relative px-6 pb-5 space-y-1">
                     <Link
                       href="/benefits"
-                      className="flex items-center gap-3 px-2 py-2 rounded-lg text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-[13px] font-medium text-white/55 hover:text-white/90 hover:bg-white/[0.08] transition-all duration-200"
                     >
-                      <span className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-xs shrink-0">
-                        💡
+                      <span className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0 group-hover:bg-white/[0.12] transition-colors duration-200">
+                        <svg className="w-4 h-4 text-white/60 group-hover:text-white/80 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
                       </span>
-                      Check your benefits
+                      <span className="flex-1">Check your benefits</span>
+                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </Link>
                     <Link
                       href="/resources"
-                      className="flex items-center gap-3 px-2 py-2 rounded-lg text-[13px] font-medium text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+                      className="group flex items-center gap-3 px-2.5 py-2.5 -mx-0.5 rounded-xl text-[13px] font-medium text-white/55 hover:text-white/90 hover:bg-white/[0.08] transition-all duration-200"
                     >
-                      <span className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-xs shrink-0">
-                        💬
+                      <span className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center shrink-0 group-hover:bg-white/[0.12] transition-colors duration-200">
+                        <svg className="w-4 h-4 text-white/60 group-hover:text-white/80 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
                       </span>
-                      Talk to our care team
+                      <span className="flex-1">Talk to our care team</span>
+                      <svg className="w-3.5 h-3.5 text-white/30 group-hover:text-white/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </Link>
                   </div>
                 </div>

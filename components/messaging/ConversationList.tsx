@@ -379,7 +379,7 @@ export default function ConversationList({
   if (loading) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-5">
+        <div className="px-4 sm:px-6 lg:px-8 py-5">
           <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
@@ -404,7 +404,7 @@ export default function ConversationList({
   if (connections.length === 0) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-5">
+        <div className="px-4 sm:px-6 lg:px-8 py-5">
           <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
@@ -435,7 +435,7 @@ export default function ConversationList({
       <div className={`shrink-0 transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
         {searchOpen ? (
           /* Search mode */
-          <div className="pl-[44px] pr-5 py-4 flex items-center gap-3">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
             <div className="flex-1 flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2.5">
               <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -468,7 +468,7 @@ export default function ConversationList({
           </div>
         ) : (
           /* Default mode — title + search icon */
-          <div className="pl-[44px] pr-5 py-5 flex items-center justify-between">
+          <div className="px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
             <button
               onClick={() => setSearchOpen(true)}
@@ -484,7 +484,7 @@ export default function ConversationList({
 
         {/* Filter pills — Airbnb style, hidden during search */}
         {!searchOpen && (
-          <div className="pl-[44px] pr-5 pb-4 flex items-center gap-2.5">
+          <div className="px-4 sm:px-6 lg:px-8 pb-4 flex items-center gap-2.5">
             {/* "All" dropdown pill */}
             <div className="relative" ref={filterDropdownRef}>
               <button
@@ -570,7 +570,7 @@ export default function ConversationList({
               <>
                 <button
                   onClick={() => setPastOpen((p) => !p)}
-                  className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
+                  className="w-full flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
                 >
                   <span className="text-sm font-semibold text-gray-500">
                     Archived ({pastConnections.length})

@@ -389,6 +389,14 @@ function CommunityPageContent() {
       {/* ── Posts list ── */}
       <div className="px-8 py-6">
         <div className="max-w-2xl">
+          {/* Section heading */}
+          <div className="flex items-baseline gap-2 mb-4">
+            <h3 className="text-base font-semibold text-gray-900">
+              {activeCategory === "all" ? "All Discussions" : CARE_TYPE_CONFIG[activeCategory].label}
+            </h3>
+            <span className="text-sm text-gray-400 font-medium">{posts.length}</span>
+          </div>
+
           <div className="space-y-3">
             {paginatedPosts.length > 0 ? (
               paginatedPosts.map((post) => (
@@ -605,16 +613,32 @@ function CommunityPageContent() {
         </aside>
 
         {/* ── Content area — SplitViewLayout (posts + detail panel) ── */}
-        <div className="flex-1 min-w-0">
-          <SplitViewLayout
-            selectedId={splitViewSelectedId}
-            onBack={handleClosePost}
-            backLabel="Back to discussions"
-            expandWhenEmpty
-            equalWidth
-            left={postsFeed}
-            right={rightPanelContent}
-          />
+        <div className="flex-1 min-w-0 flex">
+          <div className="flex-1 min-w-0">
+            <SplitViewLayout
+              selectedId={splitViewSelectedId}
+              onBack={handleClosePost}
+              backLabel="Back to discussions"
+              expandWhenEmpty
+              equalWidth
+              left={postsFeed}
+              right={rightPanelContent}
+            />
+          </div>
+
+          {/* ── Right panel — visible only in default state (no post selected) ── */}
+          {!splitViewSelectedId && (
+            <aside className="hidden lg:block w-[320px] shrink-0 border-l border-gray-200 h-[calc(100vh-64px)] sticky top-16 overflow-y-auto">
+              <div className="px-6 py-6 flex flex-col items-center justify-center h-full text-center">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center mb-3">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-400">Coming soon</p>
+              </div>
+            </aside>
+          )}
         </div>
       </div>
 

@@ -58,6 +58,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             intentStep={hook.intentStep}
             intentData={hook.intentData}
             availableCareTypes={hook.availableCareTypes}
+            submitting={hook.submitting}
             onSelectRecipient={hook.selectRecipient}
             onSelectCareType={hook.selectCareType}
             onSelectUrgency={hook.selectUrgency}
@@ -94,6 +95,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           <ReturningUserState
             phone={phone}
             intentData={hook.intentData}
+            submitting={hook.submitting}
             onConnect={hook.connect}
             onEdit={hook.editFromReturning}
           />

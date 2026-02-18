@@ -44,4 +44,6 @@ export interface ConnectionCardProps {
   careTypes: string[];
   isActive: boolean;
   responseTime: string | null; // null in v1
+  /** Called after a new connection is successfully created (not on duplicates). */
+  onConnectionCreated?: (connectionId: string) => void;
 }

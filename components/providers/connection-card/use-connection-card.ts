@@ -70,6 +70,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     careTypes: providerCareTypes,
     isActive,
+    onConnectionCreated,
   } = props;
 
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
@@ -89,6 +90,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
   // ── UI state ──
   const [phoneRevealed, setPhoneRevealed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const saved = savedProviders.isSaved(providerId);
   const [error, setError] = useState("");
   const [pendingRequestDate, setPendingRequestDate] = useState<string | null>(
@@ -287,6 +289,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
         return;
       }
 
+      // If redirect is configured, navigate immediately — skip refresh
+      // to prevent checkExisting from flashing the pending state.
+      if (data.connectionId && onConnectionCreated) {
+        onConnectionCreated(data.connectionId);
+        return;
+      }
+
       // Refresh auth data so active profile is up-to-date
       await refreshAccountData();
 
@@ -300,6 +309,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           ? (err as { message: string }).message
           : String(err);
       console.error("Connection request error:", msg);
+      setSubmitting(false);
       setError(msg || "Something went wrong. Please try again.");
     }
   }, [
@@ -309,6 +319,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     intentData,
     refreshAccountData,
+    onConnectionCreated,
   ]);
 
   // ── Handle deferred connection request after auth ──
@@ -336,13 +347,18 @@ export function useConnectionCard(props: ConnectionCardProps) {
         // sessionStorage may fail in private browsing
       }
 
-      // Go straight to pending, fire API in background
-      setCardState("pending");
+      // When redirect is configured, show spinner on the Connect button.
+      // Otherwise fall back to the pending card state.
+      if (onConnectionCreated) {
+        setSubmitting(true);
+      } else {
+        setCardState("pending");
+      }
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest(restoredIntent || undefined);
     }
-  }, [user, account, providerId, submitRequest]);
+  }, [user, account, providerId, submitRequest, onConnectionCreated]);
 
   // ── Navigation helpers ──
   const startFlow = useCallback(() => {
@@ -382,8 +398,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
     if (user) {
-      // Go straight to pending, fire API in background
-      setCardState("pending");
+      // When redirect is configured, keep the current card content and only
+      // show a spinner on the Connect button (submitting). This avoids a
+      // jarring content swap before the page navigates away.
+      if (onConnectionCreated) {
+        setSubmitting(true);
+      } else {
+        setCardState("pending");
+      }
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest();
@@ -407,7 +429,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         },
       });
     }
-  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug]);
+  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug, onConnectionCreated]);
 
   const signIn = useCallback(() => {
     openAuth({ defaultMode: "sign-in" });
@@ -452,6 +474,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     intentStep,
     intentData,
     phoneRevealed,
+    submitting,
     saved,
     error,
     pendingRequestDate,

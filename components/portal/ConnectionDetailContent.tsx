@@ -698,8 +698,8 @@ export default function ConnectionDetailContent({
 
   const messagePlaceholder =
     connection?.status === "accepted"
-      ? `Message ${otherName}...`
-      : "Add a note...";
+      ? "Write a message..."
+      : "Write a message...";
 
   // Whether provider is home care / home health (show home visit option)
   const isHomeCareProvider =

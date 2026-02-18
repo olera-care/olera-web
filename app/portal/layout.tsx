@@ -129,6 +129,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  // Inbox and profile get full-width layout (no sidebar) — auth guards above still apply
+  if (pathname.startsWith("/portal/inbox") || pathname.startsWith("/portal/profile") || pathname.startsWith("/portal/matches") || pathname.startsWith("/portal/settings") || pathname.startsWith("/portal/connections")) {
+    return <>{children}</>;
+  }
+
   const showNudge =
     activeProfile?.type === "family" &&
     completeness.percentage < 60 &&

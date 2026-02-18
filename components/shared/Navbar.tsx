@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileSwitcher from "@/components/shared/ProfileSwitcher";
 import FindCareMegaMenu from "@/components/shared/FindCareMegaMenu";
@@ -16,7 +16,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
-  const { user, account, activeProfile, openAuth, signOut, fetchError } =
+  const { user, account, activeProfile, profiles, openAuth, signOut, fetchError } =
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -27,6 +27,7 @@ export default function Navbar() {
   const prevSavedCount = useRef(savedCount);
   const isPortal = pathname.startsWith("/portal");
   const isCommunity = pathname.startsWith("/community");
+  const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
   // Full dropdown content requires account data.
@@ -48,6 +49,22 @@ export default function Navbar() {
       ? "Caregiver"
       : "Family"
     : null;
+
+  // "For Providers" click handler
+  const handleForProviders = useCallback(() => {
+    const hasProviderProfile = profiles.some(
+      (p) => p.type === "organization" || p.type === "caregiver"
+    );
+    if (hasProviderProfile) {
+      router.push("/portal");
+      return;
+    }
+    if (user) {
+      openAuth({ startAtPostAuth: true });
+    } else {
+      openAuth({});
+    }
+  }, [user, profiles, openAuth, router]);
 
   // Track scroll position for navbar background
   useEffect(() => {
@@ -121,7 +138,7 @@ export default function Navbar() {
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
         }}
       >
-        <div className={isPortal || isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
+        <div className={isMinimalNav ? "px-[44px]" : isPortal || isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
           {/*
            * 3-column layout: Logo | Center Nav | Right Menu
            * Left and right get flex-1 so the center nav is truly page-centered.
@@ -137,7 +154,8 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Center — Primary navigation (page-centered, hidden on mobile) */}
+            {/* Center — Primary navigation (page-centered, hidden on mobile + inbox) */}
+              {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
                 {/* Find Care trigger */}
                 <div onMouseEnter={() => setIsFindCareOpen(true)}>
@@ -185,11 +203,20 @@ export default function Navbar() {
                   </Link>
                 ))}
               </div>
+              )}
 
             {/* Right — Account menu (flex-1, align right) */}
             <div className="flex-1 flex items-center justify-end">
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center gap-2">
+                {/* For Providers link */}
+                <button
+                  onClick={handleForProviders}
+                  className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                >
+                  For Providers
+                </button>
+
                 {/* Saved providers heart */}
                 <Link
                   href="/saved"
@@ -258,6 +285,17 @@ export default function Navbar() {
                             <>
                               {/* Tier 1 — Core portal links */}
                               <div className="px-2 py-1.5">
+                                <Link
+                                  href="/portal/inbox"
+                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                >
+                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                                    <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
+                                  </svg>
+                                  Inbox
+                                </Link>
                                 <Link
                                   href="/portal/profile"
                                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
@@ -552,7 +590,9 @@ export default function Navbar() {
           {isMobileMenuOpen && (
             <div className="lg:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col space-y-1">
-                {/* Public nav items */}
+                {/* Public nav items (hidden on inbox) */}
+                    {!isMinimalNav && (
+                    <>
                     <button
                       type="button"
                       onClick={() => setIsMobileCareOpen((prev) => !prev)}
@@ -617,6 +657,18 @@ export default function Navbar() {
                     </Link>
 
                     <hr className="border-gray-100" />
+                    </>
+                    )}
+
+                {/* For Providers — always visible */}
+                <button
+                  onClick={() => { handleForProviders(); setIsMobileMenuOpen(false); }}
+                  className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
+                >
+                  For Providers
+                </button>
+
+                <hr className="border-gray-100" />
 
                 {/* Account section */}
                 {hasSession ? (

@@ -265,30 +265,32 @@ export default function ConversationList({
             onClick={() => onSelect(conn.id)}
             className="w-full text-left flex items-start gap-3.5 px-4 py-4"
           >
-            {/* Avatar */}
-            {otherProfile?.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={otherProfile.image_url}
-                alt={name}
-                className="w-12 h-12 rounded-full object-cover shrink-0 mt-0.5"
-              />
-            ) : (
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-white text-sm font-bold mt-0.5"
-                style={{ background: avatarGradient(name) }}
-              >
-                {initials}
-              </div>
-            )}
+            {/* Avatar with unread indicator */}
+            <div className="relative shrink-0 mt-0.5">
+              {otherProfile?.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={otherProfile.image_url}
+                  alt={name}
+                  className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                />
+              ) : (
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                  style={{ background: avatarGradient(name) }}
+                >
+                  {initials}
+                </div>
+              )}
+              {isUnread && !isPast && (
+                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary-600 border-2 border-white" />
+              )}
+            </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  {isUnread && !isPast && (
-                    <span className="w-2 h-2 rounded-full bg-primary-600 shrink-0" />
-                  )}
+                <div className="min-w-0">
                   <span className={`text-base truncate ${isUnread && !isPast ? "font-semibold text-gray-900" : "font-normal text-gray-900"}`}>
                     {name}
                   </span>
@@ -488,8 +490,8 @@ export default function ConversationList({
               <button
                 onClick={() => setFilterDropdownOpen((p) => !p)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                  filterOption !== "all"
-                    ? "bg-gray-900 text-white"
+                  filterOption !== "all" || unreadOnly
+                    ? "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
                     : "bg-gray-900 text-white"
                 }`}
               >
@@ -505,6 +507,7 @@ export default function ConversationList({
                       key={key}
                       onClick={() => {
                         setFilterOption(key);
+                        setUnreadOnly(false);
                         setFilterDropdownOpen(false);
                       }}
                       className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
@@ -527,7 +530,12 @@ export default function ConversationList({
 
             {/* "Unread" toggle pill */}
             <button
-              onClick={() => setUnreadOnly((p) => !p)}
+              onClick={() => {
+                setUnreadOnly((p) => {
+                  if (!p) setFilterOption("all");
+                  return !p;
+                });
+              }}
               className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
                 unreadOnly
                   ? "bg-gray-900 text-white"

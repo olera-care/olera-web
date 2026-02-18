@@ -189,7 +189,6 @@ function InboxContent() {
   // Close detail panel when switching conversations
   const handleSelect = useCallback((id: string) => {
     setSelectedId(id);
-    setDetailOpen(false);
   }, []);
 
   // Hide a connection (sets metadata.hidden = true)

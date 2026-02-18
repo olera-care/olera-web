@@ -205,7 +205,7 @@ export default function Navbar() {
                 {/* For Providers link */}
                 <button
                   onClick={handleForProviders}
-                  className="text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors px-2"
+                  className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
                 >
                   For Providers
                 </button>

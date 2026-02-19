@@ -101,6 +101,12 @@ function InboxContent() {
       }
       setArchivedCount(archivedIds.size);
 
+      // Snapshot pending ops NOW — before any setConnections callbacks.
+      // React batches state updates, so by the time the callback runs,
+      // a concurrent manage operation's `finally` block may have already
+      // cleared pendingOpsRef. The snapshot preserves the correct state.
+      const pendingSnapshot = new Set(pendingOpsRef.current);
+
       // Merge and deduplicate
       const allConns = [...(outbound.data || []), ...(inbound.data || [])] as Connection[];
       const deduped = new Map<string, Connection>();
@@ -115,7 +121,7 @@ function InboxContent() {
       if (uniqueConns.length === 0) {
         // Preserve archived connections and any with pending ops
         setConnections((prev) =>
-          prev.filter((c) => c.status === "archived" || pendingOpsRef.current.has(c.id))
+          prev.filter((c) => c.status === "archived" || pendingSnapshot.has(c.id))
         );
         setLoading(false);
         return;
@@ -178,14 +184,16 @@ function InboxContent() {
       // Sort by last activity
       enriched.sort((a, b) => getLastActivityTime(b) - getLastActivityTime(a));
 
-      // Merge: replace active connections but preserve optimistic state for in-flight ops
+      // Merge: replace active connections but preserve optimistic state for in-flight ops.
+      // Uses pendingSnapshot (captured before async work) instead of reading
+      // pendingOpsRef.current inside the callback, which could be stale due to
+      // React's batched state processing.
       setConnections((prev) => {
-        const pending = pendingOpsRef.current;
         const prevById = new Map(prev.map((c) => [c.id, c]));
 
         // For connections with pending ops, keep local state instead of DB data
         const merged = enriched.map((c) =>
-          pending.has(c.id) && prevById.has(c.id) ? prevById.get(c.id)! : c
+          pendingSnapshot.has(c.id) && prevById.has(c.id) ? prevById.get(c.id)! : c
         );
 
         // Also preserve archived connections not returned by the active query
@@ -195,7 +203,7 @@ function InboxContent() {
         );
         // And preserve any pending-op connections that weren't in enriched at all
         const keptPending = prev.filter(
-          (c) => pending.has(c.id) && !mergedIds.has(c.id)
+          (c) => pendingSnapshot.has(c.id) && !mergedIds.has(c.id)
         );
 
         return [...merged, ...keptArchived, ...keptPending];

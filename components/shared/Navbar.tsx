@@ -300,6 +300,8 @@ export default function Navbar() {
           <ProfileSwitcher
             onSwitch={() => setIsUserMenuOpen(false)}
             variant="dropdown"
+            allowedTypes={isProviderPortal ? ["organization", "caregiver"] : ["family"]}
+            navigateTo={isProviderPortal ? "/provider" : "/"}
           />
         </div>
       )}
@@ -932,6 +934,8 @@ export default function Navbar() {
                         <ProfileSwitcher
                           onSwitch={() => setIsMobileMenuOpen(false)}
                           variant="dropdown"
+                          allowedTypes={isProviderPortal ? ["organization", "caregiver"] : ["family"]}
+                          navigateTo={isProviderPortal ? "/provider" : "/"}
                         />
                       </div>
                     )}

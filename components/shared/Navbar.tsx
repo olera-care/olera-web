@@ -33,8 +33,9 @@ export default function Navbar() {
   const [heartPulse, setHeartPulse] = useState(false);
   const prevSavedCount = useRef(savedCount);
   const isPortal = pathname.startsWith("/portal");
+  const isProviderPortal = pathname.startsWith("/provider");
   const isCommunity = pathname.startsWith("/community");
-  const isMinimalNav = pathname.startsWith("/portal/inbox");
+  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/provider/inbox");
 
   // Show auth pill as soon as we know a user session exists.
   // Full dropdown content requires account data.
@@ -44,6 +45,13 @@ export default function Navbar() {
   const isProvider =
     activeProfile?.type === "organization" ||
     activeProfile?.type === "caregiver";
+
+  // Mode switcher — shown when user has both a family and a provider profile
+  const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
+  const hasProviderProfile = (profiles || []).some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
+  const showModeSwitcher = isFullyLoaded && hasFamilyProfile && hasProviderProfile;
 
   // Show user's actual name in the dropdown, not the org/profile name
   const displayName = account?.display_name || user?.email || "";
@@ -63,7 +71,7 @@ export default function Navbar() {
       (p) => p.type === "organization" || p.type === "caregiver"
     );
     if (hasProviderProfile) {
-      router.push("/portal");
+      router.push("/provider");
       return;
     }
     if (user) {
@@ -290,6 +298,41 @@ export default function Navbar() {
                         </div>
 
                         <div className="mx-4 border-t border-gray-100" />
+
+                        {/* Mode switcher — shown when user has both family and provider profiles */}
+                        {showModeSwitcher && (
+                          <>
+                            <div className="px-3 pt-2 pb-1">
+                              <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
+                                <Link
+                                  href="/portal"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                  className={[
+                                    "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                    !isProviderPortal
+                                      ? "bg-white text-gray-900 shadow-sm"
+                                      : "text-gray-500 hover:text-gray-700",
+                                  ].join(" ")}
+                                >
+                                  Family Portal
+                                </Link>
+                                <Link
+                                  href="/provider"
+                                  onClick={() => setIsUserMenuOpen(false)}
+                                  className={[
+                                    "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                    isProviderPortal
+                                      ? "bg-white text-gray-900 shadow-sm"
+                                      : "text-gray-500 hover:text-gray-700",
+                                  ].join(" ")}
+                                >
+                                  Provider Hub
+                                </Link>
+                              </div>
+                            </div>
+                            <div className="mx-4 border-t border-gray-100" />
+                          </>
+                        )}
 
                         {isFullyLoaded ? (
                           hasProfile ? (
@@ -638,6 +681,38 @@ export default function Navbar() {
                         <p className="text-xs text-gray-400 truncate">{user?.email}</p>
                       </div>
                     </div>
+
+                    {/* Mode switcher (mobile) */}
+                    {showModeSwitcher && (
+                      <div className="py-2">
+                        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
+                          <Link
+                            href="/portal"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={[
+                              "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                              !isProviderPortal
+                                ? "bg-white text-gray-900 shadow-sm"
+                                : "text-gray-500 hover:text-gray-700",
+                            ].join(" ")}
+                          >
+                            Family Portal
+                          </Link>
+                          <Link
+                            href="/provider"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={[
+                              "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                              isProviderPortal
+                                ? "bg-white text-gray-900 shadow-sm"
+                                : "text-gray-500 hover:text-gray-700",
+                            ].join(" ")}
+                          >
+                            Provider Hub
+                          </Link>
+                        </div>
+                      </div>
+                    )}
 
                     {isFullyLoaded ? (
                       hasProfile ? (

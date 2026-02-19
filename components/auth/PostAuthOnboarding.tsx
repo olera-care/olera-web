@@ -301,6 +301,8 @@ export default function PostAuthOnboarding({
       // Route based on intent
       if (intent === "family" && !isAddingProfile) {
         router.push("/browse");
+      } else if (intent === "provider" && !isAddingProfile) {
+        router.push("/provider");
       } else {
         router.push("/portal");
       }

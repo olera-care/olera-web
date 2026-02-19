@@ -5,8 +5,7 @@ import CardTopSection from "./CardTopSection";
 import CardBottomSection from "./CardBottomSection";
 import DefaultActions from "./DefaultActions";
 import IntentCapture from "./IntentCapture";
-import PendingState from "./PendingState";
-import RespondedState from "./RespondedState";
+import ConnectedState from "./ConnectedState";
 import InactiveState from "./InactiveState";
 import ReturningUserState from "./ReturningUserState";
 import type { ConnectionCardProps } from "./types";
@@ -66,19 +65,11 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           />
         )}
 
-        {hook.cardState === "pending" && (
-          <PendingState
-            providerName={providerName}
+        {(hook.cardState === "pending" || hook.cardState === "responded") && (
+          <ConnectedState
             phone={phone}
-            requestDate={hook.pendingRequestDate}
-          />
-        )}
-
-        {hook.cardState === "responded" && (
-          <RespondedState
-            providerName={providerName}
-            phone={phone}
-            requestDate={hook.pendingRequestDate}
+            intentData={hook.connectedIntentData}
+            connectionId={hook.connectionId}
           />
         )}
 

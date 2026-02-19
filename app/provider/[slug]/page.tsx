@@ -175,6 +175,8 @@ export default async function ProviderPage({
         sections={sectionItems}
         providerName={profile.display_name}
         oleraScore={oleraScore}
+        providerId={profile.id}
+        isActive={profile.is_active}
       />
 
       {/* ===== Main Layout ===== */}
@@ -439,7 +441,7 @@ export default async function ProviderPage({
 
           {/* Right Column — Sticky Sidebar */}
           <div className="lg:col-span-1 self-stretch">
-            <div className="sticky top-24">
+            <div id="connection-card" className="sticky top-24">
               <ConnectionCardWithRedirect
                 providerId={profile.id}
                 providerName={profile.display_name}

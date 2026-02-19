@@ -97,6 +97,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
     null
   );
   const [previousIntent, setPreviousIntent] = useState<IntentData | null>(null);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [connectedIntentData, setConnectedIntentData] = useState<IntentData | null>(null);
 
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
@@ -154,7 +156,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
       const connectionPromise = resolvedId
         ? supabase
             .from("connections")
-            .select("id, status, metadata, created_at")
+            .select("id, status, metadata, message, created_at")
             .in("from_profile_id", profileIds)
             .eq("to_profile_id", resolvedId)
             .eq("type", "inquiry")
@@ -182,13 +184,24 @@ export function useConnectionCard(props: ConnectionCardProps) {
         const data = connectionResult.data;
         setPendingRequestDate(data.created_at);
 
-        if (data.status === "accepted") {
-          setCardState("responded");
-          return;
-        }
+        if (data.status === "accepted" || data.status === "pending") {
+          setConnectionId(data.id);
 
-        if (data.status === "pending") {
-          setCardState("pending");
+          // Parse intent data from connection message for the connected preview
+          if (data.message) {
+            try {
+              const parsed = JSON.parse(data.message as string);
+              setConnectedIntentData({
+                careRecipient: parsed.care_recipient || null,
+                careType: parsed.care_type || null,
+                urgency: parsed.urgency || null,
+              });
+            } catch {
+              // Invalid JSON — ignore
+            }
+          }
+
+          setCardState(data.status === "accepted" ? "responded" : "pending");
           return;
         }
 
@@ -486,6 +499,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
     availableCareTypes,
     notificationEmail,
     isAuthenticated: !!user,
+    connectionId,
+    connectedIntentData,
 
     // Navigation
     startFlow,

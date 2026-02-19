@@ -9,6 +9,8 @@ import FindCareMegaMenu from "@/components/shared/FindCareMegaMenu";
 import { CARE_CATEGORIES, NAV_LINKS } from "@/components/shared/NavMenuData";
 import { useNavbar } from "@/components/shared/NavbarContext";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import { useUnreadInboxCount } from "@/hooks/useUnreadInboxCount";
+import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 
 export default function Navbar() {
   const router = useRouter();
@@ -23,6 +25,10 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
+  const unreadInboxCount = useUnreadInboxCount(activeProfile?.id);
+  const { pendingCount: matchesPendingCount } = useInterestedProviders(
+    activeProfile?.type === "family" ? activeProfile?.id : undefined
+  );
   const [heartPulse, setHeartPulse] = useState(false);
   const prevSavedCount = useRef(savedCount);
   const isPortal = pathname.startsWith("/portal");
@@ -242,7 +248,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                      className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
                       aria-label="User menu"
                       aria-expanded={isUserMenuOpen}
                     >
@@ -256,6 +262,10 @@ export default function Navbar() {
                         <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
                           {initials}
                         </div>
+                      )}
+                      {/* Notification dot when unread inbox or matches exist */}
+                      {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
+                        <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
                       )}
                     </button>
 
@@ -295,6 +305,11 @@ export default function Navbar() {
                                     <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
                                   </svg>
                                   Inbox
+                                  {unreadInboxCount > 0 && (
+                                    <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                                      {unreadInboxCount}
+                                    </span>
+                                  )}
                                 </Link>
                                 <Link
                                   href="/portal/profile"
@@ -317,6 +332,11 @@ export default function Navbar() {
                                       <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
                                     </svg>
                                     Matches
+                                    {matchesPendingCount > 0 && (
+                                      <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                                        {matchesPendingCount}
+                                      </span>
+                                    )}
                                   </Link>
                                 )}
                               </div>
@@ -623,6 +643,22 @@ export default function Navbar() {
                         <>
                           {/* Tier 1 — Core portal */}
                           <Link
+                            href="/portal/inbox"
+                            className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <rect x="2" y="4" width="20" height="16" rx="2" />
+                              <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
+                            </svg>
+                            Inbox
+                            {unreadInboxCount > 0 && (
+                              <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                                {unreadInboxCount}
+                              </span>
+                            )}
+                          </Link>
+                          <Link
                             href="/portal/profile"
                             className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                             onClick={() => setIsMobileMenuOpen(false)}
@@ -643,6 +679,11 @@ export default function Navbar() {
                                 <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
                               </svg>
                               Matches
+                              {matchesPendingCount > 0 && (
+                                <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                                  {matchesPendingCount}
+                                </span>
+                              )}
                             </Link>
                           )}
 

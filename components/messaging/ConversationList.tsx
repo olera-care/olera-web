@@ -17,6 +17,8 @@ interface ConversationListProps {
   activeProfileId: string;
   onReportConnection?: (id: string) => void;
   onArchiveConnection?: (id: string) => void;
+  onUnarchiveConnection?: (id: string) => void;
+  onDeleteConnection?: (id: string) => void;
   className?: string;
 }
 
@@ -158,6 +160,8 @@ function markAsRead(connectionId: string) {
   const readSet = getReadSet();
   readSet.add(connectionId);
   localStorage.setItem(READ_KEY, JSON.stringify([...readSet]));
+  // Notify navbar badge hook to re-count
+  window.dispatchEvent(new CustomEvent("olera:inbox-read"));
 }
 
 export default function ConversationList({
@@ -168,6 +172,8 @@ export default function ConversationList({
   activeProfileId,
   onReportConnection,
   onArchiveConnection,
+  onUnarchiveConnection,
+  onDeleteConnection,
   className = "",
 }: ConversationListProps) {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -257,6 +263,7 @@ export default function ConversationList({
     const isSelected = conn.id === selectedId;
     const isMenuOpen = menuOpenId === conn.id;
     const isUnread = !readIds.has(conn.id);
+    const isReported = !!(conn.metadata as Record<string, unknown> | undefined)?.reported;
 
     return (
       <div key={conn.id} className="pl-[28px] pr-3 py-0.5">
@@ -307,10 +314,19 @@ export default function ConversationList({
                   </span>
                 )}
               </div>
-              {careType && (
-                <p className="text-sm text-primary-600 font-medium mt-0.5 truncate">
-                  {careType}
-                </p>
+              {(careType || isReported) && (
+                <div className="flex items-center gap-2 mt-0.5">
+                  {careType && (
+                    <p className="text-sm text-primary-600 font-medium truncate">
+                      {careType}
+                    </p>
+                  )}
+                  {isReported && (
+                    <span className="text-[11px] font-semibold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md shrink-0">
+                      Reported
+                    </span>
+                  )}
+                </div>
               )}
               {lastMsg && (
                 <p className="text-[15px] text-gray-500 truncate mt-0.5">
@@ -320,9 +336,8 @@ export default function ConversationList({
             </div>
           </button>
 
-          {/* Hover action menu — hidden on past items */}
-          {!isPast && (
-            <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+          {/* Hover action menu */}
+          <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -342,7 +357,8 @@ export default function ConversationList({
                   ref={menuRef}
                   className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10"
                 >
-                  {onArchiveConnection && (
+                  {/* Active items: Archive + Report */}
+                  {!isPast && onArchiveConnection && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -357,7 +373,7 @@ export default function ConversationList({
                       Archive
                     </button>
                   )}
-                  {onReportConnection && (
+                  {!isPast && onReportConnection && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -372,10 +388,40 @@ export default function ConversationList({
                       Report
                     </button>
                   )}
+                  {/* Past items: Unarchive */}
+                  {isPast && conn.status === "archived" && onUnarchiveConnection && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUnarchiveConnection(conn.id);
+                        setMenuOpenId(null);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
+                    >
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 9l6-6m0 0l6 6m-6-6v12a6 6 0 01-12 0v-3" />
+                      </svg>
+                      Unarchive
+                    </button>
+                  )}
+                  {isPast && onDeleteConnection && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteConnection(conn.id);
+                        setMenuOpenId(null);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2.5"
+                    >
+                      <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                  )}
                 </div>
               )}
             </div>
-          )}
         </div>
       </div>
     );

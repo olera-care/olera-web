@@ -220,6 +220,7 @@ export default function ProviderDetailPanel({
         <div className="px-[44px] pb-6">
           <Link
             href={profileHref}
+            target="_blank"
             className="block w-full text-center py-3 text-[15px] font-semibold text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
           >
             View full profile

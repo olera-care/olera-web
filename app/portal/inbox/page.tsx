@@ -4,11 +4,12 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import type { Connection, Profile } from "@/lib/types";
+import type { Connection, ConnectionStatus, Profile } from "@/lib/types";
 import ConversationList from "@/components/messaging/ConversationList";
 import type { ConnectionWithProfile } from "@/components/messaging/ConversationList";
 import ConversationPanel from "@/components/messaging/ConversationPanel";
 import ProviderDetailPanel from "@/components/messaging/ProviderDetailPanel";
+import ReportConnectionModal from "@/components/messaging/ReportConnectionModal";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -35,6 +36,7 @@ function InboxContent() {
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
 
   // Auto-select from URL param
   useEffect(() => {
@@ -205,8 +207,50 @@ function InboxContent() {
     setSelectedId(id);
   }, []);
 
-  // Report a connection (sets metadata.reported with timestamp, hides from view)
-  const handleReport = useCallback(async (connectionId: string) => {
+  // Open report modal
+  const handleReportClick = useCallback((connectionId: string) => {
+    setReportingConnectionId(connectionId);
+  }, []);
+
+  // Submit report with reason (sets metadata.reported with timestamp + reason, hides from view)
+  const handleReportSubmit = useCallback(async (connectionId: string, reason: string, details: string) => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    const conn = connections.find((c) => c.id === connectionId);
+    if (!conn) return;
+
+    const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+    const updatedMeta = {
+      ...existingMeta,
+      reported: true,
+      reported_at: new Date().toISOString(),
+      reported_by: activeProfile?.id,
+      report_reason: reason,
+      report_details: details || null,
+      archived_from_status: conn.status,
+    };
+    await supabase
+      .from("connections")
+      .update({
+        status: "archived",
+        metadata: updatedMeta,
+      })
+      .eq("id", connectionId);
+
+    // Move to archived in local state and close modal
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId
+          ? { ...c, status: "archived", metadata: updatedMeta }
+          : c
+      )
+    );
+    if (selectedId === connectionId) setSelectedId(null);
+    setReportingConnectionId(null);
+  }, [connections, selectedId, activeProfile?.id]);
+
+  // Archive a connection (saves original status in metadata, sets status = 'archived')
+  const handleArchive = useCallback(async (connectionId: string) => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
     const conn = connections.find((c) => c.id === connectionId);
@@ -216,39 +260,64 @@ function InboxContent() {
     await supabase
       .from("connections")
       .update({
-        metadata: {
-          ...existingMeta,
-          reported: true,
-          reported_at: new Date().toISOString(),
-          reported_by: activeProfile?.id,
-          hidden: true,
-        },
+        status: "archived",
+        metadata: { ...existingMeta, archived_from_status: conn.status },
+      })
+      .eq("id", connectionId);
+
+    // Update local state
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId
+          ? { ...c, status: "archived", metadata: { ...existingMeta, archived_from_status: conn.status } }
+          : c
+      )
+    );
+    if (selectedId === connectionId) setSelectedId(null);
+  }, [connections, selectedId]);
+
+  // Unarchive a connection (restores original status from metadata)
+  const handleUnarchive = useCallback(async (connectionId: string) => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    const conn = connections.find((c) => c.id === connectionId);
+    if (!conn) return;
+
+    const meta = (conn.metadata as Record<string, unknown>) || {};
+    const restoreStatus = (meta.archived_from_status as ConnectionStatus) || "accepted";
+
+    await supabase
+      .from("connections")
+      .update({ status: restoreStatus })
+      .eq("id", connectionId);
+
+    // Update local state
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId ? { ...c, status: restoreStatus } : c
+      )
+    );
+  }, [connections]);
+
+  // Delete a connection (soft-delete via metadata.hidden)
+  const handleDelete = useCallback(async (connectionId: string) => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    const conn = connections.find((c) => c.id === connectionId);
+    if (!conn) return;
+
+    const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+    await supabase
+      .from("connections")
+      .update({
+        metadata: { ...existingMeta, hidden: true },
       })
       .eq("id", connectionId);
 
     // Remove from local state
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     if (selectedId === connectionId) setSelectedId(null);
-  }, [connections, selectedId, activeProfile?.id]);
-
-  // Archive a connection (sets status = 'archived')
-  const handleArchive = useCallback(async (connectionId: string) => {
-    if (!isSupabaseConfigured()) return;
-    const supabase = createClient();
-
-    await supabase
-      .from("connections")
-      .update({ status: "archived" })
-      .eq("id", connectionId);
-
-    // Update local state
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId ? { ...c, status: "archived" } : c
-      )
-    );
-    if (selectedId === connectionId) setSelectedId(null);
-  }, [selectedId]);
+  }, [connections, selectedId]);
 
   return (
     <div className="h-[calc(100vh-64px)] bg-white">
@@ -260,8 +329,10 @@ function InboxContent() {
         onSelect={handleSelect}
         loading={loading}
         activeProfileId={activeProfile?.id || ""}
-        onReportConnection={handleReport}
+        onReportConnection={handleReportClick}
         onArchiveConnection={handleArchive}
+        onUnarchiveConnection={handleUnarchive}
+        onDeleteConnection={handleDelete}
         className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
       />
 
@@ -292,6 +363,15 @@ function InboxContent() {
         </div>
       )}
     </div>
+
+    {/* Report modal */}
+    {reportingConnectionId && (
+      <ReportConnectionModal
+        connectionId={reportingConnectionId}
+        onClose={() => setReportingConnectionId(null)}
+        onSubmit={handleReportSubmit}
+      />
+    )}
     </div>
   );
 }

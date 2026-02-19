@@ -333,7 +333,21 @@ export async function POST(request: Request) {
       // Non-blocking — connection creation should not fail if intro generation fails
     }
 
-    // 7. Insert connection
+    // 7. Build connection metadata with auto-intro and provider auto-reply
+    const connectionMetadata: Record<string, unknown> = {};
+    if (autoIntro) connectionMetadata.auto_intro = autoIntro;
+
+    // Seed an automatic reply from the provider so the seeker has an
+    // unread message in their inbox immediately after connecting.
+    connectionMetadata.thread = [
+      {
+        from_profile_id: toProfileId,
+        text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    // 8. Insert connection
     const { data: newConnection, error: insertError } = await db
       .from("connections")
       .insert({
@@ -342,7 +356,7 @@ export async function POST(request: Request) {
         type: "inquiry",
         status: "pending",
         message: messagePayload,
-        metadata: autoIntro ? { auto_intro: autoIntro } : {},
+        metadata: connectionMetadata,
       })
       .select("id")
       .single();
@@ -355,7 +369,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 8. Sync intent data back to user's family profile
+    // 9. Sync intent data back to user's family profile
     if (intentData) {
       try {
         const { data: currentProfile } = await db

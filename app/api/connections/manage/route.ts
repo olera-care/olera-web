@@ -103,50 +103,44 @@ export async function POST(request: Request) {
 
     switch (action) {
       case "archive": {
-        const { data: updated, error: updateError } = await admin
+        const { error: updateError } = await admin
           .from("connections")
           .update({
             status: "archived",
             metadata: { ...existingMeta, archived_from_status: connection.status },
           })
-          .eq("id", connectionId)
-          .select("id, status")
-          .single();
+          .eq("id", connectionId);
 
-        if (updateError || !updated) {
+        if (updateError) {
           console.error("[manage] archive error:", updateError);
           return NextResponse.json({ error: "Failed to archive" }, { status: 500 });
         }
-        return NextResponse.json({ status: updated.status });
+        return NextResponse.json({ status: "archived" });
       }
 
       case "unarchive": {
         const restoreStatus = (existingMeta.archived_from_status as string) || "accepted";
-        const { data: updated, error: updateError } = await admin
+        const { error: updateError } = await admin
           .from("connections")
           .update({ status: restoreStatus })
-          .eq("id", connectionId)
-          .select("id, status")
-          .single();
+          .eq("id", connectionId);
 
-        if (updateError || !updated) {
+        if (updateError) {
           console.error("[manage] unarchive error:", updateError);
           return NextResponse.json({ error: "Failed to unarchive" }, { status: 500 });
         }
-        return NextResponse.json({ status: updated.status });
+        return NextResponse.json({ status: restoreStatus });
       }
 
       case "delete": {
-        const { data: updated, error: updateError } = await admin
+        const { error: updateError } = await admin
           .from("connections")
           .update({
             metadata: { ...existingMeta, hidden: true },
           })
-          .eq("id", connectionId)
-          .select("id")
-          .single();
+          .eq("id", connectionId);
 
-        if (updateError || !updated) {
+        if (updateError) {
           console.error("[manage] delete error:", updateError);
           return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
         }
@@ -164,17 +158,15 @@ export async function POST(request: Request) {
           archived_from_status: connection.status,
         };
 
-        const { data: updated, error: updateError } = await admin
+        const { error: updateError } = await admin
           .from("connections")
           .update({
             status: "archived",
             metadata: reportMeta,
           })
-          .eq("id", connectionId)
-          .select("id, status")
-          .single();
+          .eq("id", connectionId);
 
-        if (updateError || !updated) {
+        if (updateError) {
           console.error("[manage] report error:", updateError);
           return NextResponse.json({ error: "Failed to report" }, { status: 500 });
         }

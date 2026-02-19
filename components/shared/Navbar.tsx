@@ -224,9 +224,9 @@ export default function Navbar() {
             <div className="px-2 py-1.5">
               {isProviderPortal ? (
                 <>
-                  {/* Provider Hub links */}
+                  {/* Provider Hub links — all point to /provider (coming soon) */}
                   <Link
-                    href="/provider/statistics"
+                    href="/provider"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     onClick={() => setIsUserMenuOpen(false)}
                   >
@@ -238,7 +238,7 @@ export default function Navbar() {
                     Statistics
                   </Link>
                   <Link
-                    href="/provider/verification"
+                    href="/provider"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     onClick={() => setIsUserMenuOpen(false)}
                   >
@@ -249,7 +249,7 @@ export default function Navbar() {
                     Identity Verification
                   </Link>
                   <Link
-                    href="/provider/pro"
+                    href="/provider"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     onClick={() => setIsUserMenuOpen(false)}
                   >
@@ -259,7 +259,7 @@ export default function Navbar() {
                     Olera Pro
                   </Link>
                   <Link
-                    href="/portal/settings"
+                    href="/provider"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     onClick={() => setIsUserMenuOpen(false)}
                   >
@@ -498,30 +498,17 @@ export default function Navbar() {
             {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
                 {isProviderPortal ? (
-                  /* Provider Hub nav links */
+                  /* Provider Hub nav links — all "coming soon", point to /provider */
                   <>
-                    {([
-                      { label: "Profile", href: "/provider/profile" },
-                      { label: "Inbox", href: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/leads" },
-                      { label: "Reviews", href: "/provider/reviews" },
-                      { label: "Olera Pro", href: "/provider/pro" },
-                    ] as { label: string; href: string }[]).map((link) => {
-                      const isActive = pathname.startsWith(link.href);
-                      return (
-                        <Link
-                          key={link.label}
-                          href={link.href}
-                          className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
-                            isActive
-                              ? "bg-gray-100 text-gray-900"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                        >
-                          {link.label}
-                        </Link>
-                      );
-                    })}
+                    {(["Profile", "Inbox", "Leads", "Reviews", "Olera Pro"]).map((label) => (
+                      <Link
+                        key={label}
+                        href="/provider"
+                        className="px-4 py-2 text-[15px] font-medium rounded-full transition-colors text-gray-700 hover:bg-gray-50"
+                      >
+                        {label}
+                      </Link>
+                    ))}
                   </>
                 ) : (
                   /* Family / public nav links */
@@ -923,7 +910,7 @@ export default function Navbar() {
                           {isProviderPortal ? (
                             <>
                               <Link
-                                href="/provider/statistics"
+                                href="/provider"
                                 className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
@@ -935,7 +922,7 @@ export default function Navbar() {
                                 Statistics
                               </Link>
                               <Link
-                                href="/provider/verification"
+                                href="/provider"
                                 className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
@@ -946,7 +933,7 @@ export default function Navbar() {
                                 Identity Verification
                               </Link>
                               <Link
-                                href="/provider/pro"
+                                href="/provider"
                                 className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
@@ -956,7 +943,7 @@ export default function Navbar() {
                                 Olera Pro
                               </Link>
                               <Link
-                                href="/portal/settings"
+                                href="/provider"
                                 className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >

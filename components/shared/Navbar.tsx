@@ -18,7 +18,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
-  const { user, account, activeProfile, profiles, openAuth, signOut, fetchError } =
+  const { user, account, activeProfile, profiles, openAuth, signOut, fetchError, switchProfile } =
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -48,6 +48,12 @@ export default function Navbar() {
     (p) => p.type === "organization" || p.type === "caregiver"
   );
   const showModeSwitcher = isFullyLoaded && hasFamilyProfile && hasProviderProfile;
+
+  // Profile IDs for hub switching — used by the mode switcher to also switch activeProfile
+  const familyProfileId = (profiles || []).find((p) => p.type === "family")?.id;
+  const providerProfileId = (profiles || []).find(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  )?.id;
 
   // Show user's actual name in the dropdown, not the org/profile name
   const displayName = account?.display_name || user?.email || "";
@@ -173,9 +179,13 @@ export default function Navbar() {
         <>
           <div className="px-3 pt-2 pb-1">
             <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
-              <Link
-                href="/"
-                onClick={() => setIsUserMenuOpen(false)}
+              <button
+                type="button"
+                onClick={async () => {
+                  if (familyProfileId) await switchProfile(familyProfileId);
+                  setIsUserMenuOpen(false);
+                  router.push("/");
+                }}
                 className={[
                   "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                   !isProviderPortal
@@ -184,10 +194,14 @@ export default function Navbar() {
                 ].join(" ")}
               >
                 Family Portal
-              </Link>
-              <Link
-                href="/provider"
-                onClick={() => setIsUserMenuOpen(false)}
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (providerProfileId) await switchProfile(providerProfileId);
+                  setIsUserMenuOpen(false);
+                  router.push("/provider");
+                }}
                 className={[
                   "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                   isProviderPortal
@@ -196,7 +210,7 @@ export default function Navbar() {
                 ].join(" ")}
               >
                 Provider Hub
-              </Link>
+              </button>
             </div>
           </div>
           <div className="mx-4 border-t border-gray-100" />
@@ -804,9 +818,13 @@ export default function Navbar() {
                     {showModeSwitcher && (
                       <div className="py-2">
                         <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
-                          <Link
-                            href="/"
-                            onClick={() => setIsMobileMenuOpen(false)}
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (familyProfileId) await switchProfile(familyProfileId);
+                              setIsMobileMenuOpen(false);
+                              router.push("/");
+                            }}
                             className={[
                               "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                               !isProviderPortal
@@ -815,10 +833,14 @@ export default function Navbar() {
                             ].join(" ")}
                           >
                             Family Portal
-                          </Link>
-                          <Link
-                            href="/provider"
-                            onClick={() => setIsMobileMenuOpen(false)}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (providerProfileId) await switchProfile(providerProfileId);
+                              setIsMobileMenuOpen(false);
+                              router.push("/provider");
+                            }}
                             className={[
                               "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                               isProviderPortal
@@ -827,7 +849,7 @@ export default function Navbar() {
                             ].join(" ")}
                           >
                             Provider Hub
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     )}

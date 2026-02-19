@@ -57,10 +57,14 @@ export default function Navbar() {
   const displayName = account?.display_name || user?.email || "";
   const initials = getInitials(displayName);
 
-  const profileTypeLabel = activeProfile
-    ? activeProfile.type === "organization"
+  // In provider mode, show the provider profile type instead of the active (family) profile type
+  const contextProfileType = isProviderPortal
+    ? (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.type
+    : activeProfile?.type;
+  const profileTypeLabel = contextProfileType
+    ? contextProfileType === "organization"
       ? "Organization"
-      : activeProfile.type === "caregiver"
+      : contextProfileType === "caregiver"
       ? "Caregiver"
       : "Family"
     : null;
@@ -337,10 +341,10 @@ export default function Navbar() {
                         {isFullyLoaded ? (
                           hasProfile ? (
                             <>
-                              {/* Tier 1 — Core portal links */}
+                              {/* Tier 1 — Core portal links (context-aware) */}
                               <div className="px-2 py-1.5">
                                 <Link
-                                  href="/portal/inbox"
+                                  href={isProviderPortal ? "/provider/inbox" : "/portal/inbox"}
                                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                                   onClick={() => setIsUserMenuOpen(false)}
                                 >
@@ -356,7 +360,7 @@ export default function Navbar() {
                                   )}
                                 </Link>
                                 <Link
-                                  href="/portal/profile"
+                                  href={isProviderPortal ? "/provider/profile" : "/portal/profile"}
                                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                                   onClick={() => setIsUserMenuOpen(false)}
                                 >
@@ -366,7 +370,7 @@ export default function Navbar() {
                                   </svg>
                                   Profile
                                 </Link>
-                                {activeProfile?.type === "family" && (
+                                {!isProviderPortal && activeProfile?.type === "family" && (
                                   <Link
                                     href="/portal/matches"
                                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
@@ -717,9 +721,9 @@ export default function Navbar() {
                     {isFullyLoaded ? (
                       hasProfile ? (
                         <>
-                          {/* Tier 1 — Core portal */}
+                          {/* Tier 1 — Core portal (context-aware) */}
                           <Link
-                            href="/portal/inbox"
+                            href={isProviderPortal ? "/provider/inbox" : "/portal/inbox"}
                             className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
@@ -735,7 +739,7 @@ export default function Navbar() {
                             )}
                           </Link>
                           <Link
-                            href="/portal/profile"
+                            href={isProviderPortal ? "/provider/profile" : "/portal/profile"}
                             className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                             onClick={() => setIsMobileMenuOpen(false)}
                           >
@@ -745,7 +749,7 @@ export default function Navbar() {
                             </svg>
                             Profile
                           </Link>
-                          {activeProfile?.type === "family" && (
+                          {!isProviderPortal && activeProfile?.type === "family" && (
                             <Link
                               href="/portal/matches"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"

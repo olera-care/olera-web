@@ -84,23 +84,26 @@ function InboxContent() {
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
         // Count archived connections by metadata flag (status column doesn't use "archived")
+        // Select metadata too so we can exclude deleted (hidden) connections from the count
         supabase
           .from("connections")
-          .select("id")
+          .select("id, metadata")
           .in("from_profile_id", profileIds)
           .eq("type", "inquiry")
           .filter("metadata->>archived", "eq", "true"),
         supabase
           .from("connections")
-          .select("id")
+          .select("id, metadata")
           .in("to_profile_id", profileIds)
           .eq("type", "inquiry")
           .filter("metadata->>archived", "eq", "true"),
       ]);
 
-      // Deduplicate archived count
+      // Deduplicate archived count — exclude deleted (hidden) connections
       const archivedIds = new Set<string>();
       for (const c of [...(archivedOut.data || []), ...(archivedIn.data || [])]) {
+        const meta = c.metadata as Record<string, unknown> | undefined;
+        if (meta?.hidden) continue;
         archivedIds.add(c.id);
       }
       setArchivedCount(archivedIds.size);

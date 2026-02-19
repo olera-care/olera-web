@@ -253,7 +253,7 @@ export default function ConversationList({
     const isUnread = !readIds.has(conn.id);
 
     return (
-      <div key={conn.id} className="px-3 py-0.5">
+      <div key={conn.id} className="pl-[28px] pr-3 py-0.5">
         <div
           className={`group relative rounded-xl transition-colors ${
             isSelected
@@ -384,7 +384,7 @@ export default function ConversationList({
         </div>
         <div className="flex-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="px-3 py-0.5">
+            <div key={i} className="pl-[28px] pr-3 py-0.5">
               <div className="flex items-start gap-3.5 px-4 py-4 animate-pulse">
                 <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
                 <div className="flex-1 space-y-2.5 pt-1">

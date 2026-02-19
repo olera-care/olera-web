@@ -359,6 +359,7 @@ function InboxContent() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
+        console.error("[inbox] manage API error details:", body);
         throw new Error(body.error || "Failed to update connection");
       }
       return res.json();

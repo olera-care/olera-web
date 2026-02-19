@@ -103,17 +103,25 @@ export async function POST(request: Request) {
 
     switch (action) {
       case "archive": {
-        const { error: updateError } = await admin
+        const updatePayload = {
+          status: "archived",
+          metadata: { ...existingMeta, archived_from_status: connection.status },
+        };
+        console.log("[manage] archive attempt:", { connectionId, currentStatus: connection.status, updatePayload });
+
+        const { error: updateError, status: httpStatus, statusText } = await admin
           .from("connections")
-          .update({
-            status: "archived",
-            metadata: { ...existingMeta, archived_from_status: connection.status },
-          })
+          .update(updatePayload)
           .eq("id", connectionId);
 
+        console.log("[manage] archive result:", { updateError, httpStatus, statusText });
+
         if (updateError) {
-          console.error("[manage] archive error:", updateError);
-          return NextResponse.json({ error: "Failed to archive" }, { status: 500 });
+          console.error("[manage] archive error:", JSON.stringify(updateError));
+          return NextResponse.json(
+            { error: "Failed to archive", details: updateError.message, code: updateError.code, hint: updateError.hint },
+            { status: 500 }
+          );
         }
         return NextResponse.json({ status: "archived" });
       }

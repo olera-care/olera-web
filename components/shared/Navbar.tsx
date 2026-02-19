@@ -151,7 +151,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`sticky top-0 z-50 bg-white ${isPortal || isCommunity ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`sticky top-0 z-50 bg-white ${isPortal || isProviderPortal || isCommunity ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
@@ -176,51 +176,82 @@ export default function Navbar() {
             {/* Center — Primary navigation (page-centered, hidden on mobile + inbox) */}
               {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
-                {/* Find Care trigger */}
-                <div onMouseEnter={() => setIsFindCareOpen(true)}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsFindCareOpen(false);
-                      router.push("/browse");
-                    }}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[15px] font-medium transition-colors ${
-                      isFindCareOpen
-                        ? "bg-gray-100 text-gray-900"
-                        : "text-gray-700 hover:bg-gray-50"
-                    }`}
-                    aria-expanded={isFindCareOpen}
-                    aria-haspopup="true"
-                  >
-                    Find Care
-                    <svg
-                      className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${
-                        isFindCareOpen ? "rotate-180" : ""
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                {isProviderPortal ? (
+                  /* Provider Hub nav links */
+                  <>
+                    {([
+                      { label: "Profile", href: "/provider/profile" },
+                      { label: "Inbox", href: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/leads" },
+                      { label: "Reviews", href: "/provider/reviews" },
+                      { label: "Olera Pro", href: "/provider/pro" },
+                    ] as { label: string; href: string }[]).map((link) => {
+                      const isActive = pathname.startsWith(link.href);
+                      return (
+                        <Link
+                          key={link.label}
+                          href={link.href}
+                          className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
+                            isActive
+                              ? "bg-gray-100 text-gray-900"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </>
+                ) : (
+                  /* Family / public nav links */
+                  <>
+                    {/* Find Care trigger */}
+                    <div onMouseEnter={() => setIsFindCareOpen(true)}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsFindCareOpen(false);
+                          router.push("/browse");
+                        }}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[15px] font-medium transition-colors ${
+                          isFindCareOpen
+                            ? "bg-gray-100 text-gray-900"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                        aria-expanded={isFindCareOpen}
+                        aria-haspopup="true"
+                      >
+                        Find Care
+                        <svg
+                          className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 ${
+                            isFindCareOpen ? "rotate-180" : ""
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+                    </div>
 
-                {/* Simple nav links */}
-                {NAV_LINKS.map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                    {/* Simple nav links */}
+                    {NAV_LINKS.map((link) => (
+                      <Link
+                        key={link.label}
+                        href={link.href}
+                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </>
+                )}
               </div>
               )}
 
@@ -228,13 +259,15 @@ export default function Navbar() {
             <div className="flex-1 flex items-center justify-end">
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center gap-2">
-                {/* For Providers link */}
-                <button
-                  onClick={handleForProviders}
-                  className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                >
-                  For Providers
-                </button>
+                {/* For Providers link — hidden when already in provider portal */}
+                {!isProviderPortal && (
+                  <button
+                    onClick={handleForProviders}
+                    className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                  >
+                    For Providers
+                  </button>
+                )}
 
                 {/* Saved providers heart */}
                 <Link

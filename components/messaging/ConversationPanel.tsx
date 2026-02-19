@@ -498,7 +498,7 @@ export default function ConversationPanel({
       {showMessageInput && (
         <div className="shrink-0 border-t border-gray-200 bg-white">
           {/* Input area */}
-          <div className="pl-6 pr-[44px] py-4">
+          <div className="px-6 py-4">
             <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
               <textarea
                 ref={messageInputRef}

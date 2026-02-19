@@ -70,12 +70,14 @@ export function useUnreadInboxCount(profileIds: string[]): number {
     recount();
   }, [recount]);
 
-  // Re-count when a conversation is marked as read in the inbox
+  // Re-count when a conversation is marked as read, or a new connection is created
   useEffect(() => {
     const handler = () => recount();
     window.addEventListener("olera:inbox-read", handler);
+    window.addEventListener("olera:connection-created", handler);
     return () => {
       window.removeEventListener("olera:inbox-read", handler);
+      window.removeEventListener("olera:connection-created", handler);
     };
   }, [recount]);
 

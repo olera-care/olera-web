@@ -307,6 +307,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
         return;
       }
 
+      // Notify inbox page and navbar badge that a new connection exists
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+      }
+
       // If redirect is configured, navigate immediately — skip refresh
       // to prevent checkExisting from flashing the pending state.
       if (data.connectionId && onConnectionCreated) {

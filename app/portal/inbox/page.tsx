@@ -235,6 +235,13 @@ function InboxContent() {
     fetchConnections();
   }, [fetchConnections]);
 
+  // Re-fetch when a new connection is created (e.g. user connected from browse/suggested)
+  useEffect(() => {
+    const handler = () => fetchConnections();
+    window.addEventListener("olera:connection-created", handler);
+    return () => window.removeEventListener("olera:connection-created", handler);
+  }, [fetchConnections]);
+
   // Lazy-load archived connections when the user opens the archive section
   const archivedLoadedRef = useRef(false);
   const fetchArchived = useCallback(async () => {

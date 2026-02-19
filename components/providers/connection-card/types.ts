@@ -3,7 +3,6 @@
 // ============================================================
 
 export type CardState =
-  | "loading" // Logged-in users while DB queries run
   | "default" // State 1: Anonymous / no connection
   | "intent" // State 2: Intent capture (steps 1-3)
   | "returning" // State 3: Returning user (prior connection or past)
@@ -45,4 +44,6 @@ export interface ConnectionCardProps {
   careTypes: string[];
   isActive: boolean;
   responseTime: string | null; // null in v1
+  /** Called after a new connection is successfully created (not on duplicates). */
+  onConnectionCreated?: (connectionId: string) => void;
 }

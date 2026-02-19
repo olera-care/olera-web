@@ -147,12 +147,31 @@ export default function SavedProvidersPage() {
               When you find a provider you like, tap the heart icon to save them
               here for easy comparison later.
             </p>
-            <Link
-              href="/browse"
-              className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
-            >
-              Browse providers
-            </Link>
+            {!user && (
+              <p className="text-sm text-gray-500 mb-6 max-w-md text-center leading-relaxed">
+                Create a free account to save providers and access them anytime.
+              </p>
+            )}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/browse"
+                className={`inline-flex items-center px-6 py-3 text-sm font-semibold rounded-xl transition-colors shadow-sm ${
+                  user
+                    ? "bg-primary-600 hover:bg-primary-500 text-white"
+                    : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                Browse providers
+              </Link>
+              {!user && (
+                <button
+                  onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+                  className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                >
+                  Create account
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

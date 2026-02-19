@@ -33,20 +33,32 @@ interface ProfileSwitcherProps {
   onSwitch?: () => void;
   /** Render variant. "dropdown" for navbar dropdown, "sidebar" for portal sidebar. */
   variant?: "dropdown" | "sidebar";
+  /** If provided, only show profiles whose type is in this list. */
+  allowedTypes?: string[];
+  /** Where to navigate after switching profiles. Defaults to "/portal". */
+  navigateTo?: string;
 }
 
-export default function ProfileSwitcher({ onSwitch, variant = "dropdown" }: ProfileSwitcherProps) {
+export default function ProfileSwitcher({
+  onSwitch,
+  variant = "dropdown",
+  allowedTypes,
+  navigateTo = "/portal",
+}: ProfileSwitcherProps) {
   const { profiles, activeProfile, switchProfile, openAuth } = useAuth();
   const router = useRouter();
 
-  const hasMultipleProfiles = profiles.length > 1;
+  const visibleProfiles = allowedTypes
+    ? profiles.filter((p) => allowedTypes.includes(p.type))
+    : profiles;
+
+  const hasMultipleProfiles = visibleProfiles.length > 1;
 
   const handleSwitch = async (profileId: string) => {
     if (profileId === activeProfile?.id) return;
     await switchProfile(profileId);
     onSwitch?.();
-    // Always navigate to dashboard after switching to avoid role mismatch on current page
-    router.push("/portal");
+    router.push(navigateTo);
   };
 
   if (variant === "sidebar") {
@@ -57,7 +69,7 @@ export default function ProfileSwitcher({ onSwitch, variant = "dropdown" }: Prof
             Switch Profile
           </p>
         )}
-        {profiles.map((profile) => {
+        {visibleProfiles.map((profile) => {
           const isActive = profile.id === activeProfile?.id;
           return (
             <button
@@ -116,7 +128,7 @@ export default function ProfileSwitcher({ onSwitch, variant = "dropdown" }: Prof
           Profiles
         </p>
       )}
-      {profiles.map((profile) => {
+      {visibleProfiles.map((profile) => {
         const isActive = profile.id === activeProfile?.id;
         return (
           <button

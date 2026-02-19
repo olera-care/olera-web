@@ -5,15 +5,19 @@ import PhoneButton from "./PhoneButton";
 interface DefaultActionsProps {
   phone: string | null;
   phoneRevealed: boolean;
+  isAuthenticated: boolean;
   onConnect: () => void;
   onRevealPhone: () => void;
+  onSignIn: () => void;
 }
 
 export default function DefaultActions({
   phone,
   phoneRevealed,
+  isAuthenticated,
   onConnect,
   onRevealPhone,
+  onSignIn,
 }: DefaultActionsProps) {
   return (
     <>
@@ -38,6 +42,19 @@ export default function DefaultActions({
       {!phoneRevealed && phone && (
         <p className="text-xs text-gray-400 text-center mt-1.5">
           Connect to see full number
+        </p>
+      )}
+
+      {/* Sign-in nudge — only for unauthenticated users */}
+      {!isAuthenticated && (
+        <p className="text-xs text-gray-400 text-center mt-3">
+          Already connected?{" "}
+          <button
+            onClick={onSignIn}
+            className="text-primary-600 hover:text-primary-500 font-medium bg-transparent border-none cursor-pointer p-0 underline underline-offset-2 transition-colors"
+          >
+            Sign in
+          </button>
         </p>
       )}
     </>

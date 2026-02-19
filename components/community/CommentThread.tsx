@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ForumComment } from "@/types/forum";
 import ForumCommentV2 from "./ForumCommentV2";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface CommentThreadProps {
   comments: ForumComment[];
@@ -12,14 +13,33 @@ interface CommentThreadProps {
 type SortType = "relevant" | "recent";
 
 export default function CommentThread({ comments }: CommentThreadProps) {
+  const { user, account, openAuth } = useAuth();
   const [commentText, setCommentText] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [sortBy, setSortBy] = useState<SortType>("relevant");
 
+  // Derive avatar initials from account name or email
+  const displayName = account?.display_name || user?.email || "";
+  const initials = displayName
+    ? displayName
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "?";
+
   const handleSubmit = async () => {
     if (!commentText.trim()) return;
+
+    // Auth gate: prompt sign-in at submit time, preserving draft in state
+    if (!user) {
+      openAuth({ defaultMode: "sign-up", intent: "family" });
+      return;
+    }
+
     setIsSubmitting(true);
     setTimeout(() => {
       setCommentText("");
@@ -42,7 +62,7 @@ export default function CommentThread({ comments }: CommentThreadProps) {
         <div className="flex items-start gap-3">
           {/* User Avatar */}
           <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-600 font-medium text-sm">Y</span>
+            <span className="text-primary-600 font-medium text-sm">{initials}</span>
           </div>
 
           {/* Input Area */}

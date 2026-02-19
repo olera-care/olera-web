@@ -70,6 +70,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     careTypes: providerCareTypes,
     isActive,
+    onConnectionCreated,
   } = props;
 
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
@@ -79,40 +80,36 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const connectionAuthTriggered = useRef(false);
 
   // ── State machine ──
-  const [cardState, setCardState] = useState<CardState>("loading");
+  // Start at "default" so the CTA is always interactive immediately —
+  // no loading skeleton. Effects may upgrade to returning/pending/responded.
+  const [cardState, setCardState] = useState<CardState>(
+    isActive === false ? "inactive" : "default"
+  );
   const [intentStep, setIntentStep] = useState<IntentStep>(0);
   const [intentData, setIntentData] = useState<IntentData>(INITIAL_INTENT);
 
   // ── UI state ──
   const [phoneRevealed, setPhoneRevealed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const saved = savedProviders.isSaved(providerId);
   const [error, setError] = useState("");
   const [pendingRequestDate, setPendingRequestDate] = useState<string | null>(
     null
   );
   const [previousIntent, setPreviousIntent] = useState<IntentData | null>(null);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
+  const [connectedIntentData, setConnectedIntentData] = useState<IntentData | null>(null);
 
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
 
-  // ── Resolve initial state — show optimistic UI immediately ──
+  // ── Resolve initial state — upgrade to "returning" if profile has intent data ──
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !isActive) return;
 
-    if (!isActive) {
-      setCardState("inactive");
-      return;
-    }
-
-    // Anonymous user — show default immediately
-    if (!user) {
-      setCardState("default");
-      return;
-    }
-
-    // Logged-in user — try optimistic render from profile data (skip skeleton)
-    if (activeProfile) {
+    // Logged-in user with profile data — try optimistic "returning" render
+    if (user && activeProfile) {
       const profileIntent = buildIntentFromProfile({
         metadata: activeProfile.metadata as Record<string, unknown> | undefined,
         care_types: activeProfile.care_types ?? undefined,
@@ -121,12 +118,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
         setPreviousIntent(profileIntent);
         setIntentData(profileIntent);
         setCardState("returning");
-        return;
       }
     }
-
-    // Logged-in but no profile data to pre-fill — show default instead of skeleton
-    setCardState("default");
   }, [authLoading, user, isActive, activeProfile]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
@@ -163,7 +156,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
       const connectionPromise = resolvedId
         ? supabase
             .from("connections")
-            .select("id, status, metadata, created_at")
+            .select("id, status, metadata, message, created_at")
             .in("from_profile_id", profileIds)
             .eq("to_profile_id", resolvedId)
             .eq("type", "inquiry")
@@ -191,13 +184,24 @@ export function useConnectionCard(props: ConnectionCardProps) {
         const data = connectionResult.data;
         setPendingRequestDate(data.created_at);
 
-        if (data.status === "accepted") {
-          setCardState("responded");
-          return;
-        }
+        if (data.status === "accepted" || data.status === "pending") {
+          setConnectionId(data.id);
 
-        if (data.status === "pending") {
-          setCardState("pending");
+          // Parse intent data from connection message for the connected preview
+          if (data.message) {
+            try {
+              const parsed = JSON.parse(data.message as string);
+              setConnectedIntentData({
+                careRecipient: parsed.care_recipient || null,
+                careType: parsed.care_type || null,
+                urgency: parsed.urgency || null,
+              });
+            } catch {
+              // Invalid JSON — ignore
+            }
+          }
+
+          setCardState(data.status === "accepted" ? "responded" : "pending");
           return;
         }
 
@@ -289,6 +293,32 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
+      // Handle duplicate connection (user already has pending/accepted)
+      if (data.status === "duplicate") {
+        // Redirect to success page if configured (e.g. returning user reconnecting)
+        if (data.connectionId && onConnectionCreated) {
+          onConnectionCreated(data.connectionId);
+          return;
+        }
+        if (data.created_at) {
+          setPendingRequestDate(data.created_at);
+        }
+        await refreshAccountData();
+        return;
+      }
+
+      // Notify inbox page and navbar badge that a new connection exists
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+      }
+
+      // If redirect is configured, navigate immediately — skip refresh
+      // to prevent checkExisting from flashing the pending state.
+      if (data.connectionId && onConnectionCreated) {
+        onConnectionCreated(data.connectionId);
+        return;
+      }
+
       // Refresh auth data so active profile is up-to-date
       await refreshAccountData();
 
@@ -302,6 +332,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
           ? (err as { message: string }).message
           : String(err);
       console.error("Connection request error:", msg);
+      setSubmitting(false);
       setError(msg || "Something went wrong. Please try again.");
     }
   }, [
@@ -311,6 +342,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     intentData,
     refreshAccountData,
+    onConnectionCreated,
   ]);
 
   // ── Handle deferred connection request after auth ──
@@ -338,13 +370,18 @@ export function useConnectionCard(props: ConnectionCardProps) {
         // sessionStorage may fail in private browsing
       }
 
-      // Go straight to pending, fire API in background
-      setCardState("pending");
+      // When redirect is configured, show spinner on the Connect button.
+      // Otherwise fall back to the pending card state.
+      if (onConnectionCreated) {
+        setSubmitting(true);
+      } else {
+        setCardState("pending");
+      }
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest(restoredIntent || undefined);
     }
-  }, [user, account, providerId, submitRequest]);
+  }, [user, account, providerId, submitRequest, onConnectionCreated]);
 
   // ── Navigation helpers ──
   const startFlow = useCallback(() => {
@@ -384,8 +421,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
     if (user) {
-      // Go straight to pending, fire API in background
-      setCardState("pending");
+      // When redirect is configured, keep the current card content and only
+      // show a spinner on the Connect button (submitting). This avoids a
+      // jarring content swap before the page navigates away.
+      if (onConnectionCreated) {
+        setSubmitting(true);
+      } else {
+        setCardState("pending");
+      }
       setPendingRequestDate(new Date().toISOString());
       setPhoneRevealed(true);
       submitRequest();
@@ -409,7 +452,13 @@ export function useConnectionCard(props: ConnectionCardProps) {
         },
       });
     }
-  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug]);
+  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug, onConnectionCreated]);
+
+  const signIn = useCallback(() => {
+    openAuth({ defaultMode: "sign-in" });
+    // No deferred action — after auth, Effect 2 naturally detects
+    // existing connections and sets the correct state.
+  }, [openAuth]);
 
   const editFromReturning = useCallback(() => {
     setIntentStep(0);
@@ -448,17 +497,22 @@ export function useConnectionCard(props: ConnectionCardProps) {
     intentStep,
     intentData,
     phoneRevealed,
+    submitting,
     saved,
     error,
     pendingRequestDate,
     availableCareTypes,
     notificationEmail,
+    isAuthenticated: !!user,
+    connectionId,
+    connectedIntentData,
 
     // Navigation
     startFlow,
     resetFlow,
     editFromReturning,
     connect,
+    signIn,
 
     // Auto-advancing field setters
     selectRecipient,

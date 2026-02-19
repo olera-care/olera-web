@@ -37,15 +37,6 @@ const careTypes = [
   { id: "independent-living", label: "Independent Living" },
 ];
 
-const paymentTypeOptions = [
-  { value: "any", label: "Any Payment Type" },
-  { value: "Medicare", label: "Medicare" },
-  { value: "Medicaid", label: "Medicaid" },
-  { value: "Private Pay", label: "Private Pay" },
-  { value: "Long-term Insurance", label: "Long-term Care Insurance" },
-  { value: "Veterans Benefits", label: "VA Benefits" },
-];
-
 const ratingOptions = [
   { value: "any", label: "Any Rating" },
   { value: "4.5", label: "4.5+ Stars" },
@@ -169,7 +160,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [searchLocation, setSearchLocation] = useState(initialLocation);
   const [locationInput, setLocationInput] = useState(initialLocation);
   const [selectedRating, setSelectedRating] = useState("any");
-  const [selectedPayment, setSelectedPayment] = useState("any");
   const [sortBy, setSortBy] = useState("recommended");
   const [viewMode, setViewMode] = useState<ViewMode>("carousel");
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
@@ -179,7 +169,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCareTypeDropdown, setShowCareTypeDropdown] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
-  const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // Geolocation state
@@ -359,7 +348,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         setLocationInput(searchLocation);
         setShowCareTypeDropdown(false);
         setShowRatingDropdown(false);
-        setShowPaymentDropdown(false);
+
         setShowSortDropdown(false);
       }
     };
@@ -375,11 +364,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     if (selectedRating !== "any") {
       const minRating = parseFloat(selectedRating);
       result = result.filter((p) => p.rating >= minRating);
-    }
-
-    // Apply payment filter (client-side)
-    if (selectedPayment !== "any") {
-      result = result.filter((p) => p.acceptedPayments?.includes(selectedPayment));
     }
 
     // Apply sorting
@@ -402,7 +386,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     }
 
     return result;
-  }, [providers, selectedRating, selectedPayment, sortBy]);
+  }, [providers, selectedRating, sortBy]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProviders.length / PROVIDERS_PER_PAGE);
@@ -414,14 +398,14 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [careType, selectedRating, selectedPayment, sortBy]);
+  }, [careType, selectedRating, sortBy]);
 
   // Categorized providers for carousel view - override badges to match section
   const topRatedProviders = useMemo(
     () => [...filteredProviders]
       .sort((a, b) => b.rating - a.rating)
       .slice(0, 8)
-      .map((p) => ({ ...p, badge: "Top Rated" })),
+      .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -429,7 +413,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     () => filteredProviders
       .filter((p) => p.acceptedPayments?.includes("Medicaid"))
       .slice(0, 8)
-      .map((p) => ({ ...p, badge: undefined })), // No badge for affordable section
+      .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -438,7 +422,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       [...filteredProviders]
         .sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0))
         .slice(0, 8)
-        .map((p) => ({ ...p, badge: "Top Rated" })),
+        .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -446,7 +430,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     () => filteredProviders
       .filter((p) => p.verified)
       .slice(0, 8)
-      .map((p) => ({ ...p, badge: "Featured" })),
+      .map((p) => ({ ...p, badge: undefined })),
     [filteredProviders]
   );
 
@@ -476,7 +460,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   // Check if any filters are active
   const hasActiveFilters =
     selectedRating !== "any" ||
-    selectedPayment !== "any" ||
     sortBy !== "recommended";
 
   // Clear all filters
@@ -484,7 +467,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     setSearchLocation(DEFAULT_LOCATION);
     setLocationInput(DEFAULT_LOCATION);
     setSelectedRating("any");
-    setSelectedPayment("any");
     setSortBy("recommended");
   };
 
@@ -510,7 +492,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                   setShowLocationDropdown(opening);
                   setShowCareTypeDropdown(false);
                   setShowRatingDropdown(false);
-                  setShowPaymentDropdown(false);
+          
                   setShowSortDropdown(false);
                   if (opening) {
                     // Clear input so popular cities show (matching landing page dropdown)
@@ -644,7 +626,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                   setShowCareTypeDropdown(!showCareTypeDropdown);
                   setShowLocationDropdown(false);
                   setShowRatingDropdown(false);
-                  setShowPaymentDropdown(false);
+          
                   setShowSortDropdown(false);
                 }}
                 className={`flex items-center justify-between h-9 px-3 w-[180px] rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
@@ -702,7 +684,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                   setShowRatingDropdown(!showRatingDropdown);
                   setShowLocationDropdown(false);
                   setShowCareTypeDropdown(false);
-                  setShowPaymentDropdown(false);
+          
                   setShowSortDropdown(false);
                 }}
                 className={`flex items-center justify-between h-9 px-3 w-[160px] rounded-lg text-sm font-medium transition-colors overflow-hidden ${
@@ -749,61 +731,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               )}
             </div>
 
-            {/* Payments Dropdown */}
-            <div className="relative dropdown-container flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowPaymentDropdown(!showPaymentDropdown);
-                  setShowLocationDropdown(false);
-                  setShowCareTypeDropdown(false);
-                  setShowRatingDropdown(false);
-                  setShowSortDropdown(false);
-                }}
-                className={`flex items-center justify-between h-9 px-3 w-[160px] rounded-lg text-sm font-medium transition-colors overflow-hidden ${
-                  selectedPayment !== "any"
-                    ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-900 hover:border-gray-400"
-                }`}
-              >
-                <span className="truncate">{selectedPayment === "any" ? "Payments" : selectedPayment}</span>
-                <svg
-                  className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform ${showPaymentDropdown ? "rotate-180" : ""} ${selectedPayment !== "any" ? "text-gray-900" : "text-gray-400"}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showPaymentDropdown && (
-                <div className="absolute left-0 top-[calc(100%+6px)] w-72 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-[100]">
-                  {paymentTypeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setSelectedPayment(option.value);
-                        setShowPaymentDropdown(false);
-                      }}
-                      className={`flex items-center gap-2 w-full px-3 py-1 text-left text-base hover:bg-gray-50 transition-colors whitespace-nowrap ${
-                        selectedPayment === option.value ? "text-gray-900 font-medium" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedPayment === option.value ? (
-                        <svg className="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <span className="w-5" />
-                      )}
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Sort Dropdown */}
             <div className="relative dropdown-container flex-shrink-0">
               <button
@@ -813,7 +740,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                   setShowLocationDropdown(false);
                   setShowCareTypeDropdown(false);
                   setShowRatingDropdown(false);
-                  setShowPaymentDropdown(false);
+          
                 }}
                 className={`flex items-center justify-between h-9 px-3 w-[160px] rounded-lg text-sm font-medium transition-colors overflow-hidden ${
                   sortBy !== "recommended"
@@ -894,19 +821,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                 </svg>
                 List
-              </button>
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`flex items-center gap-1.5 h-8 px-3 text-sm font-medium rounded-lg transition-all ${
-                  viewMode === "grid"
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Grid
               </button>
               <button
                 onClick={() => setViewMode("map")}
@@ -1002,40 +916,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           </div>
         )}
 
-        {/* Grid View */}
-        {viewMode === "grid" && (
-          <div className="min-h-[calc(100vh-200px)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[94px] pb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {careTypeLabel} in {searchLocation}
-              </h1>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                {filteredProviders.length} {filteredProviders.length === 1 ? "result" : "results"}
-              </span>
-            </div>
-
-            {filteredProviders.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {paginatedProviders.map((provider, index) => (
-                    <ProviderCard key={`${provider.id}-${index}`} provider={provider} />
-                  ))}
-                </div>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredProviders.length}
-                  itemsPerPage={PROVIDERS_PER_PAGE}
-                  onPageChange={setCurrentPage}
-                  itemLabel="providers"
-                  className="mt-8"
-                />
-              </>
-            ) : (
-              <EmptyState onClear={clearFilters} />
-            )}
-          </div>
-        )}
+        {/* Grid View — hidden for now */}
 
         {/* Map View */}
         {viewMode === "map" && (
@@ -1045,7 +926,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               ref={mapListingsRef}
               className="w-full lg:flex-1 h-full overflow-y-auto bg-gray-50"
             >
-              <div className="px-4 sm:px-6 lg:pr-6 pt-6 pb-8" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
+              <div className="px-4 sm:px-6 lg:pr-6 pt-6 pb-16" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
                 <div className="flex items-center gap-3 mb-4">
                   <h1 className="text-2xl font-bold text-gray-900">
                     {careTypeLabel} in {searchLocation}
@@ -1058,7 +939,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                 {filteredProviders.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      {filteredProviders.map((provider, index) => (
+                      {paginatedProviders.map((provider, index) => (
                         <div
                           key={`${provider.id}-${index}`}
                           onMouseEnter={() => setHoveredProviderId(provider.id)}
@@ -1073,7 +954,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                       totalPages={totalPages}
                       totalItems={filteredProviders.length}
                       itemsPerPage={PROVIDERS_PER_PAGE}
-                      onPageChange={setCurrentPage}
+                      onPageChange={(page) => {
+                        setCurrentPage(page);
+                        mapListingsRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
                       itemLabel="providers"
                       className="mt-6"
                     />

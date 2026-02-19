@@ -220,7 +220,7 @@ export default function MatchCardStack({
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
-              <p className="text-lg font-bold text-gray-900">Request sent</p>
+              <p className="text-lg font-semibold text-gray-900">Request sent</p>
               <p className="text-sm text-gray-500 mt-1">
                 Track responses in My Connections
               </p>

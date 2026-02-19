@@ -292,16 +292,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       if (cancelled) return;
 
-      if (!session?.user) {
-        clearAuthCache();
-        setState({ ...EMPTY_STATE, isLoading: false });
-        // Allow the SIGNED_IN listener to handle sign-ups that happen after page load
-        initHandlingRef.current = false;
-        console.timeEnd("[olera] init");
-        return;
-      }
+      let userId: string;
+      let userEmail: string | undefined;
+      let emailConfirmedAt: string | undefined;
 
-      const userId = session.user.id;
+      if (session?.user) {
+        userId = session.user.id;
+        userEmail = session.user.email;
+        emailConfirmedAt = session.user.email_confirmed_at ?? undefined;
+      } else {
+        // getSession() reads cookies locally and can fail due to chunking,
+        // timing, or token refresh races (especially in new tabs).
+        // Fall back to getUser() which validates server-side.
+        const { data: { user: validatedUser } } = await supabase.auth.getUser();
+
+        if (cancelled) return;
+
+        if (!validatedUser) {
+          // Truly no session — clear everything
+          clearAuthCache();
+          setState({ ...EMPTY_STATE, isLoading: false });
+          initHandlingRef.current = false;
+          console.timeEnd("[olera] init");
+          return;
+        }
+
+        userId = validatedUser.id;
+        userEmail = validatedUser.email;
+        emailConfirmedAt = validatedUser.email_confirmed_at ?? undefined;
+      }
 
       // Restore cached data immediately — no loading screens, correct
       // initials, full portal rendered on first paint.
@@ -309,7 +328,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const hasCachedData = !!cached?.account;
 
       setState({
-        user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
+        user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
         account: cached?.account ?? null,
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],
@@ -458,27 +477,32 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [configured, fetchAccountData]);
 
-  // Post-OAuth: detect returning users who need onboarding
+  // Detect authenticated users who haven't completed onboarding and auto-open
   useEffect(() => {
     if (state.isLoading || !state.user) return;
-    // If user is authenticated but hasn't completed onboarding, and we have
-    // a saved intent from a pre-OAuth redirect, auto-open post-auth onboarding
     if (state.account && !state.account.onboarding_completed && !isUnifiedAuthOpen) {
+      // Try to restore saved intent for context (OAuth redirects, CTA clicks)
+      let intent: AuthFlowIntent = null;
+      let providerType: AuthFlowProviderType = null;
       try {
         const saved = sessionStorage.getItem(AUTH_INTENT_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
           sessionStorage.removeItem(AUTH_INTENT_KEY);
-          setUnifiedAuthOptions({
-            intent: parsed.intent,
-            providerType: parsed.providerType,
-            startAtPostAuth: true,
-          });
-          setIsUnifiedAuthOpen(true);
+          intent = parsed.intent;
+          providerType = parsed.providerType;
         }
       } catch {
         // sessionStorage unavailable
       }
+
+      // Always open onboarding — with or without saved intent
+      setUnifiedAuthOptions({
+        intent,
+        providerType,
+        startAtPostAuth: true,
+      });
+      setIsUnifiedAuthOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isLoading, state.user, state.account]);
@@ -549,21 +573,21 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Let the auth listener handle state clearing.
-   * Only clear state manually if signOut fails.
+   * Sign out. Clears local state and navigates immediately,
+   * then fires the Supabase signOut in the background.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
       if (!configured) return;
       clearAuthCache();
-      const supabase = createClient();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Sign out error:", error.message);
-        versionRef.current++;
-        setState({ ...EMPTY_STATE });
-      }
+      versionRef.current++;
+      setState({ ...EMPTY_STATE });
       onComplete?.();
+      // Fire-and-forget — session invalidation happens in the background
+      const supabase = createClient();
+      supabase.auth.signOut().catch((err) => {
+        console.error("Sign out error:", err);
+      });
     },
     [configured]
   );

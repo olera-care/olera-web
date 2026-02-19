@@ -29,11 +29,7 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
             </span>
           </div>
         )}
-        {provider.badge && (
-          <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm text-xs font-medium text-gray-700 px-2 py-0.5 rounded-full">
-            {provider.badge}
-          </span>
-        )}
+        {/* Badge pills hidden for now */}
       </div>
 
       {/* Content */}

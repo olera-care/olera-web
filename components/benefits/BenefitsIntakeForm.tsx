@@ -38,7 +38,7 @@ const stateAbbreviations: Record<string, string> = {
 };
 
 interface BenefitsIntakeFormProps {
-  onSubmit: (answers: BenefitsIntakeAnswers) => void;
+  onSubmit: (answers: BenefitsIntakeAnswers, locationDisplay: string) => void;
 }
 
 export default function BenefitsIntakeForm({
@@ -168,7 +168,7 @@ export default function BenefitsIntakeForm({
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,
         age: parseInt(ageInput, 10),
       };
-      onSubmit(final);
+      onSubmit(final, locationInput);
     }
   }
 

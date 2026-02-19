@@ -141,6 +141,7 @@ export interface CaregiverMetadata {
 }
 
 export interface FamilyMetadata {
+  age?: number;
   care_needs?: string[];
   timeline?: "immediate" | "within_1_month" | "within_3_months" | "exploring";
   budget_min?: number;
@@ -150,6 +151,7 @@ export interface FamilyMetadata {
   country?: string;
   contact_preference?: "call" | "text" | "email";
   payment_methods?: string[];
+  saved_benefits?: string[];
   living_situation?: string;
   schedule_preference?: string;
   care_location?: string;
@@ -165,6 +167,12 @@ export interface FamilyMetadata {
     status: "draft" | "active" | "paused";
     published_at?: string;
   };
+  benefits_results?: {
+    answers: Record<string, unknown>;
+    results: Record<string, unknown>;
+    location_display: string;
+    completed_at: string;
+  };
 }
 
 // ============================================================
@@ -172,8 +180,9 @@ export interface FamilyMetadata {
 // ============================================================
 
 export interface DeferredAction {
-  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request";
+  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit";
   targetProfileId?: string;
+  benefitProgramName?: string;
   returnUrl: string;
   createdAt: string;
 }

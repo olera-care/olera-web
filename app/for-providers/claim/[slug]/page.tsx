@@ -45,10 +45,13 @@ export default function ClaimProfilePage() {
   const handleClaim = () => {
     if (!profile) return;
 
-    // Open the unified auth flow modal with the claim profile pre-selected
-    // The modal handles both authenticated and unauthenticated users:
-    // - If authenticated: skips to onboarding completion with claim profile
-    // - If not authenticated: goes through onboarding then auth
+    // Authenticated users go directly to onboarding with the claim slug
+    if (user) {
+      router.push(`/onboarding?claim=${profile.slug}`);
+      return;
+    }
+
+    // Unauthenticated users get the auth modal first
     openAuth({
       intent: "provider",
       providerType: "organization",

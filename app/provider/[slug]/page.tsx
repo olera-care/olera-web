@@ -3,8 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
-import Badge from "@/components/ui/Badge";
-import ConnectionCard from "@/components/providers/connection-card";
+import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import ImageCarousel from "@/components/providers/ImageCarousel";
 import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
@@ -13,14 +12,13 @@ import CareServicesList from "@/components/providers/CareServicesList";
 import QASectionV2 from "@/components/providers/QASectionV2";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
+import ReportListingLink from "@/components/providers/ReportListingLink";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import {
   getInitials,
   formatCategory,
-  buildQuickFacts,
   getSimilarProviders,
   getDefaultQA,
-  type QuickFact,
 } from "@/lib/provider-utils";
 
 // Extended metadata type that includes mock-specific fields
@@ -41,15 +39,6 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
 
 // --- Inline SVG icon components ---
 
-function MapPinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
-
 function StarIcon({ className, filled = true }: { className?: string; filled?: boolean }) {
   return filled ? (
     <svg className={className} fill="currentColor" viewBox="0 0 20 20">
@@ -69,41 +58,6 @@ function CheckIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
-// Quick fact icon mapping
-const factIcons: Record<QuickFact["icon"], (props: { className?: string }) => React.JSX.Element> = {
-  category: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-    </svg>
-  ),
-  location: MapPinIcon,
-  calendar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-  users: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
-  ),
-  award: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-    </svg>
-  ),
-  shield: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  dollar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-};
 
 // ============================================================
 // Page Component
@@ -181,23 +135,10 @@ export default async function ProviderPage({
   const reviewCount = meta?.review_count;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
   const staff = meta?.staff;
-  const badge = meta?.badge;
   const acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
-
-  const quickFacts = buildQuickFacts({
-    category: profile.category,
-    city: profile.city,
-    state: profile.state,
-    yearFounded: meta?.year_founded,
-    bedCount: meta?.bed_count,
-    yearsExperience: meta?.years_experience,
-    acceptsMedicaid: meta?.accepts_medicaid,
-    acceptsMedicare: meta?.accepts_medicare,
-    priceRange,
-  });
 
   const similarProviders = await getSimilarProviders(profile.category, profile.slug, 4);
 
@@ -208,13 +149,6 @@ export default async function ProviderPage({
 
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
-
-  const details: { label: string; value: string; icon: string }[] = [];
-  if (meta?.year_founded) details.push({ label: "Year Founded", value: String(meta.year_founded), icon: "calendar" });
-  if (meta?.bed_count) details.push({ label: "Capacity", value: `${meta.bed_count} beds`, icon: "users" });
-  if (meta?.years_experience) details.push({ label: "Experience", value: `${meta.years_experience} years`, icon: "award" });
-  if (meta?.accepts_medicaid !== undefined) details.push({ label: "Medicaid", value: meta.accepts_medicaid ? "Accepted" : "Not accepted", icon: "shield" });
-  if (meta?.accepts_medicare !== undefined) details.push({ label: "Medicare", value: meta.accepts_medicare ? "Accepted" : "Not accepted", icon: "shield" });
 
   // ============================================================
   // Section navigation items (built dynamically based on available data)
@@ -241,6 +175,8 @@ export default async function ProviderPage({
         sections={sectionItems}
         providerName={profile.display_name}
         oleraScore={oleraScore}
+        providerId={profile.id}
+        isActive={profile.is_active}
       />
 
       {/* ===== Main Layout ===== */}
@@ -249,12 +185,12 @@ export default async function ProviderPage({
         {/* -- Identity: Category + Provider Name + Location + Share/Save -- */}
         <div className="mb-4">
           {categoryLabel && (
-            <p className="text-primary-600 text-sm font-semibold uppercase tracking-wider mb-1">
+            <p className="text-primary-600 text-sm font-semibold uppercase tracking-[0.12em] mb-1">
               {categoryLabel}
             </p>
           )}
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight tracking-tight flex items-center gap-2">
               {profile.display_name}
               {profile.claim_state === "claimed" && (
                 <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -283,7 +219,7 @@ export default async function ProviderPage({
             </div>
           </div>
           {profile.address && (
-            <p className="text-base text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               {profile.address}
             </p>
           )}
@@ -299,7 +235,7 @@ export default async function ProviderPage({
             <div>
               {/* Image Carousel */}
               {images.length > 0 && (
-                <div className="relative">
+                <div className="relative pb-6 mb-2 border-b border-gray-100">
                   <ImageCarousel images={images} alt={profile.display_name} className="h-[420px]" />
                   {/* Claim status badge — positioned outside overflow-hidden via outer relative wrapper */}
                   <div className="absolute top-4 left-4 z-20">
@@ -330,7 +266,7 @@ export default async function ProviderPage({
 
             {/* 1. Unclaimed Banner */}
             {profile.claim_state === "unclaimed" && (
-              <div className="pb-12">
+              <div className="pb-10">
                 <div className="bg-warm-50 border border-warm-100 rounded-xl p-4 md:p-5">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-start gap-3">
@@ -361,8 +297,8 @@ export default async function ProviderPage({
 
             {/* 2. About */}
             {profile.description && (
-              <div id="about" className="pb-12 first:pt-0 scroll-mt-20">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <div id="about" className="pb-10 first:pt-0 scroll-mt-20">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-4">
                   About {profile.display_name}
                 </h2>
                 <ExpandableText text={profile.description} maxLength={150} />
@@ -371,18 +307,18 @@ export default async function ProviderPage({
 
             {/* 3. Care Services */}
             {profile.care_types && profile.care_types.length > 0 && (
-              <div id="services" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Care Services</h2>
+              <div id="services" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Care Services</h2>
                 <CareServicesList services={profile.care_types} initialCount={9} />
               </div>
             )}
 
             {/* 4. Detailed Pricing */}
             {pricingDetails.length > 0 && (
-              <div id="pricing" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="pricing" className="py-10 scroll-mt-20 border-t border-gray-200">
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Prices at {profile.display_name}</h2>
+                    <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">Prices at {profile.display_name}</h2>
                     <p className="text-sm text-gray-400 mt-1">Last updated on 01/15/2025</p>
                   </div>
                   <button className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
@@ -407,8 +343,8 @@ export default async function ProviderPage({
 
             {/* 5. Payment & Insurance */}
             {(acceptedPayments.length > 0 || meta?.accepts_medicaid || meta?.accepts_medicare) && (
-              <div id="payment" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Acceptable Payment Options</h2>
+              <div id="payment" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Acceptable Payment Options</h2>
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   {acceptedPayments.map((payment) => (
                     <div key={payment} className="flex items-center gap-2.5">
@@ -428,8 +364,8 @@ export default async function ProviderPage({
 
             {/* 7. Staff Screening & Safety */}
             {staffScreening && (
-              <div id="safety" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Staff Screening &amp; Safety</h2>
+              <div id="safety" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Staff Screening &amp; Safety</h2>
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   {[
                     { label: "Background Checked", verified: staffScreening.background_checked },
@@ -447,8 +383,8 @@ export default async function ProviderPage({
 
             {/* 8. Meet Our Team */}
             {staff && (
-              <div id="team" className="py-12 scroll-mt-20 border-t border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Meet Our Team</h2>
+              <div id="team" className="py-10 scroll-mt-20 border-t border-gray-200">
+                <h2 className="text-2xl font-semibold text-gray-900 tracking-tight mb-5">Meet Our Team</h2>
                 <div className="flex items-start gap-4">
                   {staff.image ? (
                     <img
@@ -474,7 +410,7 @@ export default async function ProviderPage({
 
             {/* 9. Q&A */}
             {defaultQA.length > 0 && (
-              <div id="qa" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="qa" className="py-10 scroll-mt-20 border-t border-gray-200">
                 <QASectionV2
                   providerName={profile.display_name}
                   providerImage={images[0]}
@@ -484,12 +420,12 @@ export default async function ProviderPage({
             )}
 
             {/* 11. Disclaimer */}
-            <div className="py-12 border-t border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Disclaimer</h2>
+            <div className="py-10 border-t border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-3">Disclaimer</h2>
               <p className="text-sm text-gray-500 leading-relaxed">
                 We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
               </p>
-              <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-100">
+              <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                 <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
                 <Link
                   href={`/for-providers/claim/${profile.slug}`}
@@ -505,11 +441,14 @@ export default async function ProviderPage({
 
           {/* Right Column — Sticky Sidebar */}
           <div className="lg:col-span-1 self-stretch">
-            <div className="sticky top-24">
-              <ConnectionCard
+            <div id="connection-card" className="sticky top-24">
+              <ConnectionCardWithRedirect
                 providerId={profile.id}
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
+                providerCategory={profile.category}
+                providerCity={profile.city}
+                providerState={profile.state}
                 priceRange={priceRange}
                 oleraScore={oleraScore}
                 reviewCount={meta?.review_count}
@@ -519,6 +458,7 @@ export default async function ProviderPage({
                 isActive={profile.is_active}
                 responseTime={null}
               />
+              <ReportListingLink />
             </div>
           </div>
         </div>
@@ -625,7 +565,7 @@ export default async function ProviderPage({
       {similarProviders.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <div className="border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 tracking-tight mb-6">
               Similar providers nearby
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

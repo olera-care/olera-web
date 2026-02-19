@@ -9,8 +9,11 @@ import type { Connection, Profile } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
-import ConnectionDrawer from "@/components/portal/ConnectionDrawer";
-import type { ConnectionWithProfile } from "@/components/portal/ConnectionDetailPanel";
+import SplitViewLayout from "@/components/portal/SplitViewLayout";
+import ConnectionDetailContent from "@/components/portal/ConnectionDetailContent";
+import ConnectionListItem from "@/components/portal/ConnectionListItem";
+import type { ConnectionWithProfile } from "@/components/portal/ConnectionListItem";
+import { avatarGradient, blurName } from "@/components/portal/ConnectionDetailContent";
 import {
   getFamilyDisplayStatus,
   getConnectionTab,
@@ -22,57 +25,6 @@ import {
   type ConnectionTab,
   type ProviderConnectionTab,
 } from "@/lib/connection-utils";
-
-// ── Helpers ──
-
-function parseMessage(message: string | null): {
-  careRecipient?: string;
-  careType?: string;
-  urgency?: string;
-  notes?: string;
-} | null {
-  if (!message) return null;
-  try {
-    const p = JSON.parse(message);
-    return {
-      careRecipient: p.care_recipient
-        ? String(p.care_recipient).replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
-        : undefined,
-      careType: p.care_type
-        ? String(p.care_type).replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
-        : undefined,
-      urgency: p.urgency
-        ? String(p.urgency).replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
-        : undefined,
-      notes: p.additional_notes || undefined,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function avatarGradient(name: string): string {
-  const gradients = [
-    "linear-gradient(135deg, #0ea5e9, #6366f1)",
-    "linear-gradient(135deg, #14b8a6, #0ea5e9)",
-    "linear-gradient(135deg, #8b5cf6, #ec4899)",
-    "linear-gradient(135deg, #f59e0b, #ef4444)",
-    "linear-gradient(135deg, #10b981, #14b8a6)",
-    "linear-gradient(135deg, #6366f1, #a855f7)",
-    "linear-gradient(135deg, #ec4899, #f43f5e)",
-    "linear-gradient(135deg, #0891b2, #2dd4bf)",
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return gradients[Math.abs(hash) % gradients.length];
-}
-
-function blurName(name: string): string {
-  if (!name) return "***";
-  return name.split(" ").map((p) => p.charAt(0) + "***").join(" ");
-}
 
 // ── Read state from localStorage ──
 
@@ -112,14 +64,13 @@ export default function ConnectionsPage() {
     "view_inquiry_details"
   );
 
-  // ── Tab & read state (shared) ──
+  // ── Tab & read state ──
   const [activeTab, setActiveTab] = useState<ConnectionTab>("active");
   const [providerTab, setProviderTab] = useState<ProviderConnectionTab>("attention");
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadIds());
 
-  // ── Drawer state (shared by provider & family views) ──
-  const [drawerConnectionId, setDrawerConnectionId] = useState<string | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  // ── Selection state (replaces drawer) ──
+  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
 
   // ── Fetch connections ──
   const fetchConnections = useCallback(async () => {
@@ -133,55 +84,18 @@ export default function ConnectionsPage() {
       const cols =
         "id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at";
 
-      const [inboundRes, outboundRes] = await Promise.all([
-        supabase
-          .from("connections")
-          .select(cols)
-          .eq("to_profile_id", activeProfile.id)
-          .neq("type", "save")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("connections")
-          .select(cols)
-          .eq("from_profile_id", activeProfile.id)
-          .neq("type", "save")
-          .order("created_at", { ascending: false }),
-      ]);
+      // Single query for both inbound + outbound connections
+      const { data: rawConnections, error: connError } = await supabase
+        .from("connections")
+        .select(cols)
+        .or(`to_profile_id.eq.${activeProfile.id},from_profile_id.eq.${activeProfile.id}`)
+        .neq("type", "save")
+        .order("created_at", { ascending: false });
 
-      if (inboundRes.error) throw new Error(inboundRes.error.message);
-      if (outboundRes.error) throw new Error(outboundRes.error.message);
+      if (connError) throw new Error(connError.message);
 
-      const seen = new Set<string>();
-      const connectionData: Connection[] = [];
-      for (const c of [
-        ...(inboundRes.data || []),
-        ...(outboundRes.data || []),
-      ] as Connection[]) {
-        if (!seen.has(c.id)) {
-          seen.add(c.id);
-          connectionData.push(c);
-        }
-      }
-      connectionData.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      const connectionData = (rawConnections || []) as Connection[];
 
-      const profileIds = new Set<string>();
-      connectionData.forEach((c) => {
-        profileIds.add(c.from_profile_id);
-        profileIds.add(c.to_profile_id);
-      });
-
-      let profiles: Profile[] = [];
-      if (profileIds.size > 0) {
-        const { data: profileData } = await supabase
-          .from("business_profiles")
-          .select(
-            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id"
-          )
-          .in("id", Array.from(profileIds));
-        profiles = (profileData as Profile[]) || [];
-      }
-
-      // Render immediately with available data (gradient avatars for missing images)
       const buildEnriched = (profileList: Profile[]) => {
         const profileMap = new Map(profileList.map((p) => [p.id, p]));
         return connectionData.map((c) => ({
@@ -191,36 +105,56 @@ export default function ConnectionsPage() {
         }));
       };
 
-      setConnections(buildEnriched(profiles));
+      // Show connections immediately with gradient avatars
+      setConnections(buildEnriched([]));
       setLoading(false);
 
-      // Resolve iOS images in the background (non-blocking)
-      const missingImageIds = profiles
-        .filter((p) => !p.image_url && p.source_provider_id)
-        .map((p) => p.source_provider_id as string);
+      // Fetch profiles in background, then enrich
+      const profileIds = new Set<string>();
+      connectionData.forEach((c) => {
+        profileIds.add(c.from_profile_id);
+        profileIds.add(c.to_profile_id);
+      });
 
-      if (missingImageIds.length > 0) {
-        supabase
-          .from("olera-providers")
-          .select("provider_id, provider_logo, provider_images")
-          .in("provider_id", missingImageIds)
-          .then(({ data: iosProviders }) => {
-            if (iosProviders?.length) {
-              const iosMap = new Map(
-                iosProviders.map((p: { provider_id: string; provider_logo: string | null; provider_images: string | null }) => [
-                  p.provider_id,
-                  p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
-                ])
-              );
-              const updatedProfiles = profiles.map((p) => {
-                if (!p.image_url && p.source_provider_id && iosMap.has(p.source_provider_id)) {
-                  return { ...p, image_url: iosMap.get(p.source_provider_id) || null };
-                }
-                return p;
-              });
-              setConnections(buildEnriched(updatedProfiles));
-            }
-          });
+      if (profileIds.size > 0) {
+        const { data: profileData } = await supabase
+          .from("business_profiles")
+          .select(
+            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id"
+          )
+          .in("id", Array.from(profileIds));
+        const profiles = (profileData as Profile[]) || [];
+
+        setConnections(buildEnriched(profiles));
+
+        // Resolve iOS images in the background (non-blocking)
+        const missingImageIds = profiles
+          .filter((p) => !p.image_url && p.source_provider_id)
+          .map((p) => p.source_provider_id as string);
+
+        if (missingImageIds.length > 0) {
+          supabase
+            .from("olera-providers")
+            .select("provider_id, provider_logo, provider_images")
+            .in("provider_id", missingImageIds)
+            .then(({ data: iosProviders }) => {
+              if (iosProviders?.length) {
+                const iosMap = new Map(
+                  iosProviders.map((p: { provider_id: string; provider_logo: string | null; provider_images: string | null }) => [
+                    p.provider_id,
+                    p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
+                  ])
+                );
+                const updatedProfiles = profiles.map((p) => {
+                  if (!p.image_url && p.source_provider_id && iosMap.has(p.source_provider_id)) {
+                    return { ...p, image_url: iosMap.get(p.source_provider_id) || null };
+                  }
+                  return p;
+                });
+                setConnections(buildEnriched(updatedProfiles));
+              }
+            });
+        }
       }
     } catch (err: unknown) {
       console.error("[olera] fetchConnections failed:", err);
@@ -246,6 +180,11 @@ export default function ConnectionsPage() {
 
     for (const c of connections) {
       if (c.metadata?.hidden) continue;
+
+      // Hide inbound connections from the family view, except accepted
+      // applications (provider-initiated interest that was accepted).
+      const isInbound = c.to_profile_id === activeProfile?.id;
+      if (isInbound && !(c.type === "request" && (c.metadata as Record<string, unknown>)?.provider_initiated && c.status === "accepted")) continue;
 
       const displayStatus = getFamilyDisplayStatus(c);
       const tab = getConnectionTab(displayStatus);
@@ -284,22 +223,16 @@ export default function ConnectionsPage() {
     return { attention, active, past };
   }, [connections, activeProfile?.id]);
 
-  // Pre-fetched connection data for instant drawer rendering
+  // Pre-fetched connection data for instant detail rendering
   const preloadedConnection = useMemo(
-    () => (drawerConnectionId ? connections.find((c) => c.id === drawerConnectionId) ?? null : null),
-    [drawerConnectionId, connections]
+    () => (selectedConnectionId ? connections.find((c) => c.id === selectedConnectionId) ?? null : null),
+    [selectedConnectionId, connections]
   );
 
   // ── Handlers ──
 
-  const openDrawer = (id: string) => {
-    setDrawerConnectionId(id);
-    setDrawerOpen(true);
-  };
-
-  const openAndMarkRead = (id: string) => {
-    openDrawer(id);
-    // Mark connections as read
+  const selectAndMarkRead = (id: string) => {
+    setSelectedConnectionId(id);
     if (!readIds.has(id)) {
       const conn = connections.find((c) => c.id === id);
       if (conn && (conn.status === "accepted" || (isProvider && conn.status === "pending"))) {
@@ -307,13 +240,14 @@ export default function ConnectionsPage() {
         updated.add(id);
         setReadIds(updated);
         persistReadIds(updated);
+        // Notify sidebar badge hook to re-count
+        window.dispatchEvent(new CustomEvent("olera:connection-read"));
       }
     }
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
-    setTimeout(() => setDrawerConnectionId(null), 300);
+  const clearSelection = () => {
+    setSelectedConnectionId(null);
     fetchConnections();
   };
 
@@ -333,242 +267,263 @@ export default function ConnectionsPage() {
           : c
       )
     );
-    closeDrawer();
+    clearSelection();
   };
 
   const handleHide = (connectionId: string) => {
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
-    closeDrawer();
+    clearSelection();
   };
 
-  // ── Loading — skeleton cards ──
+  // ── Loading state ──
 
   if (loading) {
     return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="space-y-6">
         <div>
-          <h2 className="text-[22px] font-bold text-gray-900">My Connections</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {isProvider ? "Connections" : "My Connections"}
+          </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Track your care provider requests and responses.
+            {isProvider ? "Manage inquiries from families seeking care." : "Track your care provider requests and responses."}
           </p>
         </div>
-        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl max-w-md">
-          {["Active", "Connected", "Past"].map((label) => (
+        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+          {(isProvider ? ["Needs Attention", "Active", "Past"] : ["Active", "Connected", "Past"]).map((label) => (
             <div key={label} className="flex-1 flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-gray-400">
               {label}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="rounded-xl border border-gray-200 bg-white animate-pulse">
-              <div className="px-4 py-3.5">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-gray-200 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="h-3 w-20 bg-gray-200 rounded mb-2" />
-                    <div className="h-4 w-36 bg-gray-200 rounded mb-2" />
-                    <div className="h-3 w-24 bg-gray-200 rounded" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="animate-pulse rounded-xl border border-gray-100 p-5">
+              <div className="flex items-start gap-3.5">
+                <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="h-3 w-16 bg-gray-200 rounded" />
+                    <div className="h-3 w-12 bg-gray-200 rounded" />
                   </div>
-                  <div className="h-5 w-16 bg-gray-200 rounded-lg shrink-0 mt-0.5" />
+                  <div className="h-4 w-36 bg-gray-200 rounded mb-1.5" />
+                  <div className="h-3 w-44 bg-gray-200 rounded" />
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-    );
-  }
-
-  // ── Provider view — 3-tab layout mirroring family ──
-
-  if (isProvider) {
-    const providerTabs: { id: ProviderConnectionTab; label: string; count: number; badge: number }[] = [
-      { id: "attention", label: "Needs Attention", count: providerTabbed.attention.length, badge: providerTabbed.attention.length },
-      { id: "active", label: "Active", count: providerTabbed.active.length, badge: 0 },
-      { id: "past", label: "Past", count: providerTabbed.past.length, badge: 0 },
-    ];
-
-    const currentProviderConnections = providerTabbed[providerTab];
-
-    if (connections.length === 0 && !error) {
-      return (
-        <EmptyState
-          title="No connections yet"
-          description="When families reach out or you connect with them, their requests will appear here."
-          action={
-            <Link href="/portal/discover/families">
-              <Button>Discover Families</Button>
-            </Link>
-          }
-        />
-      );
-    }
-
-    return (
-      <div className="space-y-6">
-        {error && (
-          <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between" role="alert">
-            <span>{error}</span>
-            <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-4">Retry</button>
-          </div>
-        )}
-
-        {/* Header */}
-        <div>
-          <h2 className="text-[22px] font-bold text-gray-900">Connections</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage inquiries from families and your outreach.
-          </p>
-        </div>
-
-        {/* Tab bar */}
-        <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl max-w-lg">
-          {providerTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setProviderTab(tab.id)}
-              className={[
-                "flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all relative",
-                providerTab === tab.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              ].join(" ")}
-            >
-              {tab.label}
-              <span className={[
-                "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-                providerTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
-              ].join(" ")}>
-                {tab.count}
-              </span>
-              {tab.badge > 0 && providerTab !== tab.id && (
-                <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Connection grid */}
-        {currentProviderConnections.length === 0 ? (
-          <ProviderTabEmptyState tab={providerTab} />
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentProviderConnections.map((connection) => (
-              <ProviderConnectionCard
-                key={connection.id}
-                connection={connection}
-                activeProfileId={activeProfile?.id || ""}
-                isProvider={true}
-                hasFullAccess={hasFullAccess}
-                onSelect={openAndMarkRead}
-                variant={providerTab === "attention" ? "attention" : providerTab === "past" ? "muted" : "normal"}
-              />
-            ))}
-          </div>
-        )}
-
-        {!hasFullAccess && connections.length > 0 && (
-          <UpgradePrompt context="view full details and respond to connections" />
-        )}
-
-        <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} onWithdraw={handleWithdraw} onHide={handleHide} preloadedConnection={preloadedConnection} />
       </div>
     );
   }
 
-  // ── Family view — 3-tab layout with drawer ──
-
-  const currentTabConnections = tabbed[activeTab];
-
-  const tabs: { id: ConnectionTab; label: string; count: number; badge: number }[] = [
-    { id: "active", label: "Active", count: tabbed.active.length, badge: 0 },
-    { id: "connected", label: "Connected", count: tabbed.connected.length, badge: unreadCount },
-    { id: "past", label: "Past", count: tabbed.past.length, badge: 0 },
-  ];
+  // ── Empty state (no connections at all) ──
 
   if (connections.length === 0 && !error) {
     return (
-      <EmptyState
-        title="No connections yet"
-        description="Browse providers and connect to get started."
-        action={
-          <Link href="/browse">
-            <Button>Browse Providers</Button>
-          </Link>
-        }
-      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <EmptyState
+          title="No connections yet"
+          description={
+            isProvider
+              ? "When families reach out or you connect with them, their requests will appear here."
+              : "Browse providers and connect to get started."
+          }
+          action={
+            isProvider ? (
+              <Link href="/portal/discover/families">
+                <Button>Discover Families</Button>
+              </Link>
+            ) : (
+              <Link href="/browse">
+                <Button>Browse Providers</Button>
+              </Link>
+            )
+          }
+        />
+      </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {error && (
-        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base flex items-center justify-between" role="alert">
-          <span>{error}</span>
-          <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-4">Retry</button>
-        </div>
-      )}
+  // ── Determine current tab connections ──
 
-      {/* Header */}
-      <div>
-        <h2 className="text-[22px] font-bold text-gray-900">My Connections</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Track your care provider requests and responses.
-        </p>
-      </div>
+  const currentConnections = isProvider
+    ? providerTabbed[providerTab]
+    : tabbed[activeTab];
 
-      {/* Tab bar */}
-      <div className="flex gap-1 bg-gray-100 p-0.5 rounded-xl max-w-md">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={[
-              "flex-1 flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all relative",
-              activeTab === tab.id
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700",
-            ].join(" ")}
-          >
-            {tab.label}
-            <span className={[
-              "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-              activeTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
-            ].join(" ")}>
-              {tab.count}
+  const currentTab = isProvider ? providerTab : activeTab;
+
+  // Tab definitions
+  const tabs = isProvider
+    ? [
+        { id: "attention" as const, label: "Needs Attention", count: providerTabbed.attention.length, badge: providerTabbed.attention.length },
+        { id: "active" as const, label: "Active", count: providerTabbed.active.length, badge: 0 },
+        { id: "past" as const, label: "Past", count: providerTabbed.past.length, badge: 0 },
+      ]
+    : [
+        { id: "active" as const, label: "Active", count: tabbed.active.length, badge: 0 },
+        { id: "connected" as const, label: "Connected", count: tabbed.connected.length, badge: 0 },
+        { id: "past" as const, label: "Past", count: tabbed.past.length, badge: 0 },
+      ];
+
+  // ── Layout mode ──
+
+  const hasSelection = selectedConnectionId !== null;
+
+  // Shared tab bar
+  const tabBar = (
+    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          type="button"
+          onClick={() => {
+            if (isProvider) setProviderTab(tab.id as ProviderConnectionTab);
+            else setActiveTab(tab.id as ConnectionTab);
+            setSelectedConnectionId(null);
+          }}
+          className={[
+            "flex-1 flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all relative",
+            currentTab === tab.id
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700",
+          ].join(" ")}
+        >
+          {tab.label}
+          <span className={[
+            "text-xs font-semibold px-1.5 py-0.5 rounded",
+            currentTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
+          ].join(" ")}>
+            {tab.count}
+          </span>
+          {tab.badge > 0 && currentTab !== tab.id && (
+            <span className="text-[10px] font-bold text-white bg-primary-600 rounded-full w-4 h-4 flex items-center justify-center">
+              {tab.badge}
             </span>
-            {tab.badge > 0 && (
-              <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-amber-400" />
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Connection grid */}
-      {currentTabConnections.length === 0 ? (
-        <TabEmptyState tab={activeTab} />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {currentTabConnections.map((connection) => {
-            const unread = isConnectionUnread(connection, readIds);
-            return (
-              <FamilyConnectionCard
-                key={connection.id}
-                connection={connection}
-                activeProfileId={activeProfile?.id || ""}
-                unread={unread}
-                onSelect={openAndMarkRead}
-              />
-            );
-          })}
-        </div>
-      )}
-
-      <ConnectionDrawer connectionId={drawerConnectionId} isOpen={drawerOpen} onClose={closeDrawer} onStatusChange={handleStatusChange} onWithdraw={handleWithdraw} onHide={handleHide} preloadedConnection={preloadedConnection} />
+          )}
+        </button>
+      ))}
     </div>
+  );
+
+  return (
+    <SplitViewLayout
+      selectedId={selectedConnectionId}
+      onBack={clearSelection}
+      expandWhenEmpty
+      equalWidth
+      left={
+        hasSelection ? (
+          /* ── Compact list mode (split view) ── */
+          <div className="flex flex-col h-full">
+            <div className="px-4 pt-4 pb-2 shrink-0">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {isProvider ? "Connections" : "My Connections"}
+              </h2>
+            </div>
+
+            <div className="sticky top-0 z-10 bg-white px-4 pb-2 shrink-0">
+              {tabBar}
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {currentConnections.length === 0 ? (
+                isProvider ? (
+                  <ProviderTabEmptyState tab={providerTab} />
+                ) : (
+                  <TabEmptyState tab={activeTab} />
+                )
+              ) : (
+                currentConnections.map((connection) => {
+                  const unread = !isProvider && isConnectionUnread(connection, readIds);
+                  return (
+                    <ConnectionListItem
+                      key={connection.id}
+                      connection={connection}
+                      activeProfileId={activeProfile?.id || ""}
+                      selected={connection.id === selectedConnectionId}
+                      unread={unread}
+                      onSelect={selectAndMarkRead}
+                      isProvider={isProvider}
+                      hasFullAccess={hasFullAccess}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </div>
+        ) : (
+          /* ── Card grid mode (full width) ── */
+          <div className="h-full overflow-y-auto max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {isProvider ? "Connections" : "My Connections"}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {isProvider ? "Manage inquiries from families seeking care." : "Track your care provider requests and responses."}
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-4">
+                <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs flex items-center justify-between" role="alert">
+                  <span>{error}</span>
+                  <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-xs font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6">{tabBar}</div>
+
+            {currentConnections.length === 0 ? (
+              isProvider ? (
+                <ProviderTabEmptyState tab={providerTab} />
+              ) : (
+                <TabEmptyState tab={activeTab} />
+              )
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {currentConnections.map((connection) => {
+                  const unread = !isProvider && isConnectionUnread(connection, readIds);
+                  return (
+                    <ConnectionGridCard
+                      key={connection.id}
+                      connection={connection}
+                      activeProfileId={activeProfile?.id || ""}
+                      unread={unread}
+                      onSelect={selectAndMarkRead}
+                      isProvider={isProvider}
+                      hasFullAccess={hasFullAccess}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {isProvider && !hasFullAccess && connections.length > 0 && (
+              <div className="mt-6">
+                <UpgradePrompt context="view full details and respond to connections" />
+              </div>
+            )}
+          </div>
+        )
+      }
+      right={
+        selectedConnectionId ? (
+          <ConnectionDetailContent
+            connectionId={selectedConnectionId}
+            isActive={true}
+            onClose={clearSelection}
+            onStatusChange={handleStatusChange}
+            onWithdraw={handleWithdraw}
+            onHide={handleHide}
+            preloadedConnection={preloadedConnection}
+            showHeader={false}
+          />
+        ) : null
+      }
+    />
   );
 }
 
@@ -577,135 +532,45 @@ export default function ConnectionsPage() {
 function TabEmptyState({ tab }: { tab: ConnectionTab }) {
   const config: Record<ConnectionTab, { icon: string; title: string; subtitle: string; cta?: { label: string; href: string } }> = {
     active: {
-      icon: "📨",
+      icon: "\u{1F4E8}",
       title: "No active requests yet",
-      subtitle: "When you reach out to a provider, your pending requests will show up here. Browse providers to get started.",
+      subtitle: "When you reach out to a provider, your pending requests will show up here.",
       cta: { label: "Browse providers", href: "/browse" },
     },
     connected: {
-      icon: "💬",
+      icon: "\u{1F4AC}",
       title: "No connections yet",
-      subtitle: "When a provider accepts your request, your connection will appear here. Most providers respond within a few hours.",
+      subtitle: "When a provider accepts your request, your connection will appear here.",
     },
     past: {
-      icon: "📂",
+      icon: "\u{1F4C2}",
       title: "No past connections",
-      subtitle: "Expired, withdrawn, and declined connections will be archived here for your reference.",
+      subtitle: "Expired, withdrawn, and declined connections will be archived here.",
     },
   };
   const { icon, title, subtitle, cta } = config[tab];
   return (
-    <div className="py-16 text-center max-w-[360px] mx-auto">
-      <span className="text-4xl block mb-3">{icon}</span>
-      <h3 className="text-base font-semibold text-gray-700">{title}</h3>
-      <p className="text-sm text-gray-400 mt-1.5 leading-relaxed">{subtitle}</p>
+    <div className="py-16 text-center px-8">
+      <div
+        className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-2xl mx-auto mb-5"
+        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      >
+        {icon}
+      </div>
+      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">{subtitle}</p>
       {cta && (
-        <Link
-          href={cta.href}
-          className="inline-block mt-4 px-5 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors"
-        >
-          {cta.label}
+        <Link href={cta.href} className="inline-block mt-5">
+          <Button size="sm">{cta.label}</Button>
         </Link>
       )}
+      <style jsx>{`
+        @keyframes emptyFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </div>
-  );
-}
-
-// ── Family Connection Card ──
-
-function FamilyConnectionCard({
-  connection,
-  activeProfileId,
-  unread,
-  onSelect,
-}: {
-  connection: ConnectionWithProfile;
-  activeProfileId: string;
-  unread: boolean;
-  onSelect: (id: string) => void;
-}) {
-  const isInbound = connection.to_profile_id === activeProfileId;
-  const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
-  const otherName = otherProfile?.display_name || "Unknown";
-  const otherLocation = [otherProfile?.city, otherProfile?.state]
-    .filter(Boolean)
-    .join(", ");
-
-  const parsedMsg = parseMessage(connection.message);
-  const careTypeLabel =
-    parsedMsg?.careType ||
-    connection.type
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c: string) => c.toUpperCase());
-
-  const displayStatus = getFamilyDisplayStatus(connection);
-  const statusConfig = FAMILY_STATUS_CONFIG[displayStatus];
-
-  const createdAt = new Date(connection.created_at).toLocaleDateString(
-    "en-US",
-    { month: "short", day: "numeric" }
-  );
-
-  const imageUrl = otherProfile?.image_url;
-  const initial = otherName.charAt(0).toUpperCase();
-
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(connection.id)}
-      className="w-full text-left rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors group cursor-pointer"
-    >
-      <div className="px-4 py-3.5">
-        <div className="flex items-start gap-3.5">
-          {/* Avatar */}
-          <div className="relative shrink-0 mt-0.5">
-            {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imageUrl}
-                alt={otherName}
-                className="w-11 h-11 rounded-xl object-cover"
-              />
-            ) : (
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white"
-                style={{ background: avatarGradient(otherName) }}
-              >
-                {initial}
-              </div>
-            )}
-            {unread && (
-              <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 border-2 border-white" />
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs text-gray-400 leading-tight">{careTypeLabel}</p>
-                <h3 className={[
-                  "text-base text-gray-900 truncate leading-snug",
-                  unread ? "font-bold" : "font-semibold",
-                ].join(" ")}>
-                  {otherName}
-                </h3>
-                <p className="text-sm text-gray-500 truncate mt-0.5">
-                  {createdAt}{otherLocation ? ` \u00b7 ${otherLocation}` : ""}
-                </p>
-              </div>
-              {/* Status badge */}
-              <span
-                className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 mt-0.5 ${statusConfig.bg} ${statusConfig.color}`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-                {statusConfig.label}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </button>
   );
 }
 
@@ -714,47 +579,58 @@ function FamilyConnectionCard({
 function ProviderTabEmptyState({ tab }: { tab: ProviderConnectionTab }) {
   const config: Record<ProviderConnectionTab, { icon: string; title: string; subtitle: string }> = {
     attention: {
-      icon: "📨",
+      icon: "\u{1F4E8}",
       title: "No pending requests",
-      subtitle: "New family inquiries will appear here for you to review and respond to.",
+      subtitle: "New family inquiries will appear here for you to review.",
     },
     active: {
-      icon: "💬",
+      icon: "\u{1F4AC}",
       title: "No active connections",
-      subtitle: "When you connect with families, your active conversations will show up here.",
+      subtitle: "When you connect with families, conversations will show up here.",
     },
     past: {
-      icon: "📂",
+      icon: "\u{1F4C2}",
       title: "No past connections",
       subtitle: "Expired, declined, and ended connections will be archived here.",
     },
   };
   const { icon, title, subtitle } = config[tab];
   return (
-    <div className="py-16 text-center max-w-[360px] mx-auto">
-      <span className="text-4xl block mb-3">{icon}</span>
-      <h3 className="text-base font-semibold text-gray-700">{title}</h3>
-      <p className="text-sm text-gray-400 mt-1.5 leading-relaxed">{subtitle}</p>
+    <div className="py-16 text-center px-8">
+      <div
+        className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-2xl mx-auto mb-5"
+        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      >
+        {icon}
+      </div>
+      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">{subtitle}</p>
+      <style jsx>{`
+        @keyframes emptyFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </div>
   );
 }
 
-// ── Provider Connection Card (preserved from original) ──
+// ── Connection Grid Card (full-width default view) ──
 
-function ProviderConnectionCard({
+function ConnectionGridCard({
   connection,
   activeProfileId,
+  unread,
+  onSelect,
   isProvider,
   hasFullAccess,
-  onSelect,
-  variant,
 }: {
   connection: ConnectionWithProfile;
   activeProfileId: string;
+  unread: boolean;
+  onSelect: (id: string) => void;
   isProvider: boolean;
   hasFullAccess: boolean;
-  onSelect: (id: string) => void;
-  variant: "normal" | "attention" | "muted";
 }) {
   const isInbound = connection.to_profile_id === activeProfileId;
   const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
@@ -763,18 +639,17 @@ function ProviderConnectionCard({
     .filter(Boolean)
     .join(", ");
 
-  const parsedMsg = parseMessage(connection.message);
-  const careTypeLabel = parsedMsg?.careType || connection.type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+  const shouldBlur = isProvider && !hasFullAccess && isInbound;
 
-  const displayStatus = getProviderDisplayStatus(connection, isInbound);
-  const statusConfig = PROVIDER_STATUS_CONFIG[displayStatus];
+  const statusConfig = isProvider
+    ? PROVIDER_STATUS_CONFIG[getProviderDisplayStatus(connection, isInbound)]
+    : FAMILY_STATUS_CONFIG[getFamilyDisplayStatus(connection)];
 
   const createdAt = new Date(connection.created_at).toLocaleDateString(
     "en-US",
     { month: "short", day: "numeric" }
   );
 
-  const shouldBlur = isProvider && !hasFullAccess && isInbound;
   const imageUrl = otherProfile?.image_url;
   const initial = otherName.charAt(0).toUpperCase();
 
@@ -782,56 +657,55 @@ function ProviderConnectionCard({
     <button
       type="button"
       onClick={() => onSelect(connection.id)}
-      className={`w-full text-left rounded-xl border transition-colors group cursor-pointer ${
-        variant === "attention"
-          ? "border-amber-100 bg-amber-50/30 hover:bg-amber-50/60"
-          : variant === "muted"
-          ? "border-gray-100 bg-gray-50/50 hover:bg-gray-50"
-          : "border-gray-200 bg-white hover:bg-gray-50"
-      }`}
+      className="w-full text-left rounded-xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-200 cursor-pointer"
     >
-      <div className="px-4 py-3.5">
-        <div className="flex items-start gap-3.5">
-          <div className="shrink-0 mt-0.5">
-            {imageUrl && !shouldBlur ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageUrl} alt={otherName} className="w-11 h-11 rounded-xl object-cover" />
-            ) : (
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-base font-bold text-white"
-                style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
-              >
-                {shouldBlur ? "?" : initial}
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs text-gray-400 leading-tight">{careTypeLabel}</p>
-                <div className="flex items-center gap-1.5">
-                  {variant === "attention" && (
-                    <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
-                    </svg>
-                  )}
-                  <h3 className="text-base font-semibold text-gray-900 truncate leading-snug">
-                    {shouldBlur ? blurName(otherName) : otherName}
-                  </h3>
-                </div>
-                <p className="text-sm text-gray-500 truncate mt-0.5">
-                  {createdAt}
-                  {!shouldBlur && otherLocation ? ` \u00b7 ${otherLocation}` : ""}
-                </p>
-              </div>
-              <span
-                className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 mt-0.5 ${statusConfig.bg} ${statusConfig.color}`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-                {statusConfig.label}
-              </span>
+      <div className="flex items-start gap-3.5">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          {imageUrl && !shouldBlur ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt={otherName}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+              style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
+            >
+              {shouldBlur ? "?" : initial}
             </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {/* Status + date metadata row */}
+          <div className="flex items-center justify-between gap-2 mb-0.5">
+            <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
+              <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+              {statusConfig.label}
+            </span>
+            <span className="text-xs text-gray-400 shrink-0">{createdAt}</span>
           </div>
+          <h3 className={[
+            "text-sm truncate",
+            unread ? "font-bold text-gray-900" : "font-normal text-gray-500",
+          ].join(" ")}>
+            {shouldBlur ? blurName(otherName) : otherName}
+          </h3>
+          <p className={[
+            "text-xs mt-0.5 truncate",
+            unread ? "text-gray-600" : "text-gray-400",
+          ].join(" ")}>
+            {otherLocation}
+          </p>
+          {!!(connection.metadata as Record<string, unknown>)?.provider_initiated && (
+            <p className="text-[11px] text-primary-600 mt-1 font-medium">
+              Provider reached out
+            </p>
+          )}
         </div>
       </div>
     </button>

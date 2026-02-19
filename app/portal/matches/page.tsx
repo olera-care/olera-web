@@ -1,118 +1,33 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { Provider } from "@/lib/types/provider";
+import type { FamilyMetadata } from "@/lib/types";
 import Button from "@/components/ui/Button";
-import MatchCardStack from "@/components/portal/matches/MatchCardStack";
-import MatchSortBar from "@/components/portal/matches/MatchSortBar";
 import CarePostView from "@/components/portal/matches/CarePostView";
+import InterestedTabContent from "@/components/portal/matches/InterestedTabContent";
+import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 
-type SortOption = "relevance" | "closest" | "highest_rated";
-type SubTab = "foryou" | "carepost";
+type SubTab = "carepost" | "interested";
 
 export default function MatchesPage() {
   const { activeProfile, user, refreshAccountData } = useAuth();
-  const [subTab, setSubTab] = useState<SubTab>("foryou");
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab");
+  const [subTab, setSubTab] = useState<SubTab>(
+    initialTab === "interested" ? "interested" : "carepost"
+  );
+  const { pendingCount } = useInterestedProviders(activeProfile?.id);
+  const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
+  const hasCarePost = carePostStatus === "active";
 
-  // For You state
-  const [providers, setProviders] = useState<Provider[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [sort, setSort] = useState<SortOption>("relevance");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Track when InterestedTabContent is in split view mode
+  const [interestedSplitView, setInterestedSplitView] = useState(false);
 
   const hasRequiredFields =
     activeProfile?.care_types?.length && activeProfile?.state;
-
-  // Fetch matches
-  const fetchMatches = useCallback(
-    async (sortOption: SortOption) => {
-      if (!hasRequiredFields) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const res = await fetch("/api/matches/fetch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sort: sortOption }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error || "Failed to fetch");
-        }
-
-        const data = await res.json();
-        setProviders(data.providers || []);
-        setTotalCount(data.totalCount || 0);
-      } catch (err) {
-        console.error("Fetch matches error:", err);
-        setError("Failed to load matches. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [hasRequiredFields]
-  );
-
-  useEffect(() => {
-    fetchMatches(sort);
-  }, [sort, fetchMatches]);
-
-  // Dismiss handler
-  const handleDismiss = useCallback(async (provider: Provider) => {
-    try {
-      await fetch("/api/matches/dismiss", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          providerName: provider.provider_name,
-        }),
-      });
-    } catch (err) {
-      console.error("Dismiss error:", err);
-    }
-  }, []);
-
-  // Connect handler — sends request immediately (card stack shows inline overlay)
-  const handleConnect = useCallback(async (provider: Provider) => {
-    try {
-      const res = await fetch("/api/connections/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId: provider.provider_id,
-          providerName: provider.provider_name,
-          providerSlug: provider.provider_id,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to send request");
-      }
-    } catch (err) {
-      console.error("Connection request error:", err);
-    }
-  }, []);
-
-  // View profile handler
-  const handleViewProfile = useCallback((provider: Provider) => {
-    window.open(`/provider/${provider.provider_id}`, "_blank");
-  }, []);
-
-  // Sort change
-  const handleSortChange = useCallback((newSort: SortOption) => {
-    setSort(newSort);
-  }, []);
 
   // Care Post handlers
   const handlePublish = useCallback(async () => {
@@ -138,14 +53,14 @@ export default function MatchesPage() {
   // Profile guard
   if (!hasRequiredFields) {
     return (
-      <div>
-        <h2 className="text-[22px] font-bold text-gray-900">Matches</h2>
+      <div className="px-8 py-6 h-full"><div>
+        <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
         <p className="text-sm text-gray-500 mt-1 mb-8">
           Discover providers or let them find you.
         </p>
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
           <span className="text-5xl mb-4 block">📋</span>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Complete your profile first
           </h3>
           <p className="text-sm text-gray-500 mb-6 max-w-[380px] mx-auto leading-relaxed">
@@ -156,77 +71,62 @@ export default function MatchesPage() {
             <Button size="sm">Complete profile</Button>
           </Link>
         </div>
-      </div>
+      </div></div>
     );
   }
 
-  return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-[22px] font-bold text-gray-900">Matches</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Discover providers or let them find you.
-          </p>
-        </div>
-      </div>
-
-      {/* Sub-tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-0.5 rounded-xl w-fit">
-        {(
-          [
-            { id: "foryou", label: "For You" },
-            { id: "carepost", label: "My Care Post" },
-          ] as const
-        ).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setSubTab(tab.id)}
-            className={[
-              "px-5 py-2 rounded-lg text-sm font-semibold transition-all",
-              subTab === tab.id
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700",
-            ].join(" ")}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* For You view */}
-      {subTab === "foryou" && (
-        <>
-          {error ? (
-            <div className="text-center py-16">
-              <p className="text-sm text-red-600 mb-4">{error}</p>
-              <Button size="sm" onClick={() => fetchMatches(sort)}>
-                Retry
-              </Button>
-            </div>
-          ) : (
-            <>
-              {!loading && providers.length > 0 && (
-                <MatchSortBar
-                  matchCount={totalCount}
-                  sort={sort}
-                  onSortChange={handleSortChange}
-                />
-              )}
-
-              <div className="min-h-[560px]">
-                <MatchCardStack
-                  providers={providers}
-                  onDismiss={handleDismiss}
-                  onConnect={handleConnect}
-                  onViewProfile={handleViewProfile}
-                  onRefresh={() => fetchMatches(sort)}
-                  isLoading={loading}
-                />
-              </div>
-            </>
+  // ── Sub-tab bar (shared between normal view and split view left panel) ──
+  const matchesTabBar = (
+    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit">
+      {(
+        [
+          { id: "carepost", label: "My Care Post", badge: 0 },
+          { id: "interested", label: "Interested Providers", badge: pendingCount },
+        ] as const
+      ).map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setSubTab(tab.id)}
+          className={[
+            "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5",
+            subTab === tab.id
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700",
+          ].join(" ")}
+        >
+          {tab.label}
+          {tab.badge > 0 && subTab !== tab.id && (
+            <span className="text-[10px] font-bold text-primary-600 bg-primary-50 rounded-full w-4 h-4 flex items-center justify-center">
+              {tab.badge}
+            </span>
           )}
+        </button>
+      ))}
+    </div>
+  );
+
+  // When Interested tab is in split view, render without wrapper so
+  // SplitViewLayout aligns with the sidebar (matching Connections page)
+  const isInterestedSplitView = subTab === "interested" && interestedSplitView;
+
+  return (
+    <div className={isInterestedSplitView ? "h-full" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full"}>
+      {/* Header + Tabs — hidden when Interested split view is active
+          (they move into the split view's left panel instead) */}
+      {!isInterestedSplitView && (
+        <>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Discover providers or let them find you.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mb-6">
+            {matchesTabBar}
+          </div>
         </>
       )}
 
@@ -240,6 +140,16 @@ export default function MatchesPage() {
         />
       )}
 
+      {/* Interested view — always at same tree position to preserve state */}
+      {subTab === "interested" && activeProfile && (
+        <InterestedTabContent
+          profileId={activeProfile.id}
+          hasCarePost={hasCarePost}
+          onSwitchToCarePost={() => setSubTab("carepost")}
+          onSelectionChange={setInterestedSplitView}
+          matchesTabBar={matchesTabBar}
+        />
+      )}
     </div>
   );
 }

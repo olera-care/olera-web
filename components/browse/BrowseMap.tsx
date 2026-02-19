@@ -15,6 +15,19 @@ interface BrowseMapProps {
 // Helpers
 // ============================================================
 
+/** Shorten a full price range to just the starting price for map pins.
+ *  "$3,626 - $6,311/mo" → "From $3,626"
+ *  "From $3,626/mo"     → "From $3,626"
+ *  "Contact for pricing" → "Contact"
+ */
+function shortenPrice(priceRange: string): string {
+  if (!priceRange || priceRange === "Contact for pricing") return "Contact";
+  // Match the first dollar amount
+  const match = priceRange.match(/\$[\d,]+/);
+  if (match) return `From ${match[0]}`;
+  return priceRange;
+}
+
 /** Create a custom Leaflet divIcon — Airbnb-style white pill with price */
 function createPriceIcon(price: string, isHovered: boolean): L.DivIcon {
   return L.divIcon({
@@ -22,9 +35,9 @@ function createPriceIcon(price: string, isHovered: boolean): L.DivIcon {
     html: `<div style="
       width: max-content;
       transform: translate(-50%, -50%)${isHovered ? " scale(1.1)" : ""};
-      padding: 6px 10px;
+      padding: 4px 8px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
@@ -140,7 +153,7 @@ export default function BrowseMap({
 
     // Add markers (all start unhovered)
     mappableProviders.forEach((provider) => {
-      const icon = createPriceIcon(provider.priceRange, false);
+      const icon = createPriceIcon(shortenPrice(provider.priceRange), false);
 
       const marker = L.marker([provider.lat!, provider.lon!], { icon })
         .addTo(map)
@@ -173,7 +186,7 @@ export default function BrowseMap({
         const prevMarker = markersRef.current.get(prevId);
         const prevProvider = mappableProviders.find((p) => p.id === prevId);
         if (prevMarker && prevProvider) {
-          prevMarker.setIcon(createPriceIcon(prevProvider.priceRange, false));
+          prevMarker.setIcon(createPriceIcon(shortenPrice(prevProvider.priceRange), false));
           prevMarker.setZIndexOffset(0);
         }
       }
@@ -182,7 +195,7 @@ export default function BrowseMap({
         const marker = markersRef.current.get(providerId);
         const provider = mappableProviders.find((p) => p.id === providerId);
         if (marker && provider) {
-          marker.setIcon(createPriceIcon(provider.priceRange, true));
+          marker.setIcon(createPriceIcon(shortenPrice(provider.priceRange), true));
           marker.setZIndexOffset(1000);
         }
       }

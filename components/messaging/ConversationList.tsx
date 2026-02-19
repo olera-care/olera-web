@@ -73,6 +73,12 @@ function getLastMessage(connection: ConnectionWithProfile): { text: string; time
     };
   }
 
+  // Fall back to auto-intro message
+  const autoIntro = meta?.auto_intro as string | undefined;
+  if (autoIntro) {
+    return { text: autoIntro, timestamp: connection.created_at };
+  }
+
   // Fall back to initial message notes
   if (connection.message) {
     try {

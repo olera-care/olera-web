@@ -35,6 +35,10 @@ function parseInitialNotes(message: string | null): string | null {
   }
 }
 
+function getAutoIntro(metadata: Record<string, unknown> | undefined): string | null {
+  return (metadata?.auto_intro as string) || null;
+}
+
 function avatarGradient(name: string): string {
   const gradients = [
     "linear-gradient(135deg, #0ea5e9, #6366f1)",
@@ -160,9 +164,10 @@ export default function ConversationPanel({
   const otherName = otherProfile?.display_name || "Unknown";
   const otherInitial = otherName.charAt(0).toUpperCase();
   const imageUrl = otherProfile?.image_url;
-  const initialNotes = parseInitialNotes(connection.message);
-
   const connMetadata = connection.metadata as Record<string, unknown> | undefined;
+  const autoIntro = getAutoIntro(connMetadata);
+  const additionalNotes = parseInitialNotes(connection.message);
+  const initialNotes = autoIntro || additionalNotes;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
 
   const profileHref = otherProfile
@@ -249,7 +254,7 @@ export default function ConversationPanel({
         className="flex-1 overflow-y-auto pl-6 pr-[44px] py-6 bg-white"
       >
         <div className="space-y-4">
-          {/* Family's initial note */}
+          {/* Auto-intro + optional additional notes */}
           {initialNotes && (
             <>
               <div className="flex justify-center py-3">
@@ -258,7 +263,7 @@ export default function ConversationPanel({
                 </span>
               </div>
               {isInbound ? (
-                /* Inbound initial note — avatar + bubble */
+                /* Inbound — avatar + bubble */
                 <div className="flex items-end gap-2.5 max-w-[70%]">
                   {imageUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -275,16 +280,26 @@ export default function ConversationPanel({
                     <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100">
                       <p className="text-base leading-relaxed text-gray-800">{initialNotes}</p>
                     </div>
+                    {autoIntro && additionalNotes && (
+                      <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100 mt-1.5">
+                        <p className="text-base leading-relaxed text-gray-800">{additionalNotes}</p>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-400 mt-1.5 ml-1">{otherName} &middot; {formatTime(connection.created_at)}</p>
                   </div>
                 </div>
               ) : (
-                /* Outbound initial note */
+                /* Outbound */
                 <div className="flex justify-end">
                   <div className="max-w-[70%]">
                     <div className="bg-primary-600 rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
                       <p className="text-base leading-relaxed text-white">{initialNotes}</p>
                     </div>
+                    {autoIntro && additionalNotes && (
+                      <div className="bg-primary-600 rounded-2xl rounded-br-md px-4 py-3 shadow-sm mt-1.5">
+                        <p className="text-base leading-relaxed text-white">{additionalNotes}</p>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{formatTime(connection.created_at)}</p>
                   </div>
                 </div>

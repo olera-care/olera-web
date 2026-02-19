@@ -604,48 +604,53 @@ export default function ConversationList({
 
       {/* Conversation list */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {filtered.length === 0 && pastConnections.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 px-6">
-            <p className="text-[15px] text-gray-500">
-              {searchOpen ? "No results found" : "No conversations"}
-            </p>
-          </div>
+        {/* Active conversations */}
+        {filtered.length > 0 ? (
+          filtered.map((conn) => renderConversationItem(conn))
         ) : (
-          <>
-            {filtered.length === 0 && !searchOpen && (
-              <div className="flex flex-col items-center justify-center py-12 px-6">
-                <p className="text-[15px] text-gray-500">No conversations</p>
+          <div className="flex flex-col items-center justify-center py-16 px-6">
+            {searchOpen ? (
+              <p className="text-[15px] text-gray-500">No results found</p>
+            ) : (
+              <div className="text-center">
+                <p className="text-[15px] font-medium text-gray-900 mb-1">You have no messages yet</p>
+                <p className="text-sm text-gray-500 mb-4">Browse providers to start a conversation</p>
+                <Link
+                  href="/browse"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Browse providers
+                </Link>
               </div>
             )}
-            {filtered.map((conn) => renderConversationItem(conn))}
+          </div>
+        )}
 
-            {/* Past conversations accordion */}
-            {pastConnections.length > 0 && !searchOpen && (
-              <>
-                <button
-                  onClick={() => {
-                    setPastOpen((p) => {
-                      if (!p && onLoadArchived) onLoadArchived();
-                      return !p;
-                    });
-                  }}
-                  className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
-                >
-                  <span className="text-sm font-semibold text-gray-500">
-                    Archived ({pastConnections.length})
-                  </span>
-                  <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${archiveOpen ? "rotate-180" : ""}`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {archiveOpen && pastConnections.map((conn) => renderConversationItem(conn, true))}
-              </>
-            )}
+        {/* Archived conversations accordion — always at bottom */}
+        {pastConnections.length > 0 && !searchOpen && (
+          <>
+            <button
+              onClick={() => {
+                setPastOpen((p) => {
+                  if (!p && onLoadArchived) onLoadArchived();
+                  return !p;
+                });
+              }}
+              className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
+            >
+              <span className="text-sm font-semibold text-gray-500">
+                Archived ({pastConnections.length})
+              </span>
+              <svg
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${archiveOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {archiveOpen && pastConnections.map((conn) => renderConversationItem(conn, true))}
           </>
         )}
       </div>

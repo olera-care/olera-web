@@ -90,7 +90,8 @@ function InboxContent() {
       const uniqueConns = Array.from(deduped.values());
 
       if (uniqueConns.length === 0) {
-        setConnections([]);
+        // Preserve any archived connections already in state
+        setConnections((prev) => prev.filter((c) => c.status === "archived"));
         setLoading(false);
         return;
       }
@@ -152,7 +153,13 @@ function InboxContent() {
       // Sort by last activity
       enriched.sort((a, b) => getLastActivityTime(b) - getLastActivityTime(a));
 
-      setConnections(enriched);
+      // Merge: replace active connections but preserve any archived ones already in state
+      setConnections((prev) => {
+        const keptArchived = prev.filter((c) => c.status === "archived");
+        const newIds = new Set(enriched.map((c) => c.id));
+        const archivedNotInNew = keptArchived.filter((c) => !newIds.has(c.id));
+        return [...enriched, ...archivedNotInNew];
+      });
 
       // Auto-select first conversation if none selected and on desktop
       if (!selectedIdRef.current && enriched.length > 0 && window.innerWidth >= 1024) {
@@ -287,11 +294,25 @@ function InboxContent() {
     setReportingConnectionId(connectionId);
   }, []);
 
+  // Helper: call the server-side manage API (bypasses RLS)
+  const manageConnection = useCallback(
+    async (payload: { connectionId: string; action: string; reportReason?: string; reportDetails?: string }) => {
+      const res = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to update connection");
+      }
+      return res.json();
+    },
+    []
+  );
+
   // Submit report with reason (sets metadata.reported with timestamp + reason, archives)
   const handleReportSubmit = useCallback(async (connectionId: string, reason: string, details: string) => {
-    if (!isSupabaseConfigured()) return;
-    const supabase = createClient();
-
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
@@ -306,7 +327,7 @@ function InboxContent() {
       archived_from_status: conn.status,
     };
 
-    // Optimistic local update first, then persist to DB
+    // Optimistic local update
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
@@ -317,24 +338,26 @@ function InboxContent() {
     if (selectedIdRef.current === connectionId) setSelectedId(null);
     setReportingConnectionId(null);
 
-    await supabase
-      .from("connections")
-      .update({ status: "archived", metadata: updatedMeta })
-      .eq("id", connectionId);
-  }, [activeProfile?.id]);
+    try {
+      await manageConnection({ connectionId, action: "report", reportReason: reason, reportDetails: details });
+    } catch (err) {
+      console.error("[inbox] report failed:", err);
+      // Revert optimistic update
+      setConnections((prev) =>
+        prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
+      );
+    }
+  }, [activeProfile?.id, manageConnection]);
 
-  // Archive a connection (saves original status in metadata, sets status = 'archived')
+  // Archive a connection
   const handleArchive = useCallback(async (connectionId: string) => {
-    if (!isSupabaseConfigured()) return;
-    const supabase = createClient();
-
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
     const archiveMeta = { ...existingMeta, archived_from_status: conn.status };
 
-    // Optimistic local update first, then persist to DB
+    // Optimistic local update
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
@@ -344,55 +367,60 @@ function InboxContent() {
     );
     if (selectedIdRef.current === connectionId) setSelectedId(null);
 
-    await supabase
-      .from("connections")
-      .update({ status: "archived", metadata: archiveMeta })
-      .eq("id", connectionId);
-  }, []);
+    try {
+      await manageConnection({ connectionId, action: "archive" });
+    } catch (err) {
+      console.error("[inbox] archive failed:", err);
+      // Revert optimistic update
+      setConnections((prev) =>
+        prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
+      );
+    }
+  }, [manageConnection]);
 
-  // Unarchive a connection (restores original status from metadata)
+  // Unarchive a connection
   const handleUnarchive = useCallback(async (connectionId: string) => {
-    if (!isSupabaseConfigured()) return;
-    const supabase = createClient();
-
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
     const meta = (conn.metadata as Record<string, unknown>) || {};
     const restoreStatus = (meta.archived_from_status as ConnectionStatus) || "accepted";
 
-    // Optimistic local update first, then persist to DB
+    // Optimistic local update
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId ? { ...c, status: restoreStatus } : c
       )
     );
 
-    await supabase
-      .from("connections")
-      .update({ status: restoreStatus })
-      .eq("id", connectionId);
-  }, []);
+    try {
+      await manageConnection({ connectionId, action: "unarchive" });
+    } catch (err) {
+      console.error("[inbox] unarchive failed:", err);
+      // Revert optimistic update
+      setConnections((prev) =>
+        prev.map((c) => c.id === connectionId ? { ...c, status: conn.status } : c)
+      );
+    }
+  }, [manageConnection]);
 
   // Delete a connection (soft-delete via metadata.hidden)
   const handleDelete = useCallback(async (connectionId: string) => {
-    if (!isSupabaseConfigured()) return;
-    const supabase = createClient();
-
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
-    const existingMeta = (conn.metadata as Record<string, unknown>) || {};
-
-    // Optimistic local update first, then persist to DB
+    // Optimistic local update
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     if (selectedIdRef.current === connectionId) setSelectedId(null);
 
-    await supabase
-      .from("connections")
-      .update({ metadata: { ...existingMeta, hidden: true } })
-      .eq("id", connectionId);
-  }, []);
+    try {
+      await manageConnection({ connectionId, action: "delete" });
+    } catch (err) {
+      console.error("[inbox] delete failed:", err);
+      // Revert — re-add the connection
+      setConnections((prev) => [...prev, conn]);
+    }
+  }, [manageConnection]);
 
   return (
     <div className="h-[calc(100vh-64px)] bg-white">

@@ -20,6 +20,7 @@ interface ConversationListProps {
   onUnarchiveConnection?: (id: string) => void;
   onDeleteConnection?: (id: string) => void;
   onLoadArchived?: () => void;
+  archivedCount?: number;
   className?: string;
 }
 
@@ -176,6 +177,7 @@ export default function ConversationList({
   onUnarchiveConnection,
   onDeleteConnection,
   onLoadArchived,
+  archivedCount = 0,
   className = "",
 }: ConversationListProps) {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -627,7 +629,7 @@ export default function ConversationList({
         )}
 
         {/* Archived conversations accordion — always at bottom */}
-        {pastConnections.length > 0 && !searchOpen && (
+        {(pastConnections.length > 0 || archivedCount > 0) && !searchOpen && (
           <>
             <button
               onClick={() => {
@@ -639,7 +641,7 @@ export default function ConversationList({
               className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
             >
               <span className="text-sm font-semibold text-gray-500">
-                Archived ({pastConnections.length})
+                Archived ({pastConnections.length || archivedCount})
               </span>
               <svg
                 className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${archiveOpen ? "rotate-180" : ""}`}

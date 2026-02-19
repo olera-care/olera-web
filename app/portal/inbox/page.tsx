@@ -41,6 +41,7 @@ function InboxContent() {
   selectedIdRef.current = selectedId;
   const [detailOpen, setDetailOpen] = useState(false);
   const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
+  const [archivedCount, setArchivedCount] = useState(0);
 
   // Auto-select from URL param
   useEffect(() => {
@@ -59,9 +60,8 @@ function InboxContent() {
       const supabase = createClient();
       const profileIds = profiles.map((p) => p.id);
 
-      // Fetch inbound and outbound inquiry connections
-      // Only fetch active connections initially — archived are loaded lazily
-      const [outbound, inbound] = await Promise.all([
+      // Fetch active connections + archived count in parallel
+      const [outbound, inbound, archivedOut, archivedIn] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
@@ -76,7 +76,27 @@ function InboxContent() {
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
+        // Lightweight count of archived connections (IDs only)
+        supabase
+          .from("connections")
+          .select("id")
+          .in("from_profile_id", profileIds)
+          .eq("type", "inquiry")
+          .eq("status", "archived"),
+        supabase
+          .from("connections")
+          .select("id")
+          .in("to_profile_id", profileIds)
+          .eq("type", "inquiry")
+          .eq("status", "archived"),
       ]);
+
+      // Deduplicate archived count
+      const archivedIds = new Set<string>();
+      for (const c of [...(archivedOut.data || []), ...(archivedIn.data || [])]) {
+        archivedIds.add(c.id);
+      }
+      setArchivedCount(archivedIds.size);
 
       // Merge and deduplicate
       const allConns = [...(outbound.data || []), ...(inbound.data || [])] as Connection[];
@@ -437,6 +457,7 @@ function InboxContent() {
         onUnarchiveConnection={handleUnarchive}
         onDeleteConnection={handleDelete}
         onLoadArchived={fetchArchived}
+        archivedCount={archivedCount}
         className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
       />
 

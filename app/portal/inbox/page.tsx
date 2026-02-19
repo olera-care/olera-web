@@ -43,8 +43,11 @@ function InboxContent() {
   const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
   const [archivedCount, setArchivedCount] = useState(0);
 
-  // Track connections with in-flight manage operations so refetches don't overwrite optimistic state
-  const pendingOpsRef = useRef(new Set<string>());
+  // Track managed connections. Protection is cleared ONLY when DB data confirms the change,
+  // not on a timer or in finally blocks. This eliminates all race conditions.
+  // "expect_absent" = archived/deleted, should NOT appear in active query
+  // "expect_present" = unarchived, SHOULD appear in active query
+  const managedOpsRef = useRef(new Map<string, "expect_absent" | "expect_present">());
 
   // Auto-select from URL param
   useEffect(() => {
@@ -101,12 +104,6 @@ function InboxContent() {
       }
       setArchivedCount(archivedIds.size);
 
-      // Snapshot pending ops NOW — before any setConnections callbacks.
-      // React batches state updates, so by the time the callback runs,
-      // a concurrent manage operation's `finally` block may have already
-      // cleared pendingOpsRef. The snapshot preserves the correct state.
-      const pendingSnapshot = new Set(pendingOpsRef.current);
-
       // Merge and deduplicate
       const allConns = [...(outbound.data || []), ...(inbound.data || [])] as Connection[];
       const deduped = new Map<string, Connection>();
@@ -119,9 +116,12 @@ function InboxContent() {
       const uniqueConns = Array.from(deduped.values());
 
       if (uniqueConns.length === 0) {
-        // Preserve archived connections and any with pending ops
+        // No active connections — all "expect_absent" ops are confirmed
+        for (const [id, expected] of [...managedOpsRef.current.entries()]) {
+          if (expected === "expect_absent") managedOpsRef.current.delete(id);
+        }
         setConnections((prev) =>
-          prev.filter((c) => c.status === "archived" || pendingSnapshot.has(c.id))
+          prev.filter((c) => c.status === "archived" || managedOpsRef.current.has(c.id))
         );
         setLoading(false);
         return;
@@ -184,29 +184,33 @@ function InboxContent() {
       // Sort by last activity
       enriched.sort((a, b) => getLastActivityTime(b) - getLastActivityTime(a));
 
-      // Merge: replace active connections but preserve optimistic state for in-flight ops.
-      // Uses pendingSnapshot (captured before async work) instead of reading
-      // pendingOpsRef.current inside the callback, which could be stale due to
-      // React's batched state processing.
+      // Clear managed ops that the DB has confirmed
+      const enrichedIds = new Set(enriched.map((c) => c.id));
+      for (const [id, expected] of [...managedOpsRef.current.entries()]) {
+        if (expected === "expect_absent" && !enrichedIds.has(id)) {
+          managedOpsRef.current.delete(id); // Confirmed: not in active results
+        } else if (expected === "expect_present" && enrichedIds.has(id)) {
+          managedOpsRef.current.delete(id); // Confirmed: back in active results
+        }
+      }
+
+      // Merge: replace active connections but protect managed ones
+      const managed = managedOpsRef.current;
       setConnections((prev) => {
         const prevById = new Map(prev.map((c) => [c.id, c]));
 
-        // For connections with pending ops, keep local state instead of DB data
+        // For managed connections still awaiting DB confirmation, keep local state
         const merged = enriched.map((c) =>
-          pendingSnapshot.has(c.id) && prevById.has(c.id) ? prevById.get(c.id)! : c
+          managed.has(c.id) && prevById.has(c.id) ? prevById.get(c.id)! : c
         );
 
-        // Also preserve archived connections not returned by the active query
+        // Preserve connections not in enriched that should be kept
         const mergedIds = new Set(merged.map((c) => c.id));
-        const keptArchived = prev.filter(
-          (c) => c.status === "archived" && !mergedIds.has(c.id)
-        );
-        // And preserve any pending-op connections that weren't in enriched at all
-        const keptPending = prev.filter(
-          (c) => pendingSnapshot.has(c.id) && !mergedIds.has(c.id)
+        const keptFromPrev = prev.filter(
+          (c) => !mergedIds.has(c.id) && (managed.has(c.id) || c.status === "archived")
         );
 
-        return [...merged, ...keptArchived, ...keptPending];
+        return [...merged, ...keptFromPrev];
       });
 
       // Auto-select first conversation if none selected and on desktop
@@ -375,8 +379,8 @@ function InboxContent() {
       archived_from_status: conn.status,
     };
 
-    // Optimistic local update
-    pendingOpsRef.current.add(connectionId);
+    // Protect until DB confirms (connection absent from active query)
+    managedOpsRef.current.set(connectionId, "expect_absent");
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
@@ -391,12 +395,10 @@ function InboxContent() {
       await manageConnection({ connectionId, action: "report", reportReason: reason, reportDetails: details });
     } catch (err) {
       console.error("[inbox] report failed:", err);
-      // Revert optimistic update
+      managedOpsRef.current.delete(connectionId);
       setConnections((prev) =>
         prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
       );
-    } finally {
-      pendingOpsRef.current.delete(connectionId);
     }
   }, [activeProfile?.id, manageConnection]);
 
@@ -408,8 +410,8 @@ function InboxContent() {
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
     const archiveMeta = { ...existingMeta, archived_from_status: conn.status };
 
-    // Optimistic local update
-    pendingOpsRef.current.add(connectionId);
+    // Protect until DB confirms (connection absent from active query)
+    managedOpsRef.current.set(connectionId, "expect_absent");
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
@@ -423,12 +425,10 @@ function InboxContent() {
       await manageConnection({ connectionId, action: "archive" });
     } catch (err) {
       console.error("[inbox] archive failed:", err);
-      // Revert optimistic update
+      managedOpsRef.current.delete(connectionId);
       setConnections((prev) =>
         prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
       );
-    } finally {
-      pendingOpsRef.current.delete(connectionId);
     }
   }, [manageConnection]);
 
@@ -440,8 +440,8 @@ function InboxContent() {
     const meta = (conn.metadata as Record<string, unknown>) || {};
     const restoreStatus = (meta.archived_from_status as ConnectionStatus) || "accepted";
 
-    // Optimistic local update
-    pendingOpsRef.current.add(connectionId);
+    // Protect until DB confirms (connection present in active query)
+    managedOpsRef.current.set(connectionId, "expect_present");
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId ? { ...c, status: restoreStatus } : c
@@ -452,12 +452,10 @@ function InboxContent() {
       await manageConnection({ connectionId, action: "unarchive" });
     } catch (err) {
       console.error("[inbox] unarchive failed:", err);
-      // Revert optimistic update
+      managedOpsRef.current.delete(connectionId);
       setConnections((prev) =>
         prev.map((c) => c.id === connectionId ? { ...c, status: conn.status } : c)
       );
-    } finally {
-      pendingOpsRef.current.delete(connectionId);
     }
   }, [manageConnection]);
 
@@ -466,8 +464,8 @@ function InboxContent() {
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
-    // Optimistic local update
-    pendingOpsRef.current.add(connectionId);
+    // Protect until DB confirms (connection absent from active query due to hidden flag)
+    managedOpsRef.current.set(connectionId, "expect_absent");
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     if (selectedIdRef.current === connectionId) setSelectedId(null);
 
@@ -475,10 +473,8 @@ function InboxContent() {
       await manageConnection({ connectionId, action: "delete" });
     } catch (err) {
       console.error("[inbox] delete failed:", err);
-      // Revert — re-add the connection
+      managedOpsRef.current.delete(connectionId);
       setConnections((prev) => [...prev, conn]);
-    } finally {
-      pendingOpsRef.current.delete(connectionId);
     }
   }, [manageConnection]);
 

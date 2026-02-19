@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -35,6 +35,8 @@ function InboxContent() {
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedIdRef = useRef(selectedId);
+  selectedIdRef.current = selectedId;
   const [detailOpen, setDetailOpen] = useState(false);
   const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
 
@@ -149,7 +151,7 @@ function InboxContent() {
       setConnections(enriched);
 
       // Auto-select first conversation if none selected and on desktop
-      if (!selectedId && enriched.length > 0 && window.innerWidth >= 1024) {
+      if (!selectedIdRef.current && enriched.length > 0 && window.innerWidth >= 1024) {
         setSelectedId(enriched[0].id);
       }
     } catch (err) {
@@ -157,7 +159,7 @@ function InboxContent() {
     } finally {
       setLoading(false);
     }
-  }, [activeProfile, profiles, selectedId]);
+  }, [activeProfile, profiles]);
 
   useEffect(() => {
     fetchConnections();
@@ -212,11 +214,17 @@ function InboxContent() {
     setReportingConnectionId(connectionId);
   }, []);
 
-  // Submit report with reason (sets metadata.reported with timestamp + reason, hides from view)
+  // Submit report with reason (sets metadata.reported with timestamp + reason, archives)
   const handleReportSubmit = useCallback(async (connectionId: string, reason: string, details: string) => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
-    const conn = connections.find((c) => c.id === connectionId);
+
+    // Read current connection from state
+    let conn: ConnectionWithProfile | undefined;
+    setConnections((prev) => {
+      conn = prev.find((c) => c.id === connectionId);
+      return prev;
+    });
     if (!conn) return;
 
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
@@ -231,29 +239,30 @@ function InboxContent() {
     };
     await supabase
       .from("connections")
-      .update({
-        status: "archived",
-        metadata: updatedMeta,
-      })
+      .update({ status: "archived", metadata: updatedMeta })
       .eq("id", connectionId);
 
-    // Move to archived in local state and close modal
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
-          ? { ...c, status: "archived", metadata: updatedMeta }
+          ? { ...c, status: "archived" as ConnectionStatus, metadata: updatedMeta }
           : c
       )
     );
-    if (selectedId === connectionId) setSelectedId(null);
+    if (selectedIdRef.current === connectionId) setSelectedId(null);
     setReportingConnectionId(null);
-  }, [connections, selectedId, activeProfile?.id]);
+  }, [activeProfile?.id]);
 
   // Archive a connection (saves original status in metadata, sets status = 'archived')
   const handleArchive = useCallback(async (connectionId: string) => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
-    const conn = connections.find((c) => c.id === connectionId);
+
+    let conn: ConnectionWithProfile | undefined;
+    setConnections((prev) => {
+      conn = prev.find((c) => c.id === connectionId);
+      return prev;
+    });
     if (!conn) return;
 
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
@@ -265,22 +274,26 @@ function InboxContent() {
       })
       .eq("id", connectionId);
 
-    // Update local state
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
-          ? { ...c, status: "archived", metadata: { ...existingMeta, archived_from_status: conn.status } }
+          ? { ...c, status: "archived" as ConnectionStatus, metadata: { ...existingMeta, archived_from_status: conn!.status } }
           : c
       )
     );
-    if (selectedId === connectionId) setSelectedId(null);
-  }, [connections, selectedId]);
+    if (selectedIdRef.current === connectionId) setSelectedId(null);
+  }, []);
 
   // Unarchive a connection (restores original status from metadata)
   const handleUnarchive = useCallback(async (connectionId: string) => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
-    const conn = connections.find((c) => c.id === connectionId);
+
+    let conn: ConnectionWithProfile | undefined;
+    setConnections((prev) => {
+      conn = prev.find((c) => c.id === connectionId);
+      return prev;
+    });
     if (!conn) return;
 
     const meta = (conn.metadata as Record<string, unknown>) || {};
@@ -291,33 +304,34 @@ function InboxContent() {
       .update({ status: restoreStatus })
       .eq("id", connectionId);
 
-    // Update local state
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId ? { ...c, status: restoreStatus } : c
       )
     );
-  }, [connections]);
+  }, []);
 
   // Delete a connection (soft-delete via metadata.hidden)
   const handleDelete = useCallback(async (connectionId: string) => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
-    const conn = connections.find((c) => c.id === connectionId);
+
+    let conn: ConnectionWithProfile | undefined;
+    setConnections((prev) => {
+      conn = prev.find((c) => c.id === connectionId);
+      return prev;
+    });
     if (!conn) return;
 
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
     await supabase
       .from("connections")
-      .update({
-        metadata: { ...existingMeta, hidden: true },
-      })
+      .update({ metadata: { ...existingMeta, hidden: true } })
       .eq("id", connectionId);
 
-    // Remove from local state
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
-    if (selectedId === connectionId) setSelectedId(null);
-  }, [connections, selectedId]);
+    if (selectedIdRef.current === connectionId) setSelectedId(null);
+  }, []);
 
   return (
     <div className="h-[calc(100vh-64px)] bg-white">

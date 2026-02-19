@@ -43,6 +43,9 @@ function InboxContent() {
   const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
   const [archivedCount, setArchivedCount] = useState(0);
 
+  // Track connections with in-flight manage operations so refetches don't overwrite optimistic state
+  const pendingOpsRef = useRef(new Set<string>());
+
   // Auto-select from URL param
   useEffect(() => {
     const id = searchParams.get("id");
@@ -110,8 +113,10 @@ function InboxContent() {
       const uniqueConns = Array.from(deduped.values());
 
       if (uniqueConns.length === 0) {
-        // Preserve any archived connections already in state
-        setConnections((prev) => prev.filter((c) => c.status === "archived"));
+        // Preserve archived connections and any with pending ops
+        setConnections((prev) =>
+          prev.filter((c) => c.status === "archived" || pendingOpsRef.current.has(c.id))
+        );
         setLoading(false);
         return;
       }
@@ -173,12 +178,27 @@ function InboxContent() {
       // Sort by last activity
       enriched.sort((a, b) => getLastActivityTime(b) - getLastActivityTime(a));
 
-      // Merge: replace active connections but preserve any archived ones already in state
+      // Merge: replace active connections but preserve optimistic state for in-flight ops
       setConnections((prev) => {
-        const keptArchived = prev.filter((c) => c.status === "archived");
-        const newIds = new Set(enriched.map((c) => c.id));
-        const archivedNotInNew = keptArchived.filter((c) => !newIds.has(c.id));
-        return [...enriched, ...archivedNotInNew];
+        const pending = pendingOpsRef.current;
+        const prevById = new Map(prev.map((c) => [c.id, c]));
+
+        // For connections with pending ops, keep local state instead of DB data
+        const merged = enriched.map((c) =>
+          pending.has(c.id) && prevById.has(c.id) ? prevById.get(c.id)! : c
+        );
+
+        // Also preserve archived connections not returned by the active query
+        const mergedIds = new Set(merged.map((c) => c.id));
+        const keptArchived = prev.filter(
+          (c) => c.status === "archived" && !mergedIds.has(c.id)
+        );
+        // And preserve any pending-op connections that weren't in enriched at all
+        const keptPending = prev.filter(
+          (c) => pending.has(c.id) && !mergedIds.has(c.id)
+        );
+
+        return [...merged, ...keptArchived, ...keptPending];
       });
 
       // Auto-select first conversation if none selected and on desktop
@@ -348,6 +368,7 @@ function InboxContent() {
     };
 
     // Optimistic local update
+    pendingOpsRef.current.add(connectionId);
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
@@ -366,6 +387,8 @@ function InboxContent() {
       setConnections((prev) =>
         prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
       );
+    } finally {
+      pendingOpsRef.current.delete(connectionId);
     }
   }, [activeProfile?.id, manageConnection]);
 
@@ -378,6 +401,7 @@ function InboxContent() {
     const archiveMeta = { ...existingMeta, archived_from_status: conn.status };
 
     // Optimistic local update
+    pendingOpsRef.current.add(connectionId);
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
@@ -395,6 +419,8 @@ function InboxContent() {
       setConnections((prev) =>
         prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
       );
+    } finally {
+      pendingOpsRef.current.delete(connectionId);
     }
   }, [manageConnection]);
 
@@ -407,6 +433,7 @@ function InboxContent() {
     const restoreStatus = (meta.archived_from_status as ConnectionStatus) || "accepted";
 
     // Optimistic local update
+    pendingOpsRef.current.add(connectionId);
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId ? { ...c, status: restoreStatus } : c
@@ -421,6 +448,8 @@ function InboxContent() {
       setConnections((prev) =>
         prev.map((c) => c.id === connectionId ? { ...c, status: conn.status } : c)
       );
+    } finally {
+      pendingOpsRef.current.delete(connectionId);
     }
   }, [manageConnection]);
 
@@ -430,6 +459,7 @@ function InboxContent() {
     if (!conn) return;
 
     // Optimistic local update
+    pendingOpsRef.current.add(connectionId);
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     if (selectedIdRef.current === connectionId) setSelectedId(null);
 
@@ -439,6 +469,8 @@ function InboxContent() {
       console.error("[inbox] delete failed:", err);
       // Revert — re-add the connection
       setConnections((prev) => [...prev, conn]);
+    } finally {
+      pendingOpsRef.current.delete(connectionId);
     }
   }, [manageConnection]);
 

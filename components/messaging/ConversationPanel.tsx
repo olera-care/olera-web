@@ -4,11 +4,13 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
+import EditCareRequestModal from "./EditCareRequestModal";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
   activeProfile: Profile | null;
   onMessageSent: (connectionId: string, thread: ThreadMessage[]) => void;
+  onCareRequestUpdated?: (connectionId: string, message: string, metadata: Record<string, unknown>) => void;
   onBack?: () => void;
   detailOpen?: boolean;
   onToggleDetail?: () => void;
@@ -123,158 +125,89 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   </svg>
 );
 
-// ── Care request card variants ──
+// ── Care Request Card ──
 
-const CARD_LABELS = ["V1 · Accent", "V2 · Brand", "Benchmark"] as const;
-
-function CareCardV1({ careRequest, time, isInbound, otherName }: {
+function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, editable, connectionId, onUpdated }: {
   careRequest: CareRequestData;
   time: string;
+  dateStr: string;
   isInbound: boolean;
   otherName: string;
+  editable: boolean;
+  connectionId: string;
+  onUpdated?: (message: string, metadata: Record<string, unknown>) => void;
 }) {
-  return (
-    <div className="flex justify-end">
-      <div className="max-w-[360px]">
-        <div className="bg-white rounded-2xl rounded-br-md border border-gray-200 shadow-sm overflow-hidden">
-          {/* Teal accent top bar */}
-          <div className="h-1 bg-gradient-to-r from-primary-600 to-primary-400" />
+  const [editOpen, setEditOpen] = useState(false);
 
-          <div className="px-5 pt-4 pb-4">
-            {/* Header row */}
-            <div className="flex items-center gap-2 mb-3.5">
-              <div className="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <span className="text-sm font-bold text-gray-900">Care Inquiry</span>
-              <span className="ml-auto text-xs text-gray-400">{time}</span>
-            </div>
-
-            {/* Fields */}
-            <div className="space-y-2.5">
-              {careRequest.careType && (
-                <div className="flex items-start gap-3">
-                  <svg className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Care Type</p>
-                    <p className="text-[15px] font-semibold text-gray-900 mt-0.5">
-                      {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {careRequest.careRecipient && (
-                <div className="flex items-start gap-3">
-                  <svg className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Recipient</p>
-                    <p className="text-[15px] text-gray-700 mt-0.5">
-                      {RECIPIENT_LABELS[careRequest.careRecipient] || careRequest.careRecipient}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {careRequest.urgency && (
-                <div className="flex items-start gap-3">
-                  <svg className="w-4 h-4 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Timeline</p>
-                    <p className="text-[15px] text-gray-700 mt-0.5">
-                      {URGENCY_LABELS[careRequest.urgency] || careRequest.urgency}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Notes */}
-            {careRequest.additionalNotes && (
-              <div className="mt-3.5 pt-3.5 border-t border-gray-100">
-                <p className="text-[14px] text-gray-500 leading-relaxed italic">
-                  &ldquo;{careRequest.additionalNotes}&rdquo;
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="px-5 py-2.5 bg-primary-50/50 border-t border-primary-100/50">
-            <p className="text-xs font-medium text-primary-600/70">
-              {isInbound ? `Sent by ${otherName}` : "You sent this inquiry"}
-            </p>
-          </div>
-        </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{time}</p>
-      </div>
-    </div>
-  );
-}
-
-function CareCardV2({ careRequest, time, isInbound, otherName }: {
-  careRequest: CareRequestData;
-  time: string;
-  isInbound: boolean;
-  otherName: string;
-}) {
   return (
     <div className="flex justify-end">
       <div className="max-w-[360px]">
         <div className="rounded-2xl rounded-br-md overflow-hidden shadow-sm border border-gray-200">
           {/* Teal header */}
-          <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-5 py-3.5">
+          <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-5 py-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className="text-sm font-bold text-white">Care Inquiry</span>
+              <span className="text-sm font-bold text-white">Care Request</span>
+              {editable && (
+                <button
+                  onClick={() => setEditOpen(true)}
+                  className="ml-auto p-1 rounded-md hover:bg-white/15 transition-colors"
+                  aria-label="Edit care request"
+                >
+                  <svg className="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Body */}
-          <div className="bg-white px-5 pt-4 pb-4">
-            {/* Pill chips */}
-            <div className="flex flex-wrap gap-2 mb-3">
-              {careRequest.careType && (
-                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 bg-primary-50 px-3 py-1.5 rounded-full">
+          {/* Body — labeled field rows */}
+          <div className="bg-white px-5 pt-4 pb-4 space-y-3.5">
+            {careRequest.careType && (
+              <div>
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Care Type</p>
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                   {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
                 </span>
-              )}
-              {careRequest.careRecipient && (
-                <span className="inline-flex items-center gap-1.5 text-sm text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
-                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              </div>
+            )}
+
+            {careRequest.careRecipient && (
+              <div>
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Who Needs Care</p>
+                <div className="flex items-center gap-2 text-[14px] text-gray-700">
+                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   {RECIPIENT_LABELS[careRequest.careRecipient] || careRequest.careRecipient}
-                </span>
-              )}
-            </div>
+                </div>
+              </div>
+            )}
 
-            {/* Timeline */}
             {careRequest.urgency && (
-              <div className="flex items-center gap-2 text-[14px] text-gray-600 mb-3">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {URGENCY_LABELS[careRequest.urgency] || careRequest.urgency}
+              <div>
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Timeline</p>
+                <div className="flex items-center gap-2 text-[14px] text-gray-700">
+                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {URGENCY_LABELS[careRequest.urgency] || careRequest.urgency}
+                </div>
               </div>
             )}
 
             {/* Notes */}
             {careRequest.additionalNotes && (
               <div className="pt-3 border-t border-gray-100">
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1">Notes</p>
                 <p className="text-[14px] text-gray-500 leading-relaxed italic">
                   &ldquo;{careRequest.additionalNotes}&rdquo;
                 </p>
@@ -285,69 +218,25 @@ function CareCardV2({ careRequest, time, isInbound, otherName }: {
           {/* Footer */}
           <div className="bg-gray-50 px-5 py-2.5 border-t border-gray-100">
             <p className="text-xs text-gray-400">
-              {isInbound ? `Sent by ${otherName}` : "You sent this inquiry"}
+              {isInbound ? `Sent by ${otherName}` : `Sent`} &middot; {dateStr}
             </p>
           </div>
         </div>
         <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{time}</p>
       </div>
-    </div>
-  );
-}
 
-function CareCardBenchmark({ careRequest, time, isInbound, otherName }: {
-  careRequest: CareRequestData;
-  time: string;
-  isInbound: boolean;
-  otherName: string;
-}) {
-  return (
-    <div className="flex justify-end">
-      <div className="max-w-[340px]">
-        <div className="bg-white rounded-2xl rounded-br-md border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-5 pt-5 pb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-sm font-semibold text-primary-600">Care Inquiry</span>
-              <span className="text-xs text-gray-400">&middot;</span>
-              <span className="text-xs text-gray-400">{time}</span>
-            </div>
-            {careRequest.careType && (
-              <h3 className="text-lg font-bold text-gray-900 leading-tight">
-                {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
-              </h3>
-            )}
-            <div className="mt-3 space-y-2">
-              {careRequest.careRecipient && (
-                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
-                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  {RECIPIENT_LABELS[careRequest.careRecipient] || careRequest.careRecipient}
-                </div>
-              )}
-              {careRequest.urgency && (
-                <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
-                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {URGENCY_LABELS[careRequest.urgency] || careRequest.urgency}
-                </div>
-              )}
-            </div>
-            {careRequest.additionalNotes && (
-              <p className="mt-3 pt-3 border-t border-gray-100 text-[15px] text-gray-600 leading-relaxed">
-                &ldquo;{careRequest.additionalNotes}&rdquo;
-              </p>
-            )}
-          </div>
-          <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
-            <p className="text-xs text-gray-400">
-              {isInbound ? `Sent by ${otherName}` : "You sent this inquiry"}
-            </p>
-          </div>
-        </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{time}</p>
-      </div>
+      {/* Edit modal */}
+      {editOpen && (
+        <EditCareRequestModal
+          careRequest={careRequest}
+          connectionId={connectionId}
+          onClose={() => setEditOpen(false)}
+          onSaved={(message, metadata) => {
+            setEditOpen(false);
+            onUpdated?.(message, metadata);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -358,6 +247,7 @@ export default function ConversationPanel({
   connection,
   activeProfile,
   onMessageSent,
+  onCareRequestUpdated,
   onBack,
   detailOpen,
   onToggleDetail,
@@ -367,7 +257,6 @@ export default function ConversationPanel({
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
-  const [cardVariant, setCardVariant] = useState(0);
 
   // Reset message text when switching conversations
   useEffect(() => {
@@ -540,55 +429,19 @@ export default function ConversationPanel({
                 </span>
               </div>
 
-              {/* Temporary design toggle */}
-              {careRequest && (
-                <div className="flex justify-center mb-3">
-                  <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
-                    {CARD_LABELS.map((label, i) => (
-                      <button
-                        key={label}
-                        onClick={() => setCardVariant(i)}
-                        className={[
-                          "px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150",
-                          cardVariant === i
-                            ? "bg-white text-gray-900 shadow-sm"
-                            : "text-gray-500 hover:text-gray-700",
-                        ].join(" ")}
-                      >
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {careRequest ? (
-                <>
-                  {cardVariant === 0 && (
-                    <CareCardV1
-                      careRequest={careRequest}
-                      time={formatTime(connection.created_at)}
-                      isInbound={isInbound}
-                      otherName={otherName}
-                    />
-                  )}
-                  {cardVariant === 1 && (
-                    <CareCardV2
-                      careRequest={careRequest}
-                      time={formatTime(connection.created_at)}
-                      isInbound={isInbound}
-                      otherName={otherName}
-                    />
-                  )}
-                  {cardVariant === 2 && (
-                    <CareCardBenchmark
-                      careRequest={careRequest}
-                      time={formatTime(connection.created_at)}
-                      isInbound={isInbound}
-                      otherName={otherName}
-                    />
-                  )}
-                </>
+                <CareRequestCard
+                  careRequest={careRequest}
+                  time={formatTime(connection.created_at)}
+                  dateStr={formatDateSeparator(connection.created_at)}
+                  isInbound={isInbound}
+                  otherName={otherName}
+                  editable={!isInbound && (connection.status === "pending" || connection.status === "accepted")}
+                  connectionId={connection.id}
+                  onUpdated={(message, metadata) => {
+                    onCareRequestUpdated?.(connection.id, message, metadata);
+                  }}
+                />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */
                 isInbound ? (

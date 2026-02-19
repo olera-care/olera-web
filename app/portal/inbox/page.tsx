@@ -178,6 +178,20 @@ function InboxContent() {
     );
   }, []);
 
+  // Handle care request updated — update message + metadata in local state
+  const handleCareRequestUpdated = useCallback(
+    (connectionId: string, message: string, metadata: Record<string, unknown>) => {
+      setConnections((prev) =>
+        prev.map((conn) =>
+          conn.id === connectionId
+            ? { ...conn, message, metadata }
+            : conn
+        )
+      );
+    },
+    []
+  );
+
   const selectedConnection = connections.find((c) => c.id === selectedId) || null;
 
   // Determine the "other" profile for the detail panel
@@ -256,6 +270,7 @@ function InboxContent() {
         connection={selectedConnection}
         activeProfile={activeProfile ?? null}
         onMessageSent={handleMessageSent}
+        onCareRequestUpdated={handleCareRequestUpdated}
         onBack={() => setSelectedId(null)}
         detailOpen={detailOpen}
         onToggleDetail={() => setDetailOpen((p) => !p)}

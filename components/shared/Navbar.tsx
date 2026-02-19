@@ -35,16 +35,12 @@ export default function Navbar() {
   const isPortal = pathname.startsWith("/portal");
   const isProviderPortal = pathname.startsWith("/provider");
   const isCommunity = pathname.startsWith("/community");
-  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/provider/inbox");
+  const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
-  // Full dropdown content requires account data.
   const hasSession = !!user;
   const isFullyLoaded = !!user && (!!account || fetchError);
   const hasProfile = !!activeProfile;
-  const isProvider =
-    activeProfile?.type === "organization" ||
-    activeProfile?.type === "caregiver";
 
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
@@ -136,7 +132,6 @@ export default function Navbar() {
   // Pulse heart icon only on user-initiated saves (not initial data load)
   useEffect(() => {
     if (!savedInitialized) {
-      // Still loading — sync ref without pulsing
       prevSavedCount.current = savedCount;
       return;
     }
@@ -147,6 +142,258 @@ export default function Navbar() {
     }
     prevSavedCount.current = savedCount;
   }, [savedCount, savedInitialized]);
+
+  // Shared dropdown content (context-aware links, mode switcher, sign out)
+  // Used in both left-column (provider mode) and right-column (family mode)
+  const dropdownAlign = isProviderPortal ? "left-0" : "right-0";
+
+  const signedInDropdown = (
+    <div
+      className={`absolute ${dropdownAlign} mt-2.5 w-64 bg-white rounded-2xl shadow-xl ring-1 ring-black/[0.06] py-1 z-50`}
+    >
+      {/* Identity header with pill badge */}
+      <div className="px-5 pt-4 pb-3">
+        <div className="flex items-center gap-2 mb-0.5">
+          <p className="text-[15px] font-semibold text-gray-900 truncate">
+            {displayName}
+          </p>
+          {profileTypeLabel && (
+            <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
+              {profileTypeLabel}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+      </div>
+
+      <div className="mx-4 border-t border-gray-100" />
+
+      {/* Mode switcher */}
+      {showModeSwitcher && (
+        <>
+          <div className="px-3 pt-2 pb-1">
+            <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
+              <Link
+                href="/portal"
+                onClick={() => setIsUserMenuOpen(false)}
+                className={[
+                  "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                  !isProviderPortal
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                ].join(" ")}
+              >
+                Family Portal
+              </Link>
+              <Link
+                href="/provider"
+                onClick={() => setIsUserMenuOpen(false)}
+                className={[
+                  "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                  isProviderPortal
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                ].join(" ")}
+              >
+                Provider Hub
+              </Link>
+            </div>
+          </div>
+          <div className="mx-4 border-t border-gray-100" />
+        </>
+      )}
+
+      {isFullyLoaded ? (
+        hasProfile ? (
+          <>
+            {/* Tier 1 — Core portal links (context-aware) */}
+            <div className="px-2 py-1.5">
+              <Link
+                href={isProviderPortal ? "/provider/inbox" : "/portal/inbox"}
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
+                </svg>
+                Inbox
+                {unreadInboxCount > 0 && (
+                  <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                    {unreadInboxCount}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href={isProviderPortal ? "/provider/profile" : "/portal/profile"}
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Profile
+              </Link>
+              {!isProviderPortal && activeProfile?.type === "family" && (
+                <Link
+                  href="/portal/matches"
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                    <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                  </svg>
+                  Matches
+                  {matchesPendingCount > 0 && (
+                    <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                      {matchesPendingCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="px-2 py-1.5">
+              <Link
+                href="/onboarding"
+                className="flex items-center gap-3 px-3 py-2.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors font-medium"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                <svg className="w-[18px] h-[18px] text-primary-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Complete your profile
+              </Link>
+            </div>
+          </>
+        )
+      ) : (
+        <div className="px-5 py-3 space-y-2.5">
+          <div className="h-3.5 w-28 bg-gray-100 rounded animate-pulse" />
+          <div className="h-3.5 w-36 bg-gray-100 rounded animate-pulse" />
+          <div className="h-3.5 w-24 bg-gray-100 rounded animate-pulse" />
+        </div>
+      )}
+
+      {/* Profile switcher */}
+      {isFullyLoaded && <div className="mx-4 border-t border-gray-100" />}
+      {isFullyLoaded && (
+        <div className="px-2 py-1">
+          <ProfileSwitcher
+            onSwitch={() => setIsUserMenuOpen(false)}
+            variant="dropdown"
+          />
+        </div>
+      )}
+
+      <div className="mx-4 border-t border-gray-100" />
+
+      {/* Sign out */}
+      <div className="px-2 py-1.5 pb-2">
+        <button
+          type="button"
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            signOut(() => router.push("/"));
+          }}
+          className="w-full text-left flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+        >
+          <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
+
+  const unauthDropdown = (
+    <div
+      className={`absolute ${dropdownAlign} mt-2.5 w-60 bg-white rounded-2xl shadow-xl ring-1 ring-black/[0.06] py-1.5 z-50`}
+      role="menu"
+      aria-label="Account menu"
+    >
+      {/* Auth actions */}
+      <div className="px-1.5 pb-1">
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            openAuth({ defaultMode: "sign-in" });
+          }}
+          className="w-full text-left px-3.5 py-2.5 text-[15px] font-semibold text-gray-900 hover:bg-gray-50 rounded-xl transition-colors"
+        >
+          Log in
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            openAuth({});
+          }}
+          className="w-full text-left px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+        >
+          Create account
+        </button>
+      </div>
+
+      <div className="mx-3.5 border-t border-gray-100" />
+
+      {/* Intent actions */}
+      <div className="px-1.5 pt-1">
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            router.push("/browse");
+          }}
+          className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+        >
+          <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+          Find care
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            openAuth({ intent: "provider", providerType: "organization" });
+          }}
+          className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+        >
+          <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+          </svg>
+          List your organization
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setIsUserMenuOpen(false);
+            openAuth({ intent: "provider", providerType: "caregiver" });
+          }}
+          className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+        >
+          <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
+          Join as a caregiver
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -159,22 +406,92 @@ export default function Navbar() {
       >
         <div className={isMinimalNav ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
           {/*
-           * 3-column layout: Logo | Center Nav | Right Menu
-           * Left and right get flex-1 so the center nav is truly page-centered.
+           * 3-column layout: Left | Center Nav | Right
+           *
+           * Family mode:  [Olera logo]  |  [Find Care, Community, ...]  |  [For Providers, ♥, User menu]
+           * Provider mode: [User menu]  |  [Profile, Inbox, Leads, ...]  |  [Olera logo]
+           *
+           * Left and right are flex-1 so center nav is truly page-centered.
            */}
           <div className="flex items-center h-16">
-            {/* Left — Logo (flex-1, align left) */}
+
+            {/* ── LEFT COLUMN ── */}
             <div className="flex-1 flex items-center">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-                  <span className="font-bold text-lg text-white">O</span>
-                </div>
-                <span className="text-xl font-bold text-gray-900">Olera</span>
-              </Link>
+              {isProviderPortal ? (
+                <>
+                  {/* Desktop: user menu pill moves to left in provider mode */}
+                  <div className="hidden lg:block relative" ref={userMenuRef}>
+                    {hasSession ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                          aria-label="User menu"
+                          aria-expanded={isUserMenuOpen}
+                        >
+                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          {activeProfile?.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={activeProfile.image_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                              {initials}
+                            </div>
+                          )}
+                          {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                          )}
+                        </button>
+                        {isUserMenuOpen && signedInDropdown}
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
+                          aria-label="Account menu"
+                          aria-expanded={isUserMenuOpen}
+                          aria-haspopup="true"
+                        >
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                          </div>
+                        </button>
+                        {isUserMenuOpen && unauthDropdown}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Mobile: show logo on left (user menu is desktop only) */}
+                  <Link href="/" className="lg:hidden flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
+                      <span className="font-bold text-lg text-white">O</span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-900">Olera</span>
+                  </Link>
+                </>
+              ) : (
+                /* Family mode: logo on left */
+                <Link href="/" className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
+                    <span className="font-bold text-lg text-white">O</span>
+                  </div>
+                  <span className="text-xl font-bold text-gray-900">Olera</span>
+                </Link>
+              )}
             </div>
 
-            {/* Center — Primary navigation (page-centered, hidden on mobile + inbox) */}
-              {!isMinimalNav && (
+            {/* ── CENTER — Primary navigation (page-centered, hidden on mobile + inbox) ── */}
+            {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
                 {isProviderPortal ? (
                   /* Provider Hub nav links */
@@ -253,344 +570,104 @@ export default function Navbar() {
                   </>
                 )}
               </div>
-              )}
+            )}
 
-            {/* Right — Account menu (flex-1, align right) */}
+            {/* ── RIGHT COLUMN ── */}
             <div className="flex-1 flex items-center justify-end">
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center gap-2">
-                {/* For Providers link — hidden when already in provider portal */}
-                {!isProviderPortal && (
-                  <button
-                    onClick={handleForProviders}
-                    className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                  >
-                    For Providers
-                  </button>
-                )}
-
-                {/* Saved providers heart */}
-                <Link
-                  href="/saved"
-                  className="relative flex items-center justify-center w-[44px] min-h-[44px] border border-gray-200 rounded-full text-gray-500 hover:text-red-500 hover:shadow-md transition-all"
-                  aria-label="Saved providers"
-                >
-                  <svg
-                    className={`w-[18px] h-[18px] transition-all duration-300 ${
-                      heartPulse ? "scale-125 text-red-500 fill-red-500" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </Link>
-
-                {hasSession ? (
-                  /* ── Signed in: avatar pill with user/account menu ── */
-                  <div className="relative" ref={userMenuRef}>
-                    <button
-                      type="button"
-                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
-                      aria-label="User menu"
-                      aria-expanded={isUserMenuOpen}
-                    >
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                      {activeProfile?.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={activeProfile.image_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                          {initials}
-                        </div>
-                      )}
-                      {/* Notification dot when unread inbox or matches exist */}
-                      {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
-                        <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
-                      )}
-                    </button>
-
-                    {isUserMenuOpen && (
-                      <div className="absolute right-0 mt-2.5 w-64 bg-white rounded-2xl shadow-xl ring-1 ring-black/[0.06] py-1 z-50">
-                        {/* Identity header with pill badge */}
-                        <div className="px-5 pt-4 pb-3">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <p className="text-[15px] font-semibold text-gray-900 truncate">
-                              {displayName}
-                            </p>
-                            {profileTypeLabel && (
-                              <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
-                                {profileTypeLabel}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-400 truncate">
-                            {user?.email}
-                          </p>
-                        </div>
-
-                        <div className="mx-4 border-t border-gray-100" />
-
-                        {/* Mode switcher — shown when user has both family and provider profiles */}
-                        {showModeSwitcher && (
-                          <>
-                            <div className="px-3 pt-2 pb-1">
-                              <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
-                                <Link
-                                  href="/portal"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                  className={[
-                                    "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                                    !isProviderPortal
-                                      ? "bg-white text-gray-900 shadow-sm"
-                                      : "text-gray-500 hover:text-gray-700",
-                                  ].join(" ")}
-                                >
-                                  Family Portal
-                                </Link>
-                                <Link
-                                  href="/provider"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                  className={[
-                                    "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                                    isProviderPortal
-                                      ? "bg-white text-gray-900 shadow-sm"
-                                      : "text-gray-500 hover:text-gray-700",
-                                  ].join(" ")}
-                                >
-                                  Provider Hub
-                                </Link>
-                              </div>
-                            </div>
-                            <div className="mx-4 border-t border-gray-100" />
-                          </>
-                        )}
-
-                        {isFullyLoaded ? (
-                          hasProfile ? (
-                            <>
-                              {/* Tier 1 — Core portal links (context-aware) */}
-                              <div className="px-2 py-1.5">
-                                <Link
-                                  href={isProviderPortal ? "/provider/inbox" : "/portal/inbox"}
-                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                >
-                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                    <rect x="2" y="4" width="20" height="16" rx="2" />
-                                    <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
-                                  </svg>
-                                  Inbox
-                                  {unreadInboxCount > 0 && (
-                                    <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                                      {unreadInboxCount}
-                                    </span>
-                                  )}
-                                </Link>
-                                <Link
-                                  href={isProviderPortal ? "/provider/profile" : "/portal/profile"}
-                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                >
-                                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                  </svg>
-                                  Profile
-                                </Link>
-                                {!isProviderPortal && activeProfile?.type === "family" && (
-                                  <Link
-                                    href="/portal/matches"
-                                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                                    onClick={() => setIsUserMenuOpen(false)}
-                                  >
-                                    <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                      <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
-                                    </svg>
-                                    Matches
-                                    {matchesPendingCount > 0 && (
-                                      <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                                        {matchesPendingCount}
-                                      </span>
-                                    )}
-                                  </Link>
-                                )}
-                              </div>
-
-                            </>
-                          ) : (
-                            <>
-                              <div className="px-2 py-1.5">
-                                <Link
-                                  href="/onboarding"
-                                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors font-medium"
-                                  onClick={() => setIsUserMenuOpen(false)}
-                                >
-                                  <svg className="w-[18px] h-[18px] text-primary-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                  </svg>
-                                  Complete your profile
-                                </Link>
-                              </div>
-                            </>
-                          )
-                        ) : (
-                          <div className="px-5 py-3 space-y-2.5">
-                            <div className="h-3.5 w-28 bg-gray-100 rounded animate-pulse" />
-                            <div className="h-3.5 w-36 bg-gray-100 rounded animate-pulse" />
-                            <div className="h-3.5 w-24 bg-gray-100 rounded animate-pulse" />
-                          </div>
-                        )}
-
-                        {/* Profile switcher — only when account data loaded */}
-                        {isFullyLoaded && (
-                          <div className="mx-4 border-t border-gray-100" />
-                        )}
-                        {isFullyLoaded && (
-                          <div className="px-2 py-1">
-                            <ProfileSwitcher
-                              onSwitch={() => setIsUserMenuOpen(false)}
-                              variant="dropdown"
-                            />
-                          </div>
-                        )}
-
-                        <div className="mx-4 border-t border-gray-100" />
-
-                        {/* Sign out with icon */}
-                        <div className="px-2 py-1.5 pb-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsUserMenuOpen(false);
-                              signOut(() => router.push("/"));
-                            }}
-                            className="w-full text-left flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                              <polyline points="16 17 21 12 16 7" />
-                              <line x1="21" y1="12" x2="9" y2="12" />
-                            </svg>
-                            Sign out
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {isProviderPortal ? (
+                  /* Provider mode: Olera logo on right */
+                  <Link href="/" className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
+                      <span className="font-bold text-lg text-white">O</span>
+                    </div>
+                    <span className="text-xl font-bold text-gray-900">Olera</span>
+                  </Link>
                 ) : (
-                  /* ── Unauthenticated: pill menu with auth + intent options ── */
-                  <div className="relative" ref={userMenuRef}>
+                  /* Family mode: For Providers + heart + user menu */
+                  <>
+                    {/* For Providers link */}
                     <button
-                      type="button"
-                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                      className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
-                      aria-label="Account menu"
-                      aria-expanded={isUserMenuOpen}
-                      aria-haspopup="true"
+                      onClick={handleForProviders}
+                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
                     >
-                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                      <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                      </div>
+                      For Providers
                     </button>
 
-                    {isUserMenuOpen && (
-                      <div
-                        className="absolute right-0 mt-2.5 w-60 bg-white rounded-2xl shadow-xl ring-1 ring-black/[0.06] py-1.5 z-50"
-                        role="menu"
-                        aria-label="Account menu"
+                    {/* Saved providers heart */}
+                    <Link
+                      href="/saved"
+                      className="relative flex items-center justify-center w-[44px] min-h-[44px] border border-gray-200 rounded-full text-gray-500 hover:text-red-500 hover:shadow-md transition-all"
+                      aria-label="Saved providers"
+                    >
+                      <svg
+                        className={`w-[18px] h-[18px] transition-all duration-300 ${
+                          heartPulse ? "scale-125 text-red-500 fill-red-500" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        viewBox="0 0 24 24"
                       >
-                        {/* Auth actions — prominent at top */}
-                        <div className="px-1.5 pb-1">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              setIsUserMenuOpen(false);
-                              openAuth({ defaultMode: "sign-in" });
-                            }}
-                            className="w-full text-left px-3.5 py-2.5 text-[15px] font-semibold text-gray-900 hover:bg-gray-50 rounded-xl transition-colors"
-                          >
-                            Log in
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              setIsUserMenuOpen(false);
-                              openAuth({});
-                            }}
-                            className="w-full text-left px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
-                          >
-                            Create account
-                          </button>
-                        </div>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </Link>
 
-                        <div className="mx-3.5 border-t border-gray-100" />
-
-                        {/* Intent actions — secondary, with icons */}
-                        <div className="px-1.5 pt-1">
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              setIsUserMenuOpen(false);
-                              router.push("/browse");
-                            }}
-                            className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
-                          >
-                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    {/* User menu */}
+                    {hasSession ? (
+                      <div className="relative" ref={userMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                          aria-label="User menu"
+                          aria-expanded={isUserMenuOpen}
+                        >
+                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          {activeProfile?.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={activeProfile.image_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                              {initials}
+                            </div>
+                          )}
+                          {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                          )}
+                        </button>
+                        {isUserMenuOpen && signedInDropdown}
+                      </div>
+                    ) : (
+                      <div className="relative" ref={userMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
+                          aria-label="Account menu"
+                          aria-expanded={isUserMenuOpen}
+                          aria-haspopup="true"
+                        >
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                             </svg>
-                            Find care
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              setIsUserMenuOpen(false);
-                              openAuth({ intent: "provider", providerType: "organization" });
-                            }}
-                            className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
-                          >
-                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-                            </svg>
-                            List your organization
-                          </button>
-                          <button
-                            type="button"
-                            role="menuitem"
-                            onClick={() => {
-                              setIsUserMenuOpen(false);
-                              openAuth({ intent: "provider", providerType: "caregiver" });
-                            }}
-                            className="w-full text-left flex items-center gap-3 px-3.5 py-2.5 text-[15px] text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
-                          >
-                            <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                            </svg>
-                            Join as a caregiver
-                          </button>
-                        </div>
+                          </div>
+                        </button>
+                        {isUserMenuOpen && unauthDropdown}
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
 
-              {/* Mobile Menu Button */}
+              {/* Mobile Menu Button — always on right */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="lg:hidden p-2 rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
@@ -609,55 +686,20 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile Menu */}
+          {/* ── MOBILE MENU ── */}
           {isMobileMenuOpen && (
             <div className="lg:hidden py-4 border-t border-gray-100">
               <div className="flex flex-col space-y-1">
-                {/* Public nav items (hidden on inbox) */}
-                    {!isMinimalNav && (
-                    <>
-                    <button
-                      type="button"
-                      onClick={() => setIsMobileCareOpen((prev) => !prev)}
-                      className="flex items-center justify-between w-full py-3 text-gray-700 hover:text-primary-600 font-medium"
-                      aria-expanded={isMobileCareOpen}
-                    >
-                      Find Care
-                      <svg
-                        className={`w-4 h-4 transition-transform ${
-                          isMobileCareOpen ? "rotate-180" : ""
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    {isMobileCareOpen && (
-                      <div className="pl-4 pb-2 space-y-1">
-                        {CARE_CATEGORIES.map((cat) => (
-                          <Link
-                            key={cat.id}
-                            href={`/browse?type=${cat.id}`}
-                            className="block py-2 text-sm text-gray-600 hover:text-primary-600"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <span className="font-medium">{cat.label}</span>
-                            <span className="block text-xs text-gray-400 mt-0.5">
-                              {cat.description}
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-
-                    {NAV_LINKS.map((link) => (
+                {isProviderPortal ? (
+                  /* Provider mobile nav */
+                  <>
+                    {([
+                      { label: "Profile", href: "/provider/profile" },
+                      { label: "Inbox", href: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/leads" },
+                      { label: "Reviews", href: "/provider/reviews" },
+                      { label: "Olera Pro", href: "/provider/pro" },
+                    ] as { label: string; href: string }[]).map((link) => (
                       <Link
                         key={link.label}
                         href={link.href}
@@ -667,33 +709,93 @@ export default function Navbar() {
                         {link.label}
                       </Link>
                     ))}
-
-                    <Link
-                      href="/saved"
-                      className="flex items-center gap-2 py-3 text-gray-700 hover:text-primary-600 font-medium"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      Saved
-                    </Link>
-
                     <hr className="border-gray-100" />
-                    </>
+                  </>
+                ) : (
+                  /* Family / public mobile nav */
+                  <>
+                    {!isMinimalNav && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setIsMobileCareOpen((prev) => !prev)}
+                          className="flex items-center justify-between w-full py-3 text-gray-700 hover:text-primary-600 font-medium"
+                          aria-expanded={isMobileCareOpen}
+                        >
+                          Find Care
+                          <svg
+                            className={`w-4 h-4 transition-transform ${
+                              isMobileCareOpen ? "rotate-180" : ""
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                        {isMobileCareOpen && (
+                          <div className="pl-4 pb-2 space-y-1">
+                            {CARE_CATEGORIES.map((cat) => (
+                              <Link
+                                key={cat.id}
+                                href={`/browse?type=${cat.id}`}
+                                className="block py-2 text-sm text-gray-600 hover:text-primary-600"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <span className="font-medium">{cat.label}</span>
+                                <span className="block text-xs text-gray-400 mt-0.5">
+                                  {cat.description}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        {NAV_LINKS.map((link) => (
+                          <Link
+                            key={link.label}
+                            href={link.href}
+                            className="block py-3 text-gray-700 hover:text-primary-600 font-medium"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {link.label}
+                          </Link>
+                        ))}
+
+                        <Link
+                          href="/saved"
+                          className="flex items-center gap-2 py-3 text-gray-700 hover:text-primary-600 font-medium"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                          Saved
+                        </Link>
+
+                        <hr className="border-gray-100" />
+                      </>
                     )}
 
-                {/* For Providers — always visible */}
-                <button
-                  onClick={() => { handleForProviders(); setIsMobileMenuOpen(false); }}
-                  className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
-                >
-                  For Providers
-                </button>
+                    {/* For Providers */}
+                    <button
+                      onClick={() => { handleForProviders(); setIsMobileMenuOpen(false); }}
+                      className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
+                    >
+                      For Providers
+                    </button>
 
-                <hr className="border-gray-100" />
+                    <hr className="border-gray-100" />
+                  </>
+                )}
 
-                {/* Account section */}
+                {/* Account section (shared) */}
                 {hasSession ? (
                   <>
                     {/* Identity header */}
@@ -799,8 +901,6 @@ export default function Navbar() {
                               )}
                             </Link>
                           )}
-
-
                         </>
                       ) : (
                         <>
@@ -825,7 +925,7 @@ export default function Navbar() {
                       </div>
                     )}
 
-                    {/* Profile switcher — only when account loaded */}
+                    {/* Profile switcher */}
                     {isFullyLoaded && (
                       <div className="border-t border-gray-100 pt-2">
                         <ProfileSwitcher
@@ -837,7 +937,7 @@ export default function Navbar() {
 
                     <hr className="border-gray-100" />
 
-                    {/* Sign out with icon */}
+                    {/* Sign out */}
                     <button
                       type="button"
                       onClick={() => {
@@ -855,7 +955,7 @@ export default function Navbar() {
                     </button>
                   </>
                 ) : (
-                  /* ── Mobile unauthenticated: auth-first, then intent ── */
+                  /* ── Mobile unauthenticated ── */
                   <>
                     <button
                       type="button"

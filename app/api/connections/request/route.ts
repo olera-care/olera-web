@@ -376,6 +376,7 @@ export async function POST(request: Request) {
     if (existingConnection) {
       return NextResponse.json({
         status: "duplicate",
+        connectionId: existingConnection.id,
         created_at: existingConnection.created_at,
       });
     }

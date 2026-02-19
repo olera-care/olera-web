@@ -157,8 +157,8 @@ export default function InterestedDetailContent({
             <p className="text-sm text-gray-500 mb-6 max-w-[280px] mx-auto">
               You can now message {name} in My Connections.
             </p>
-            <a href="/portal/connections">
-              <Button size="sm">Go to My Connections</Button>
+            <a href="/portal/inbox">
+              <Button size="sm">Go to Messages</Button>
             </a>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function PortalPage() {
-  redirect("/portal/connections");
+  redirect("/portal/inbox");
 }

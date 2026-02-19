@@ -428,8 +428,8 @@ export default function InterestedTabContent({
                 <p className="text-sm text-gray-500 mb-6 max-w-[280px] mx-auto">
                   You can now start chatting with {acceptedInfo.providerName} in My Connections.
                 </p>
-                <Link href={`/portal/connections/${acceptedInfo.connectionId}`}>
-                  <Button size="sm">View connection</Button>
+                <Link href={`/portal/inbox?id=${acceptedInfo.connectionId}`}>
+                  <Button size="sm">Send a message</Button>
                 </Link>
               </div>
             </div>

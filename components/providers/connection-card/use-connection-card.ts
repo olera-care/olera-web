@@ -282,6 +282,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
       // Handle duplicate connection (user already has pending/accepted)
       if (data.status === "duplicate") {
+        // Redirect to success page if configured (e.g. returning user reconnecting)
+        if (data.connectionId && onConnectionCreated) {
+          onConnectionCreated(data.connectionId);
+          return;
+        }
         if (data.created_at) {
           setPendingRequestDate(data.created_at);
         }

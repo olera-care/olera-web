@@ -272,12 +272,13 @@ export async function POST(request: Request) {
         let providerState: string | null = null;
         let providerPhone: string | null = null;
         let providerCategory: string | null = null;
+        let providerImageUrl: string | null = null;
         let providerCareTypes: string[] = [];
 
         const { data: iosProvider } = await db
           .from("olera-providers")
           .select(
-            "provider_name, provider_category, main_category, city, state, phone"
+            "provider_name, provider_category, main_category, city, state, phone, provider_logo, provider_images"
           )
           .eq("provider_id", providerId)
           .single();
@@ -287,6 +288,9 @@ export async function POST(request: Request) {
           providerState = iosProvider.state;
           providerPhone = iosProvider.phone;
           providerCategory = iosProvider.provider_category;
+          providerImageUrl = iosProvider.provider_logo
+            || (iosProvider.provider_images as string | null)?.split(" | ")?.[0]
+            || null;
           providerCareTypes = [iosProvider.provider_category];
           if (
             iosProvider.main_category &&
@@ -307,6 +311,7 @@ export async function POST(request: Request) {
             phone: providerPhone,
             city: providerCity,
             state: providerState,
+            image_url: providerImageUrl,
             care_types: providerCareTypes,
             claim_state: "unclaimed",
             verification_state: "unverified",

@@ -67,6 +67,7 @@ function InboxContent() {
       const profileIds = profiles.map((p) => p.id);
 
       // Fetch active connections + archived count in parallel
+      // Archive state is stored in metadata.archived = true (not status column)
       const [outbound, inbound, archivedOut, archivedIn] = await Promise.all([
         supabase
           .from("connections")
@@ -82,19 +83,19 @@ function InboxContent() {
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
-        // Lightweight count of archived connections (IDs only)
+        // Count archived connections by metadata flag (status column doesn't use "archived")
         supabase
           .from("connections")
           .select("id")
           .in("from_profile_id", profileIds)
           .eq("type", "inquiry")
-          .eq("status", "archived"),
+          .filter("metadata->>archived", "eq", "true"),
         supabase
           .from("connections")
           .select("id")
           .in("to_profile_id", profileIds)
           .eq("type", "inquiry")
-          .eq("status", "archived"),
+          .filter("metadata->>archived", "eq", "true"),
       ]);
 
       // Deduplicate archived count
@@ -104,13 +105,13 @@ function InboxContent() {
       }
       setArchivedCount(archivedIds.size);
 
-      // Merge and deduplicate
+      // Merge and deduplicate — skip hidden and metadata-archived connections
+      // (archive state lives in metadata.archived, not the status column)
       const allConns = [...(outbound.data || []), ...(inbound.data || [])] as Connection[];
       const deduped = new Map<string, Connection>();
       for (const conn of allConns) {
-        // Skip hidden connections
         const meta = conn.metadata as Record<string, unknown> | undefined;
-        if (meta?.hidden) continue;
+        if (meta?.hidden || meta?.archived) continue;
         deduped.set(conn.id, conn);
       }
       const uniqueConns = Array.from(deduped.values());
@@ -241,20 +242,21 @@ function InboxContent() {
       const supabase = createClient();
       const pIds = profiles.map((p) => p.id);
 
+      // Archive state is in metadata.archived = true (not status column)
       const [outbound, inbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("from_profile_id", pIds)
           .eq("type", "inquiry")
-          .eq("status", "archived")
+          .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("to_profile_id", pIds)
           .eq("type", "inquiry")
-          .eq("status", "archived")
+          .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
       ]);
 
@@ -284,6 +286,9 @@ function InboxContent() {
 
       const enriched: ConnectionWithProfile[] = archivedConns.map((conn) => ({
         ...conn,
+        // Override status for UI — real status is still pending/accepted in DB,
+        // but metadata.archived = true means it should be treated as archived
+        status: "archived" as ConnectionStatus,
         fromProfile: profileMap.get(conn.from_profile_id) || null,
         toProfile: profileMap.get(conn.to_profile_id) || null,
       }));

@@ -17,6 +17,11 @@ type Action = "archive" | "unarchive" | "delete" | "report";
  *
  * Manages inbox connection lifecycle: archive, unarchive, delete (soft), report.
  * Uses the admin client to bypass RLS.
+ *
+ * NOTE: Archive state is stored in metadata.archived = true rather than
+ * changing the status column, because the DB CHECK constraint only allows
+ * 'pending', 'accepted', 'declined', 'expired'. The client treats connections
+ * with metadata.archived = true as archived in the UI.
  */
 export async function POST(request: Request) {
   try {
@@ -103,11 +108,16 @@ export async function POST(request: Request) {
 
     switch (action) {
       case "archive": {
+        // Store archive state in metadata — do NOT change status (DB CHECK constraint
+        // only allows pending/accepted/declined/expired, not archived).
         const { error: updateError } = await admin
           .from("connections")
           .update({
-            status: "archived",
-            metadata: { ...existingMeta, archived_from_status: connection.status },
+            metadata: {
+              ...existingMeta,
+              archived: true,
+              archived_from_status: connection.status,
+            },
           })
           .eq("id", connectionId);
 
@@ -120,9 +130,14 @@ export async function POST(request: Request) {
 
       case "unarchive": {
         const restoreStatus = (existingMeta.archived_from_status as string) || "accepted";
+        // Remove archived flags from metadata, status never changed so nothing to restore
+        const cleanMeta: Record<string, unknown> = { ...existingMeta };
+        delete cleanMeta.archived;
+        delete cleanMeta.archived_from_status;
+
         const { error: updateError } = await admin
           .from("connections")
-          .update({ status: restoreStatus })
+          .update({ metadata: cleanMeta })
           .eq("id", connectionId);
 
         if (updateError) {
@@ -148,22 +163,21 @@ export async function POST(request: Request) {
       }
 
       case "report": {
+        // Store report + archive state in metadata only — do NOT change status
         const reportMeta = {
           ...existingMeta,
+          archived: true,
+          archived_from_status: connection.status,
           reported: true,
           reported_at: new Date().toISOString(),
           reported_by: actingProfileId,
           report_reason: reportReason || null,
           report_details: reportDetails || null,
-          archived_from_status: connection.status,
         };
 
         const { error: updateError } = await admin
           .from("connections")
-          .update({
-            status: "archived",
-            metadata: reportMeta,
-          })
+          .update({ metadata: reportMeta })
           .eq("id", connectionId);
 
         if (updateError) {

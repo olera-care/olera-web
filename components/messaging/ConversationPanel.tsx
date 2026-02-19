@@ -39,6 +39,52 @@ function getAutoIntro(metadata: Record<string, unknown> | undefined): string | n
   return (metadata?.auto_intro as string) || null;
 }
 
+interface CareRequestData {
+  careType: string | null;
+  careRecipient: string | null;
+  urgency: string | null;
+  additionalNotes: string | null;
+  seekerName: string | null;
+}
+
+const CARE_TYPE_LABELS: Record<string, string> = {
+  home_care: "Home Care",
+  home_health: "Home Health Care",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+};
+
+const RECIPIENT_LABELS: Record<string, string> = {
+  self: "For myself",
+  parent: "For my parent",
+  spouse: "For my spouse",
+  other: "For my loved one",
+};
+
+const URGENCY_LABELS: Record<string, string> = {
+  asap: "As soon as possible",
+  within_month: "Within a month",
+  few_months: "Within a few months",
+  researching: "Researching options",
+};
+
+function parseCareRequest(message: string | null): CareRequestData | null {
+  if (!message) return null;
+  try {
+    const p = JSON.parse(message);
+    if (!p.care_type && !p.care_recipient && !p.urgency) return null;
+    return {
+      careType: p.care_type || null,
+      careRecipient: p.care_recipient || null,
+      urgency: p.urgency || null,
+      additionalNotes: p.additional_notes || null,
+      seekerName: [p.seeker_first_name, p.seeker_last_name].filter(Boolean).join(" ") || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function avatarGradient(name: string): string {
   const gradients = [
     "linear-gradient(135deg, #0ea5e9, #6366f1)",
@@ -167,6 +213,7 @@ export default function ConversationPanel({
   const connMetadata = connection.metadata as Record<string, unknown> | undefined;
   const autoIntro = getAutoIntro(connMetadata);
   const additionalNotes = parseInitialNotes(connection.message);
+  const careRequest = parseCareRequest(connection.message);
   const initialNotes = autoIntro || additionalNotes;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
 
@@ -254,56 +301,102 @@ export default function ConversationPanel({
         className="flex-1 overflow-y-auto pl-6 pr-[44px] py-6 bg-white"
       >
         <div className="space-y-4">
-          {/* Auto-intro + optional additional notes */}
-          {initialNotes && (
+          {/* Care request card — structured summary of the initial inquiry */}
+          {(careRequest || initialNotes) && (
             <>
               <div className="flex justify-center py-3">
                 <span className="text-sm font-medium text-gray-400">
                   {formatDateSeparator(connection.created_at)}
                 </span>
               </div>
-              {isInbound ? (
-                /* Inbound — avatar + bubble */
-                <div className="flex items-end gap-2.5 max-w-[70%]">
-                  {imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
-                      style={{ background: avatarGradient(otherName) }}
-                    >
-                      {otherInitial}
-                    </div>
-                  )}
-                  <div>
-                    <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100">
-                      <p className="text-base leading-relaxed text-gray-800">{initialNotes}</p>
-                    </div>
-                    {autoIntro && additionalNotes && (
-                      <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100 mt-1.5">
-                        <p className="text-base leading-relaxed text-gray-800">{additionalNotes}</p>
+
+              {careRequest ? (
+                <div className="max-w-[340px] mx-auto">
+                  <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                    {/* Card header */}
+                    <div className="px-5 pt-5 pb-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-sm font-semibold text-primary-600">Care Inquiry</span>
+                        <span className="text-xs text-gray-400">&middot;</span>
+                        <span className="text-xs text-gray-400">{formatTime(connection.created_at)}</span>
                       </div>
-                    )}
-                    <p className="text-xs text-gray-400 mt-1.5 ml-1">{otherName} &middot; {formatTime(connection.created_at)}</p>
+
+                      {/* Care type — big and prominent */}
+                      {careRequest.careType && (
+                        <h3 className="text-lg font-bold text-gray-900 leading-tight">
+                          {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
+                        </h3>
+                      )}
+
+                      {/* Details row */}
+                      <div className="mt-3 space-y-2">
+                        {careRequest.careRecipient && (
+                          <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            {RECIPIENT_LABELS[careRequest.careRecipient] || careRequest.careRecipient}
+                          </div>
+                        )}
+                        {careRequest.urgency && (
+                          <div className="flex items-center gap-2.5 text-[15px] text-gray-600">
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {URGENCY_LABELS[careRequest.urgency] || careRequest.urgency}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Additional notes */}
+                      {careRequest.additionalNotes && (
+                        <p className="mt-3 pt-3 border-t border-gray-100 text-[15px] text-gray-600 leading-relaxed">
+                          &ldquo;{careRequest.additionalNotes}&rdquo;
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Card footer */}
+                    <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+                      <p className="text-xs text-gray-400">
+                        {isInbound ? `Sent by ${otherName}` : "You sent this inquiry"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              ) : (
-                /* Outbound */
-                <div className="flex justify-end">
-                  <div className="max-w-[70%]">
-                    <div className="bg-primary-600 rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
-                      <p className="text-base leading-relaxed text-white">{initialNotes}</p>
-                    </div>
-                    {autoIntro && additionalNotes && (
-                      <div className="bg-primary-600 rounded-2xl rounded-br-md px-4 py-3 shadow-sm mt-1.5">
-                        <p className="text-base leading-relaxed text-white">{additionalNotes}</p>
+              ) : initialNotes ? (
+                /* Fallback to simple bubble when no structured data */
+                isInbound ? (
+                  <div className="flex items-end gap-2.5 max-w-[70%]">
+                    {imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
+                        style={{ background: avatarGradient(otherName) }}
+                      >
+                        {otherInitial}
                       </div>
                     )}
-                    <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{formatTime(connection.created_at)}</p>
+                    <div>
+                      <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100">
+                        <p className="text-base leading-relaxed text-gray-800">{initialNotes}</p>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1.5 ml-1">{otherName} &middot; {formatTime(connection.created_at)}</p>
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="flex justify-end">
+                    <div className="max-w-[70%]">
+                      <div className="bg-primary-600 rounded-2xl rounded-br-md px-4 py-3 shadow-sm">
+                        <p className="text-base leading-relaxed text-white">{initialNotes}</p>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{formatTime(connection.created_at)}</p>
+                    </div>
+                  </div>
+                )
+              ) : null}
             </>
           )}
 

@@ -120,8 +120,9 @@ function InboxContent() {
         for (const [id, expected] of [...managedOpsRef.current.entries()]) {
           if (expected === "expect_absent") managedOpsRef.current.delete(id);
         }
+        const managedSnapshot = new Set(managedOpsRef.current.keys());
         setConnections((prev) =>
-          prev.filter((c) => c.status === "archived" || managedOpsRef.current.has(c.id))
+          prev.filter((c) => c.status === "archived" || managedSnapshot.has(c.id))
         );
         setLoading(false);
         return;
@@ -188,26 +189,28 @@ function InboxContent() {
       const enrichedIds = new Set(enriched.map((c) => c.id));
       for (const [id, expected] of [...managedOpsRef.current.entries()]) {
         if (expected === "expect_absent" && !enrichedIds.has(id)) {
-          managedOpsRef.current.delete(id); // Confirmed: not in active results
+          managedOpsRef.current.delete(id);
         } else if (expected === "expect_present" && enrichedIds.has(id)) {
-          managedOpsRef.current.delete(id); // Confirmed: back in active results
+          managedOpsRef.current.delete(id);
         }
       }
 
-      // Merge: replace active connections but protect managed ones
-      const managed = managedOpsRef.current;
+      // Snapshot managed keys BEFORE setConnections — immune to concurrent
+      // handler mutations that could clear the ref between queuing and execution
+      const managedSnapshot = new Set(managedOpsRef.current.keys());
+
       setConnections((prev) => {
         const prevById = new Map(prev.map((c) => [c.id, c]));
 
         // For managed connections still awaiting DB confirmation, keep local state
         const merged = enriched.map((c) =>
-          managed.has(c.id) && prevById.has(c.id) ? prevById.get(c.id)! : c
+          managedSnapshot.has(c.id) && prevById.has(c.id) ? prevById.get(c.id)! : c
         );
 
         // Preserve connections not in enriched that should be kept
         const mergedIds = new Set(merged.map((c) => c.id));
         const keptFromPrev = prev.filter(
-          (c) => !mergedIds.has(c.id) && (managed.has(c.id) || c.status === "archived")
+          (c) => !mergedIds.has(c.id) && (managedSnapshot.has(c.id) || c.status === "archived")
         );
 
         return [...merged, ...keptFromPrev];
@@ -363,118 +366,110 @@ function InboxContent() {
     []
   );
 
-  // Submit report with reason (sets metadata.reported with timestamp + reason, archives)
+  // Submit report — pessimistic: wait for API confirmation before updating state.
+  // No optimistic update = no revert = no bounce.
   const handleReportSubmit = useCallback(async (connectionId: string, reason: string, details: string) => {
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
-    const existingMeta = (conn.metadata as Record<string, unknown>) || {};
-    const updatedMeta = {
-      ...existingMeta,
-      reported: true,
-      reported_at: new Date().toISOString(),
-      reported_by: activeProfile?.id,
-      report_reason: reason,
-      report_details: details || null,
-      archived_from_status: conn.status,
-    };
-
-    // Protect until DB confirms (connection absent from active query)
-    managedOpsRef.current.set(connectionId, "expect_absent");
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId
-          ? { ...c, status: "archived" as ConnectionStatus, metadata: updatedMeta }
-          : c
-      )
-    );
+    // Close modal and deselect immediately (UI feedback)
     if (selectedIdRef.current === connectionId) setSelectedId(null);
     setReportingConnectionId(null);
 
     try {
       await manageConnection({ connectionId, action: "report", reportReason: reason, reportDetails: details });
+
+      // API confirmed — now update local state
+      const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+      const updatedMeta = {
+        ...existingMeta,
+        reported: true,
+        reported_at: new Date().toISOString(),
+        reported_by: activeProfile?.id,
+        report_reason: reason,
+        report_details: details || null,
+        archived_from_status: conn.status,
+      };
+
+      managedOpsRef.current.set(connectionId, "expect_absent");
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === connectionId
+            ? { ...c, status: "archived" as ConnectionStatus, metadata: updatedMeta }
+            : c
+        )
+      );
     } catch (err) {
       console.error("[inbox] report failed:", err);
-      managedOpsRef.current.delete(connectionId);
-      setConnections((prev) =>
-        prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
-      );
     }
   }, [activeProfile?.id, manageConnection]);
 
-  // Archive a connection
+  // Archive a connection — pessimistic: wait for API confirmation
   const handleArchive = useCallback(async (connectionId: string) => {
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
-    const existingMeta = (conn.metadata as Record<string, unknown>) || {};
-    const archiveMeta = { ...existingMeta, archived_from_status: conn.status };
-
-    // Protect until DB confirms (connection absent from active query)
-    managedOpsRef.current.set(connectionId, "expect_absent");
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId
-          ? { ...c, status: "archived" as ConnectionStatus, metadata: archiveMeta }
-          : c
-      )
-    );
+    // Deselect immediately (UI feedback)
     if (selectedIdRef.current === connectionId) setSelectedId(null);
 
     try {
       await manageConnection({ connectionId, action: "archive" });
+
+      // API confirmed — now update local state
+      const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+      const archiveMeta = { ...existingMeta, archived_from_status: conn.status };
+
+      managedOpsRef.current.set(connectionId, "expect_absent");
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === connectionId
+            ? { ...c, status: "archived" as ConnectionStatus, metadata: archiveMeta }
+            : c
+        )
+      );
     } catch (err) {
       console.error("[inbox] archive failed:", err);
-      managedOpsRef.current.delete(connectionId);
-      setConnections((prev) =>
-        prev.map((c) => c.id === connectionId ? { ...c, status: conn.status, metadata: conn.metadata } : c)
-      );
     }
   }, [manageConnection]);
 
-  // Unarchive a connection
+  // Unarchive a connection — pessimistic: wait for API confirmation
   const handleUnarchive = useCallback(async (connectionId: string) => {
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
-    const meta = (conn.metadata as Record<string, unknown>) || {};
-    const restoreStatus = (meta.archived_from_status as ConnectionStatus) || "accepted";
-
-    // Protect until DB confirms (connection present in active query)
-    managedOpsRef.current.set(connectionId, "expect_present");
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId ? { ...c, status: restoreStatus } : c
-      )
-    );
-
     try {
       await manageConnection({ connectionId, action: "unarchive" });
+
+      // API confirmed — now update local state
+      const meta = (conn.metadata as Record<string, unknown>) || {};
+      const restoreStatus = (meta.archived_from_status as ConnectionStatus) || "accepted";
+
+      managedOpsRef.current.set(connectionId, "expect_present");
+      setConnections((prev) =>
+        prev.map((c) =>
+          c.id === connectionId ? { ...c, status: restoreStatus } : c
+        )
+      );
     } catch (err) {
       console.error("[inbox] unarchive failed:", err);
-      managedOpsRef.current.delete(connectionId);
-      setConnections((prev) =>
-        prev.map((c) => c.id === connectionId ? { ...c, status: conn.status } : c)
-      );
     }
   }, [manageConnection]);
 
-  // Delete a connection (soft-delete via metadata.hidden)
+  // Delete a connection — pessimistic: wait for API confirmation
   const handleDelete = useCallback(async (connectionId: string) => {
     const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
-    // Protect until DB confirms (connection absent from active query due to hidden flag)
-    managedOpsRef.current.set(connectionId, "expect_absent");
-    setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     if (selectedIdRef.current === connectionId) setSelectedId(null);
 
     try {
       await manageConnection({ connectionId, action: "delete" });
+
+      // API confirmed — now remove from state
+      managedOpsRef.current.set(connectionId, "expect_absent");
+      setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     } catch (err) {
       console.error("[inbox] delete failed:", err);
-      managedOpsRef.current.delete(connectionId);
-      setConnections((prev) => [...prev, conn]);
     }
   }, [manageConnection]);
 

@@ -605,28 +605,30 @@ export default function ConversationList({
       </div>
 
       {/* Conversation list */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {/* Active conversations */}
-        {filtered.length > 0 ? (
-          filtered.map((conn) => renderConversationItem(conn))
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16 px-6">
-            {searchOpen ? (
-              <p className="text-[15px] text-gray-500">No results found</p>
-            ) : (
-              <div className="text-center">
-                <p className="text-[15px] font-medium text-gray-900 mb-1">You have no messages yet</p>
-                <p className="text-sm text-gray-500 mb-4">Browse providers to start a conversation</p>
-                <Link
-                  href="/browse"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Browse providers
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto flex flex-col">
+        {/* Active conversations — flex-1 pushes archive accordion to bottom */}
+        <div className="flex-1">
+          {filtered.length > 0 ? (
+            filtered.map((conn) => renderConversationItem(conn))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 px-6">
+              {searchOpen ? (
+                <p className="text-[15px] text-gray-500">No results found</p>
+              ) : (
+                <div className="text-center">
+                  <p className="text-[15px] font-medium text-gray-900 mb-1">You have no messages yet</p>
+                  <p className="text-sm text-gray-500 mb-4">Browse providers to start a conversation</p>
+                  <Link
+                    href="/browse"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Browse providers
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Archived conversations accordion — always at bottom */}
         {(pastConnections.length > 0 || archivedCount > 0) && !searchOpen && (

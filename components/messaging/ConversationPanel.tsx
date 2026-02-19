@@ -373,7 +373,7 @@ export default function ConversationPanel({
   return (
     <div className={`flex flex-col bg-white ${className}`}>
       {/* ── Header ── */}
-      <div className="shrink-0 px-6 h-[68px] border-b border-gray-200 flex items-center gap-3">
+      <div className={`shrink-0 pl-6 ${detailOpen ? "pr-6" : "pr-[44px]"} h-[68px] border-b border-gray-200 flex items-center gap-3`}>
         {/* Back button (mobile) */}
         {onBack && (
           <button
@@ -428,7 +428,7 @@ export default function ConversationPanel({
       {/* ── Conversation thread ── */}
       <div
         ref={conversationRef}
-        className="flex-1 overflow-y-auto px-6 py-6 bg-white"
+        className={`flex-1 overflow-y-auto pl-6 ${detailOpen ? "pr-6" : "pr-[44px]"} py-6 bg-white`}
       >
         <div className="space-y-4">
           {/* Care request card — structured summary of the initial inquiry */}
@@ -696,7 +696,7 @@ export default function ConversationPanel({
       {showMessageInput && (
         <div className="shrink-0 border-t border-gray-200 bg-white">
           {/* Input area */}
-          <div className="px-6 py-4">
+          <div className={`pl-6 ${detailOpen ? "pr-6" : "pr-[44px]"} py-4`}>
             <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
               <textarea
                 ref={messageInputRef}

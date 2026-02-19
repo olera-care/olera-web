@@ -35,7 +35,7 @@ export default function Navbar() {
   const isPortal = pathname.startsWith("/portal");
   const isProviderPortal = pathname.startsWith("/provider");
   const isCommunity = pathname.startsWith("/community");
-  const isMinimalNav = pathname.startsWith("/portal/inbox");
+  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/provider/inbox");
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
@@ -473,7 +473,7 @@ export default function Navbar() {
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
         }}
       >
-        <div className={(isMinimalNav || isProviderPortal) ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
+        <div className={isMinimalNav ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
           {/*
            * 3-column layout: Left | Center Nav | Right
            *

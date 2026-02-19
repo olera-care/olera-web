@@ -144,8 +144,8 @@ export default function Navbar() {
   }, [savedCount, savedInitialized]);
 
   // Shared dropdown content (context-aware links, mode switcher, sign out)
-  // Used in both left-column (provider mode) and right-column (family mode)
-  const dropdownAlign = isProviderPortal ? "left-0" : "right-0";
+  // User menu is always in the right column, so dropdown always aligns right
+  const dropdownAlign = "right-0";
 
   const signedInDropdown = (
     <div
@@ -174,7 +174,7 @@ export default function Navbar() {
           <div className="px-3 pt-2 pb-1">
             <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
               <Link
-                href="/portal"
+                href="/"
                 onClick={() => setIsUserMenuOpen(false)}
                 className={[
                   "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
@@ -404,7 +404,7 @@ export default function Navbar() {
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
         }}
       >
-        <div className={isMinimalNav ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
+        <div className={(isMinimalNav || isProviderPortal) ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
           {/*
            * 3-column layout: Left | Center Nav | Right
            *
@@ -415,79 +415,14 @@ export default function Navbar() {
            */}
           <div className="flex items-center h-16">
 
-            {/* ── LEFT COLUMN ── */}
+            {/* ── LEFT COLUMN — always Olera logo ── */}
             <div className="flex-1 flex items-center">
-              {isProviderPortal ? (
-                <>
-                  {/* Desktop: user menu pill moves to left in provider mode */}
-                  <div className="hidden lg:block relative" ref={userMenuRef}>
-                    {hasSession ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                          className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
-                          aria-label="User menu"
-                          aria-expanded={isUserMenuOpen}
-                        >
-                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                          </svg>
-                          {activeProfile?.image_url ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={activeProfile.image_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                              {initials}
-                            </div>
-                          )}
-                          {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
-                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
-                          )}
-                        </button>
-                        {isUserMenuOpen && signedInDropdown}
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                          className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
-                          aria-label="Account menu"
-                          aria-expanded={isUserMenuOpen}
-                          aria-haspopup="true"
-                        >
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                          </svg>
-                          <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                            </svg>
-                          </div>
-                        </button>
-                        {isUserMenuOpen && unauthDropdown}
-                      </>
-                    )}
-                  </div>
-
-                  {/* Mobile: show logo on left (user menu is desktop only) */}
-                  <Link href="/" className="lg:hidden flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-                      <span className="font-bold text-lg text-white">O</span>
-                    </div>
-                    <span className="text-xl font-bold text-gray-900">Olera</span>
-                  </Link>
-                </>
-              ) : (
-                /* Family mode: logo on left */
-                <Link href="/" className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-                    <span className="font-bold text-lg text-white">O</span>
-                  </div>
-                  <span className="text-xl font-bold text-gray-900">Olera</span>
-                </Link>
-              )}
+              <Link href="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
+                  <span className="font-bold text-lg text-white">O</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900">Olera</span>
+              </Link>
             </div>
 
             {/* ── CENTER — Primary navigation (page-centered, hidden on mobile + inbox) ── */}
@@ -577,13 +512,57 @@ export default function Navbar() {
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center gap-2">
                 {isProviderPortal ? (
-                  /* Provider mode: Olera logo on right */
-                  <Link href="/" className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-                      <span className="font-bold text-lg text-white">O</span>
-                    </div>
-                    <span className="text-xl font-bold text-gray-900">Olera</span>
-                  </Link>
+                  /* Provider mode: user menu only (no heart, no For Providers) */
+                  <>
+                    {hasSession ? (
+                      <div className="relative" ref={userMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="relative flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[44px]"
+                          aria-label="User menu"
+                          aria-expanded={isUserMenuOpen}
+                        >
+                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          {activeProfile?.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={activeProfile.image_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
+                              {initials}
+                            </div>
+                          )}
+                          {(unreadInboxCount > 0 || matchesPendingCount > 0) && (
+                            <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-primary-600 rounded-full border-2 border-white" />
+                          )}
+                        </button>
+                        {isUserMenuOpen && signedInDropdown}
+                      </div>
+                    ) : (
+                      <div className="relative" ref={userMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                          className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 min-h-[44px]"
+                          aria-label="Account menu"
+                          aria-expanded={isUserMenuOpen}
+                          aria-haspopup="true"
+                        >
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                          <div className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                          </div>
+                        </button>
+                        {isUserMenuOpen && unauthDropdown}
+                      </div>
+                    )}
+                  </>
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
@@ -826,7 +805,7 @@ export default function Navbar() {
                       <div className="py-2">
                         <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                           <Link
-                            href="/portal"
+                            href="/"
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={[
                               "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",

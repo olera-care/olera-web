@@ -573,21 +573,21 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Let the auth listener handle state clearing.
-   * Only clear state manually if signOut fails.
+   * Sign out. Clears local state and navigates immediately,
+   * then fires the Supabase signOut in the background.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
       if (!configured) return;
       clearAuthCache();
-      const supabase = createClient();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Sign out error:", error.message);
-        versionRef.current++;
-        setState({ ...EMPTY_STATE });
-      }
+      versionRef.current++;
+      setState({ ...EMPTY_STATE });
       onComplete?.();
+      // Fire-and-forget — session invalidation happens in the background
+      const supabase = createClient();
+      supabase.auth.signOut().catch((err) => {
+        console.error("Sign out error:", err);
+      });
     },
     [configured]
   );

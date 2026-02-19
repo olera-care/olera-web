@@ -19,6 +19,7 @@ interface ConversationListProps {
   onArchiveConnection?: (id: string) => void;
   onUnarchiveConnection?: (id: string) => void;
   onDeleteConnection?: (id: string) => void;
+  onLoadArchived?: () => void;
   className?: string;
 }
 
@@ -174,6 +175,7 @@ export default function ConversationList({
   onArchiveConnection,
   onUnarchiveConnection,
   onDeleteConnection,
+  onLoadArchived,
   className = "",
 }: ConversationListProps) {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -621,7 +623,12 @@ export default function ConversationList({
             {pastConnections.length > 0 && !searchOpen && (
               <>
                 <button
-                  onClick={() => setPastOpen((p) => !p)}
+                  onClick={() => {
+                    setPastOpen((p) => {
+                      if (!p && onLoadArchived) onLoadArchived();
+                      return !p;
+                    });
+                  }}
                   className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
                 >
                   <span className="text-sm font-semibold text-gray-500">

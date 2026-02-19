@@ -33,6 +33,8 @@ function InboxContent() {
   const { activeProfile, profiles } = useAuth();
 
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
+  const connectionsRef = useRef(connections);
+  connectionsRef.current = connections;
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedIdRef = useRef(selectedId);
@@ -58,20 +60,21 @@ function InboxContent() {
       const profileIds = profiles.map((p) => p.id);
 
       // Fetch inbound and outbound inquiry connections
+      // Only fetch active connections initially — archived are loaded lazily
       const [outbound, inbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("from_profile_id", profileIds)
           .eq("type", "inquiry")
-          .in("status", ["pending", "accepted", "archived"])
+          .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("to_profile_id", profileIds)
           .eq("type", "inquiry")
-          .in("status", ["pending", "accepted", "archived"])
+          .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
       ]);
 
@@ -99,7 +102,9 @@ function InboxContent() {
         allProfileIds.add(conn.to_profile_id);
       }
 
-      // Fetch business profiles
+      // Fetch business profiles + iOS provider images in parallel
+      // (iOS query uses source_provider_id from business_profiles, but we can
+      //  fetch all olera-providers for known connections in one go)
       const { data: profileData } = await supabase
         .from("business_profiles")
         .select(
@@ -107,9 +112,9 @@ function InboxContent() {
         )
         .in("id", Array.from(allProfileIds));
 
-      let bProfiles = (profileData as Profile[]) || [];
+      const bProfiles = (profileData as Profile[]) || [];
 
-      // Resolve missing images from iOS provider table
+      // Resolve missing images from iOS provider table — only if needed
       const missingImageIds = bProfiles
         .filter((p) => !p.image_url && p.source_provider_id)
         .map((p) => p.source_provider_id as string);
@@ -127,12 +132,11 @@ function InboxContent() {
               p.provider_logo || (p.provider_images?.split(" | ")[0]) || null,
             ])
           );
-          bProfiles = bProfiles.map((p) => {
+          for (const p of bProfiles) {
             if (!p.image_url && p.source_provider_id && iosMap.has(p.source_provider_id)) {
-              return { ...p, image_url: iosMap.get(p.source_provider_id) || null };
+              p.image_url = iosMap.get(p.source_provider_id) || null;
             }
-            return p;
-          });
+          }
         }
       }
 
@@ -164,6 +168,75 @@ function InboxContent() {
   useEffect(() => {
     fetchConnections();
   }, [fetchConnections]);
+
+  // Lazy-load archived connections when the user opens the archive section
+  const archivedLoadedRef = useRef(false);
+  const fetchArchived = useCallback(async () => {
+    if (archivedLoadedRef.current || !activeProfile || !profiles.length || !isSupabaseConfigured()) return;
+    archivedLoadedRef.current = true;
+
+    try {
+      const supabase = createClient();
+      const pIds = profiles.map((p) => p.id);
+
+      const [outbound, inbound] = await Promise.all([
+        supabase
+          .from("connections")
+          .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
+          .in("from_profile_id", pIds)
+          .eq("type", "inquiry")
+          .eq("status", "archived")
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("connections")
+          .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
+          .in("to_profile_id", pIds)
+          .eq("type", "inquiry")
+          .eq("status", "archived")
+          .order("updated_at", { ascending: false }),
+      ]);
+
+      const allConns = [...(outbound.data || []), ...(inbound.data || [])] as Connection[];
+      const deduped = new Map<string, Connection>();
+      for (const conn of allConns) {
+        const meta = conn.metadata as Record<string, unknown> | undefined;
+        if (meta?.hidden) continue;
+        deduped.set(conn.id, conn);
+      }
+      const archivedConns = Array.from(deduped.values());
+      if (archivedConns.length === 0) return;
+
+      // Fetch profiles for enrichment
+      const archiveProfileIds = new Set<string>();
+      for (const conn of archivedConns) {
+        archiveProfileIds.add(conn.from_profile_id);
+        archiveProfileIds.add(conn.to_profile_id);
+      }
+
+      const { data: profileData } = await supabase
+        .from("business_profiles")
+        .select("id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id")
+        .in("id", Array.from(archiveProfileIds));
+
+      const profileMap = new Map(((profileData as Profile[]) || []).map((p) => [p.id, p]));
+
+      const enriched: ConnectionWithProfile[] = archivedConns.map((conn) => ({
+        ...conn,
+        fromProfile: profileMap.get(conn.from_profile_id) || null,
+        toProfile: profileMap.get(conn.to_profile_id) || null,
+      }));
+
+      // Append to existing connections (avoid duplicates from optimistic updates)
+      setConnections((prev) => {
+        const existingIds = new Set(prev.map((c) => c.id));
+        const newOnes = enriched.filter((c) => !existingIds.has(c.id));
+        return newOnes.length > 0 ? [...prev, ...newOnes] : prev;
+      });
+    } catch (err) {
+      console.error("[inbox] fetch archived error:", err);
+      archivedLoadedRef.current = false; // Allow retry
+    }
+  }, [activeProfile, profiles]);
 
   // Handle message sent — update thread in local state
   const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[]) => {
@@ -219,12 +292,7 @@ function InboxContent() {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
 
-    // Read current connection from state
-    let conn: ConnectionWithProfile | undefined;
-    setConnections((prev) => {
-      conn = prev.find((c) => c.id === connectionId);
-      return prev;
-    });
+    const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
@@ -237,11 +305,8 @@ function InboxContent() {
       report_details: details || null,
       archived_from_status: conn.status,
     };
-    await supabase
-      .from("connections")
-      .update({ status: "archived", metadata: updatedMeta })
-      .eq("id", connectionId);
 
+    // Optimistic local update first, then persist to DB
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
@@ -251,6 +316,11 @@ function InboxContent() {
     );
     if (selectedIdRef.current === connectionId) setSelectedId(null);
     setReportingConnectionId(null);
+
+    await supabase
+      .from("connections")
+      .update({ status: "archived", metadata: updatedMeta })
+      .eq("id", connectionId);
   }, [activeProfile?.id]);
 
   // Archive a connection (saves original status in metadata, sets status = 'archived')
@@ -258,30 +328,26 @@ function InboxContent() {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
 
-    let conn: ConnectionWithProfile | undefined;
-    setConnections((prev) => {
-      conn = prev.find((c) => c.id === connectionId);
-      return prev;
-    });
+    const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
-    await supabase
-      .from("connections")
-      .update({
-        status: "archived",
-        metadata: { ...existingMeta, archived_from_status: conn.status },
-      })
-      .eq("id", connectionId);
+    const archiveMeta = { ...existingMeta, archived_from_status: conn.status };
 
+    // Optimistic local update first, then persist to DB
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId
-          ? { ...c, status: "archived" as ConnectionStatus, metadata: { ...existingMeta, archived_from_status: conn!.status } }
+          ? { ...c, status: "archived" as ConnectionStatus, metadata: archiveMeta }
           : c
       )
     );
     if (selectedIdRef.current === connectionId) setSelectedId(null);
+
+    await supabase
+      .from("connections")
+      .update({ status: "archived", metadata: archiveMeta })
+      .eq("id", connectionId);
   }, []);
 
   // Unarchive a connection (restores original status from metadata)
@@ -289,26 +355,23 @@ function InboxContent() {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
 
-    let conn: ConnectionWithProfile | undefined;
-    setConnections((prev) => {
-      conn = prev.find((c) => c.id === connectionId);
-      return prev;
-    });
+    const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
     const meta = (conn.metadata as Record<string, unknown>) || {};
     const restoreStatus = (meta.archived_from_status as ConnectionStatus) || "accepted";
 
-    await supabase
-      .from("connections")
-      .update({ status: restoreStatus })
-      .eq("id", connectionId);
-
+    // Optimistic local update first, then persist to DB
     setConnections((prev) =>
       prev.map((c) =>
         c.id === connectionId ? { ...c, status: restoreStatus } : c
       )
     );
+
+    await supabase
+      .from("connections")
+      .update({ status: restoreStatus })
+      .eq("id", connectionId);
   }, []);
 
   // Delete a connection (soft-delete via metadata.hidden)
@@ -316,21 +379,19 @@ function InboxContent() {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
 
-    let conn: ConnectionWithProfile | undefined;
-    setConnections((prev) => {
-      conn = prev.find((c) => c.id === connectionId);
-      return prev;
-    });
+    const conn = connectionsRef.current.find((c) => c.id === connectionId);
     if (!conn) return;
 
     const existingMeta = (conn.metadata as Record<string, unknown>) || {};
+
+    // Optimistic local update first, then persist to DB
+    setConnections((prev) => prev.filter((c) => c.id !== connectionId));
+    if (selectedIdRef.current === connectionId) setSelectedId(null);
+
     await supabase
       .from("connections")
       .update({ metadata: { ...existingMeta, hidden: true } })
       .eq("id", connectionId);
-
-    setConnections((prev) => prev.filter((c) => c.id !== connectionId));
-    if (selectedIdRef.current === connectionId) setSelectedId(null);
   }, []);
 
   return (
@@ -347,6 +408,7 @@ function InboxContent() {
         onArchiveConnection={handleArchive}
         onUnarchiveConnection={handleUnarchive}
         onDeleteConnection={handleDelete}
+        onLoadArchived={fetchArchived}
         className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
       />
 

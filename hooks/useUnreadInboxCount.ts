@@ -42,14 +42,14 @@ export function useUnreadInboxCount(profileIds: string[]): number {
           .in("status", ["pending", "accepted"]),
       ]);
 
-      // Merge, deduplicate, and filter out hidden
+      // Merge, deduplicate, and filter out hidden and archived connections
       const seen = new Set<string>();
       const connectionIds: string[] = [];
       for (const conn of [...(outbound.data || []), ...(inbound.data || [])]) {
         if (seen.has(conn.id)) continue;
         seen.add(conn.id);
         const meta = conn.metadata as Record<string, unknown> | undefined;
-        if (meta?.hidden) continue;
+        if (meta?.hidden || meta?.archived) continue;
         connectionIds.push(conn.id);
       }
 

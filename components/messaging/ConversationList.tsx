@@ -115,7 +115,7 @@ function formatRelativeTime(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-const PAST_STATUSES = ["declined", "expired", "archived"];
+const PAST_STATUSES = ["archived"];
 
 function getActiveConnections(connections: ConnectionWithProfile[]): ConnectionWithProfile[] {
   return connections.filter((c) => !PAST_STATUSES.includes(c.status));
@@ -389,7 +389,7 @@ export default function ConversationList({
                     </button>
                   )}
                   {/* Past items: Unarchive */}
-                  {isPast && conn.status === "archived" && onUnarchiveConnection && (
+                  {isPast && onUnarchiveConnection && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

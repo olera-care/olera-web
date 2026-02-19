@@ -470,7 +470,7 @@ export default function ConversationPanel({
                       </div>
                     )}
                     <div>
-                      <div className="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100">
+                      <div className="bg-gray-100 rounded-2xl rounded-bl-md px-4 py-3">
                         <p className="text-base leading-relaxed text-gray-800">{initialNotes}</p>
                       </div>
                       <p className="text-xs text-gray-400 mt-1.5 ml-1">{otherName} &middot; {formatTime(connection.created_at)}</p>
@@ -581,13 +581,13 @@ export default function ConversationPanel({
                       ) : <div className="w-7 shrink-0" />
                     )}
                     <div className="max-w-[70%]">
-                      <div className={`rounded-2xl overflow-hidden border shadow-sm ${
+                      <div className={`rounded-2xl overflow-hidden ${
                         isOwn
-                          ? "bg-primary-600 border-primary-500 rounded-br-md"
-                          : `bg-white border-gray-100 ${isLastInGroup ? "rounded-bl-md" : ""}`
+                          ? "bg-primary-600 border border-primary-500 shadow-sm rounded-br-md"
+                          : `bg-gray-100 ${isLastInGroup ? "rounded-bl-md" : ""}`
                       }`}>
                         <div className={`flex items-center gap-2 px-4 py-2 border-b ${
-                          isOwn ? "border-primary-500/50" : "border-gray-100 bg-gray-50/50"
+                          isOwn ? "border-primary-500/50" : "border-gray-200"
                         }`}>
                           <StepIcon className={`w-3.5 h-3.5 ${isOwn ? "text-primary-200" : "text-gray-500"}`} />
                           <span className={`text-xs font-bold uppercase tracking-wider ${
@@ -660,7 +660,7 @@ export default function ConversationPanel({
                       {!isGrouped && (
                         <p className="text-xs text-gray-400 mb-1.5 ml-1">{otherName}</p>
                       )}
-                      <div className={`bg-white px-4 py-3 shadow-sm border border-gray-100 ${
+                      <div className={`bg-gray-100 px-4 py-3 ${
                         isLastInGroup
                           ? "rounded-2xl rounded-bl-md"
                           : "rounded-2xl"

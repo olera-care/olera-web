@@ -55,21 +55,21 @@ function InboxContent() {
       const supabase = createClient();
       const profileIds = profiles.map((p) => p.id);
 
-      // Fetch inbound and outbound inquiry connections (all statuses for filtering)
+      // Fetch inbound and outbound inquiry connections
       const [outbound, inbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("from_profile_id", profileIds)
           .eq("type", "inquiry")
-          .in("status", ["pending", "accepted", "declined", "expired", "archived"])
+          .in("status", ["pending", "accepted", "archived"])
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("to_profile_id", profileIds)
           .eq("type", "inquiry")
-          .in("status", ["pending", "accepted", "declined", "expired", "archived"])
+          .in("status", ["pending", "accepted", "archived"])
           .order("updated_at", { ascending: false }),
       ]);
 

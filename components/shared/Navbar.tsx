@@ -500,7 +500,7 @@ export default function Navbar() {
                 {isProviderPortal ? (
                   /* Provider Hub nav links — all "coming soon", point to /provider */
                   <>
-                    {(["Profile", "Inbox", "Leads", "Reviews", "Olera Pro"]).map((label) => (
+                    {(["Profile", "Inbox", "Leads", "Reviews", "Matches"]).map((label) => (
                       <Link
                         key={label}
                         href="/provider"
@@ -735,20 +735,14 @@ export default function Navbar() {
                 {isProviderPortal ? (
                   /* Provider mobile nav */
                   <>
-                    {([
-                      { label: "Profile", href: "/provider/profile" },
-                      { label: "Inbox", href: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/leads" },
-                      { label: "Reviews", href: "/provider/reviews" },
-                      { label: "Olera Pro", href: "/provider/pro" },
-                    ] as { label: string; href: string }[]).map((link) => (
+                    {(["Profile", "Inbox", "Leads", "Reviews", "Matches"]).map((label) => (
                       <Link
-                        key={link.label}
-                        href={link.href}
+                        key={label}
+                        href="/provider"
                         className="block py-3 text-gray-700 hover:text-primary-600 font-medium"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        {link.label}
+                        {label}
                       </Link>
                     ))}
                     <hr className="border-gray-100" />

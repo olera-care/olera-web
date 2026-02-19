@@ -249,6 +249,16 @@ export default function Navbar() {
                     Identity Verification
                   </Link>
                   <Link
+                    href="/provider/pro"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                    Olera Pro
+                  </Link>
+                  <Link
                     href="/portal/settings"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                     onClick={() => setIsUserMenuOpen(false)}
@@ -552,15 +562,22 @@ export default function Navbar() {
                     </div>
 
                     {/* Simple nav links */}
-                    {NAV_LINKS.map((link) => (
+                    {NAV_LINKS.map((link) => {
+                      const isActive = pathname.startsWith(link.href);
+                      return (
                       <Link
                         key={link.label}
                         href={link.href}
-                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                        className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
+                          isActive
+                            ? "bg-gray-100 text-gray-900"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
                       >
                         {link.label}
                       </Link>
-                    ))}
+                    );
+                    })}
                   </>
                 )}
               </div>
@@ -927,6 +944,16 @@ export default function Navbar() {
                                   <polyline points="9 12 11 14 15 10" />
                                 </svg>
                                 Identity Verification
+                              </Link>
+                              <Link
+                                href="/provider/pro"
+                                className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg>
+                                Olera Pro
                               </Link>
                               <Link
                                 href="/portal/settings"

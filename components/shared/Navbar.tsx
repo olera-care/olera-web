@@ -25,7 +25,8 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { visible: navbarVisible } = useNavbar();
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
-  const unreadInboxCount = useUnreadInboxCount(activeProfile?.id);
+  const profileIds = (profiles || []).map((p) => p.id);
+  const unreadInboxCount = useUnreadInboxCount(profileIds);
   const { pendingCount: matchesPendingCount } = useInterestedProviders(
     activeProfile?.type === "family" ? activeProfile?.id : undefined
   );

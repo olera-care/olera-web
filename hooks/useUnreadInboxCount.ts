@@ -5,28 +5,53 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
  * Lightweight hook that counts unread inbox conversations.
- * Fetches inquiry connections (pending/accepted) for the given profile,
- * checks against `olera_inbox_read` localStorage, and returns the count.
+ * Fetches active inquiry connections (pending/accepted) for the given profiles,
+ * excludes hidden (soft-deleted) ones, checks against `olera_inbox_read`
+ * localStorage, and returns the count.
  *
  * Listens for "olera:inbox-read" custom events so the count updates
  * immediately when a conversation is opened in the inbox.
  */
-export function useUnreadInboxCount(profileId: string | undefined): number {
+export function useUnreadInboxCount(profileIds: string[]): number {
   const [count, setCount] = useState(0);
 
+  // Stable key for deps — avoids re-running on every render when array ref changes
+  const profileKey = profileIds.join(",");
+
   const recount = useCallback(() => {
-    if (!profileId || !isSupabaseConfigured()) return;
+    if (!profileKey || !isSupabaseConfigured()) return;
+
+    const ids = profileKey.split(",");
 
     (async () => {
       const supabase = createClient();
-      const { data } = await supabase
-        .from("connections")
-        .select("id")
-        .or(`to_profile_id.eq.${profileId},from_profile_id.eq.${profileId}`)
-        .in("status", ["pending", "accepted"])
-        .eq("type", "inquiry");
 
-      if (!data) return;
+      // Match inbox query: fetch both outbound and inbound, active statuses only
+      const [outbound, inbound] = await Promise.all([
+        supabase
+          .from("connections")
+          .select("id, metadata")
+          .in("from_profile_id", ids)
+          .eq("type", "inquiry")
+          .in("status", ["pending", "accepted"]),
+        supabase
+          .from("connections")
+          .select("id, metadata")
+          .in("to_profile_id", ids)
+          .eq("type", "inquiry")
+          .in("status", ["pending", "accepted"]),
+      ]);
+
+      // Merge, deduplicate, and filter out hidden
+      const seen = new Set<string>();
+      const connectionIds: string[] = [];
+      for (const conn of [...(outbound.data || []), ...(inbound.data || [])]) {
+        if (seen.has(conn.id)) continue;
+        seen.add(conn.id);
+        const meta = conn.metadata as Record<string, unknown> | undefined;
+        if (meta?.hidden) continue;
+        connectionIds.push(conn.id);
+      }
 
       let readIds = new Set<string>();
       try {
@@ -36,9 +61,9 @@ export function useUnreadInboxCount(profileId: string | undefined): number {
         // localStorage may be unavailable
       }
 
-      setCount(data.filter((c) => !readIds.has(c.id)).length);
+      setCount(connectionIds.filter((id) => !readIds.has(id)).length);
     })();
-  }, [profileId]);
+  }, [profileKey]);
 
   // Initial count
   useEffect(() => {

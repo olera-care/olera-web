@@ -160,7 +160,7 @@ export default async function ProviderPage({
 
   if (!profile) {
     return (
-      <div className="bg-vanilla-100 min-h-screen flex items-center justify-center">
+      <div className="bg-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">Provider not found</h1>
           <p className="mt-2 text-gray-600">
@@ -259,7 +259,7 @@ export default async function ProviderPage({
   // ============================================================
 
   return (
-    <div className="bg-vanilla-100 min-h-screen">
+    <div className="min-h-screen">
 
       {/* Section Navigation (appears on scroll) */}
       <SectionNav
@@ -268,115 +268,123 @@ export default async function ProviderPage({
         oleraScore={displayOleraScore}
       />
 
-      {/* ===== Main Layout ===== */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
+      {/* ===== Hero Zone — Vanilla Background ===== */}
+      <div className="bg-vanilla-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
 
-        {/* Breadcrumbs */}
-        <Breadcrumbs
-          category={profile.category}
-          city={profile.city}
-          state={profile.state}
-          providerName={profile.display_name}
-        />
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            category={profile.category}
+            city={profile.city}
+            state={profile.state}
+            providerName={profile.display_name}
+          />
 
-        {/* ── Hero (full width, above the grid) ── */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Gallery */}
-          <div className="flex-shrink-0 relative">
-            <ProviderHeroGallery
-              images={images}
-              providerName={profile.display_name}
-              category={profile.category}
-            />
-            {images.length > 0 && (
-              <div className="absolute top-4 left-4 z-20">
-                <ClaimBadge
-                  claimState={profile.claim_state}
-                  providerName={profile.display_name}
-                  claimUrl={`/for-providers/claim/${profile.slug}`}
+          {/* ── Hero (full width, above the grid) ── */}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Gallery */}
+            <div className="flex-shrink-0 relative">
+              <ProviderHeroGallery
+                images={images}
+                providerName={profile.display_name}
+                category={profile.category}
+              />
+              {images.length > 0 && (
+                <div className="absolute top-4 left-4 z-20">
+                  <ClaimBadge
+                    claimState={profile.claim_state}
+                    providerName={profile.display_name}
+                    claimUrl={`/for-providers/claim/${profile.slug}`}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Identity */}
+            <div className="flex-1 min-w-0 flex flex-col">
+              {/* Name + Save */}
+              <div className="flex items-start justify-between gap-3">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-serif">
+                  {profile.display_name}
+                </h1>
+                <SaveButton
+                  provider={{
+                    providerId: profile.id,
+                    slug: profile.slug,
+                    name: profile.display_name,
+                    location: locationStr,
+                    careTypes: profile.care_types || [],
+                    image: images[0] || null,
+                    rating: rating || undefined,
+                  }}
+                  variant="pill"
                 />
               </div>
-            )}
+
+              {/* Context line: category · location · rating */}
+              <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
+                {categoryLabel && (
+                  <>
+                    <span className="text-gray-700 font-medium">{categoryLabel}</span>
+                    <span className="text-gray-300">·</span>
+                  </>
+                )}
+                {locationStr && (
+                  <>
+                    <span>{locationStr}</span>
+                    <span className="text-gray-300">·</span>
+                  </>
+                )}
+                <span className="flex items-center gap-1">
+                  <StarIcon className="w-4 h-4 text-primary-500" />
+                  <span className="font-semibold text-gray-900">{displayRating.toFixed(1)}</span>
+                  <span>({displayReviewCount})</span>
+                </span>
+              </div>
+
+              {/* Price — standalone for visual weight */}
+              <p className="text-lg font-semibold text-gray-900 mt-1">{displayPriceRange}</p>
+
+              {/* Address */}
+              {profile.address && (
+                <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
+              )}
+
+              {/* Highlight badges — 2x2 grid, transparent + subtle */}
+              <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
+                {displayHighlights.map((label) => (
+                  <div key={label} className="border border-gray-200/60 rounded-lg py-3 px-3 flex items-center gap-2.5">
+                    <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                    <span className="text-sm text-gray-600">{label}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Managed by — quiet attribution */}
+              <div className="flex items-center gap-2.5 mt-4">
+                {displayStaff.image ? (
+                  <img src={displayStaff.image} alt={displayStaff.name} className="w-7 h-7 rounded-full object-cover" />
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-[10px] font-semibold text-gray-500">{getInitials(displayStaff.name)}</span>
+                  </div>
+                )}
+                <p className="text-sm text-gray-500">
+                  Managed by: <span className="font-medium text-gray-700">{displayStaff.name}</span>
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* Identity */}
-          <div className="flex-1 min-w-0 flex flex-col">
-            {/* Name + Save */}
-            <div className="flex items-start justify-between gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-serif">
-                {profile.display_name}
-              </h1>
-              <SaveButton
-                provider={{
-                  providerId: profile.id,
-                  slug: profile.slug,
-                  name: profile.display_name,
-                  location: locationStr,
-                  careTypes: profile.care_types || [],
-                  image: images[0] || null,
-                  rating: rating || undefined,
-                }}
-                variant="pill"
-              />
-            </div>
-
-            {/* Context line: category · location · rating */}
-            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
-              {categoryLabel && (
-                <>
-                  <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                  <span className="text-gray-300">·</span>
-                </>
-              )}
-              {locationStr && (
-                <>
-                  <span>{locationStr}</span>
-                  <span className="text-gray-300">·</span>
-                </>
-              )}
-              <span className="flex items-center gap-1">
-                <StarIcon className="w-4 h-4 text-primary-500" />
-                <span className="font-semibold text-gray-900">{displayRating.toFixed(1)}</span>
-                <span>({displayReviewCount})</span>
-              </span>
-            </div>
-
-            {/* Price — standalone for visual weight */}
-            <p className="text-lg font-semibold text-gray-900 mt-1">{displayPriceRange}</p>
-
-            {/* Address */}
-            {profile.address && (
-              <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
-            )}
-
-            {/* Highlight badges — 2x2 grid, transparent + subtle */}
-            <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
-              {displayHighlights.map((label) => (
-                <div key={label} className="border border-gray-200/60 rounded-lg py-3 px-3 flex items-center gap-2.5">
-                  <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                  <span className="text-sm text-gray-600">{label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Managed by — quiet attribution */}
-            <div className="flex items-center gap-2.5 mt-4">
-              {displayStaff.image ? (
-                <img src={displayStaff.image} alt={displayStaff.name} className="w-7 h-7 rounded-full object-cover" />
-              ) : (
-                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                  <span className="text-[10px] font-semibold text-gray-500">{getInitials(displayStaff.name)}</span>
-                </div>
-              )}
-              <p className="text-sm text-gray-500">
-                Managed by: <span className="font-medium text-gray-700">{displayStaff.name}</span>
-              </p>
-            </div>
-          </div>
         </div>
+      </div>
 
-        {/* -- Two-Column Grid (starts at Highlights — sidebar sticks on scroll) -- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mt-10">
+      {/* ===== Content Zone — White Background ===== */}
+      <div className="bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        {/* -- Two-Column Grid (content + sticky sidebar) -- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
           {/* ========== Left Column ========== */}
           <div className="lg:col-span-2">
@@ -632,12 +640,10 @@ export default async function ProviderPage({
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ===== Compare Providers (full-width) ===== */}
-      {similarProviders.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-          <div className="border-t border-gray-200 pt-8">
+        {/* ===== Compare Providers ===== */}
+        {similarProviders.length > 0 && (
+          <div className="border-t border-gray-200 pt-8 mt-4">
             <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">
               Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options
             </h2>
@@ -647,8 +653,10 @@ export default async function ProviderPage({
               ))}
             </div>
           </div>
+        )}
+
         </div>
-      )}
+      </div>
     </div>
   );
 }

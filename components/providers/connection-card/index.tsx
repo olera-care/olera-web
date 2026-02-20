@@ -27,7 +27,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   const hook = useConnectionCard(props);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
+    <div className="bg-vanilla-100 rounded-xl border border-gray-200 shadow-sm overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
       {/* Top section — persistent across all states */}
       <CardTopSection
         priceRange={priceRange}

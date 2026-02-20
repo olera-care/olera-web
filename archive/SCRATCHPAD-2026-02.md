@@ -8,13 +8,33 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-01-30 | Added Claude Code slash commands | Standardize workflow for explore → plan → build → save cycle |
 | 2026-02-05 | Use shared tables for PR #21 (not separate web tables) | iOS approved, avoid duplication |
 | 2026-02-05 | Keep our browse/provider pages when merging PR #21 | Working filtering, Esther's design already merged |
 | 2026-02-05 | No adapter layer for iOS schema | User feedback: keep both uniform, simpler code |
+| 2026-02-05 | Server-side browse page over client-side | Real Supabase data requires server components |
 
 ---
 
 ## Archived Sessions
+
+### 2026-02-07 (Session 9)
+
+**Merged PR #22 - Esther's Design + Our Supabase Data:**
+
+- **Merged PR #22** (browse-page-refinement from Esther's fork)
+  - Conflicts resolved: SCRATCHPAD.md (kept ours), Navbar.tsx (kept ours — auth integration)
+  - Esther's changes merged: Community forum V2, navbar updates, browse filter widths
+- **Fixed homepage city search regression** — removed default "New York, NY" pre-fill
+- **Integrated Esther's browse design with Supabase data**
+  - Switched `/browse` to `BrowseClient` component with Supabase fetching
+  - Queries `olera-providers` table (39K+ providers)
+  - Filters by care type, location, rating, payment type
+- **Verified provider detail page** with Esther's Olera Score breakdown, reviews, similar providers
+
+**Commits:** `c0e0abf`, `c1e3a92`, `e5b0e1a`
+
+---
 
 ### 2026-02-07 (Session 8)
 

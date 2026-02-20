@@ -685,7 +685,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         {/* Left Panel - Provider List */}
         <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
           {/* Heading + Sort */}
-          <div className="relative z-40">
+          <div className="relative z-20">
             <div className="flex items-baseline justify-between gap-4 mb-6">
               <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900">
                 {isLoadingProviders ? "" : `${filteredProviders.length} `}{careTypeLabel} in {searchLocation || "your area"}

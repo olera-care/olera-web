@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
@@ -127,62 +127,72 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
 
   // Fetch providers from Supabase
-  const fetchProviders = useCallback(async () => {
-    setIsLoadingProviders(true);
-
-    try {
-      const supabase = createClient();
-      let query = supabase
-        .from(PROVIDERS_TABLE)
-        .select("*")
-        .or("deleted.is.null,deleted.eq.false");
-
-      // Apply care type filter
-      if (careType && careType !== "all") {
-        const supabaseCategory = CARE_TYPE_TO_SUPABASE[careType];
-        if (supabaseCategory) {
-          query = query.ilike("provider_category", `%${supabaseCategory}%`);
-        }
-      }
-
-      // Apply location filter
-      if (searchLocation) {
-        const trimmed = searchLocation.trim();
-        const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
-        if (cityStateMatch) {
-          const city = cityStateMatch[1].trim();
-          const state = cityStateMatch[2].toUpperCase();
-          query = query.ilike("city", `%${city}%`).eq("state", state);
-        } else if (/^[A-Z]{2}$/i.test(trimmed)) {
-          query = query.eq("state", trimmed.toUpperCase());
-        } else {
-          query = query.or(`city.ilike.%${trimmed}%,provider_name.ilike.%${trimmed}%`);
-        }
-      }
-
-      // Order by rating and limit
-      const { data, error } = await query
-        .order("google_rating", { ascending: false })
-        .limit(100);
-
-      if (error) {
-        console.error("Browse fetch error:", error.message, error);
-        setProviders([]);
-      } else {
-        console.log(`Browse: ${data?.length ?? 0} providers returned for "${searchLocation}" / "${careType}"`);
-        setProviders((data as SupabaseProvider[]).map(toCardFormat));
-      }
-    } catch (err) {
-      console.error("Browse page error:", err);
-      setProviders([]);
-    }
-    setIsLoadingProviders(false);
-  }, [careType, searchLocation]);
-
-  // Fetch on mount and when filters change
   useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function fetchProviders() {
+      setIsLoadingProviders(true);
+
+      try {
+        const supabase = createClient();
+        let query = supabase
+          .from(PROVIDERS_TABLE)
+          .select("*")
+          .or("deleted.is.null,deleted.eq.false");
+
+        // Apply care type filter
+        if (careType && careType !== "all") {
+          const supabaseCategory = CARE_TYPE_TO_SUPABASE[careType];
+          if (supabaseCategory) {
+            query = query.ilike("provider_category", `%${supabaseCategory}%`);
+          }
+        }
+
+        // Apply location filter
+        if (searchLocation) {
+          const trimmed = searchLocation.trim();
+          const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
+          if (cityStateMatch) {
+            const city = cityStateMatch[1].trim();
+            const state = cityStateMatch[2].toUpperCase();
+            query = query.ilike("city", `%${city}%`).eq("state", state);
+          } else if (/^[A-Z]{2}$/i.test(trimmed)) {
+            query = query.eq("state", trimmed.toUpperCase());
+          } else {
+            query = query.or(`city.ilike.%${trimmed}%,provider_name.ilike.%${trimmed}%`);
+          }
+        }
+
+        // Order by rating and limit
+        const { data, error } = await query
+          .order("google_rating", { ascending: false })
+          .limit(100)
+          .abortSignal(controller.signal);
+
+        if (cancelled) return;
+
+        if (error) {
+          console.error("Browse fetch error:", error.message);
+          setProviders([]);
+        } else {
+          setProviders((data as SupabaseProvider[]).map(toCardFormat));
+        }
+      } catch (err: unknown) {
+        if (cancelled || (err instanceof DOMException && err.name === "AbortError")) return;
+        console.error("Browse page error:", err);
+        if (!cancelled) setProviders([]);
+      }
+      if (!cancelled) setIsLoadingProviders(false);
+    }
+
     fetchProviders();
-  }, [fetchProviders]);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [careType, searchLocation]);
 
   // Refs
   const locationInputRef = useRef<HTMLInputElement>(null);

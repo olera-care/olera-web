@@ -12,10 +12,10 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
       href={`/provider/${provider.slug}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden hover:shadow-md transition-shadow duration-200"
+      className="group bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
     >
       {/* Image */}
-      <div className="relative h-32 bg-gray-100">
+      <div className="relative h-40 bg-gray-100">
         {provider.image ? (
           <img
             src={provider.image}
@@ -37,7 +37,7 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
       </div>
 
       {/* Content */}
-      <div className="p-3 space-y-1">
+      <div className="p-4 space-y-1.5">
         <p className="text-xs text-primary-600 font-medium uppercase tracking-wider">
           {provider.primaryCategory}
         </p>
@@ -64,7 +64,7 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
           )}
         </div>
         {provider.priceRange && provider.priceRange !== "Contact for pricing" && (
-          <p className="text-xs font-medium text-gray-700 mt-1">
+          <p className="text-sm font-semibold text-gray-900 mt-1">
             {provider.priceRange}
           </p>
         )}

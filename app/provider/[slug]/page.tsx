@@ -248,22 +248,25 @@ export default async function ProviderPage({
             </div>
           </div>
           {/* Pricing / Rating / Location summary row */}
-          <div className="flex items-center gap-3 mt-1.5 flex-wrap text-sm">
+          <div className="flex items-center gap-2 mt-2 flex-wrap text-base">
             {rating && (
-              <span className="flex items-center gap-1 text-gray-700">
-                <StarIcon className="w-4 h-4 text-yellow-400" filled />
-                <span className="font-semibold">{rating.toFixed(1)}</span>
+              <span className="flex items-center gap-1 text-gray-900">
+                <StarIcon className="w-5 h-5 text-yellow-400" filled />
+                <span className="font-bold">{rating.toFixed(1)}</span>
                 {reviewCount && <span className="text-gray-400">({reviewCount})</span>}
               </span>
             )}
+            {rating && locationStr && <span className="text-gray-300">&middot;</span>}
             {locationStr && (
               <span className="flex items-center gap-1 text-gray-500">
                 <MapPinIcon className="w-4 h-4" />
                 {locationStr}
               </span>
             )}
+            {locationStr && priceRange && <span className="text-gray-300">&middot;</span>}
+            {!locationStr && rating && priceRange && <span className="text-gray-300">&middot;</span>}
             {priceRange && (
-              <span className="font-medium text-gray-700">{priceRange}</span>
+              <span className="font-semibold text-gray-900">{priceRange}</span>
             )}
           </div>
 
@@ -307,11 +310,11 @@ export default async function ProviderPage({
             </div>
 
             {/* -- Content Sections -- */}
-            <div className="mt-[44px]">
+            <div className="mt-10">
 
             {/* 1. Unclaimed Banner */}
             {profile.claim_state === "unclaimed" && (
-              <div className="pb-12">
+              <div className="pb-8">
                 <div className="bg-warm-50 border border-warm-100 rounded-xl p-4 md:p-5">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-start gap-3">
@@ -341,27 +344,29 @@ export default async function ProviderPage({
             )}
 
             {/* 2. About */}
-            <div id="about" className="pb-12 first:pt-0 scroll-mt-20">
+            <div id="about" className="pb-8 first:pt-0 scroll-mt-20">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 About {profile.display_name}
               </h2>
               <ExpandableText
-                text={profile.description || `${profile.display_name} is a ${categoryLabel || "senior care"} provider${locationStr ? ` located in ${locationStr}` : ""}. Contact them directly for more information about their services, availability, and pricing.`}
-                maxLength={150}
+                text={profile.description || `${profile.display_name} is a ${categoryLabel || "senior care"} provider${locationStr ? ` serving families in ${locationStr}` : ""}. Request a consultation to learn about their services, availability, and pricing.`}
+                maxLength={300}
               />
             </div>
 
             {/* 3. Care Services */}
             {profile.care_types && profile.care_types.length > 0 && (
-              <div id="services" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 mb-5">Care Services</h2>
-                <CareServicesList services={profile.care_types} initialCount={9} />
+                <div className="bg-gray-25 rounded-xl p-5 border border-gray-100">
+                  <CareServicesList services={profile.care_types} initialCount={9} />
+                </div>
               </div>
             )}
 
             {/* 4. Detailed Pricing */}
             {pricingDetails.length > 0 && (
-              <div id="pricing" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <div className="flex items-start justify-between mb-6">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">Prices at {profile.display_name}</h2>
@@ -389,7 +394,7 @@ export default async function ProviderPage({
 
             {/* 5. Payment & Insurance */}
             {(acceptedPayments.length > 0 || meta?.accepts_medicaid || meta?.accepts_medicare) && (
-              <div id="payment" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 mb-5">Acceptable Payment Options</h2>
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   {acceptedPayments.map((payment) => (
@@ -410,7 +415,7 @@ export default async function ProviderPage({
 
             {/* 7. Staff Screening & Safety */}
             {staffScreening && (
-              <div id="safety" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="safety" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 mb-5">Staff Screening &amp; Safety</h2>
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   {[
@@ -429,7 +434,7 @@ export default async function ProviderPage({
 
             {/* 8. Meet Our Team */}
             {staff && (
-              <div id="team" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="team" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 mb-5">Meet Our Team</h2>
                 <div className="flex items-start gap-4">
                   {staff.image ? (
@@ -456,7 +461,7 @@ export default async function ProviderPage({
 
             {/* 9. Q&A */}
             {defaultQA.length > 0 && (
-              <div id="qa" className="py-12 scroll-mt-20 border-t border-gray-100">
+              <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <QASectionV2
                   providerName={profile.display_name}
                   providerImage={images[0]}
@@ -466,12 +471,12 @@ export default async function ProviderPage({
             )}
 
             {/* 11. Disclaimer */}
-            <div className="py-12 border-t border-gray-100">
+            <div className="py-8 border-t border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Disclaimer</h2>
               <p className="text-sm text-gray-500 leading-relaxed">
                 We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
               </p>
-              <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-100">
+              <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                 <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
                 <Link
                   href={`/for-providers/claim/${profile.slug}`}
@@ -536,7 +541,11 @@ export default async function ProviderPage({
                   if (scoreBreakdown.length === 0) return null;
 
                   return (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+                    <div className={`grid grid-cols-1 gap-5 mx-auto ${
+                      scoreBreakdown.length === 2 ? 'md:grid-cols-2 max-w-2xl' :
+                      scoreBreakdown.length === 1 ? 'md:grid-cols-1 max-w-sm' :
+                      'md:grid-cols-3 max-w-4xl'
+                    }`}>
                       {scoreBreakdown.map((f) => (
                         <div key={f.label} className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
                           <span className="text-3xl font-bold text-gray-900 tracking-tight">{f.value.toFixed(1)}</span>
@@ -614,10 +623,10 @@ export default async function ProviderPage({
       {similarProviders.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <div className="border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Compare to best local options
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {similarProviders.map((provider) => (
                 <CompactProviderCard key={provider.id} provider={provider} />
               ))}

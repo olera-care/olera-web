@@ -53,11 +53,11 @@ export default function QuickFacts({ facts }: QuickFactsProps) {
         return (
           <div
             key={fact.label}
-            className="flex items-center gap-2 bg-gray-50 rounded-lg px-3.5 py-2.5 flex-shrink-0"
+            className="flex items-center gap-2 bg-primary-25 border border-primary-100 rounded-lg px-3.5 py-2.5 flex-shrink-0"
           >
-            <Icon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <Icon className="w-4 h-4 text-primary-600 flex-shrink-0" />
             <div className="flex items-center gap-1.5 text-sm">
-              <span className="text-gray-500">{fact.label}</span>
+              <span className="text-gray-600 font-medium">{fact.label}</span>
               <span className="font-medium text-gray-900">{fact.value}</span>
             </div>
           </div>

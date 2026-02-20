@@ -14,11 +14,11 @@ import QASectionV2 from "@/components/providers/QASectionV2";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
+import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import {
   getInitials,
   formatCategory,
   getSimilarProviders,
-  getDefaultQA,
 } from "@/lib/provider-utils";
 
 // Extended metadata type that includes mock-specific fields
@@ -196,63 +196,52 @@ export default async function ProviderPage({
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;
   const reviews = meta?.reviews || [];
-  const defaultQA = getDefaultQA(profile.category, profile.display_name);
 
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
 
-  // --- Display data (real or dummy fallbacks) ---
-  const displayRating = rating ?? 4.2;
-  const displayReviewCount = reviewCount ?? 8;
-  const displayPriceRange = priceRange ?? "$25-$45 / hr";
-  const displayStaff = staff ?? { name: "John Smith", position: "Owner & Manager", bio: "I believe that great care begins with heart-led leadership. I started this home to ensure that every senior no matter their background or health condition, we take our time to ensure they receive the best care possible. We listen to families and work with them to create personalized care plans.", image: "" };
-  const displayReviews = reviews.length > 0 ? reviews : [
-    { name: "Margaret T.", rating: 5, date: "2 weeks ago", comment: "The caregivers are wonderful and truly care about my mother's well-being. They go above and beyond every day and treat her like family." },
-    { name: "Robert K.", rating: 4, date: "1 month ago", comment: "Great communication and reliable service. My father has been very happy with the care he receives. Would recommend to other families." },
-  ];
-  const displayOleraScore = oleraScore ?? 4.2;
-  const displayCareTypes = (profile.care_types && profile.care_types.length > 0) ? profile.care_types : [
-    "Dressing assistance", "Bathroom assistance", "Bathing and showering",
-    "Exercise and wellness services", "Health and medical services",
-    "Meals and dining services", "Transportation services", "Cleaning and housekeeping",
-    "Recreational services", "Community activities",
-    "Medication management", "Laundry services",
-  ];
+  // --- Boolean flags for real data availability ---
+  const hasRating = rating != null;
+  const hasPriceRange = priceRange != null;
+  const hasStaff = staff != null;
+  const hasReviews = reviews.length > 0;
+  const hasOleraScore = oleraScore != null;
+  const hasCareTypes = (profile.care_types?.length ?? 0) > 0;
+  const hasStaffScreening = staffScreening != null;
+  const hasAcceptedPayments = acceptedPayments.length > 0;
+  const hasDescription = !!profile.description;
 
-  // Build highlights from screening + care types — always show exactly 4
+  // Build highlights from real data only — no padding
   const highlights: string[] = [];
-  if (staffScreening?.background_checked || !staffScreening) highlights.push("Background-Checked");
-  const topServices = (profile.care_types && profile.care_types.length > 0)
-    ? profile.care_types.slice(0, 3)
-    : ["Light Housekeeping", "Certified Caregivers", "Companionship"];
-  highlights.push(...topServices);
-  // Pad to 4 with sensible defaults if needed
-  const fallbackHighlights = ["Light Housekeeping", "Certified Caregivers", "Companionship", "Medication Management"];
-  for (const fallback of fallbackHighlights) {
-    if (highlights.length >= 4) break;
-    if (!highlights.includes(fallback)) highlights.push(fallback);
+  if (staffScreening?.background_checked) highlights.push("Background-Checked");
+  if (staffScreening?.licensed) highlights.push("Licensed");
+  if (staffScreening?.insured) highlights.push("Insured");
+  if (hasCareTypes) {
+    for (const ct of profile.care_types!.slice(0, 4 - highlights.length)) {
+      highlights.push(ct);
+    }
   }
-  const displayHighlights = highlights.slice(0, 4);
+  const hasHighlights = highlights.length > 0;
 
-  // Score breakdowns (4 categories matching Olera 1.0)
+  // Score breakdowns — only real values, no hardcoded fallbacks
   const scoreBreakdown = [
-    { label: "Community", value: meta?.community_score ?? 5.0 },
-    { label: "Value", value: meta?.value_score ?? 4.2 },
-    { label: "Transparency", value: meta?.info_score ?? 4.3 },
-    { label: "Completeness", value: 4.5 },
-  ];
+    meta?.community_score != null ? { label: "Community", value: meta.community_score } : null,
+    meta?.value_score != null ? { label: "Value", value: meta.value_score } : null,
+    meta?.info_score != null ? { label: "Transparency", value: meta.info_score } : null,
+  ].filter((item): item is { label: string; value: number } => item !== null);
+  const hasScoreBreakdown = scoreBreakdown.length > 0;
 
   // ============================================================
-  // Section navigation items (1.0 order)
+  // Section navigation items — only show tabs for visible sections
   // ============================================================
   const sectionItems: SectionItem[] = [];
-  sectionItems.push({ id: "highlights", label: "Highlights" });
+  if (hasHighlights) sectionItems.push({ id: "highlights", label: "Highlights" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "about", label: "About" });
-  if (pricingDetails.length > 0 || !priceRange) sectionItems.push({ id: "pricing", label: "Pricing" });
-  sectionItems.push({ id: "payment", label: "Payment" });
+  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
+  if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  sectionItems.push({ id: "reviews", label: "Reviews" });
+  if (hasOleraScore || hasReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
   // Render
@@ -265,7 +254,7 @@ export default async function ProviderPage({
       <SectionNav
         sections={sectionItems}
         providerName={profile.display_name}
-        oleraScore={displayOleraScore}
+        oleraScore={oleraScore}
       />
 
       {/* ===== Hero Zone — Vanilla Background ===== */}
@@ -321,69 +310,79 @@ export default async function ProviderPage({
                 />
               </div>
 
-              {/* Context line: category · location · rating */}
+              {/* Context line: category · location · rating (if available) */}
               <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
                 {categoryLabel && (
                   <>
                     <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                    <span className="text-gray-300">·</span>
+                    {(locationStr || hasRating) && <span className="text-gray-300">·</span>}
                   </>
                 )}
                 {locationStr && (
                   <>
                     <span>{locationStr}</span>
-                    <span className="text-gray-300">·</span>
+                    {hasRating && <span className="text-gray-300">·</span>}
                   </>
                 )}
-                <span className="flex items-center gap-1">
-                  <StarIcon className="w-4 h-4 text-primary-500" />
-                  <span className="font-semibold text-gray-900">{displayRating.toFixed(1)}</span>
-                  <span>({displayReviewCount})</span>
-                </span>
+                {hasRating && (
+                  <span className="flex items-center gap-1">
+                    <StarIcon className="w-4 h-4 text-primary-500" />
+                    <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
+                    {reviewCount != null && <span>({reviewCount})</span>}
+                  </span>
+                )}
               </div>
 
-              {/* Price estimate with tooltip */}
-              <div className="relative group/price inline-flex items-center gap-1.5 mt-1">
-                <p className="text-lg font-semibold text-gray-900">{displayPriceRange}</p>
-                <span className="text-xs text-gray-400 font-normal self-center">est.</span>
-                <svg className="w-3.5 h-3.5 text-gray-300 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div className="absolute left-0 top-full mt-1 z-30 hidden group-hover/price:block">
-                  <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
-                    Price is an estimate and may vary. Contact the provider for exact rates.
+              {/* Price estimate with tooltip, or contact-for-pricing */}
+              {hasPriceRange ? (
+                <div className="relative group/price inline-flex items-center gap-1.5 mt-1">
+                  <p className="text-lg font-semibold text-gray-900">{priceRange}</p>
+                  <span className="text-xs text-gray-400 font-normal self-center">est.</span>
+                  <svg className="w-3.5 h-3.5 text-gray-300 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div className="absolute left-0 top-full mt-1 z-30 hidden group-hover/price:block">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                      Price is an estimate and may vary. Contact the provider for exact rates.
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
+              )}
 
               {/* Address */}
               {profile.address && (
                 <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
               )}
 
-              {/* Highlight badges — 2x2 grid, transparent + subtle */}
-              <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
-                {displayHighlights.map((label) => (
-                  <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
-                    <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">{label}</span>
-                  </div>
-                ))}
-              </div>
+              {/* Highlight badges — only show when real data exists */}
+              {hasHighlights && (
+                <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
+                  {highlights.map((label) => (
+                    <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
+                      <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-600">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-              {/* Managed by — quiet attribution */}
-              <div className="flex items-center gap-2.5 mt-4">
-                {displayStaff.image ? (
-                  <img src={displayStaff.image} alt={displayStaff.name} className="w-7 h-7 rounded-full object-cover" />
-                ) : (
-                  <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-[10px] font-semibold text-gray-500">{getInitials(displayStaff.name)}</span>
-                  </div>
-                )}
-                <p className="text-sm text-gray-500">
-                  Managed by: <span className="font-medium text-gray-700">{displayStaff.name}</span>
-                </p>
-              </div>
+              {/* Managed by — only show when staff data exists */}
+              {hasStaff && (
+                <div className="flex items-center gap-2.5 mt-4">
+                  {staff!.image ? (
+                    <img src={staff!.image} alt={staff!.name} className="w-7 h-7 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                      <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
+                    </div>
+                  )}
+                  <p className="text-sm text-gray-500">
+                    Managed by: <span className="font-medium text-gray-700">{staff!.name}</span>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -408,33 +407,48 @@ export default async function ProviderPage({
               {/* ── Care Services ── */}
               <div id="services" className="py-8 scroll-mt-20">
                 <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Care Services</h2>
-                <CareServicesList services={displayCareTypes} initialCount={9} />
+                {hasCareTypes ? (
+                  <CareServicesList services={profile.care_types!} initialCount={9} />
+                ) : (
+                  <SectionEmptyState
+                    icon="clipboard"
+                    message="Services not listed yet."
+                    subMessage="Contact the provider directly for details about their care services."
+                  />
+                )}
               </div>
 
-              {/* ── Staff Screening ── */}
-              <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Staff Screening</h2>
-                <div className="flex flex-wrap gap-x-8 gap-y-3">
-                  {[
-                    { label: "Background Checked", verified: staffScreening?.background_checked ?? true },
-                    { label: "Licensed", verified: staffScreening?.licensed ?? true },
-                    { label: "Insured", verified: staffScreening?.insured ?? true },
-                  ].filter(item => item.verified).map((item) => (
-                    <div key={item.label} className="flex items-center gap-2.5">
-                      <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                      <span className="text-base text-gray-700">{item.label}</span>
-                    </div>
-                  ))}
+              {/* ── Staff Screening — hidden when no real data ── */}
+              {hasStaffScreening && (
+                <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Staff Screening</h2>
+                  <div className="flex flex-wrap gap-x-8 gap-y-3">
+                    {[
+                      { label: "Background Checked", verified: staffScreening!.background_checked },
+                      { label: "Licensed", verified: staffScreening!.licensed },
+                      { label: "Insured", verified: staffScreening!.insured },
+                    ].filter(item => item.verified).map((item) => (
+                      <div key={item.label} className="flex items-center gap-2.5">
+                        <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                        <span className="text-base text-gray-700">{item.label}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-serif mb-4">About</h2>
-                <ExpandableText
-                  text={profile.description || `${profile.display_name} stands out among other ${categoryLabel || "senior care"} providers${locationStr ? ` in ${locationStr}` : ""} for its authentic approach and deeply personal touch. The business is rooted in the experiences of caring for family members with health needs. Request a consultation to learn about their services, availability, and pricing.`}
-                  maxLength={300}
-                />
+                {hasDescription ? (
+                  <ExpandableText text={profile.description!} maxLength={300} />
+                ) : (
+                  <SectionEmptyState
+                    icon="info"
+                    message="No description available yet."
+                    subMessage="This provider hasn't added a description. Contact them to learn more."
+                  />
+                )}
               </div>
 
               {/* ── Detailed Pricing ── */}
@@ -443,7 +457,6 @@ export default async function ProviderPage({
                   <div className="flex items-start justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 font-serif">Prices at {profile.display_name}</h2>
-                      <p className="text-sm text-gray-400 mt-1">Last updated on 01/15/2025</p>
                     </div>
                     <button className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
                       Get a custom quote
@@ -465,152 +478,170 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── Payment & Insurance ── */}
-              <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Acceptable Payment / Insurance Options</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {(acceptedPayments.length > 0 ? acceptedPayments : ["Private Pay", "LTC Insurance", "Home-Care Waivers", "Medicaid", "Medicare"]).map((payment) => (
-                    <div key={payment} className="flex items-center justify-between py-3 px-4 border-b border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              {/* ── Payment & Insurance — hidden when no real data ── */}
+              {hasAcceptedPayments && (
+                <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Acceptable Payment / Insurance Options</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {acceptedPayments.map((payment) => (
+                      <div key={payment} className="flex items-center justify-between py-3 px-4 border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          <span className="text-base text-primary-600 font-medium">{payment}</span>
+                        </div>
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        <span className="text-base text-primary-600 font-medium">{payment}</span>
                       </div>
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <p className="mt-5 text-base text-gray-500">
+                    For clarity and guidance,{" "}
+                    <button className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                      Book a consultation
+                    </button>
+                  </p>
                 </div>
-                <p className="mt-5 text-base text-gray-500">
-                  For clarity and guidance,{" "}
-                  <button className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
-                    Book a consultation
-                  </button>
-                </p>
-              </div>
+              )}
 
               {/* ── Customer Questions & Answers ── */}
               <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <QASectionV2
                   providerName={profile.display_name}
                   providerImage={images[0]}
-                  questions={defaultQA}
+                  questions={[]}
                 />
               </div>
 
-              {/* ── Olera Score ── */}
-              <div id="reviews" className="py-12 scroll-mt-20 border-t border-gray-200">
-                {/* Centered score display */}
-                <div className="flex flex-col items-center text-center mb-10">
-                  <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-700 mb-5">Olera Score</p>
-                  <div className="w-24 h-24 rounded-full border-4 border-gray-200 flex items-center justify-center mb-4">
-                    <span className="text-4xl font-bold text-gray-900">{displayOleraScore.toFixed(1)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <StarIcon
-                        key={star}
-                        className={`w-5 h-5 ${star <= Math.round(displayOleraScore) ? "text-yellow-400" : "text-gray-200"}`}
-                        filled={star <= Math.round(displayOleraScore)}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Breakdown cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {scoreBreakdown.map((item) => (
-                    <div key={item.label} className="text-center">
-                      <p className="text-2xl font-bold text-gray-900 mb-2">{item.value.toFixed(1)}</p>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
-                        <div
-                          className="h-full bg-primary-600 rounded-full"
-                          style={{ width: `${(item.value / 5) * 100}%` }}
-                        />
-                      </div>
-                      <p className="text-xs font-semibold tracking-[0.1em] uppercase text-gray-500">{item.label}</p>
+              {/* ── Olera Score — hidden when no scores exist ── */}
+              {hasOleraScore && (
+                <div id="reviews" className="py-12 scroll-mt-20 border-t border-gray-200">
+                  {/* Centered score display */}
+                  <div className="flex flex-col items-center text-center mb-10">
+                    <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-700 mb-5">Olera Score</p>
+                    <div className="w-24 h-24 rounded-full border-4 border-gray-200 flex items-center justify-center mb-4">
+                      <span className="text-4xl font-bold text-gray-900">{oleraScore!.toFixed(1)}</span>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-yellow-400" : "text-gray-200"}`}
+                          filled={star <= Math.round(oleraScore!)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Breakdown cards — only items with real values */}
+                  {hasScoreBreakdown && (
+                    <div className={`grid grid-cols-2 ${scoreBreakdown.length === 3 ? "md:grid-cols-3" : scoreBreakdown.length >= 4 ? "md:grid-cols-4" : ""} gap-4`}>
+                      {scoreBreakdown.map((item) => (
+                        <div key={item.label} className="text-center">
+                          <p className="text-2xl font-bold text-gray-900 mb-2">{item.value.toFixed(1)}</p>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
+                            <div
+                              className="h-full bg-primary-600 rounded-full"
+                              style={{ width: `${(item.value / 5) * 100}%` }}
+                            />
+                          </div>
+                          <p className="text-xs font-semibold tracking-[0.1em] uppercase text-gray-500">{item.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* ── What families are saying ── */}
               <div className="py-8 border-t border-gray-200">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 font-serif">What families are saying</h2>
-                  <span className="text-sm text-gray-400">Sort by: <button className="text-gray-700 font-medium">Most Helpful</button></span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {displayReviews.map((review, index) => (
-                    <div key={index} className="border border-gray-100 rounded-xl p-5">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                            <span className="text-xs font-semibold text-gray-600">{review.name.split(" ").map(n => n[0]).join("")}</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">{review.name}</p>
-                            <p className="text-xs text-gray-400">{review.date}</p>
-                          </div>
-                        </div>
-                        <span className="text-sm font-semibold text-primary-600">{review.rating.toFixed(1)} / 5 <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" /></span>
-                      </div>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        {review.comment.length > 180 ? review.comment.slice(0, 180).trimEnd() + "... " : review.comment + " "}
-                        {review.comment.length > 180 && (
-                          <button className="text-primary-600 font-medium">read more</button>
-                        )}
-                      </p>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">What families are saying</h2>
+                {hasReviews ? (
+                  <>
+                    <div className="flex items-center justify-end mb-4">
+                      <span className="text-sm text-gray-400">Sort by: <button className="text-gray-700 font-medium">Most Helpful</button></span>
                     </div>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between mt-5">
-                  <button className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                    Show more
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
-                    Add review
-                  </button>
-                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {reviews.map((review, index) => (
+                        <div key={index} className="border border-gray-100 rounded-xl p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                                <span className="text-xs font-semibold text-gray-600">{review.name.split(" ").map(n => n[0]).join("")}</span>
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">{review.name}</p>
+                                <p className="text-xs text-gray-400">{review.date}</p>
+                              </div>
+                            </div>
+                            <span className="text-sm font-semibold text-primary-600">{review.rating.toFixed(1)} / 5 <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" /></span>
+                          </div>
+                          <p className="text-sm text-gray-600 leading-relaxed">
+                            {review.comment.length > 180 ? review.comment.slice(0, 180).trimEnd() + "... " : review.comment + " "}
+                            {review.comment.length > 180 && (
+                              <button className="text-primary-600 font-medium">read more</button>
+                            )}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between mt-5">
+                      <button className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">
+                        Show more
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
+                        Add review
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <SectionEmptyState
+                    icon="star"
+                    message="No reviews yet."
+                    subMessage="Be the first to share your experience with this provider."
+                  />
+                )}
               </div>
 
-              {/* ── Facility Manager ── */}
-              <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 font-serif">Facility manager</h2>
-                  <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
-                    Connect with us
-                  </button>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start gap-6">
-                  <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
-                    {displayStaff.image ? (
-                      <img src={displayStaff.image} alt={displayStaff.name} className="w-20 h-20 rounded-full object-cover mx-auto mb-3" />
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                        <span className="text-2xl font-bold text-gray-500">{getInitials(displayStaff.name)}</span>
-                      </div>
-                    )}
-                    <p className="text-sm font-semibold text-gray-900">{displayStaff.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{displayStaff.position}</p>
+              {/* ── Facility Manager — hidden when no staff data ── */}
+              {hasStaff && (
+                <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900 font-serif">Facility manager</h2>
+                    <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
+                      Connect with us
+                    </button>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
-                    <ExpandableText text={displayStaff.bio} maxLength={200} />
+                  <div className="flex flex-col sm:flex-row items-start gap-6">
+                    <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
+                      {staff!.image ? (
+                        <img src={staff!.image} alt={staff!.name} className="w-20 h-20 rounded-full object-cover mx-auto mb-3" />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                          <span className="text-2xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
+                        </div>
+                      )}
+                      <p className="text-sm font-semibold text-gray-900">{staff!.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{staff!.position}</p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
+                      <ExpandableText text={staff!.bio} maxLength={200} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
+                    <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />
+                    </svg>
+                    To help protect your family, the Olera team vet facility managers for information accuracy.
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">
-                  <svg className="w-5 h-5 text-primary-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17,8C8,10,5.9,16.17,3.82,21.34L5.71,22l1-2.3A4.49,4.49,0,0,0,8,20C19,20,22,3,22,3,21,5,14,5.25,9,6.25S2,11.5,2,13.5a6.22,6.22,0,0,0,1.75,3.75" />
-                  </svg>
-                  To help protect your family, the Olera team vet facility managers for information accuracy.
-                </div>
-              </div>
+              )}
 
               {/* ── Disclaimer ── */}
               <div className="py-8 border-t border-gray-200">

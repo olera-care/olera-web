@@ -14,15 +14,6 @@ interface QASectionProps {
   suggestedQuestions?: string[];
 }
 
-// Mock community members who asked the questions
-const MOCK_ASKERS = [
-  { name: "Anonymous", timeAgo: "1 month ago" },
-  { name: "Anonymous", timeAgo: "3 weeks ago" },
-  { name: "Linda W.", timeAgo: "2 weeks ago" },
-  { name: "James P.", timeAgo: "1 month ago" },
-  { name: "Susan M.", timeAgo: "5 days ago" },
-];
-
 export default function QASectionV2({
   providerName,
   providerImage,
@@ -39,6 +30,7 @@ export default function QASectionV2({
 
   const visibleQuestions = showAll ? questions : questions.slice(0, 2);
   const hasMore = questions.length > 2;
+  const hasQuestions = questions.length > 0;
 
   return (
     <div>
@@ -84,12 +76,11 @@ export default function QASectionV2({
         </div>
       </div>
 
-      {/* Q&A Threads — vertical list */}
-      {visibleQuestions.length > 0 && (
-        <div className="space-y-6">
-          {visibleQuestions.map((qa, index) => {
-            const asker = MOCK_ASKERS[index % MOCK_ASKERS.length];
-            return (
+      {/* Empty state or Q&A threads */}
+      {hasQuestions ? (
+        <>
+          <div className="space-y-6">
+            {visibleQuestions.map((qa, index) => (
               <div key={index} className="border-b border-gray-100 pb-6 last:border-b-0">
                 {/* Question */}
                 <div className="flex items-start gap-3">
@@ -100,9 +91,6 @@ export default function QASectionV2({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-base font-semibold text-gray-900">{qa.question}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {asker.name} · {asker.timeAgo} · <span className="text-primary-600">User</span>
-                    </p>
 
                     {/* Interaction row */}
                     <div className="flex items-center gap-3 mt-2.5">
@@ -142,7 +130,6 @@ export default function QASectionV2({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-primary-700">{providerName}</span>
-                          <span className="text-xs text-gray-400">1 min ago</span>
                           <span className="text-xs font-medium text-primary-600">· Provider</span>
                         </div>
                         {/* Answer in muted background */}
@@ -160,37 +147,39 @@ export default function QASectionV2({
                         </div>
                       </div>
                     </div>
-                    <button className="text-sm font-medium text-primary-600 hover:text-primary-700 mt-3 flex items-center gap-1 transition-colors">
-                      See all 2 answers
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
 
-      {/* Show More */}
-      {hasMore && (
-        <button
-          onClick={() => setShowAll(!showAll)}
-          className="mt-2 text-sm font-semibold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 transition-colors"
-        >
-          {showAll ? "Show fewer questions" : `View all ${questions.length} questions`}
-          <svg
-            className={`w-4 h-4 transition-transform ${showAll ? "rotate-180" : ""}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          {/* Show More */}
+          {hasMore && (
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="mt-2 text-sm font-semibold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 transition-colors"
+            >
+              {showAll ? "Show fewer questions" : `View all ${questions.length} questions`}
+              <svg
+                className={`w-4 h-4 transition-transform ${showAll ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="bg-gray-50 rounded-xl py-8 px-6 flex flex-col items-center text-center">
+          <svg className="w-6 h-6 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-11.25 5.25v-1.875a3.375 3.375 0 013.375-3.375h6.75a3.375 3.375 0 013.375 3.375v1.875m-16.5 0h16.5" />
           </svg>
-        </button>
+          <p className="text-sm text-gray-500">No questions yet.</p>
+          <p className="text-xs text-gray-400 mt-1">Be the first to ask {providerName} a question.</p>
+        </div>
       )}
     </div>
   );

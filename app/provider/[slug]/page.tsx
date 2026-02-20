@@ -219,13 +219,19 @@ export default async function ProviderPage({
     "Medication management", "Laundry services",
   ];
 
-  // Build highlights from screening + care types
+  // Build highlights from screening + care types — always show exactly 4
   const highlights: string[] = [];
   if (staffScreening?.background_checked || !staffScreening) highlights.push("Background-Checked");
   const topServices = (profile.care_types && profile.care_types.length > 0)
     ? profile.care_types.slice(0, 3)
     : ["Light Housekeeping", "Certified Caregivers", "Companionship"];
   highlights.push(...topServices);
+  // Pad to 4 with sensible defaults if needed
+  const fallbackHighlights = ["Light Housekeeping", "Certified Caregivers", "Companionship", "Medication Management"];
+  for (const fallback of fallbackHighlights) {
+    if (highlights.length >= 4) break;
+    if (!highlights.includes(fallback)) highlights.push(fallback);
+  }
   const displayHighlights = highlights.slice(0, 4);
 
   // Score breakdowns
@@ -359,7 +365,7 @@ export default async function ProviderPage({
                 <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Highlights</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {displayHighlights.map((label) => (
-                    <div key={label} className="border border-gray-200 rounded-xl py-6 px-4 flex flex-col items-center text-center">
+                    <div key={label} className="bg-white border border-gray-200 rounded-xl py-6 px-4 flex flex-col items-center text-center">
                       <HighlightIcon label={label} className="w-7 h-7 text-primary-500 mb-3" />
                       <span className="text-sm font-medium text-gray-700">{label}</span>
                     </div>

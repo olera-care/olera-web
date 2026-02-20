@@ -7,10 +7,10 @@
 
 ## Current Focus
 
-- **Provider Page Smart Defaults** (branch: `quiet-elion`)
-  - Filling empty provider pages with category-inferred data
-  - Backfilling real descriptions from RAG-augmented CSV archive
-  - Every section now shows meaningful content for all 39k providers
+- **Browse/City Page Redesign** (branch: `staging`)
+  - Redesigned from 3-view-mode (carousel/grid/map) to TripAdvisor-style list+map
+  - New BrowseCard with highlights, teal CTA, larger imagery
+  - Next: Make map elegant like Airbnb (custom markers, interactions)
 
 ---
 
@@ -41,11 +41,11 @@ _None currently._
 
 ## Next Up
 
-1. **Remaining ~2,992 providers without CSV descriptions** — category fallback covers them, but could RAG-generate real ones
-2. **Test Google OAuth end-to-end**
-3. **Email notifications** for provider approval/rejection
-4. **Community forum flagging** for admin moderation
-5. **Update claim flow** — wire `source_provider_id`
+1. **Elegant map like Airbnb** — custom markers with pricing, hover interactions, smooth transitions
+2. **Remaining ~2,992 providers without CSV descriptions** — category fallback covers them, but could RAG-generate real ones
+3. **Test Google OAuth end-to-end**
+4. **Email notifications** for provider approval/rejection
+5. **Community forum flagging** for admin moderation
 
 ---
 
@@ -62,6 +62,9 @@ _None currently._
 | 2026-02-20 | Highlights as 2x2 transparent badges in identity area | Fill dead space, surface trust signals without visual clutter |
 | 2026-02-20 | Category-inferred smart defaults for highlights, services, descriptions | Every provider page shows 4 highlights, 9+ services, and an About section — superseded by real data |
 | 2026-02-20 | Backfill descriptions from OleraClean CSV archive | 33,631 of 36,623 NULL descriptions filled; ~2,992 use category fallback |
+| 2026-02-20 | Browse page: single list+map layout (remove carousel/grid) | Matches TripAdvisor/Airbnb pattern — simpler, more focused UX |
+| 2026-02-20 | Category-inferred highlights on browse cards | 4 highlights per card from provider_category; superseded when provider claims page |
+| 2026-02-20 | Sticky filter bar with dynamic top (not -mt-16 hack) | Simpler CSS, no document flow issues |
 | 2026-02-12 | Staging environment: staging branch + Vercel domain + branch protection | Buffer between dev and production |
 | 2026-02-10 | Single UnifiedAuthModal replaces 2 modals | Eliminated ~2,000 LOC of duplication |
 | 2026-02-10 | Google OAuth primary CTA, auth-first flow | One-click auth is fastest path |
@@ -78,6 +81,31 @@ _None currently._
 ---
 
 ## Session Log
+
+### 2026-02-20 (Session 15) — Browse Page Redesign
+
+**Branch:** `staging`
+
+**Browse Page Overhaul (4 commits):**
+- `7929632` — Redesign browse page: remove carousel/grid/map views → single list+map layout
+  - Created `BrowseCard.tsx` (horizontal card), `docs/design-system.md`
+  - Refactored `BrowseClient.tsx` (~1100 LOC → ~820 LOC)
+- `50ea8fb` — Restore navbar: replaced `setForceHidden(true)` with `enableAutoHide()`
+- `a29092f` — Fix filter bar overlap: use dynamic `top` instead of `-mt-16` + `translateY` hack
+- `bdec4c5` — Match Figma: larger image, highlights (4 checkmarks), teal CTA button, bigger text
+
+**Files modified:**
+- `components/browse/BrowseCard.tsx` — new horizontal card component
+- `components/browse/BrowseClient.tsx` — major refactor to single layout
+- `lib/types/provider.ts` — added `CATEGORY_HIGHLIGHTS` mapping, `badge` field, longer description slice
+- `docs/design-system.md` — new design system reference doc
+
+**Key decisions:**
+- Highlights inferred from `provider_category` (4 per card) — real data supersedes when provider claims page
+- Fixed map uses `position: fixed` with animated `top`/`height` based on navbar visibility
+- Filter bar sticks at `top: 64px` (navbar visible) or `top: 0` (navbar hidden)
+
+---
 
 ### 2026-02-20 (Session 14) — Smart Defaults & Description Backfill
 

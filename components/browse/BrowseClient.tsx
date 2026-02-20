@@ -370,7 +370,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         }}
       >
         <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
+          <div className="flex items-center gap-2 flex-wrap flex-1">
             {/* Location Dropdown */}
             <div className="relative dropdown-container flex-shrink-0">
               <button
@@ -688,7 +688,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           <div className="relative z-40">
             <div className="flex items-baseline justify-between gap-4 mb-6">
               <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900">
-                {filteredProviders.length} {careTypeLabel} in {searchLocation || "your area"}
+                {isLoadingProviders ? "" : `${filteredProviders.length} `}{careTypeLabel} in {searchLocation || "your area"}
               </h1>
 
               {/* Sort Dropdown */}

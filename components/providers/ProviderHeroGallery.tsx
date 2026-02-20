@@ -13,7 +13,7 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
   // 0 images — gradient placeholder with avatar circle + hint
   if (images.length === 0) {
     return (
-      <div className="aspect-[4/3] rounded-2xl bg-gradient-to-br from-primary-100 via-primary-50 to-warm-50 flex flex-col items-center justify-center">
+      <div className="w-full max-w-[320px] aspect-[4/5] rounded-2xl bg-gradient-to-br from-primary-100 via-primary-50 to-warm-50 flex flex-col items-center justify-center">
         <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-3 shadow-sm">
           <span className="text-3xl font-bold text-primary-400">
             {getInitials(providerName)}
@@ -27,55 +27,19 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
     );
   }
 
-  // 1 image — single image
-  if (images.length === 1) {
-    return (
-      <div className="aspect-[4/3] rounded-2xl overflow-hidden">
-        <img
-          src={images[0]}
-          alt={providerName}
-          className="w-full h-full object-cover"
-        />
-      </div>
-    );
-  }
-
-  // 2+ images — grid layout: main ~65% + thumbnails ~35%
-  const mainImage = images[0];
-  const thumbs = images.slice(1, 4);
-  const remaining = images.length - 4;
-
+  // 1+ images — single image with photo count badge
   return (
-    <div className="aspect-[4/3] rounded-2xl overflow-hidden grid grid-cols-3 gap-1.5">
-      {/* Main image — spans 2 columns */}
-      <div className="col-span-2 min-h-0">
-        <img
-          src={mainImage}
-          alt={providerName}
-          className="w-full h-full object-cover"
-        />
-      </div>
-
-      {/* Thumbnails stack */}
-      <div className="col-span-1 flex flex-col gap-1.5 min-h-0">
-        {thumbs.map((src, i) => {
-          const isLast = i === thumbs.length - 1 && remaining > 0;
-          return (
-            <div key={i} className="relative flex-1 min-h-0">
-              <img
-                src={src}
-                alt={`${providerName} ${i + 2}`}
-                className="w-full h-full object-cover"
-              />
-              {isLast && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">+{remaining} more</span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <div className="relative w-full max-w-[320px] aspect-[4/5] rounded-2xl overflow-hidden">
+      <img
+        src={images[0]}
+        alt={providerName}
+        className="w-full h-full object-cover"
+      />
+      {images.length > 1 && (
+        <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+          1/{images.length}
+        </span>
+      )}
     </div>
   );
 }

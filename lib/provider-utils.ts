@@ -73,6 +73,77 @@ export function getCategoryHighlights(category: ProfileCategory): string[] {
 }
 
 // ============================================================
+// Category-inferred care services (used when real data is sparse)
+// ============================================================
+
+const categoryServices: Record<ProfileCategory, string[]> = {
+  home_care_agency: [
+    "Personal care assistance", "Bathing and grooming", "Meal preparation",
+    "Medication reminders", "Light housekeeping", "Companionship",
+    "Transportation services", "Mobility assistance", "Errands and shopping",
+  ],
+  home_health_agency: [
+    "Skilled nursing", "Physical therapy", "Occupational therapy",
+    "Medication management", "Wound care", "Health monitoring",
+    "Speech therapy", "IV therapy", "Patient education",
+  ],
+  hospice_agency: [
+    "Pain management", "Nursing care", "Emotional support",
+    "Spiritual counseling", "Family support", "Bereavement services",
+    "Medication management", "Respite care", "Comfort care",
+  ],
+  inpatient_hospice: [
+    "24-hour nursing care", "Pain management", "Symptom management",
+    "Emotional support", "Spiritual counseling", "Family support",
+    "Bereavement services", "Comfort care", "Medication management",
+  ],
+  assisted_living: [
+    "Personal care assistance", "Medication management", "Meals and dining",
+    "Housekeeping and laundry", "Social activities", "Transportation",
+    "Exercise and wellness", "Health monitoring", "Emergency response",
+  ],
+  memory_care: [
+    "Cognitive stimulation", "Personal care assistance", "Medication management",
+    "Structured daily activities", "Secure environment", "Meals and dining",
+    "Behavioral support", "Health monitoring", "Family education",
+  ],
+  independent_living: [
+    "Meals and dining", "Housekeeping", "Social activities",
+    "Fitness and wellness", "Transportation", "Community events",
+    "Maintenance services", "Recreational programs", "Concierge services",
+  ],
+  nursing_home: [
+    "Skilled nursing", "Medication management", "Physical therapy",
+    "Occupational therapy", "Meals and dining", "Personal care assistance",
+    "Social activities", "Wound care", "Rehabilitation services",
+  ],
+  rehab_facility: [
+    "Physical therapy", "Occupational therapy", "Speech therapy",
+    "Pain management", "Skilled nursing", "Mobility training",
+    "Strength conditioning", "Post-surgical care", "Patient education",
+  ],
+  adult_day_care: [
+    "Social activities", "Health monitoring", "Meals and snacks",
+    "Exercise programs", "Cognitive activities", "Personal care assistance",
+    "Medication management", "Transportation", "Therapeutic recreation",
+  ],
+  wellness_center: [
+    "Exercise programs", "Health screenings", "Nutrition counseling",
+    "Fitness classes", "Wellness education", "Social activities",
+    "Stress management", "Balance and fall prevention", "Community programs",
+  ],
+  private_caregiver: [
+    "Personal care assistance", "Companionship", "Meal preparation",
+    "Light housekeeping", "Medication reminders", "Transportation",
+    "Mobility assistance", "Errands and shopping", "Overnight care",
+  ],
+};
+
+export function getCategoryServices(category: ProfileCategory): string[] {
+  return categoryServices[category] ?? [];
+}
+
+// ============================================================
 // Quick Facts builder
 // ============================================================
 

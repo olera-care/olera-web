@@ -19,6 +19,7 @@ import {
   getInitials,
   formatCategory,
   getCategoryHighlights,
+  getCategoryServices,
   getSimilarProviders,
 } from "@/lib/provider-utils";
 
@@ -207,18 +208,27 @@ export default async function ProviderPage({
   const hasStaff = staff != null;
   const hasReviews = reviews.length > 0;
   const hasOleraScore = oleraScore != null;
-  const hasCareTypes = (profile.care_types?.length ?? 0) > 0;
   const hasStaffScreening = staffScreening != null;
   const hasAcceptedPayments = acceptedPayments.length > 0;
   const hasDescription = !!profile.description;
+
+  // Build care services: real data first, then pad with category-inferred services
+  const careServices: string[] = [...(profile.care_types ?? [])];
+  if (profile.category) {
+    const inferred = getCategoryServices(profile.category);
+    const existing = new Set(careServices.map((s) => s.toLowerCase()));
+    for (const s of inferred) {
+      if (!existing.has(s.toLowerCase())) careServices.push(s);
+    }
+  }
 
   // Build highlights: real data first, then pad with category-inferred highlights
   const highlights: string[] = [];
   if (staffScreening?.background_checked) highlights.push("Background-Checked");
   if (staffScreening?.licensed) highlights.push("Licensed");
   if (staffScreening?.insured) highlights.push("Insured");
-  if (hasCareTypes) {
-    for (const ct of profile.care_types!.slice(0, 4 - highlights.length)) {
+  if (profile.care_types && profile.care_types.length > 0) {
+    for (const ct of profile.care_types.slice(0, 4 - highlights.length)) {
       highlights.push(ct);
     }
   }
@@ -413,15 +423,7 @@ export default async function ProviderPage({
               {/* ── Care Services ── */}
               <div id="services" className="py-8 scroll-mt-20">
                 <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Care Services</h2>
-                {hasCareTypes ? (
-                  <CareServicesList services={profile.care_types!} initialCount={9} />
-                ) : (
-                  <SectionEmptyState
-                    icon="clipboard"
-                    message="Services not listed yet."
-                    subMessage="Contact the provider directly for details about their care services."
-                  />
-                )}
+                <CareServicesList services={careServices} initialCount={9} />
               </div>
 
               {/* ── Staff Screening — hidden when no real data ── */}

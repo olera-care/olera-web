@@ -580,10 +580,10 @@ export default function ProviderOnboardingPage() {
             {hasSearched && searchResults.length > 0 && (
               <div className="w-full max-w-2xl mx-auto">
                 <div className="text-center mb-8">
-                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                  <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
                     We found a match!
                   </h1>
-                  <p className="text-gray-500 mt-2 text-base">
+                  <p className="text-gray-400 mt-2 text-base">
                     We found {searchResults.length} listing{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
                   </p>
                 </div>
@@ -604,7 +604,7 @@ export default function ProviderOnboardingPage() {
                       >
                         <div className="flex">
                           {/* Image */}
-                          <div className="w-36 shrink-0 bg-gray-100 relative">
+                          <div className="w-36 min-h-[120px] shrink-0 bg-gray-100 relative">
                             {image ? (
                               <img
                                 src={image}
@@ -760,7 +760,7 @@ export default function ProviderOnboardingPage() {
 
                 {/* Bottom: refine search + create new */}
                 <div className="border-t border-gray-200 pt-8 pb-4">
-                  <p className="text-center text-base font-semibold text-gray-700 mb-4">
+                  <p className="text-center text-sm font-medium text-gray-400 mb-4">
                     Not the place you were looking for?
                   </p>
                   <form onSubmit={handleSearch} className="flex gap-2 mb-4">
@@ -789,7 +789,7 @@ export default function ProviderOnboardingPage() {
 
                   <div className="flex items-center gap-4 mb-4">
                     <div className="flex-1 h-px bg-gray-200" />
-                    <span className="text-sm text-gray-400">Or</span>
+                    <span className="text-sm text-gray-400">or</span>
                     <div className="flex-1 h-px bg-gray-200" />
                   </div>
 
@@ -808,10 +808,10 @@ export default function ProviderOnboardingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">
                   We haven&apos;t found any matches
                 </h2>
-                <p className="text-gray-400 text-sm mb-8">
+                <p className="text-gray-400 text-base mb-8">
                   No listings found for &ldquo;{searchQuery}&rdquo;
                 </p>
                 <div className="flex gap-3 justify-center">
@@ -840,12 +840,12 @@ export default function ProviderOnboardingPage() {
           <div className="w-full max-w-lg">
             <StepDots current={stepDotCurrent(2)} total={stepDotTotal} />
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                 {providerType === "organization"
                   ? "Tell us about your organization"
                   : "Tell us about yourself"}
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-400 mt-3 text-base">
                 This is what families will see on your public profile.
               </p>
             </div>
@@ -931,10 +931,10 @@ export default function ProviderOnboardingPage() {
           <div className="w-full max-w-lg">
             <StepDots current={stepDotCurrent(3)} total={stepDotTotal} />
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                 Location &amp; contact
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-400 mt-3 text-base">
                 Help families find and reach you. All fields are optional.
               </p>
             </div>
@@ -1017,10 +1017,10 @@ export default function ProviderOnboardingPage() {
           <div className="w-full max-w-lg">
             <StepDots current={stepDotCurrent(4)} total={stepDotTotal} />
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                 Services offered
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-400 mt-3 text-base">
                 Select the care types you provide. You can always update these later.
               </p>
             </div>

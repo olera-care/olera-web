@@ -159,6 +159,11 @@ export default function PostAuthOnboarding({
   // ──────────────────────────────────────────────────────────
 
   const handleIntentSelect = (selectedIntent: "family" | "provider") => {
+    if (selectedIntent === "provider") {
+      onComplete(); // closes modal
+      router.push("/provider/onboarding");
+      return;
+    }
     setIntent(selectedIntent);
     setStep("profile-info");
   };

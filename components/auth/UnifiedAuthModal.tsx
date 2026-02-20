@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth, type OpenAuthOptions } from "@/components/auth/AuthProvider";
@@ -31,6 +32,7 @@ export default function UnifiedAuthModal({
   onClose,
   options = {},
 }: UnifiedAuthModalProps) {
+  const router = useRouter();
   const { user, account, refreshAccountData } = useAuth();
 
   // Determine initial step
@@ -420,6 +422,13 @@ export default function UnifiedAuthModal({
           return;
         }
       }
+    }
+
+    // Provider intent — hand off to full-page onboarding wizard
+    if (options.intent === "provider") {
+      onClose();
+      router.push("/provider/onboarding");
+      return;
     }
 
     // New user — show post-auth onboarding

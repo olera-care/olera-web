@@ -81,7 +81,7 @@ export default function Navbar() {
       return;
     }
     if (user) {
-      openAuth({ startAtPostAuth: true, intent: "provider" });
+      router.push("/provider/onboarding");
     } else {
       openAuth({ intent: "provider" });
     }
@@ -174,15 +174,15 @@ export default function Navbar() {
 
       <div className="mx-4 border-t border-gray-100" />
 
-      {/* Mode switcher */}
-      {showModeSwitcher && (
+      {/* Mode switcher — shown for dual-profile users OR when in provider hub */}
+      {(showModeSwitcher || (isProviderPortal && isFullyLoaded)) && (
         <>
           <div className="px-3 pt-2 pb-1">
             <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
               <button
                 type="button"
                 onClick={async () => {
-                  if (familyProfileId) await switchProfile(familyProfileId);
+                  if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
                   setIsUserMenuOpen(false);
                   router.push("/");
                 }}
@@ -198,7 +198,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (providerProfileId) await switchProfile(providerProfileId);
+                  if (hasProviderProfile && providerProfileId) await switchProfile(providerProfileId);
                   setIsUserMenuOpen(false);
                   router.push("/provider");
                 }}
@@ -575,8 +575,21 @@ export default function Navbar() {
               {/* Desktop right section */}
               <div className="hidden lg:flex items-center gap-2">
                 {isProviderPortal ? (
-                  /* Provider mode: user menu only (no heart, no For Providers) */
+                  /* Provider mode: Switch to family + user menu */
                   <>
+                    {/* Switch to family */}
+                    {user && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                          router.push("/");
+                        }}
+                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                      >
+                        Switch to family
+                      </button>
+                    )}
                     {hasSession ? (
                       <div className="relative" ref={userMenuRef}>
                         <button
@@ -745,6 +758,17 @@ export default function Navbar() {
                         {label}
                       </Link>
                     ))}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                        setIsMobileMenuOpen(false);
+                        router.push("/");
+                      }}
+                      className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
+                    >
+                      Switch to family
+                    </button>
                     <hr className="border-gray-100" />
                   </>
                 ) : (
@@ -857,14 +881,14 @@ export default function Navbar() {
                       </div>
                     </div>
 
-                    {/* Mode switcher (mobile) */}
-                    {showModeSwitcher && (
+                    {/* Mode switcher (mobile) — shown for dual-profile users OR when in provider hub */}
+                    {(showModeSwitcher || (isProviderPortal && isFullyLoaded)) && (
                       <div className="py-2">
                         <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                           <button
                             type="button"
                             onClick={async () => {
-                              if (familyProfileId) await switchProfile(familyProfileId);
+                              if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
                               setIsMobileMenuOpen(false);
                               router.push("/");
                             }}
@@ -880,7 +904,7 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={async () => {
-                              if (providerProfileId) await switchProfile(providerProfileId);
+                              if (hasProviderProfile && providerProfileId) await switchProfile(providerProfileId);
                               setIsMobileMenuOpen(false);
                               router.push("/provider");
                             }}

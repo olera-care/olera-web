@@ -335,7 +335,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       .slice(startIndex, startIndex + PROVIDERS_PER_PAGE)
       .map((p) => ({
         ...p,
-        badge: p.rating >= 4.5 ? "Top Rated" : undefined,
+        badge: p.rating >= 4.8 ? "Top Rated" : undefined,
       }));
   }, [filteredProviders, currentPage]);
 

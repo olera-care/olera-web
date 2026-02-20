@@ -23,12 +23,23 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
       className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
     >
       {/* Image */}
-      <div className="relative w-full aspect-[16/10] bg-gray-200">
+      <div className="relative w-full aspect-[16/10] bg-gray-100">
         <img
           src={provider.image}
           alt={provider.name}
           className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.style.display = "none";
+            target.parentElement!.classList.add("flex", "items-center", "justify-center");
+          }}
         />
+        {/* Fallback icon (hidden when image loads) */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
 
         {/* Heart — top right */}
         <button

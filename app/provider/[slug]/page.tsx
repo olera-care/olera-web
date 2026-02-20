@@ -234,11 +234,12 @@ export default async function ProviderPage({
   }
   const displayHighlights = highlights.slice(0, 4);
 
-  // Score breakdowns
+  // Score breakdowns (4 categories matching Olera 1.0)
   const scoreBreakdown = [
-    { label: "Community sentiment", value: meta?.community_score ?? 3.8 },
-    { label: "Value", value: meta?.value_score ?? 4.0 },
-    { label: "Information Availability", value: meta?.info_score ?? 4.7 },
+    { label: "Community", value: meta?.community_score ?? 5.0 },
+    { label: "Value", value: meta?.value_score ?? 4.2 },
+    { label: "Transparency", value: meta?.info_score ?? 4.3 },
+    { label: "Completeness", value: 4.5 },
   ];
 
   // ============================================================
@@ -482,31 +483,37 @@ export default async function ProviderPage({
                 />
               </div>
 
-              {/* ── Our Rating ── */}
-              <div id="reviews" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-primary-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xl font-bold text-white">{displayOleraScore.toFixed(1)}</span>
+              {/* ── Olera Score ── */}
+              <div id="reviews" className="py-12 scroll-mt-20 border-t border-gray-200">
+                {/* Centered score display */}
+                <div className="flex flex-col items-center text-center mb-10">
+                  <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-700 mb-5">Olera Score</p>
+                  <div className="w-24 h-24 rounded-full border-4 border-gray-200 flex items-center justify-center mb-4">
+                    <span className="text-4xl font-bold text-gray-900">{displayOleraScore.toFixed(1)}</span>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 font-serif">Our Rating</h2>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                      Based on amenities, community compliance and profile completeness.{" "}
-                      <button className="text-primary-600 hover:text-primary-700 font-medium">Learn more</button>
-                    </p>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <StarIcon
+                        key={star}
+                        className={`w-5 h-5 ${star <= Math.round(displayOleraScore) ? "text-yellow-400" : "text-gray-200"}`}
+                        filled={star <= Math.round(displayOleraScore)}
+                      />
+                    ))}
                   </div>
                 </div>
-                <div className="space-y-4">
+
+                {/* Breakdown cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {scoreBreakdown.map((item) => (
-                    <div key={item.label} className="flex items-center gap-4">
-                      <span className="text-sm text-gray-600 w-48 flex-shrink-0">{item.label}:</span>
-                      <span className="text-sm font-semibold text-primary-600 w-12 flex-shrink-0">{item.value.toFixed(1)} / 5</span>
-                      <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div key={item.label} className="text-center">
+                      <p className="text-2xl font-bold text-gray-900 mb-2">{item.value.toFixed(1)}</p>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
                         <div
-                          className="h-full bg-primary-500 rounded-full"
+                          className="h-full bg-primary-600 rounded-full"
                           style={{ width: `${(item.value / 5) * 100}%` }}
                         />
                       </div>
+                      <p className="text-xs font-semibold tracking-[0.1em] uppercase text-gray-500">{item.label}</p>
                     </div>
                   ))}
                 </div>

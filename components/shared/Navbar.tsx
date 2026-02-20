@@ -36,7 +36,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setHasAttemptedOnboarding(
-      !!sessionStorage.getItem("olera_onboarding_provider_type")
+      !!localStorage.getItem("olera_onboarding_provider_type")
     );
   }, []);
   const isPortal = pathname.startsWith("/portal");

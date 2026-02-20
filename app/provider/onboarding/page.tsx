@@ -122,10 +122,10 @@ export default function ProviderOnboardingPage() {
 
     // Check for a previously started session
     try {
-      const savedType = sessionStorage.getItem(TYPE_KEY) as ProviderType | null;
+      const savedType = localStorage.getItem(TYPE_KEY) as ProviderType | null;
       if (savedType === "organization" || savedType === "caregiver") {
         setProviderType(savedType);
-        const savedData = sessionStorage.getItem(DATA_KEY);
+        const savedData = localStorage.getItem(DATA_KEY);
         if (savedData) {
           try {
             setData({ ...EMPTY, ...JSON.parse(savedData) });
@@ -136,7 +136,7 @@ export default function ProviderOnboardingPage() {
         setStep("resume");
       }
     } catch {
-      // sessionStorage unavailable
+      // localStorage unavailable
     }
   }, [user, profiles, isLoading, router]);
 
@@ -144,9 +144,9 @@ export default function ProviderOnboardingPage() {
     setData((prev) => {
       const next = { ...prev, [key]: value };
       try {
-        sessionStorage.setItem(DATA_KEY, JSON.stringify(next));
+        localStorage.setItem(DATA_KEY, JSON.stringify(next));
       } catch {
-        // sessionStorage unavailable
+        // localStorage unavailable (SSR or private mode)
       }
       return next;
     });
@@ -162,19 +162,19 @@ export default function ProviderOnboardingPage() {
   const handleSelectType = (type: ProviderType) => {
     setProviderType(type);
     try {
-      sessionStorage.setItem(TYPE_KEY, type);
+      localStorage.setItem(TYPE_KEY, type);
     } catch {
-      // sessionStorage unavailable
+      // localStorage unavailable
     }
     setStep(2);
   };
 
   const handleStartFresh = () => {
     try {
-      sessionStorage.removeItem(TYPE_KEY);
-      sessionStorage.removeItem(DATA_KEY);
+      localStorage.removeItem(TYPE_KEY);
+      localStorage.removeItem(DATA_KEY);
     } catch {
-      // sessionStorage unavailable
+      // localStorage unavailable
     }
     setProviderType(null);
     setData(EMPTY);
@@ -215,10 +215,10 @@ export default function ProviderOnboardingPage() {
       }
 
       try {
-        sessionStorage.removeItem(TYPE_KEY);
-        sessionStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(TYPE_KEY);
+        localStorage.removeItem(DATA_KEY);
       } catch {
-        // sessionStorage unavailable
+        // localStorage unavailable (SSR or private mode)
       }
 
       await refreshAccountData();

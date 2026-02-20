@@ -503,7 +503,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // to the wizard instead of re-opening the modal.
       const hasStartedProviderOnboarding = (() => {
         try {
-          return !!sessionStorage.getItem("olera_onboarding_provider_type");
+          return !!localStorage.getItem("olera_onboarding_provider_type");
         } catch {
           return false;
         }

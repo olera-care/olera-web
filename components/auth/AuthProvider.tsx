@@ -9,6 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
 import { setDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
@@ -178,6 +179,7 @@ interface AuthProviderProps {
 }
 
 export default function AuthProvider({ children }: AuthProviderProps) {
+  const router = useRouter();
   const [state, setState] = useState<AuthState>({
     ...EMPTY_STATE,
     isLoading: true,
@@ -496,7 +498,23 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // sessionStorage unavailable
       }
 
-      // Always open onboarding — with or without saved intent
+      // If the user was in the middle of provider onboarding (intent saved from auth,
+      // or they already completed Step 1 and saved their provider type), redirect them
+      // to the wizard instead of re-opening the modal.
+      const hasStartedProviderOnboarding = (() => {
+        try {
+          return !!sessionStorage.getItem("olera_onboarding_provider_type");
+        } catch {
+          return false;
+        }
+      })();
+
+      if (intent === "provider" || hasStartedProviderOnboarding) {
+        router.push("/provider/onboarding");
+        return;
+      }
+
+      // Family or unknown intent — open the post-auth onboarding modal
       setUnifiedAuthOptions({
         intent,
         providerType,

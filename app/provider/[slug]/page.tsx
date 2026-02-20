@@ -226,63 +226,55 @@ export default async function ProviderPage({
                 )}
               </div>
 
-              {/* Right: Identity + Trust signals */}
+              {/* Right: Identity */}
               <div className="flex-1 min-w-0">
-                {/* Name row with category pill + icon actions */}
+                {/* Name row + Save pill */}
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight flex items-center gap-2">
-                      {profile.display_name}
-                      {profile.claim_state === "claimed" && (
-                        <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                          <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </h1>
-                    {categoryLabel && (
-                      <span className="inline-flex mt-2 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-100">
-                        {categoryLabel}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button className="w-9 h-9 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center">
-                      <svg className="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight flex items-center gap-2">
+                    {profile.display_name}
+                    {profile.claim_state === "claimed" && (
+                      <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
                       </svg>
-                    </button>
-                    <SaveButton
-                      provider={{
-                        providerId: profile.id,
-                        slug: profile.slug,
-                        name: profile.display_name,
-                        location: locationStr,
-                        careTypes: profile.care_types || [],
-                        image: images[0] || null,
-                        rating: rating || undefined,
-                      }}
-                      variant="icon"
-                    />
-                  </div>
+                    )}
+                  </h1>
+                  <SaveButton
+                    provider={{
+                      providerId: profile.id,
+                      slug: profile.slug,
+                      name: profile.display_name,
+                      location: locationStr,
+                      careTypes: profile.care_types || [],
+                      image: images[0] || null,
+                      rating: rating || undefined,
+                    }}
+                    variant="pill"
+                  />
                 </div>
 
-                {/* Context line */}
+                {/* Address */}
+                {profile.address && (
+                  <p className="text-sm text-gray-500 mt-1">{profile.address}</p>
+                )}
+
+                {/* Category pill */}
+                {categoryLabel && (
+                  <span className="inline-flex mt-3 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                    {categoryLabel}
+                  </span>
+                )}
+
+                {/* Rating + Location line */}
                 <div className="flex items-center gap-2 mt-3 text-sm text-gray-600 flex-wrap">
                   {rating && (
                     <span className="flex items-center gap-1 text-gray-900">
                       <StarIcon className="w-4 h-4 text-yellow-400" filled />
                       <span className="font-bold">{rating.toFixed(1)}</span>
-                      {reviewCount && <span className="text-gray-400">({reviewCount})</span>}
                     </span>
                   )}
                   {rating && locationStr && <span className="text-gray-300">&middot;</span>}
                   {locationStr && (
                     <span className="text-gray-500">{locationStr}</span>
-                  )}
-                  {locationStr && priceRange && <span className="text-gray-300">&middot;</span>}
-                  {!locationStr && rating && priceRange && <span className="text-gray-300">&middot;</span>}
-                  {priceRange && (
-                    <span className="font-semibold text-gray-900">{priceRange}</span>
                   )}
                 </div>
 
@@ -294,6 +286,35 @@ export default async function ProviderPage({
                 )}
               </div>
             </div>
+
+            {/* Pricing + Rating card (1.0 style) */}
+            {(priceRange || rating) && (
+              <div className="mt-6 border border-gray-200 rounded-xl overflow-hidden flex">
+                {priceRange && (
+                  <div className={`flex-1 px-6 py-5 ${rating ? "border-r border-gray-200" : ""}`}>
+                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Estimated Pricing</p>
+                    <p className="text-2xl font-bold text-gray-900 mt-1">{priceRange}</p>
+                  </div>
+                )}
+                {rating && (
+                  <div className="flex-1 px-6 py-5 text-center">
+                    <p className="text-3xl font-bold text-gray-900">{rating.toFixed(1)}</p>
+                    <div className="flex items-center justify-center gap-0.5 mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <StarIcon
+                          key={star}
+                          className={`w-4 h-4 ${star <= Math.round(rating) ? "text-yellow-400" : "text-gray-200"}`}
+                          filled={star <= Math.round(rating)}
+                        />
+                      ))}
+                    </div>
+                    {reviewCount !== undefined && (
+                      <p className="text-xs text-gray-400 mt-1">{reviewCount} {reviewCount === 1 ? "review" : "reviews"}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* -- Content Sections -- */}
             <div className="mt-10">

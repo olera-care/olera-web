@@ -464,6 +464,9 @@ export default function Navbar() {
     </div>
   );
 
+  // Onboarding page has its own minimal nav
+  if (pathname === "/provider/onboarding") return null;
+
   return (
     <>
       <nav

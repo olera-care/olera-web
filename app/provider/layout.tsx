@@ -1,15 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
 export default function ProviderLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const { user, account, isLoading, fetchError, refreshAccountData, openAuth } =
     useAuth();
   const providerProfile = useProviderProfile();
+
+  // Onboarding page manages its own auth state — skip all layout gates
+  if (pathname === "/provider/onboarding") {
+    return <>{children}</>;
+  }
 
   // Brief spinner while auth resolves
   if (isLoading) {

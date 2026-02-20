@@ -330,13 +330,10 @@ export default function ProviderOnboardingPage() {
         {/* ── Step 1: Choose provider type ── */}
         {step === 1 && (
           <div className="w-full max-w-2xl">
-            <div className="text-center mb-12">
-              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
                 How would you describe yourself?
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
-                We&apos;ll personalize your experience based on your answer.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

@@ -7,10 +7,10 @@
 
 ## Current Focus
 
-- **Provider Page Design Polish** (branch: `quiet-elion`)
-  - Aligning web design language with iOS OleraClean app
-  - Hero section redesign: side-by-side gallery + identity "business card"
-  - Iterating on spacing, containers, trust signals, visual hierarchy
+- **Provider Page Smart Defaults** (branch: `quiet-elion`)
+  - Filling empty provider pages with category-inferred data
+  - Backfilling real descriptions from RAG-augmented CSV archive
+  - Every section now shows meaningful content for all 39k providers
 
 ---
 
@@ -28,7 +28,8 @@
 - [x] Auth overhaul — unified modal, Google OAuth, post-auth onboarding
 - [x] Staging environment
 - [x] Design language alignment (teal palette, vanilla bg, serif headings)
-- [ ] **Provider page hero refinement** — fill empty space in identity area
+- [x] **Provider page smart defaults** — highlights, care services, descriptions inferred from category
+- [x] **Description backfill** — 33,631 providers updated from RAG CSV via `scripts/backfill-descriptions.mjs`
 
 ---
 
@@ -40,7 +41,7 @@ _None currently._
 
 ## Next Up
 
-1. **Hero identity area** — address empty space beside gallery (may need expanded content)
+1. **Remaining ~2,992 providers without CSV descriptions** — category fallback covers them, but could RAG-generate real ones
 2. **Test Google OAuth end-to-end**
 3. **Email notifications** for provider approval/rejection
 4. **Community forum flagging** for admin moderation
@@ -59,6 +60,8 @@ _None currently._
 | 2026-02-20 | Hero above grid, sidebar starts at Highlights level | Give hero breathing room, sticky sidebar enters at content |
 | 2026-02-20 | Olera Score: centered circle + 4 breakdown cards | Match Olera 1.0 Figma rating layout |
 | 2026-02-20 | Highlights as 2x2 transparent badges in identity area | Fill dead space, surface trust signals without visual clutter |
+| 2026-02-20 | Category-inferred smart defaults for highlights, services, descriptions | Every provider page shows 4 highlights, 9+ services, and an About section — superseded by real data |
+| 2026-02-20 | Backfill descriptions from OleraClean CSV archive | 33,631 of 36,623 NULL descriptions filled; ~2,992 use category fallback |
 | 2026-02-12 | Staging environment: staging branch + Vercel domain + branch protection | Buffer between dev and production |
 | 2026-02-10 | Single UnifiedAuthModal replaces 2 modals | Eliminated ~2,000 LOC of duplication |
 | 2026-02-10 | Google OAuth primary CTA, auth-first flow | One-click auth is fastest path |
@@ -75,6 +78,28 @@ _None currently._
 ---
 
 ## Session Log
+
+### 2026-02-20 (Session 14) — Smart Defaults & Description Backfill
+
+**Branch:** `quiet-elion`
+
+**Smart Defaults (3 commits):**
+- `bdb746d` — `getCategoryHighlights()`: 4 factual highlights per category, padded after real screening/care_types data
+- `d115d61` — `getCategoryServices()`: 9 services per category, padded after real care_types; removed empty state
+- `f3b727b` — `getCategoryDescription()`: fallback About text from category+name+location when description is NULL
+
+**Description Backfill:**
+- CSV source: `~/Desktop/OleraClean/Current Database/Descriptions/Provider Database-Descriptions.csv` (42,546 RAG descriptions)
+- Script: `scripts/backfill-descriptions.mjs` — reads CSV, matches by `provider_id`, updates `provider_description` in Supabase
+- Result: 33,631 of 36,623 NULL descriptions filled (92% coverage)
+- Remaining ~2,992 covered by `getCategoryDescription()` fallback
+
+**Files modified:**
+- `lib/provider-utils.ts` — added `getCategoryHighlights()`, `getCategoryDescription()`, `getCategoryServices()`
+- `app/provider/[slug]/page.tsx` — highlights always render, services always render, About uses fallback
+- `scripts/backfill-descriptions.mjs` — one-time migration script (requires `SUPABASE_KEY` env var)
+
+---
 
 ### 2026-02-20 (Session 13) — Provider Page Design Polish
 

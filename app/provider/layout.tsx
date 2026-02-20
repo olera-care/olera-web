@@ -14,8 +14,10 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     useAuth();
   const providerProfile = useProviderProfile();
 
-  // Onboarding page manages its own auth state — skip all layout gates
-  if (pathname === "/provider/onboarding") {
+  // Public provider detail pages (/provider/[slug]) and onboarding manage
+  // their own state — skip all layout gates. Only known hub routes are gated.
+  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox"];
+  if (!HUB_ROUTES.includes(pathname)) {
     return <>{children}</>;
   }
 

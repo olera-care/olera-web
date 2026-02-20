@@ -50,6 +50,29 @@ export function formatCategory(category: ProfileCategory | null): string | null 
 }
 
 // ============================================================
+// Category-inferred highlights (used when real data is sparse)
+// ============================================================
+
+const categoryHighlights: Record<ProfileCategory, string[]> = {
+  home_care_agency:    ["In-Home Care", "Certified Caregivers", "Companionship", "Light Housekeeping"],
+  home_health_agency:  ["Skilled Nursing", "Health Monitoring", "In-Home Care", "Licensed Providers"],
+  hospice_agency:      ["Nursing Care", "Wellness Support", "Community Resources", "Medication Management"],
+  inpatient_hospice:   ["Nursing Care", "Medical Support", "Community Resources", "Wellness Programs"],
+  assisted_living:     ["Licensed Community", "Social Activities", "Health Services", "Light Housekeeping"],
+  memory_care:         ["Licensed Community", "Certified Staff", "Health Monitoring", "Social Activities"],
+  independent_living:  ["Community Living", "Social Activities", "Light Housekeeping", "Wellness Programs"],
+  nursing_home:        ["Skilled Nursing", "Licensed Facility", "Medical Care", "Rehabilitation"],
+  rehab_facility:      ["Rehabilitation", "Medical Care", "Licensed Facility", "Exercise & Wellness"],
+  adult_day_care:      ["Social Activities", "Health Services", "Community Programs", "Light Housekeeping"],
+  wellness_center:     ["Exercise & Wellness", "Health Services", "Community Programs", "Certified Staff"],
+  private_caregiver:   ["Certified Caregiver", "In-Home Care", "Companionship", "Light Housekeeping"],
+};
+
+export function getCategoryHighlights(category: ProfileCategory): string[] {
+  return categoryHighlights[category] ?? [];
+}
+
+// ============================================================
 // Quick Facts builder
 // ============================================================
 

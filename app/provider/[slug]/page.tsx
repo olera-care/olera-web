@@ -18,6 +18,7 @@ import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import {
   getInitials,
   formatCategory,
+  getCategoryHighlights,
   getSimilarProviders,
 } from "@/lib/provider-utils";
 
@@ -211,7 +212,7 @@ export default async function ProviderPage({
   const hasAcceptedPayments = acceptedPayments.length > 0;
   const hasDescription = !!profile.description;
 
-  // Build highlights from real data only — no padding
+  // Build highlights: real data first, then pad with category-inferred highlights
   const highlights: string[] = [];
   if (staffScreening?.background_checked) highlights.push("Background-Checked");
   if (staffScreening?.licensed) highlights.push("Licensed");
@@ -221,7 +222,14 @@ export default async function ProviderPage({
       highlights.push(ct);
     }
   }
-  const hasHighlights = highlights.length > 0;
+  if (highlights.length < 4 && profile.category) {
+    const inferred = getCategoryHighlights(profile.category);
+    const existing = new Set(highlights.map((h) => h.toLowerCase()));
+    for (const h of inferred) {
+      if (highlights.length >= 4) break;
+      if (!existing.has(h.toLowerCase())) highlights.push(h);
+    }
+  }
 
   // Score breakdowns — only real values, no hardcoded fallbacks
   const scoreBreakdown = [
@@ -235,7 +243,7 @@ export default async function ProviderPage({
   // Section navigation items — only show tabs for visible sections
   // ============================================================
   const sectionItems: SectionItem[] = [];
-  if (hasHighlights) sectionItems.push({ id: "highlights", label: "Highlights" });
+  sectionItems.push({ id: "highlights", label: "Highlights" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
@@ -356,17 +364,15 @@ export default async function ProviderPage({
                 <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
               )}
 
-              {/* Highlight badges — only show when real data exists */}
-              {hasHighlights && (
-                <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
-                  {highlights.map((label) => (
-                    <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
-                      <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-600">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Highlight badges — real data + category-inferred */}
+              <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
+                {highlights.map((label) => (
+                  <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
+                    <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                    <span className="text-sm text-gray-600">{label}</span>
+                  </div>
+                ))}
+              </div>
 
               {/* Managed by — only show when staff data exists */}
               {hasStaff && (

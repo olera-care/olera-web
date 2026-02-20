@@ -92,19 +92,15 @@ interface BrowseClientProps {
 
 export default function BrowseClient({ careType, searchQuery }: BrowseClientProps) {
   const router = useRouter();
-  const { setForceHidden } = useNavbar();
+  const { visible: navbarVisible, enableAutoHide, disableAutoHide } = useNavbar();
   const isAllTypes = !careType || careType === "all";
   const careTypeLabel = isAllTypes ? "All Care Types" : getCareTypeLabel(careType);
 
-  // Lock body scroll and hide navbar for full-viewport split layout
+  // Enable navbar auto-hide on scroll
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    setForceHidden(true);
-    return () => {
-      document.body.style.overflow = "";
-      setForceHidden(false);
-    };
-  }, [setForceHidden]);
+    enableAutoHide();
+    return () => disableAutoHide();
+  }, [enableAutoHide, disableAutoHide]);
 
   // Filter states
   const initialLocation = searchQuery?.trim() || "";
@@ -364,9 +360,15 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const sortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Recommended";
 
   return (
-    <div className="flex flex-col bg-gray-50" style={{ height: "100vh" }}>
+    <div className="min-h-screen bg-gray-50">
       {/* Filter Bar */}
-      <div className="flex-shrink-0 bg-white border-b border-gray-200 z-40">
+      <div
+        className="sticky top-0 z-40 bg-white border-b border-gray-200 -mt-16"
+        style={{
+          transform: navbarVisible ? "translateY(64px)" : "translateY(0)",
+          transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)",
+        }}
+      >
         <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
             {/* Location Dropdown */}
@@ -679,11 +681,11 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       </div>
 
       {/* Main Content - Split Layout */}
-      <div className="flex-1 min-h-0 flex">
+      <div className="lg:mr-[45%]">
         {/* Left Panel - Provider List */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
-            {/* Heading + Sort */}
+        <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
+          {/* Heading + Sort */}
+          <div className="relative z-40">
             <div className="flex items-baseline justify-between gap-4 mb-6">
               <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900">
                 {filteredProviders.length} {careTypeLabel} in {searchLocation || "your area"}
@@ -738,67 +740,74 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Provider Cards */}
-            {isLoadingProviders ? (
-              <div className="flex flex-col gap-4">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex bg-white rounded-xl overflow-hidden border border-gray-200 animate-pulse"
-                  >
-                    <div className="w-36 sm:w-48 lg:w-52 flex-shrink-0 bg-gray-200" style={{ minHeight: 180 }} />
-                    <div className="flex-1 p-4 space-y-3">
-                      <div className="h-3 w-24 bg-gray-200 rounded" />
-                      <div className="h-5 w-48 bg-gray-200 rounded" />
-                      <div className="flex gap-2">
-                        <div className="h-5 w-20 bg-gray-100 rounded-full" />
-                        <div className="h-5 w-16 bg-gray-100 rounded-full" />
-                      </div>
-                      <div className="h-3 w-full bg-gray-100 rounded" />
-                      <div className="h-3 w-3/4 bg-gray-100 rounded" />
+          {/* Provider Cards */}
+          {isLoadingProviders ? (
+            <div className="flex flex-col gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex bg-white rounded-xl overflow-hidden border border-gray-200 animate-pulse"
+                >
+                  <div className="w-36 sm:w-48 lg:w-52 flex-shrink-0 bg-gray-200" style={{ minHeight: 180 }} />
+                  <div className="flex-1 p-4 space-y-3">
+                    <div className="h-3 w-24 bg-gray-200 rounded" />
+                    <div className="h-5 w-48 bg-gray-200 rounded" />
+                    <div className="flex gap-2">
+                      <div className="h-5 w-20 bg-gray-100 rounded-full" />
+                      <div className="h-5 w-16 bg-gray-100 rounded-full" />
                     </div>
+                    <div className="h-3 w-full bg-gray-100 rounded" />
+                    <div className="h-3 w-3/4 bg-gray-100 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filteredProviders.length > 0 ? (
+            <>
+              <div className="flex flex-col gap-4">
+                {paginatedProviders.map((provider) => (
+                  <div
+                    key={provider.id}
+                    onMouseEnter={() => setHoveredProviderId(provider.id)}
+                    onMouseLeave={() => setHoveredProviderId(null)}
+                  >
+                    <BrowseCard provider={provider} />
                   </div>
                 ))}
               </div>
-            ) : filteredProviders.length > 0 ? (
-              <>
-                <div className="flex flex-col gap-4">
-                  {paginatedProviders.map((provider) => (
-                    <div
-                      key={provider.id}
-                      onMouseEnter={() => setHoveredProviderId(provider.id)}
-                      onMouseLeave={() => setHoveredProviderId(null)}
-                    >
-                      <BrowseCard provider={provider} />
-                    </div>
-                  ))}
-                </div>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredProviders.length}
-                  itemsPerPage={PROVIDERS_PER_PAGE}
-                  onPageChange={setCurrentPage}
-                  itemLabel="providers"
-                  className="mt-6"
-                />
-              </>
-            ) : (
-              <EmptyState onClear={clearFilters} />
-            )}
-          </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredProviders.length}
+                itemsPerPage={PROVIDERS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                itemLabel="providers"
+                className="mt-6"
+              />
+            </>
+          ) : (
+            <EmptyState onClear={clearFilters} />
+          )}
         </div>
+      </div>
 
-        {/* Right Panel - Map */}
-        <div className="hidden lg:flex flex-col w-[45%] p-4">
-          <div className="relative w-full flex-1 min-h-0 rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
-            <BrowseMap
-              providers={filteredProviders}
-              hoveredProviderId={hoveredProviderId}
-              onMarkerHover={setHoveredProviderId}
-            />
-          </div>
+      {/* Right Panel - Fixed Map */}
+      <div
+        className="hidden lg:block fixed right-0 w-[45%] p-4 z-30"
+        style={{
+          top: navbarVisible ? "125px" : "61px",
+          height: navbarVisible ? "calc(100vh - 125px)" : "calc(100vh - 61px)",
+          transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1)",
+        }}
+      >
+        <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
+          <BrowseMap
+            providers={filteredProviders}
+            hoveredProviderId={hoveredProviderId}
+            onMarkerHover={setHoveredProviderId}
+          />
         </div>
       </div>
     </div>

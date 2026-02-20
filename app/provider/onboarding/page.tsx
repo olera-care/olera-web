@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | 2 | 3 | 4;
+type Step = "resume" | 1 | "search" | 2 | 3 | 4;
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
@@ -93,6 +95,27 @@ function StepDots({ current, total }: { current: number; total: number }) {
   );
 }
 
+function getProviderImage(provider: Provider): string | null {
+  if (!provider.provider_images) return null;
+  const first = provider.provider_images.split("|")[0].trim();
+  return first || null;
+}
+
+function getProviderChips(provider: Provider): string[] {
+  const chips: string[] = [];
+  if (provider.provider_category) chips.push(provider.provider_category);
+  if (provider.main_category && provider.main_category !== provider.provider_category) {
+    chips.push(provider.main_category);
+  }
+  return chips;
+}
+
+function formatAddress(provider: Provider): string {
+  return [provider.address, provider.city, provider.state, provider.zipcode]
+    .filter(Boolean)
+    .join(", ");
+}
+
 export default function ProviderOnboardingPage() {
   const router = useRouter();
   const { user, account, profiles, isLoading, refreshAccountData } = useAuth();
@@ -101,6 +124,23 @@ export default function ProviderOnboardingPage() {
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Provider[]>([]);
+  const [claimedIds, setClaimedIds] = useState<Set<string>>(new Set());
+  const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState("");
+
+  // Dispute state
+  const [disputingId, setDisputingId] = useState<string | null>(null);
+  const [disputeName, setDisputeName] = useState("");
+  const [disputeRole, setDisputeRole] = useState("");
+  const [disputeReason, setDisputeReason] = useState("");
+  const [disputeSubmitting, setDisputeSubmitting] = useState(false);
+  const [disputeSuccess, setDisputeSuccess] = useState<string | null>(null);
+  const [disputeError, setDisputeError] = useState("");
 
   // Auth guard + resume detection
   useEffect(() => {
@@ -166,7 +206,7 @@ export default function ProviderOnboardingPage() {
     } catch {
       // localStorage unavailable
     }
-    setStep(2);
+    setStep(type === "organization" ? "search" : 2);
   };
 
   const handleStartFresh = () => {
@@ -179,6 +219,92 @@ export default function ProviderOnboardingPage() {
     setProviderType(null);
     setData(EMPTY);
     setStep(1);
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim() || !isSupabaseConfigured()) return;
+    setSearching(true);
+    setSearchError("");
+
+    try {
+      const supabase = createClient();
+
+      // Step 1: Search olera-providers by name
+      const { data: providers, error: providerErr } = await supabase
+        .from("olera-providers")
+        .select("*")
+        .eq("deleted", false)
+        .ilike("provider_name", `%${searchQuery.trim()}%`)
+        .limit(20);
+
+      if (providerErr) {
+        setSearchError(`Search failed: ${providerErr.message}`);
+        setSearchResults([]);
+        return;
+      }
+
+      const results = (providers as Provider[]) || [];
+      setSearchResults(results);
+
+      // Step 2: Check which of these have been claimed in business_profiles
+      if (results.length > 0) {
+        const ids = results.map((p) => p.provider_id);
+        const { data: claimed } = await supabase
+          .from("business_profiles")
+          .select("source_provider_id")
+          .in("source_provider_id", ids)
+          .in("claim_state", ["claimed", "pending"]);
+
+        const claimedSet = new Set<string>(
+          (claimed || [])
+            .map((r: { source_provider_id: string | null }) => r.source_provider_id)
+            .filter((id): id is string => !!id)
+        );
+        setClaimedIds(claimedSet);
+      } else {
+        setClaimedIds(new Set());
+      }
+    } catch {
+      setSearchError("Search failed. Please try again.");
+      setSearchResults([]);
+    } finally {
+      setHasSearched(true);
+      setSearching(false);
+    }
+  };
+
+  const handleDisputeSubmit = async (provider: Provider) => {
+    if (!disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()) return;
+    setDisputeSubmitting(true);
+    setDisputeError("");
+
+    try {
+      const res = await fetch("/api/disputes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          provider_name: provider.provider_name,
+          claimant_name: disputeName,
+          claimant_role: disputeRole,
+          reason: disputeReason,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setDisputeError(err.error || "Failed to submit dispute. Please try again.");
+        return;
+      }
+
+      setDisputeSuccess(provider.provider_id);
+      setDisputingId(null);
+    } catch {
+      setDisputeError("Something went wrong. Please try again.");
+    } finally {
+      setDisputeSubmitting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -233,6 +359,13 @@ export default function ProviderOnboardingPage() {
   const displayName =
     account?.display_name || user?.email?.split("@")[0] || "back";
 
+  // StepDots position helpers
+  const orgTotal = 4;
+  const careTotal = 3;
+  const stepDotTotal = providerType === "organization" ? orgTotal : careTotal;
+  const stepDotCurrent = (s: 2 | 3 | 4) =>
+    providerType === "organization" ? s : s - 1;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -241,27 +374,29 @@ export default function ProviderOnboardingPage() {
     );
   }
 
+  const showResultsBg = step === "search" && hasSearched;
+
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${showResultsBg ? "bg-gray-50" : "bg-white"}`}>
       {/* Minimal nav */}
-      <nav className="border-b border-gray-100">
+      <nav className="border-b border-gray-100 bg-white">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-            <span className="font-bold text-lg text-white">O</span>
-          </div>
-          <span className="text-xl font-bold text-gray-900">Olera</span>
-        </Link>
-        <Link
-          href="/"
-          className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
-        >
-          Exit
-        </Link>
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
+              <span className="font-bold text-lg text-white">O</span>
+            </div>
+            <span className="text-xl font-bold text-gray-900">Olera</span>
+          </Link>
+          <Link
+            href="/"
+            className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
+          >
+            Exit
+          </Link>
         </div>
       </nav>
 
-      <div className="flex-1 flex items-center justify-center px-4 py-16">
+      <div className={`flex-1 px-4 ${showResultsBg ? "py-12" : "flex items-center justify-center py-16"}`}>
 
         {/* ── Resume screen ── */}
         {step === "resume" && (
@@ -279,7 +414,7 @@ export default function ProviderOnboardingPage() {
               {/* Continue card — primary action */}
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={() => setStep(providerType === "organization" ? "search" : 2)}
                 className="w-full flex items-center gap-5 p-6 rounded-2xl border-2 border-primary-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 bg-white text-left group"
               >
                 <div className="w-14 h-14 rounded-2xl bg-primary-100 group-hover:bg-primary-100 flex items-center justify-center shrink-0 transition-colors duration-200">
@@ -374,10 +509,336 @@ export default function ProviderOnboardingPage() {
           </div>
         )}
 
+        {/* ── Search step: Find your organization ── */}
+        {step === "search" && (
+          <>
+            {/* ── State A: Initial search form ── */}
+            {!hasSearched && (
+              <div className="w-full max-w-lg">
+                <StepDots current={1} total={4} />
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                    Find your organization
+                  </h1>
+                  <p className="text-gray-400 mt-3 text-base">
+                    Let&apos;s check if we already have a listing for you.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSearch} className="space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search by name or location…"
+                      className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-gray-400"
+                    />
+                  </div>
+
+                  {searchError && (
+                    <p className="text-sm text-red-600">{searchError}</p>
+                  )}
+
+                  <Button type="submit" fullWidth loading={searching} disabled={!searchQuery.trim()}>
+                    Search Directory
+                  </Button>
+                </form>
+
+                <div className="mt-6 flex items-center gap-4">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-sm text-gray-400">or</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="mt-6 w-full py-3 text-base font-medium text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-colors"
+                >
+                  Set up a new page
+                </button>
+
+                <div className="mt-6 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    ← Back
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── State B: Results found ── */}
+            {hasSearched && searchResults.length > 0 && (
+              <div className="w-full max-w-2xl mx-auto">
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                    We found a match!
+                  </h1>
+                  <p className="text-gray-500 mt-2 text-base">
+                    We found {searchResults.length} listing{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
+                  </p>
+                </div>
+
+                <div className="space-y-4 mb-10">
+                  {searchResults.map((provider) => {
+                    const image = getProviderImage(provider);
+                    const chips = getProviderChips(provider);
+                    const address = formatAddress(provider);
+                    const isClaimed = claimedIds.has(provider.provider_id);
+                    const isDisputing = disputingId === provider.provider_id;
+                    const isDisputeSuccess = disputeSuccess === provider.provider_id;
+
+                    return (
+                      <div
+                        key={provider.provider_id}
+                        className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
+                      >
+                        <div className="flex">
+                          {/* Image */}
+                          <div className="w-36 shrink-0 bg-gray-100 relative">
+                            {image ? (
+                              <img
+                                src={image}
+                                alt={provider.provider_name}
+                                className="w-full h-full object-cover absolute inset-0"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center absolute inset-0">
+                                <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 p-5 min-w-0">
+                            {address && (
+                              <p className="text-xs text-gray-400 mb-1">{address}</p>
+                            )}
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <h3 className="text-lg font-bold text-gray-900 leading-snug">
+                                {provider.provider_name}
+                              </h3>
+                              {isClaimed && (
+                                <span className="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                  Claimed
+                                </span>
+                              )}
+                            </div>
+
+                            {chips.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {chips.slice(0, 2).map((chip) => (
+                                  <span
+                                    key={chip}
+                                    className="px-2.5 py-0.5 rounded-full text-xs font-medium border border-gray-300 text-gray-600 bg-white"
+                                  >
+                                    {chip}
+                                  </span>
+                                ))}
+                                {chips.length > 2 && (
+                                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium border border-gray-200 text-gray-400">
+                                    +{chips.length - 2} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {provider.provider_description && (
+                              <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                                {provider.provider_description}
+                              </p>
+                            )}
+
+                            {/* Action */}
+                            {!isClaimed && (
+                              <div className="flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => setStep(2)}
+                                  className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-300 rounded-lg hover:bg-primary-50 hover:border-primary-400 transition-colors"
+                                >
+                                  Claim this page →
+                                </button>
+                              </div>
+                            )}
+
+                            {isClaimed && !isDisputeSuccess && (
+                              <div className="mt-1">
+                                {!isDisputing ? (
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setDisputingId(provider.provider_id);
+                                        setDisputeName("");
+                                        setDisputeRole("");
+                                        setDisputeReason("");
+                                        setDisputeError("");
+                                      }}
+                                      className="px-4 py-2 text-sm font-medium text-gray-500 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-700 transition-colors"
+                                    >
+                                      Dispute ownership
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
+                                    <p className="text-sm font-medium text-gray-700">Tell us about your claim</p>
+                                    <input
+                                      type="text"
+                                      value={disputeName}
+                                      onChange={(e) => setDisputeName(e.target.value)}
+                                      placeholder="Your name"
+                                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={disputeRole}
+                                      onChange={(e) => setDisputeRole(e.target.value)}
+                                      placeholder="Your role (e.g. Owner, Administrator)"
+                                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    />
+                                    <textarea
+                                      value={disputeReason}
+                                      onChange={(e) => setDisputeReason(e.target.value)}
+                                      placeholder="Why do you believe you are the owner of this listing?"
+                                      rows={3}
+                                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                                    />
+                                    {disputeError && (
+                                      <p className="text-xs text-red-600">{disputeError}</p>
+                                    )}
+                                    <div className="flex items-center justify-between gap-3">
+                                      <button
+                                        type="button"
+                                        onClick={() => setDisputingId(null)}
+                                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDisputeSubmit(provider)}
+                                        disabled={disputeSubmitting || !disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                      >
+                                        {disputeSubmitting ? "Submitting…" : "Submit dispute"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Dispute success */}
+                            {isClaimed && isDisputeSuccess && (
+                              <div className="mt-3 pt-3 border-t border-gray-100 flex items-start gap-2">
+                                <svg className="w-4 h-4 text-primary-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <p className="text-sm text-gray-600">
+                                  We&apos;ve received your dispute. Our team will review it within 2–3 business days.
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Bottom: refine search + create new */}
+                <div className="border-t border-gray-200 pt-8 pb-4">
+                  <p className="text-center text-base font-semibold text-gray-700 mb-4">
+                    Not the place you were looking for?
+                  </p>
+                  <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search again…"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={searching || !searchQuery.trim()}
+                      className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {searching ? "…" : "Search"}
+                    </button>
+                  </form>
+
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <span className="text-sm text-gray-400">Or</span>
+                    <div className="flex-1 h-px bg-gray-200" />
+                  </div>
+
+                  <Button fullWidth onClick={() => setStep(2)}>
+                    Set up a new page
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* ── State C: No results ── */}
+            {hasSearched && searchResults.length === 0 && (
+              <div className="w-full max-w-sm mx-auto text-center">
+                <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-9 h-9 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  We haven&apos;t found any matches
+                </h2>
+                <p className="text-gray-400 text-sm mb-8">
+                  No listings found for &ldquo;{searchQuery}&rdquo;
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setHasSearched(false)}
+                    className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-300 rounded-xl hover:bg-primary-50 transition-colors"
+                  >
+                    Try a different search
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors"
+                  >
+                    Create a new page
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         {/* ── Step 2: About ── */}
         {step === 2 && (
           <div className="w-full max-w-lg">
-            <StepDots current={1} total={3} />
+            <StepDots current={stepDotCurrent(2)} total={stepDotTotal} />
             <div className="text-center mb-8">
               <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
                 {providerType === "organization"
@@ -449,7 +910,7 @@ export default function ProviderOnboardingPage() {
               <div className="flex justify-between items-center pt-2">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(providerType === "organization" ? "search" : 1)}
                   className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   ← Back
@@ -468,7 +929,7 @@ export default function ProviderOnboardingPage() {
         {/* ── Step 3: Location & Contact ── */}
         {step === 3 && (
           <div className="w-full max-w-lg">
-            <StepDots current={2} total={3} />
+            <StepDots current={stepDotCurrent(3)} total={stepDotTotal} />
             <div className="text-center mb-8">
               <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
                 Location &amp; contact
@@ -554,7 +1015,7 @@ export default function ProviderOnboardingPage() {
         {/* ── Step 4: Services + Review + Submit ── */}
         {step === 4 && (
           <div className="w-full max-w-lg">
-            <StepDots current={3} total={3} />
+            <StepDots current={stepDotCurrent(4)} total={stepDotTotal} />
             <div className="text-center mb-8">
               <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
                 Services offered

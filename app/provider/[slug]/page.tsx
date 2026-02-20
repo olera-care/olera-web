@@ -109,7 +109,7 @@ export default async function ProviderPage({
 
   if (!profile) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
+      <div className="bg-vanilla-100 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">Provider not found</h1>
           <p className="mt-2 text-gray-600">
@@ -201,7 +201,7 @@ export default async function ProviderPage({
   // ============================================================
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-vanilla-100 min-h-screen">
 
       {/* Section Navigation (appears on scroll) */}
       <SectionNav
@@ -228,7 +228,7 @@ export default async function ProviderPage({
           <div className="lg:col-span-2">
 
             {/* ── Hero Business Card ── */}
-            <div className="flex flex-col md:flex-row gap-6">
+            <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6">
               {/* Gallery */}
               <div className="flex-shrink-0 relative">
                 <ProviderHeroGallery
@@ -251,7 +251,7 @@ export default async function ProviderPage({
               <div className="flex-1 min-w-0">
                 {/* Name + Save */}
                 <div className="flex items-start justify-between gap-3">
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight">
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-serif">
                     {profile.display_name}
                   </h1>
                   <SaveButton
@@ -316,14 +316,14 @@ export default async function ProviderPage({
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
                ══════════════════════════════════════════ */}
-            <div className="mt-8">
+            <div className="mt-8 bg-white rounded-2xl shadow-sm p-6 md:p-8">
 
               {/* ── Highlights ── */}
               <div id="highlights" className="pb-8 scroll-mt-20">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Highlights</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Highlights</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {displayHighlights.map((label) => (
-                    <div key={label} className="border border-gray-200 rounded-xl py-5 px-3 flex flex-col items-center text-center">
+                    <div key={label} className="border border-primary-100 bg-primary-25 rounded-xl py-5 px-3 flex flex-col items-center text-center">
                       <svg className="w-7 h-7 text-primary-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
@@ -349,13 +349,13 @@ export default async function ProviderPage({
 
               {/* ── Care Services ── */}
               <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Care Services</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Care Services</h2>
                 <CareServicesList services={displayCareTypes} initialCount={9} />
               </div>
 
               {/* ── Staff Screening ── */}
               <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Staff Screening</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Staff Screening</h2>
                 <div className="flex flex-wrap gap-x-8 gap-y-3">
                   {[
                     { label: "Background Checked", verified: staffScreening?.background_checked ?? true },
@@ -372,7 +372,7 @@ export default async function ProviderPage({
 
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">About</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-4">About</h2>
                 <ExpandableText
                   text={profile.description || `${profile.display_name} stands out among other ${categoryLabel || "senior care"} providers${locationStr ? ` in ${locationStr}` : ""} for its authentic approach and deeply personal touch. The business is rooted in the experiences of caring for family members with health needs. Request a consultation to learn about their services, availability, and pricing.`}
                   maxLength={300}
@@ -384,7 +384,7 @@ export default async function ProviderPage({
                 <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">Prices at {profile.display_name}</h2>
+                      <h2 className="text-2xl font-bold text-gray-900 font-serif">Prices at {profile.display_name}</h2>
                       <p className="text-sm text-gray-400 mt-1">Last updated on 01/15/2025</p>
                     </div>
                     <button className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
@@ -409,7 +409,7 @@ export default async function ProviderPage({
 
               {/* ── Payment & Insurance ── */}
               <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-5">Acceptable Payment / Insurance Options</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Acceptable Payment / Insurance Options</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {(acceptedPayments.length > 0 ? acceptedPayments : ["Private Pay", "LTC Insurance", "Home-Care Waivers", "Medicaid", "Medicare"]).map((payment) => (
                     <div key={payment} className="flex items-center justify-between py-3 px-4 border-b border-gray-100">
@@ -445,11 +445,11 @@ export default async function ProviderPage({
               {/* ── Our Rating ── */}
               <div id="reviews" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-xl bg-primary-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 rounded-xl bg-primary-500 flex items-center justify-center flex-shrink-0">
                     <span className="text-xl font-bold text-white">{displayOleraScore.toFixed(1)}</span>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Our Rating</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 font-serif">Our Rating</h2>
                     <p className="text-sm text-gray-500 mt-0.5">
                       Based on amenities, community compliance and profile completeness.{" "}
                       <button className="text-primary-600 hover:text-primary-700 font-medium">Learn more</button>
@@ -475,7 +475,7 @@ export default async function ProviderPage({
               {/* ── What families are saying ── */}
               <div className="py-8 border-t border-gray-200">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">What families are saying</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 font-serif">What families are saying</h2>
                   <span className="text-sm text-gray-400">Sort by: <button className="text-gray-700 font-medium">Most Helpful</button></span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -518,7 +518,7 @@ export default async function ProviderPage({
               {/* ── Facility Manager ── */}
               <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900">Facility manager</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 font-serif">Facility manager</h2>
                   <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
                     Connect with us
                   </button>
@@ -550,7 +550,7 @@ export default async function ProviderPage({
 
               {/* ── Disclaimer ── */}
               <div className="py-8 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Disclaimer</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-4">Disclaimer</h2>
                 <p className="text-sm text-gray-500 leading-relaxed">
                   We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
                 </p>
@@ -593,7 +593,7 @@ export default async function ProviderPage({
       {similarProviders.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <div className="border-t border-gray-200 pt-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">
               Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

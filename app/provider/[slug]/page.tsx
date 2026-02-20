@@ -342,8 +342,19 @@ export default async function ProviderPage({
                 </span>
               </div>
 
-              {/* Price — standalone for visual weight */}
-              <p className="text-lg font-semibold text-gray-900 mt-1">{displayPriceRange}</p>
+              {/* Price estimate with tooltip */}
+              <div className="relative group/price inline-flex items-center gap-1.5 mt-1">
+                <p className="text-lg font-semibold text-gray-900">{displayPriceRange}</p>
+                <span className="text-xs text-gray-400 font-normal self-center">est.</span>
+                <svg className="w-3.5 h-3.5 text-gray-300 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="absolute left-0 top-full mt-1 z-30 hidden group-hover/price:block">
+                  <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                    Price is an estimate and may vary. Contact the provider for exact rates.
+                  </div>
+                </div>
+              </div>
 
               {/* Address */}
               {profile.address && (
@@ -353,7 +364,7 @@ export default async function ProviderPage({
               {/* Highlight badges — 2x2 grid, transparent + subtle */}
               <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
                 {displayHighlights.map((label) => (
-                  <div key={label} className="border border-gray-200/60 rounded-lg py-3 px-3 flex items-center gap-2.5">
+                  <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
                     <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
                     <span className="text-sm text-gray-600">{label}</span>
                   </div>

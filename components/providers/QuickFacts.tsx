@@ -47,17 +47,17 @@ export default function QuickFacts({ facts }: QuickFactsProps) {
   if (facts.length === 0) return null;
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+    <div className="flex flex-wrap gap-2 pb-1">
       {facts.map((fact) => {
         const Icon = factIcons[fact.icon];
         return (
           <div
-            key={fact.label}
+            key={fact.label || fact.value}
             className="flex items-center gap-2 bg-primary-25 border border-primary-100 rounded-lg px-3.5 py-2.5 flex-shrink-0"
           >
             <Icon className="w-4 h-4 text-primary-600 flex-shrink-0" />
             <div className="flex items-center gap-1.5 text-sm">
-              <span className="text-gray-600 font-medium">{fact.label}</span>
+              {fact.label && <span className="text-gray-600 font-medium">{fact.label}</span>}
               <span className="font-medium text-gray-900">{fact.value}</span>
             </div>
           </div>

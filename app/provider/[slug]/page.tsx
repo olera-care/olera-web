@@ -41,15 +41,6 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
 
 // --- Inline SVG icon components ---
 
-function MapPinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  );
-}
-
 function StarIcon({ className, filled = true }: { className?: string; filled?: boolean }) {
   return filled ? (
     <svg className={className} fill="currentColor" viewBox="0 0 20 20">
@@ -152,15 +143,13 @@ export default async function ProviderPage({
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
 
   const quickFacts = buildQuickFacts({
-    category: profile.category,
-    city: profile.city,
-    state: profile.state,
     yearFounded: meta?.year_founded,
     bedCount: meta?.bed_count,
     yearsExperience: meta?.years_experience,
     acceptsMedicaid: meta?.accepts_medicaid,
     acceptsMedicare: meta?.accepts_medicare,
-    priceRange,
+    backgroundChecked: meta?.staff_screening?.background_checked,
+    licensed: meta?.staff_screening?.licensed,
   });
 
   const similarProviders = await getSimilarProviders(profile.category, profile.slug, 4);
@@ -211,82 +200,16 @@ export default async function ProviderPage({
           providerName={profile.display_name}
         />
 
-        {/* -- Identity: Category + Provider Name + Location + Share/Save -- */}
-        <div className="mb-4">
-          {categoryLabel && (
-            <p className="text-primary-600 text-sm font-semibold uppercase tracking-wider mb-1">
-              {categoryLabel}
-            </p>
-          )}
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight tracking-tight flex items-center gap-2">
-              {profile.display_name}
-              {profile.claim_state === "claimed" && (
-                <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
-                </svg>
-              )}
-            </h1>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <button className="flex items-center justify-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg w-24 py-2 hover:bg-gray-50 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                Share
-              </button>
-              <SaveButton
-                provider={{
-                  providerId: profile.id,
-                  slug: profile.slug,
-                  name: profile.display_name,
-                  location: locationStr,
-                  careTypes: profile.care_types || [],
-                  image: images[0] || null,
-                  rating: rating || undefined,
-                }}
-              />
-            </div>
-          </div>
-          {/* Pricing / Rating / Location summary row */}
-          <div className="flex items-center gap-2 mt-2 flex-wrap text-base">
-            {rating && (
-              <span className="flex items-center gap-1 text-gray-900">
-                <StarIcon className="w-5 h-5 text-yellow-400" filled />
-                <span className="font-bold">{rating.toFixed(1)}</span>
-                {reviewCount && <span className="text-gray-400">({reviewCount})</span>}
-              </span>
-            )}
-            {rating && locationStr && <span className="text-gray-300">&middot;</span>}
-            {locationStr && (
-              <span className="flex items-center gap-1 text-gray-500">
-                <MapPinIcon className="w-4 h-4" />
-                {locationStr}
-              </span>
-            )}
-            {locationStr && priceRange && <span className="text-gray-300">&middot;</span>}
-            {!locationStr && rating && priceRange && <span className="text-gray-300">&middot;</span>}
-            {priceRange && (
-              <span className="font-semibold text-gray-900">{priceRange}</span>
-            )}
-          </div>
-
-          {profile.address && (
-            <p className="text-sm text-gray-500 mt-1">
-              {profile.address}
-            </p>
-          )}
-        </div>
-
-        {/* -- Two-Column Grid (Image+Content | Sidebar) -- */}
+        {/* -- Two-Column Grid (Business Card + Content | Sidebar) -- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-          {/* Left Column — Image + Content */}
+          {/* Left Column — Business Card + Content */}
           <div className="lg:col-span-2">
 
-            {/* -- Top Stack: Hero Gallery + Quick Facts -- */}
-            <div>
-              {/* Hero Gallery */}
-              <div className="relative">
+            {/* Hero Business Card — Image + Identity side by side */}
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Left: Gallery (compact, fixed width) */}
+              <div className="flex-shrink-0 relative">
                 <ProviderHeroGallery
                   images={images}
                   providerName={profile.display_name}
@@ -303,9 +226,72 @@ export default async function ProviderPage({
                 )}
               </div>
 
-              {/* Quick Facts Bar */}
-              <div className="mt-4">
-                <QuickFacts facts={quickFacts} />
+              {/* Right: Identity + Trust signals */}
+              <div className="flex-1 min-w-0">
+                {/* Name row with category pill + icon actions */}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight flex items-center gap-2">
+                      {profile.display_name}
+                      {profile.claim_state === "claimed" && (
+                        <svg className="w-6 h-6 text-primary-600 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                          <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </h1>
+                    {categoryLabel && (
+                      <span className="inline-flex mt-2 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-100">
+                        {categoryLabel}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button className="w-9 h-9 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center">
+                      <svg className="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                    </button>
+                    <SaveButton
+                      provider={{
+                        providerId: profile.id,
+                        slug: profile.slug,
+                        name: profile.display_name,
+                        location: locationStr,
+                        careTypes: profile.care_types || [],
+                        image: images[0] || null,
+                        rating: rating || undefined,
+                      }}
+                      variant="icon"
+                    />
+                  </div>
+                </div>
+
+                {/* Context line */}
+                <div className="flex items-center gap-2 mt-3 text-sm text-gray-600 flex-wrap">
+                  {rating && (
+                    <span className="flex items-center gap-1 text-gray-900">
+                      <StarIcon className="w-4 h-4 text-yellow-400" filled />
+                      <span className="font-bold">{rating.toFixed(1)}</span>
+                      {reviewCount && <span className="text-gray-400">({reviewCount})</span>}
+                    </span>
+                  )}
+                  {rating && locationStr && <span className="text-gray-300">&middot;</span>}
+                  {locationStr && (
+                    <span className="text-gray-500">{locationStr}</span>
+                  )}
+                  {locationStr && priceRange && <span className="text-gray-300">&middot;</span>}
+                  {!locationStr && rating && priceRange && <span className="text-gray-300">&middot;</span>}
+                  {priceRange && (
+                    <span className="font-semibold text-gray-900">{priceRange}</span>
+                  )}
+                </div>
+
+                {/* Trust signal pills */}
+                {quickFacts.length > 0 && (
+                  <div className="mt-4">
+                    <QuickFacts facts={quickFacts} />
+                  </div>
+                )}
               </div>
             </div>
 

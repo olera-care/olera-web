@@ -60,32 +60,21 @@ export interface QuickFact {
 }
 
 interface QuickFactsInput {
-  category: ProfileCategory | null;
-  city: string | null;
-  state: string | null;
   yearFounded?: number;
   bedCount?: number;
   yearsExperience?: number;
   acceptsMedicaid?: boolean;
   acceptsMedicare?: boolean;
-  priceRange?: string | null;
+  backgroundChecked?: boolean;
+  licensed?: boolean;
 }
 
 export function buildQuickFacts(input: QuickFactsInput): QuickFact[] {
   const facts: QuickFact[] = [];
 
-  const categoryLabel = formatCategory(input.category);
-  if (categoryLabel) {
-    facts.push({ label: "Type", value: categoryLabel, icon: "category" });
-  }
-
-  const location = [input.city, input.state].filter(Boolean).join(", ");
-  if (location) {
-    facts.push({ label: "Location", value: location, icon: "location" });
-  }
-
   if (input.yearFounded) {
-    facts.push({ label: "Founded", value: String(input.yearFounded), icon: "calendar" });
+    const yearsInBusiness = new Date().getFullYear() - input.yearFounded;
+    facts.push({ label: "Founded", value: `Est. ${input.yearFounded} (${yearsInBusiness} yrs)`, icon: "calendar" });
   }
 
   if (input.bedCount) {
@@ -103,8 +92,12 @@ export function buildQuickFacts(input: QuickFactsInput): QuickFact[] {
     facts.push({ label: "Insurance", value: types.join(" & "), icon: "shield" });
   }
 
-  if (input.priceRange) {
-    facts.push({ label: "Pricing", value: input.priceRange, icon: "dollar" });
+  if (input.backgroundChecked) {
+    facts.push({ label: "", value: "Background Checked", icon: "shield" });
+  }
+
+  if (input.licensed) {
+    facts.push({ label: "", value: "Licensed & Insured", icon: "award" });
   }
 
   return facts;

@@ -63,11 +63,16 @@ function readLanguages(meta: FamilyMetadata): string[] {
 
 // ── Main Component ──
 
-export default function FamilyProfileView() {
+interface FamilyProfileViewProps {
+  /** Override the profile to render. Falls back to activeProfile from context. */
+  profile?: BusinessProfile | null;
+}
+
+export default function FamilyProfileView({ profile: profileProp }: FamilyProfileViewProps = {}) {
   const { user, activeProfile, refreshAccountData } = useAuth();
   const [editingSection, setEditingSection] = useState<number | null>(null);
 
-  const profile = activeProfile as BusinessProfile;
+  const profile = (profileProp ?? activeProfile) as BusinessProfile;
   const meta = (profile?.metadata || {}) as FamilyMetadata;
   const userEmail = user?.email || "";
 

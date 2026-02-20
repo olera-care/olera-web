@@ -1,27 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import FamilyProfileView from "@/components/portal/profile/FamilyProfileView";
 import SettingsPage from "../settings/page";
 
 export default function PortalProfilePage() {
-  const router = useRouter();
-  const { activeProfile } = useAuth();
+  const { profiles } = useAuth();
   const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
 
-  // Redirect providers to their own profile page
-  useEffect(() => {
-    if (activeProfile && activeProfile.type !== "family") {
-      router.replace("/provider/profile");
-    }
-  }, [activeProfile, router]);
+  // Always use the family profile for this page — it's the shared personal info
+  // page accessible from both portals. Every account has an auto-created family profile.
+  const familyProfile = profiles.find((p) => p.type === "family") ?? null;
 
-  // activeProfile is guaranteed by the portal layout guard
-  if (!activeProfile) return null;
-  // Show nothing while redirecting providers to /provider/profile
-  if (activeProfile.type !== "family") return null;
+  if (!familyProfile) return null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -65,7 +57,7 @@ export default function PortalProfilePage() {
       {activeTab === "settings" ? (
         <SettingsPage />
       ) : (
-        <FamilyProfileView />
+        <FamilyProfileView profile={familyProfile} />
       )}
     </div>
   );

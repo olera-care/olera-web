@@ -15,21 +15,19 @@ interface BrowseMapProps {
 // Helpers
 // ============================================================
 
-/** Airbnb-style white pill marker with price */
-function createPriceIcon(price: string, isHovered: boolean): L.DivIcon {
-  const shortPrice = price
-    .replace("Contact for pricing", "Contact")
-    .replace("From ", "");
+/** TripAdvisor-style teal circle bubble with score */
+function createScoreBubble(rating: number, isHovered: boolean): L.DivIcon {
+  const score = rating > 0 ? rating.toFixed(1) : "—";
 
   return L.divIcon({
-    className: "olera-price-marker",
-    html: `<div class="olera-pill${isHovered ? " olera-pill--active" : ""}">${shortPrice}</div>`,
-    iconSize: [0, 0],
-    iconAnchor: [0, 0],
+    className: "olera-score-marker",
+    html: `<div class="olera-bubble${isHovered ? " olera-bubble--active" : ""}">${score}</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
   });
 }
 
-/** Build HTML for the popup card */
+/** Build HTML for the popup preview card */
 function buildPopupHTML(provider: Provider): string {
   const ratingHTML = provider.rating > 0
     ? `<div style="display:flex;align-items:center;gap:4px;">
@@ -82,7 +80,6 @@ export default function BrowseMap({
   const onMarkerHoverRef = useRef(onMarkerHover);
   onMarkerHoverRef.current = onMarkerHover;
 
-  // Filter to providers with valid coordinates
   const mappableProviders = useMemo(
     () => providers.filter((p) => p.lat != null && p.lon != null).slice(0, 50),
     [providers]
@@ -97,22 +94,19 @@ export default function BrowseMap({
       attributionControl: false,
     }).setView([30.2672, -97.7431], 12);
 
-    // CartoDB Positron — clean, minimal tile style
+    // CartoDB Positron — clean, minimal tiles
     L.tileLayer(
       "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://carto.com">CARTO</a>',
-      }
+      { maxZoom: 19 }
     ).addTo(map);
 
-    // Custom zoom control — top right like Airbnb
+    // Zoom controls — top right
     L.control.zoom({ position: "topright" }).addTo(map);
 
     // Minimal attribution
     L.control
       .attribution({ position: "bottomright", prefix: false })
-      .addAttribution('© <a href="https://openstreetmap.org" target="_blank">OSM</a>')
+      .addAttribution('© <a href="https://openstreetmap.org" target="_blank">OSM</a>, © <a href="https://carto.com" target="_blank">CARTO</a>')
       .addTo(map);
 
     mapRef.current = map;
@@ -138,7 +132,7 @@ export default function BrowseMap({
     if (mappableProviders.length === 0) return;
 
     mappableProviders.forEach((provider) => {
-      const icon = createPriceIcon(provider.priceRange, false);
+      const icon = createScoreBubble(provider.rating, false);
 
       const marker = L.marker([provider.lat!, provider.lon!], { icon })
         .addTo(map)
@@ -147,11 +141,14 @@ export default function BrowseMap({
           minWidth: 240,
           className: "olera-map-popup",
           closeButton: true,
-          offset: [0, -5],
+          offset: [0, -12],
         });
 
       marker.on("mouseover", () => onMarkerHoverRef.current(provider.id));
       marker.on("mouseout", () => onMarkerHoverRef.current(null));
+      marker.on("click", () => {
+        marker.openPopup();
+      });
 
       markersRef.current.set(provider.id, marker);
     });
@@ -169,7 +166,7 @@ export default function BrowseMap({
         const prevMarker = markersRef.current.get(prevId);
         const prevProvider = mappableProviders.find((p) => p.id === prevId);
         if (prevMarker && prevProvider) {
-          prevMarker.setIcon(createPriceIcon(prevProvider.priceRange, false));
+          prevMarker.setIcon(createScoreBubble(prevProvider.rating, false));
           prevMarker.setZIndexOffset(0);
         }
       }
@@ -177,7 +174,7 @@ export default function BrowseMap({
         const marker = markersRef.current.get(providerId);
         const provider = mappableProviders.find((p) => p.id === providerId);
         if (marker && provider) {
-          marker.setIcon(createPriceIcon(provider.priceRange, true));
+          marker.setIcon(createScoreBubble(provider.rating, true));
           marker.setZIndexOffset(1000);
         }
       }
@@ -206,40 +203,39 @@ export default function BrowseMap({
         </div>
       )}
 
-      {/* Elegant map styles */}
+      {/* Map styles */}
       <style jsx global>{`
-        /* ── Price pill markers ── */
-        .olera-price-marker {
+        /* ── Score bubble markers ── */
+        .olera-score-marker {
           background: none !important;
           border: none !important;
           overflow: visible !important;
         }
-        .olera-pill {
-          transform: translate(-50%, -50%);
-          padding: 5px 10px;
-          border-radius: 20px;
-          font-size: 13px;
-          font-weight: 600;
+        .olera-bubble {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 700;
           font-family: Inter, -apple-system, system-ui, sans-serif;
-          white-space: nowrap;
           cursor: pointer;
-          background: #fff;
-          color: #222;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.16);
-          border: 1px solid rgba(0,0,0,0.04);
-          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
-        }
-        .olera-pill:hover {
-          transform: translate(-50%, -50%) scale(1.08);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-          z-index: 10 !important;
-        }
-        .olera-pill--active {
           background: #0e7490;
           color: #fff;
-          border-color: #0e7490;
-          transform: translate(-50%, -50%) scale(1.08);
-          box-shadow: 0 4px 12px rgba(14,116,144,0.35);
+          box-shadow: 0 2px 6px rgba(14,116,144,0.35);
+          border: 2.5px solid #fff;
+          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .olera-bubble:hover {
+          transform: scale(1.15);
+          box-shadow: 0 4px 12px rgba(14,116,144,0.45);
+        }
+        .olera-bubble--active {
+          background: #164e63;
+          transform: scale(1.2);
+          box-shadow: 0 4px 14px rgba(22,78,99,0.5);
         }
 
         /* ── Custom zoom controls ── */

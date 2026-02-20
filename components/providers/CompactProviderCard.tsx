@@ -63,6 +63,11 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
             </span>
           )}
         </div>
+        {provider.priceRange && provider.priceRange !== "Contact for pricing" && (
+          <p className="text-xs font-medium text-gray-700 mt-1">
+            {provider.priceRange}
+          </p>
+        )}
       </div>
     </Link>
   );

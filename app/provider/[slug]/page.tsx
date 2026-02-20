@@ -3,9 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
-import Badge from "@/components/ui/Badge";
 import ConnectionCard from "@/components/providers/connection-card";
-import ImageCarousel from "@/components/providers/ImageCarousel";
+import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
+import Breadcrumbs from "@/components/providers/Breadcrumbs";
+import QuickFacts from "@/components/providers/QuickFacts";
 import ExpandableText from "@/components/providers/ExpandableText";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import SaveButton from "@/components/providers/SaveButton";
@@ -20,7 +21,6 @@ import {
   buildQuickFacts,
   getSimilarProviders,
   getDefaultQA,
-  type QuickFact,
 } from "@/lib/provider-utils";
 
 // Extended metadata type that includes mock-specific fields
@@ -70,40 +70,6 @@ function CheckIcon({ className }: { className?: string }) {
   );
 }
 
-// Quick fact icon mapping
-const factIcons: Record<QuickFact["icon"], (props: { className?: string }) => React.JSX.Element> = {
-  category: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-    </svg>
-  ),
-  location: MapPinIcon,
-  calendar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-  users: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
-  ),
-  award: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-    </svg>
-  ),
-  shield: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  dollar: ({ className }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-};
 
 // ============================================================
 // Page Component
@@ -170,7 +136,6 @@ export default async function ProviderPage({
 
   // --- Data extraction ---
   const meta = profile.metadata as ExtendedMetadata;
-  const amenities = meta?.amenities || [];
   const priceRange =
     meta?.price_range ||
     (meta?.hourly_rate_min && meta?.hourly_rate_max
@@ -181,7 +146,6 @@ export default async function ProviderPage({
   const reviewCount = meta?.review_count;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
   const staff = meta?.staff;
-  const badge = meta?.badge;
   const acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
@@ -209,18 +173,11 @@ export default async function ProviderPage({
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
 
-  const details: { label: string; value: string; icon: string }[] = [];
-  if (meta?.year_founded) details.push({ label: "Year Founded", value: String(meta.year_founded), icon: "calendar" });
-  if (meta?.bed_count) details.push({ label: "Capacity", value: `${meta.bed_count} beds`, icon: "users" });
-  if (meta?.years_experience) details.push({ label: "Experience", value: `${meta.years_experience} years`, icon: "award" });
-  if (meta?.accepts_medicaid !== undefined) details.push({ label: "Medicaid", value: meta.accepts_medicaid ? "Accepted" : "Not accepted", icon: "shield" });
-  if (meta?.accepts_medicare !== undefined) details.push({ label: "Medicare", value: meta.accepts_medicare ? "Accepted" : "Not accepted", icon: "shield" });
-
   // ============================================================
   // Section navigation items (built dynamically based on available data)
   // ============================================================
   const sectionItems: SectionItem[] = [];
-  if (profile.description) sectionItems.push({ id: "about", label: "Overview" });
+  sectionItems.push({ id: "about", label: "Overview" });
   if (profile.care_types && profile.care_types.length > 0) sectionItems.push({ id: "services", label: "Services" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (acceptedPayments.length > 0 || meta?.accepts_medicaid || meta?.accepts_medicare) sectionItems.push({ id: "payment", label: "Payment" });
@@ -245,6 +202,14 @@ export default async function ProviderPage({
 
       {/* ===== Main Layout ===== */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-10">
+
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          category={profile.category}
+          city={profile.city}
+          state={profile.state}
+          providerName={profile.display_name}
+        />
 
         {/* -- Identity: Category + Provider Name + Location + Share/Save -- */}
         <div className="mb-4">
@@ -282,8 +247,28 @@ export default async function ProviderPage({
               />
             </div>
           </div>
+          {/* Pricing / Rating / Location summary row */}
+          <div className="flex items-center gap-3 mt-1.5 flex-wrap text-sm">
+            {rating && (
+              <span className="flex items-center gap-1 text-gray-700">
+                <StarIcon className="w-4 h-4 text-yellow-400" filled />
+                <span className="font-semibold">{rating.toFixed(1)}</span>
+                {reviewCount && <span className="text-gray-400">({reviewCount})</span>}
+              </span>
+            )}
+            {locationStr && (
+              <span className="flex items-center gap-1 text-gray-500">
+                <MapPinIcon className="w-4 h-4" />
+                {locationStr}
+              </span>
+            )}
+            {priceRange && (
+              <span className="font-medium text-gray-700">{priceRange}</span>
+            )}
+          </div>
+
           {profile.address && (
-            <p className="text-base text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               {profile.address}
             </p>
           )}
@@ -295,13 +280,16 @@ export default async function ProviderPage({
           {/* Left Column — Image + Content */}
           <div className="lg:col-span-2">
 
-            {/* -- Top Stack: Image + Highlights -- */}
+            {/* -- Top Stack: Hero Gallery + Quick Facts -- */}
             <div>
-              {/* Image Carousel */}
-              {images.length > 0 && (
-                <div className="relative">
-                  <ImageCarousel images={images} alt={profile.display_name} className="h-[420px]" />
-                  {/* Claim status badge — positioned outside overflow-hidden via outer relative wrapper */}
+              {/* Hero Gallery */}
+              <div className="relative">
+                <ProviderHeroGallery
+                  images={images}
+                  providerName={profile.display_name}
+                  category={profile.category}
+                />
+                {images.length > 0 && (
                   <div className="absolute top-4 left-4 z-20">
                     <ClaimBadge
                       claimState={profile.claim_state}
@@ -309,20 +297,13 @@ export default async function ProviderPage({
                       claimUrl={`/for-providers/claim/${profile.slug}`}
                     />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Highlights Bar */}
-              {amenities.length > 0 && (
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4">
-                  {amenities.slice(0, 3).map((item) => (
-                    <div key={item} className="flex items-center gap-2">
-                      <CheckIcon className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                      <span className="text-sm font-medium text-gray-700">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Quick Facts Bar */}
+              <div className="mt-4">
+                <QuickFacts facts={quickFacts} />
+              </div>
             </div>
 
             {/* -- Content Sections -- */}
@@ -360,14 +341,15 @@ export default async function ProviderPage({
             )}
 
             {/* 2. About */}
-            {profile.description && (
-              <div id="about" className="pb-12 first:pt-0 scroll-mt-20">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  About {profile.display_name}
-                </h2>
-                <ExpandableText text={profile.description} maxLength={150} />
-              </div>
-            )}
+            <div id="about" className="pb-12 first:pt-0 scroll-mt-20">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                About {profile.display_name}
+              </h2>
+              <ExpandableText
+                text={profile.description || `${profile.display_name} is a ${categoryLabel || "senior care"} provider${locationStr ? ` located in ${locationStr}` : ""}. Contact them directly for more information about their services, availability, and pricing.`}
+                maxLength={150}
+              />
+            </div>
 
             {/* 3. Care Services */}
             {profile.care_types && profile.care_types.length > 0 && (
@@ -543,23 +525,30 @@ export default async function ProviderPage({
                     <StarIcon key={star} className={`w-6 h-6 ${star <= Math.round(oleraScore) ? "text-yellow-400" : "text-gray-200"}`} filled={star <= Math.round(oleraScore)} />
                   ))}
                 </div>
-                {/* Breakdown cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 max-w-5xl mx-auto">
-                  {[
-                    { label: "Community", value: meta?.community_score || Math.min(5, oleraScore + 0.1) },
-                    { label: "Value", value: meta?.value_score || Math.min(5, oleraScore - 0.1) },
-                    { label: "Transparency", value: meta?.info_score || Math.min(5, oleraScore - 0.3) },
-                    { label: "Completeness", value: Math.min(5, oleraScore - 0.5) },
-                  ].map((f) => (
-                    <div key={f.label} className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
-                      <span className="text-3xl font-bold text-gray-900 tracking-tight">{f.value.toFixed(1)}</span>
-                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-3 mb-2">
-                        <div className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full" style={{ width: `${(f.value / 5) * 100}%` }} />
-                      </div>
-                      <span className="text-xs uppercase tracking-[0.15em] text-gray-500 font-medium">{f.label}</span>
+                {/* Breakdown cards — only show when real sub-scores exist */}
+                {(() => {
+                  const scoreBreakdown = [
+                    { label: "Community", value: meta?.community_score },
+                    { label: "Value", value: meta?.value_score },
+                    { label: "Information Availability", value: meta?.info_score },
+                  ].filter((f): f is { label: string; value: number } => !!f.value && f.value > 0);
+
+                  if (scoreBreakdown.length === 0) return null;
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+                      {scoreBreakdown.map((f) => (
+                        <div key={f.label} className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
+                          <span className="text-3xl font-bold text-gray-900 tracking-tight">{f.value.toFixed(1)}</span>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-3 mb-2">
+                            <div className="h-full bg-gradient-to-r from-primary-400 to-primary-600 rounded-full" style={{ width: `${(f.value / 5) * 100}%` }} />
+                          </div>
+                          <span className="text-xs uppercase tracking-[0.15em] text-gray-500 font-medium">{f.label}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -626,7 +615,7 @@ export default async function ProviderPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           <div className="border-t border-gray-200 pt-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
-              Similar providers nearby
+              Compare to best local options
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {similarProviders.map((provider) => (

@@ -129,6 +129,7 @@ export interface ProviderCardData {
   highlights: string[];
   acceptedPayments: string[];
   verified: boolean;
+  badge?: string;
   description?: string;
   lat?: number | null;
   lon?: number | null;
@@ -158,7 +159,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     ].filter(Boolean) as string[],
     acceptedPayments: [],
     verified: false,
-    description: provider.provider_description?.slice(0, 100) || undefined,
+    description: provider.provider_description?.slice(0, 200) || undefined,
     lat: provider.lat,
     lon: provider.lon,
   };

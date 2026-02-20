@@ -54,9 +54,9 @@ export async function POST(request: Request) {
       intentData: {
         careRecipient: string | null;
         careType: string | null;
-        careTypeOtherText: string;
+        careTypeOtherText?: string;
         urgency: string | null;
-        additionalNotes: string;
+        additionalNotes?: string;
       };
     };
 
@@ -266,13 +266,16 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Check for existing connection (prevent duplicates)
+    // 4. Check for existing active connection (prevent duplicates)
+    // Only pending/accepted connections block reconnection.
+    // Expired (withdrawn/ended) and declined connections allow a fresh request.
     const { data: existingConnection } = await db
       .from("connections")
       .select("id, created_at")
       .eq("from_profile_id", fromProfileId)
       .eq("to_profile_id", toProfileId)
       .eq("type", "inquiry")
+      .in("status", ["pending", "accepted"])
       .limit(1)
       .single();
 

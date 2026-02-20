@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import FamilyProfileView from "@/components/portal/profile/FamilyProfileView";
 
 const ORG_CATEGORIES: { value: ProfileCategory; label: string }[] = [
   { value: "assisted_living", label: "Assisted Living" },
@@ -239,6 +240,11 @@ export default function PortalProfilePage() {
   // activeProfile is guaranteed by the portal layout guard
   if (!activeProfile) return null;
 
+  // Family profiles use the dedicated view-only layout with Edit Drawer
+  if (activeProfile.type === "family") {
+    return <FamilyProfileView />;
+  }
+
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setSaved(false);
@@ -466,20 +472,16 @@ export default function PortalProfilePage() {
 
   const isOrg = activeProfile.type === "organization";
   const isCaregiver = activeProfile.type === "caregiver";
-  const isFamily = activeProfile.type === "family";
 
   const profileLabel = isOrg
     ? "Keep your information up to date so families can find you."
-    : isCaregiver
-    ? "Keep your information up to date so agencies and families can find you."
-    : "Keep your information up to date so providers can understand your needs.";
+    : "Keep your information up to date so agencies and families can find you.";
 
   return (
     <div>
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Edit profile</h1>
-          <p className="text-lg text-gray-600 mt-1">{profileLabel}</p>
+          <p className="text-lg text-gray-600">{profileLabel}</p>
         </div>
         {activeProfile?.slug && (isOrg || isCaregiver) && (
           <a
@@ -600,11 +602,7 @@ export default function PortalProfilePage() {
                   (e.target as HTMLTextAreaElement).value
                 )
               }
-              placeholder={
-                isFamily
-                  ? "Describe the care situation and what you're looking for."
-                  : "Tell families about your services, philosophy, and what makes you different."
-              }
+              placeholder="Tell families about your services, philosophy, and what makes you different."
               rows={4}
             />
 
@@ -660,18 +658,16 @@ export default function PortalProfilePage() {
               }
               placeholder="contact@example.com"
             />
-            {!isFamily && (
-              <Input
-                label="Website"
-                name="website"
-                type="url"
-                value={form.website}
-                onChange={(e) =>
-                  handleChange("website", (e.target as HTMLInputElement).value)
-                }
-                placeholder="https://example.com"
-              />
-            )}
+            <Input
+              label="Website"
+              name="website"
+              type="url"
+              value={form.website}
+              onChange={(e) =>
+                handleChange("website", (e.target as HTMLInputElement).value)
+              }
+              placeholder="https://example.com"
+            />
           </div>
         </section>
 
@@ -681,17 +677,15 @@ export default function PortalProfilePage() {
             Location
           </h2>
           <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200">
-            {!isFamily && (
-              <Input
-                label="Street address"
-                name="address"
-                value={form.address}
-                onChange={(e) =>
-                  handleChange("address", (e.target as HTMLInputElement).value)
-                }
-                placeholder="123 Main Street"
-              />
-            )}
+            <Input
+              label="Street address"
+              name="address"
+              value={form.address}
+              onChange={(e) =>
+                handleChange("address", (e.target as HTMLInputElement).value)
+              }
+              placeholder="123 Main Street"
+            />
             <div className="grid grid-cols-2 gap-4">
               <Input
                 label="City"
@@ -724,7 +718,7 @@ export default function PortalProfilePage() {
         {/* Care types section */}
         <section>
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            {isFamily ? "Care types needed" : "Care types offered"}
+            Care types offered
           </h2>
           <div className="bg-white p-6 rounded-xl border border-gray-200">
             <div className="flex flex-wrap gap-2">
@@ -1046,95 +1040,6 @@ export default function PortalProfilePage() {
                       {lang}
                     </button>
                   ))}
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Family details section */}
-        {isFamily && (
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Care situation
-            </h2>
-            <div className="space-y-6 bg-white p-6 rounded-xl border border-gray-200">
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="timeline"
-                  className="block text-base font-medium text-gray-700"
-                >
-                  Timeline
-                </label>
-                <select
-                  id="timeline"
-                  value={familyMeta.timeline}
-                  onChange={(e) => {
-                    setFamilyMeta((p) => ({
-                      ...p,
-                      timeline: e.target.value,
-                    }));
-                    setSaved(false);
-                  }}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                >
-                  <option value="">Select timeline</option>
-                  {TIMELINE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <Input
-                label="Relationship to care recipient"
-                name="relationship_to_recipient"
-                value={familyMeta.relationship_to_recipient}
-                onChange={(e) => {
-                  setFamilyMeta((p) => ({
-                    ...p,
-                    relationship_to_recipient: (e.target as HTMLInputElement)
-                      .value,
-                  }));
-                  setSaved(false);
-                }}
-                placeholder="e.g. Daughter, Spouse, Son"
-              />
-
-              <div className="space-y-1.5">
-                <p className="text-base font-medium text-gray-700">
-                  Budget range (per month)
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Minimum ($)"
-                    name="budget_min"
-                    type="number"
-                    value={familyMeta.budget_min}
-                    onChange={(e) => {
-                      setFamilyMeta((p) => ({
-                        ...p,
-                        budget_min: (e.target as HTMLInputElement).value,
-                      }));
-                      setSaved(false);
-                    }}
-                    placeholder="2000"
-                  />
-                  <Input
-                    label="Maximum ($)"
-                    name="budget_max"
-                    type="number"
-                    value={familyMeta.budget_max}
-                    onChange={(e) => {
-                      setFamilyMeta((p) => ({
-                        ...p,
-                        budget_max: (e.target as HTMLInputElement).value,
-                      }));
-                      setSaved(false);
-                    }}
-                    placeholder="5000"
-                  />
                 </div>
               </div>
             </div>

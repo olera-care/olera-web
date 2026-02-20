@@ -9,23 +9,17 @@ import {
 import type { IntentData } from "./types";
 
 interface ReturningUserStateProps {
-  providerName: string;
   phone: string | null;
   intentData: IntentData;
-  onSend: () => void;
+  onConnect: () => void;
   onEdit: () => void;
-  submitting: boolean;
-  error: string;
 }
 
 export default function ReturningUserState({
-  providerName,
   phone,
   intentData,
-  onSend,
+  onConnect,
   onEdit,
-  submitting,
-  error,
 }: ReturningUserStateProps) {
   const careTypeLabel = intentData.careType
     ? CARE_TYPE_LABELS[intentData.careType] || intentData.careType
@@ -52,16 +46,11 @@ export default function ReturningUserState({
         </button>
       </div>
 
-      {error && (
-        <p className="text-sm text-red-600 mb-2">{error}</p>
-      )}
-
       <button
-        onClick={onSend}
-        disabled={submitting}
+        onClick={onConnect}
         className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 text-white border-none rounded-[10px] text-[15px] font-semibold cursor-pointer transition-colors"
       >
-        {submitting ? "Sending..." : `Connect with ${providerName}`}
+        Connect
       </button>
 
       <div className="mt-2.5">

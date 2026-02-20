@@ -5,8 +5,8 @@ import CardTopSection from "./CardTopSection";
 import CardBottomSection from "./CardBottomSection";
 import DefaultActions from "./DefaultActions";
 import IntentCapture from "./IntentCapture";
-import ConfirmationState from "./ConfirmationState";
 import PendingState from "./PendingState";
+import RespondedState from "./RespondedState";
 import InactiveState from "./InactiveState";
 import ReturningUserState from "./ReturningUserState";
 import type { ConnectionCardProps } from "./types";
@@ -42,62 +42,31 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
       {/* Middle section — state-dependent */}
       <div className="px-5 py-5">
+        {hook.cardState === "loading" && (
+          <div className="animate-pulse space-y-3">
+            <div className="h-11 bg-gray-100 rounded-[10px]" />
+            <div className="h-10 bg-gray-100 rounded-[10px]" />
+          </div>
+        )}
+
         {hook.cardState === "default" && (
           <DefaultActions
             phone={phone}
             phoneRevealed={hook.phoneRevealed}
-            saved={hook.saved}
             onConnect={hook.startFlow}
             onRevealPhone={hook.revealPhone}
-            onToggleSave={hook.toggleSave}
           />
         )}
 
         {hook.cardState === "intent" && (
           <IntentCapture
-            providerName={providerName}
             intentStep={hook.intentStep}
             intentData={hook.intentData}
             availableCareTypes={hook.availableCareTypes}
-            onSetRecipient={hook.setRecipient}
-            onSetCareType={hook.setCareType}
-            onSetUrgency={hook.setUrgency}
-            onSetNotes={hook.setNotes}
-            onNext={hook.goToNextIntentStep}
-            onBack={hook.goBackIntentStep}
-            onEditStep={hook.editIntentStep}
-          />
-        )}
-
-        {hook.cardState === "submitting" && (
-          <div className="text-center py-6">
-            {!hook.error ? (
-              <>
-                <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-4" />
-                <p className="text-base font-semibold text-gray-700">
-                  Sending your request to {providerName}...
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-base text-red-600 mb-3">{hook.error}</p>
-                <button
-                  onClick={() => hook.submitRequest()}
-                  className="px-6 py-2.5 bg-primary-600 text-white rounded-[10px] text-sm font-semibold cursor-pointer border-none hover:bg-primary-500 transition-colors"
-                >
-                  Retry
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {hook.cardState === "confirmation" && (
-          <ConfirmationState
-            providerName={providerName}
-            phone={phone}
-            responseTime={responseTime}
-            notificationEmail={hook.notificationEmail}
+            onSelectRecipient={hook.selectRecipient}
+            onSelectCareType={hook.selectCareType}
+            onSelectUrgency={hook.selectUrgency}
+            onConnect={hook.connect}
           />
         )}
 
@@ -109,9 +78,18 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           />
         )}
 
+        {hook.cardState === "responded" && (
+          <RespondedState
+            providerName={providerName}
+            phone={phone}
+            requestDate={hook.pendingRequestDate}
+          />
+        )}
+
         {hook.cardState === "inactive" && (
           <InactiveState
             providerName={providerName}
+            phone={phone}
             saved={hook.saved}
             onToggleSave={hook.toggleSave}
           />
@@ -119,13 +97,10 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
         {hook.cardState === "returning" && (
           <ReturningUserState
-            providerName={providerName}
             phone={phone}
             intentData={hook.intentData}
-            onSend={hook.submitFromReturning}
+            onConnect={hook.connect}
             onEdit={hook.editFromReturning}
-            submitting={hook.submitting}
-            error={hook.error}
           />
         )}
       </div>

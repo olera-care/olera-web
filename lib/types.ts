@@ -34,8 +34,8 @@ export type MembershipStatus =
   | "free";
 export type BillingCycle = "monthly" | "annual";
 
-export type ConnectionType = "inquiry" | "save" | "application" | "invitation";
-export type ConnectionStatus = "pending" | "accepted" | "declined" | "archived";
+export type ConnectionType = "inquiry" | "save" | "match" | "request" | "application" | "invitation" | "dismiss";
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "expired" | "archived";
 
 // ============================================================
 // Table Row Types
@@ -110,6 +110,7 @@ export interface Connection {
   type: ConnectionType;
   status: ConnectionStatus;
   message: string | null;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -145,6 +146,25 @@ export interface FamilyMetadata {
   budget_min?: number;
   budget_max?: number;
   relationship_to_recipient?: string;
+  // Enrichment fields
+  country?: string;
+  contact_preference?: "call" | "text" | "email";
+  payment_methods?: string[];
+  living_situation?: string;
+  schedule_preference?: string;
+  care_location?: string;
+  language_preference?: string | string[];
+  about_situation?: string;
+  notification_prefs?: {
+    connection_updates?: { email?: boolean; sms?: boolean };
+    saved_provider_alerts?: { email?: boolean; sms?: boolean };
+    match_updates?: { email?: boolean; sms?: boolean };
+    profile_reminders?: { email?: boolean; sms?: boolean };
+  };
+  care_post?: {
+    status: "draft" | "active" | "paused";
+    published_at?: string;
+  };
 }
 
 // ============================================================
@@ -163,7 +183,7 @@ export interface DeferredAction {
 // ============================================================
 
 export interface AuthState {
-  user: { id: string; email: string } | null;
+  user: { id: string; email: string; email_confirmed_at?: string } | null;
   account: Account | null;
   activeProfile: Profile | null;
   profiles: Profile[];

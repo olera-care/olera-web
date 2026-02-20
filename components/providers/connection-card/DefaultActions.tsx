@@ -5,37 +5,15 @@ import PhoneButton from "./PhoneButton";
 interface DefaultActionsProps {
   phone: string | null;
   phoneRevealed: boolean;
-  saved: boolean;
   onConnect: () => void;
   onRevealPhone: () => void;
-  onToggleSave: () => void;
-}
-
-function HeartIcon({ filled }: { filled: boolean }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill={filled ? "#EF4444" : "none"}
-      stroke={filled ? "#EF4444" : "currentColor"}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={filled ? "" : "text-gray-400"}
-    >
-      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-    </svg>
-  );
 }
 
 export default function DefaultActions({
   phone,
   phoneRevealed,
-  saved,
   onConnect,
   onRevealPhone,
-  onToggleSave,
 }: DefaultActionsProps) {
   return (
     <>
@@ -56,20 +34,12 @@ export default function DefaultActions({
         />
       </div>
 
-      {/* Save action */}
-      <button
-        onClick={onToggleSave}
-        className="flex items-center justify-center gap-1.5 w-full mt-3.5 py-1 cursor-pointer bg-transparent border-none"
-      >
-        <HeartIcon filled={saved} />
-        <span
-          className={`text-[13px] font-medium ${
-            saved ? "text-red-500" : "text-gray-500"
-          }`}
-        >
-          {saved ? "Saved" : "Save this provider"}
-        </span>
-      </button>
+      {/* Helper text */}
+      {!phoneRevealed && phone && (
+        <p className="text-xs text-gray-400 text-center mt-1.5">
+          Connect to see full number
+        </p>
+      )}
     </>
   );
 }

@@ -15,56 +15,50 @@ interface BrowseMapProps {
 // Helpers
 // ============================================================
 
-/** Create a custom Leaflet divIcon — Airbnb-style white pill with price */
+/** Airbnb-style white pill marker with price */
 function createPriceIcon(price: string, isHovered: boolean): L.DivIcon {
+  const shortPrice = price
+    .replace("Contact for pricing", "Contact")
+    .replace("From ", "");
+
   return L.divIcon({
     className: "olera-price-marker",
-    html: `<div style="
-      width: max-content;
-      transform: translate(-50%, -50%)${isHovered ? " scale(1.1)" : ""};
-      padding: 6px 10px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-      background: ${isHovered ? "#199087" : "#fff"};
-      color: ${isHovered ? "#fff" : "#222"};
-      box-shadow: 0 1px 4px rgba(0,0,0,0.18);
-      border: 1px solid ${isHovered ? "#199087" : "rgba(0,0,0,0.08)"};
-    ">${price}</div>`,
+    html: `<div class="olera-pill${isHovered ? " olera-pill--active" : ""}">${shortPrice}</div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
 }
 
-/** Build HTML for the popup preview card */
+/** Build HTML for the popup card */
 function buildPopupHTML(provider: Provider): string {
-  const stars = Array.from({ length: 5 }, (_, i) =>
-    `<span style="color:${i < Math.round(provider.rating) ? "#facc15" : "#d1d5db"}">★</span>`
-  ).join("");
+  const ratingHTML = provider.rating > 0
+    ? `<div style="display:flex;align-items:center;gap:4px;">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="#FDB022"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+        <span style="font-size:13px;font-weight:600;color:#111;">${provider.rating.toFixed(1)}</span>
+      </div>`
+    : "";
 
   return `
-    <a href="/provider/${provider.slug}" target="_blank" rel="noopener" style="display:block;width:260px;text-decoration:none;color:inherit;font-family:system-ui,-apple-system,sans-serif;">
-      <img
-        src="${provider.image}"
-        alt="${provider.name}"
-        style="width:100%;height:128px;object-fit:cover;border-radius:10px 10px 0 0;"
-        onerror="this.style.display='none'"
-      />
-      <div style="padding:12px;">
-        <div style="font-size:14px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          ${provider.name}
+    <a href="/provider/${provider.slug}" target="_blank" rel="noopener" style="display:block;width:240px;text-decoration:none;color:inherit;font-family:Inter,-apple-system,system-ui,sans-serif;">
+      <div style="position:relative;width:100%;height:140px;overflow:hidden;border-radius:12px 12px 0 0;">
+        <img
+          src="${provider.image}"
+          alt="${provider.name}"
+          style="width:100%;height:100%;object-fit:cover;"
+          onerror="this.parentElement.style.background='#f3f4f6';this.style.display='none'"
+        />
+      </div>
+      <div style="padding:10px 12px 12px;">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">
+          <div style="font-size:15px;font-weight:600;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">
+            ${provider.name}
+          </div>
+          ${ratingHTML}
         </div>
         <div style="font-size:12px;color:#6b7280;margin-top:2px;">
           ${provider.primaryCategory}
         </div>
-        <div style="margin-top:4px;font-size:13px;">
-          ${stars}
-          <span style="font-size:12px;color:#6b7280;margin-left:4px;">${provider.rating.toFixed(1)}</span>
-        </div>
-        <div style="margin-top:6px;font-size:14px;font-weight:700;color:#111;">
+        <div style="margin-top:8px;font-size:14px;font-weight:700;color:#111;">
           ${provider.priceRange}
         </div>
       </div>
@@ -85,7 +79,6 @@ export default function BrowseMap({
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
   const prevHoveredRef = useRef<string | null>(null);
-  // Stable ref for onMarkerHover to avoid re-creating markers on every render
   const onMarkerHoverRef = useRef(onMarkerHover);
   onMarkerHoverRef.current = onMarkerHover;
 
@@ -100,15 +93,23 @@ export default function BrowseMap({
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: false,
     }).setView([30.2672, -97.7431], 12);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 18,
-    }).addTo(map);
+    // CartoDB Positron — clean, minimal tile style
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://carto.com">CARTO</a>',
+      }
+    ).addTo(map);
 
-    // Compact attribution in bottom-right
+    // Custom zoom control — top right like Airbnb
+    L.control.zoom({ position: "topright" }).addTo(map);
+
+    // Minimal attribution
     L.control
       .attribution({ position: "bottomright", prefix: false })
       .addAttribution('© <a href="https://openstreetmap.org" target="_blank">OSM</a>')
@@ -116,7 +117,6 @@ export default function BrowseMap({
 
     mapRef.current = map;
 
-    // Resize observer to keep map in sync with container
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(mapContainerRef.current);
 
@@ -127,26 +127,24 @@ export default function BrowseMap({
     };
   }, []);
 
-  // ── Update markers when providers change (NOT on hover) ──
+  // ── Update markers when providers change ──
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    // Clear existing markers
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current.clear();
 
     if (mappableProviders.length === 0) return;
 
-    // Add markers (all start unhovered)
     mappableProviders.forEach((provider) => {
       const icon = createPriceIcon(provider.priceRange, false);
 
       const marker = L.marker([provider.lat!, provider.lon!], { icon })
         .addTo(map)
         .bindPopup(buildPopupHTML(provider), {
-          maxWidth: 280,
-          minWidth: 260,
+          maxWidth: 260,
+          minWidth: 240,
           className: "olera-map-popup",
           closeButton: true,
           offset: [0, -5],
@@ -158,17 +156,15 @@ export default function BrowseMap({
       markersRef.current.set(provider.id, marker);
     });
 
-    // Fit bounds to show all markers
     const bounds = L.latLngBounds(
       mappableProviders.map((p) => [p.lat!, p.lon!] as L.LatLngTuple)
     );
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
   }, [mappableProviders]);
 
-  // ── Handle hover sync (lightweight icon swap only) ──
+  // ── Handle hover sync ──
   const updateHoveredMarker = useCallback(
     (providerId: string | null, prevId: string | null) => {
-      // Reset previous
       if (prevId) {
         const prevMarker = markersRef.current.get(prevId);
         const prevProvider = mappableProviders.find((p) => p.id === prevId);
@@ -177,7 +173,6 @@ export default function BrowseMap({
           prevMarker.setZIndexOffset(0);
         }
       }
-      // Highlight new
       if (providerId) {
         const marker = markersRef.current.get(providerId);
         const provider = mappableProviders.find((p) => p.id === providerId);
@@ -211,43 +206,122 @@ export default function BrowseMap({
         </div>
       )}
 
-      {/* Custom marker + popup styles */}
+      {/* Elegant map styles */}
       <style jsx global>{`
+        /* ── Price pill markers ── */
         .olera-price-marker {
           background: none !important;
           border: none !important;
           overflow: visible !important;
         }
+        .olera-pill {
+          transform: translate(-50%, -50%);
+          padding: 5px 10px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 600;
+          font-family: Inter, -apple-system, system-ui, sans-serif;
+          white-space: nowrap;
+          cursor: pointer;
+          background: #fff;
+          color: #222;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.16);
+          border: 1px solid rgba(0,0,0,0.04);
+          transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+        }
+        .olera-pill:hover {
+          transform: translate(-50%, -50%) scale(1.08);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          z-index: 10 !important;
+        }
+        .olera-pill--active {
+          background: #0e7490;
+          color: #fff;
+          border-color: #0e7490;
+          transform: translate(-50%, -50%) scale(1.08);
+          box-shadow: 0 4px 12px rgba(14,116,144,0.35);
+        }
+
+        /* ── Custom zoom controls ── */
+        .leaflet-control-zoom {
+          border: none !important;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
+          border-radius: 12px !important;
+          overflow: hidden;
+          margin-top: 12px !important;
+          margin-right: 12px !important;
+        }
+        .leaflet-control-zoom a {
+          width: 36px !important;
+          height: 36px !important;
+          line-height: 36px !important;
+          font-size: 18px !important;
+          color: #333 !important;
+          background: #fff !important;
+          border: none !important;
+          border-bottom: 1px solid #eee !important;
+          transition: background 0.15s ease;
+        }
+        .leaflet-control-zoom a:last-child {
+          border-bottom: none !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background: #f5f5f5 !important;
+          color: #111 !important;
+        }
+
+        /* ── Popup card ── */
         .olera-map-popup .leaflet-popup-content-wrapper {
           border-radius: 12px;
           padding: 0;
           overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+          box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+          border: none;
         }
         .olera-map-popup .leaflet-popup-content {
           margin: 0;
           line-height: 1.4;
         }
+        .olera-map-popup .leaflet-popup-tip-container {
+          margin-top: -1px;
+        }
         .olera-map-popup .leaflet-popup-tip {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          border: none;
         }
         .olera-map-popup .leaflet-popup-close-button {
-          top: 6px !important;
-          right: 6px !important;
-          width: 24px;
-          height: 24px;
-          font-size: 18px;
+          top: 8px !important;
+          right: 8px !important;
+          width: 26px;
+          height: 26px;
+          font-size: 16px;
           color: #fff;
-          background: rgba(0,0,0,0.4);
+          background: rgba(0,0,0,0.45);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 10;
+          transition: background 0.15s ease;
+          line-height: 26px;
+          text-align: center;
+          padding: 0;
         }
         .olera-map-popup .leaflet-popup-close-button:hover {
-          background: rgba(0,0,0,0.6);
+          background: rgba(0,0,0,0.65);
           color: #fff;
+        }
+
+        /* ── Attribution ── */
+        .leaflet-control-attribution {
+          background: rgba(255,255,255,0.7) !important;
+          font-size: 10px !important;
+          color: #999 !important;
+          padding: 2px 6px !important;
+          border-radius: 4px 0 0 0;
+        }
+        .leaflet-control-attribution a {
+          color: #999 !important;
         }
       `}</style>
     </div>

@@ -13,10 +13,68 @@
 | 2026-02-05 | Keep our browse/provider pages when merging PR #21 | Working filtering, Esther's design already merged |
 | 2026-02-05 | No adapter layer for iOS schema | User feedback: keep both uniform, simpler code |
 | 2026-02-05 | Server-side browse page over client-side | Real Supabase data requires server components |
+| 2026-02-10 | Single UnifiedAuthModal replaces 2 modals | Eliminated ~2,000 LOC of duplication |
+| 2026-02-10 | Google OAuth primary CTA, auth-first flow | One-click auth is fastest path |
+| 2026-02-12 | Staging environment: staging branch + Vercel domain + branch protection | Buffer between dev and production |
+| 2026-02-20 | Primary palette: teal/cyan (#06B6D4) replacing green (#319266) | Match iOS OleraClean accent colors |
+| 2026-02-20 | Vanilla backgrounds (#F9F6F2) for warm feel | Match iOS oleraVanilla bg |
+| 2026-02-20 | Serif font (New York/Georgia) for display headings | Match iOS OleraClean typography |
+| 2026-02-20 | Remove white card wrappers from hero and content sections | Reduce "containers within containers" nesting |
+| 2026-02-20 | Hero above grid, sidebar starts at Highlights level | Give hero breathing room, sticky sidebar enters at content |
+| 2026-02-20 | Olera Score: centered circle + 4 breakdown cards | Match Olera 1.0 Figma rating layout |
+| 2026-02-20 | Highlights as 2x2 transparent badges in identity area | Fill dead space, surface trust signals without visual clutter |
 
 ---
 
 ## Archived Sessions
+
+### 2026-02-20 (Session 13) — Provider Page Design Polish
+
+**Branch:** `quiet-elion`
+
+**Design Language Alignment:**
+- Extracted iOS OleraClean design system (colors, fonts, spacing, component patterns)
+- Updated `tailwind.config.ts`: teal primary palette, vanilla backgrounds, serif font families
+- Commit: `f85fe14`
+
+**Hero Section Iteration (7 commits):**
+1. `935593e` — Remove nested containers (white card wrappers → content sits on vanilla bg)
+2. `a84c0df` — Match Highlights and Managed By to Olera 1.0 Figma (white cards, unique icons)
+3. `04346a6` — Always show 4 highlights, white background cards
+4. `c781503` — Move hero above grid, sidebar starts at Highlights level (sticky positioning)
+5. `5b8f893` — Replace rating with Olera 1.0 centered score (circle + stars + 4 breakdowns)
+6. `a3e7e3a` — Move highlights into hero identity area as 2x2 transparent badges
+
+---
+
+### 2026-02-12 (Session 12)
+
+**Staging Environment Setup:**
+- Created `staging` branch from `main` and pushed
+- Updated `CONTRIBUTING.md` with staging workflow, branch strategy, deployment flow
+
+---
+
+### 2026-02-10 (Session 11)
+
+**Auth Overhaul — All 3 Phases Complete:**
+- Replaced ~3,000 lines of auth code with ~1,000-line unified system
+- Phase 1: `UnifiedAuthModal` with Google OAuth + email-first flow
+- Phase 2: Post-auth onboarding inside modal (no separate /onboarding page)
+- Phase 3: Cleanup — deleted 6 legacy files, migrated 13 files
+
+---
+
+### 2026-02-09 (Session 10)
+
+**Admin Dashboard MVP:**
+- Built full admin dashboard at `/admin` (Overview, Providers, Leads, Team)
+- Changed provider claim flow: new claims → `pending` (admin review first)
+- Added portal banners for pending/rejected states
+- Auth gating via middleware + layout
+- SQL migration: admin_users, audit_log tables with RLS
+
+---
 
 ### 2026-02-07 (Session 9)
 

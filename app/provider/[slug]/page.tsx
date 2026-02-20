@@ -278,87 +278,87 @@ export default async function ProviderPage({
           providerName={profile.display_name}
         />
 
-        {/* -- Two-Column Grid -- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* ── Hero (full width, above the grid) ── */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Gallery */}
+          <div className="flex-shrink-0 relative">
+            <ProviderHeroGallery
+              images={images}
+              providerName={profile.display_name}
+              category={profile.category}
+            />
+            {images.length > 0 && (
+              <div className="absolute top-4 left-4 z-20">
+                <ClaimBadge
+                  claimState={profile.claim_state}
+                  providerName={profile.display_name}
+                  claimUrl={`/for-providers/claim/${profile.slug}`}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Identity */}
+          <div className="flex-1 min-w-0">
+            {/* Name + Save */}
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-serif">
+                {profile.display_name}
+              </h1>
+              <SaveButton
+                provider={{
+                  providerId: profile.id,
+                  slug: profile.slug,
+                  name: profile.display_name,
+                  location: locationStr,
+                  careTypes: profile.care_types || [],
+                  image: images[0] || null,
+                  rating: rating || undefined,
+                }}
+                variant="pill"
+              />
+            </div>
+
+            {/* Context line: category · location · rating · price */}
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
+              {categoryLabel && (
+                <>
+                  <span className="text-gray-700 font-medium">{categoryLabel}</span>
+                  <span className="text-gray-300">·</span>
+                </>
+              )}
+              {locationStr && (
+                <>
+                  <span>{locationStr}</span>
+                  <span className="text-gray-300">·</span>
+                </>
+              )}
+              <span className="flex items-center gap-1">
+                <StarIcon className="w-4 h-4 text-primary-500" />
+                <span className="font-semibold text-gray-900">{displayRating.toFixed(1)}</span>
+                <span>({displayReviewCount})</span>
+              </span>
+              <span className="text-gray-300">·</span>
+              <span className="font-semibold text-gray-900">{displayPriceRange}</span>
+            </div>
+
+            {/* Address */}
+            {profile.address && (
+              <p className="text-sm text-gray-400 mt-1">{profile.address}</p>
+            )}
+          </div>
+        </div>
+
+        {/* -- Two-Column Grid (starts at Highlights — sidebar sticks on scroll) -- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mt-10">
 
           {/* ========== Left Column ========== */}
           <div className="lg:col-span-2">
 
-            {/* ── Hero ── */}
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Gallery */}
-              <div className="flex-shrink-0 relative">
-                <ProviderHeroGallery
-                  images={images}
-                  providerName={profile.display_name}
-                  category={profile.category}
-                />
-                {images.length > 0 && (
-                  <div className="absolute top-4 left-4 z-20">
-                    <ClaimBadge
-                      claimState={profile.claim_state}
-                      providerName={profile.display_name}
-                      claimUrl={`/for-providers/claim/${profile.slug}`}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Identity */}
-              <div className="flex-1 min-w-0">
-                {/* Name + Save */}
-                <div className="flex items-start justify-between gap-3">
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-serif">
-                    {profile.display_name}
-                  </h1>
-                  <SaveButton
-                    provider={{
-                      providerId: profile.id,
-                      slug: profile.slug,
-                      name: profile.display_name,
-                      location: locationStr,
-                      careTypes: profile.care_types || [],
-                      image: images[0] || null,
-                      rating: rating || undefined,
-                    }}
-                    variant="pill"
-                  />
-                </div>
-
-                {/* Context line: category · location · rating · price */}
-                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
-                  {categoryLabel && (
-                    <>
-                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                      <span className="text-gray-300">·</span>
-                    </>
-                  )}
-                  {locationStr && (
-                    <>
-                      <span>{locationStr}</span>
-                      <span className="text-gray-300">·</span>
-                    </>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <StarIcon className="w-4 h-4 text-primary-500" />
-                    <span className="font-semibold text-gray-900">{displayRating.toFixed(1)}</span>
-                    <span>({displayReviewCount})</span>
-                  </span>
-                  <span className="text-gray-300">·</span>
-                  <span className="font-semibold text-gray-900">{displayPriceRange}</span>
-                </div>
-
-                {/* Address */}
-                {profile.address && (
-                  <p className="text-sm text-gray-400 mt-1">{profile.address}</p>
-                )}
-              </div>
-            </div>
-
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
                ══════════════════════════════════════════ */}
-            <div className="mt-10">
+            <div>
 
               {/* ── Highlights ── */}
               <div id="highlights" className="pb-6 scroll-mt-20">

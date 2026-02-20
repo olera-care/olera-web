@@ -29,7 +29,7 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
 
   // 1+ images — single image with photo count badge
   return (
-    <div className="relative w-full max-w-md aspect-[3/2] rounded-2xl overflow-hidden">
+    <div className="relative w-full max-w-md aspect-[3/2] rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
       <img
         src={images[0]}
         alt={providerName}

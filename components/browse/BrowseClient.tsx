@@ -135,7 +135,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       let query = supabase
         .from(PROVIDERS_TABLE)
         .select("*")
-        .not("deleted", "is", true);
+        .or("deleted.is.null,deleted.eq.false");
 
       // Apply care type filter
       if (careType && careType !== "all") {
@@ -166,9 +166,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         .limit(100);
 
       if (error) {
-        console.error("Browse fetch error:", error.message);
+        console.error("Browse fetch error:", error.message, error);
         setProviders([]);
       } else {
+        console.log(`Browse: ${data?.length ?? 0} providers returned for "${searchLocation}" / "${careType}"`);
         setProviders((data as SupabaseProvider[]).map(toCardFormat));
       }
     } catch (err) {

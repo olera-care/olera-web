@@ -82,7 +82,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Authenticated but no provider profile — guide them to create one
+  // Authenticated but no provider profile — send them to onboarding
   if (!providerProfile) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-16 px-4">
@@ -110,7 +110,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
             with families.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link href="/for-providers">
+            <Link href="/provider/onboarding">
               <Button size="lg">Get started</Button>
             </Link>
             <Link

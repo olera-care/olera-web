@@ -4,17 +4,103 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | 2;
+type Step = "resume" | 1 | 2 | 3 | 4;
 
-const STORAGE_KEY = "olera_onboarding_provider_type";
+const TYPE_KEY = "olera_onboarding_provider_type";
+const DATA_KEY = "olera_provider_wizard_data";
+
+const ORG_CATEGORIES: { value: string; label: string }[] = [
+  { value: "assisted_living", label: "Assisted Living" },
+  { value: "independent_living", label: "Independent Living" },
+  { value: "memory_care", label: "Memory Care" },
+  { value: "nursing_home", label: "Nursing Home / Skilled Nursing" },
+  { value: "home_care_agency", label: "Home Care Agency" },
+  { value: "home_health_agency", label: "Home Health Agency" },
+  { value: "hospice_agency", label: "Hospice" },
+  { value: "inpatient_hospice", label: "Inpatient Hospice" },
+  { value: "rehab_facility", label: "Rehabilitation Facility" },
+  { value: "adult_day_care", label: "Adult Day Care" },
+  { value: "wellness_center", label: "Wellness Center" },
+];
+
+const CARE_TYPES = [
+  "Assisted Living",
+  "Memory Care",
+  "Independent Living",
+  "Skilled Nursing",
+  "Home Care",
+  "Home Health",
+  "Hospice",
+  "Respite Care",
+  "Adult Day Care",
+  "Rehabilitation",
+];
+
+interface WizardData {
+  displayName: string;
+  description: string;
+  category: string;
+  city: string;
+  state: string;
+  zip: string;
+  phone: string;
+  email: string;
+  website: string;
+  careTypes: string[];
+}
+
+const EMPTY: WizardData = {
+  displayName: "",
+  description: "",
+  category: "",
+  city: "",
+  state: "",
+  zip: "",
+  phone: "",
+  email: "",
+  website: "",
+  careTypes: [],
+};
+
+function StepDots({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="flex items-center justify-center gap-1.5 mb-8">
+      {Array.from({ length: total }, (_, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <div
+            className={`rounded-full transition-all duration-300 ${
+              i < current - 1
+                ? "w-2 h-2 bg-primary-600"
+                : i === current - 1
+                ? "w-2.5 h-2.5 bg-primary-600"
+                : "w-2 h-2 bg-gray-200"
+            }`}
+          />
+          {i < total - 1 && (
+            <div
+              className={`w-8 h-0.5 rounded-full transition-colors duration-300 ${
+                i < current - 1 ? "bg-primary-600" : "bg-gray-200"
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function ProviderOnboardingPage() {
   const router = useRouter();
-  const { user, account, profiles, isLoading } = useAuth();
+  const { user, account, profiles, isLoading, refreshAccountData } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [providerType, setProviderType] = useState<ProviderType | null>(null);
+  const [data, setData] = useState<WizardData>(EMPTY);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   // Auth guard + resume detection
   useEffect(() => {
@@ -36,9 +122,17 @@ export default function ProviderOnboardingPage() {
 
     // Check for a previously started session
     try {
-      const saved = sessionStorage.getItem(STORAGE_KEY) as ProviderType | null;
-      if (saved === "organization" || saved === "caregiver") {
-        setProviderType(saved);
+      const savedType = sessionStorage.getItem(TYPE_KEY) as ProviderType | null;
+      if (savedType === "organization" || savedType === "caregiver") {
+        setProviderType(savedType);
+        const savedData = sessionStorage.getItem(DATA_KEY);
+        if (savedData) {
+          try {
+            setData({ ...EMPTY, ...JSON.parse(savedData) });
+          } catch {
+            // ignore corrupt data
+          }
+        }
         setStep("resume");
       }
     } catch {
@@ -46,32 +140,98 @@ export default function ProviderOnboardingPage() {
     }
   }, [user, profiles, isLoading, router]);
 
+  const update = (key: keyof WizardData, value: string | string[]) => {
+    setData((prev) => {
+      const next = { ...prev, [key]: value };
+      try {
+        sessionStorage.setItem(DATA_KEY, JSON.stringify(next));
+      } catch {
+        // sessionStorage unavailable
+      }
+      return next;
+    });
+  };
+
+  const toggleCareType = (ct: string) => {
+    const next = data.careTypes.includes(ct)
+      ? data.careTypes.filter((t) => t !== ct)
+      : [...data.careTypes, ct];
+    update("careTypes", next);
+  };
+
   const handleSelectType = (type: ProviderType) => {
     setProviderType(type);
     try {
-      sessionStorage.setItem(STORAGE_KEY, type);
+      sessionStorage.setItem(TYPE_KEY, type);
     } catch {
       // sessionStorage unavailable
     }
-    setStep(2);
-  };
-
-  const handleContinue = () => {
-    // Advance to wherever they left off (Step 2 for now)
     setStep(2);
   };
 
   const handleStartFresh = () => {
     try {
-      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(TYPE_KEY);
+      sessionStorage.removeItem(DATA_KEY);
     } catch {
       // sessionStorage unavailable
     }
     setProviderType(null);
+    setData(EMPTY);
     setStep(1);
   };
 
-  const displayName = account?.display_name || user?.email?.split("@")[0] || "back";
+  const handleSubmit = async () => {
+    if (!data.displayName.trim()) return;
+    setSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const res = await fetch("/api/auth/create-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intent: "provider",
+          providerType,
+          displayName: data.displayName,
+          orgName:
+            providerType === "organization" ? data.displayName : undefined,
+          description: data.description || undefined,
+          category: data.category || undefined,
+          phone: data.phone || undefined,
+          email: data.email || undefined,
+          website: data.website || undefined,
+          city: data.city || undefined,
+          state: data.state || undefined,
+          zip: data.zip || undefined,
+          careTypes: data.careTypes,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setSubmitError(err.error || "Failed to create profile. Please try again.");
+        return;
+      }
+
+      try {
+        sessionStorage.removeItem(TYPE_KEY);
+        sessionStorage.removeItem(DATA_KEY);
+      } catch {
+        // sessionStorage unavailable
+      }
+
+      await refreshAccountData();
+      router.push("/provider");
+    } catch {
+      setSubmitError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const displayName =
+    account?.display_name || user?.email?.split("@")[0] || "back";
 
   if (isLoading) {
     return (
@@ -99,7 +259,6 @@ export default function ProviderOnboardingPage() {
         </Link>
       </nav>
 
-      {/* Page content */}
       <div className="flex-1 flex items-center justify-center px-4 py-16">
 
         {/* ── Resume screen ── */}
@@ -118,7 +277,7 @@ export default function ProviderOnboardingPage() {
               {/* Continue card */}
               <button
                 type="button"
-                onClick={handleContinue}
+                onClick={() => setStep(2)}
                 className="w-full flex items-center gap-5 p-5 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 bg-white text-left group"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center shrink-0 transition-colors duration-200">
@@ -216,25 +375,288 @@ export default function ProviderOnboardingPage() {
           </div>
         )}
 
-        {/* ── Step 2: Placeholder ── */}
+        {/* ── Step 2: About ── */}
         {step === 2 && (
-          <div className="w-full max-w-2xl text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-              </svg>
+          <div className="w-full max-w-lg">
+            <StepDots current={1} total={3} />
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+                {providerType === "organization"
+                  ? "Tell us about your organization"
+                  : "Tell us about yourself"}
+              </h1>
+              <p className="text-gray-500 mt-3 text-base">
+                This is what families will see on your public profile.
+              </p>
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-3">
-              {providerType === "organization" ? "Great — you're an organization" : "Great — you're a private caregiver"}
-            </h2>
-            <p className="text-gray-500">Step 2 is coming next. Stay tuned.</p>
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="mt-6 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              ← Back
-            </button>
+
+            <div className="space-y-5">
+              <Input
+                label={
+                  providerType === "organization"
+                    ? "Organization name"
+                    : "Your name"
+                }
+                value={data.displayName}
+                onChange={(e) =>
+                  update("displayName", (e.target as HTMLInputElement).value)
+                }
+                required
+                placeholder={
+                  providerType === "organization"
+                    ? "e.g. Sunrise Senior Living"
+                    : "e.g. Maria Garcia"
+                }
+              />
+
+              <Input
+                label="Description"
+                as="textarea"
+                value={data.description}
+                onChange={(e) =>
+                  update(
+                    "description",
+                    (e.target as HTMLTextAreaElement).value
+                  )
+                }
+                placeholder={
+                  providerType === "organization"
+                    ? "What makes your organization unique? What services do you offer?"
+                    : "Describe your experience and approach to caregiving."
+                }
+                rows={4}
+              />
+
+              {providerType === "organization" && (
+                <div className="space-y-1.5">
+                  <label className="block text-base font-medium text-gray-700">
+                    Organization type
+                  </label>
+                  <select
+                    value={data.category}
+                    onChange={(e) => update("category", e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <option value="">Select a type</option>
+                    {ORG_CATEGORIES.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ← Back
+                </button>
+                <Button
+                  onClick={() => setStep(3)}
+                  disabled={!data.displayName.trim()}
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 3: Location & Contact ── */}
+        {step === 3 && (
+          <div className="w-full max-w-lg">
+            <StepDots current={2} total={3} />
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+                Location &amp; contact
+              </h1>
+              <p className="text-gray-500 mt-3 text-base">
+                Help families find and reach you. All fields are optional.
+              </p>
+            </div>
+
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="City"
+                  value={data.city}
+                  onChange={(e) =>
+                    update("city", (e.target as HTMLInputElement).value)
+                  }
+                  placeholder="e.g. San Francisco"
+                />
+                <Input
+                  label="State"
+                  value={data.state}
+                  onChange={(e) =>
+                    update("state", (e.target as HTMLInputElement).value)
+                  }
+                  placeholder="e.g. CA"
+                />
+              </div>
+
+              <Input
+                label="ZIP code"
+                value={data.zip}
+                onChange={(e) =>
+                  update("zip", (e.target as HTMLInputElement).value)
+                }
+                placeholder="e.g. 94102"
+              />
+
+              <Input
+                label="Phone"
+                type="tel"
+                value={data.phone}
+                onChange={(e) =>
+                  update("phone", (e.target as HTMLInputElement).value)
+                }
+                placeholder="(555) 123-4567"
+              />
+
+              <Input
+                label="Email"
+                type="email"
+                value={data.email}
+                onChange={(e) =>
+                  update("email", (e.target as HTMLInputElement).value)
+                }
+                placeholder="contact@example.com"
+              />
+
+              <Input
+                label="Website"
+                type="url"
+                value={data.website}
+                onChange={(e) =>
+                  update("website", (e.target as HTMLInputElement).value)
+                }
+                placeholder="https://example.com"
+              />
+
+              <div className="flex justify-between items-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ← Back
+                </button>
+                <Button onClick={() => setStep(4)}>Continue</Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step 4: Services + Review + Submit ── */}
+        {step === 4 && (
+          <div className="w-full max-w-lg">
+            <StepDots current={3} total={3} />
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+                Services offered
+              </h1>
+              <p className="text-gray-500 mt-3 text-base">
+                Select the care types you provide. You can always update these later.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-8">
+              {CARE_TYPES.map((ct) => (
+                <button
+                  key={ct}
+                  type="button"
+                  onClick={() => toggleCareType(ct)}
+                  className={[
+                    "px-4 py-2 rounded-lg text-sm font-medium border transition-colors",
+                    data.careTypes.includes(ct)
+                      ? "bg-primary-50 border-primary-500 text-primary-700"
+                      : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                  ].join(" ")}
+                >
+                  {ct}
+                </button>
+              ))}
+            </div>
+
+            {/* Profile preview */}
+            <div className="bg-gray-50 rounded-xl p-5 mb-6">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Profile preview
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex gap-3">
+                  <span className="text-gray-400 w-20 shrink-0">Type</span>
+                  <span className="text-gray-900 font-medium">
+                    {providerType === "organization"
+                      ? "Organization"
+                      : "Private Caregiver"}
+                  </span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-gray-400 w-20 shrink-0">Name</span>
+                  <span className="text-gray-900 font-medium">
+                    {data.displayName || "—"}
+                  </span>
+                </div>
+                {(data.city || data.state) && (
+                  <div className="flex gap-3">
+                    <span className="text-gray-400 w-20 shrink-0">Location</span>
+                    <span className="text-gray-900">
+                      {[data.city, data.state].filter(Boolean).join(", ")}
+                    </span>
+                  </div>
+                )}
+                {data.phone && (
+                  <div className="flex gap-3">
+                    <span className="text-gray-400 w-20 shrink-0">Phone</span>
+                    <span className="text-gray-900">{data.phone}</span>
+                  </div>
+                )}
+                {data.careTypes.length > 0 && (
+                  <div className="flex gap-3">
+                    <span className="text-gray-400 w-20 shrink-0">Services</span>
+                    <span className="text-gray-900">
+                      {data.careTypes.join(", ")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {submitError && (
+              <div
+                className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm mb-5"
+                role="alert"
+              >
+                {submitError}
+              </div>
+            )}
+
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ← Back
+              </button>
+              <Button
+                onClick={handleSubmit}
+                loading={submitting}
+                disabled={!data.displayName.trim() || submitting}
+              >
+                Create profile
+              </Button>
+            </div>
+
+            <p className="text-center text-xs text-gray-400 mt-5">
+              You can add more details — photos, certifications, pricing — after setup.
+            </p>
           </div>
         )}
       </div>

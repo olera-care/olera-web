@@ -327,17 +327,25 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return result;
   }, [providers, selectedRating, selectedPayment, sortBy]);
 
-  // Pagination with badge assignment
+  // Pagination with badge assignment (top 3 highest-rated in full result set)
   const totalPages = Math.ceil(filteredProviders.length / PROVIDERS_PER_PAGE);
+  const topRatedIds = useMemo(() => {
+    return new Set(
+      filteredProviders
+        .filter((p) => p.rating >= 4.5)
+        .slice(0, 3)
+        .map((p) => p.id)
+    );
+  }, [filteredProviders]);
   const paginatedProviders = useMemo(() => {
     const startIndex = (currentPage - 1) * PROVIDERS_PER_PAGE;
     return filteredProviders
       .slice(startIndex, startIndex + PROVIDERS_PER_PAGE)
       .map((p) => ({
         ...p,
-        badge: p.rating >= 4.8 ? "Top Rated" : undefined,
+        badge: topRatedIds.has(p.id) ? "Top Rated" : undefined,
       }));
-  }, [filteredProviders, currentPage]);
+  }, [filteredProviders, currentPage, topRatedIds]);
 
   // Reset page when filters change
   useEffect(() => {

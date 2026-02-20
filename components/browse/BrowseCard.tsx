@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { type ProviderCardData, getCategoryDisplayName } from "@/lib/types/provider";
@@ -11,6 +12,7 @@ interface BrowseCardProps {
 export default function BrowseCard({ provider }: BrowseCardProps) {
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
   const isSaved = checkSaved(provider.id);
+  const [imgFailed, setImgFailed] = useState(false);
 
   const careTypeLabel = getCategoryDisplayName(provider.careTypes[0]) || provider.primaryCategory;
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];
@@ -24,22 +26,20 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
     >
       {/* Image */}
       <div className="relative w-full aspect-[16/10] bg-gray-100">
-        <img
-          src={provider.image}
-          alt={provider.name}
-          className="absolute inset-0 w-full h-full object-cover"
-          onError={(e) => {
-            const target = e.currentTarget;
-            target.style.display = "none";
-            target.parentElement!.classList.add("flex", "items-center", "justify-center");
-          }}
-        />
-        {/* Fallback icon (hidden when image loads) */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-        </div>
+        {!imgFailed ? (
+          <img
+            src={provider.image}
+            alt={provider.name}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+        )}
 
         {/* Heart — top right */}
         <button

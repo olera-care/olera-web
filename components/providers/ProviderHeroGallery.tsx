@@ -30,11 +30,11 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
   // 1 image — single image
   if (images.length === 1) {
     return (
-      <div className="h-[280px]">
+      <div className="h-[280px] rounded-2xl overflow-hidden">
         <img
           src={images[0]}
           alt={providerName}
-          className="w-full h-full object-cover rounded-2xl"
+          className="w-full h-full object-cover"
         />
       </div>
     );
@@ -46,31 +46,29 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
   const remaining = images.length - 4;
 
   return (
-    <div className="h-[280px] grid grid-cols-3 gap-1.5">
+    <div className="h-[280px] rounded-2xl overflow-hidden grid grid-cols-3 gap-1.5">
       {/* Main image — spans 2 columns */}
-      <div className="col-span-2 h-full">
+      <div className="col-span-2 min-h-0">
         <img
           src={mainImage}
           alt={providerName}
-          className="w-full h-full object-cover rounded-l-2xl"
+          className="w-full h-full object-cover"
         />
       </div>
 
       {/* Thumbnails stack */}
-      <div className="col-span-1 h-full flex flex-col gap-1.5">
+      <div className="col-span-1 flex flex-col gap-1.5 min-h-0">
         {thumbs.map((src, i) => {
           const isLast = i === thumbs.length - 1 && remaining > 0;
-          const isFirst = i === 0;
-          const isLastThumb = i === thumbs.length - 1;
           return (
             <div key={i} className="relative flex-1 min-h-0">
               <img
                 src={src}
                 alt={`${providerName} ${i + 2}`}
-                className={`w-full h-full object-cover ${isFirst ? "rounded-tr-2xl" : ""} ${isLastThumb ? "rounded-br-2xl" : ""}`}
+                className="w-full h-full object-cover"
               />
               {isLast && (
-                <div className={`absolute inset-0 bg-black/50 flex items-center justify-center ${isLastThumb ? "rounded-br-2xl" : ""}`}>
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <span className="text-white font-semibold text-sm">+{remaining} more</span>
                 </div>
               )}

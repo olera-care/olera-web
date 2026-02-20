@@ -36,9 +36,18 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
         className="w-full h-full object-cover"
       />
       {images.length > 1 && (
-        <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-          1/{images.length}
-        </span>
+        <>
+          {/* Right arrow hint */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
+            <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+          {/* Photo count */}
+          <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
+            1/{images.length}
+          </span>
+        </>
       )}
     </div>
   );

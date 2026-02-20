@@ -300,7 +300,7 @@ export default async function ProviderPage({
           </div>
 
           {/* Identity */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col">
             {/* Name + Save */}
             <div className="flex items-start justify-between gap-3">
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-serif">
@@ -320,7 +320,7 @@ export default async function ProviderPage({
               />
             </div>
 
-            {/* Context line: category · location · rating · price */}
+            {/* Context line: category · location · rating */}
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
               {categoryLabel && (
                 <>
@@ -339,14 +339,39 @@ export default async function ProviderPage({
                 <span className="font-semibold text-gray-900">{displayRating.toFixed(1)}</span>
                 <span>({displayReviewCount})</span>
               </span>
-              <span className="text-gray-300">·</span>
-              <span className="font-semibold text-gray-900">{displayPriceRange}</span>
             </div>
+
+            {/* Price — standalone for visual weight */}
+            <p className="text-lg font-semibold text-gray-900 mt-1">{displayPriceRange}</p>
 
             {/* Address */}
             {profile.address && (
-              <p className="text-sm text-gray-400 mt-1">{profile.address}</p>
+              <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
             )}
+
+            {/* Highlight badges — 2x2 grid, transparent + subtle */}
+            <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
+              {displayHighlights.map((label) => (
+                <div key={label} className="border border-gray-200/60 rounded-lg py-3 px-3 flex items-center gap-2.5">
+                  <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-600">{label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Managed by — quiet attribution */}
+            <div className="flex items-center gap-2.5 mt-4">
+              {displayStaff.image ? (
+                <img src={displayStaff.image} alt={displayStaff.name} className="w-7 h-7 rounded-full object-cover" />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                  <span className="text-[10px] font-semibold text-gray-500">{getInitials(displayStaff.name)}</span>
+                </div>
+              )}
+              <p className="text-sm text-gray-500">
+                Managed by: <span className="font-medium text-gray-700">{displayStaff.name}</span>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -361,35 +386,8 @@ export default async function ProviderPage({
                ══════════════════════════════════════════ */}
             <div>
 
-              {/* ── Highlights ── */}
-              <div id="highlights" className="pb-6 scroll-mt-20">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Highlights</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {displayHighlights.map((label) => (
-                    <div key={label} className="bg-white border border-gray-200 rounded-xl py-6 px-4 flex flex-col items-center text-center">
-                      <HighlightIcon label={label} className="w-7 h-7 text-primary-500 mb-3" />
-                      <span className="text-sm font-medium text-gray-700">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Managed by ── */}
-              <div className="pb-8 pt-2 flex items-center gap-3">
-                {displayStaff.image ? (
-                  <img src={displayStaff.image} alt={displayStaff.name} className="w-9 h-9 rounded-full object-cover" />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-xs font-semibold text-gray-600">{getInitials(displayStaff.name)}</span>
-                  </div>
-                )}
-                <p className="text-sm text-gray-600">
-                  Managed by: <span className="font-semibold text-gray-900">{displayStaff.name}</span>
-                </p>
-              </div>
-
               {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20 border-t border-gray-200">
+              <div id="services" className="py-8 scroll-mt-20">
                 <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Care Services</h2>
                 <CareServicesList services={displayCareTypes} initialCount={9} />
               </div>

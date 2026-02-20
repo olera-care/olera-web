@@ -73,6 +73,46 @@ export function getCategoryHighlights(category: ProfileCategory): string[] {
 }
 
 // ============================================================
+// Category-inferred description (fallback when provider_description is null)
+// ============================================================
+
+const categoryDescriptionTemplates: Record<ProfileCategory, (name: string, location: string | null) => string> = {
+  home_care_agency: (name, loc) =>
+    `${name} is a home care agency${loc ? ` serving the ${loc} area` : ""}. They provide non-medical in-home care services including personal care assistance, companionship, meal preparation, and light housekeeping to help seniors and individuals live safely and comfortably at home.`,
+  home_health_agency: (name, loc) =>
+    `${name} is a home health agency${loc ? ` serving the ${loc} area` : ""}. They provide skilled medical services in the home including nursing care, physical therapy, occupational therapy, and health monitoring under the direction of a physician.`,
+  hospice_agency: (name, loc) =>
+    `${name} is a hospice care provider${loc ? ` serving the ${loc} area` : ""}. They offer compassionate end-of-life care focused on comfort, pain management, emotional support, and family counseling for patients and their loved ones.`,
+  inpatient_hospice: (name, loc) =>
+    `${name} is an inpatient hospice facility${loc ? ` in ${loc}` : ""}. They provide round-the-clock hospice care in a comfortable facility setting, offering pain management, symptom control, emotional support, and family services.`,
+  assisted_living: (name, loc) =>
+    `${name} is an assisted living community${loc ? ` in ${loc}` : ""}. They offer a supportive residential environment with personal care assistance, medication management, meals, housekeeping, and social activities for seniors who need help with daily living.`,
+  memory_care: (name, loc) =>
+    `${name} is a memory care community${loc ? ` in ${loc}` : ""}. They provide specialized care for individuals living with Alzheimer's disease and other forms of dementia in a secure, structured environment with trained staff and cognitive support programs.`,
+  independent_living: (name, loc) =>
+    `${name} is an independent living community${loc ? ` in ${loc}` : ""}. They offer maintenance-free residential living with amenities including dining, housekeeping, social activities, fitness programs, and transportation for active seniors.`,
+  nursing_home: (name, loc) =>
+    `${name} is a skilled nursing facility${loc ? ` in ${loc}` : ""}. They provide 24-hour nursing care, rehabilitation services, medication management, and personal care for residents who require ongoing medical supervision and support.`,
+  rehab_facility: (name, loc) =>
+    `${name} is a rehabilitation facility${loc ? ` in ${loc}` : ""}. They offer physical therapy, occupational therapy, speech therapy, and other rehabilitation services to help patients recover strength, mobility, and independence after illness, injury, or surgery.`,
+  adult_day_care: (name, loc) =>
+    `${name} is an adult day care center${loc ? ` in ${loc}` : ""}. They provide daytime supervision, social activities, meals, health monitoring, and therapeutic programs for seniors and adults who need assistance during the day.`,
+  wellness_center: (name, loc) =>
+    `${name} is a wellness center${loc ? ` in ${loc}` : ""}. They offer health and fitness programs, wellness education, preventive screenings, and community activities designed to support healthy aging and overall well-being.`,
+  private_caregiver: (name, loc) =>
+    `${name} is a private caregiver${loc ? ` serving the ${loc} area` : ""}. They provide one-on-one personal care, companionship, meal preparation, light housekeeping, and assistance with daily activities to help individuals maintain their independence at home.`,
+};
+
+export function getCategoryDescription(
+  category: ProfileCategory,
+  providerName: string,
+  location: string | null,
+): string {
+  const template = categoryDescriptionTemplates[category];
+  return template ? template(providerName, location) : "";
+}
+
+// ============================================================
 // Category-inferred care services (used when real data is sparse)
 // ============================================================
 

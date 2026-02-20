@@ -19,6 +19,7 @@ import {
   getInitials,
   formatCategory,
   getCategoryHighlights,
+  getCategoryDescription,
   getCategoryServices,
   getSimilarProviders,
 } from "@/lib/provider-utils";
@@ -210,7 +211,6 @@ export default async function ProviderPage({
   const hasOleraScore = oleraScore != null;
   const hasStaffScreening = staffScreening != null;
   const hasAcceptedPayments = acceptedPayments.length > 0;
-  const hasDescription = !!profile.description;
 
   // Build care services: real data first, then pad with category-inferred services
   const careServices: string[] = [...(profile.care_types ?? [])];
@@ -448,15 +448,10 @@ export default async function ProviderPage({
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-serif mb-4">About</h2>
-                {hasDescription ? (
-                  <ExpandableText text={profile.description!} maxLength={300} />
-                ) : (
-                  <SectionEmptyState
-                    icon="info"
-                    message="No description available yet."
-                    subMessage="This provider hasn't added a description. Contact them to learn more."
-                  />
-                )}
+                <ExpandableText
+                  text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
+                  maxLength={300}
+                />
               </div>
 
               {/* ── Detailed Pricing ── */}

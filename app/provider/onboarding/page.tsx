@@ -349,7 +349,7 @@ export default function ProviderOnboardingPage() {
                   </svg>
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Organization</h2>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-base text-gray-500 leading-relaxed">
                   Assisted living, home care agency, memory care facility, and more
                 </p>
               </button>
@@ -366,7 +366,7 @@ export default function ProviderOnboardingPage() {
                   </svg>
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">Private Caregiver</h2>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-base text-gray-500 leading-relaxed">
                   Individual caregiver offering personal care services to families
                 </p>
               </button>

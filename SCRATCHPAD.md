@@ -7,10 +7,9 @@
 
 ## Current Focus
 
-- **Browse/City Page Redesign** (branch: `staging`)
-  - Redesigned from 3-view-mode (carousel/grid/map) to TripAdvisor-style list+map
-  - New BrowseCard with highlights, teal CTA, larger imagery
-  - Next: Make map elegant like Airbnb (custom markers, interactions)
+- **Browse/City Page Redesign** (branch: `staging`) — DONE
+  - TripAdvisor-style list+map, 2-col vertical cards, score bubble map
+  - Blocked on Supabase outage for final verification
 
 ---
 
@@ -35,13 +34,13 @@
 
 ## Blocked / Needs Input
 
-_None currently._
+- **Supabase outage** — browse page can't load providers. Monitor [status.supabase.com](https://status.supabase.com). Verify browse page once resolved.
 
 ---
 
 ## Next Up
 
-1. **Elegant map like Airbnb** — custom markers with pricing, hover interactions, smooth transitions
+1. **Verify browse page after Supabase outage resolves** — confirm data loads, filters work, map bubbles display
 2. **Remaining ~2,992 providers without CSV descriptions** — category fallback covers them, but could RAG-generate real ones
 3. **Test Google OAuth end-to-end**
 4. **Email notifications** for provider approval/rejection
@@ -65,6 +64,9 @@ _None currently._
 | 2026-02-20 | Browse page: single list+map layout (remove carousel/grid) | Matches TripAdvisor/Airbnb pattern — simpler, more focused UX |
 | 2026-02-20 | Category-inferred highlights on browse cards | 4 highlights per card from provider_category; superseded when provider claims page |
 | 2026-02-20 | Sticky filter bar with dynamic top (not -mt-16 hack) | Simpler CSS, no document flow issues |
+| 2026-02-20 | 2-column vertical card grid (Realtor.com style) | Better space efficiency, image-first like property listings |
+| 2026-02-20 | TripAdvisor score bubbles on map (not price pills) | Cleaner, more distinctive; Olera score is the differentiator |
+| 2026-02-20 | AbortController for Supabase fetch in useEffect | Prevents React effect cleanup from causing AbortError |
 | 2026-02-12 | Staging environment: staging branch + Vercel domain + branch protection | Buffer between dev and production |
 | 2026-02-10 | Single UnifiedAuthModal replaces 2 modals | Eliminated ~2,000 LOC of duplication |
 | 2026-02-10 | Google OAuth primary CTA, auth-first flow | One-click auth is fastest path |
@@ -81,6 +83,29 @@ _None currently._
 ---
 
 ## Session Log
+
+### 2026-02-20 (Session 15b) — Browse Page Polish + Bug Fixes
+
+**Branch:** `staging`
+
+**Card & Map Redesign (continued):**
+- `27b24e8` — 2-column vertical card grid (Realtor.com style) + TripAdvisor score bubbles on map
+- `442e3d0` — CartoDB Positron tiles, refined zoom controls, polished popup cards
+
+**Bug Fixes:**
+- `f80be2b` — Filter dropdowns clipped by `overflow-x-auto` → changed to `flex-wrap`
+- `8fff2bf` — Dropdown z-index: heading `z-40` sat above dropdowns → lowered to `z-20`
+- `cec3594` — Replaced `.not('deleted','is',true)` with explicit `.or('deleted.is.null,deleted.eq.false')`
+- `1e9e96b` — AbortError: inlined fetch into useEffect with AbortController + cancelled flag
+
+**Status:** Supabase outage blocking verification. All code changes pushed and building clean.
+
+**Files modified:**
+- `components/browse/BrowseCard.tsx` — vertical card layout, image top, 3 highlights
+- `components/browse/BrowseClient.tsx` — 2-col grid, flex-wrap filters, z-index fixes, AbortController fetch
+- `components/browse/BrowseMap.tsx` — teal score bubbles, CartoDB tiles, refined controls
+
+---
 
 ### 2026-02-20 (Session 15) — Browse Page Redesign
 

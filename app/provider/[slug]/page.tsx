@@ -227,8 +227,8 @@ export default async function ProviderPage({
           {/* ========== Left Column ========== */}
           <div className="lg:col-span-2">
 
-            {/* ── Hero Business Card ── */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col md:flex-row gap-6">
+            {/* ── Hero ── */}
+            <div className="flex flex-col md:flex-row gap-6">
               {/* Gallery */}
               <div className="flex-shrink-0 relative">
                 <ProviderHeroGallery
@@ -268,62 +268,47 @@ export default async function ProviderPage({
                   />
                 </div>
 
+                {/* Context line: category · location · rating · price */}
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
+                  {categoryLabel && (
+                    <>
+                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
+                      <span className="text-gray-300">·</span>
+                    </>
+                  )}
+                  {locationStr && (
+                    <>
+                      <span>{locationStr}</span>
+                      <span className="text-gray-300">·</span>
+                    </>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <StarIcon className="w-4 h-4 text-primary-500" />
+                    <span className="font-semibold text-gray-900">{displayRating.toFixed(1)}</span>
+                    <span>({displayReviewCount})</span>
+                  </span>
+                  <span className="text-gray-300">·</span>
+                  <span className="font-semibold text-gray-900">{displayPriceRange}</span>
+                </div>
+
                 {/* Address */}
                 {profile.address && (
-                  <p className="text-sm text-gray-500 mt-1">{profile.address}</p>
+                  <p className="text-sm text-gray-400 mt-1">{profile.address}</p>
                 )}
-
-                {/* Category pills */}
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {categoryLabel && (
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                      {categoryLabel}
-                    </span>
-                  )}
-                </div>
               </div>
             </div>
-
-            {/* ── Pricing + Rating Card ── */}
-            <div className="mt-6 border border-gray-200 rounded-xl overflow-hidden flex">
-              <div className={`flex-1 px-6 py-5 ${displayRating ? "border-r border-gray-200" : ""}`}>
-                <p className="text-xs text-gray-500 font-medium">Estimated Pricing</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{displayPriceRange}</p>
-              </div>
-              <div className="flex-1 px-6 py-5 text-center">
-                <p className="text-3xl font-bold text-gray-900">{displayRating.toFixed(1)}</p>
-                <div className="flex items-center justify-center gap-0.5 mt-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <StarIcon
-                      key={star}
-                      className={`w-4 h-4 ${star <= Math.round(displayRating) ? "text-primary-500" : "text-gray-200"}`}
-                      filled={star <= Math.round(displayRating)}
-                    />
-                  ))}
-                </div>
-                <p className="text-xs text-gray-400 mt-1">{displayReviewCount} Total Reviews</p>
-              </div>
-            </div>
-
-            {/* "Is this your business?" */}
-            <p className="text-sm text-gray-500 mt-3">
-              Is this your business?{" "}
-              <Link href={`/for-providers/claim/${profile.slug}`} className="text-primary-600 hover:text-primary-700 font-medium">
-                Manage this page
-              </Link>
-            </p>
 
             {/* ══════════════════════════════════════════
                 Content Sections (1.0 order)
                ══════════════════════════════════════════ */}
-            <div className="mt-8 bg-white rounded-2xl shadow-sm p-6 md:p-8">
+            <div className="mt-10">
 
               {/* ── Highlights ── */}
               <div id="highlights" className="pb-8 scroll-mt-20">
                 <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Highlights</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {displayHighlights.map((label) => (
-                    <div key={label} className="border border-primary-100 bg-primary-25 rounded-xl py-5 px-3 flex flex-col items-center text-center">
+                    <div key={label} className="bg-primary-25 rounded-xl py-5 px-3 flex flex-col items-center text-center">
                       <svg className="w-7 h-7 text-primary-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>

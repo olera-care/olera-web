@@ -34,6 +34,7 @@ export interface Provider {
   contact_for_price: string | null; // "True" or "False"
   deleted: boolean;
   deleted_at: string | null;
+  hero_image_url: string | null;
 }
 
 /**
@@ -68,12 +69,16 @@ export function formatPriceRange(provider: Provider): string | null {
 }
 
 /**
- * Get primary image (logo or first gallery image)
+ * Get primary image for card hero display.
+ * Prefers classified hero, then facility photos, then logo as fallback.
+ * Priority: hero_image_url → provider_images[0] → provider_logo → null
  */
 export function getPrimaryImage(provider: Provider): string | null {
-  if (provider.provider_logo) return provider.provider_logo;
+  if (provider.hero_image_url) return provider.hero_image_url;
   const images = parseProviderImages(provider.provider_images);
-  return images[0] || null;
+  if (images[0]) return images[0];
+  if (provider.provider_logo) return provider.provider_logo;
+  return null;
 }
 
 /**
@@ -165,7 +170,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     slug: provider.provider_id,
     name: provider.provider_name,
     image: primaryImage || "/placeholder-provider.jpg",
-    images: images.length > 0 ? images : (primaryImage ? [primaryImage] : []),
+    images: images.length > 0 ? images : [],
     address: formatLocation(provider),
     rating: provider.google_rating || 0,
     reviewCount: undefined,

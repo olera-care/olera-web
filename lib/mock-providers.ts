@@ -672,9 +672,8 @@ const iosCategoryMap: Record<string, ProfileCategory> = {
 export function iosProviderToProfile(provider: IOSProvider): Profile {
   const images = parseProviderImages(provider.provider_images);
   const primaryImage = getPrimaryImage(provider);
-  const allImages = primaryImage && !images.includes(primaryImage)
-    ? [primaryImage, ...images]
-    : images.length > 0 ? images : (primaryImage ? [primaryImage] : []);
+  // Use only facility photos for gallery; don't mix in the logo
+  const allImages = images.length > 0 ? images : [];
 
   const priceRange = formatIOSPriceRange(provider);
   const categoryDisplay = getCategoryDisplayName(provider.provider_category);

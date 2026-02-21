@@ -3,24 +3,23 @@
 // ============================================================
 
 export type CardState =
-  | "default" // State 1: All users on landing
+  | "loading" // Logged-in users while DB queries run
+  | "default" // State 1: Anonymous / no connection
   | "intent" // State 2: Intent capture (steps 1-3)
-  | "submitting" // State 3: Auto-submitting after auth
-  | "returning" // State 4: Returning user (not reachable until auth)
-  | "confirmation" // State 5: Request sent
-  | "pending" // State 6: Existing request
-  | "inactive"; // State 7: Provider not accepting
+  | "returning" // State 3: Returning user (prior connection or past)
+  | "pending" // State 4: Request sent, awaiting reply
+  | "responded" // State 5: Provider accepted
+  | "inactive"; // State 6: Provider not accepting
 
 export type IntentStep = 0 | 1 | 2;
 
-export type CareRecipient = "self" | "loved_one";
+export type CareRecipient = "self" | "parent" | "spouse" | "other";
 
 export type CareTypeValue =
-  | "companion"
-  | "personal"
-  | "memory"
-  | "skilled_nursing"
-  | "other";
+  | "assisted_living"
+  | "home_care"
+  | "memory_care"
+  | "home_health";
 
 export type UrgencyValue =
   | "asap"
@@ -31,9 +30,7 @@ export type UrgencyValue =
 export interface IntentData {
   careRecipient: CareRecipient | null;
   careType: CareTypeValue | null;
-  careTypeOtherText: string;
   urgency: UrgencyValue | null;
-  additionalNotes: string;
 }
 
 export interface ConnectionCardProps {

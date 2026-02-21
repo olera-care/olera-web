@@ -1,7 +1,10 @@
 "use client";
 
+import PhoneButton from "./PhoneButton";
+
 interface InactiveStateProps {
   providerName: string;
+  phone: string | null;
   saved: boolean;
   onToggleSave: () => void;
 }
@@ -26,37 +29,33 @@ function HeartIcon({ filled }: { filled: boolean }) {
 
 export default function InactiveState({
   providerName,
+  phone,
   saved,
   onToggleSave,
 }: InactiveStateProps) {
   return (
     <>
-      {/* Unavailable message */}
-      <div className="px-4 py-4 bg-amber-50 rounded-[10px] mb-4 border border-amber-100">
-        <p className="text-[13px] text-gray-700 leading-relaxed">
-          <strong>{providerName}</strong> isn&apos;t accepting new requests
-          right now.
+      {/* Status banner */}
+      <div className="px-4 py-4 bg-gray-50 rounded-[10px] mb-4 border border-gray-100">
+        <p className="text-sm font-semibold text-gray-700">
+          Not accepting requests
+        </p>
+        <p className="text-[13px] text-gray-500 mt-0.5">
+          This provider is currently unavailable.
         </p>
       </div>
+
+      {/* Phone — fully revealed */}
+      <PhoneButton phone={phone} revealed onReveal={() => {}} />
 
       {/* Save for later */}
       <button
         onClick={onToggleSave}
-        className="flex items-center justify-center gap-1.5 w-full py-2.5 border border-gray-200 rounded-[10px] cursor-pointer bg-transparent hover:bg-gray-50 transition-colors mb-2.5"
+        className="flex items-center justify-center gap-1.5 w-full mt-2 py-3 border border-gray-200 rounded-[10px] cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors text-sm font-medium text-gray-600"
       >
         <HeartIcon filled={saved} />
-        <span className="text-[13px] text-gray-600 font-medium">
-          {saved ? "Saved for later" : "Save for later"}
-        </span>
+        {saved ? "Saved for later" : "Save for later"}
       </button>
-
-      {/* Browse similar */}
-      <a
-        href="/browse"
-        className="block w-full text-center text-[13px] text-primary-600 font-medium mt-2.5 underline decoration-primary-600/25 underline-offset-2 hover:decoration-primary-600/50 transition-colors"
-      >
-        Browse similar providers nearby &rarr;
-      </a>
     </>
   );
 }

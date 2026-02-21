@@ -1,47 +1,37 @@
-import type { CareTypeValue, UrgencyValue } from "./types";
+import type { CareRecipient, CareTypeValue, UrgencyValue } from "./types";
 
 // ============================================================
-// Care Type Display Mapping
+// Recipient Options
+// ============================================================
+
+export const RECIPIENT_OPTIONS: { label: string; value: CareRecipient }[] = [
+  { label: "Myself", value: "self" },
+  { label: "My parent", value: "parent" },
+  { label: "My spouse", value: "spouse" },
+  { label: "Someone else", value: "other" },
+];
+
+export const RECIPIENT_LABELS: Record<CareRecipient, string> = {
+  self: "Myself",
+  parent: "My parent",
+  spouse: "My spouse",
+  other: "Someone else",
+};
+
+// ============================================================
+// Care Type Options
 // ============================================================
 
 export const CARE_TYPE_LABELS: Record<CareTypeValue, string> = {
-  companion: "Company & companionship",
-  personal: "Help with daily activities",
-  memory: "Memory & dementia support",
-  skilled_nursing: "Medical or nursing care",
-  other: "Something else",
+  assisted_living: "Assisted Living",
+  home_care: "Home Care",
+  memory_care: "Memory Care",
+  home_health: "Home Health",
 };
 
-/**
- * Map provider care_types strings to internal CareTypeValue.
- * Provider data may use human-readable names like "Personal Care".
- */
-const CARE_TYPE_FROM_PROVIDER: Record<string, CareTypeValue> = {
-  // Common provider category names
-  "personal care": "personal",
-  "companion care": "companion",
-  "companionship": "companion",
-  "memory care": "memory",
-  "dementia care": "memory",
-  "skilled nursing": "skilled_nursing",
-  "nursing care": "skilled_nursing",
-  "home care": "personal",
-  "home health": "skilled_nursing",
-  "home care (non-medical)": "personal",
-  "home health care": "skilled_nursing",
-  "assisted living": "personal",
-  "independent living": "companion",
-  "memory care | assisted living": "memory",
-  "assisted living | independent living": "personal",
-  "nursing home": "skilled_nursing",
-};
-
-export function mapProviderCareTypes(
-  _providerCareTypes: string[]
-): CareTypeValue[] {
-  // Always show all standard options — the question is about
-  // what the user needs, not what the provider offers
-  return ["personal", "companion", "skilled_nursing", "memory"];
+export function mapProviderCareTypes(): CareTypeValue[] {
+  // Always show all 4 standard options
+  return ["assisted_living", "home_care", "memory_care", "home_health"];
 }
 
 // ============================================================
@@ -49,33 +39,40 @@ export function mapProviderCareTypes(
 // ============================================================
 
 export const URGENCY_OPTIONS: { label: string; value: UrgencyValue }[] = [
-  { label: "Within a week", value: "asap" },
+  { label: "Immediately", value: "asap" },
   { label: "Within a month", value: "within_month" },
   { label: "In a few months", value: "few_months" },
   { label: "Just researching", value: "researching" },
 ];
 
-// ============================================================
-// Recipient Options
-// ============================================================
-
-export const RECIPIENT_OPTIONS = [
-  { label: "Myself", value: "self" as const },
-  { label: "A loved one", value: "loved_one" as const },
-];
-
-// ============================================================
-// Display helpers
-// ============================================================
-
-export const RECIPIENT_LABELS: Record<string, string> = {
-  self: "Myself",
-  loved_one: "A loved one",
-};
-
-export const URGENCY_LABELS: Record<string, string> = {
-  asap: "Within a week",
+export const URGENCY_LABELS: Record<UrgencyValue, string> = {
+  asap: "Immediately",
   within_month: "Within a month",
   few_months: "In a few months",
   researching: "Just researching",
+};
+
+// ============================================================
+// Profile → CTA Mappings (for pre-filling intent from profile)
+// ============================================================
+
+/** Profile relationship_to_recipient → CTA CareRecipient */
+export const RECIPIENT_FROM_PROFILE: Record<string, CareRecipient> = {
+  Myself: "self",
+};
+
+/** Profile timeline → CTA UrgencyValue */
+export const URGENCY_FROM_TIMELINE: Record<string, UrgencyValue> = {
+  immediate: "asap",
+  within_1_month: "within_month",
+  within_3_months: "few_months",
+  exploring: "researching",
+};
+
+/** Profile care type display name → CTA CareTypeValue */
+export const CARE_TYPE_FROM_DISPLAY: Record<string, CareTypeValue> = {
+  "Home Care": "home_care",
+  "Home Health Care": "home_health",
+  "Assisted Living": "assisted_living",
+  "Memory Care": "memory_care",
 };

@@ -51,7 +51,6 @@ export default function PhoneButton({
     >
       <PhoneIcon />
       {maskPhone(phone)}
-      <span className="text-xs text-gray-400">Show</span>
     </button>
   );
 }

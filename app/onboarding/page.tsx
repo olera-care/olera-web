@@ -8,7 +8,7 @@ import Button from "@/components/ui/Button";
 /**
  * /onboarding — Simplified redirect page.
  *
- * - Authenticated + onboarding complete → redirect to /portal
+ * - Authenticated + onboarding complete → redirect to /portal (unless intent=provider)
  * - Authenticated + no profile → open unified auth modal in post-auth mode
  * - Unauthenticated → open unified auth modal in sign-up mode
  */
@@ -20,7 +20,9 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (isLoading || prompted) return;
 
-    if (user && account?.onboarding_completed) {
+    // Skip redirect when user intends to add a provider profile
+    const params = new URLSearchParams(window.location.search);
+    if (user && account?.onboarding_completed && params.get("intent") !== "provider") {
       router.replace("/portal");
       return;
     }

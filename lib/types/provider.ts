@@ -112,6 +112,24 @@ export function getCategoryDisplayName(category: string | null): string {
 export const PROVIDERS_TABLE = "olera-providers";
 
 /**
+ * Map Supabase provider_category → inferred highlights (4 per category).
+ * These are sensible defaults superseded when a provider claims their page.
+ */
+const CATEGORY_HIGHLIGHTS: Record<string, string[]> = {
+  "Home Care (Non-medical)": ["In-Home Care", "Certified Caregivers", "Companionship", "Light Housekeeping"],
+  "Home Health Care":        ["Skilled Nursing", "Health Monitoring", "In-Home Care", "Licensed Providers"],
+  "Hospice":                 ["Nursing Care", "Wellness Support", "Community Resources", "Medication Management"],
+  "Assisted Living":         ["Licensed Community", "Social Activities", "Health Services", "Light Housekeeping"],
+  "Memory Care":             ["Licensed Community", "Certified Staff", "Health Monitoring", "Social Activities"],
+  "Independent Living":      ["Community Living", "Social Activities", "Light Housekeeping", "Wellness Programs"],
+  "Nursing Home":            ["Skilled Nursing", "Licensed Facility", "Medical Care", "Rehabilitation"],
+};
+
+function getHighlightsForCategory(category: string): string[] {
+  return CATEGORY_HIGHLIGHTS[category] ?? ["Senior Care", "Professional Staff", "Quality Services", "Community Support"];
+}
+
+/**
  * Type for provider card display data
  */
 export interface ProviderCardData {
@@ -129,6 +147,7 @@ export interface ProviderCardData {
   highlights: string[];
   acceptedPayments: string[];
   verified: boolean;
+  badge?: string;
   description?: string;
   lat?: number | null;
   lon?: number | null;
@@ -153,12 +172,10 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     priceRange: formatPriceRange(provider) || "Contact for pricing",
     primaryCategory: getCategoryDisplayName(provider.provider_category),
     careTypes: [provider.provider_category],
-    highlights: [
-      provider.main_category || provider.provider_category,
-    ].filter(Boolean) as string[],
+    highlights: getHighlightsForCategory(provider.provider_category),
     acceptedPayments: [],
     verified: false,
-    description: provider.provider_description?.slice(0, 100) || undefined,
+    description: provider.provider_description?.slice(0, 200) || undefined,
     lat: provider.lat,
     lon: provider.lon,
   };

@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
-import ProviderCard from "@/components/providers/ProviderCard";
-import type { Provider as ProviderCardType } from "@/components/providers/ProviderCard";
+import BrowseCard from "@/components/browse/BrowseCard";
 import { useNavbar } from "@/components/shared/NavbarContext";
 import Pagination from "@/components/ui/Pagination";
 import { createClient } from "@/lib/supabase/client";
@@ -24,8 +23,6 @@ const BrowseMap = dynamic(() => import("@/components/browse/BrowseMap"), {
     </div>
   ),
 });
-
-// Location suggestions moved to useCitySearch hook for comprehensive US city search
 
 const careTypes = [
   { id: "all", label: "All Care Types" },
@@ -78,8 +75,6 @@ function getCareTypeLabel(id: string): string {
   return ct?.label || "All Care Types";
 }
 
-type ViewMode = "carousel" | "grid" | "map";
-
 const PROVIDERS_PER_PAGE = 24;
 
 // Helper function to parse price for sorting
@@ -90,63 +85,6 @@ function parsePrice(price: string): number {
   return numericValue;
 }
 
-// Carousel Section Component
-function CarouselSection({
-  title,
-  providers,
-  scrollId,
-}: {
-  title: string;
-  providers: ProviderCardType[];
-  scrollId: string;
-}) {
-  if (providers.length === 0) return null;
-
-  return (
-    <div className="mb-10">
-      <div className="flex items-center gap-2 mb-3">
-        <h2 className="text-base font-semibold text-gray-900">{title}</h2>
-        <span className="text-sm text-gray-400 font-medium">({providers.length})</span>
-      </div>
-      <div className="relative group/carousel">
-        <div
-          id={scrollId}
-          className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory"
-        >
-          {providers.map((provider, index) => (
-            <div key={`${provider.id}-${index}`} className="flex-shrink-0 w-[340px] snap-start">
-              <ProviderCard provider={provider} />
-            </div>
-          ))}
-        </div>
-        {/* Arrow Navigation */}
-        <button
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-100 flex items-center justify-center hover:scale-105 transition-transform z-10 opacity-0 group-hover/carousel:opacity-100"
-          onClick={() => {
-            const container = document.getElementById(scrollId);
-            if (container) container.scrollBy({ left: -600, behavior: "smooth" });
-          }}
-        >
-          <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <button
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-100 flex items-center justify-center hover:scale-105 transition-transform z-10 opacity-0 group-hover/carousel:opacity-100"
-          onClick={() => {
-            const container = document.getElementById(scrollId);
-            if (container) container.scrollBy({ left: 600, behavior: "smooth" });
-          }}
-        >
-          <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  );
-}
-
 interface BrowseClientProps {
   careType: string;
   searchQuery: string;
@@ -154,24 +92,23 @@ interface BrowseClientProps {
 
 export default function BrowseClient({ careType, searchQuery }: BrowseClientProps) {
   const router = useRouter();
-  const { visible: navbarVisible, enableAutoHide, disableAutoHide, setForceHidden } = useNavbar();
+  const { visible: navbarVisible, enableAutoHide, disableAutoHide } = useNavbar();
   const isAllTypes = !careType || careType === "all";
   const careTypeLabel = isAllTypes ? "All Care Types" : getCareTypeLabel(careType);
 
-  // Enable navbar auto-hide on this page
+  // Enable navbar auto-hide on scroll
   useEffect(() => {
     enableAutoHide();
     return () => disableAutoHide();
   }, [enableAutoHide, disableAutoHide]);
 
-  // Filter states - use searchQuery from URL if provided, otherwise empty (auto-detect will fill)
+  // Filter states
   const initialLocation = searchQuery?.trim() || "";
   const [searchLocation, setSearchLocation] = useState(initialLocation);
   const [locationInput, setLocationInput] = useState(initialLocation);
   const [selectedRating, setSelectedRating] = useState("any");
   const [selectedPayment, setSelectedPayment] = useState("any");
   const [sortBy, setSortBy] = useState("recommended");
-  const [viewMode, setViewMode] = useState<ViewMode>("carousel");
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -190,82 +127,75 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
 
   // Fetch providers from Supabase
-  const fetchProviders = useCallback(async () => {
-    setIsLoadingProviders(true);
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
 
-    try {
-      const supabase = createClient();
-      let query = supabase
-        .from(PROVIDERS_TABLE)
-        .select("*")
-        .not("deleted", "is", true);
+    async function fetchProviders() {
+      setIsLoadingProviders(true);
 
-      // Apply care type filter
-      if (careType && careType !== "all") {
-        const supabaseCategory = CARE_TYPE_TO_SUPABASE[careType];
-        if (supabaseCategory) {
-          query = query.ilike("provider_category", `%${supabaseCategory}%`);
+      try {
+        const supabase = createClient();
+        let query = supabase
+          .from(PROVIDERS_TABLE)
+          .select("*")
+          .or("deleted.is.null,deleted.eq.false");
+
+        // Apply care type filter
+        if (careType && careType !== "all") {
+          const supabaseCategory = CARE_TYPE_TO_SUPABASE[careType];
+          if (supabaseCategory) {
+            query = query.ilike("provider_category", `%${supabaseCategory}%`);
+          }
         }
-      }
 
-      // Apply location filter
-      if (searchLocation) {
-        const trimmed = searchLocation.trim();
-        const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
-        if (cityStateMatch) {
-          const city = cityStateMatch[1].trim();
-          const state = cityStateMatch[2].toUpperCase();
-          query = query.ilike("city", `%${city}%`).eq("state", state);
-        } else if (/^[A-Z]{2}$/i.test(trimmed)) {
-          query = query.eq("state", trimmed.toUpperCase());
+        // Apply location filter
+        if (searchLocation) {
+          const trimmed = searchLocation.trim();
+          const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
+          if (cityStateMatch) {
+            const city = cityStateMatch[1].trim();
+            const state = cityStateMatch[2].toUpperCase();
+            query = query.ilike("city", `%${city}%`).eq("state", state);
+          } else if (/^[A-Z]{2}$/i.test(trimmed)) {
+            query = query.eq("state", trimmed.toUpperCase());
+          } else {
+            query = query.or(`city.ilike.%${trimmed}%,provider_name.ilike.%${trimmed}%`);
+          }
+        }
+
+        // Order by rating and limit
+        const { data, error } = await query
+          .order("google_rating", { ascending: false })
+          .limit(100)
+          .abortSignal(controller.signal);
+
+        if (cancelled) return;
+
+        if (error) {
+          console.error("Browse fetch error:", error.message);
+          setProviders([]);
         } else {
-          query = query.or(`city.ilike.%${trimmed}%,provider_name.ilike.%${trimmed}%`);
+          setProviders((data as SupabaseProvider[]).map(toCardFormat));
         }
+      } catch (err: unknown) {
+        if (cancelled || (err instanceof DOMException && err.name === "AbortError")) return;
+        console.error("Browse page error:", err);
+        if (!cancelled) setProviders([]);
       }
-
-      // Order by rating and limit
-      const { data, error } = await query
-        .order("google_rating", { ascending: false })
-        .limit(100);
-
-      if (error) {
-        console.error("Browse fetch error:", error.message);
-        setProviders([]);
-      } else {
-        setProviders((data as SupabaseProvider[]).map(toCardFormat));
-      }
-    } catch (err) {
-      console.error("Browse page error:", err);
-      setProviders([]);
+      if (!cancelled) setIsLoadingProviders(false);
     }
-    setIsLoadingProviders(false);
-  }, [careType, searchLocation]);
 
-  // Fetch on mount and when filters change
-  useEffect(() => {
     fetchProviders();
-  }, [fetchProviders]);
 
-  // Map view: lock body scroll and force-hide navbar
-  useEffect(() => {
-    if (viewMode === "map") {
-      document.body.style.overflow = "hidden";
-      setForceHidden(true);
-      return () => {
-        document.body.style.overflow = "";
-        setForceHidden(false);
-      };
-    }
-  }, [viewMode, setForceHidden]);
-
-  // Reset scroll position when switching view modes
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [viewMode]);
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [careType, searchLocation]);
 
   // Refs
   const locationInputRef = useRef<HTMLInputElement>(null);
-  const mapListingsRef = useRef<HTMLDivElement>(null);
 
   // City search with progressive loading (18K+ US cities, ZIP codes, states)
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
@@ -285,13 +215,12 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     "District of Columbia": "DC",
   };
 
-  // Default location for fallback (simulates geolocation default)
+  // Default location for fallback
   const DEFAULT_LOCATION = "Houston, TX";
 
   // Geolocation function
   const detectLocation = () => {
     if (!navigator.geolocation) {
-      // No geolocation available, use default
       setSearchLocation(DEFAULT_LOCATION);
       setLocationInput(DEFAULT_LOCATION);
       return;
@@ -333,7 +262,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         setIsGeolocating(false);
       },
       () => {
-        // Geolocation denied or failed, use default
         setSearchLocation(DEFAULT_LOCATION);
         setLocationInput(DEFAULT_LOCATION);
         setIsGeolocating(false);
@@ -355,7 +283,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       const target = e.target as HTMLElement;
       if (!target.closest(".dropdown-container")) {
         setShowLocationDropdown(false);
-        // Restore locationInput to current searchLocation when closing without selection
         setLocationInput(searchLocation);
         setShowCareTypeDropdown(false);
         setShowRatingDropdown(false);
@@ -367,22 +294,19 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     return () => document.removeEventListener("click", handleClickOutside);
   }, [searchLocation]);
 
-  // Filter and sort providers (Supabase already filtered by care type and location)
+  // Filter and sort providers
   const filteredProviders = useMemo(() => {
     let result = [...providers];
 
-    // Apply rating filter (client-side)
     if (selectedRating !== "any") {
       const minRating = parseFloat(selectedRating);
       result = result.filter((p) => p.rating >= minRating);
     }
 
-    // Apply payment filter (client-side)
     if (selectedPayment !== "any") {
       result = result.filter((p) => p.acceptedPayments?.includes(selectedPayment));
     }
 
-    // Apply sorting
     switch (sortBy) {
       case "rating":
         result.sort((a, b) => b.rating - a.rating);
@@ -397,81 +321,36 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         result.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
         break;
       default:
-        // Recommended - mix of rating and reviews
         result.sort((a, b) => b.rating * (b.reviewCount || 1) - a.rating * (a.reviewCount || 1));
     }
 
     return result;
   }, [providers, selectedRating, selectedPayment, sortBy]);
 
-  // Pagination
+  // Pagination with badge assignment (top 3 highest-rated in full result set)
   const totalPages = Math.ceil(filteredProviders.length / PROVIDERS_PER_PAGE);
+  const topRatedIds = useMemo(() => {
+    return new Set(
+      filteredProviders
+        .filter((p) => p.rating >= 4.5)
+        .slice(0, 3)
+        .map((p) => p.id)
+    );
+  }, [filteredProviders]);
   const paginatedProviders = useMemo(() => {
     const startIndex = (currentPage - 1) * PROVIDERS_PER_PAGE;
-    return filteredProviders.slice(startIndex, startIndex + PROVIDERS_PER_PAGE);
-  }, [filteredProviders, currentPage]);
+    return filteredProviders
+      .slice(startIndex, startIndex + PROVIDERS_PER_PAGE)
+      .map((p) => ({
+        ...p,
+        badge: topRatedIds.has(p.id) ? "Top Rated" : undefined,
+      }));
+  }, [filteredProviders, currentPage, topRatedIds]);
 
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [careType, selectedRating, selectedPayment, sortBy]);
-
-  // Categorized providers for carousel view - override badges to match section
-  const topRatedProviders = useMemo(
-    () => [...filteredProviders]
-      .sort((a, b) => b.rating - a.rating)
-      .slice(0, 8)
-      .map((p) => ({ ...p, badge: "Top Rated" })),
-    [filteredProviders]
-  );
-
-  const affordableProviders = useMemo(
-    () => filteredProviders
-      .filter((p) => p.acceptedPayments?.includes("Medicaid"))
-      .slice(0, 8)
-      .map((p) => ({ ...p, badge: undefined })), // No badge for affordable section
-    [filteredProviders]
-  );
-
-  const highlyReviewedProviders = useMemo(
-    () =>
-      [...filteredProviders]
-        .sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0))
-        .slice(0, 8)
-        .map((p) => ({ ...p, badge: "Top Rated" })),
-    [filteredProviders]
-  );
-
-  const featuredProviders = useMemo(
-    () => filteredProviders
-      .filter((p) => p.verified)
-      .slice(0, 8)
-      .map((p) => ({ ...p, badge: "Featured" })),
-    [filteredProviders]
-  );
-
-  // For "all" view, group by type - keep original badges for category sections
-  const homeCareProviders = useMemo(
-    () => filteredProviders.filter((p) => p.primaryCategory === "Home Care").slice(0, 8),
-    [filteredProviders]
-  );
-
-  const assistedLivingProviders = useMemo(
-    () => filteredProviders.filter((p) => p.primaryCategory === "Assisted Living").slice(0, 8),
-    [filteredProviders]
-  );
-
-  const memoryCareProviders = useMemo(
-    () => filteredProviders.filter((p) => p.primaryCategory === "Memory Care").slice(0, 8),
-    [filteredProviders]
-  );
-
-  const nursingHomeProviders = useMemo(
-    () => filteredProviders.filter((p) => p.primaryCategory === "Nursing Home").slice(0, 8),
-    [filteredProviders]
-  );
-
-  const isMapView = viewMode === "map";
 
   // Check if any filters are active
   const hasActiveFilters =
@@ -488,40 +367,46 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     setSortBy("recommended");
   };
 
+  // Close all other dropdowns helper
+  const closeAllDropdowns = () => {
+    setShowLocationDropdown(false);
+    setShowCareTypeDropdown(false);
+    setShowRatingDropdown(false);
+    setShowPaymentDropdown(false);
+    setShowSortDropdown(false);
+  };
+
+  const sortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Recommended";
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Filter Bar - Sticky below navbar (slides smoothly with navbar hide/show), fixed at top-0 for map view */}
+      {/* Filter Bar */}
       <div
-        className={`z-40 bg-white border-b border-gray-200 ${isMapView ? "fixed top-0 left-0 right-0" : "sticky top-0 -mt-16"}`}
-        style={!isMapView ? {
-          transform: navbarVisible ? "translateY(64px)" : "translateY(0)",
-          transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
-        } : undefined}
+        className="sticky z-40 bg-white border-b border-gray-200"
+        style={{
+          top: navbarVisible ? "64px" : "0px",
+          transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1)",
+        }}
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-3">
-          {/* Filter Buttons - Left Side */}
-          <div className="flex items-center gap-2 flex-nowrap overflow-visible">
+        <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-2 flex-wrap flex-1">
             {/* Location Dropdown */}
             <div className="relative dropdown-container flex-shrink-0">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   const opening = !showLocationDropdown;
+                  closeAllDropdowns();
                   setShowLocationDropdown(opening);
-                  setShowCareTypeDropdown(false);
-                  setShowRatingDropdown(false);
-                  setShowPaymentDropdown(false);
-                  setShowSortDropdown(false);
                   if (opening) {
-                    // Clear input so popular cities show (matching landing page dropdown)
                     setLocationInput("");
                     setTimeout(() => locationInputRef.current?.focus({ preventScroll: true }), 100);
                   }
                 }}
-                className={`flex items-center justify-between h-9 px-3 w-[200px] rounded-lg text-sm font-medium transition-colors overflow-hidden ${
+                className={`flex items-center justify-between h-9 px-4 w-[200px] rounded-full text-sm font-medium transition-colors overflow-hidden ${
                   searchLocation.trim()
                     ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-900 hover:border-gray-400"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400"
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -545,7 +430,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
               {showLocationDropdown && (
                 <div className="absolute left-0 top-[calc(100%+8px)] w-[300px] bg-white rounded-xl shadow-xl border border-gray-200 py-3 z-[100] max-h-[340px] overflow-y-auto">
-                  {/* Search Input */}
                   <div className="px-3 pb-2">
                     <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
                       locationInput.trim() ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200"
@@ -566,7 +450,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                     </div>
                   </div>
 
-                  {/* Use Current Location - Prominent Button */}
                   <div className="px-3 pb-3">
                     <button
                       type="button"
@@ -591,14 +474,12 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                     </button>
                   </div>
 
-                  {/* Divider */}
                   <div className="flex items-center gap-3 px-4 py-1">
                     <div className="flex-1 h-px bg-gray-200" />
                     <span className="text-xs text-gray-400 font-medium">or search</span>
                     <div className="flex-1 h-px bg-gray-200" />
                   </div>
 
-                  {/* Popular Cities Label */}
                   {!locationInput.trim() && cityResults.length > 0 && (
                     <div className="px-4 pt-2 pb-1">
                       <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Popular cities</span>
@@ -641,16 +522,14 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowCareTypeDropdown(!showCareTypeDropdown);
-                  setShowLocationDropdown(false);
-                  setShowRatingDropdown(false);
-                  setShowPaymentDropdown(false);
-                  setShowSortDropdown(false);
+                  const opening = !showCareTypeDropdown;
+                  closeAllDropdowns();
+                  setShowCareTypeDropdown(opening);
                 }}
-                className={`flex items-center justify-between h-9 px-3 w-[180px] rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center justify-between h-9 px-4 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   !isAllTypes
                     ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-900 hover:border-gray-400"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400"
                 }`}
               >
                 <span>{careTypeLabel}</span>
@@ -699,16 +578,14 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowRatingDropdown(!showRatingDropdown);
-                  setShowLocationDropdown(false);
-                  setShowCareTypeDropdown(false);
-                  setShowPaymentDropdown(false);
-                  setShowSortDropdown(false);
+                  const opening = !showRatingDropdown;
+                  closeAllDropdowns();
+                  setShowRatingDropdown(opening);
                 }}
-                className={`flex items-center justify-between h-9 px-3 w-[160px] rounded-lg text-sm font-medium transition-colors overflow-hidden ${
+                className={`flex items-center justify-between h-9 px-4 rounded-full text-sm font-medium transition-colors overflow-hidden ${
                   selectedRating !== "any"
                     ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-900 hover:border-gray-400"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400"
                 }`}
               >
                 <span className="truncate">{selectedRating === "any" ? "Rating" : `${selectedRating}+ Stars`}</span>
@@ -749,21 +626,19 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               )}
             </div>
 
-            {/* Payments Dropdown */}
+            {/* Payment Dropdown */}
             <div className="relative dropdown-container flex-shrink-0">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowPaymentDropdown(!showPaymentDropdown);
-                  setShowLocationDropdown(false);
-                  setShowCareTypeDropdown(false);
-                  setShowRatingDropdown(false);
-                  setShowSortDropdown(false);
+                  const opening = !showPaymentDropdown;
+                  closeAllDropdowns();
+                  setShowPaymentDropdown(opening);
                 }}
-                className={`flex items-center justify-between h-9 px-3 w-[160px] rounded-lg text-sm font-medium transition-colors overflow-hidden ${
+                className={`flex items-center justify-between h-9 px-4 rounded-full text-sm font-medium transition-colors overflow-hidden ${
                   selectedPayment !== "any"
                     ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-900 hover:border-gray-400"
+                    : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400"
                 }`}
               >
                 <span className="truncate">{selectedPayment === "any" ? "Payments" : selectedPayment}</span>
@@ -804,67 +679,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               )}
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="relative dropdown-container flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSortDropdown(!showSortDropdown);
-                  setShowLocationDropdown(false);
-                  setShowCareTypeDropdown(false);
-                  setShowRatingDropdown(false);
-                  setShowPaymentDropdown(false);
-                }}
-                className={`flex items-center justify-between h-9 px-3 w-[160px] rounded-lg text-sm font-medium transition-colors overflow-hidden ${
-                  sortBy !== "recommended"
-                    ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-900 hover:border-gray-400"
-                }`}
-              >
-                <span className="truncate">
-                  {sortBy === "recommended" ? "Sort" : sortOptions.find((o) => o.value === sortBy)?.label}
-                </span>
-                <svg
-                  className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform ${showSortDropdown ? "rotate-180" : ""} ${sortBy !== "recommended" ? "text-gray-900" : "text-gray-400"}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showSortDropdown && (
-                <div className="absolute left-0 top-[calc(100%+6px)] w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-[100]">
-                  {sortOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setSortBy(option.value);
-                        setShowSortDropdown(false);
-                      }}
-                      className={`flex items-center gap-2 w-full px-3 py-1 text-left text-base hover:bg-gray-50 transition-colors ${
-                        sortBy === option.value ? "text-gray-900 font-medium" : "text-gray-900"
-                      }`}
-                    >
-                      {sortBy === option.value ? (
-                        <svg className="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <span className="w-5" />
-                      )}
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Clear Filters - always rendered to prevent layout shift */}
+            {/* Clear Filters */}
             <button
               onClick={clearFilters}
-              className={`flex items-center gap-1 h-9 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+              className={`flex items-center gap-1 h-9 px-3 text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
                 hasActiveFilters
                   ? "text-red-600 hover:text-red-700 hover:bg-red-50"
                   : "invisible"
@@ -878,224 +696,140 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               Clear
             </button>
           </div>
-
-          {/* Right Side - View Toggle */}
-          <div className="flex items-center flex-shrink-0">
-            <div className="inline-flex items-center bg-gray-100 rounded-lg">
-              <button
-                onClick={() => setViewMode("carousel")}
-                className={`flex items-center gap-1.5 h-8 px-3 text-sm font-medium rounded-lg transition-all ${
-                  viewMode === "carousel"
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-                List
-              </button>
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`flex items-center gap-1.5 h-8 px-3 text-sm font-medium rounded-lg transition-all ${
-                  viewMode === "grid"
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Grid
-              </button>
-              <button
-                onClick={() => setViewMode("map")}
-                className={`flex items-center gap-1.5 h-8 px-3 text-sm font-medium rounded-lg transition-all ${
-                  viewMode === "map"
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                Map
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Main Content Container */}
-      <div className={viewMode === "map" ? "" : ""}>
-        {/* Carousel View */}
-        {viewMode === "carousel" && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[94px] pb-8">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-[34px]">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {careTypeLabel} in {searchLocation}
+      {/* Main Content - Split Layout */}
+      <div className="lg:mr-[45%]">
+        {/* Left Panel - Provider List */}
+        <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
+          {/* Heading + Sort */}
+          <div className="relative z-20">
+            <div className="flex items-baseline justify-between gap-4 mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900">
+                {isLoadingProviders ? "" : `${filteredProviders.length} `}{careTypeLabel} in {searchLocation || "your area"}
               </h1>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                {filteredProviders.length} {filteredProviders.length === 1 ? "result" : "results"}
-              </span>
-            </div>
 
-            {isAllTypes ? (
-              <>
-                <CarouselSection
-                  title={`Top Rated Providers in ${searchLocation}`}
-                  providers={topRatedProviders}
-                  scrollId="top-rated-scroll"
-                />
-                <CarouselSection
-                  title={`Home Care Services in ${searchLocation}`}
-                  providers={homeCareProviders}
-                  scrollId="home-care-scroll"
-                />
-                <CarouselSection
-                  title={`Assisted Living Communities in ${searchLocation}`}
-                  providers={assistedLivingProviders}
-                  scrollId="assisted-living-scroll"
-                />
-                <CarouselSection
-                  title={`Memory Care Facilities in ${searchLocation}`}
-                  providers={memoryCareProviders}
-                  scrollId="memory-care-scroll"
-                />
-                <CarouselSection
-                  title={`Nursing Homes in ${searchLocation}`}
-                  providers={nursingHomeProviders}
-                  scrollId="nursing-homes-scroll"
-                />
-              </>
-            ) : filteredProviders.length > 0 ? (
-              <>
-                <CarouselSection
-                  title={`Top Rated ${careTypeLabel} in ${searchLocation}`}
-                  providers={topRatedProviders}
-                  scrollId="top-rated-scroll"
-                />
-                {affordableProviders.length > 0 && (
-                  <CarouselSection
-                    title={`Affordable ${careTypeLabel} in ${searchLocation}`}
-                    providers={affordableProviders}
-                    scrollId="affordable-scroll"
-                  />
+              {/* Sort Dropdown */}
+              <div className="relative dropdown-container flex-shrink-0">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const opening = !showSortDropdown;
+                    closeAllDropdowns();
+                    setShowSortDropdown(opening);
+                  }}
+                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 whitespace-nowrap transition-colors"
+                >
+                  Sort by: <span className="font-medium text-gray-900">{sortLabel}</span>
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform ${showSortDropdown ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showSortDropdown && (
+                  <div className="absolute right-0 top-[calc(100%+6px)] w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-[100]">
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setSortBy(option.value);
+                          setShowSortDropdown(false);
+                        }}
+                        className={`flex items-center gap-2 w-full px-3 py-1 text-left text-base hover:bg-gray-50 transition-colors ${
+                          sortBy === option.value ? "text-gray-900 font-medium" : "text-gray-900"
+                        }`}
+                      >
+                        {sortBy === option.value ? (
+                          <svg className="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <span className="w-5" />
+                        )}
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
                 )}
-                <CarouselSection
-                  title={`Highly Reviewed ${careTypeLabel} in ${searchLocation}`}
-                  providers={highlyReviewedProviders}
-                  scrollId="highly-reviewed-scroll"
-                />
-                {featuredProviders.length > 0 && (
-                  <CarouselSection
-                    title={`Featured ${careTypeLabel} in ${searchLocation}`}
-                    providers={featuredProviders}
-                    scrollId="featured-scroll"
-                  />
-                )}
-              </>
-            ) : (
-              <EmptyState onClear={clearFilters} />
-            )}
-          </div>
-        )}
-
-        {/* Grid View */}
-        {viewMode === "grid" && (
-          <div className="min-h-[calc(100vh-200px)] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[94px] pb-8">
-            <div className="flex items-center gap-3 mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {careTypeLabel} in {searchLocation}
-              </h1>
-              <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                {filteredProviders.length} {filteredProviders.length === 1 ? "result" : "results"}
-              </span>
+              </div>
             </div>
-
-            {filteredProviders.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  {paginatedProviders.map((provider, index) => (
-                    <ProviderCard key={`${provider.id}-${index}`} provider={provider} />
-                  ))}
-                </div>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={filteredProviders.length}
-                  itemsPerPage={PROVIDERS_PER_PAGE}
-                  onPageChange={setCurrentPage}
-                  itemLabel="providers"
-                  className="mt-8"
-                />
-              </>
-            ) : (
-              <EmptyState onClear={clearFilters} />
-            )}
           </div>
-        )}
 
-        {/* Map View */}
-        {viewMode === "map" && (
-          <div className="flex" style={{ height: "100vh" }}>
-            {/* Left Side - Listings (aligned with navbar) */}
-            <div
-              ref={mapListingsRef}
-              className="w-full lg:flex-1 h-full overflow-y-auto bg-gray-50"
-            >
-              <div className="px-4 sm:px-6 lg:pr-6 pt-6 pb-8" style={{ paddingLeft: "max(calc((100vw - 80rem) / 2 + 2rem), 2rem)" }}>
-                <div className="flex items-center gap-3 mb-4">
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {careTypeLabel} in {searchLocation}
-                  </h1>
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-sm font-medium text-gray-900">
-                    {filteredProviders.length} {filteredProviders.length === 1 ? "result" : "results"}
-                  </span>
-                </div>
-
-                {filteredProviders.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      {filteredProviders.map((provider, index) => (
-                        <div
-                          key={`${provider.id}-${index}`}
-                          onMouseEnter={() => setHoveredProviderId(provider.id)}
-                          onMouseLeave={() => setHoveredProviderId(null)}
-                        >
-                          <ProviderCard provider={provider} />
-                        </div>
-                      ))}
+          {/* Provider Cards — 2-column grid */}
+          {isLoadingProviders ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl overflow-hidden border border-gray-200 animate-pulse"
+                >
+                  <div className="w-full aspect-[16/10] bg-gray-200" />
+                  <div className="p-3.5 space-y-2.5">
+                    <div className="flex justify-between">
+                      <div className="h-5 w-3/4 bg-gray-200 rounded" />
+                      <div className="h-5 w-10 bg-gray-100 rounded" />
                     </div>
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      totalItems={filteredProviders.length}
-                      itemsPerPage={PROVIDERS_PER_PAGE}
-                      onPageChange={setCurrentPage}
-                      itemLabel="providers"
-                      className="mt-6"
-                    />
-                  </>
-                ) : (
-                  <EmptyState onClear={clearFilters} />
-                )}
-              </div>
+                    <div className="h-3 w-1/2 bg-gray-100 rounded" />
+                    <div className="flex gap-2">
+                      <div className="h-5 w-20 bg-gray-100 rounded-full" />
+                      <div className="h-5 w-16 bg-gray-100 rounded-full" />
+                    </div>
+                    <div className="h-4 w-28 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
+          ) : filteredProviders.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {paginatedProviders.map((provider) => (
+                  <div
+                    key={provider.id}
+                    onMouseEnter={() => setHoveredProviderId(provider.id)}
+                    onMouseLeave={() => setHoveredProviderId(null)}
+                  >
+                    <BrowseCard provider={provider} />
+                  </div>
+                ))}
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredProviders.length}
+                itemsPerPage={PROVIDERS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                itemLabel="providers"
+                className="mt-6"
+              />
+            </>
+          ) : (
+            <EmptyState onClear={clearFilters} />
+          )}
+        </div>
+      </div>
 
-            {/* Right Side - Interactive Map */}
-            <div className="hidden lg:flex flex-col w-[600px] h-full pt-6 pb-[90px] pl-0" style={{ paddingRight: "max(calc((100vw - 80rem) / 2 + 2rem), 1rem)" }}>
-              <div className="relative w-full flex-1 min-h-0 rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
-                <BrowseMap
-                  providers={filteredProviders}
-                  hoveredProviderId={hoveredProviderId}
-                  onMarkerHover={setHoveredProviderId}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+      {/* Right Panel - Fixed Map */}
+      <div
+        className="hidden lg:block fixed right-0 w-[45%] p-4 z-30"
+        style={{
+          top: navbarVisible ? "125px" : "61px",
+          height: navbarVisible ? "calc(100vh - 125px)" : "calc(100vh - 61px)",
+          transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1)",
+        }}
+      >
+        <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
+          <BrowseMap
+            providers={filteredProviders}
+            hoveredProviderId={hoveredProviderId}
+            onMarkerHover={setHoveredProviderId}
+          />
+        </div>
       </div>
     </div>
   );

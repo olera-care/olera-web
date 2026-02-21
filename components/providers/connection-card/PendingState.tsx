@@ -10,7 +10,6 @@ interface PendingStateProps {
 }
 
 export default function PendingState({
-  providerName,
   phone,
   requestDate,
 }: PendingStateProps) {
@@ -24,8 +23,8 @@ export default function PendingState({
   return (
     <>
       {/* Status banner */}
-      <div className="px-4 py-5 bg-primary-50 rounded-[10px] text-center mb-4 border border-primary-100">
-        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
+      <div className="flex items-center gap-3 px-4 py-4 bg-primary-50 rounded-[10px] mb-4 border border-primary-100">
+        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
           <svg
             width="20"
             height="20"
@@ -40,12 +39,14 @@ export default function PendingState({
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
-        <p className="text-sm font-semibold text-gray-900 mb-1">
-          Request sent {dateStr}
-        </p>
-        <p className="text-[13px] text-gray-500">
-          Waiting for {providerName} to respond
-        </p>
+        <div>
+          <p className="text-sm font-semibold text-gray-900">
+            Request sent &middot; {dateStr}
+          </p>
+          <p className="text-[13px] text-primary-600 font-medium">
+            Awaiting reply
+          </p>
+        </div>
       </div>
 
       {/* Phone — fully revealed (already connected) */}
@@ -54,7 +55,7 @@ export default function PendingState({
       {/* View connections */}
       <Link
         href="/portal/connections"
-        className="block w-full mt-2 py-3 border border-gray-200 rounded-[10px] text-sm font-medium text-primary-600 text-center hover:bg-gray-50 transition-colors"
+        className="block w-full mt-2 py-3 bg-primary-600 hover:bg-primary-500 rounded-[10px] text-sm font-semibold text-white text-center transition-colors"
       >
         View Your Connections
       </Link>

@@ -35,19 +35,38 @@ export async function GET(
       return NextResponse.json({ error: "Provider not found" }, { status: 404 });
     }
 
-    // Get all image metadata
-    const { data: images, error: imagesError } = await db
-      .from("provider_image_metadata")
-      .select("*")
-      .eq("provider_id", providerId)
-      .order("quality_score", { ascending: false });
+    // Get classified image metadata (may be empty if script hasn't run)
+    let images: Record<string, unknown>[] = [];
+    try {
+      const { data, error: imagesError } = await db
+        .from("provider_image_metadata")
+        .select("*")
+        .eq("provider_id", providerId)
+        .order("quality_score", { ascending: false });
 
-    if (imagesError) {
-      console.error("Failed to fetch images:", imagesError);
-      return NextResponse.json({ error: "Failed to fetch images" }, { status: 500 });
+      if (!imagesError && data) {
+        images = data;
+      }
+    } catch {
+      // Table may not exist yet — that's fine
     }
 
-    return NextResponse.json({ provider, images: images || [] });
+    // Parse raw images from the provider record as fallback
+    const rawImages: string[] = [];
+    if (provider.provider_logo) {
+      rawImages.push(provider.provider_logo);
+    }
+    if (provider.provider_images) {
+      const parsed = (provider.provider_images as string)
+        .split(" | ")
+        .map((u: string) => u.trim())
+        .filter(Boolean);
+      for (const url of parsed) {
+        if (url !== provider.provider_logo) rawImages.push(url);
+      }
+    }
+
+    return NextResponse.json({ provider, images, rawImages });
   } catch (err) {
     console.error("Admin images detail error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

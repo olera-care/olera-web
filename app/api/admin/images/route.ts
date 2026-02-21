@@ -29,13 +29,18 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Step 1: Get image stats per provider from provider_image_metadata
-    const { data: imageStats, error: statsError } = await db
-      .from("provider_image_metadata")
-      .select("provider_id, image_type, classification_confidence, is_hero");
+    // Table may not exist yet if migrations haven't run — gracefully handle
+    let imageStats: { provider_id: string; image_type: string; classification_confidence: number; is_hero: boolean }[] = [];
+    try {
+      const { data, error: statsError } = await db
+        .from("provider_image_metadata")
+        .select("provider_id, image_type, classification_confidence, is_hero");
 
-    if (statsError) {
-      console.error("Failed to fetch image stats:", statsError);
-      return NextResponse.json({ error: "Failed to fetch image stats" }, { status: 500 });
+      if (!statsError && data) {
+        imageStats = data;
+      }
+    } catch {
+      // Table doesn't exist yet — proceed with empty stats
     }
 
     // Aggregate stats per provider
@@ -73,7 +78,7 @@ export async function GET(request: NextRequest) {
     // Step 2: Get all provider IDs (we need to include providers with no images for "no_images")
     let providerQuery = db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, hero_image_url")
+      .select("provider_id, provider_name, provider_category, city, state, hero_image_url, provider_images, provider_logo")
       .or("deleted.is.null,deleted.eq.false")
       .order("provider_name", { ascending: true });
 
@@ -117,6 +122,14 @@ export async function GET(request: NextRequest) {
 
     const providers = paged.map((p) => {
       const pStats = providerStats.get(p.provider_id);
+
+      // Parse raw images for thumbnail + count when no classified data
+      const rawImages: string[] = [];
+      if (p.provider_images) {
+        const parsed = (p.provider_images as string).split(" | ").map((u: string) => u.trim()).filter(Boolean);
+        rawImages.push(...parsed);
+      }
+
       return {
         provider_id: p.provider_id,
         provider_name: p.provider_name,
@@ -127,6 +140,8 @@ export async function GET(request: NextRequest) {
         image_count: pStats?.image_count || 0,
         photo_count: pStats?.photo_count || 0,
         logo_count: pStats?.logo_count || 0,
+        raw_image_count: rawImages.length + (p.provider_logo ? 1 : 0),
+        first_image_url: p.hero_image_url || rawImages[0] || p.provider_logo || null,
         min_confidence: pStats?.min_confidence ?? null,
         needs_review: pStats ? pStats.min_confidence < 0.7 : false,
       };

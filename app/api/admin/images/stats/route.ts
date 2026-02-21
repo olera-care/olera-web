@@ -21,13 +21,18 @@ export async function GET() {
     const db = getServiceClient();
 
     // Fetch all image metadata for aggregation
-    const { data: images, error } = await db
-      .from("provider_image_metadata")
-      .select("provider_id, image_type, classification_confidence, is_accessible");
+    // Table may not exist yet if migrations haven't run
+    let images: { provider_id: string; image_type: string; classification_confidence: number; is_accessible: boolean }[] = [];
+    try {
+      const { data, error } = await db
+        .from("provider_image_metadata")
+        .select("provider_id, image_type, classification_confidence, is_accessible");
 
-    if (error) {
-      console.error("Failed to fetch image stats:", error);
-      return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 });
+      if (!error && data) {
+        images = data;
+      }
+    } catch {
+      // Table doesn't exist yet
     }
 
     // Aggregate per provider

@@ -15,6 +15,8 @@ interface ProviderImageSummary {
   image_count: number;
   photo_count: number;
   logo_count: number;
+  raw_image_count: number;
+  first_image_url: string | null;
   min_confidence: number | null;
   needs_review: boolean;
 }
@@ -45,13 +47,14 @@ interface ProviderDetail {
     hero_image_url: string | null;
   };
   images: ImageMetadata[];
+  rawImages: string[];
 }
 
 export default function AdminImagesPage() {
   const [providers, setProviders] = useState<ProviderImageSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<StatusFilter>("needs_review");
+  const [filter, setFilter] = useState<StatusFilter>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ProviderDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -181,9 +184,9 @@ export default function AdminImagesPage() {
               >
                 {/* Thumbnail */}
                 <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
-                  {provider.hero_image_url ? (
+                  {provider.first_image_url ? (
                     <img
-                      src={provider.hero_image_url}
+                      src={provider.first_image_url}
                       alt=""
                       className="w-full h-full object-cover"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
@@ -210,7 +213,10 @@ export default function AdminImagesPage() {
                 {/* Stats */}
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <span className="text-xs text-gray-500">
-                    {provider.photo_count} photo{provider.photo_count !== 1 ? "s" : ""}, {provider.logo_count} logo{provider.logo_count !== 1 ? "s" : ""}
+                    {provider.image_count > 0
+                      ? `${provider.photo_count} photo${provider.photo_count !== 1 ? "s" : ""}, ${provider.logo_count} logo${provider.logo_count !== 1 ? "s" : ""}`
+                      : `${provider.raw_image_count} image${provider.raw_image_count !== 1 ? "s" : ""}`
+                    }
                   </span>
                   {provider.min_confidence !== null && (
                     <ConfidenceBadge confidence={provider.min_confidence} />
@@ -231,7 +237,7 @@ export default function AdminImagesPage() {
                     <p className="text-sm text-gray-500 py-4">Loading images...</p>
                   ) : detail && detail.images.length > 0 ? (
                     <>
-                      {/* Image grid */}
+                      {/* Classified image grid */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
                         {detail.images.map((img) => (
                           <div key={img.id} className="relative group">
@@ -334,9 +340,52 @@ export default function AdminImagesPage() {
                         )}
                       </div>
                     </>
+                  ) : detail && detail.rawImages.length > 0 ? (
+                    <>
+                      {/* Raw images (before classification script runs) */}
+                      <p className="text-xs text-gray-500 mb-3">
+                        Raw images from provider record — run classification script for AI analysis.
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
+                        {detail.rawImages.map((url, i) => (
+                          <div key={i} className="relative">
+                            <div className="aspect-square rounded-lg overflow-hidden bg-gray-200">
+                              <img
+                                src={url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = "none";
+                                }}
+                              />
+                            </div>
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleAction(provider.provider_id, "set_hero", url); }}
+                                disabled={actionLoading !== null}
+                                className="text-[10px] px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 disabled:opacity-50"
+                              >
+                                Set as Hero
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {provider.hero_image_url && (
+                        <div className="flex gap-2 pt-2 border-t border-gray-200">
+                          <button
+                            onClick={() => handleAction(provider.provider_id, "clear_hero")}
+                            disabled={actionLoading !== null}
+                            className="px-3 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                          >
+                            Clear Hero (Use Stock)
+                          </button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className="text-sm text-gray-500 py-4">
-                      No classified images. Run the classification script first.
+                      No images found for this provider.
                     </p>
                   )}
                 </div>

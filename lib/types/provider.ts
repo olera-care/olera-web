@@ -199,20 +199,43 @@ function getCategoryFallbackImage(category: string): string {
 }
 
 /**
- * Classify the primary image for card display.
+ * Determine the best card hero image and its type.
+ *
+ * Most providers (especially Home Care / Home Health) only have a logo
+ * uploaded to Google Places — stored as the sole entry in provider_images.
+ * We can't reliably distinguish logos from photos by URL alone, so we use
+ * a simple heuristic: trust the image only when there are 2+ distinct
+ * photos. Otherwise fall back to a hand-picked category stock image.
+ *
+ * Priority:
+ *  1. hero_image_url (set by classification script) — always trust
+ *  2. provider_images with 2+ entries — likely has real photos
+ *  3. Category stock fallback — safe default for logo-only providers
  */
-function classifyCardImage(primaryImage: string | null, provider: Provider): CardImageType {
-  if (!primaryImage) return "placeholder";
-  if (isLikelyLogo(primaryImage, provider)) return "logo";
-  return "photo";
-}
+function resolveCardImage(provider: Provider): { image: string; imageType: CardImageType } {
+  // 1. Classified hero — always trust it
+  if (provider.hero_image_url) {
+    return { image: provider.hero_image_url, imageType: "photo" };
+  }
 
-/**
- * Check if a provider has any real (non-logo) photos.
- */
-function hasRealPhotos(provider: Provider): boolean {
   const images = parseProviderImages(provider.provider_images);
-  return images.some((url) => !isLikelyLogo(url, provider));
+  const nonLogoImages = images.filter((url) => !isLikelyLogo(url, provider));
+
+  // 2. Multiple non-logo images — pick the first real photo
+  if (nonLogoImages.length >= 2) {
+    return { image: nonLogoImages[0], imageType: "photo" };
+  }
+
+  // 3. Multiple total images with at least one non-logo — use it
+  if (images.length >= 2 && nonLogoImages.length >= 1) {
+    return { image: nonLogoImages[0], imageType: "photo" };
+  }
+
+  // 4. Everything else (0-1 images, likely just a logo) — stock fallback
+  return {
+    image: getCategoryFallbackImage(provider.provider_category),
+    imageType: "photo",
+  };
 }
 
 /**
@@ -220,22 +243,14 @@ function hasRealPhotos(provider: Provider): boolean {
  */
 export function toCardFormat(provider: Provider): ProviderCardData {
   const images = parseProviderImages(provider.provider_images);
-  const primaryImage = getPrimaryImage(provider);
-  const imageType = classifyCardImage(primaryImage, provider);
-
-  // When only logos exist, use a category stock photo as the card hero
-  const useStockFallback = imageType !== "photo" && !hasRealPhotos(provider);
-  const cardImage = useStockFallback
-    ? getCategoryFallbackImage(provider.provider_category)
-    : (primaryImage || "/placeholder-provider.jpg");
-  const cardImageType: CardImageType = useStockFallback ? "photo" : imageType;
+  const { image: cardImage, imageType } = resolveCardImage(provider);
 
   return {
     id: provider.provider_id,
     slug: provider.provider_id,
     name: provider.provider_name,
     image: cardImage,
-    imageType: cardImageType,
+    imageType,
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
     rating: provider.google_rating || 0,

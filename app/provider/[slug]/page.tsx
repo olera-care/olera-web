@@ -290,7 +290,7 @@ export default async function ProviderPage({
           {/* ── Hero (full width, above the grid) ── */}
           <div className="flex flex-col md:flex-row gap-6">
             {/* Gallery */}
-            <div className="flex-shrink-0 relative">
+            <div className="flex-shrink-0 relative w-full md:w-[448px]">
               <ProviderHeroGallery
                 images={images}
                 providerName={profile.display_name}

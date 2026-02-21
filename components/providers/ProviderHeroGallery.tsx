@@ -1,4 +1,6 @@
-import { getInitials, formatCategory } from "@/lib/provider-utils";
+"use client";
+
+import { useState } from "react";
 import type { ProfileCategory } from "@/lib/types";
 
 interface ProviderHeroGalleryProps {
@@ -7,8 +9,29 @@ interface ProviderHeroGalleryProps {
   category: ProfileCategory | null;
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((word) => word[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+const categoryLabels: Partial<Record<ProfileCategory, string>> = {
+  home_care_agency: "Home Care",
+  home_health_agency: "Home Health",
+  hospice_agency: "Hospice",
+  independent_living: "Independent Living",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+};
+
 export default function ProviderHeroGallery({ images, providerName, category }: ProviderHeroGalleryProps) {
-  const categoryLabel = formatCategory(category);
+  const categoryLabel = category ? categoryLabels[category] ?? null : null;
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // 0 images — gradient placeholder with avatar circle + hint
   if (images.length === 0) {
@@ -27,25 +50,46 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
     );
   }
 
-  // 1+ images — single image with photo count badge
+  const goNext = () => setCurrentIndex((i) => (i + 1) % images.length);
+  const goPrev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length);
+
+  // 1+ images — fixed aspect ratio with navigation
   return (
     <div className="relative w-full max-w-md aspect-[3/2] rounded-2xl overflow-hidden bg-gray-100">
       <img
-        src={images[0]}
-        alt={providerName}
+        src={images[currentIndex]}
+        alt={`${providerName} — photo ${currentIndex + 1}`}
         className="w-full h-full object-cover"
       />
       {images.length > 1 && (
         <>
-          {/* Right arrow hint */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
-            <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
+          {/* Left arrow */}
+          {currentIndex > 0 && (
+            <button
+              onClick={goPrev}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
+              aria-label="Previous photo"
+            >
+              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+          {/* Right arrow */}
+          {currentIndex < images.length - 1 && (
+            <button
+              onClick={goNext}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
+              aria-label="Next photo"
+            >
+              <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
           {/* Photo count */}
           <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-            1/{images.length}
+            {currentIndex + 1}/{images.length}
           </span>
         </>
       )}

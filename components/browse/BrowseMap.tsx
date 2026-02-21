@@ -12,10 +12,36 @@ interface BrowseMapProps {
 }
 
 const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY;
-const MAP_STYLE = MAPTILER_KEY
+
+/** MapTiler vector tiles when key is available, CartoDB Positron raster fallback otherwise */
+const MAP_STYLE: maplibregl.StyleSpecification | string = MAPTILER_KEY
   ? `https://api.maptiler.com/maps/positron/style.json?key=${MAPTILER_KEY}`
-  : // Fallback: demotiles style (free, no key needed)
-    "https://demotiles.maplibre.org/style.json";
+  : {
+      version: 8,
+      sources: {
+        "carto-positron": {
+          type: "raster",
+          tiles: [
+            "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+            "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+            "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
+          ],
+          tileSize: 256,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>, &copy; <a href="https://carto.com/">CARTO</a>',
+        },
+      },
+      layers: [
+        {
+          id: "carto-positron",
+          type: "raster",
+          source: "carto-positron",
+          minzoom: 0,
+          maxzoom: 19,
+        },
+      ],
+      glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    };
 
 const SOURCE_ID = "providers";
 const CIRCLE_LAYER = "provider-circles";

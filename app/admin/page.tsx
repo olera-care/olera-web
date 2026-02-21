@@ -9,6 +9,7 @@ interface OverviewStats {
   totalInquiries: number;
   adminCount: number;
   imagesToReview: number;
+  totalProviders: number;
 }
 
 interface AuditEntry {
@@ -29,12 +30,13 @@ export default function AdminOverviewPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [providersRes, leadsRes, teamRes, auditRes, imageStatsRes] = await Promise.all([
+        const [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes] = await Promise.all([
           fetch("/api/admin/providers?status=pending&count_only=true"),
           fetch("/api/admin/leads?count_only=true"),
           fetch("/api/admin/team"),
           fetch("/api/admin/audit?limit=10"),
           fetch("/api/admin/images/stats"),
+          fetch("/api/admin/directory?tab=all&per_page=1"),
         ]);
 
         const pendingData = providersRes.ok ? await providersRes.json() : { count: 0 };
@@ -42,12 +44,14 @@ export default function AdminOverviewPage() {
         const teamData = teamRes.ok ? await teamRes.json() : { admins: [] };
         const auditData = auditRes.ok ? await auditRes.json() : { entries: [] };
         const imageStats = imageStatsRes.ok ? await imageStatsRes.json() : { needs_review: 0 };
+        const directoryData = directoryRes.ok ? await directoryRes.json() : { total: 0 };
 
         setStats({
           pendingProviders: pendingData.count ?? 0,
           totalInquiries: leadsData.count ?? 0,
           adminCount: teamData.admins?.length ?? 0,
           imagesToReview: imageStats.needs_review ?? 0,
+          totalProviders: directoryData.total ?? 0,
         });
         setAuditLog(auditData.entries ?? []);
       } catch (err) {
@@ -106,13 +110,13 @@ export default function AdminOverviewPage() {
             <p className="text-base text-gray-500">Active admins</p>
           </div>
         </Link>
-        <Link href="/admin/images" className="block">
+        <Link href="/admin/directory" className="block">
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
-            <p className="text-base text-gray-500 mb-1">Images to Review</p>
+            <p className="text-base text-gray-500 mb-1">Provider Directory</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.imagesToReview ?? 0}
+              {stats?.totalProviders?.toLocaleString() ?? 0}
             </p>
-            <p className="text-base text-gray-500">Low confidence</p>
+            <p className="text-base text-gray-500">Total providers</p>
           </div>
         </Link>
       </div>
@@ -156,6 +160,7 @@ function formatAction(action: string, targetType: string): string {
     reject_provider: "Rejected a provider",
     add_admin: "Added an admin",
     remove_admin: "Removed an admin",
+    update_directory_provider: "Updated a directory provider",
   };
   return actionLabels[action] ?? `${action} on ${targetType}`;
 }

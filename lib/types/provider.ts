@@ -199,19 +199,39 @@ function getCategoryFallbackImage(category: string): string {
 }
 
 /**
+ * Categories with physical facilities that Google Places photographs.
+ * Their provider_images are almost always real exterior/interior facility
+ * photos, NOT logos. Home care / home health / hospice are service businesses
+ * whose Google images are overwhelmingly company logos.
+ */
+const FACILITY_CATEGORIES = new Set([
+  "Assisted Living",
+  "Independent Living",
+  "Memory Care",
+  "Nursing Home",
+  "Assisted Living | Independent Living",
+  "Memory Care | Assisted Living",
+]);
+
+/**
  * Determine the best card hero image.
- *
- * Once the classification script (with vision AI) populates hero_image_url,
- * real photos appear automatically. Until then, stock photos provide a
- * consistent, clean look. No more URL/count heuristics.
  *
  * Priority:
  *  1. hero_image_url (classified by script + vision AI) — always trust
- *  2. No hero yet — category stock fallback
+ *  2. Facility category with images — use first photo (these are real
+ *     building photos from Google Places, not logos)
+ *  3. Everything else — category stock fallback (home care logos look
+ *     worse than curated stock photos)
  */
 function resolveCardImage(provider: Provider): { image: string; imageType: CardImageType } {
   if (provider.hero_image_url) {
     return { image: provider.hero_image_url, imageType: "photo" };
+  }
+
+  // Facility-based providers have real building photos from Google Places
+  const images = parseProviderImages(provider.provider_images);
+  if (images.length > 0 && FACILITY_CATEGORIES.has(provider.provider_category)) {
+    return { image: images[0], imageType: "photo" };
   }
 
   return {

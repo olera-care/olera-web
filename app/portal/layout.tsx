@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -36,7 +36,16 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user, account, activeProfile, isLoading, fetchError, refreshAccountData } = useAuth();
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const completeness = useProfileCompleteness(activeProfile ?? null, user?.email);
+
+  // Lightweight admin check
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    fetch("/api/admin/auth")
+      .then((res) => setIsAdmin(res.ok))
+      .catch(() => setIsAdmin(false));
+  }, [user]);
 
   // Brief spinner while getSession() runs (reads local storage — very fast)
   if (isLoading) {
@@ -139,6 +148,14 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
             </Link>
           );
         })}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 text-primary-600 hover:bg-primary-50"
+          >
+            Admin
+          </Link>
+        )}
       </div>
 
       <div className="flex gap-8 lg:gap-10">
@@ -237,6 +254,17 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  Admin Dashboard
+                </Link>
+              )}
             </div>
           </div>
         </div>

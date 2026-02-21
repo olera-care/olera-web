@@ -72,7 +72,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Directory list error:", error);
-      return NextResponse.json({ error: "Failed to fetch providers" }, { status: 500 });
+      return NextResponse.json(
+        { error: `Failed to fetch providers: ${error.message}` },
+        { status: 500 }
+      );
     }
 
     const total = count ?? 0;
@@ -100,6 +103,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ providers, total, page, per_page: perPage, total_pages: totalPages });
   } catch (err) {
     console.error("Directory list error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: `Internal server error: ${err instanceof Error ? err.message : String(err)}` },
+      { status: 500 }
+    );
   }
 }

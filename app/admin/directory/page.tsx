@@ -22,6 +22,7 @@ export default function AdminDirectoryPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -41,6 +42,7 @@ export default function AdminDirectoryPage() {
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams({
         page: String(page),
@@ -57,9 +59,15 @@ export default function AdminDirectoryPage() {
         setProviders(data.providers ?? []);
         setTotal(data.total ?? 0);
         setTotalPages(data.total_pages ?? 0);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const msg = `API error ${res.status}: ${errData.error || res.statusText}`;
+        console.error(msg);
+        setError(msg);
       }
     } catch (err) {
       console.error("Failed to fetch directory:", err);
+      setError(String(err));
     } finally {
       setLoading(false);
     }
@@ -152,6 +160,13 @@ export default function AdminDirectoryPage() {
           </button>
         ))}
       </div>
+
+      {/* Error display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Table */}
       {loading ? (

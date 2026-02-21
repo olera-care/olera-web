@@ -152,11 +152,28 @@ export default function BrowseMap({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    // Compute initial center from providers so there's no fly-across-US animation
+    let initialCenter: [number, number] = [-97.7431, 30.2672]; // fallback: Austin
+    let initialZoom = 12;
+    if (mappableProviders.length > 0) {
+      const bounds = new maplibregl.LngLatBounds();
+      mappableProviders.forEach((p) => bounds.extend([p.lon!, p.lat!]));
+      initialCenter = [bounds.getCenter().lng, bounds.getCenter().lat];
+      // Rough zoom estimate based on bounds spread
+      const lngSpan = bounds.getEast() - bounds.getWest();
+      const latSpan = bounds.getNorth() - bounds.getSouth();
+      const span = Math.max(lngSpan, latSpan);
+      if (span > 1) initialZoom = 9;
+      else if (span > 0.5) initialZoom = 10;
+      else if (span > 0.1) initialZoom = 12;
+      else initialZoom = 13;
+    }
+
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: MAP_STYLE,
-      center: [-97.7431, 30.2672],
-      zoom: 12,
+      center: initialCenter,
+      zoom: initialZoom,
       attributionControl: false,
     });
 
@@ -277,11 +294,11 @@ export default function BrowseMap({
         });
       }
 
-      // Fit bounds
+      // Fit bounds — instant, no animation
       if (mappableProviders.length > 0) {
         const bounds = new maplibregl.LngLatBounds();
         mappableProviders.forEach((p) => bounds.extend([p.lon!, p.lat!]));
-        map.fitBounds(bounds, { padding: 40, maxZoom: 14 });
+        map.fitBounds(bounds, { padding: 40, maxZoom: 14, animate: false });
       }
     };
 

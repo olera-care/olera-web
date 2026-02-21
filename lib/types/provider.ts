@@ -199,39 +199,30 @@ function getCategoryFallbackImage(category: string): string {
 }
 
 /**
- * Categories with physical facilities that Google Places photographs.
- * Their provider_images are almost always real exterior/interior facility
- * photos, NOT logos. Home care / home health / hospice are service businesses
- * whose Google images are overwhelmingly company logos.
- */
-const FACILITY_CATEGORIES = new Set([
-  "Assisted Living",
-  "Independent Living",
-  "Memory Care",
-  "Nursing Home",
-  "Assisted Living | Independent Living",
-  "Memory Care | Assisted Living",
-]);
-
-/**
  * Determine the best card hero image.
+ *
+ * Strategy: filter out images we KNOW are logos (exact match with
+ * provider_logo field + URL pattern heuristics), use whatever remains.
+ * This works across all categories — Comfort Keepers' caregiver portrait
+ * passes through, while a home care agency whose only image is their
+ * logo gets stock instead.
  *
  * Priority:
  *  1. hero_image_url (classified by script + vision AI) — always trust
- *  2. Facility category with images — use first photo (these are real
- *     building photos from Google Places, not logos)
- *  3. Everything else — category stock fallback (home care logos look
- *     worse than curated stock photos)
+ *  2. First non-logo image from provider_images — real photo regardless
+ *     of category (facilities, home care, hospice all benefit)
+ *  3. No non-logo images — category stock fallback
  */
 function resolveCardImage(provider: Provider): { image: string; imageType: CardImageType } {
   if (provider.hero_image_url) {
     return { image: provider.hero_image_url, imageType: "photo" };
   }
 
-  // Facility-based providers have real building photos from Google Places
+  // Filter out known logos, use the first real photo
   const images = parseProviderImages(provider.provider_images);
-  if (images.length > 0 && FACILITY_CATEGORIES.has(provider.provider_category)) {
-    return { image: images[0], imageType: "photo" };
+  const nonLogoImages = images.filter((url) => !isLikelyLogo(url, provider));
+  if (nonLogoImages.length > 0) {
+    return { image: nonLogoImages[0], imageType: "photo" };
   }
 
   return {

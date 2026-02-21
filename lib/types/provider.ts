@@ -199,39 +199,22 @@ function getCategoryFallbackImage(category: string): string {
 }
 
 /**
- * Determine the best card hero image and its type.
+ * Determine the best card hero image.
  *
- * Most providers (especially Home Care / Home Health) only have a logo
- * uploaded to Google Places — stored as the sole entry in provider_images.
- * We can't reliably distinguish logos from photos by URL alone, so we use
- * a simple heuristic: trust the image only when there are 2+ distinct
- * photos. Otherwise fall back to a hand-picked category stock image.
+ * We can't reliably distinguish logos from facility photos by URL alone —
+ * many providers have logos stored as regular images in provider_images.
+ * So we use category stock photos as the default card hero, and only show
+ * a provider's own image when it's been explicitly classified via the
+ * hero_image_url column (set by the classification script).
  *
- * Priority:
- *  1. hero_image_url (set by classification script) — always trust
- *  2. provider_images with 2+ entries — likely has real photos
- *  3. Category stock fallback — safe default for logo-only providers
+ * This gives a consistently clean browse experience. The detail page
+ * still shows all provider images.
  */
 function resolveCardImage(provider: Provider): { image: string; imageType: CardImageType } {
-  // 1. Classified hero — always trust it
   if (provider.hero_image_url) {
     return { image: provider.hero_image_url, imageType: "photo" };
   }
 
-  const images = parseProviderImages(provider.provider_images);
-  const nonLogoImages = images.filter((url) => !isLikelyLogo(url, provider));
-
-  // 2. Multiple non-logo images — pick the first real photo
-  if (nonLogoImages.length >= 2) {
-    return { image: nonLogoImages[0], imageType: "photo" };
-  }
-
-  // 3. Multiple total images with at least one non-logo — use it
-  if (images.length >= 2 && nonLogoImages.length >= 1) {
-    return { image: nonLogoImages[0], imageType: "photo" };
-  }
-
-  // 4. Everything else (0-1 images, likely just a logo) — stock fallback
   return {
     image: getCategoryFallbackImage(provider.provider_category),
     imageType: "photo",

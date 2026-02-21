@@ -15,18 +15,17 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
   const [imgFailed, setImgFailed] = useState(false);
 
   const careTypeLabel = getCategoryDisplayName(provider.careTypes[0]) || provider.primaryCategory;
-  const extraCareTypes = provider.careTypes.length > 2 ? provider.careTypes.length - 2 : 0;
-  const visibleCareTypes = [careTypeLabel, ...provider.highlights.slice(0, 1)];
+  const displayedHighlights = provider.highlights?.slice(0, 3) || [];
 
   return (
     <Link
       href={`/provider/${provider.slug}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-row bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+      className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
     >
-      {/* Image — left side */}
-      <div className="relative w-[180px] sm:w-[200px] flex-shrink-0 bg-gray-100">
+      {/* Image */}
+      <div className="relative w-full aspect-[16/10] bg-gray-100">
         {!imgFailed ? (
           <img
             src={provider.image}
@@ -42,7 +41,42 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
           </div>
         )}
 
-        {/* Badge — bottom left of image */}
+        {/* Heart — top right */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleSave({
+              providerId: provider.id,
+              slug: provider.slug,
+              name: provider.name,
+              location: provider.address,
+              careTypes: [provider.primaryCategory],
+              image: provider.image,
+              rating: provider.rating || undefined,
+            });
+          }}
+          className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white flex items-center justify-center transition-colors shadow-sm"
+          aria-label={isSaved ? "Remove from saved" : "Save provider"}
+        >
+          <svg
+            className={`w-[18px] h-[18px] transition-colors ${
+              isSaved ? "text-primary-600" : "text-gray-500"
+            }`}
+            fill={isSaved ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+          </svg>
+        </button>
+
+        {/* Badge — bottom left */}
         {provider.badge && (
           <div className="absolute bottom-2.5 left-2.5 z-10">
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-600 text-white shadow-sm">
@@ -52,82 +86,13 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
         )}
       </div>
 
-      {/* Content — right side */}
-      <div className="flex-1 min-w-0 p-4 flex flex-col">
-        {/* Row 1: Address + Heart */}
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-text-sm text-gray-500 truncate">{provider.address}</p>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              toggleSave({
-                providerId: provider.id,
-                slug: provider.slug,
-                name: provider.name,
-                location: provider.address,
-                careTypes: [provider.primaryCategory],
-                image: provider.image,
-                rating: provider.rating || undefined,
-              });
-            }}
-            className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
-            aria-label={isSaved ? "Remove from saved" : "Save provider"}
-          >
-            <svg
-              className={`w-[18px] h-[18px] transition-colors ${
-                isSaved ? "text-primary-600" : "text-gray-400"
-              }`}
-              fill={isSaved ? "currentColor" : "none"}
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Row 2: Provider name */}
-        <h3 className="font-bold font-serif text-text-lg text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-1 mt-0.5">
-          {provider.name}
-        </h3>
-
-        {/* Row 3: Care type pills */}
-        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-          {visibleCareTypes.map((ct) => (
-            <span
-              key={ct}
-              className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border border-gray-200 text-gray-600 bg-gray-50"
-            >
-              {ct}
-            </span>
-          ))}
-          {extraCareTypes > 0 && (
-            <span className="text-xs text-gray-400">+{extraCareTypes} more</span>
-          )}
-        </div>
-
-        {/* Row 4: Description preview */}
-        {provider.description && (
-          <p className="text-text-sm text-gray-500 line-clamp-2 mt-2">
-            {provider.description}
-          </p>
-        )}
-
-        {/* Spacer */}
-        <div className="flex-1 min-h-1" />
-
-        {/* Row 5: Pricing + Rating footer */}
-        <div className="flex items-center justify-between mt-2">
-          <div>
-            <span className="text-text-xs text-gray-400">Estimated Pricing</span>
-            <p className="text-text-md font-bold text-gray-900">{provider.priceRange}</p>
-          </div>
+      {/* Content */}
+      <div className="flex-1 p-3.5 flex flex-col">
+        {/* Name + Rating */}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-bold font-serif text-text-lg text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-1 flex-1">
+            {provider.name}
+          </h3>
           {provider.rating > 0 && (
             <div className="flex items-center gap-1 flex-shrink-0">
               <svg className="w-4 h-4 text-warning-400" fill="currentColor" viewBox="0 0 20 20">
@@ -137,6 +102,31 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
             </div>
           )}
         </div>
+
+        {/* Category + Location */}
+        <p className="text-text-sm text-gray-500 mt-0.5">
+          {careTypeLabel} · {provider.address}
+        </p>
+
+        {/* Highlights */}
+        {displayedHighlights.length > 0 && (
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2">
+            {displayedHighlights.map((h) => (
+              <span key={h} className="flex items-center gap-1 text-text-sm text-gray-600">
+                <svg className="w-3 h-3 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+                {h}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1 min-h-1.5" />
+
+        {/* Price */}
+        <p className="text-text-md font-bold text-gray-900 mt-2">{provider.priceRange}</p>
       </div>
     </Link>
   );

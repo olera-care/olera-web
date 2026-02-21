@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .from("olera-providers")
       .select(
-        "provider_id, provider_name, provider_category, city, state, google_rating, deleted, hero_image_url, provider_images",
+        "provider_id, provider_name, provider_category, city, state, google_rating, deleted, provider_images",
         { count: "exact" }
       );
 
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
         state: row.state,
         google_rating: row.google_rating,
         deleted: row.deleted ?? false,
-        hero_image_url: row.hero_image_url,
+        hero_image_url: null,
         has_images: images.length > 0,
         image_count: images.length,
       };

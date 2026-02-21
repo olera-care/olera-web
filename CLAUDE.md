@@ -40,6 +40,12 @@ feature branch → PR to staging → QA → PR to main → production
 - **Payments**: Stripe (configured, not fully live)
 - **Hosting**: Vercel
 
+## Design & Plan Rules
+
+- **Code is the source of truth for current design intent, not plan documents.** Plans can go stale between sessions. If the code has been iterated (multiple commits refining a design), that iteration was intentional.
+- **When a plan conflicts with current code, ASK before overwriting.** Flag the discrepancy: "The plan says X, but the code currently does Y — which do you want?" Never silently regress a design that was deliberately refined.
+- **Read SCRATCHPAD.md session logs** before implementing a plan — they capture design decisions that may have evolved past what the plan describes.
+
 ## Key Files
 
 - `lib/supabase/client.ts` — Browser Supabase client

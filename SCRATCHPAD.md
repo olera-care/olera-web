@@ -60,6 +60,8 @@
 | 2026-02-20 | 2-column vertical card grid (Realtor.com style) | Better space efficiency, image-first like property listings |
 | 2026-02-20 | TripAdvisor score bubbles on map (not price pills) | Cleaner, more distinctive; Olera score is the differentiator |
 | 2026-02-20 | AbortController for Supabase fetch in useEffect | Prevents React effect cleanup from causing AbortError |
+| 2026-02-20 | Migrated map from Leaflet to MapLibre GL JS + MapTiler | Vector tiles, retina-sharp, smooth zoom, better performance. See ADR 001 |
+| 2026-02-20 | **CLAUDE.md: code > plan docs for design intent** | Post-mortem: stale plan regressed 2-col cards to horizontal. Added rule to ask before overwriting iterated designs |
 
 ---
 

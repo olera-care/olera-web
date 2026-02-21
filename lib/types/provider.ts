@@ -179,23 +179,82 @@ function isLikelyLogo(url: string, provider: Provider): boolean {
 }
 
 /**
- * Category → stock fallback photo for providers that only have a logo.
- * These are hand-picked images already in public/images/.
+ * Category → pool of curated fallback photos (3 per category).
+ * Matches the iOS app's fallback image set. Using multiple images per
+ * category avoids the "all identical cards" look on browse pages.
  */
-const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
-  "Home Care (Non-medical)": "/images/home-care.jpg",
-  "Home Health Care":        "/images/home-health.webp",
-  "Assisted Living":         "/images/assisted-living.webp",
-  "Memory Care":             "/images/memory-care.jpg",
-  "Independent Living":      "/images/independent-living.jpg",
-  "Nursing Home":            "/images/nursing-homes.webp",
-  "Hospice":                 "/images/home-health.webp",
-  "Assisted Living | Independent Living": "/images/assisted-living.webp",
-  "Memory Care | Assisted Living":        "/images/memory-care.jpg",
+const CATEGORY_FALLBACK_POOLS: Record<string, string[]> = {
+  "Home Care (Non-medical)": [
+    "/images/fallback/home-care-1.jpg",
+    "/images/fallback/home-care-2.jpg",
+    "/images/fallback/home-care-3.jpg",
+  ],
+  "Home Health Care": [
+    "/images/fallback/home-care-1.jpg",
+    "/images/fallback/home-care-2.jpg",
+    "/images/fallback/home-care-3.jpg",
+  ],
+  "Assisted Living": [
+    "/images/fallback/assisted-living-1.jpg",
+    "/images/fallback/assisted-living-2.jpg",
+    "/images/fallback/assisted-living-3.jpg",
+  ],
+  "Memory Care": [
+    "/images/fallback/memory-care-1.jpg",
+    "/images/fallback/memory-care-2.jpg",
+    "/images/fallback/memory-care-3.jpg",
+  ],
+  "Independent Living": [
+    "/images/fallback/independent-living-1.jpg",
+    "/images/fallback/independent-living-2.jpg",
+    "/images/fallback/independent-living-3.jpg",
+  ],
+  "Nursing Home": [
+    "/images/fallback/nursing-home-1.jpg",
+    "/images/fallback/nursing-home-2.jpg",
+    "/images/fallback/nursing-home-3.jpg",
+  ],
+  "Hospice": [
+    "/images/fallback/home-care-1.jpg",
+    "/images/fallback/home-care-2.jpg",
+    "/images/fallback/home-care-3.jpg",
+  ],
+  "Assisted Living | Independent Living": [
+    "/images/fallback/assisted-living-1.jpg",
+    "/images/fallback/assisted-living-2.jpg",
+    "/images/fallback/assisted-living-3.jpg",
+  ],
+  "Memory Care | Assisted Living": [
+    "/images/fallback/memory-care-1.jpg",
+    "/images/fallback/memory-care-2.jpg",
+    "/images/fallback/memory-care-3.jpg",
+  ],
 };
 
-function getCategoryFallbackImage(category: string): string {
-  return CATEGORY_FALLBACK_IMAGES[category] || "/images/home-care.jpg";
+const DEFAULT_FALLBACK_POOL = [
+  "/images/fallback/home-care-1.jpg",
+  "/images/fallback/home-care-2.jpg",
+  "/images/fallback/home-care-3.jpg",
+];
+
+/**
+ * Simple deterministic hash of a string → number.
+ * Used to pick a stable fallback image per provider so the same provider
+ * always shows the same stock photo (avoids hydration mismatches and
+ * layout shift), but different providers get different images.
+ */
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function getCategoryFallbackImage(category: string, providerId: string): string {
+  const pool = CATEGORY_FALLBACK_POOLS[category] || DEFAULT_FALLBACK_POOL;
+  const index = hashString(providerId) % pool.length;
+  return pool[index];
 }
 
 /**
@@ -226,7 +285,7 @@ function resolveCardImage(provider: Provider): { image: string; imageType: CardI
   }
 
   return {
-    image: getCategoryFallbackImage(provider.provider_category),
+    image: getCategoryFallbackImage(provider.provider_category, provider.provider_id),
     imageType: "photo",
   };
 }

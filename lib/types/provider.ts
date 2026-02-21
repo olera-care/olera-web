@@ -201,18 +201,25 @@ function getCategoryFallbackImage(category: string): string {
 /**
  * Determine the best card hero image.
  *
- * We can't reliably distinguish logos from facility photos by URL alone —
- * many providers have logos stored as regular images in provider_images.
- * So we use category stock photos as the default card hero, and only show
- * a provider's own image when it's been explicitly classified via the
- * hero_image_url column (set by the classification script).
+ * We can't reliably distinguish logos from facility photos by URL alone.
+ * But providers with multiple images (2+) almost always have at least one
+ * real photo — it's the 0-1 image providers that are overwhelmingly
+ * logo-only. So we trust multi-image providers and use stock fallback
+ * for the rest.
  *
- * This gives a consistently clean browse experience. The detail page
- * still shows all provider images.
+ * Priority:
+ *  1. hero_image_url (classified by script) — always trust
+ *  2. 2+ images in provider_images — use first one (likely a real photo)
+ *  3. 0-1 images — category stock fallback
  */
 function resolveCardImage(provider: Provider): { image: string; imageType: CardImageType } {
   if (provider.hero_image_url) {
     return { image: provider.hero_image_url, imageType: "photo" };
+  }
+
+  const images = parseProviderImages(provider.provider_images);
+  if (images.length >= 2) {
+    return { image: images[0], imageType: "photo" };
   }
 
   return {

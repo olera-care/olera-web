@@ -137,11 +137,14 @@ function getHighlightsForCategory(category: string): string[] {
 /**
  * Type for provider card display data
  */
+export type CardImageType = "photo" | "logo" | "placeholder";
+
 export interface ProviderCardData {
   id: string;
   slug: string;
   name: string;
   image: string;
+  imageType: CardImageType;
   images: string[];
   address: string;
   rating: number;
@@ -158,18 +161,46 @@ export interface ProviderCardData {
   lon?: number | null;
 }
 
+/** URL patterns that strongly suggest a logo rather than a facility photo */
+const LOGO_URL_PATTERNS = [
+  /\/logo/i, /logo[._-]/i, /_logo/i, /-logo/i,
+  /\/brand/i, /\/icon/i, /favicon/i,
+];
+
+/**
+ * Detect whether a URL is likely a logo image.
+ * Checks against provider_logo field and URL patterns.
+ */
+function isLikelyLogo(url: string, provider: Provider): boolean {
+  // Exact match with the provider_logo field
+  if (provider.provider_logo && url === provider.provider_logo) return true;
+  // URL pattern heuristics
+  return LOGO_URL_PATTERNS.some((p) => p.test(url));
+}
+
+/**
+ * Classify the primary image for card display.
+ */
+function classifyCardImage(primaryImage: string | null, provider: Provider): CardImageType {
+  if (!primaryImage) return "placeholder";
+  if (isLikelyLogo(primaryImage, provider)) return "logo";
+  return "photo";
+}
+
 /**
  * Convert iOS Provider to the format expected by ProviderCard component
  */
 export function toCardFormat(provider: Provider): ProviderCardData {
   const images = parseProviderImages(provider.provider_images);
   const primaryImage = getPrimaryImage(provider);
+  const imageType = classifyCardImage(primaryImage, provider);
 
   return {
     id: provider.provider_id,
     slug: provider.provider_id,
     name: provider.provider_name,
     image: primaryImage || "/placeholder-provider.jpg",
+    imageType,
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
     rating: provider.google_rating || 0,
@@ -197,6 +228,7 @@ export function mockToCardFormat(p: any): ProviderCardData {
     slug: String(p.slug || p.id || ""),
     name: String(p.name || ""),
     image: String(p.image || "/placeholder-provider.jpg"),
+    imageType: (p.imageType as CardImageType) || "photo",
     images: Array.isArray(p.images) ? p.images : [],
     address: String(p.address || ""),
     rating: Number(p.rating) || 0,

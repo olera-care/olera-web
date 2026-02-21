@@ -179,12 +179,40 @@ function isLikelyLogo(url: string, provider: Provider): boolean {
 }
 
 /**
+ * Category → stock fallback photo for providers that only have a logo.
+ * These are hand-picked images already in public/images/.
+ */
+const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
+  "Home Care (Non-medical)": "/images/home-care.jpg",
+  "Home Health Care":        "/images/home-health.webp",
+  "Assisted Living":         "/images/assisted-living.webp",
+  "Memory Care":             "/images/memory-care.jpg",
+  "Independent Living":      "/images/independent-living.jpg",
+  "Nursing Home":            "/images/nursing-homes.webp",
+  "Hospice":                 "/images/home-health.webp",
+  "Assisted Living | Independent Living": "/images/assisted-living.webp",
+  "Memory Care | Assisted Living":        "/images/memory-care.jpg",
+};
+
+function getCategoryFallbackImage(category: string): string {
+  return CATEGORY_FALLBACK_IMAGES[category] || "/images/home-care.jpg";
+}
+
+/**
  * Classify the primary image for card display.
  */
 function classifyCardImage(primaryImage: string | null, provider: Provider): CardImageType {
   if (!primaryImage) return "placeholder";
   if (isLikelyLogo(primaryImage, provider)) return "logo";
   return "photo";
+}
+
+/**
+ * Check if a provider has any real (non-logo) photos.
+ */
+function hasRealPhotos(provider: Provider): boolean {
+  const images = parseProviderImages(provider.provider_images);
+  return images.some((url) => !isLikelyLogo(url, provider));
 }
 
 /**
@@ -195,12 +223,19 @@ export function toCardFormat(provider: Provider): ProviderCardData {
   const primaryImage = getPrimaryImage(provider);
   const imageType = classifyCardImage(primaryImage, provider);
 
+  // When only logos exist, use a category stock photo as the card hero
+  const useStockFallback = imageType !== "photo" && !hasRealPhotos(provider);
+  const cardImage = useStockFallback
+    ? getCategoryFallbackImage(provider.provider_category)
+    : (primaryImage || "/placeholder-provider.jpg");
+  const cardImageType: CardImageType = useStockFallback ? "photo" : imageType;
+
   return {
     id: provider.provider_id,
     slug: provider.provider_id,
     name: provider.provider_name,
-    image: primaryImage || "/placeholder-provider.jpg",
-    imageType,
+    image: cardImage,
+    imageType: cardImageType,
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
     rating: provider.google_rating || 0,

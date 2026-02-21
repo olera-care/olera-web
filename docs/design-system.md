@@ -200,8 +200,8 @@ Split layout with scrollable list and sticky map:
 | Left    | Right     |
 | (scroll)| (map)     |
 |         |           |
-| Heading | Leaflet   |
-| Sort    | markers   |
+| Heading | MapLibre  |
+| Sort    | GL JS     |
 |         |           |
 | Card    |           |
 | Card    |           |
@@ -212,6 +212,16 @@ Split layout with scrollable list and sticky map:
 | Mobile: Cards only, no map            |
 +---------------------------------------+
 ```
+
+### Map (Browse Page)
+
+- **Library**: MapLibre GL JS (vector tiles, GPU-accelerated)
+- **Tiles**: MapTiler Positron (clean, minimal — requires `NEXT_PUBLIC_MAPTILER_KEY`)
+- **Markers**: GeoJSON circle + symbol layers (teal score bubbles with white text)
+- **Hover**: Feature state drives `circle-color` and `circle-radius` transitions
+- **Popup**: `maplibregl.Popup` with custom HTML card (image, name, rating, price)
+- **Controls**: `NavigationControl` top-right, compact attribution bottom-right
+- See [ADR 001](adr/001-maplibre-maptiler.md) for rationale
 
 ### Provider Detail Page
 

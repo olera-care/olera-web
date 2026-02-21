@@ -6,6 +6,9 @@
  * as logo vs photo using heuristics, scores quality, and selects the
  * best hero image per provider.
  *
+ * With --vision flag, uses Claude vision API to classify ambiguous images
+ * (confidence < 0.7) that haven't been admin-overridden.
+ *
  * Results are written to provider_image_metadata and hero_image_url is
  * denormalized back to olera-providers for fast reads.
  *
@@ -13,9 +16,13 @@
  *   SUPABASE_KEY=... node scripts/classify-provider-images.mjs --dry-run
  *   SUPABASE_KEY=... node scripts/classify-provider-images.mjs
  *   SUPABASE_KEY=... node scripts/classify-provider-images.mjs --resume
+ *   SUPABASE_KEY=... ANTHROPIC_API_KEY=... node scripts/classify-provider-images.mjs --vision
+ *   SUPABASE_KEY=... ANTHROPIC_API_KEY=... node scripts/classify-provider-images.mjs --vision-only
+ *   SUPABASE_KEY=... ANTHROPIC_API_KEY=... node scripts/classify-provider-images.mjs --vision --vision-batch-size=4
  */
 
 import { createClient } from "@supabase/supabase-js";
+import Anthropic from "@anthropic-ai/sdk";
 import http from "node:http";
 import https from "node:https";
 import { URL } from "node:url";
@@ -38,9 +45,29 @@ const PROBE_CONCURRENCY = 20;
 const PROBE_TIMEOUT_MS = 8000;
 const DRY_RUN = process.argv.includes("--dry-run");
 const RESUME = process.argv.includes("--resume");
+const VISION = process.argv.includes("--vision");
+const VISION_ONLY = process.argv.includes("--vision-only");
 const CHECKPOINT_FILE = "scripts/.classify-checkpoint.json";
 
+// Parse --vision-batch-size=N flag
+const VISION_BATCH_SIZE = (() => {
+  const arg = process.argv.find((a) => a.startsWith("--vision-batch-size="));
+  if (arg) return parseInt(arg.split("=")[1], 10) || 5;
+  return 5;
+})();
+
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+if ((VISION || VISION_ONLY) && !ANTHROPIC_API_KEY) {
+  console.error(
+    "Error: Set ANTHROPIC_API_KEY env var for vision classification.\n" +
+      "Usage: SUPABASE_KEY=... ANTHROPIC_API_KEY=... node scripts/classify-provider-images.mjs --vision"
+  );
+  process.exit(1);
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const anthropic = ANTHROPIC_API_KEY ? new Anthropic({ apiKey: ANTHROPIC_API_KEY }) : null;
 
 // --- Stats ---
 const stats = {
@@ -53,6 +80,9 @@ const stats = {
   photos: 0,
   unknown: 0,
   errors: 0,
+  visionClassified: 0,
+  visionBatches: 0,
+  visionSkippedOverridden: 0,
 };
 
 // --- Checkpoint ---
@@ -366,6 +396,156 @@ function scoreQuality(probeResult, classification) {
   return Math.round(score * 1000) / 1000; // 3 decimal places
 }
 
+// --- Vision AI Classification ---
+
+/**
+ * Download an image and return it as a base64 data URL.
+ * Resizes conceptually by only downloading up to ~512KB.
+ */
+async function fetchImageAsBase64(imageUrl) {
+  return new Promise((resolve) => {
+    try {
+      const parsed = new URL(imageUrl);
+      const client = parsed.protocol === "https:" ? https : http;
+
+      const req = client.get(parsed, { timeout: 15000 }, (res) => {
+        if (res.statusCode < 200 || res.statusCode >= 400) {
+          resolve(null);
+          res.resume();
+          return;
+        }
+
+        const chunks = [];
+        let totalBytes = 0;
+        const MAX_BYTES = 512 * 1024; // 512KB max
+
+        res.on("data", (chunk) => {
+          chunks.push(chunk);
+          totalBytes += chunk.length;
+          if (totalBytes >= MAX_BYTES) res.destroy();
+        });
+
+        res.on("end", () => {
+          const buf = Buffer.concat(chunks);
+          const contentType = res.headers["content-type"]?.split(";")[0]?.trim() || "image/jpeg";
+          const mediaType = contentType.startsWith("image/") ? contentType : "image/jpeg";
+          resolve({ base64: buf.toString("base64"), mediaType });
+        });
+
+        res.on("error", () => resolve(null));
+      });
+
+      req.on("error", () => resolve(null));
+      req.on("timeout", () => {
+        req.destroy();
+        resolve(null);
+      });
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Classify a batch of images using Claude vision API.
+ * Returns array of { url, type, confidence, description }.
+ */
+async function classifyWithVision(images) {
+  if (!anthropic || images.length === 0) return [];
+
+  // Download images
+  const imageData = await Promise.all(
+    images.map(async (img) => {
+      const data = await fetchImageAsBase64(img.image_url);
+      return { ...img, imageData: data };
+    })
+  );
+
+  // Filter out images that couldn't be downloaded
+  const validImages = imageData.filter((img) => img.imageData !== null);
+  if (validImages.length === 0) return [];
+
+  // Build message content with images
+  const content = [];
+  for (let i = 0; i < validImages.length; i++) {
+    content.push({
+      type: "text",
+      text: `Image ${i + 1} (URL: ${validImages[i].image_url}):`,
+    });
+    content.push({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: validImages[i].imageData.mediaType,
+        data: validImages[i].imageData.base64,
+      },
+    });
+  }
+
+  content.push({
+    type: "text",
+    text: `Classify each of the ${validImages.length} images above for a senior care provider directory.
+
+For each image, respond with a JSON object:
+{ "type": "logo" | "photo_good" | "photo_bad", "confidence": 0.0-1.0, "description": "brief description" }
+
+- "logo" = company logo, icon, brand mark, or text-only branding image
+- "photo_good" = real photograph of a facility, room, staff, residents, or exterior — clear and good quality
+- "photo_bad" = real photograph but blurry, watermarked, very small, low quality, or mostly text overlay
+
+Respond with a JSON array of ${validImages.length} objects, one per image, in the same order. Only output the JSON array, no other text.`,
+  });
+
+  try {
+    const response = await anthropic.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
+      messages: [{ role: "user", content }],
+    });
+
+    const text = response.content[0]?.text || "[]";
+    // Extract JSON array from response (handles markdown code blocks)
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return [];
+
+    const results = JSON.parse(jsonMatch[0]);
+    stats.visionBatches++;
+
+    return validImages.map((img, i) => {
+      const result = results[i];
+      if (!result) return null;
+
+      stats.visionClassified++;
+
+      // Map vision types to our schema
+      let imageType = "unknown";
+      let confidence = result.confidence || 0.5;
+
+      if (result.type === "logo") {
+        imageType = "logo";
+      } else if (result.type === "photo_good") {
+        imageType = "photo";
+      } else if (result.type === "photo_bad") {
+        imageType = "photo";
+        confidence = confidence * 0.3; // Quality penalty for bad photos
+      }
+
+      return {
+        image_url: img.image_url,
+        provider_id: img.provider_id,
+        image_type: imageType,
+        classification_method: "vision_ai",
+        classification_confidence: Math.round(confidence * 1000) / 1000,
+        description: result.description || null,
+      };
+    }).filter(Boolean);
+  } catch (err) {
+    console.error(`  Vision API error: ${err.message}`);
+    stats.errors++;
+    return [];
+  }
+}
+
 // --- Provider Processing ---
 
 /**
@@ -502,12 +682,49 @@ async function promisePool(taskFns, concurrency) {
 
 // --- Database Writes ---
 
+/**
+ * Fetch admin-overridden image URLs to protect from script overwrites.
+ */
+async function getOverriddenImageUrls(providerIds) {
+  const overridden = new Set();
+  // Batch in groups of 100 provider IDs
+  for (let i = 0; i < providerIds.length; i += 100) {
+    const batch = providerIds.slice(i, i + 100);
+    const { data } = await supabase
+      .from("provider_image_metadata")
+      .select("provider_id, image_url")
+      .in("provider_id", batch)
+      .eq("review_status", "admin_overridden");
+
+    if (data) {
+      for (const row of data) {
+        overridden.add(`${row.provider_id}::${row.image_url}`);
+      }
+    }
+  }
+  return overridden;
+}
+
 async function writeMetadata(records) {
   if (records.length === 0) return;
 
+  // Get overridden records to protect them
+  const providerIds = [...new Set(records.map((r) => r.provider_id))];
+  const overridden = await getOverriddenImageUrls(providerIds);
+
+  // Filter out admin-overridden records
+  const filteredRecords = records.filter((r) => {
+    const key = `${r.provider_id}::${r.image_url}`;
+    if (overridden.has(key)) {
+      stats.visionSkippedOverridden++;
+      return false;
+    }
+    return true;
+  });
+
   // Upsert in batches
-  for (let i = 0; i < records.length; i += BATCH_SIZE) {
-    const batch = records.slice(i, i + BATCH_SIZE);
+  for (let i = 0; i < filteredRecords.length; i += BATCH_SIZE) {
+    const batch = filteredRecords.slice(i, i + BATCH_SIZE);
     const { error } = await supabase
       .from("provider_image_metadata")
       .upsert(batch, { onConflict: "provider_id,image_url" });
@@ -541,9 +758,147 @@ async function writeHeroUrls(updates) {
   }
 }
 
+// --- Vision Pass ---
+
+/**
+ * Run vision classification on low-confidence images.
+ * Fetches images from provider_image_metadata where confidence < 0.7
+ * and review_status != 'admin_overridden'.
+ */
+async function runVisionPass() {
+  console.log("\n=== VISION AI PASS ===");
+  console.log(`  Batch size: ${VISION_BATCH_SIZE} images per API call`);
+  console.log(`  Model: claude-haiku-4-5-20251001`);
+  console.log();
+
+  let offset = 0;
+  const PAGE_SIZE = 100;
+  let totalProcessed = 0;
+
+  while (true) {
+    // Fetch low-confidence, non-overridden, accessible images
+    const { data: images, error } = await supabase
+      .from("provider_image_metadata")
+      .select("id, provider_id, image_url, image_type, classification_confidence")
+      .lt("classification_confidence", 0.7)
+      .neq("review_status", "admin_overridden")
+      .eq("is_accessible", true)
+      .order("classification_confidence", { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) {
+      console.error("  Vision query error:", error.message);
+      stats.errors++;
+      break;
+    }
+
+    if (!images || images.length === 0) break;
+
+    // Process in vision batches
+    for (let i = 0; i < images.length; i += VISION_BATCH_SIZE) {
+      const batch = images.slice(i, i + VISION_BATCH_SIZE);
+      const visionResults = await classifyWithVision(batch);
+
+      if (visionResults.length > 0 && !DRY_RUN) {
+        // Update metadata with vision results
+        for (const result of visionResults) {
+          const quality = result.image_type === "photo" ? 0.6 + result.classification_confidence * 0.3 : 0.1;
+
+          const { error: updateError } = await supabase
+            .from("provider_image_metadata")
+            .update({
+              image_type: result.image_type,
+              classification_method: "vision_ai",
+              classification_confidence: result.classification_confidence,
+              quality_score: Math.round(quality * 1000) / 1000,
+            })
+            .eq("provider_id", result.provider_id)
+            .eq("image_url", result.image_url)
+            .neq("review_status", "admin_overridden"); // Double-check protection
+
+          if (updateError) {
+            console.error(`  Vision update error: ${updateError.message}`);
+            stats.errors++;
+          }
+        }
+
+        // Recalculate heroes for affected providers
+        const affectedProviderIds = [...new Set(visionResults.map((r) => r.provider_id))];
+        for (const providerId of affectedProviderIds) {
+          await recalculateHero(providerId);
+        }
+      }
+
+      totalProcessed += batch.length;
+      process.stdout.write(
+        `\r  Processed ${totalProcessed} images | ${stats.visionBatches} API calls | ${stats.visionClassified} classified`
+      );
+    }
+
+    // If we got fewer than PAGE_SIZE, we're done
+    if (images.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
+
+  console.log();
+  console.log(`  Vision pass complete: ${stats.visionClassified} images reclassified`);
+}
+
+/**
+ * Recalculate hero image for a provider after vision reclassification.
+ */
+async function recalculateHero(providerId) {
+  const { data: images } = await supabase
+    .from("provider_image_metadata")
+    .select("image_url, image_type, quality_score, is_accessible")
+    .eq("provider_id", providerId)
+    .eq("is_accessible", true)
+    .order("quality_score", { ascending: false });
+
+  if (!images || images.length === 0) return;
+
+  // Pick best photo, or best overall
+  const photos = images.filter((i) => i.image_type === "photo");
+  const hero = photos.length > 0 ? photos[0] : images[0];
+
+  // Clear old hero, set new hero
+  await supabase
+    .from("provider_image_metadata")
+    .update({ is_hero: false })
+    .eq("provider_id", providerId);
+
+  await supabase
+    .from("provider_image_metadata")
+    .update({ is_hero: true })
+    .eq("provider_id", providerId)
+    .eq("image_url", hero.image_url);
+
+  // Update denormalized hero_image_url only if hero is a photo
+  if (hero.image_type === "photo") {
+    await supabase
+      .from("olera-providers")
+      .update({ hero_image_url: hero.image_url })
+      .eq("provider_id", providerId);
+  } else {
+    // No good photo — clear hero so frontend falls back to stock
+    await supabase
+      .from("olera-providers")
+      .update({ hero_image_url: null })
+      .eq("provider_id", providerId);
+  }
+}
+
 // --- Main ---
 
 async function main() {
+  if (VISION_ONLY) {
+    console.log(DRY_RUN ? "=== DRY RUN (vision only) ===" : "=== VISION-ONLY CLASSIFICATION ===");
+    console.log();
+    await runVisionPass();
+    printStats();
+    return;
+  }
+
   console.log(DRY_RUN ? "=== DRY RUN ===" : "=== LIVE CLASSIFICATION ===");
   console.log();
 
@@ -574,6 +929,7 @@ async function main() {
   console.log(`Total providers: ${totalProviders}`);
   console.log(`Batch size: ${BATCH_SIZE}`);
   console.log(`Probe concurrency: ${PROBE_CONCURRENCY}`);
+  if (VISION) console.log(`Vision AI: enabled (batch size ${VISION_BATCH_SIZE})`);
   console.log();
 
   // Process in pages
@@ -629,6 +985,21 @@ async function main() {
     console.log();
   }
 
+  // Run vision pass if --vision flag is set
+  if (VISION) {
+    await runVisionPass();
+  }
+
+  printStats();
+
+  if (DRY_RUN) {
+    console.log();
+    console.log("Dry run complete. Run without --dry-run to execute.");
+  }
+}
+
+function printStats() {
+  const startTime = Date.now();
   console.log();
   console.log("=== Results ===");
   console.log(`  Providers processed: ${stats.providersProcessed}`);
@@ -639,13 +1010,13 @@ async function main() {
   console.log(`    Unknown:           ${stats.unknown}`);
   console.log(`    Inaccessible:      ${stats.inaccessible}`);
   console.log(`  Heroes selected:     ${stats.heroesSelected}`);
-  console.log(`  Errors:              ${stats.errors}`);
-  console.log(`  Total time:          ${((Date.now() - startTime) / 1000).toFixed(1)}s`);
-
-  if (DRY_RUN) {
-    console.log();
-    console.log("Dry run complete. Run without --dry-run to execute.");
+  if (VISION || VISION_ONLY) {
+    console.log(`  Vision AI:`);
+    console.log(`    Batches sent:      ${stats.visionBatches}`);
+    console.log(`    Images classified: ${stats.visionClassified}`);
+    console.log(`    Skipped (overridden): ${stats.visionSkippedOverridden}`);
   }
+  console.log(`  Errors:              ${stats.errors}`);
 }
 
 main().catch((err) => {

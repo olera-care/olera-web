@@ -7,9 +7,9 @@
 
 ## Current Focus
 
-- **Browse/City Page Redesign** (branch: `staging`) — DONE
-  - TripAdvisor-style list+map, 2-col vertical cards, score bubble map
-  - Blocked on Supabase outage for final verification
+- **Admin Provider Directory Editor** (branch: `stellar-hypatia` → merged to `staging`) — DONE
+  - Django-admin-style CRUD for 36K+ providers in `olera-providers` table
+  - Search, filters, server-side pagination, sectioned edit form, audit logging
 
 ---
 
@@ -29,18 +29,20 @@
 - [x] Design language alignment (teal palette, vanilla bg, serif headings)
 - [x] **Provider page smart defaults** — highlights, care services, descriptions inferred from category
 - [x] **Description backfill** — 33,631 providers updated from RAG CSV via `scripts/backfill-descriptions.mjs`
+- [x] **Image classification** — Vision AI script, admin images page, stock fallbacks
+- [x] **Admin provider directory** — full CRUD editor, sidebar restructure, admin links in navbar/portal
 
 ---
 
 ## Blocked / Needs Input
 
-- **Supabase outage** — browse page can't load providers. Monitor [status.supabase.com](https://status.supabase.com). Verify browse page once resolved.
+- (none)
 
 ---
 
 ## Next Up
 
-1. **Verify browse page after Supabase outage resolves** — confirm data loads, filters work, map bubbles display
+1. **Add `hero_image_url` column to `olera-providers`** — referenced in images API but doesn't exist yet; needs Supabase migration
 2. **Remaining ~2,992 providers without CSV descriptions** — category fallback covers them, but could RAG-generate real ones
 3. **Test Google OAuth end-to-end**
 4. **Email notifications** for provider approval/rejection
@@ -62,6 +64,11 @@
 | 2026-02-20 | AbortController for Supabase fetch in useEffect | Prevents React effect cleanup from causing AbortError |
 | 2026-02-20 | Migrated map from Leaflet to MapLibre GL JS + MapTiler | Vector tiles, retina-sharp, smooth zoom, better performance. See ADR 001 |
 | 2026-02-20 | **CLAUDE.md: code > plan docs for design intent** | Post-mortem: stale plan regressed 2-col cards to horizontal. Added rule to ask before overwriting iterated designs |
+| 2026-02-21 | Server-side pagination for directory (not client-side) | 36K+ records — must use Supabase `.range()` with `count: "exact"` |
+| 2026-02-21 | Field allowlist for PATCH updates | Explicit `EDITABLE_FIELDS` set prevents injection of unexpected columns |
+| 2026-02-21 | Reuse existing images API for image actions | Detail page calls `/api/admin/images/[id]` — no code duplication |
+| 2026-02-21 | Lightweight admin check in Navbar | Single fetch to `/api/admin/auth`, silently fails for non-admins |
+| 2026-02-21 | `hero_image_url` column doesn't exist on `olera-providers` | Removed from SELECT; detail uses `SELECT *` which handles gracefully |
 
 ---
 
@@ -75,6 +82,37 @@
 ---
 
 ## Session Log
+
+### 2026-02-21 (Session 16) — Admin Provider Directory Editor
+
+**Branch:** `stellar-hypatia` → merged to `staging` via PR #40
+
+**Image Classification & Stock Fallbacks (prior commits on this branch):**
+- Vision AI classification script (`scripts/classify-provider-images.mjs`)
+- Admin images page at `/admin/images` with review/override/hero actions
+- Category stock fallback photos (3 per category) for browse cards
+
+**Provider Directory Editor (3 commits):**
+- `ee98759` — Full CRUD directory: list page (search, filters, tabs, pagination), detail/edit page (7 sections), API routes with field allowlist + audit logging, sidebar restructure, admin links in navbar/portal, dashboard stat card
+- `53377dc` — Surface API errors in red banner for debugging
+- `6e3ac70` — Fix: `hero_image_url` column doesn't exist on `olera-providers` — removed from SELECT
+
+**Key files created:**
+- `app/admin/directory/page.tsx` — list page with 36K+ providers, server-side pagination
+- `app/admin/directory/[providerId]/page.tsx` — sectioned edit form (Basic Info, Contact, Location, Pricing, Scores, Images, Status)
+- `app/api/admin/directory/route.ts` — GET with search/filters/pagination via Supabase `.range()`
+- `app/api/admin/directory/[providerId]/route.ts` — GET full detail + PATCH with `EDITABLE_FIELDS` allowlist, audit diff
+
+**Key files modified:**
+- `components/admin/AdminSidebar.tsx` — "Providers"→"Claims", removed "Images", added "Directory"
+- `app/admin/page.tsx` — replaced Images card with Provider Directory stat card (36,689 total)
+- `components/shared/Navbar.tsx` — admin check + "Admin Dashboard" link in dropdown
+- `app/portal/layout.tsx` — admin check + "Admin Dashboard" link in sidebar
+- `lib/types.ts` — `DirectoryProvider`, `DirectoryListItem`, `PROVIDER_CATEGORIES`
+
+**Status:** Merged to staging. Everything working — list, detail, save, filters, pagination, dashboard card.
+
+---
 
 ### 2026-02-20 (Session 15b) — Browse Page Polish + Bug Fixes
 

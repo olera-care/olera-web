@@ -123,12 +123,12 @@ function MilestoneRow({
         {/* Milestone circle */}
         <div
           className={[
-            "w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-200",
+            "w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all duration-200",
             isCurrent
-              ? "bg-primary-600 text-white shadow-sm shadow-primary-200"
+              ? "bg-gray-900 text-white"
               : isCompleted
-                ? "bg-primary-50 text-primary-600 ring-1 ring-primary-200"
-                : "bg-gray-100 text-gray-400",
+                ? "bg-gray-100 text-gray-600"
+                : "bg-gray-50 text-gray-300 ring-1 ring-gray-200",
           ].join(" ")}
         >
           {isCompleted ? (
@@ -153,7 +153,7 @@ function MilestoneRow({
           <div
             className={[
               "w-px flex-1 min-h-[12px] transition-colors duration-200",
-              isCompleted ? "bg-primary-200" : "bg-gray-200",
+              isCompleted ? "bg-gray-300" : "bg-gray-200",
             ].join(" ")}
           />
         )}
@@ -183,21 +183,16 @@ function MilestoneRow({
           <div className="flex items-center gap-1.5">
             <span
               className={[
-                "text-sm font-medium leading-8",
+                "text-sm leading-8",
                 isCurrent
-                  ? "text-primary-700 font-semibold"
+                  ? "text-gray-900 font-semibold"
                   : isCompleted
-                    ? "text-gray-900"
+                    ? "text-gray-700 font-medium"
                     : "text-gray-400",
               ].join(" ")}
             >
               {stepInfo.title}
             </span>
-            {isCurrent && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-700">
-                now
-              </span>
-            )}
           </div>
 
           {/* Edit pencil for completed steps */}

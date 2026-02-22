@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import StepIndicator from "@/components/providers/connection-card/StepIndicator";
 import Pill from "@/components/providers/connection-card/Pill";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
@@ -232,15 +231,16 @@ export default function BenefitsIntakeForm() {
 
   return (
     <div className="w-full">
-      <StepIndicator current={step} total={TOTAL_INTAKE_STEPS} />
-
       {/* Step content — keyed to animate on step change */}
       <div key={step} className="animate-step-in">
-      <p className="text-lg font-semibold text-gray-800 mb-1 mt-4">
-        {stepInfo.title}
+      <p className="text-sm font-medium text-gray-400 mb-1.5 tracking-wide">
+        Step {step + 1} of {TOTAL_INTAKE_STEPS}
       </p>
-      <p className="text-base text-gray-600 mb-5">
+      <h2 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
         {step === 0 ? "Where are you located?" : stepInfo.question}
+      </h2>
+      <p className="text-base text-gray-500 mb-6">
+        {stepInfo.title}
       </p>
 
       {/* Step 0: Smart Location Input */}

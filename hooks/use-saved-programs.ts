@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const STORAGE_KEY = "olera-saved-programs";
 
-function getSnapshot(): string[] {
-  if (typeof window === "undefined") return [];
+function readIds(): string[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -14,39 +13,20 @@ function getSnapshot(): string[] {
   }
 }
 
-function getServerSnapshot(): string[] {
-  return [];
-}
-
-// Module-level listeners for useSyncExternalStore
-let listeners: Array<() => void> = [];
-
-function subscribe(listener: () => void) {
-  listeners = [...listeners, listener];
-  // Cross-tab sync
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY) listener();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    listeners = listeners.filter((l) => l !== listener);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-
-function emitChange() {
-  for (const listener of listeners) {
-    listener();
-  }
-}
-
-function writeSavedIds(ids: string[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-  emitChange();
-}
-
 export function useSavedPrograms() {
-  const savedIds = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+
+  // Hydrate from localStorage after mount (avoids SSR mismatch)
+  useEffect(() => {
+    setSavedIds(readIds());
+
+    // Cross-tab sync
+    function onStorage(e: StorageEvent) {
+      if (e.key === STORAGE_KEY) setSavedIds(readIds());
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const savedCount = savedIds.length;
 
@@ -55,19 +35,19 @@ export function useSavedPrograms() {
     [savedIds]
   );
 
-  const toggle = useCallback(
-    (id: string) => {
-      const current = getSnapshot();
-      const next = current.includes(id)
-        ? current.filter((x) => x !== id)
-        : [...current, id];
-      writeSavedIds(next);
-    },
-    []
-  );
+  const toggle = useCallback((id: string) => {
+    setSavedIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const clear = useCallback(() => {
-    writeSavedIds([]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+    setSavedIds([]);
   }, []);
 
   return { savedIds, savedCount, isSaved, toggle, clear };

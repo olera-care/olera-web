@@ -91,6 +91,67 @@
   animation: slide-down 0.2s ease-out forwards;
 }
 
+/* Count pulse — subtle scale+color flash for live preview updates */
+@keyframes count-pulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.15);
+    color: #0891b2; /* primary-600 */
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-count-pulse {
+  display: inline-block;
+  animation: count-pulse 0.4s ease-out;
+}
+
+/* Step transition — fade + subtle slide for intake form steps */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-step-in {
+  animation: step-in 0.2s ease-out;
+}
+
+/* Card entrance — staggered fade + lift for results grid */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-card-enter {
+  opacity: 0;
+  animation: card-enter 0.25s ease-out forwards;
+}
+
+/* Smooth expand/collapse using grid row trick */
+.grid-rows-expand {
+  grid-template-rows: 1fr;
+}
+
+.grid-rows-collapse {
+  grid-template-rows: 0fr;
+}
+
 /* Custom component styles */
 @layer components {
   .btn-primary {

@@ -2,10 +2,12 @@
 
 import { useRef, useEffect } from "react";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
+import { useSavedPrograms } from "@/hooks/use-saved-programs";
 import MilestoneProgress from "@/components/benefits/MilestoneProgress";
 
 export default function CareProfileSidebar() {
   const { pageState, result, previewCount, goToStep, reset } = useCareProfile();
+  const { savedCount } = useSavedPrograms();
   const prevCount = useRef(previewCount);
   const countRef = useRef<HTMLSpanElement>(null);
 
@@ -60,6 +62,11 @@ export default function CareProfileSidebar() {
             <br />
             program{matchCount !== 1 ? "s" : ""} matched
           </p>
+          {savedCount > 0 && (
+            <p className="text-sm text-gray-500 mt-1">
+              {savedCount} saved
+            </p>
+          )}
         </div>
       )}
 

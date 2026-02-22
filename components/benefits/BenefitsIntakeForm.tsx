@@ -99,6 +99,15 @@ export default function BenefitsIntakeForm() {
     setLocationDisplay(display);
     setSelectedStateCode(stateCode);
     setShowLocationDropdown(false);
+
+    // Flush to context so the useEffect sync doesn't reset selectedStateCode
+    updateAnswers({
+      stateCode,
+      zipCode: /^\d{5}$/.test(display.trim()) ? display.trim() : null,
+    });
+
+    // Auto-advance — user made a deliberate choice, no need to confirm
+    goToStep(1);
   }
 
   // ─── Geolocation ───────────────────────────────────────────────────────

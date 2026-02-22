@@ -24,12 +24,10 @@ export default function CareProfileSidebar() {
 
   return (
     <div>
-      {/* Header — minimal, no container */}
-      <div className="mb-6">
-        <h2 className="text-sm font-semibold text-gray-900 tracking-wide uppercase">
-          Care Profile
-        </h2>
-      </div>
+      {/* Header */}
+      <p className="text-text-xs font-medium text-gray-400 mb-6 tracking-widest uppercase">
+        Care Profile
+      </p>
 
       {/* Milestone progress */}
       <div className="pb-2">
@@ -38,14 +36,15 @@ export default function CareProfileSidebar() {
 
       {/* Live preview (during intake) */}
       {pageState === "intake" && previewCount !== null && (
-        <div className="mt-4 pt-4 border-t border-gray-100" aria-live="polite" aria-atomic="true">
-          <p className="text-sm text-gray-600">
+        <div className="mt-6 pt-5 border-t border-vanilla-200" aria-live="polite" aria-atomic="true">
+          <p className="text-text-sm text-gray-500">
             <span
               ref={countRef}
-              className="text-gray-900 font-semibold tabular-nums"
+              className="font-display text-display-xs font-medium text-gray-900"
             >
               {previewCount}
-            </span>{" "}
+            </span>
+            <br />
             program{previewCount !== 1 ? "s" : ""} may match
           </p>
         </div>
@@ -53,9 +52,12 @@ export default function CareProfileSidebar() {
 
       {/* Results summary */}
       {pageState === "results" && matchCount > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <p className="text-sm text-gray-600">
-            <span className="text-gray-900 font-semibold">{matchCount}</span>{" "}
+        <div className="mt-6 pt-5 border-t border-vanilla-200">
+          <p className="text-text-sm text-gray-500">
+            <span className="font-display text-display-xs font-medium text-gray-900">
+              {matchCount}
+            </span>
+            <br />
             program{matchCount !== 1 ? "s" : ""} matched
           </p>
         </div>
@@ -63,17 +65,17 @@ export default function CareProfileSidebar() {
 
       {/* Results actions */}
       {pageState === "results" && (
-        <div className="mt-4 flex flex-col gap-1">
+        <div className="mt-5 flex flex-col gap-1">
           <button
             onClick={() => goToStep(0)}
-            className="w-full text-sm font-medium text-primary-600 hover:text-primary-700 rounded-lg py-2 min-h-[44px] transition-colors cursor-pointer bg-transparent border-none text-left"
+            className="w-full text-text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg py-2 min-h-[44px] transition-colors cursor-pointer bg-transparent border-none text-left"
             aria-label="Edit your care profile answers"
           >
             Edit answers
           </button>
           <button
             onClick={reset}
-            className="w-full text-xs text-gray-400 hover:text-gray-600 rounded-lg py-1.5 min-h-[44px] transition-colors cursor-pointer bg-transparent border-none text-left"
+            className="w-full text-text-xs text-gray-400 hover:text-gray-600 rounded-lg py-1.5 min-h-[44px] transition-colors cursor-pointer bg-transparent border-none text-left"
             aria-label="Start over with a new care profile"
           >
             Start over

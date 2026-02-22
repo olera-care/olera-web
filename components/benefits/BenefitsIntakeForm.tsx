@@ -233,23 +233,20 @@ export default function BenefitsIntakeForm() {
     <div className="w-full">
       {/* Step content — keyed to animate on step change */}
       <div key={step} className="animate-step-in">
-      <p className="text-sm font-medium text-gray-400 mb-1.5 tracking-wide">
-        Step {step + 1} of {TOTAL_INTAKE_STEPS}
+      <p className="text-text-xs text-gray-400 mb-3 tabular-nums">
+        {step + 1} / {TOTAL_INTAKE_STEPS}
       </p>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
+      <h2 className="font-display text-display-sm font-medium text-gray-900 mb-8 leading-snug tracking-tight">
         {step === 0 ? "Where are you located?" : stepInfo.question}
       </h2>
-      <p className="text-base text-gray-500 mb-6">
-        {stepInfo.title}
-      </p>
 
       {/* Step 0: Smart Location Input */}
       {step === 0 && (
         <div className="relative mb-4" ref={locationDropdownRef}>
           <div
-            className={`flex items-center px-4 py-3 bg-white rounded-xl border transition-colors cursor-text ${
+            className={`flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
               showLocationDropdown
-                ? "border-primary-400 ring-2 ring-primary-100"
+                ? "border-gray-400 ring-2 ring-gray-100"
                 : "border-gray-200 hover:border-gray-300"
             }`}
             onClick={() => {
@@ -390,14 +387,14 @@ export default function BenefitsIntakeForm() {
             value={ageInput}
             onChange={(e) => setAgeInput(e.target.value.replace(/\D/g, ""))}
             placeholder="e.g. 72"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-lg text-gray-700 outline-none focus:border-primary-600 transition-colors"
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-lg text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-colors"
           />
         </div>
       )}
 
       {/* Step 2: Care preference */}
       {step === 2 && (
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(CARE_PREFERENCES) as [CarePreference, { displayTitle: string; icon: string }][]).map(
             ([key, val]) => (
               <Pill
@@ -414,8 +411,8 @@ export default function BenefitsIntakeForm() {
       {/* Step 3: Primary needs (multi-select) */}
       {step === 3 && (
         <>
-          <p className="text-sm text-gray-500 mb-2">Select all that apply</p>
-          <div className="flex flex-wrap gap-2 mb-4">
+          <p className="text-text-xs text-gray-400 mb-3">Select all that apply</p>
+          <div className="flex flex-wrap gap-2.5 mb-4">
             {(Object.entries(PRIMARY_NEEDS) as [PrimaryNeed, { displayTitle: string; icon: string }][]).map(
               ([key, val]) => (
                 <Pill
@@ -432,7 +429,7 @@ export default function BenefitsIntakeForm() {
 
       {/* Step 4: Income range */}
       {step === 4 && (
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(INCOME_RANGES) as [IncomeRange, { displayTitle: string }][]).map(
             ([key, val]) => (
               <Pill
@@ -448,7 +445,7 @@ export default function BenefitsIntakeForm() {
 
       {/* Step 5: Medicaid status */}
       {step === 5 && (
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
             ([key, val]) => (
               <Pill
@@ -464,13 +461,13 @@ export default function BenefitsIntakeForm() {
       </div>{/* end animate-step-in wrapper */}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between mt-8">
         {step > 0 ? (
           <button
             onClick={handleBack}
-            className="text-base text-gray-500 cursor-pointer bg-transparent border-none hover:text-gray-700 transition-colors font-medium min-h-[44px] px-2"
+            className="text-sm text-gray-400 cursor-pointer bg-transparent border-none hover:text-gray-600 transition-colors font-medium min-h-[44px]"
           >
-            &larr; Back
+            Back
           </button>
         ) : (
           <div />
@@ -478,13 +475,13 @@ export default function BenefitsIntakeForm() {
         <button
           onClick={handleNext}
           disabled={!canProceed()}
-          className={`px-8 py-2.5 border-none rounded-[10px] text-base font-semibold cursor-pointer transition-all duration-200 min-h-[44px] ${
+          className={`px-10 py-3 border-none rounded-full text-sm font-medium cursor-pointer transition-all duration-200 min-h-[44px] ${
             canProceed()
-              ? "bg-primary-600 text-white hover:bg-primary-500"
-              : "bg-gray-200 text-gray-400 cursor-default"
+              ? "bg-gray-900 text-white hover:bg-gray-800"
+              : "bg-gray-100 text-gray-300 cursor-default"
           }`}
         >
-          {step === 5 ? "Find Benefits" : "Next"}
+          {step === 5 ? "Find my benefits" : "Continue"}
         </button>
       </div>
     </div>

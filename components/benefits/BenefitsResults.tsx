@@ -23,7 +23,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
 
   const { matchedPrograms, localAAA } = result;
 
-  // Unique categories in results
+  // Unique categories present in results
   const presentCategories = Array.from(
     new Set(matchedPrograms.map((m) => m.program.category))
   );
@@ -44,123 +44,96 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
     {}
   );
 
-  // Stats
-  const topMatchCount = matchedPrograms.filter(
-    (m) => m.tierLabel === "Top Match"
-  ).length;
-
   // Empty state
   if (matchedPrograms.length === 0 && !localAAA) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </div>
-        <p className="text-lg font-semibold text-gray-700 mb-2">
+      <div className="py-16">
+        <p className="font-display text-display-xs font-medium text-gray-900 mb-2">
           No matching programs found
         </p>
-        <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
+        <p className="text-text-sm text-gray-500 mb-8 max-w-md">
           Try adjusting your answers, or contact your local Area Agency on Aging
           for personalized help.
         </p>
         <button
           onClick={reset}
-          className="px-6 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold border-none cursor-pointer hover:bg-primary-500 transition-colors min-h-[44px]"
+          className="px-6 py-2.5 bg-gray-900 text-white rounded-full text-text-sm font-medium border-none cursor-pointer hover:bg-gray-800 transition-colors"
         >
-          Try Different Answers
+          Try different answers
         </button>
       </div>
     );
   }
 
   return (
-    <div className="w-full animate-fade-in">
-      {/* Results header + stats */}
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Your Benefits Results
+    <div className="w-full">
+      {/* Header — serif with match count */}
+      <div className="mb-8">
+        <h2 className="font-display text-display-sm font-medium text-gray-900 mb-1 leading-snug tracking-tight">
+          {matchedPrograms.length} program{matchedPrograms.length !== 1 ? "s" : ""} matched
         </h2>
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium">
-            {matchedPrograms.length} program{matchedPrograms.length !== 1 ? "s" : ""}
-          </span>
-          {topMatchCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
-              {topMatchCount} top match{topMatchCount !== 1 ? "es" : ""}
-            </span>
-          )}
-          {presentCategories.length > 0 && (
-            <span className="text-sm text-gray-500">
-              across {presentCategories.length} categor{presentCategories.length !== 1 ? "ies" : "y"}
-            </span>
-          )}
-        </div>
+        <p className="text-text-sm text-gray-400">
+          Based on your care profile
+        </p>
       </div>
 
-      {/* AAA — promoted banner */}
+      {/* AAA card */}
       {localAAA && (
-        <div className="mb-6">
+        <div className="mb-10">
           <AAACard agency={localAAA} />
         </div>
       )}
 
-      {/* Category filter chips */}
+      {/* Filter tabs — quiet, text-style */}
       {presentCategories.length > 1 && (
         <div
-          className="flex flex-wrap gap-1.5 mb-5 sticky top-[72px] bg-gray-50 py-2 -mx-1 px-1 z-10"
+          className="flex items-center gap-1 mb-6 border-b border-vanilla-200 -mx-1 px-1"
           role="toolbar"
           aria-label="Filter by category"
         >
           <button
             onClick={() => setActiveFilter("all")}
             aria-pressed={activeFilter === "all"}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
+            className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
               activeFilter === "all"
-                ? "bg-gray-900 text-white border-gray-900"
-                : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                ? "text-gray-900 border-b-2 border-b-gray-900"
+                : "text-gray-400 hover:text-gray-600"
             }`}
+            style={activeFilter === "all" ? { borderBottom: "2px solid #111827" } : {}}
           >
-            All ({matchedPrograms.length})
+            All
           </button>
           {presentCategories.map((cat) => {
             const info = BENEFIT_CATEGORIES[cat];
-            const count = matchedPrograms.filter(
-              (m) => m.program.category === cat
-            ).length;
+            const isActive = activeFilter === cat;
             return (
               <button
                 key={cat}
                 onClick={() => setActiveFilter(cat)}
-                aria-pressed={activeFilter === cat}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
-                  activeFilter === cat
-                    ? "bg-gray-900 text-white border-gray-900"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                aria-pressed={isActive}
+                className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
+                  isActive
+                    ? "text-gray-900"
+                    : "text-gray-400 hover:text-gray-600"
                 }`}
+                style={isActive ? { borderBottom: "2px solid #111827" } : {}}
               >
-                {info?.icon} {info?.displayTitle} ({count})
+                {info?.displayTitle}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Program cards — grouped by category, responsive grid */}
+      {/* Program list — single column, divided by category */}
       {Object.entries(grouped).map(([cat, programs]) => {
         const info = BENEFIT_CATEGORIES[cat as BenefitCategory];
         return (
-          <div key={cat} className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span>{info?.icon}</span>
+          <div key={cat} className="mb-8">
+            <p className="text-text-xs font-medium text-gray-400 mb-1 tracking-widest uppercase">
               {info?.displayTitle}
-              <span className="text-gray-400 font-normal normal-case tracking-normal">
-                ({programs.length})
-              </span>
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            </p>
+            <div>
               {programs.map((m, i) => (
                 <div
                   key={m.id}

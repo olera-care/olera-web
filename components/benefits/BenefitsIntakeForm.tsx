@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import StepIndicator from "@/components/providers/connection-card/StepIndicator";
 import Pill from "@/components/providers/connection-card/Pill";
 import { useCitySearch } from "@/hooks/use-city-search";
+import { useCareProfile } from "@/lib/benefits/care-profile-context";
 import {
   INTAKE_STEPS,
   TOTAL_INTAKE_STEPS,
@@ -11,10 +11,8 @@ import {
   PRIMARY_NEEDS,
   INCOME_RANGES,
   MEDICAID_STATUSES,
-  createEmptyIntakeAnswers,
 } from "@/lib/types/benefits";
 import type {
-  BenefitsIntakeAnswers,
   CarePreference,
   PrimaryNeed,
   IncomeRange,
@@ -37,20 +35,25 @@ const stateAbbreviations: Record<string, string> = {
   "District of Columbia": "DC",
 };
 
-interface BenefitsIntakeFormProps {
-  onSubmit: (answers: BenefitsIntakeAnswers) => void;
-}
+export default function BenefitsIntakeForm() {
+  const {
+    answers,
+    step,
+    locationDisplay,
+    updateAnswers,
+    setLocationDisplay,
+    goToStep,
+    submit,
+  } = useCareProfile();
 
-export default function BenefitsIntakeForm({
-  onSubmit,
-}: BenefitsIntakeFormProps) {
-  const [step, setStep] = useState<IntakeStep>(0);
-  const [answers, setAnswers] = useState<BenefitsIntakeAnswers>(
-    createEmptyIntakeAnswers()
+  // ─── Local UI state (not shared via context) ────────────────────────────
+  const [locationInput, setLocationInputLocal] = useState(locationDisplay);
+  const [selectedStateCode, setSelectedStateCode] = useState<string | null>(
+    answers.stateCode
   );
-  const [locationInput, setLocationInput] = useState("");
-  const [selectedStateCode, setSelectedStateCode] = useState<string | null>(null);
-  const [ageInput, setAgeInput] = useState("");
+  const [ageInput, setAgeInput] = useState(
+    answers.age ? String(answers.age) : ""
+  );
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
 
@@ -60,6 +63,14 @@ export default function BenefitsIntakeForm({
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
 
   const stepInfo = INTAKE_STEPS[step];
+
+  // ─── Sync local state from context (e.g. sidebar navigation) ────────────
+  // When step changes externally (sidebar click), re-derive local inputs
+  useEffect(() => {
+    setLocationInputLocal(locationDisplay);
+    setSelectedStateCode(answers.stateCode);
+    setAgeInput(answers.age ? String(answers.age) : "");
+  }, [step, locationDisplay, answers.stateCode, answers.age]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -75,7 +86,30 @@ export default function BenefitsIntakeForm({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ─── Geolocation ─────────────────────────────────────────────────────
+  // ─── Location helpers ───────────────────────────────────────────────────
+
+  function setLocationInput(value: string) {
+    setLocationInputLocal(value);
+    setLocationDisplay(value);
+  }
+
+  function selectLocation(display: string, stateCode: string) {
+    setLocationInputLocal(display);
+    setLocationDisplay(display);
+    setSelectedStateCode(stateCode);
+    setShowLocationDropdown(false);
+
+    // Flush to context so the useEffect sync doesn't reset selectedStateCode
+    updateAnswers({
+      stateCode,
+      zipCode: /^\d{5}$/.test(display.trim()) ? display.trim() : null,
+    });
+
+    // Auto-advance — user made a deliberate choice, no need to confirm
+    goToStep(1);
+  }
+
+  // ─── Geolocation ───────────────────────────────────────────────────────
 
   function detectLocation() {
     if (!navigator.geolocation) return;
@@ -105,9 +139,7 @@ export default function BenefitsIntakeForm({
           const stateAbbr =
             stateAbbreviations[stateName] || stateName.substring(0, 2).toUpperCase();
 
-          setLocationInput(`${city}, ${stateAbbr}`);
-          setSelectedStateCode(stateAbbr);
-          setShowLocationDropdown(false);
+          selectLocation(`${city}, ${stateAbbr}`, stateAbbr);
         } catch {
           // Silently fail
         }
@@ -119,7 +151,7 @@ export default function BenefitsIntakeForm({
     );
   }
 
-  // ─── Validation ──────────────────────────────────────────────────────
+  // ─── Validation ────────────────────────────────────────────────────────
 
   function canProceed(): boolean {
     switch (step) {
@@ -142,72 +174,79 @@ export default function BenefitsIntakeForm({
     }
   }
 
-  // ─── Navigation ──────────────────────────────────────────────────────
+  // ─── Navigation ────────────────────────────────────────────────────────
 
   function handleNext() {
     if (!canProceed()) return;
 
+    // Flush intermediate inputs to context before advancing
     if (step === 0) {
-      setAnswers((prev) => ({
-        ...prev,
+      updateAnswers({
         stateCode: selectedStateCode,
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,
-      }));
+      });
     }
 
     if (step === 1) {
-      setAnswers((prev) => ({ ...prev, age: parseInt(ageInput, 10) }));
+      updateAnswers({ age: parseInt(ageInput, 10) });
     }
 
     if (step < 5) {
-      setStep((step + 1) as IntakeStep);
+      goToStep((step + 1) as IntakeStep);
     } else {
-      const final: BenefitsIntakeAnswers = {
-        ...answers,
+      // Final step — submit with all answers flushed
+      updateAnswers({
         stateCode: selectedStateCode,
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,
         age: parseInt(ageInput, 10),
-      };
-      onSubmit(final);
+      });
+      submit();
     }
   }
 
   function handleBack() {
-    if (step > 0) setStep((step - 1) as IntakeStep);
+    // Flush current step data before going back
+    if (step === 0) {
+      updateAnswers({
+        stateCode: selectedStateCode,
+        zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,
+      });
+    }
+    if (step === 1) {
+      updateAnswers({ age: parseInt(ageInput, 10) || null });
+    }
+    if (step > 0) goToStep((step - 1) as IntakeStep);
   }
 
-  // ─── Render Helpers ──────────────────────────────────────────────────
+  // ─── Answer helpers ────────────────────────────────────────────────────
 
   function toggleNeed(need: PrimaryNeed) {
-    setAnswers((prev) => {
-      const has = prev.primaryNeeds.includes(need);
-      return {
-        ...prev,
-        primaryNeeds: has
-          ? prev.primaryNeeds.filter((n) => n !== need)
-          : [...prev.primaryNeeds, need],
-      };
+    const has = answers.primaryNeeds.includes(need);
+    updateAnswers({
+      primaryNeeds: has
+        ? answers.primaryNeeds.filter((n) => n !== need)
+        : [...answers.primaryNeeds, need],
     });
   }
 
   return (
     <div className="w-full">
-      <StepIndicator current={step} total={TOTAL_INTAKE_STEPS} />
-
-      <p className="text-lg font-semibold text-gray-800 mb-1 mt-4">
-        {stepInfo.title}
+      {/* Step content — keyed to animate on step change */}
+      <div key={step} className="animate-step-in">
+      <p className="text-text-xs text-gray-400 mb-3 tabular-nums">
+        {step + 1} / {TOTAL_INTAKE_STEPS}
       </p>
-      <p className="text-base text-gray-600 mb-5">
+      <h2 className="font-display text-display-sm font-medium text-gray-900 mb-8 leading-snug tracking-tight">
         {step === 0 ? "Where are you located?" : stepInfo.question}
-      </p>
+      </h2>
 
       {/* Step 0: Smart Location Input */}
       {step === 0 && (
         <div className="relative mb-4" ref={locationDropdownRef}>
           <div
-            className={`flex items-center px-4 py-3 bg-white rounded-xl border transition-colors cursor-text ${
+            className={`flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
               showLocationDropdown
-                ? "border-primary-400 ring-2 ring-primary-100"
+                ? "border-gray-400 ring-2 ring-gray-100"
                 : "border-gray-200 hover:border-gray-300"
             }`}
             onClick={() => {
@@ -299,11 +338,7 @@ export default function BenefitsIntakeForm({
                   <button
                     key={loc.full}
                     type="button"
-                    onClick={() => {
-                      setLocationInput(loc.full);
-                      setSelectedStateCode(loc.state);
-                      setShowLocationDropdown(false);
-                    }}
+                    onClick={() => selectLocation(loc.full, loc.state)}
                     className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
                       locationInput === loc.full
                         ? "bg-primary-50 text-primary-700"
@@ -352,23 +387,21 @@ export default function BenefitsIntakeForm({
             value={ageInput}
             onChange={(e) => setAgeInput(e.target.value.replace(/\D/g, ""))}
             placeholder="e.g. 72"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-lg text-gray-700 outline-none focus:border-primary-600 transition-colors"
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-lg text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-colors"
           />
         </div>
       )}
 
       {/* Step 2: Care preference */}
       {step === 2 && (
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(CARE_PREFERENCES) as [CarePreference, { displayTitle: string; icon: string }][]).map(
             ([key, val]) => (
               <Pill
                 key={key}
                 label={`${val.icon} ${val.displayTitle}`}
                 selected={answers.carePreference === key}
-                onClick={() =>
-                  setAnswers((prev) => ({ ...prev, carePreference: key }))
-                }
+                onClick={() => updateAnswers({ carePreference: key })}
               />
             )
           )}
@@ -378,8 +411,8 @@ export default function BenefitsIntakeForm({
       {/* Step 3: Primary needs (multi-select) */}
       {step === 3 && (
         <>
-          <p className="text-sm text-gray-500 mb-2">Select all that apply</p>
-          <div className="flex flex-wrap gap-2 mb-4">
+          <p className="text-text-xs text-gray-400 mb-3">Select all that apply</p>
+          <div className="flex flex-wrap gap-2.5 mb-4">
             {(Object.entries(PRIMARY_NEEDS) as [PrimaryNeed, { displayTitle: string; icon: string }][]).map(
               ([key, val]) => (
                 <Pill
@@ -396,16 +429,14 @@ export default function BenefitsIntakeForm({
 
       {/* Step 4: Income range */}
       {step === 4 && (
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(INCOME_RANGES) as [IncomeRange, { displayTitle: string }][]).map(
             ([key, val]) => (
               <Pill
                 key={key}
                 label={val.displayTitle}
                 selected={answers.incomeRange === key}
-                onClick={() =>
-                  setAnswers((prev) => ({ ...prev, incomeRange: key }))
-                }
+                onClick={() => updateAnswers({ incomeRange: key })}
               />
             )
           )}
@@ -414,30 +445,29 @@ export default function BenefitsIntakeForm({
 
       {/* Step 5: Medicaid status */}
       {step === 5 && (
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
             ([key, val]) => (
               <Pill
                 key={key}
                 label={val.displayTitle}
                 selected={answers.medicaidStatus === key}
-                onClick={() =>
-                  setAnswers((prev) => ({ ...prev, medicaidStatus: key }))
-                }
+                onClick={() => updateAnswers({ medicaidStatus: key })}
               />
             )
           )}
         </div>
       )}
+      </div>{/* end animate-step-in wrapper */}
 
       {/* Navigation */}
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex items-center justify-between mt-8">
         {step > 0 ? (
           <button
             onClick={handleBack}
-            className="text-base text-gray-500 cursor-pointer bg-transparent border-none hover:text-gray-700 transition-colors font-medium"
+            className="text-sm text-gray-400 cursor-pointer bg-transparent border-none hover:text-gray-600 transition-colors font-medium min-h-[44px]"
           >
-            &larr; Back
+            Back
           </button>
         ) : (
           <div />
@@ -445,13 +475,13 @@ export default function BenefitsIntakeForm({
         <button
           onClick={handleNext}
           disabled={!canProceed()}
-          className={`px-8 py-2.5 border-none rounded-[10px] text-base font-semibold cursor-pointer transition-all duration-200 ${
+          className={`px-10 py-3 border-none rounded-full text-sm font-medium cursor-pointer transition-all duration-200 min-h-[44px] ${
             canProceed()
-              ? "bg-primary-600 text-white hover:bg-primary-500"
-              : "bg-gray-200 text-gray-400 cursor-default"
+              ? "bg-gray-900 text-white hover:bg-gray-800"
+              : "bg-gray-100 text-gray-300 cursor-default"
           }`}
         >
-          {step === 5 ? "Find Benefits" : "Next"}
+          {step === 5 ? "Find my benefits" : "Continue"}
         </button>
       </div>
     </div>

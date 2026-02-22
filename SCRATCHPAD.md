@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
+  - Transform from narrow mobile wizard → desktop-native Care Planning Console
+  - Two-panel layout, persistent sidebar, real-time eligibility preview, transparent scoring
+  - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
+  - Notion: P1 — "Senior Benefits Finder Improvements & Optimizations"
+
 - **Admin Provider Directory Editor** (branch: `stellar-hypatia` → merged to `staging`) — DONE
   - Django-admin-style CRUD for 36K+ providers in `olera-providers` table
   - Search, filters, server-side pagination, sectioned edit form, audit logging

@@ -7,36 +7,81 @@ import type {
   BenefitCategory,
   BenefitMatch,
 } from "@/lib/types/benefits";
+import { useCareProfile } from "@/lib/benefits/care-profile-context";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedPrograms } from "@/hooks/use-saved-programs";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
 
 interface BenefitsResultsProps {
   result: BenefitsSearchResult;
-  onStartOver: () => void;
 }
 
-export default function BenefitsResults({
-  result,
-  onStartOver,
-}: BenefitsResultsProps) {
+function generateShareText(
+  matchedPrograms: BenefitMatch[],
+  stateCode: string | null,
+  age: number | null
+) {
+  const locationPart = stateCode ? ` in ${stateCode}` : "";
+  const agePart = age ? `, for someone ${age} years old` : "";
+  const header = `Your Benefits Results — ${matchedPrograms.length} program${matchedPrograms.length !== 1 ? "s" : ""} found${locationPart}${agePart}`;
+
+  // Group by category
+  const grouped = matchedPrograms.reduce<Record<string, BenefitMatch[]>>(
+    (acc, m) => {
+      const cat = m.program.category;
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(m);
+      return acc;
+    },
+    {}
+  );
+
+  const sections = Object.entries(grouped)
+    .map(([cat, programs]) => {
+      const catInfo = BENEFIT_CATEGORIES[cat as BenefitCategory];
+      const lines = programs.map((m) => {
+        const name = m.program.short_name || m.program.name;
+        const topReason = m.matchReasons[0] || "";
+        return `  - ${name} (${m.tierLabel})${topReason ? ` — ${topReason}` : ""}`;
+      });
+      return `${catInfo?.displayTitle}\n${lines.join("\n")}`;
+    })
+    .join("\n\n");
+
+  return `${header}\n\n${sections}\n\nFound with Olera Benefits Finder\nhttps://olera.care/benefits/finder`;
+}
+
+export default function BenefitsResults({ result }: BenefitsResultsProps) {
   const [activeFilter, setActiveFilter] = useState<BenefitCategory | "all">(
     "all"
   );
+  const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
+  const { reset, answers } = useCareProfile();
+  const { user, openAuth } = useAuth();
+  const { isSaved, toggle } = useSavedPrograms();
+
+  function handleToggleSave(programId: string) {
+    if (!user) {
+      openAuth({ defaultMode: "sign-up" });
+      return;
+    }
+    toggle(programId);
+  }
 
   const { matchedPrograms, localAAA } = result;
 
-  // Get unique categories present in the results
+  // Unique categories present in results
   const presentCategories = Array.from(
     new Set(matchedPrograms.map((m) => m.program.category))
   );
 
-  // Filter programs by selected category
+  // Filter + group
   const filteredPrograms =
     activeFilter === "all"
       ? matchedPrograms
       : matchedPrograms.filter((m) => m.program.category === activeFilter);
 
-  // Group filtered programs by category
   const grouped = filteredPrograms.reduce<Record<string, BenefitMatch[]>>(
     (acc, m) => {
       const cat = m.program.category;
@@ -47,21 +92,43 @@ export default function BenefitsResults({
     {}
   );
 
+  async function handleShare() {
+    const text = generateShareText(matchedPrograms, answers.stateCode, answers.age);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to clipboard
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareLabel("copied");
+      setTimeout(() => setShareLabel("share"), 2000);
+    } catch {
+      // Clipboard not available
+    }
+  }
+
+  // Empty state
   if (matchedPrograms.length === 0 && !localAAA) {
     return (
-      <div className="text-center py-8">
-        <p className="text-lg font-semibold text-gray-700 mb-2">
-          We couldn&apos;t find matching programs
+      <div className="py-16">
+        <p className="font-display text-display-xs font-medium text-gray-900 mb-2">
+          No matching programs found
         </p>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-text-sm text-gray-500 mb-8 max-w-md">
           Try adjusting your answers, or contact your local Area Agency on Aging
           for personalized help.
         </p>
         <button
-          onClick={onStartOver}
-          className="px-6 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold border-none cursor-pointer hover:bg-primary-500 transition-colors"
+          onClick={reset}
+          className="px-6 py-2.5 bg-gray-900 text-white rounded-full text-text-sm font-medium border-none cursor-pointer hover:bg-gray-800 transition-colors"
         >
-          Try Again
+          Try different answers
         </button>
       </div>
     );
@@ -69,78 +136,110 @@ export default function BenefitsResults({
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="mb-5">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
-          Your Benefits Results
-        </h2>
-        <p className="text-sm text-gray-600">
-          Based on your answers, here are programs you may qualify for.
+      {/* Header — serif with match count + share */}
+      <div className="mb-8">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="font-display text-display-sm font-medium text-gray-900 mb-1 leading-snug tracking-tight">
+            {matchedPrograms.length} program{matchedPrograms.length !== 1 ? "s" : ""} matched
+          </h2>
+          <button
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 text-text-sm font-medium text-gray-400 hover:text-gray-900 bg-transparent border-none cursor-pointer transition-colors shrink-0"
+            aria-label="Share results"
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            {shareLabel === "copied" ? "Copied!" : "Share results"}
+          </button>
+        </div>
+        <p className="text-text-sm text-gray-400">
+          Based on your care profile
         </p>
       </div>
 
-      {/* AAA Card — featured first */}
-      {localAAA && <AAACard agency={localAAA} />}
+      {/* AAA card */}
+      {localAAA && (
+        <div className="mb-10">
+          <AAACard agency={localAAA} />
+        </div>
+      )}
 
-      {/* Category filter chips */}
+      {/* Filter tabs — quiet, text-style */}
       {presentCategories.length > 1 && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
+        <div
+          className="flex items-center gap-1 mb-6 border-b border-vanilla-200 -mx-1 px-1"
+          role="toolbar"
+          aria-label="Filter by category"
+        >
           <button
             onClick={() => setActiveFilter("all")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
+            aria-pressed={activeFilter === "all"}
+            className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
               activeFilter === "all"
-                ? "bg-gray-900 text-white border-gray-900"
-                : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                ? "text-gray-900 border-b-2 border-b-gray-900"
+                : "text-gray-400 hover:text-gray-600"
             }`}
+            style={activeFilter === "all" ? { borderBottom: "2px solid #111827" } : {}}
           >
-            All ({matchedPrograms.length})
+            All
           </button>
           {presentCategories.map((cat) => {
             const info = BENEFIT_CATEGORIES[cat];
-            const count = matchedPrograms.filter(
-              (m) => m.program.category === cat
-            ).length;
+            const isActive = activeFilter === cat;
             return (
               <button
                 key={cat}
                 onClick={() => setActiveFilter(cat)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
-                  activeFilter === cat
-                    ? "bg-gray-900 text-white border-gray-900"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                aria-pressed={isActive}
+                className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
+                  isActive
+                    ? "text-gray-900"
+                    : "text-gray-400 hover:text-gray-600"
                 }`}
+                style={isActive ? { borderBottom: "2px solid #111827" } : {}}
               >
-                {info?.icon} {info?.displayTitle} ({count})
+                {info?.displayTitle}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Program cards grouped by category */}
+      {/* Program list — single column, divided by category */}
       {Object.entries(grouped).map(([cat, programs]) => {
         const info = BENEFIT_CATEGORIES[cat as BenefitCategory];
         return (
-          <div key={cat} className="mb-5">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              {info?.icon} {info?.displayTitle}
-            </h3>
-            {programs.map((m) => (
-              <ProgramCard key={m.id} match={m} />
-            ))}
+          <div key={cat} className="mb-8">
+            <p className="text-text-xs font-medium text-gray-400 mb-1 tracking-widest uppercase">
+              {info?.displayTitle}
+            </p>
+            <div>
+              {programs.map((m, i) => (
+                <div
+                  key={m.id}
+                  className="animate-card-enter"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
+                  <ProgramCard
+                    match={m}
+                    isSaved={isSaved(m.program.id)}
+                    onToggleSave={() => handleToggleSave(m.program.id)}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         );
       })}
-
-      {/* Start over */}
-      <div className="text-center mt-6 pb-4">
-        <button
-          onClick={onStartOver}
-          className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer bg-transparent border-none font-medium transition-colors"
-        >
-          &larr; Start over with different answers
-        </button>
-      </div>
     </div>
   );
 }

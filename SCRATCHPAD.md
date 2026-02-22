@@ -7,9 +7,9 @@
 
 ## Current Focus
 
-- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
-  - Transform from narrow mobile wizard → desktop-native Care Planning Console
-  - Two-panel layout, persistent sidebar, real-time eligibility preview, transparent scoring
+- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — MERGED TO STAGING
+  - Two-panel Care Planning Console with sidebar, milestone progress, editorial styling
+  - Save & share: bookmark icons (auth-gated), share results button, sidebar saved count
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
   - Notion: P1 — "Senior Benefits Finder Improvements & Optimizations"
 
@@ -48,11 +48,12 @@
 
 ## Next Up
 
-1. **Add `hero_image_url` column to `olera-providers`** — referenced in images API but doesn't exist yet; needs Supabase migration
-2. **Remaining ~2,992 providers without CSV descriptions** — category fallback covers them, but could RAG-generate real ones
-3. **Test Google OAuth end-to-end**
-4. **Email notifications** for provider approval/rejection
-5. **Community forum flagging** for admin moderation
+1. **"Saved" filter tab** — natural v2 follow-up for Benefits Finder bookmarks
+2. **Persist bookmarks to Supabase** — currently localStorage-only; link to user account after auth
+3. **Add `hero_image_url` column to `olera-providers`** — referenced in images API but doesn't exist yet; needs Supabase migration
+4. **Remaining ~2,992 providers without CSV descriptions** — category fallback covers them, but could RAG-generate real ones
+5. **Test Google OAuth end-to-end**
+6. **Email notifications** for provider approval/rejection
 
 ---
 
@@ -75,6 +76,9 @@
 | 2026-02-21 | Reuse existing images API for image actions | Detail page calls `/api/admin/images/[id]` — no code duplication |
 | 2026-02-21 | Lightweight admin check in Navbar | Single fetch to `/api/admin/auth`, silently fails for non-admins |
 | 2026-02-21 | `hero_image_url` column doesn't exist on `olera-providers` | Removed from SELECT; detail uses `SELECT *` which handles gracefully |
+| 2026-02-22 | localStorage-only bookmarks (no Supabase) | Keeps feature lightweight; backend persistence is v2 |
+| 2026-02-22 | Auth gate on bookmark (not free-save) | Prompts sign-up modal — captures leads before allowing saves |
+| 2026-02-22 | `useState`+`useEffect` over `useSyncExternalStore` | Avoids SSR hydration mismatch with localStorage reads |
 
 ---
 
@@ -88,6 +92,32 @@
 ---
 
 ## Session Log
+
+### 2026-02-22 (Session 17) — Benefits Finder Save & Share
+
+**Branch:** `witty-ritchie` → merged to `staging` via PR #41
+
+**Save & Share (4 commits):**
+- `35e2ee0` — Add save and share to Benefits Finder: `useSavedPrograms` hook, bookmark icon on ProgramCard, share button with clipboard/native share, sidebar saved count
+- `5da5310` — Fix SSR crash: replace `useSyncExternalStore` with `useState`+`useEffect` to avoid hydration mismatch
+- `2e3385a` — Gate bookmark behind auth: clicking bookmark when logged out opens sign-up modal via `openAuth()`
+
+**Bug fix:**
+- Bookmark icons invisible due to invalid Tailwind class `w-4.5` → fixed to `w-5 h-5`
+- Saved state uses teal (`text-primary-600`) matching iOS app accent color
+
+**Key files created:**
+- `hooks/use-saved-programs.ts` — localStorage-backed hook with cross-tab sync via `storage` event
+
+**Key files modified:**
+- `components/benefits/ProgramCard.tsx` — bookmark icon + chevron separated from expand button, pop animation
+- `components/benefits/BenefitsResults.tsx` — `useSavedPrograms` + `useAuth` integration, share text generator
+- `components/benefits/CareProfileSidebar.tsx` — "{n} saved" count below match count
+- `app/globals.css` — `@keyframes bookmark-pop` animation
+
+**Status:** Merged to staging via PR #41.
+
+---
 
 ### 2026-02-21 (Session 16) — Admin Provider Directory Editor
 

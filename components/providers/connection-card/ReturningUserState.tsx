@@ -11,7 +11,6 @@ import type { IntentData } from "./types";
 interface ReturningUserStateProps {
   phone: string | null;
   intentData: IntentData;
-  submitting?: boolean;
   onConnect: () => void;
   onEdit: () => void;
 }
@@ -19,7 +18,6 @@ interface ReturningUserStateProps {
 export default function ReturningUserState({
   phone,
   intentData,
-  submitting,
   onConnect,
   onEdit,
 }: ReturningUserStateProps) {
@@ -50,20 +48,9 @@ export default function ReturningUserState({
 
       <button
         onClick={onConnect}
-        disabled={submitting}
-        className={`w-full py-3.5 border-none rounded-[10px] text-[15px] font-semibold transition-colors flex items-center justify-center gap-2 ${
-          submitting
-            ? "bg-primary-400 text-white/80 cursor-not-allowed"
-            : "bg-primary-600 hover:bg-primary-500 text-white cursor-pointer"
-        }`}
+        className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 text-white border-none rounded-[10px] text-[15px] font-semibold cursor-pointer transition-colors"
       >
-        {submitting && (
-          <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-        )}
-        {submitting ? "Connecting..." : "Connect"}
+        Connect
       </button>
 
       <div className="mt-2.5">

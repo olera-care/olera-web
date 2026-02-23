@@ -3,6 +3,7 @@
 // ============================================================
 
 export type CardState =
+  | "loading" // Logged-in users while DB queries run
   | "default" // State 1: Anonymous / no connection
   | "intent" // State 2: Intent capture (steps 1-3)
   | "returning" // State 3: Returning user (prior connection or past)

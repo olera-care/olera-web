@@ -59,11 +59,6 @@ export const URGENCY_LABELS: Record<UrgencyValue, string> = {
 /** Profile relationship_to_recipient → CTA CareRecipient */
 export const RECIPIENT_FROM_PROFILE: Record<string, CareRecipient> = {
   Myself: "self",
-  "My parent": "parent",
-  "My spouse": "spouse",
-  "Someone else": "other",
-  // Backward compat for profiles saved before the 4-option update
-  "A loved one": "parent",
 };
 
 /** Profile timeline → CTA UrgencyValue */

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import type { CardImageType } from "@/lib/types/provider";
 
 export interface StaffMember {
   name: string;
@@ -16,6 +17,7 @@ export interface Provider {
   slug: string;
   name: string;
   image: string;
+  imageType?: CardImageType;
   images?: string[]; // Multiple images for carousel
   address: string;
   rating: number;
@@ -113,23 +115,44 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
       className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-200"
     >
       {/* Image Container */}
-      <div className="relative h-64 bg-gray-200 group/image">
-        {/* Image Carousel */}
-        <div className="relative w-full h-full overflow-hidden">
-          <div
-            className="flex h-full transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
-          >
-            {images.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt={`${provider.name} - Image ${index + 1}`}
-                className="w-full h-full object-cover flex-shrink-0"
-              />
-            ))}
+      <div className={`relative h-64 group/image ${provider.imageType === "logo" || provider.imageType === "placeholder" ? "bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50" : "bg-gray-200"}`}>
+        {provider.imageType === "placeholder" ? (
+          /* No image — gradient + initials */
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+              <span className="text-2xl font-bold text-primary-400">
+                {provider.name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+              </span>
+            </div>
+            <span className="text-xs font-medium text-primary-300 mt-2">{provider.primaryCategory}</span>
           </div>
-        </div>
+        ) : provider.imageType === "logo" ? (
+          /* Logo — contained, not cropped */
+          <div className="w-full h-full flex items-center justify-center p-8">
+            <img
+              src={images[currentImageIndex]}
+              alt={provider.name}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        ) : (
+          /* Photo carousel */
+          <div className="relative w-full h-full overflow-hidden">
+            <div
+              className="flex h-full transition-transform duration-300 ease-out"
+              style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+            >
+              {images.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`${provider.name} - Image ${index + 1}`}
+                  className="w-full h-full object-cover flex-shrink-0"
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Staff Info Overlay - Shown when staff avatar is hovered */}
         {provider.staff && (

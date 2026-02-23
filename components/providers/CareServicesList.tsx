@@ -18,7 +18,7 @@ export default function CareServicesList({
 
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-8">
+      <div className={`grid gap-y-5 gap-x-8 ${services.length <= 3 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 md:grid-cols-3"}`}>
         {visible.map((service) => (
           <div key={service} className="flex items-center gap-3">
             <svg

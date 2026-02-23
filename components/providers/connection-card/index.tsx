@@ -5,7 +5,8 @@ import CardTopSection from "./CardTopSection";
 import CardBottomSection from "./CardBottomSection";
 import DefaultActions from "./DefaultActions";
 import IntentCapture from "./IntentCapture";
-import ConnectedState from "./ConnectedState";
+import PendingState from "./PendingState";
+import RespondedState from "./RespondedState";
 import InactiveState from "./InactiveState";
 import ReturningUserState from "./ReturningUserState";
 import type { ConnectionCardProps } from "./types";
@@ -26,7 +27,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   const hook = useConnectionCard(props);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-300 shadow-lg overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
+    <div className="bg-vanilla-100 rounded-xl border border-gray-200 shadow-sm overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
       {/* Top section — persistent across all states */}
       <CardTopSection
         priceRange={priceRange}
@@ -41,14 +42,19 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
       {/* Middle section — state-dependent */}
       <div className="px-5 py-5">
+        {hook.cardState === "loading" && (
+          <div className="animate-pulse space-y-3">
+            <div className="h-11 bg-gray-100 rounded-[10px]" />
+            <div className="h-10 bg-gray-100 rounded-[10px]" />
+          </div>
+        )}
+
         {hook.cardState === "default" && (
           <DefaultActions
             phone={phone}
             phoneRevealed={hook.phoneRevealed}
-            isAuthenticated={hook.isAuthenticated}
             onConnect={hook.startFlow}
             onRevealPhone={hook.revealPhone}
-            onSignIn={hook.signIn}
           />
         )}
 
@@ -57,7 +63,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             intentStep={hook.intentStep}
             intentData={hook.intentData}
             availableCareTypes={hook.availableCareTypes}
-            submitting={hook.submitting}
             onSelectRecipient={hook.selectRecipient}
             onSelectCareType={hook.selectCareType}
             onSelectUrgency={hook.selectUrgency}
@@ -65,11 +70,19 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           />
         )}
 
-        {(hook.cardState === "pending" || hook.cardState === "responded") && (
-          <ConnectedState
+        {hook.cardState === "pending" && (
+          <PendingState
+            providerName={providerName}
             phone={phone}
-            intentData={hook.connectedIntentData}
-            connectionId={hook.connectionId}
+            requestDate={hook.pendingRequestDate}
+          />
+        )}
+
+        {hook.cardState === "responded" && (
+          <RespondedState
+            providerName={providerName}
+            phone={phone}
+            requestDate={hook.pendingRequestDate}
           />
         )}
 
@@ -86,7 +99,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           <ReturningUserState
             phone={phone}
             intentData={hook.intentData}
-            submitting={hook.submitting}
             onConnect={hook.connect}
             onEdit={hook.editFromReturning}
           />

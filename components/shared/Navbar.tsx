@@ -50,10 +50,12 @@ export default function Navbar() {
   }, [user]);
 
   const isPortal = pathname.startsWith("/portal");
-  const PROVIDER_HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/onboarding", "/provider/profile"];
-  const isProviderPortal = PROVIDER_HUB_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + "/")
-  );
+  const isProviderPortal =
+    pathname === "/provider" ||
+    pathname.startsWith("/provider/connections") ||
+    pathname.startsWith("/provider/inbox") ||
+    pathname.startsWith("/provider/onboarding") ||
+    pathname.startsWith("/provider/profile");
   const isCommunity = pathname.startsWith("/community");
   const isMinimalNav = pathname === "/portal/inbox" || pathname === "/provider/inbox";
 

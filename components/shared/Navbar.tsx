@@ -33,12 +33,22 @@ export default function Navbar() {
   const [heartPulse, setHeartPulse] = useState(false);
   const prevSavedCount = useRef(savedCount);
   const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     setHasAttemptedOnboarding(
       !!localStorage.getItem("olera_onboarding_provider_type")
     );
   }, []);
+
+  // Lightweight admin check
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    fetch("/api/admin/auth")
+      .then((res) => setIsAdmin(res.ok))
+      .catch(() => setIsAdmin(false));
+  }, [user]);
+
   const isPortal = pathname.startsWith("/portal");
   const isProviderPortal = pathname.startsWith("/provider");
   const isCommunity = pathname.startsWith("/community");
@@ -349,6 +359,24 @@ export default function Navbar() {
             navigateTo={isProviderPortal ? "/provider" : "/"}
           />
         </div>
+      )}
+
+      {isAdmin && (
+        <>
+          <div className="mx-4 border-t border-gray-100" />
+          <div className="px-2 py-1.5">
+            <Link
+              href="/admin"
+              className="flex items-center gap-3 px-3 py-2.5 text-sm text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              <svg className="w-[18px] h-[18px] text-primary-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Admin Dashboard
+            </Link>
+          </div>
+        </>
       )}
 
       <div className="mx-4 border-t border-gray-100" />
@@ -1038,6 +1066,22 @@ export default function Navbar() {
                           navigateTo={isProviderPortal ? "/provider" : "/"}
                         />
                       </div>
+                    )}
+
+                    {isAdmin && (
+                      <>
+                        <hr className="border-gray-100" />
+                        <Link
+                          href="/admin"
+                          className="flex items-center gap-3 py-3 text-primary-600 hover:text-primary-700 font-medium"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                          Admin Dashboard
+                        </Link>
+                      </>
                     )}
 
                     <hr className="border-gray-100" />

@@ -22,13 +22,11 @@ const FIELD_CHECKS: {
   { weight: 10, step: 1, check: (_p, email) => !!email },
   { weight: 10, step: 1, check: (p) => !!p.phone },
   { weight: 5, step: 1, check: (p) => !!(p.metadata as FamilyMetadata)?.contact_preference },
-  // Step 2: Care preferences (6 fields, 20 total)
-  { weight: 4, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.relationship_to_recipient },
-  { weight: 3, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.age },
-  { weight: 4, step: 2, check: (p) => (p.care_types?.length ?? 0) > 0 },
-  { weight: 3, step: 2, check: (p) => ((p.metadata as FamilyMetadata)?.care_needs?.length ?? 0) > 0 },
-  { weight: 3, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.timeline },
-  { weight: 3, step: 2, check: (p) => !!p.description },
+  // Step 2: Care preferences
+  { weight: 5, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.relationship_to_recipient },
+  { weight: 5, step: 2, check: (p) => (p.care_types?.length ?? 0) > 0 },
+  { weight: 5, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.timeline },
+  { weight: 5, step: 2, check: (p) => !!p.description },
   // Step 3: Payment
   { weight: 10, step: 3, check: (p) => ((p.metadata as FamilyMetadata)?.payment_methods?.length ?? 0) > 0 },
   // Step 4: Living situation

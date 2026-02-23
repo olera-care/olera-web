@@ -3,7 +3,6 @@ import type { ExtendedMetadata } from "@/lib/profile-completeness";
 import DashboardSectionCard from "./DashboardSectionCard";
 import ExpandableText from "@/components/providers/ExpandableText";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
-import { getCategoryDescription } from "@/lib/provider-utils";
 
 interface AboutCardProps {
   profile: Profile;
@@ -16,15 +15,7 @@ export default function AboutCard({
   metadata,
   completionPercent,
 }: AboutCardProps) {
-  const description =
-    profile.description ||
-    (profile.category
-      ? getCategoryDescription(
-          profile.category,
-          profile.display_name,
-          [profile.city, profile.state].filter(Boolean).join(", ") || null
-        )
-      : null);
+  const description = profile.description || null;
 
   const yearFounded = metadata.year_founded;
   const bedCount = metadata.bed_count;

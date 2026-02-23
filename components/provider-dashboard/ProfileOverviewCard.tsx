@@ -1,8 +1,38 @@
 import Link from "next/link";
-import type { Profile } from "@/lib/types";
+import type { Profile, ProfileCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
-import { getInitials, formatCategory } from "@/lib/provider-utils";
 import DashboardSectionCard from "./DashboardSectionCard";
+
+// Inline pure helpers to avoid importing provider-utils (which has server deps)
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((word) => word[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+const categoryLabels: Record<ProfileCategory, string> = {
+  home_care_agency: "Home Care",
+  home_health_agency: "Home Health",
+  hospice_agency: "Hospice",
+  independent_living: "Independent Living",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+  inpatient_hospice: "Inpatient Hospice",
+  rehab_facility: "Rehabilitation",
+  adult_day_care: "Adult Day Care",
+  wellness_center: "Wellness Center",
+  private_caregiver: "Private Caregiver",
+};
+
+function formatCategory(category: ProfileCategory | null): string | null {
+  if (!category) return null;
+  return categoryLabels[category] || null;
+}
 
 interface ProfileOverviewCardProps {
   profile: Profile;

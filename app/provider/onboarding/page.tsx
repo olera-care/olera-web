@@ -135,6 +135,7 @@ export default function ProviderOnboardingPage() {
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [skippingToDashboard, setSkippingToDashboard] = useState(false);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -574,6 +575,51 @@ export default function ProviderOnboardingPage() {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSkipToDashboard = async () => {
+    setSkippingToDashboard(true);
+    setSubmitError("");
+    try {
+      const name = data.displayName || account?.display_name || "My Provider";
+      const res = await fetch("/api/auth/create-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intent: "provider",
+          providerType: providerType || "organization",
+          displayName: name,
+          orgName: providerType === "organization" ? name : undefined,
+          description: data.description || undefined,
+          category: data.category || undefined,
+          phone: data.phone || undefined,
+          city: data.city || undefined,
+          state: data.state || undefined,
+          zip: data.zip || undefined,
+          careTypes: data.careTypes,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        setSubmitError(err.error || "Failed to create profile.");
+        return;
+      }
+
+      try {
+        localStorage.removeItem(TYPE_KEY);
+        localStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(STEP_KEY);
+        localStorage.removeItem(SEARCH_KEY);
+      } catch {}
+
+      await refreshAccountData();
+      router.push("/provider");
+    } catch {
+      setSubmitError("Something went wrong.");
+    } finally {
+      setSkippingToDashboard(false);
     }
   };
 
@@ -1433,12 +1479,14 @@ export default function ProviderOnboardingPage() {
 
                 {/* Temp testing link */}
                 <div className="mt-10 pt-6 border-t border-dashed border-gray-200 text-center">
-                  <Link
-                    href="/provider"
-                    className="text-xs text-gray-400 hover:text-gray-500 transition-colors"
+                  <button
+                    type="button"
+                    onClick={handleSkipToDashboard}
+                    disabled={skippingToDashboard}
+                    className="text-xs text-gray-400 hover:text-gray-500 transition-colors disabled:opacity-50"
                   >
-                    Go to dashboard (testing only)
-                  </Link>
+                    {skippingToDashboard ? "Setting up..." : "Go to dashboard (testing only)"}
+                  </button>
                 </div>
 
                 {/* Back */}

@@ -521,17 +521,32 @@ export default function Navbar() {
             {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
                 {isProviderPortal ? (
-                  /* Provider Hub nav links — all "coming soon", point to /provider */
+                  /* Provider Hub nav links */
                   <>
-                    {(["Dashboard", "Inbox", "Leads", "Reviews", "Matches"]).map((label) => (
-                      <Link
-                        key={label}
-                        href="/provider"
-                        className="px-4 py-2 text-[15px] font-medium rounded-full transition-colors text-gray-700 hover:bg-gray-50"
-                      >
-                        {label}
-                      </Link>
-                    ))}
+                    {([
+                      { label: "Dashboard", href: "/provider" },
+                      { label: "Inbox", href: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/connections" },
+                      { label: "Reviews", href: "/provider" },
+                      { label: "Matches", href: "/provider" },
+                    ] as const).map((item) => {
+                      const active = item.href === "/provider"
+                        ? pathname === "/provider"
+                        : pathname.startsWith(item.href);
+                      return (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
+                            active
+                              ? "text-primary-600 bg-primary-50"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                   </>
                 ) : (
                   /* Family / public nav links */
@@ -771,16 +786,31 @@ export default function Navbar() {
                 {isProviderPortal ? (
                   /* Provider mobile nav */
                   <>
-                    {(["Dashboard", "Inbox", "Leads", "Reviews", "Matches"]).map((label) => (
-                      <Link
-                        key={label}
-                        href="/provider"
-                        className="block py-3 text-gray-700 hover:text-primary-600 font-medium"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {label}
-                      </Link>
-                    ))}
+                    {([
+                      { label: "Dashboard", href: "/provider" },
+                      { label: "Inbox", href: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/connections" },
+                      { label: "Reviews", href: "/provider" },
+                      { label: "Matches", href: "/provider" },
+                    ] as const).map((item) => {
+                      const active = item.href === "/provider"
+                        ? pathname === "/provider"
+                        : pathname.startsWith(item.href);
+                      return (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          className={`block py-3 font-medium ${
+                            active
+                              ? "text-primary-600"
+                              : "text-gray-700 hover:text-primary-600"
+                          }`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                     <button
                       type="button"
                       onClick={async () => {

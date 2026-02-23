@@ -243,9 +243,9 @@ export default function Navbar() {
           <div className="px-2 py-1.5">
             {isProviderPortal ? (
               <>
-                {/* Provider Hub links — all point to /provider (coming soon) */}
+                {/* Provider Hub links */}
                 <Link
-                  href="/provider"
+                  href="/provider/statistics"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
@@ -257,7 +257,7 @@ export default function Navbar() {
                   Statistics
                 </Link>
                 <Link
-                  href="/provider"
+                  href="/provider/verification"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
@@ -268,7 +268,7 @@ export default function Navbar() {
                   Identity Verification
                 </Link>
                 <Link
-                  href="/provider"
+                  href="/provider/pro"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
@@ -527,8 +527,8 @@ export default function Navbar() {
                       { label: "Dashboard", href: "/provider", match: "/provider" },
                       { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
                       { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
-                      { label: "Reviews", href: "/provider", match: null },
-                      { label: "Matches", href: "/provider", match: null },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
                     ] as const).map((item) => {
                       const active = item.match
                         ? item.match === "/provider"
@@ -792,8 +792,8 @@ export default function Navbar() {
                       { label: "Dashboard", href: "/provider", match: "/provider" },
                       { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
                       { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
-                      { label: "Reviews", href: "/provider", match: null },
-                      { label: "Matches", href: "/provider", match: null },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
                     ] as const).map((item) => {
                       const active = item.match
                         ? item.match === "/provider"
@@ -989,7 +989,7 @@ export default function Navbar() {
                         {isProviderPortal ? (
                           <>
                             <Link
-                              href="/provider"
+                              href="/provider/statistics"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
@@ -1001,7 +1001,7 @@ export default function Navbar() {
                               Statistics
                             </Link>
                             <Link
-                              href="/provider"
+                              href="/provider/verification"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
@@ -1012,7 +1012,7 @@ export default function Navbar() {
                               Identity Verification
                             </Link>
                             <Link
-                              href="/provider"
+                              href="/provider/pro"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >

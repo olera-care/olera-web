@@ -33,6 +33,8 @@ interface ConnectButtonProps {
   fullWidth?: boolean;
   /** Button size. */
   size?: "sm" | "md" | "lg";
+  /** Optional metadata to include with the connection record. */
+  connectionMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -64,6 +66,7 @@ export default function ConnectButton({
   showModal: showConfirmation = true,
   fullWidth = false,
   size = "sm",
+  connectionMetadata,
 }: ConnectButtonProps) {
   const { user, activeProfile, membership, openAuth, refreshAccountData } =
     useAuth();
@@ -131,6 +134,7 @@ export default function ConnectButton({
           type: connectionType,
           status: "pending",
           message: note.trim() || null,
+          ...(connectionMetadata ? { metadata: connectionMetadata } : {}),
         });
 
       if (insertError) {
@@ -180,7 +184,7 @@ export default function ConnectButton({
     } finally {
       setSubmitting(false);
     }
-  }, [fromProfileId, toProfileId, connectionType, note, membership, refreshAccountData]);
+  }, [fromProfileId, toProfileId, connectionType, note, membership, refreshAccountData, connectionMetadata]);
 
   const handleClick = () => {
     if (!user) {

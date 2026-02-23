@@ -864,8 +864,8 @@ export default function ProviderOnboardingPage() {
                 {/* Sticky search bar */}
                 <div className="sticky top-[65px] z-40 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4">
                   <div className="max-w-2xl mx-auto py-4">
-                    <form onSubmit={handleSearch} className="flex items-center gap-3">
-                      <div ref={locationDropdownRef} className="relative flex-1">
+                    <form onSubmit={handleSearch}>
+                      <div ref={locationDropdownRef} className="relative">
                         <div className="flex items-center rounded-xl bg-white ring-1 ring-gray-200 focus-within:ring-2 focus-within:ring-primary-500 transition-all shadow-sm">
                           <div className="pl-4 flex items-center pointer-events-none shrink-0">
                             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -884,48 +884,50 @@ export default function ProviderOnboardingPage() {
                               setShowLocationDropdown(true);
                             }}
                             placeholder="Search by name or location…"
-                            className="w-full px-3 py-3 text-base bg-transparent border-none outline-none placeholder-gray-400"
+                            className="flex-1 px-3 py-3 text-base bg-transparent border-none outline-none placeholder-gray-400"
                           />
-                          {/* Location suggestions dropdown */}
-                          {showLocationDropdown && cityResults.length > 0 && (
-                            <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                              {!searchQuery.trim() && (
-                                <div className="px-4 pt-1 pb-2">
-                                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                                </div>
+                          <div className="pr-1.5 shrink-0">
+                            <button
+                              type="submit"
+                              disabled={searching || !searchQuery.trim()}
+                              className="px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                            >
+                              {searching ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                "Search"
                               )}
-                              {cityResults.map((loc) => (
-                                <button
-                                  key={loc.full}
-                                  type="button"
-                                  onClick={() => {
-                                    setSearchQuery(loc.full);
-                                    setShowLocationDropdown(false);
-                                  }}
-                                  className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-base hover:bg-gray-50 transition-colors"
-                                >
-                                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  </svg>
-                                  <span className="font-medium text-gray-700">{loc.full}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <button
-                        type="submit"
-                        disabled={searching || !searchQuery.trim()}
-                        className="px-6 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
-                      >
-                        {searching ? (
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          "Search"
+                        {/* Location suggestions dropdown */}
+                        {showLocationDropdown && cityResults.length > 0 && (
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                            {!searchQuery.trim() && (
+                              <div className="px-4 pt-1 pb-2">
+                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                              </div>
+                            )}
+                            {cityResults.map((loc) => (
+                              <button
+                                key={loc.full}
+                                type="button"
+                                onClick={() => {
+                                  setSearchQuery(loc.full);
+                                  setShowLocationDropdown(false);
+                                }}
+                                className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-base hover:bg-gray-50 transition-colors"
+                              >
+                                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="font-medium text-gray-700">{loc.full}</span>
+                              </button>
+                            ))}
+                          </div>
                         )}
-                      </button>
+                      </div>
                     </form>
                     <div className="flex items-center justify-between mt-3">
                       <p className="text-sm text-gray-500">

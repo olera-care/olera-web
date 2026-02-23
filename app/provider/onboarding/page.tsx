@@ -205,6 +205,7 @@ export default function ProviderOnboardingPage() {
   const [showNoAccess, setShowNoAccess] = useState(false);
   const [noAccessName, setNoAccessName] = useState("");
   const [noAccessReason, setNoAccessReason] = useState("");
+  const [noAccessNotes, setNoAccessNotes] = useState("");
   const [noAccessEmail, setNoAccessEmail] = useState("");
   const [noAccessSubmitting, setNoAccessSubmitting] = useState(false);
   const [noAccessSuccess, setNoAccessSuccess] = useState(false);
@@ -408,7 +409,7 @@ export default function ProviderOnboardingPage() {
           providerId: claimingProvider.provider_id,
           providerName: claimingProvider.provider_name,
           contactName: noAccessName,
-          reason: noAccessReason,
+          reason: noAccessNotes ? `${noAccessReason} — ${noAccessNotes}` : noAccessReason,
           alternativeEmail: noAccessEmail,
         }),
       });
@@ -1358,35 +1359,55 @@ export default function ProviderOnboardingPage() {
                     <div className="mb-1">
                       <h2 className="text-lg font-semibold text-gray-900">Request manual review</h2>
                       <p className="text-base text-gray-400 mt-1">
-                        Tell us about yourself and why you should have access to this listing.
+                        Tell us a bit about yourself so we can verify your access.
                       </p>
                     </div>
 
                     <Input
-                      label="Your name"
+                      label="Full name"
                       value={noAccessName}
                       onChange={(e) => setNoAccessName((e.target as HTMLInputElement).value)}
                       placeholder="e.g. Jane Smith"
                       required
                     />
 
-                    <Input
-                      label="Why should you have access?"
-                      as="textarea"
-                      value={noAccessReason}
-                      onChange={(e) => setNoAccessReason((e.target as HTMLTextAreaElement).value)}
-                      placeholder="e.g. I am the owner/administrator of this organization"
-                      rows={3}
-                      required
-                    />
+                    <div className="space-y-1.5">
+                      <label htmlFor="no-access-role" className="block text-base font-medium text-gray-700">
+                        Your role
+                      </label>
+                      <select
+                        id="no-access-role"
+                        value={noAccessReason}
+                        onChange={(e) => setNoAccessReason(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
+                      >
+                        <option value="">Select your role…</option>
+                        <option value="Owner">Owner</option>
+                        <option value="Administrator">Administrator</option>
+                        <option value="Executive Director">Executive Director</option>
+                        <option value="Office Manager">Office Manager</option>
+                        <option value="Marketing / Communications">Marketing / Communications</option>
+                        <option value="Staff Member">Staff Member</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
 
                     <Input
-                      label="Alternative organization email"
+                      label="Organization email"
                       type="email"
                       value={noAccessEmail}
                       onChange={(e) => setNoAccessEmail((e.target as HTMLInputElement).value)}
                       placeholder="contact@yourorganization.com"
                       required
+                    />
+
+                    <Input
+                      label="Anything else we should know?"
+                      as="textarea"
+                      value={noAccessNotes}
+                      onChange={(e) => setNoAccessNotes((e.target as HTMLTextAreaElement).value)}
+                      placeholder="Optional — add any additional context"
+                      rows={2}
                     />
 
                     <div className="flex justify-between items-center pt-2">
@@ -1399,7 +1420,7 @@ export default function ProviderOnboardingPage() {
                       </button>
                       <Button
                         onClick={handleNoAccessSubmit}
-                        disabled={!noAccessName.trim() || !noAccessReason.trim() || !noAccessEmail.trim()}
+                        disabled={!noAccessName.trim() || !noAccessReason || !noAccessEmail.trim()}
                         loading={noAccessSubmitting}
                       >
                         Submit request

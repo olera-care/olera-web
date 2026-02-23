@@ -1,46 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import Button from "@/components/ui/Button";
 import type { ReactNode } from "react";
 
-const ALL_NAV_ITEMS = [
-  {
-    label: "Profile",
-    href: "/portal/profile",
-    iconSrc: "https://cdn.lordicon.com/dklbhvrt.json",
-  },
-  {
-    label: "Inbox",
-    href: "/portal/inbox",
-    iconSrc: "https://cdn.lordicon.com/uvextprq.json",
-  },
-  {
-    label: "Matches",
-    href: "/portal/matches",
-    iconSrc: "https://cdn.lordicon.com/jkzgajyr.json",
-    familyOnly: true,
-  },
-];
-
 export default function PortalLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const { user, account, activeProfile, isLoading, fetchError, refreshAccountData } = useAuth();
-  const [nudgeDismissed, setNudgeDismissed] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const completeness = useProfileCompleteness(activeProfile ?? null, user?.email);
-
-  // Lightweight admin check
-  useEffect(() => {
-    if (!user) { setIsAdmin(false); return; }
-    fetch("/api/admin/auth")
-      .then((res) => setIsAdmin(res.ok))
-      .catch(() => setIsAdmin(false));
-  }, [user]);
 
   // Brief spinner while getSession() runs (reads local storage — very fast)
   if (isLoading) {
@@ -69,7 +35,6 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
 
   // Signed in but account data unavailable
   if (!account) {
-    // Fetch failed or timed out — show compact error with retry
     if (fetchError) {
       return (
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
@@ -84,18 +49,12 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
         </div>
       );
     }
-    // Still loading — brief spinner
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full" />
       </div>
     );
   }
-
-  // Filter nav items based on profile type
-  const navItems = ALL_NAV_ITEMS.filter(
-    (item) => !("familyOnly" in item && item.familyOnly) || activeProfile?.type === "family"
-  );
 
   // Account exists but no profile yet — direct to onboarding
   if (!activeProfile) {
@@ -116,164 +75,6 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const showNudge =
-    activeProfile?.type === "family" &&
-    completeness.percentage < 60 &&
-    !nudgeDismissed;
-
-  // Inbox is a full-page 3-panel layout — render without the portal sidebar
-  if (pathname.startsWith("/portal/inbox")) {
-    return <>{children}</>;
-  }
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Mobile: header + horizontal tabs */}
-      <h1 className="text-2xl font-bold text-gray-900 mb-6 lg:hidden">Profile</h1>
-      <div className="lg:hidden mb-6 flex gap-2 overflow-x-auto scrollbar-hide">
-        {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={[
-                "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150",
-                isActive
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-600 hover:bg-gray-100",
-              ].join(" ")}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-        {isAdmin && (
-          <Link
-            href="/admin"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 text-primary-600 hover:bg-primary-50"
-          >
-            Admin
-          </Link>
-        )}
-      </div>
-
-      <div className="flex gap-8 lg:gap-10">
-        {/* Desktop nav card — sticky white card */}
-        <div className="hidden lg:block w-[270px] shrink-0">
-          <div className="sticky top-[88px] bg-white rounded-2xl border border-gray-200 p-5 h-[calc(100vh-112px)] flex flex-col">
-            <h1 className="text-xl font-bold text-gray-900 mb-5 px-1">Profile</h1>
-            <nav className="space-y-1">
-              {navItems.map((item) => {
-                const isActive = pathname.startsWith(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={[
-                      "flex items-center gap-3.5 px-3 py-3 rounded-xl text-[15px] font-medium transition-all duration-150",
-                      isActive
-                        ? "bg-gray-100 font-semibold text-gray-900"
-                        : "text-gray-600 hover:bg-gray-50",
-                    ].join(" ")}
-                  >
-                    <lord-icon
-                      src={item.iconSrc}
-                      trigger="hover"
-                      colors={`primary:${isActive ? "#199087" : "#6b7280"}`}
-                      style={{ width: "40px", height: "40px" }}
-                    />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Bottom section — pushed down */}
-            <div className="mt-auto pt-4 border-t border-gray-100">
-              {/* Profile completeness nudge */}
-              {showNudge && (
-                <div className="mb-3 px-3 py-2.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200 relative">
-                  <button
-                    onClick={() => setNudgeDismissed(true)}
-                    className="absolute top-2 right-2 text-amber-400 hover:text-amber-600 transition-colors"
-                    aria-label="Dismiss"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                  <div className="flex items-center gap-2.5">
-                    <div className="relative w-8 h-8 shrink-0">
-                      <svg width="32" height="32" viewBox="0 0 32 32">
-                        <circle cx="16" cy="16" r="13" fill="none" stroke="#fcd34d" strokeWidth="2.5" />
-                        <circle
-                          cx="16"
-                          cy="16"
-                          r="13"
-                          fill="none"
-                          stroke="#d97706"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeDasharray={`${(completeness.percentage / 100) * 81.68} 81.68`}
-                          transform="rotate(-90 16 16)"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-amber-700">
-                        {completeness.percentage}%
-                      </span>
-                    </div>
-                    <div className="pr-4">
-                      <p className="text-[12px] font-semibold text-amber-900 leading-tight">
-                        Your profile is incomplete
-                      </p>
-                      <p className="text-[11px] text-amber-700/80 leading-snug mt-0.5">
-                        Complete profiles get more responses.
-                      </p>
-                    </div>
-                  </div>
-                  <Link
-                    href="/portal/profile"
-                    className="flex items-center gap-1 mt-2 text-[12px] font-medium text-amber-700 hover:text-amber-900 transition-colors"
-                  >
-                    Complete profile
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14" />
-                      <path d="M12 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-              )}
-              <Link
-                href="/browse"
-                className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                Browse more providers
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-2 px-3 py-2.5 text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                  Admin Dashboard
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Content — scrollable */}
-        <div className="flex-1 min-w-0">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
+  // Auth gate passed — each page handles its own layout
+  return <>{children}</>;
 }

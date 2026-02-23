@@ -433,6 +433,7 @@ function InboxContent() {
             : c
         )
       );
+      setArchivedCount((prev) => prev + 1);
     } catch (err) {
       console.error("[inbox] report failed:", err);
     }
@@ -461,6 +462,7 @@ function InboxContent() {
             : c
         )
       );
+      setArchivedCount((prev) => prev + 1);
     } catch (err) {
       console.error("[inbox] archive failed:", err);
     }
@@ -484,6 +486,7 @@ function InboxContent() {
           c.id === connectionId ? { ...c, status: restoreStatus } : c
         )
       );
+      setArchivedCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
       console.error("[inbox] unarchive failed:", err);
     }
@@ -500,8 +503,13 @@ function InboxContent() {
       await manageConnection({ connectionId, action: "delete" });
 
       // API confirmed — now remove from state
+      const wasArchived = conn.status === "archived" ||
+        !!((conn.metadata as Record<string, unknown>)?.archived);
       managedOpsRef.current.set(connectionId, "expect_absent");
       setConnections((prev) => prev.filter((c) => c.id !== connectionId));
+      if (wasArchived) {
+        setArchivedCount((prev) => Math.max(0, prev - 1));
+      }
     } catch (err) {
       console.error("[inbox] delete failed:", err);
     }

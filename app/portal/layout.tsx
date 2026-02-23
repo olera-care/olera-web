@@ -15,8 +15,8 @@ const ALL_NAV_ITEMS = [
     iconSrc: "https://cdn.lordicon.com/dklbhvrt.json",
   },
   {
-    label: "My Connections",
-    href: "/portal/connections",
+    label: "Inbox",
+    href: "/portal/inbox",
     iconSrc: "https://cdn.lordicon.com/uvextprq.json",
   },
   {
@@ -24,11 +24,6 @@ const ALL_NAV_ITEMS = [
     href: "/portal/matches",
     iconSrc: "https://cdn.lordicon.com/jkzgajyr.json",
     familyOnly: true,
-  },
-  {
-    label: "Account Settings",
-    href: "/portal/settings",
-    iconSrc: "https://cdn.lordicon.com/lecprnjb.json",
   },
 ];
 

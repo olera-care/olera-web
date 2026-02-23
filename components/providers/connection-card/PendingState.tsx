@@ -52,12 +52,12 @@ export default function PendingState({
       {/* Phone — fully revealed (already connected) */}
       <PhoneButton phone={phone} revealed onReveal={() => {}} />
 
-      {/* View connections */}
+      {/* Go to inbox */}
       <Link
-        href="/portal/connections"
+        href="/portal/inbox"
         className="block w-full mt-2 py-3 bg-primary-600 hover:bg-primary-500 rounded-[10px] text-sm font-semibold text-white text-center transition-colors"
       >
-        View Your Connections
+        Go to Inbox
       </Link>
     </>
   );

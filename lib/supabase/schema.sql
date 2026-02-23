@@ -321,3 +321,21 @@ create policy "Users can update connections they participate in"
       and (p.id = connections.from_profile_id or p.id = connections.to_profile_id)
     )
   );
+
+-- ============================================================
+-- CLAIM VERIFICATION CODES
+-- Stores time-limited 6-digit codes for provider page claims.
+-- ============================================================
+
+create table public.claim_verification_codes (
+  id uuid primary key default gen_random_uuid(),
+  provider_id text not null,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  code text not null,
+  attempts int not null default 0,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create index idx_claim_codes_provider_user
+  on public.claim_verification_codes(provider_id, user_id);

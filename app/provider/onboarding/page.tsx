@@ -9,10 +9,11 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Pagination from "@/components/ui/Pagination";
+import OtpInput from "@/components/auth/OtpInput";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "search" | 2 | 3 | 4;
+type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4;
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
@@ -170,6 +171,22 @@ export default function ProviderOnboardingPage() {
   const [disputeSuccess, setDisputeSuccess] = useState<string | null>(null);
   const [disputeError, setDisputeError] = useState("");
 
+  // Claim verification state
+  const [claimingProvider, setClaimingProvider] = useState<Provider | null>(null);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifyEmailHint, setVerifyEmailHint] = useState("");
+  const [verifyNoEmail, setVerifyNoEmail] = useState(false);
+  const [verifySending, setVerifySending] = useState(false);
+  const [verifyChecking, setVerifyChecking] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [verifyResendCooldown, setVerifyResendCooldown] = useState(0);
+  const [showNoAccess, setShowNoAccess] = useState(false);
+  const [noAccessName, setNoAccessName] = useState("");
+  const [noAccessReason, setNoAccessReason] = useState("");
+  const [noAccessEmail, setNoAccessEmail] = useState("");
+  const [noAccessSubmitting, setNoAccessSubmitting] = useState(false);
+  const [noAccessSuccess, setNoAccessSuccess] = useState(false);
+
   // Auth guard + resume detection
   useEffect(() => {
     if (isLoading) return;
@@ -247,6 +264,99 @@ export default function ProviderOnboardingPage() {
     setProviderType(null);
     setData(EMPTY);
     setStep(1);
+  };
+
+  // Resend cooldown timer for claim verification
+  useEffect(() => {
+    if (verifyResendCooldown > 0) {
+      const timer = setTimeout(() => setVerifyResendCooldown(verifyResendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [verifyResendCooldown]);
+
+  const handleSendVerificationCode = async (provider: Provider) => {
+    setVerifySending(true);
+    setVerifyError("");
+    setVerifyCode("");
+    setVerifyNoEmail(false);
+    try {
+      const res = await fetch("/api/claim/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ providerId: provider.provider_id }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        if (res.status === 422) {
+          // No email on file — show no-access form directly
+          setVerifyNoEmail(true);
+        } else {
+          setVerifyError(result.error || "Failed to send code.");
+        }
+        return;
+      }
+      setVerifyEmailHint(result.emailHint);
+      setVerifyResendCooldown(60);
+    } catch {
+      setVerifyError("Something went wrong. Please try again.");
+    } finally {
+      setVerifySending(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (verifyCode.length !== 6 || !claimingProvider) return;
+    setVerifyChecking(true);
+    setVerifyError("");
+    try {
+      const res = await fetch("/api/claim/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: claimingProvider.provider_id,
+          code: verifyCode,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.verified) {
+        setVerifyError(result.error || "Incorrect code. Please try again.");
+        return;
+      }
+      // Verified — proceed to step 2
+      setStep(2);
+    } catch {
+      setVerifyError("Something went wrong. Please try again.");
+    } finally {
+      setVerifyChecking(false);
+    }
+  };
+
+  const handleNoAccessSubmit = async () => {
+    if (!claimingProvider || !noAccessName.trim() || !noAccessReason.trim() || !noAccessEmail.trim()) return;
+    setNoAccessSubmitting(true);
+    try {
+      const res = await fetch("/api/claim/no-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          providerId: claimingProvider.provider_id,
+          providerName: claimingProvider.provider_name,
+          contactName: noAccessName,
+          reason: noAccessReason,
+          alternativeEmail: noAccessEmail,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setVerifyError(err.error || "Failed to submit request.");
+        return;
+      }
+      setNoAccessSuccess(true);
+    } catch {
+      setVerifyError("Something went wrong. Please try again.");
+    } finally {
+      setNoAccessSubmitting(false);
+    }
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -837,7 +947,11 @@ export default function ProviderOnboardingPage() {
                                 <div className="flex justify-end mt-2">
                                   <button
                                     type="button"
-                                    onClick={() => setStep(2)}
+                                    onClick={() => {
+                                      setClaimingProvider(provider);
+                                      setStep("verify");
+                                      handleSendVerificationCode(provider);
+                                    }}
                                     className="px-5 py-2.5 text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
                                     Claim this page &rarr;
@@ -1013,6 +1127,237 @@ export default function ProviderOnboardingPage() {
               </div>
             )}
           </>
+        )}
+
+        {/* ── Verify step: Email verification for claiming ── */}
+        {step === "verify" && claimingProvider && (
+          <div className="w-full max-w-lg">
+            {/* Step indicator — matches search step spacing */}
+            <div className="flex justify-center mb-10">
+              <span className="text-sm font-medium text-gray-400 tracking-wide">
+                Step 1 of 4
+              </span>
+            </div>
+
+            {noAccessSuccess ? (
+              /* ── Success state after no-access form submission ── */
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-8">
+                  <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight mb-4">
+                  Request submitted
+                </h1>
+                <p className="text-gray-500 text-lg leading-relaxed mb-10 max-w-sm mx-auto">
+                  We&apos;ve received your request to claim <strong className="text-gray-700">{claimingProvider.provider_name}</strong>.
+                  Our team will review it and get back to you within 2–3 business days.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("search");
+                    setNoAccessSuccess(false);
+                    setShowNoAccess(false);
+                  }}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  &larr; Back to search
+                </button>
+              </div>
+            ) : (
+              /* ── Verification form ── */
+              <div>
+                {/* Header — icon + title + subtitle */}
+                <div className="text-center mb-10">
+                  <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+                    Verify your organization
+                  </h1>
+                  {verifySending ? (
+                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">Sending verification code…</p>
+                  ) : verifyNoEmail ? (
+                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">
+                      We don&apos;t have an email on file for <strong className="text-gray-600">{claimingProvider.provider_name}</strong>.
+                      <br />Please submit a request below.
+                    </p>
+                  ) : verifyEmailHint ? (
+                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">
+                      We sent a 6-digit code to <strong className="text-gray-600">{verifyEmailHint}</strong>.
+                      <br />Enter it below to verify you represent {claimingProvider.provider_name}.
+                    </p>
+                  ) : verifyError ? (
+                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">
+                      There was an issue sending the code. Please try again.
+                    </p>
+                  ) : null}
+                </div>
+
+                {/* Code input — only show when email was sent */}
+                {!verifyNoEmail && verifyEmailHint && (
+                  <div className="space-y-6">
+                    {/* OTP input with accessible label */}
+                    <fieldset>
+                      <legend className="sr-only">Enter your 6-digit verification code</legend>
+                      <OtpInput
+                        length={6}
+                        value={verifyCode}
+                        onChange={setVerifyCode}
+                        disabled={verifyChecking}
+                        error={!!verifyError}
+                      />
+                    </fieldset>
+
+                    {verifyError && (
+                      <p className="text-base text-red-600 text-center" role="alert">{verifyError}</p>
+                    )}
+
+                    <Button
+                      onClick={handleVerifyCode}
+                      disabled={verifyCode.length !== 6 || verifyChecking}
+                      loading={verifyChecking}
+                      fullWidth
+                    >
+                      Verify
+                    </Button>
+
+                    {/* Resend */}
+                    <div className="text-center">
+                      {verifyResendCooldown > 0 ? (
+                        <p className="text-sm text-gray-400">Resend code in {verifyResendCooldown}s</p>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSendVerificationCode(claimingProvider)}
+                          disabled={verifySending}
+                          className="text-sm font-medium text-primary-600 hover:text-primary-700 disabled:opacity-50 transition-colors"
+                        >
+                          Resend code
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Error state — code sending failed (not no-email) */}
+                {!verifyNoEmail && !verifyEmailHint && verifyError && !verifySending && (
+                  <div className="text-center space-y-4">
+                    <p className="text-base text-red-600" role="alert">{verifyError}</p>
+                    <button
+                      type="button"
+                      onClick={() => handleSendVerificationCode(claimingProvider)}
+                      className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                )}
+
+                {/* Divider */}
+                <div className="my-8 border-t border-gray-200" />
+
+                {/* No access to email */}
+                {!showNoAccess ? (
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowNoAccess(true)}
+                      className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      No access to this email?
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <div className="mb-1">
+                      <h2 className="text-lg font-semibold text-gray-900">Request manual review</h2>
+                      <p className="text-base text-gray-400 mt-1">
+                        Tell us about yourself and why you should have access to this listing.
+                      </p>
+                    </div>
+
+                    <Input
+                      label="Your name"
+                      value={noAccessName}
+                      onChange={(e) => setNoAccessName((e.target as HTMLInputElement).value)}
+                      placeholder="e.g. Jane Smith"
+                      required
+                    />
+
+                    <Input
+                      label="Why should you have access?"
+                      as="textarea"
+                      value={noAccessReason}
+                      onChange={(e) => setNoAccessReason((e.target as HTMLTextAreaElement).value)}
+                      placeholder="e.g. I am the owner/administrator of this organization"
+                      rows={3}
+                      required
+                    />
+
+                    <Input
+                      label="Alternative organization email"
+                      type="email"
+                      value={noAccessEmail}
+                      onChange={(e) => setNoAccessEmail((e.target as HTMLInputElement).value)}
+                      placeholder="contact@yourorganization.com"
+                      required
+                    />
+
+                    <div className="flex justify-between items-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowNoAccess(false)}
+                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <Button
+                        onClick={handleNoAccessSubmit}
+                        disabled={!noAccessName.trim() || !noAccessReason.trim() || !noAccessEmail.trim()}
+                        loading={noAccessSubmitting}
+                      >
+                        Submit request
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Temp testing link */}
+                <div className="mt-10 pt-6 border-t border-dashed border-gray-200 text-center">
+                  <Link
+                    href="/portal"
+                    className="text-xs text-gray-400 hover:text-gray-500 transition-colors"
+                  >
+                    Go to dashboard (testing only)
+                  </Link>
+                </div>
+
+                {/* Back */}
+                <div className="mt-6 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("search");
+                      setVerifyCode("");
+                      setVerifyError("");
+                      setVerifyEmailHint("");
+                      setVerifyNoEmail(false);
+                      setShowNoAccess(false);
+                      setNoAccessSuccess(false);
+                    }}
+                    className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    &larr; Back to search
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* ── Step 2: About ── */}

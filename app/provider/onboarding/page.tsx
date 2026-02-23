@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { useCitySearch } from "@/hooks/use-city-search";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import type { Provider } from "@/lib/types/provider";
@@ -133,6 +134,26 @@ export default function ProviderOnboardingPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchError, setSearchError] = useState("");
 
+  // Location search state
+  const [locationInput, setLocationInput] = useState("");
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+  const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
+
+  // Close location dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        locationDropdownRef.current &&
+        !locationDropdownRef.current.contains(e.target as Node)
+      ) {
+        setShowLocationDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Dispute state
   const [disputingId, setDisputingId] = useState<string | null>(null);
   const [disputeName, setDisputeName] = useState("");
@@ -223,20 +244,40 @@ export default function ProviderOnboardingPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim() || !isSupabaseConfigured()) return;
+    if ((!searchQuery.trim() && !locationInput.trim()) || !isSupabaseConfigured()) return;
     setSearching(true);
     setSearchError("");
+    setShowLocationDropdown(false);
 
     try {
       const supabase = createClient();
 
-      // Step 1: Search olera-providers by name
-      const { data: providers, error: providerErr } = await supabase
+      // Step 1: Search olera-providers by name and/or location
+      let query = supabase
         .from("olera-providers")
         .select("*")
-        .eq("deleted", false)
-        .ilike("provider_name", `%${searchQuery.trim()}%`)
-        .limit(20);
+        .eq("deleted", false);
+
+      if (searchQuery.trim()) {
+        query = query.ilike("provider_name", `%${searchQuery.trim()}%`);
+      }
+
+      // Apply location filter if provided
+      if (locationInput.trim()) {
+        const parts = locationInput.split(",").map((s) => s.trim());
+        if (parts.length >= 2) {
+          // "City, ST" format — filter by both city and state
+          query = query.ilike("city", `%${parts[0]}%`);
+          query = query.ilike("state", `%${parts[1]}%`);
+        } else {
+          // Single term — match city or state
+          query = query.or(
+            `city.ilike.%${parts[0]}%,state.ilike.%${parts[0]}%`
+          );
+        }
+      }
+
+      const { data: providers, error: providerErr } = await query.limit(20);
 
       if (providerErr) {
         setSearchError(`Search failed: ${providerErr.message}`);
@@ -377,9 +418,9 @@ export default function ProviderOnboardingPage() {
   const showResultsBg = step === "search" && hasSearched;
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${showResultsBg ? "bg-gray-50" : "bg-white"}`}>
-      {/* Minimal nav */}
-      <nav className="border-b border-gray-100 bg-white">
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${showResultsBg ? "bg-vanilla-100" : "bg-white"}`}>
+      {/* Minimal nav — sticky */}
+      <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
@@ -402,7 +443,7 @@ export default function ProviderOnboardingPage() {
         {step === "resume" && (
           <div className="w-full max-w-lg">
             <div className="text-center mb-10">
-              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Welcome back, {displayName}
               </h1>
               <p className="text-gray-400 mt-3 text-base">
@@ -466,7 +507,7 @@ export default function ProviderOnboardingPage() {
         {step === 1 && (
           <div className="w-full max-w-2xl">
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
                 How would you describe yourself?
               </h1>
             </div>
@@ -514,63 +555,142 @@ export default function ProviderOnboardingPage() {
           <>
             {/* ── State A: Initial search form ── */}
             {!hasSearched && (
-              <div className="w-full max-w-lg">
-                <StepDots current={1} total={4} />
-                <div className="text-center mb-8">
-                  <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+              <div className="w-full max-w-xl">
+                {/* Step indicator — subtle pill */}
+                <div className="flex justify-center mb-10">
+                  <span className="text-xs font-medium text-gray-400 tracking-wide">
+                    Step 1 of 4
+                  </span>
+                </div>
+
+                <div className="text-center mb-12">
+                  <h1 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight">
                     Find your organization
                   </h1>
-                  <p className="text-gray-400 mt-3 text-base">
+                  <p className="text-gray-400 mt-4 text-lg leading-relaxed">
                     Let&apos;s check if we already have a listing for you.
                   </p>
                 </div>
 
-                <form onSubmit={handleSearch} className="space-y-4">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
+                {/* Search bar — compound name + location */}
+                <form onSubmit={handleSearch}>
+                  <div className="flex items-center rounded-2xl shadow-sm ring-1 ring-gray-200 bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:shadow-md transition-all">
+                    {/* Name input */}
+                    <div className="flex items-center flex-1 min-w-0">
+                      <div className="pl-5 flex items-center pointer-events-none shrink-0">
+                        <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search by name…"
+                        className="w-full px-4 text-base bg-transparent border-none outline-none placeholder-gray-300"
+                        style={{ paddingTop: '18px', paddingBottom: '18px' }}
+                      />
                     </div>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search by name or location…"
-                      className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent placeholder-gray-400"
-                    />
+
+                    {/* Divider */}
+                    <div className="w-px h-8 bg-gray-200 shrink-0" />
+
+                    {/* Location input + dropdown */}
+                    <div ref={locationDropdownRef} className="relative flex items-center flex-1 min-w-0">
+                      <div className="pl-4 flex items-center pointer-events-none shrink-0">
+                        <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => {
+                          setLocationInput(e.target.value);
+                          setShowLocationDropdown(true);
+                        }}
+                        onFocus={() => {
+                          preloadCities();
+                          setShowLocationDropdown(true);
+                        }}
+                        placeholder="City or ZIP…"
+                        className="w-full px-3 text-base bg-transparent border-none outline-none placeholder-gray-300"
+                        style={{ paddingTop: '18px', paddingBottom: '18px' }}
+                      />
+
+                      {/* Location dropdown */}
+                      {showLocationDropdown && cityResults.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                          {!locationInput.trim() && (
+                            <div className="px-4 pt-1 pb-2">
+                              <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                            </div>
+                          )}
+                          {cityResults.map((loc) => (
+                            <button
+                              key={loc.full}
+                              type="button"
+                              onClick={() => {
+                                setLocationInput(loc.full);
+                                setShowLocationDropdown(false);
+                              }}
+                              className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
+                            >
+                              <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="font-medium text-gray-700">{loc.full}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Search button */}
+                    <div className="pr-2.5 shrink-0">
+                      <button
+                        type="submit"
+                        disabled={searching || (!searchQuery.trim() && !locationInput.trim())}
+                        className="px-6 py-3 text-sm font-semibold text-white bg-gray-900 rounded-xl hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      >
+                        {searching ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          "Search"
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {searchError && (
-                    <p className="text-sm text-red-600">{searchError}</p>
+                    <p className="text-sm text-red-600 mt-3">{searchError}</p>
                   )}
-
-                  <Button type="submit" fullWidth loading={searching} disabled={!searchQuery.trim()}>
-                    Search Directory
-                  </Button>
                 </form>
 
-                <div className="mt-6 flex items-center gap-4">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-sm text-gray-400">or</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                {/* Skip link */}
+                <div className="mt-10 text-center">
+                  <p className="text-sm text-gray-400">
+                    Don&apos;t see your organization?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
+                    >
+                      Set up a new page &rarr;
+                    </button>
+                  </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="mt-6 w-full py-3 text-base font-medium text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-50 hover:border-primary-300 transition-colors"
-                >
-                  Set up a new page
-                </button>
-
+                {/* Back */}
                 <div className="mt-6 text-center">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                    className="text-sm text-gray-300 hover:text-gray-500 transition-colors"
                   >
-                    ← Back
+                    &larr; Back
                   </button>
                 </div>
               </div>
@@ -579,16 +699,23 @@ export default function ProviderOnboardingPage() {
             {/* ── State B: Results found ── */}
             {hasSearched && searchResults.length > 0 && (
               <div className="w-full max-w-2xl mx-auto">
-                <div className="text-center mb-8">
-                  <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+                {/* Step indicator */}
+                <div className="flex justify-center mb-10">
+                  <span className="text-xs font-medium text-gray-400 tracking-wide">
+                    Step 1 of 4
+                  </span>
+                </div>
+
+                <div className="text-center mb-10">
+                  <h1 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight">
                     We found a match!
                   </h1>
-                  <p className="text-gray-400 mt-2 text-base">
-                    We found {searchResults.length} listing{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
+                  <p className="text-gray-400 mt-4 text-lg leading-relaxed">
+                    {searchResults.length} listing{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
                   </p>
                 </div>
 
-                <div className="space-y-4 mb-10">
+                <div className="space-y-4 mb-12">
                   {searchResults.map((provider) => {
                     const image = getProviderImage(provider);
                     const chips = getProviderChips(provider);
@@ -600,11 +727,11 @@ export default function ProviderOnboardingPage() {
                     return (
                       <div
                         key={provider.provider_id}
-                        className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
+                        className="bg-white rounded-2xl ring-1 ring-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
                       >
                         <div className="flex">
                           {/* Image */}
-                          <div className="w-36 min-h-[120px] shrink-0 bg-gray-100 relative">
+                          <div className="w-36 min-h-[140px] shrink-0 bg-gray-50 relative">
                             {image ? (
                               <img
                                 src={image}
@@ -613,7 +740,7 @@ export default function ProviderOnboardingPage() {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center absolute inset-0">
-                                <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-10 h-10 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                               </div>
@@ -623,14 +750,17 @@ export default function ProviderOnboardingPage() {
                           {/* Content */}
                           <div className="flex-1 p-5 min-w-0">
                             {address && (
-                              <p className="text-xs text-gray-400 mb-1">{address}</p>
+                              <p className="text-xs text-gray-400 mb-1.5 tracking-wide">{address}</p>
                             )}
                             <div className="flex items-start justify-between gap-3 mb-2">
                               <h3 className="text-lg font-bold text-gray-900 leading-snug">
                                 {provider.provider_name}
                               </h3>
                               {isClaimed && (
-                                <span className="shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                                <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-gray-400 ring-1 ring-gray-200">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                  </svg>
                                   Claimed
                                 </span>
                               )}
@@ -641,13 +771,13 @@ export default function ProviderOnboardingPage() {
                                 {chips.slice(0, 2).map((chip) => (
                                   <span
                                     key={chip}
-                                    className="px-2.5 py-0.5 rounded-full text-xs font-medium border border-gray-300 text-gray-600 bg-white"
+                                    className="px-2.5 py-0.5 rounded-full text-xs font-medium text-gray-500 bg-gray-50 ring-1 ring-gray-200"
                                   >
                                     {chip}
                                   </span>
                                 ))}
                                 {chips.length > 2 && (
-                                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium border border-gray-200 text-gray-400">
+                                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium text-gray-400 bg-gray-50">
                                     +{chips.length - 2} more
                                   </span>
                                 )}
@@ -655,24 +785,25 @@ export default function ProviderOnboardingPage() {
                             )}
 
                             {provider.provider_description && (
-                              <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                              <p className="text-sm text-gray-400 line-clamp-2 mb-3 leading-relaxed">
                                 {provider.provider_description}
                               </p>
                             )}
 
-                            {/* Action */}
+                            {/* Action — unclaimed */}
                             {!isClaimed && (
                               <div className="flex justify-end">
                                 <button
                                   type="button"
                                   onClick={() => setStep(2)}
-                                  className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-300 rounded-lg hover:bg-primary-50 hover:border-primary-400 transition-colors"
+                                  className="px-5 py-2 text-sm font-semibold text-gray-900 rounded-xl ring-1 ring-gray-200 hover:ring-gray-300 hover:shadow-sm transition-all"
                                 >
-                                  Claim this page →
+                                  Claim this page &rarr;
                                 </button>
                               </div>
                             )}
 
+                            {/* Action — claimed (dispute) */}
                             {isClaimed && !isDisputeSuccess && (
                               <div className="mt-1">
                                 {!isDisputing ? (
@@ -686,34 +817,34 @@ export default function ProviderOnboardingPage() {
                                         setDisputeReason("");
                                         setDisputeError("");
                                       }}
-                                      className="px-4 py-2 text-sm font-medium text-gray-500 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-700 transition-colors"
+                                      className="text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
                                     >
                                       Dispute ownership
                                     </button>
                                   </div>
                                 ) : (
-                                  <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
-                                    <p className="text-sm font-medium text-gray-700">Tell us about your claim</p>
+                                  <div className="mt-3 pt-4 border-t border-gray-100 space-y-3">
+                                    <p className="text-sm font-semibold text-gray-700">Tell us about your claim</p>
                                     <input
                                       type="text"
                                       value={disputeName}
                                       onChange={(e) => setDisputeName(e.target.value)}
                                       placeholder="Your name"
-                                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                      className="w-full px-4 py-3 text-sm rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-300 transition-all"
                                     />
                                     <input
                                       type="text"
                                       value={disputeRole}
                                       onChange={(e) => setDisputeRole(e.target.value)}
                                       placeholder="Your role (e.g. Owner, Administrator)"
-                                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                      className="w-full px-4 py-3 text-sm rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-300 transition-all"
                                     />
                                     <textarea
                                       value={disputeReason}
                                       onChange={(e) => setDisputeReason(e.target.value)}
                                       placeholder="Why do you believe you are the owner of this listing?"
                                       rows={3}
-                                      className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                                      className="w-full px-4 py-3 text-sm rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-300 resize-none transition-all"
                                     />
                                     {disputeError && (
                                       <p className="text-xs text-red-600">{disputeError}</p>
@@ -722,7 +853,7 @@ export default function ProviderOnboardingPage() {
                                       <button
                                         type="button"
                                         onClick={() => setDisputingId(null)}
-                                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                                        className="text-sm text-gray-300 hover:text-gray-500 transition-colors"
                                       >
                                         Cancel
                                       </button>
@@ -730,7 +861,7 @@ export default function ProviderOnboardingPage() {
                                         type="button"
                                         onClick={() => handleDisputeSubmit(provider)}
                                         disabled={disputeSubmitting || !disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()}
-                                        className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="px-5 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-xl hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                                       >
                                         {disputeSubmitting ? "Submitting…" : "Submit dispute"}
                                       </button>
@@ -742,11 +873,13 @@ export default function ProviderOnboardingPage() {
 
                             {/* Dispute success */}
                             {isClaimed && isDisputeSuccess && (
-                              <div className="mt-3 pt-3 border-t border-gray-100 flex items-start gap-2">
-                                <svg className="w-4 h-4 text-primary-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                <p className="text-sm text-gray-600">
+                              <div className="mt-3 pt-4 border-t border-gray-100 flex items-start gap-2.5">
+                                <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
+                                  <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                                <p className="text-sm text-gray-500 leading-relaxed">
                                   We&apos;ve received your dispute. Our team will review it within 2–3 business days.
                                 </p>
                               </div>
@@ -759,75 +892,152 @@ export default function ProviderOnboardingPage() {
                 </div>
 
                 {/* Bottom: refine search + create new */}
-                <div className="border-t border-gray-200 pt-8 pb-4">
-                  <p className="text-center text-sm font-medium text-gray-400 mb-4">
-                    Not the place you were looking for?
+                <div className="pt-8 pb-4">
+                  <p className="text-center text-sm text-gray-400 mb-5">
+                    Not what you were looking for?
                   </p>
-                  <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-                    <div className="relative flex-1">
-                      <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+
+                  {/* Inline search bar — compound name + location */}
+                  <form onSubmit={handleSearch}>
+                    <div className="flex items-center rounded-2xl shadow-sm ring-1 ring-gray-200 bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:shadow-md transition-all">
+                      <div className="flex items-center flex-1 min-w-0">
+                        <div className="pl-4 flex items-center pointer-events-none shrink-0">
+                          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Name…"
+                          className="w-full px-3 text-sm bg-transparent border-none outline-none placeholder-gray-300"
+                          style={{ paddingTop: '14px', paddingBottom: '14px' }}
+                        />
                       </div>
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search again…"
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      />
+                      <div className="w-px h-7 bg-gray-200 shrink-0" />
+                      <div ref={locationDropdownRef} className="relative flex items-center flex-1 min-w-0">
+                        <div className="pl-3 flex items-center pointer-events-none shrink-0">
+                          <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          value={locationInput}
+                          onChange={(e) => {
+                            setLocationInput(e.target.value);
+                            setShowLocationDropdown(true);
+                          }}
+                          onFocus={() => {
+                            preloadCities();
+                            setShowLocationDropdown(true);
+                          }}
+                          placeholder="City or ZIP…"
+                          className="w-full px-3 text-sm bg-transparent border-none outline-none placeholder-gray-300"
+                          style={{ paddingTop: '14px', paddingBottom: '14px' }}
+                        />
+                        {showLocationDropdown && cityResults.length > 0 && (
+                          <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                            {!locationInput.trim() && (
+                              <div className="px-4 pt-1 pb-2">
+                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                              </div>
+                            )}
+                            {cityResults.map((loc) => (
+                              <button
+                                key={loc.full}
+                                type="button"
+                                onClick={() => {
+                                  setLocationInput(loc.full);
+                                  setShowLocationDropdown(false);
+                                }}
+                                className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="font-medium text-gray-700">{loc.full}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="pr-2 shrink-0">
+                        <button
+                          type="submit"
+                          disabled={searching || (!searchQuery.trim() && !locationInput.trim())}
+                          className="px-5 py-2.5 text-sm font-semibold text-white bg-gray-900 rounded-xl hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        >
+                          {searching ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            "Search"
+                          )}
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      type="submit"
-                      disabled={searching || !searchQuery.trim()}
-                      className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {searching ? "…" : "Search"}
-                    </button>
                   </form>
 
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="flex-1 h-px bg-gray-200" />
-                    <span className="text-sm text-gray-400">or</span>
-                    <div className="flex-1 h-px bg-gray-200" />
+                  {/* Skip link — same pattern as State A */}
+                  <div className="mt-8 text-center">
+                    <p className="text-sm text-gray-400">
+                      Don&apos;t see your organization?{" "}
+                      <button
+                        type="button"
+                        onClick={() => setStep(2)}
+                        className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
+                      >
+                        Set up a new page &rarr;
+                      </button>
+                    </p>
                   </div>
-
-                  <Button fullWidth onClick={() => setStep(2)}>
-                    Set up a new page
-                  </Button>
                 </div>
               </div>
             )}
 
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (
-              <div className="w-full max-w-sm mx-auto text-center">
-                <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-9 h-9 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-full max-w-xl mx-auto text-center">
+                {/* Step indicator */}
+                <div className="flex justify-center mb-10">
+                  <span className="text-xs font-medium text-gray-400 tracking-wide">
+                    Step 1 of 4
+                  </span>
+                </div>
+
+                <div className="w-16 h-16 rounded-full bg-vanilla-100 ring-1 ring-gray-200 flex items-center justify-center mx-auto mb-8">
+                  <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">
-                  We haven&apos;t found any matches
+
+                <h2 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight mb-3">
+                  No matches found
                 </h2>
-                <p className="text-gray-400 text-base mb-8">
-                  No listings found for &ldquo;{searchQuery}&rdquo;
+                <p className="text-gray-400 text-lg leading-relaxed mb-10">
+                  We couldn&apos;t find any listings for &ldquo;{searchQuery}&rdquo;
                 </p>
-                <div className="flex gap-3 justify-center">
+
+                {/* Primary action — create new page */}
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="px-8 py-3.5 text-sm font-semibold text-white bg-gray-900 rounded-xl hover:bg-gray-800 transition-all shadow-sm"
+                >
+                  Create a new page
+                </button>
+
+                {/* Secondary — try different search */}
+                <div className="mt-6">
                   <button
                     type="button"
                     onClick={() => setHasSearched(false)}
-                    className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-300 rounded-xl hover:bg-primary-50 transition-colors"
+                    className="text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    Try a different search
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 transition-colors"
-                  >
-                    Create a new page
+                    &larr; Try a different search
                   </button>
                 </div>
               </div>
@@ -840,7 +1050,7 @@ export default function ProviderOnboardingPage() {
           <div className="w-full max-w-lg">
             <StepDots current={stepDotCurrent(2)} total={stepDotTotal} />
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight">
                 {providerType === "organization"
                   ? "Tell us about your organization"
                   : "Tell us about yourself"}
@@ -931,7 +1141,7 @@ export default function ProviderOnboardingPage() {
           <div className="w-full max-w-lg">
             <StepDots current={stepDotCurrent(3)} total={stepDotTotal} />
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Location &amp; contact
               </h1>
               <p className="text-gray-400 mt-3 text-base">
@@ -1017,7 +1227,7 @@ export default function ProviderOnboardingPage() {
           <div className="w-full max-w-lg">
             <StepDots current={stepDotCurrent(4)} total={stepDotTotal} />
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight">
                 Services offered
               </h1>
               <p className="text-gray-400 mt-3 text-base">
@@ -1044,7 +1254,7 @@ export default function ProviderOnboardingPage() {
             </div>
 
             {/* Profile preview */}
-            <div className="bg-gray-50 rounded-xl p-5 mb-6">
+            <div className="bg-vanilla-100 rounded-xl p-5 mb-6">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                 Profile preview
               </h3>

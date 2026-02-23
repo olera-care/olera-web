@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -13,6 +13,18 @@ import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 type SubTab = "carepost" | "interested";
 
 export default function MatchesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <MatchesContent />
+    </Suspense>
+  );
+}
+
+function MatchesContent() {
   const { activeProfile, user, refreshAccountData } = useAuth();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab");

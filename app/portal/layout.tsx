@@ -1,9 +1,11 @@
+"use client";
+
 import type { ReactNode } from "react";
 
-// Each portal page handles its own auth state via useAuth().
-// No layout-level auth gate — avoids blocking children from mounting
-// and creating a loading waterfall (layout waits for account → then
-// page waits for connections = double delay).
+// "use client" is required so child pages using useSearchParams() have a
+// client boundary (Next.js requires Suspense otherwise during static export).
+// Each portal page handles its own auth state via useAuth() — no layout-level
+// auth gate to avoid blocking children and creating a loading waterfall.
 export default function PortalLayout({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }

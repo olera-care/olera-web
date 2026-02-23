@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
-import ConnectionCard from "@/components/providers/connection-card";
+import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
 import ExpandableText from "@/components/providers/ExpandableText";
@@ -669,7 +669,7 @@ export default async function ProviderPage({
           {/* ========== Right Column — Sticky Sidebar ========== */}
           <div className="lg:col-span-1 self-stretch">
             <div className="sticky top-24">
-              <ConnectionCard
+              <ConnectionCardWithRedirect
                 providerId={profile.id}
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
@@ -681,6 +681,9 @@ export default async function ProviderPage({
                 careTypes={profile.care_types}
                 isActive={profile.is_active}
                 responseTime={null}
+                providerCategory={profile.category}
+                providerCity={profile.city}
+                providerState={profile.state}
               />
             </div>
           </div>

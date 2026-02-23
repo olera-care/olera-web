@@ -50,9 +50,14 @@ export default function Navbar() {
   }, [user]);
 
   const isPortal = pathname.startsWith("/portal");
-  const isProviderPortal = pathname.startsWith("/provider");
+  const isProviderPortal =
+    pathname === "/provider" ||
+    pathname.startsWith("/provider/connections") ||
+    pathname.startsWith("/provider/inbox") ||
+    pathname.startsWith("/provider/onboarding") ||
+    pathname.startsWith("/provider/profile");
   const isCommunity = pathname.startsWith("/community");
-  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/provider/inbox");
+  const isMinimalNav = pathname === "/portal/inbox" || pathname === "/provider/inbox";
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;

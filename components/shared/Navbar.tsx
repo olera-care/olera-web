@@ -524,23 +524,25 @@ export default function Navbar() {
                   /* Provider Hub nav links */
                   <>
                     {([
-                      { label: "Dashboard", href: "/provider" },
-                      { label: "Inbox", href: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/connections" },
-                      { label: "Reviews", href: "/provider" },
-                      { label: "Matches", href: "/provider" },
+                      { label: "Dashboard", href: "/provider", match: "/provider" },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
+                      { label: "Reviews", href: "/provider", match: null },
+                      { label: "Matches", href: "/provider", match: null },
                     ] as const).map((item) => {
-                      const active = item.href === "/provider"
-                        ? pathname === "/provider"
-                        : pathname.startsWith(item.href);
+                      const active = item.match
+                        ? item.match === "/provider"
+                          ? pathname === "/provider"
+                          : pathname.startsWith(item.match)
+                        : false;
                       return (
                         <Link
                           key={item.label}
                           href={item.href}
-                          className={`px-4 py-2 text-[15px] font-medium rounded-full transition-colors ${
+                          className={`px-4 py-2 text-[15px] font-medium transition-colors ${
                             active
-                              ? "text-primary-600 bg-primary-50"
-                              : "text-gray-700 hover:bg-gray-50"
+                              ? "text-primary-600"
+                              : "text-gray-700 hover:text-gray-900"
                           }`}
                         >
                           {item.label}
@@ -787,15 +789,17 @@ export default function Navbar() {
                   /* Provider mobile nav */
                   <>
                     {([
-                      { label: "Dashboard", href: "/provider" },
-                      { label: "Inbox", href: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/connections" },
-                      { label: "Reviews", href: "/provider" },
-                      { label: "Matches", href: "/provider" },
+                      { label: "Dashboard", href: "/provider", match: "/provider" },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
+                      { label: "Reviews", href: "/provider", match: null },
+                      { label: "Matches", href: "/provider", match: null },
                     ] as const).map((item) => {
-                      const active = item.href === "/provider"
-                        ? pathname === "/provider"
-                        : pathname.startsWith(item.href);
+                      const active = item.match
+                        ? item.match === "/provider"
+                          ? pathname === "/provider"
+                          : pathname.startsWith(item.match)
+                        : false;
                       return (
                         <Link
                           key={item.label}

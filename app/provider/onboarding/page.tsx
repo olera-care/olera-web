@@ -1263,15 +1263,28 @@ export default function ProviderOnboardingPage() {
 
                 {/* No access to email */}
                 {!showNoAccess ? (
-                  <div className="text-center">
-                    <button
-                      type="button"
-                      onClick={() => setShowNoAccess(true)}
-                      className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      No access to this email?
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowNoAccess(true)}
+                    className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all text-left group"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center shrink-0 transition-colors">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+                        No access to this email?
+                      </p>
+                      <p className="text-sm text-gray-400 mt-0.5">
+                        Request a manual review instead
+                      </p>
+                    </div>
+                    <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 ) : (
                   <div className="space-y-5">
                     <div className="mb-1">

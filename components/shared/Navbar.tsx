@@ -52,7 +52,7 @@ export default function Navbar() {
   const isPortal = pathname.startsWith("/portal");
   const isProviderPortal = pathname.startsWith("/provider");
   const isCommunity = pathname.startsWith("/community");
-  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/provider/inbox");
+  const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;

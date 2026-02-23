@@ -10,7 +10,7 @@ import type { Connection, Profile } from "@/lib/types";
 import EmptyState from "@/components/ui/EmptyState";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
 import SplitViewLayout from "@/components/portal/SplitViewLayout";
-import ConnectionDetailContent from "@/components/portal/ConnectionDetailContent";
+import LeadDetailPanel from "@/components/provider-dashboard/LeadDetailPanel";
 import ConnectionListItem from "@/components/portal/ConnectionListItem";
 import type { ConnectionWithProfile } from "@/components/portal/ConnectionListItem";
 import { avatarGradient, blurName } from "@/components/portal/ConnectionDetailContent";
@@ -178,28 +178,8 @@ export default function ProviderConnectionsPage() {
     fetchConnections();
   };
 
-  const handleStatusChange = (connectionId: string, newStatus: string) => {
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId ? { ...c, status: newStatus as Connection["status"] } : c
-      )
-    );
-  };
-
-  const handleWithdraw = (connectionId: string) => {
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId
-          ? { ...c, status: "expired" as Connection["status"], metadata: { ...(c.metadata || {}), withdrawn: true } }
-          : c
-      )
-    );
-    clearSelection();
-  };
-
-  const handleHide = (connectionId: string) => {
+  const handleArchive = (connectionId: string) => {
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
-    clearSelection();
   };
 
   // ── Loading state ──
@@ -386,15 +366,11 @@ export default function ProviderConnectionsPage() {
       }
       right={
         selectedConnectionId ? (
-          <ConnectionDetailContent
+          <LeadDetailPanel
             connectionId={selectedConnectionId}
-            isActive={true}
-            onClose={clearSelection}
-            onStatusChange={handleStatusChange}
-            onWithdraw={handleWithdraw}
-            onHide={handleHide}
             preloadedConnection={preloadedConnection}
-            showHeader={false}
+            onClose={clearSelection}
+            onArchive={handleArchive}
           />
         ) : null
       }

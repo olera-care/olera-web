@@ -598,6 +598,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     async (onComplete?: () => void) => {
       if (!configured) return;
       clearAuthCache();
+      // Clear onboarding session so a different user doesn't see stale data
+      try {
+        localStorage.removeItem("olera_onboarding_provider_type");
+        localStorage.removeItem("olera_provider_wizard_data");
+        localStorage.removeItem("olera_onboarding_step");
+        localStorage.removeItem("olera_onboarding_search");
+      } catch {
+        /* ignore */
+      }
       versionRef.current++;
       setState({ ...EMPTY_STATE });
       onComplete?.();

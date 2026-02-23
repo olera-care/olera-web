@@ -92,6 +92,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     null
   );
   const [previousIntent, setPreviousIntent] = useState<IntentData | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
@@ -267,6 +268,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const submitRequest = useCallback(async (intentOverride?: IntentData) => {
     const intent = intentOverride || intentData;
     setError("");
+    setSubmitting(true);
 
     try {
       if (!user) {
@@ -290,18 +292,23 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
-      // Refresh auth data so active profile is up-to-date
+      // Redirect to post-connection success page if callback provided
+      // Do this BEFORE state transitions so the redirect is instant
+      if (data.connectionId && onConnectionCreated) {
+        onConnectionCreated(data.connectionId);
+        return; // Skip further state updates — we're navigating away
+      }
+
+      // No redirect callback — update local state as before
       await refreshAccountData();
 
-      // Update date if returned
       if (data.created_at) {
         setPendingRequestDate(data.created_at);
       }
 
-      // Redirect to post-connection success page if callback provided
-      if (data.connectionId && onConnectionCreated) {
-        onConnectionCreated(data.connectionId);
-      }
+      setCardState("pending");
+      setPendingRequestDate((prev) => prev || new Date().toISOString());
+      setPhoneRevealed(true);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -309,6 +316,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
           : String(err);
       console.error("Connection request error:", msg);
       setError(msg || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   }, [
     user,
@@ -345,13 +354,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
         // sessionStorage may fail in private browsing
       }
 
-      // Go straight to pending, fire API in background
-      setCardState("pending");
-      setPendingRequestDate(new Date().toISOString());
-      setPhoneRevealed(true);
+      // Fire API — submitRequest handles state transitions
+      if (!onConnectionCreated) {
+        setCardState("pending");
+        setPendingRequestDate(new Date().toISOString());
+        setPhoneRevealed(true);
+      }
       submitRequest(restoredIntent || undefined);
     }
-  }, [user, account, providerId, submitRequest]);
+  }, [user, account, providerId, submitRequest, onConnectionCreated]);
 
   // ── Navigation helpers ──
   const startFlow = useCallback(() => {
@@ -391,10 +402,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
     if (user) {
-      // Go straight to pending, fire API in background
-      setCardState("pending");
-      setPendingRequestDate(new Date().toISOString());
-      setPhoneRevealed(true);
+      if (!onConnectionCreated) {
+        // No redirect — show pending state immediately
+        setCardState("pending");
+        setPendingRequestDate(new Date().toISOString());
+        setPhoneRevealed(true);
+      }
+      // When onConnectionCreated exists, stay on current screen with
+      // submitting=true on the button, then redirect instantly after API
       submitRequest();
     } else {
       // Save intent for OAuth resilience, then trigger auth
@@ -416,7 +431,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         },
       });
     }
-  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug]);
+  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug, onConnectionCreated]);
 
   const editFromReturning = useCallback(() => {
     setIntentStep(0);
@@ -457,6 +472,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     phoneRevealed,
     saved,
     error,
+    submitting,
     pendingRequestDate,
     availableCareTypes,
     notificationEmail,

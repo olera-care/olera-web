@@ -23,6 +23,7 @@ interface IntentCaptureProps {
   onSelectCareType: (val: CareTypeValue) => void;
   onSelectUrgency: (val: UrgencyValue) => void;
   onConnect: () => void;
+  submitting?: boolean;
 }
 
 export default function IntentCapture({
@@ -33,10 +34,11 @@ export default function IntentCapture({
   onSelectCareType,
   onSelectUrgency,
   onConnect,
+  submitting,
 }: IntentCaptureProps) {
   const { careRecipient, careType, urgency } = intentData;
 
-  const canConnect = urgency !== null;
+  const canConnect = urgency !== null && !submitting;
 
   return (
     <>
@@ -103,13 +105,16 @@ export default function IntentCapture({
       <button
         onClick={onConnect}
         disabled={!canConnect}
-        className={`w-full py-3.5 border-none rounded-[10px] text-[15px] font-semibold cursor-pointer transition-all duration-200 ${
+        className={`w-full py-3.5 border-none rounded-[10px] text-[15px] font-semibold cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 ${
           canConnect
             ? "bg-primary-600 text-white hover:bg-primary-500"
             : "bg-gray-100 text-gray-400 cursor-default"
         }`}
       >
-        Connect
+        {submitting && (
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        )}
+        {submitting ? "Connecting..." : "Connect"}
       </button>
     </>
   );

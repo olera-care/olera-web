@@ -67,6 +67,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             onSelectCareType={hook.selectCareType}
             onSelectUrgency={hook.selectUrgency}
             onConnect={hook.connect}
+            submitting={hook.submitting}
           />
         )}
 
@@ -101,6 +102,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             intentData={hook.intentData}
             onConnect={hook.connect}
             onEdit={hook.editFromReturning}
+            submitting={hook.submitting}
           />
         )}
       </div>

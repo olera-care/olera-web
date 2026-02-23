@@ -13,6 +13,7 @@ interface ReturningUserStateProps {
   intentData: IntentData;
   onConnect: () => void;
   onEdit: () => void;
+  submitting?: boolean;
 }
 
 export default function ReturningUserState({
@@ -20,6 +21,7 @@ export default function ReturningUserState({
   intentData,
   onConnect,
   onEdit,
+  submitting,
 }: ReturningUserStateProps) {
   const careTypeLabel = intentData.careType
     ? CARE_TYPE_LABELS[intentData.careType] || intentData.careType
@@ -48,9 +50,13 @@ export default function ReturningUserState({
 
       <button
         onClick={onConnect}
-        className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 text-white border-none rounded-[10px] text-[15px] font-semibold cursor-pointer transition-colors"
+        disabled={submitting}
+        className="w-full py-3.5 bg-primary-600 hover:bg-primary-500 text-white border-none rounded-[10px] text-[15px] font-semibold cursor-pointer transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
       >
-        Connect
+        {submitting && (
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        )}
+        {submitting ? "Connecting..." : "Connect"}
       </button>
 
       <div className="mt-2.5">

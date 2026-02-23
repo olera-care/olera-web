@@ -245,7 +245,7 @@ export default function ConversationList({
 
   // Apply filters
   const filtered = (() => {
-    if (searchOpen) return searchConnections(connections, searchQuery, activeProfileId);
+    if (searchOpen) return searchConnections(getActiveConnections(connections), searchQuery, activeProfileId);
     let list = getActiveConnections(connections);
     if (filterOption === "pending") list = list.filter((c) => c.status === "pending");
     if (filterOption === "connected") list = list.filter((c) => c.status === "accepted");
@@ -254,7 +254,9 @@ export default function ConversationList({
   })();
 
   // Past connections shown separately in accordion (not during search)
-  const pastConnections = searchOpen ? [] : getPastConnections(connections);
+  const pastConnections = searchOpen
+    ? searchConnections(getPastConnections(connections), searchQuery, activeProfileId)
+    : getPastConnections(connections);
 
   // Shared conversation item renderer
   const renderConversationItem = (conn: ConnectionWithProfile, isPast = false) => {
@@ -489,9 +491,36 @@ export default function ConversationList({
     <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
       {/* Header */}
       <div className={`shrink-0 transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
-        {searchOpen ? (
-          /* Search mode */
-          <div className="pl-[44px] pr-5 py-4 flex items-center gap-3">
+        {/* Header — crossfade between default and search modes */}
+        <div className="relative">
+          {/* Default mode — title + search icon */}
+          <div
+            className={`pl-[44px] pr-5 py-5 flex items-center justify-between transition-all duration-200 ease-out ${
+              searchOpen
+                ? "opacity-0 -translate-y-1 pointer-events-none absolute inset-x-0 top-0"
+                : "opacity-100 translate-y-0"
+            }`}
+          >
+            <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+              aria-label="Search messages"
+            >
+              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Search mode */}
+          <div
+            className={`pl-[44px] pr-5 py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
+              searchOpen
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-1 pointer-events-none absolute inset-x-0 top-0"
+            }`}
+          >
             <div className="flex-1 flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2.5">
               <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -522,24 +551,14 @@ export default function ConversationList({
               Cancel
             </button>
           </div>
-        ) : (
-          /* Default mode — title + search icon */
-          <div className="pl-[44px] pr-5 py-5 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
-              aria-label="Search messages"
-            >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-        )}
+        </div>
 
-        {/* Filter pills — Airbnb style, hidden during search */}
-        {!searchOpen && (
+        {/* Filter pills — smooth collapse during search */}
+        <div
+          className={`overflow-hidden transition-all duration-200 ease-out ${
+            searchOpen ? "max-h-0 opacity-0" : "max-h-14 opacity-100"
+          }`}
+        >
           <div className="pl-[44px] pr-5 pb-4 flex items-center gap-2.5">
             {/* "All" dropdown pill */}
             <div className="relative" ref={filterDropdownRef}>
@@ -601,7 +620,7 @@ export default function ConversationList({
               Unread
             </button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Conversation list */}
@@ -631,7 +650,7 @@ export default function ConversationList({
         </div>
 
         {/* Archived conversations accordion — always at bottom */}
-        {(pastConnections.length > 0 || archivedCount > 0) && !searchOpen && (
+        {(pastConnections.length > 0 || (archivedCount > 0 && !searchOpen)) && (
           <>
             <button
               onClick={() => {

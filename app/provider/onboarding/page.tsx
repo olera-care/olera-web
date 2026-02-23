@@ -17,6 +17,8 @@ type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4;
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
+const STEP_KEY = "olera_onboarding_step";
+const SEARCH_KEY = "olera_onboarding_search";
 const RESULTS_PER_PAGE = 6;
 
 const ORG_CATEGORIES: { value: string; label: string }[] = [
@@ -162,6 +164,26 @@ export default function ProviderOnboardingPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Persist step + search query so resume works properly
+  useEffect(() => {
+    if (step === "resume" || step === 1) return; // don't overwrite during init
+    try {
+      localStorage.setItem(STEP_KEY, String(step));
+    } catch {
+      // localStorage unavailable
+    }
+  }, [step]);
+
+  useEffect(() => {
+    try {
+      if (searchQuery) {
+        localStorage.setItem(SEARCH_KEY, searchQuery);
+      }
+    } catch {
+      // localStorage unavailable
+    }
+  }, [searchQuery]);
+
   // Dispute state
   const [disputingId, setDisputingId] = useState<string | null>(null);
   const [disputeName, setDisputeName] = useState("");
@@ -218,6 +240,13 @@ export default function ProviderOnboardingPage() {
             // ignore corrupt data
           }
         }
+        // Restore search query so it's visible when resuming
+        try {
+          const savedSearch = localStorage.getItem(SEARCH_KEY);
+          if (savedSearch) setSearchQuery(savedSearch);
+        } catch {
+          // ignore
+        }
         setStep("resume");
       }
     } catch {
@@ -254,10 +283,47 @@ export default function ProviderOnboardingPage() {
     setStep(type === "organization" ? "search" : 2);
   };
 
+  const handleResume = () => {
+    let savedStep: Step | null = null;
+    try {
+      const raw = localStorage.getItem(STEP_KEY);
+      if (raw === "2" || raw === "3" || raw === "4") savedStep = Number(raw) as 2 | 3 | 4;
+      else if (raw === "search" || raw === "verify") savedStep = raw;
+    } catch {
+      // localStorage unavailable
+    }
+
+    if (providerType === "organization") {
+      // For org flow: if they were on step 2/3/4, go there directly.
+      // If they were on search/verify, go to search and auto-run the search.
+      if (savedStep === 2 || savedStep === 3 || savedStep === 4) {
+        setStep(savedStep);
+      } else {
+        // Default: go to search. If there's a saved query, auto-search.
+        setStep("search");
+        if (searchQuery.trim()) {
+          // Auto-trigger search after a tick so the step renders first
+          setTimeout(() => {
+            handleSearch({ preventDefault: () => {} } as React.FormEvent);
+          }, 0);
+        }
+      }
+    } else {
+      // Caregiver flow: go to saved step or default to step 2
+      if (savedStep === 2 || savedStep === 3 || savedStep === 4) {
+        setStep(savedStep);
+      } else {
+        setStep(2);
+      }
+    }
+  };
+
   const handleStartFresh = () => {
     try {
       localStorage.removeItem(TYPE_KEY);
       localStorage.removeItem(DATA_KEY);
+      localStorage.removeItem(STEP_KEY);
+      localStorage.removeItem(SEARCH_KEY);
     } catch {
       // localStorage unavailable
     }
@@ -495,6 +561,8 @@ export default function ProviderOnboardingPage() {
       try {
         localStorage.removeItem(TYPE_KEY);
         localStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(STEP_KEY);
+        localStorage.removeItem(SEARCH_KEY);
       } catch {
         // localStorage unavailable (SSR or private mode)
       }
@@ -572,7 +640,7 @@ export default function ProviderOnboardingPage() {
               {/* Continue card — primary action */}
               <button
                 type="button"
-                onClick={() => setStep(providerType === "organization" ? "search" : 2)}
+                onClick={handleResume}
                 className="w-full flex items-center gap-5 p-6 rounded-2xl border-2 border-primary-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 bg-white text-left group"
               >
                 <div className="w-14 h-14 rounded-2xl bg-primary-100 group-hover:bg-primary-100 flex items-center justify-center shrink-0 transition-colors duration-200">

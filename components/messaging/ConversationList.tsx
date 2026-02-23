@@ -275,6 +275,8 @@ export default function ConversationList({
       <div key={conn.id} className="pl-[28px] pr-3 py-0.5">
         <div
           className={`group relative rounded-xl transition-colors ${
+            isMenuOpen ? "z-20" : ""
+          } ${
             isSelected
               ? "bg-primary-50/80"
               : "hover:bg-gray-50"
@@ -650,7 +652,7 @@ export default function ConversationList({
         </div>
 
         {/* Archived conversations accordion — always at bottom */}
-        {(pastConnections.length > 0 || (archivedCount > 0 && !searchOpen)) && (
+        {(pastConnections.length > 0 || archivedCount > 0) && (
           <>
             <button
               onClick={() => {

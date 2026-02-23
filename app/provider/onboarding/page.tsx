@@ -1431,16 +1431,6 @@ export default function ProviderOnboardingPage() {
                   </div>
                 )}
 
-                {/* Temp testing link */}
-                <div className="mt-10 pt-6 border-t border-dashed border-gray-200 text-center">
-                  <Link
-                    href="/provider"
-                    className="text-xs text-gray-400 hover:text-gray-500 transition-colors"
-                  >
-                    Go to dashboard (testing only)
-                  </Link>
-                </div>
-
                 {/* Back */}
                 <div className="mt-6 text-center">
                   <button

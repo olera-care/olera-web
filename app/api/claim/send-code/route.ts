@@ -1,14 +1,8 @@
+import { randomInt } from "crypto";
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
-import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
-
-function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return null;
-  return createClient(url, serviceKey);
-}
+import { getAdminClient } from "@/lib/supabase/admin";
 
 function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
@@ -19,7 +13,7 @@ function maskEmail(email: string): string {
 }
 
 function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 999999).toString();
 }
 
 /**

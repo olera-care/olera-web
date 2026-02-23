@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type {
@@ -131,7 +132,8 @@ interface FamilyMeta {
 }
 
 export default function PortalProfilePage() {
-  const { activeProfile, refreshAccountData } = useAuth();
+  const { user, activeProfile, refreshAccountData } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [form, setForm] = useState<FormData>({
     display_name: "",
     description: "",
@@ -236,6 +238,14 @@ export default function PortalProfilePage() {
       });
     }
   }, [activeProfile]);
+
+  // Check admin status
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/admin/auth")
+      .then((res) => setIsAdmin(res.ok))
+      .catch(() => setIsAdmin(false));
+  }, [user]);
 
   // activeProfile is guaranteed by the portal layout guard
   if (!activeProfile) return null;
@@ -483,6 +493,18 @@ export default function PortalProfilePage() {
         <div>
           <p className="text-lg text-gray-600">{profileLabel}</p>
         </div>
+        <div className="flex items-center gap-3">
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors whitespace-nowrap"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Admin
+            </Link>
+          )}
         {activeProfile?.slug && (isOrg || isCaregiver) && (
           <a
             href={`/provider/${activeProfile.slug}`}
@@ -496,6 +518,7 @@ export default function PortalProfilePage() {
             </svg>
           </a>
         )}
+        </div>
       </div>
 
       {/* Profile image section */}

@@ -121,6 +121,11 @@ export default function PortalLayout({ children }: { children: ReactNode }) {
     completeness.percentage < 60 &&
     !nudgeDismissed;
 
+  // Inbox is a full-page 3-panel layout — render without the portal sidebar
+  if (pathname.startsWith("/portal/inbox")) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Mobile: header + horizontal tabs */}

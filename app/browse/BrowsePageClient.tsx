@@ -189,19 +189,30 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
       className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:border-primary-200 transition-shadow duration-200 block cursor-pointer"
     >
       {/* Image */}
-      <div className="relative h-48 bg-gray-200">
-        {provider.image ? (
+      <div className="relative h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
+        {provider.imageType === "placeholder" || !provider.image ? (
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+              <span className="text-xl font-bold text-primary-400">
+                {provider.name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+              </span>
+            </div>
+            <span className="text-xs font-medium text-primary-300 mt-1.5">{provider.primaryCategory}</span>
+          </div>
+        ) : provider.imageType === "logo" ? (
+          <div className="w-full h-full flex items-center justify-center p-6">
+            <img
+              src={provider.image}
+              alt={provider.name}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        ) : (
           <img
             src={provider.image}
             alt={provider.name}
             className="w-full h-full object-cover"
           />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary-100 to-primary-300 flex items-center justify-center">
-            <span className="text-4xl font-bold text-primary-600/40">
-              {provider.name.charAt(0)}
-            </span>
-          </div>
         )}
 
         {/* Rating badge */}

@@ -1,65 +1,87 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { BENEFIT_CATEGORIES } from "@/lib/types/benefits";
 import type {
   BenefitsSearchResult,
-  BenefitsIntakeAnswers,
   BenefitCategory,
   BenefitMatch,
 } from "@/lib/types/benefits";
+import { useCareProfile } from "@/lib/benefits/care-profile-context";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useSavedPrograms } from "@/hooks/use-saved-programs";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { syncBenefitsToProfile } from "@/lib/benefits-profile-sync";
-import { useSavedBenefits } from "@/hooks/use-saved-benefits";
 
 interface BenefitsResultsProps {
   result: BenefitsSearchResult;
-  intakeAnswers: BenefitsIntakeAnswers | null;
-  locationDisplay: string;
-  onStartOver: () => void;
-  completedAt?: string | null;
-  /** True when results were restored from a previous session (not freshly generated) */
-  isRestored?: boolean;
 }
 
-export default function BenefitsResults({
-  result,
-  intakeAnswers,
-  locationDisplay,
-  onStartOver,
-  completedAt,
-  isRestored,
-}: BenefitsResultsProps) {
+function generateShareText(
+  matchedPrograms: BenefitMatch[],
+  stateCode: string | null,
+  age: number | null
+) {
+  const locationPart = stateCode ? ` in ${stateCode}` : "";
+  const agePart = age ? `, for someone ${age} years old` : "";
+  const header = `Your Benefits Results — ${matchedPrograms.length} program${matchedPrograms.length !== 1 ? "s" : ""} found${locationPart}${agePart}`;
+
+  // Group by category
+  const grouped = matchedPrograms.reduce<Record<string, BenefitMatch[]>>(
+    (acc, m) => {
+      const cat = m.program.category;
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat].push(m);
+      return acc;
+    },
+    {}
+  );
+
+  const sections = Object.entries(grouped)
+    .map(([cat, programs]) => {
+      const catInfo = BENEFIT_CATEGORIES[cat as BenefitCategory];
+      const lines = programs.map((m) => {
+        const name = m.program.short_name || m.program.name;
+        const topReason = m.matchReasons[0] || "";
+        return `  - ${name} (${m.tierLabel})${topReason ? ` — ${topReason}` : ""}`;
+      });
+      return `${catInfo?.displayTitle}\n${lines.join("\n")}`;
+    })
+    .join("\n\n");
+
+  return `${header}\n\n${sections}\n\nFound with Olera Benefits Finder\nhttps://olera.care/benefits/finder`;
+}
+
+export default function BenefitsResults({ result }: BenefitsResultsProps) {
   const [activeFilter, setActiveFilter] = useState<BenefitCategory | "all">(
     "all"
   );
-  const { user, activeProfile, openAuth } = useAuth();
-  const { isBenefitSaved, saveBenefit } = useSavedBenefits();
-  const syncedRef = useRef(false);
+  const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
+  const { reset, answers } = useCareProfile();
+  const { user, openAuth } = useAuth();
+  const { isSaved, toggle } = useSavedPrograms();
 
-  // Silently sync intake answers to profile (once, for logged-in users)
-  useEffect(() => {
-    if (syncedRef.current || !intakeAnswers || !activeProfile) return;
-    syncedRef.current = true;
-    syncBenefitsToProfile(intakeAnswers, locationDisplay, activeProfile.id);
-  }, [intakeAnswers, locationDisplay, activeProfile]);
+  function handleToggleSave(programId: string) {
+    if (!user) {
+      openAuth({ defaultMode: "sign-up" });
+      return;
+    }
+    toggle(programId);
+  }
 
   const { matchedPrograms, localAAA } = result;
 
-  // Get unique categories present in the results
+  // Unique categories present in results
   const presentCategories = Array.from(
     new Set(matchedPrograms.map((m) => m.program.category))
   );
 
-  // Filter programs by selected category
+  // Filter + group
   const filteredPrograms =
     activeFilter === "all"
       ? matchedPrograms
       : matchedPrograms.filter((m) => m.program.category === activeFilter);
 
-  // Group filtered programs by category
   const grouped = filteredPrograms.reduce<Record<string, BenefitMatch[]>>(
     (acc, m) => {
       const cat = m.program.category;
@@ -70,219 +92,154 @@ export default function BenefitsResults({
     {}
   );
 
+  async function handleShare() {
+    const text = generateShareText(matchedPrograms, answers.stateCode, answers.age);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to clipboard
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareLabel("copied");
+      setTimeout(() => setShareLabel("share"), 2000);
+    } catch {
+      // Clipboard not available
+    }
+  }
+
+  // Empty state
   if (matchedPrograms.length === 0 && !localAAA) {
     return (
-      <div className="text-center py-8">
-        <p className="text-lg font-semibold text-gray-700 mb-2">
-          We couldn&apos;t find matching programs
+      <div className="py-16">
+        <p className="font-display text-display-xs font-medium text-gray-900 mb-2">
+          No matching programs found
         </p>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-text-sm text-gray-500 mb-8 max-w-md">
           Try adjusting your answers, or contact your local Area Agency on Aging
           for personalized help.
         </p>
         <button
-          onClick={onStartOver}
-          className="px-6 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold border-none cursor-pointer hover:bg-primary-500 transition-colors"
+          onClick={reset}
+          className="px-6 py-2.5 bg-gray-900 text-white rounded-full text-text-sm font-medium border-none cursor-pointer hover:bg-gray-800 transition-colors"
         >
-          Try Again
+          Try different answers
         </button>
       </div>
     );
   }
 
-  // Map intake care preference + needs to browse page care type param
-  const getBrowseCareType = (): string | null => {
-    if (!intakeAnswers) return null;
-    const needs = intakeAnswers.primaryNeeds || [];
-    if (needs.includes("memoryCare")) return "memory-care";
-    if (needs.includes("healthManagement")) return "home-health";
-    if (intakeAnswers.carePreference === "exploringFacility") return "assisted-living";
-    if (needs.includes("personalCare") || needs.includes("householdTasks") || needs.includes("companionship"))
-      return "home-care";
-    return null;
-  };
-
-  // Build browse link with location and care type from intake
-  const browseParams = new URLSearchParams();
-  if (locationDisplay) browseParams.set("location", locationDisplay);
-  const careType = getBrowseCareType();
-  if (careType) browseParams.set("type", careType);
-  const browseHref = browseParams.toString() ? `/browse?${browseParams}` : "/browse";
-
-  // Auth-gated handler for "Let providers find you"
-  const handleLetProvidersFind = () => {
-    if (!user) {
-      openAuth({
-        defaultMode: "sign-up",
-        intent: "family",
-        deferred: {
-          action: "create_profile" as const,
-          returnUrl: "/portal/matches?tab=carepost",
-        },
-      });
-      return;
-    }
-    window.location.href = "/portal/matches?tab=carepost";
-  };
-
   return (
-    <>
     <div className="w-full">
-      {/* Header + pills — wide container so all pills fit on desktop */}
-      <div className="max-w-5xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-5">
-          <h2 className="text-xl font-bold text-gray-900 mb-1">
-            Your Benefits Results
+      {/* Header — serif with match count + share */}
+      <div className="mb-8">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="font-display text-display-sm font-medium text-gray-900 mb-1 leading-snug tracking-tight">
+            {matchedPrograms.length} program{matchedPrograms.length !== 1 ? "s" : ""} matched
           </h2>
-          <p className="text-sm text-gray-600">
-            {isRestored && completedAt ? (
-              <>
-                Based on your answers from{" "}
-                {new Date(completedAt).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-                {" · "}
-                <button
-                  type="button"
-                  onClick={onStartOver}
-                  className="text-primary-600 hover:text-primary-700 font-medium bg-transparent border-none cursor-pointer p-0 transition-colors"
-                >
-                  Update your answers
-                </button>
-              </>
-            ) : (
-              "Based on your answers, here are programs you may qualify for."
-            )}
-          </p>
-        </div>
-
-        {/* Category filter chips — single horizontal row */}
-        {presentCategories.length > 1 && (
-          <div className="flex justify-center mb-4 overflow-x-auto scrollbar-hide">
-            <div>
-              <div className="flex gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60">
-                <button
-                  onClick={() => setActiveFilter("all")}
-                  className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    activeFilter === "all"
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  All ({matchedPrograms.length})
-                </button>
-                {presentCategories.map((cat) => {
-                  const info = BENEFIT_CATEGORIES[cat];
-                  const count = matchedPrograms.filter(
-                    (m) => m.program.category === cat
-                  ).length;
-                  return (
-                    <button
-                      key={cat}
-                      onClick={() => setActiveFilter(cat)}
-                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                        activeFilter === cat
-                          ? "bg-gray-900 text-white shadow-sm"
-                          : "text-gray-600 hover:bg-gray-100"
-                      }`}
-                    >
-                      {info?.icon} {info?.displayTitle} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Program cards — narrow container for readability */}
-      <div className="max-w-lg mx-auto px-4">
-      {/* Program cards grouped by category, with AAA card after 3rd card */}
-      {(() => {
-        // Flatten all grouped cards into a sequential list
-        const allCards: { cat: string; match: BenefitMatch; isFirst: boolean }[] = [];
-        Object.entries(grouped).forEach(([cat, programs]) => {
-          programs.forEach((m, i) => {
-            allCards.push({ cat, match: m, isFirst: i === 0 });
-          });
-        });
-
-        let aaaInserted = false;
-        const insertIndex = Math.min(3, allCards.length);
-
-        return (
-          <>
-            {allCards.map((card, idx) => {
-              const info = BENEFIT_CATEGORIES[card.cat as BenefitCategory];
-              const showAAA = localAAA && !aaaInserted && idx === insertIndex;
-              if (showAAA) aaaInserted = true;
-
-              return (
-                <div key={card.match.id}>
-                  {showAAA && <AAACard agency={localAAA} />}
-                  {card.isFirst && (
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 mt-5">
-                      {info?.icon} {info?.displayTitle}
-                    </h3>
-                  )}
-                  <ProgramCard
-                    match={card.match}
-                    isSaved={isBenefitSaved(card.match.program.name)}
-                    onSave={() => saveBenefit(card.match.program.name)}
-                  />
-                </div>
-              );
-            })}
-            {/* AAA card at end if fewer than 3 cards */}
-            {localAAA && !aaaInserted && <AAACard agency={localAAA} />}
-          </>
-        );
-      })()}
-
-      {/* Start over */}
-      <div className="text-center mt-6 pb-20">
-        <button
-          onClick={onStartOver}
-          className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer bg-transparent border-none font-medium transition-colors"
-        >
-          &larr; Start over with different answers
-        </button>
-      </div>
-      </div>{/* end max-w-lg cards container */}
-    </div>
-
-    {/* Sticky footer — horizontal: text left, buttons right, aligned with navbar */}
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.08)] z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-8">
-        <div className="shrink-0">
-          <p className="text-base font-bold text-gray-900 mb-1">
-            What&apos;s next?
-          </p>
-          <p className="text-sm text-gray-500">
-            You qualify for {matchedPrograms.length} programs. Take the next step.
-          </p>
-        </div>
-        <div className="flex gap-3 shrink-0">
-          <a
-            href={browseHref}
-            className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 border border-gray-300 bg-white text-gray-700 rounded-xl text-sm font-semibold no-underline hover:bg-gray-50 transition-colors"
-          >
-            Find providers &rarr;
-          </a>
           <button
-            type="button"
-            onClick={handleLetProvidersFind}
-            className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold border-none cursor-pointer hover:bg-primary-500 transition-colors"
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 text-text-sm font-medium text-gray-400 hover:text-gray-900 bg-transparent border-none cursor-pointer transition-colors shrink-0"
+            aria-label="Share results"
           >
-            Let providers find you
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            {shareLabel === "copied" ? "Copied!" : "Share results"}
           </button>
         </div>
+        <p className="text-text-sm text-gray-400">
+          Based on your care profile
+        </p>
       </div>
+
+      {/* AAA card */}
+      {localAAA && (
+        <div className="mb-10">
+          <AAACard agency={localAAA} />
+        </div>
+      )}
+
+      {/* Filter tabs — quiet, text-style */}
+      {presentCategories.length > 1 && (
+        <div
+          className="flex items-center gap-1 mb-6 border-b border-vanilla-200 -mx-1 px-1"
+          role="toolbar"
+          aria-label="Filter by category"
+        >
+          <button
+            onClick={() => setActiveFilter("all")}
+            aria-pressed={activeFilter === "all"}
+            className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
+              activeFilter === "all"
+                ? "text-gray-900 border-b-2 border-b-gray-900"
+                : "text-gray-400 hover:text-gray-600"
+            }`}
+            style={activeFilter === "all" ? { borderBottom: "2px solid #111827" } : {}}
+          >
+            All
+          </button>
+          {presentCategories.map((cat) => {
+            const info = BENEFIT_CATEGORIES[cat];
+            const isActive = activeFilter === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveFilter(cat)}
+                aria-pressed={isActive}
+                className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
+                  isActive
+                    ? "text-gray-900"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+                style={isActive ? { borderBottom: "2px solid #111827" } : {}}
+              >
+                {info?.displayTitle}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Program list — single column, divided by category */}
+      {Object.entries(grouped).map(([cat, programs]) => {
+        const info = BENEFIT_CATEGORIES[cat as BenefitCategory];
+        return (
+          <div key={cat} className="mb-8">
+            <p className="text-text-xs font-medium text-gray-400 mb-1 tracking-widest uppercase">
+              {info?.displayTitle}
+            </p>
+            <div>
+              {programs.map((m, i) => (
+                <div
+                  key={m.id}
+                  className="animate-card-enter"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                >
+                  <ProgramCard
+                    match={m}
+                    isSaved={isSaved(m.program.id)}
+                    onToggleSave={() => handleToggleSave(m.program.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
-    </>
   );
 }

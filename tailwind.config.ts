@@ -8,6 +8,14 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // Font families — matches iOS OleraClean design system
+      // Serif (New York on Apple, Georgia fallback) for display/hero text
+      // System sans-serif for all UI text
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        serif: ['"New York"', '"Iowan Old Style"', 'Georgia', '"Times New Roman"', 'serif'],
+        display: ['"New York"', '"Iowan Old Style"', 'Georgia', '"Times New Roman"', 'serif'],
+      },
       // Untitled UI Typography Scale
       fontSize: {
         "display-2xl": ["4.5rem", { lineHeight: "5.625rem", letterSpacing: "-0.02em" }],
@@ -72,20 +80,21 @@ const config: Config = {
         "3xl": "0px 32px 64px -12px rgba(16, 24, 40, 0.14)",
       },
       colors: {
-        // Keep Olera brand colors
+        // Olera brand colors — Teal/Cyan palette (matches iOS OleraClean)
+        // iOS accent: #5AAEC4, accentBright: #06B6D4
         primary: {
-          25: "#f6fdf9",
-          50: "#f0f9f4",
-          100: "#d9f0e3",
-          200: "#b6e1ca",
-          300: "#86cba8",
-          400: "#52ae82",
-          500: "#319266",
-          600: "#227551",
-          700: "#1c5e43",
-          800: "#194b37",
-          900: "#163e2f",
-          950: "#0b231a",
+          25: "#f0fdfa",
+          50: "#ecfeff",
+          100: "#cffafe",
+          200: "#a5f3fc",
+          300: "#67e8f9",
+          400: "#22d3ee",
+          500: "#06b6d4",
+          600: "#0891b2",
+          700: "#0e7490",
+          800: "#155e75",
+          900: "#164e63",
+          950: "#083344",
         },
         secondary: {
           25: "#f8f9fb",
@@ -114,6 +123,13 @@ const config: Config = {
           800: "#85432c",
           900: "#6c3926",
           950: "#2a1810", // Deep warm brown for overlay
+        },
+        // Warm backgrounds from iOS OleraClean design system
+        vanilla: {
+          50: "#fdfbf8",
+          100: "#F9F6F2",     // iOS oleraVanilla — primary background
+          200: "#F5F0EA",     // iOS backgroundWarm — feature cards
+          300: "#F1E5D6",     // iOS oleraCreme — warm accent
         },
         // Untitled UI Gray scale (neutral, modern)
         gray: {

@@ -1,15 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, type ChangeEvent } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { useProfileCompleteness, type SectionStatus } from "./completeness";
-import { BenefitsFinderBanner } from "./ProfileEditContent";
-import Pill from "@/components/providers/connection-card/Pill";
-import Input from "@/components/ui/Input";
-
-// ── Constants ──
+import ProfileEditDrawer, { BenefitsFinderBanner } from "./ProfileEditDrawer";
 
 const TIMELINE_LABELS: Record<string, string> = {
   immediate: "As soon as possible",
@@ -24,188 +20,94 @@ const CONTACT_PREF_LABELS: Record<string, string> = {
   email: "Email",
 };
 
-const CONTACT_METHODS = ["Call", "Text", "Email"] as const;
-const CARE_RECIPIENTS = ["Myself", "My parent", "My spouse", "Someone else"];
-const CARE_TYPES = [
-  "Home Care", "Home Health Care", "Assisted Living", "Memory Care",
-  "Nursing Home", "Independent Living", "Hospice Care", "Adult Day Care",
-  "Rehabilitation", "Private Caregiver",
-];
-const TIMELINES = [
-  { value: "immediate", label: "As soon as possible" },
-  { value: "within_1_month", label: "Within a month" },
-  { value: "within_3_months", label: "In a few months" },
-  { value: "exploring", label: "Just researching" },
-];
-const PAYMENT_OPTIONS = [
-  "Medicare", "Medicaid", "Private insurance", "Private pay",
-  "Veterans benefits", "Long-term care insurance", "I'm not sure",
-];
-const CARE_NEED_OPTIONS = [
-  "Personal Care", "Household Tasks", "Health Management",
-  "Companionship", "Financial Help", "Memory Care", "Mobility Help",
-];
-const LIVING_OPTIONS = [
-  "Lives alone", "Lives with family", "Lives with caregiver",
-  "Assisted living facility", "Other",
-];
-const SCHEDULE_OPTIONS = [
-  "Mornings", "Afternoons", "Evenings", "Overnight", "Full-time", "Flexible",
-];
-const LANGUAGE_OPTIONS = ["English", "Spanish", "French", "Mandarin", "Other"];
-
-function readLanguages(meta: FamilyMetadata): string[] {
-  const v = meta.language_preference;
-  if (Array.isArray(v)) return v;
-  if (typeof v === "string" && v) return [v];
-  return [];
-}
-
-// ── Main Component ──
-
 export default function FamilyProfileView() {
   const { user, activeProfile, refreshAccountData } = useAuth();
-  const [editingSection, setEditingSection] = useState<number | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerStep, setDrawerStep] = useState(0);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profile = activeProfile as BusinessProfile;
   const meta = (profile?.metadata || {}) as FamilyMetadata;
   const userEmail = user?.email || "";
 
-  const { percentage, sectionStatus } = useProfileCompleteness(profile, userEmail);
+  const { percentage, sectionStatus } = useProfileCompleteness(
+    profile,
+    userEmail
+  );
 
-  // ── Form state ──
-  const [displayName, setDisplayName] = useState(profile?.display_name || "");
-  const [country, setCountry] = useState(meta.country || "");
-  const [city, setCity] = useState(profile?.city || "");
-  const [state, setState] = useState(profile?.state || "");
-  const [email, setEmail] = useState(profile?.email || userEmail || "");
-  const [phone, setPhone] = useState(profile?.phone || "");
-  const [contactPref, setContactPref] = useState<string>(meta.contact_preference || "");
-  const [careRecipient, setCareRecipient] = useState(meta.relationship_to_recipient || "");
-  const [age, setAge] = useState(meta.age ? String(meta.age) : "");
-  const [careTypes, setCareTypes] = useState<string[]>(profile?.care_types || []);
-  const [careNeeds, setCareNeeds] = useState<string[]>(meta.care_needs || []);
-  const [timeline, setTimeline] = useState(meta.timeline || "");
-  const [notes, setNotes] = useState(profile?.description || "");
-  const [payments, setPayments] = useState<string[]>(meta.payment_methods || []);
-  const [living, setLiving] = useState(meta.living_situation || "");
-  const [schedule, setSchedule] = useState(meta.schedule_preference || "");
-  const [careLocation, setCareLocation] = useState(meta.care_location || "");
-  const [languages, setLanguages] = useState<string[]>(readLanguages(meta));
-  const [about, setAbout] = useState(meta.about_situation || "");
+  if (!profile) return null;
 
-  // Image upload
-  const [imageUploading, setImageUploading] = useState(false);
-  const [imageError, setImageError] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const openDrawer = (step: number) => {
+    setDrawerStep(step);
+    setDrawerOpen(true);
+  };
 
-  // Sync form state when profile refreshes
-  useEffect(() => {
-    if (!profile) return;
-    const m = (profile.metadata || {}) as FamilyMetadata;
-    setDisplayName(profile.display_name || "");
-    setCountry(m.country || "");
-    setCity(profile.city || "");
-    setState(profile.state || "");
-    setEmail(profile.email || userEmail || "");
-    setPhone(profile.phone || "");
-    setContactPref(m.contact_preference || "");
-    setCareRecipient(m.relationship_to_recipient || "");
-    setAge(m.age ? String(m.age) : "");
-    setCareTypes(profile.care_types || []);
-    setCareNeeds(m.care_needs || []);
-    setTimeline(m.timeline || "");
-    setNotes(profile.description || "");
-    setPayments(m.payment_methods || []);
-    setLiving(m.living_situation || "");
-    setSchedule(m.schedule_preference || "");
-    setCareLocation(m.care_location || "");
-    setLanguages(readLanguages(m));
-    setAbout(m.about_situation || "");
-  }, [profile, userEmail]);
+  const handleSaved = async () => {
+    await refreshAccountData();
+  };
 
-  // ── Save logic ──
-  const savingRef = useRef(false);
-  const saveToDbRef = useRef<() => Promise<void>>(() => Promise.resolve());
+  // --- Photo upload ---
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-  const saveToDb = useCallback(async () => {
-    if (savingRef.current || !isSupabaseConfigured() || !profile) return;
-    savingRef.current = true;
-    try {
-      const supabase = createClient();
-      const { data: current } = await supabase
-        .from("business_profiles")
-        .select("metadata")
-        .eq("id", profile.id)
-        .single();
-
-      const merged = {
-        ...(current?.metadata || {}),
-        country: country || undefined,
-        contact_preference: contactPref || undefined,
-        relationship_to_recipient: careRecipient || undefined,
-        age: age ? Number(age) : undefined,
-        timeline: timeline || undefined,
-        payment_methods: payments.length > 0 ? payments : undefined,
-        care_needs: careNeeds.length > 0 ? careNeeds : undefined,
-        living_situation: living || undefined,
-        schedule_preference: schedule || undefined,
-        care_location: careLocation || undefined,
-        language_preference: languages.length > 0 ? languages : undefined,
-        about_situation: about || undefined,
-      };
-
-      await supabase
-        .from("business_profiles")
-        .update({
-          display_name: displayName || null,
-          city: city || null,
-          state: state || null,
-          email: email || null,
-          phone: phone || null,
-          description: notes || null,
-          care_types: careTypes,
-          metadata: merged,
-        })
-        .eq("id", profile.id);
-
-      await refreshAccountData();
-    } catch (err) {
-      console.error("[olera] auto-save failed:", err);
-    } finally {
-      savingRef.current = false;
-    }
-  }, [profile?.id, displayName, country, city, state, email, phone, contactPref, careRecipient, age, careTypes, careNeeds, timeline, notes, payments, living, schedule, careLocation, languages, about, refreshAccountData]);
-
-  saveToDbRef.current = saveToDb;
-
-  const deferredSave = useCallback(() => {
-    setTimeout(() => saveToDbRef.current(), 50);
-  }, []);
-
-  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setImageError("");
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       setImageError("Please upload a JPEG, PNG, or WebP image.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_IMAGE_SIZE) {
       setImageError("Image must be under 5MB.");
       return;
     }
+
     setImageUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("profileId", profile.id);
-      const res = await fetch("/api/profile/upload-image", { method: "POST", body: formData });
-      if (!res.ok) {
-        const data = await res.json();
-        setImageError(data.error || "Upload failed.");
+      if (!isSupabaseConfigured()) {
+        setImageError("Storage is not configured.");
         return;
       }
+      const supabase = createClient();
+      const ext = file.name.split(".").pop() || "jpg";
+      const fileName = `${profile.id}-${Date.now()}.${ext}`;
+      const filePath = `profile-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("profile-images")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (uploadError) {
+        if (
+          uploadError.message?.includes("not found") ||
+          uploadError.message?.includes("Bucket")
+        ) {
+          setImageError(
+            "Image storage is not configured yet. Please contact your developer."
+          );
+        } else {
+          setImageError(`Upload failed: ${uploadError.message}`);
+        }
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("profile-images")
+        .getPublicUrl(filePath);
+
+      await supabase
+        .from("business_profiles")
+        .update({ image_url: urlData.publicUrl })
+        .eq("id", profile.id);
+
       await refreshAccountData();
     } catch {
       setImageError("Failed to upload image. Please try again.");
@@ -215,52 +117,16 @@ export default function FamilyProfileView() {
     }
   };
 
-  const handleEditToggle = (section: number) => {
-    if (editingSection === section) {
-      // Save and close
-      saveToDb();
-      setEditingSection(null);
-    } else {
-      // Save current section if open, then switch
-      if (editingSection !== null) saveToDb();
-      setEditingSection(section);
-    }
-  };
-
-  const handleCancel = () => {
-    // Revert form state from profile and close
-    if (profile) {
-      const m = (profile.metadata || {}) as FamilyMetadata;
-      setDisplayName(profile.display_name || "");
-      setCountry(m.country || "");
-      setCity(profile.city || "");
-      setState(profile.state || "");
-      setEmail(profile.email || userEmail || "");
-      setPhone(profile.phone || "");
-      setContactPref(m.contact_preference || "");
-      setCareRecipient(m.relationship_to_recipient || "");
-      setAge(m.age ? String(m.age) : "");
-      setCareTypes(profile.care_types || []);
-      setCareNeeds(m.care_needs || []);
-      setTimeline(m.timeline || "");
-      setNotes(profile.description || "");
-      setPayments(m.payment_methods || []);
-      setLiving(m.living_situation || "");
-      setSchedule(m.schedule_preference || "");
-      setCareLocation(m.care_location || "");
-      setLanguages(readLanguages(m));
-      setAbout(m.about_situation || "");
-    }
-    setEditingSection(null);
-  };
-
-  if (!profile) return null;
-
-  // ── Derived display values ──
+  // --- Derived display values ---
   const location = [profile.city, profile.state, meta.country].filter(Boolean).join(", ");
-  const careTypesDisplay = profile.care_types?.length ? profile.care_types.join(", ") : null;
-  const timelineDisplay = meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : null;
+  const careTypesDisplay = profile.care_types?.length
+    ? profile.care_types.join(", ")
+    : null;
+  const timelineDisplay = meta.timeline
+    ? TIMELINE_LABELS[meta.timeline] || meta.timeline
+    : null;
 
+  /** Combine steps 4+5+6 into a single "More About" section status */
   const combineSectionStatus = (): SectionStatus => {
     const statuses = [sectionStatus[4], sectionStatus[5], sectionStatus[6]].filter(Boolean);
     if (statuses.length === 0) return "empty";
@@ -270,204 +136,148 @@ export default function FamilyProfileView() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <div className="rounded-xl bg-white border border-gray-200 divide-y divide-gray-100">
+    <div className="space-y-6">
       {/* ── Profile Header ── */}
-      <div className={`${editingSection === 0 ? "bg-gray-50/50" : ""} transition-colors`}>
+      <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         <div className="p-6 flex items-center gap-5">
-          <div className="shrink-0">
-            <div className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 shadow-xs flex items-center justify-center">
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageUpload}
+              className="hidden"
+              disabled={imageUploading}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={imageUploading}
+              className="w-[88px] h-[88px] rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 hover:border-primary-300 transition-colors cursor-pointer flex items-center justify-center group relative"
+            >
               {profile.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={profile.image_url} alt={profile.display_name} className="w-full h-full object-cover" />
+                <img
+                  src={profile.image_url}
+                  alt={profile.display_name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="flex flex-col items-center gap-0.5 text-gray-400">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-primary-500 transition-colors">
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
                   </svg>
+                  <span className="text-xs font-medium">Add photo</span>
                 </div>
               )}
-            </div>
+              {imageUploading && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-full">
+                  <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </button>
           </div>
 
+          {/* Name + location */}
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 truncate tracking-tight">
+            <h2 className="text-2xl font-bold text-gray-900 truncate">
               {profile.display_name || "Your Name"}
             </h2>
-            <p className="text-base text-gray-500 mt-1">
+            <p className="text-base text-gray-500 mt-0.5">
               {location || "Location not set"}
               <span className="mx-1.5 text-gray-300">&middot;</span>
               Family care seeker
             </p>
-            {percentage < 100 && (
-              <div className="flex items-center gap-2.5 mt-2.5">
-                <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${percentage >= 80 ? "bg-primary-500" : "bg-warning-400"}`}
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-                <span className={`text-xs font-medium ${percentage >= 80 ? "text-primary-600" : "text-warning-600"}`}>
-                  {percentage}%
-                </span>
-              </div>
-            )}
           </div>
 
+          {/* Edit basic info */}
           <button
             type="button"
-            onClick={() => handleEditToggle(0)}
-            className="shrink-0 self-start mt-1 text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
+            onClick={() => openDrawer(0)}
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+            aria-label="Edit basic info"
           >
-            {editingSection === 0 ? "Cancel" : "Edit"}
+            <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
           </button>
         </div>
 
-        {/* Inline edit: Basic Info */}
-        {editingSection === 0 && (
-          <div className="px-6 pb-6 space-y-5 border-t border-gray-100 pt-5">
-            {/* Photo upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Profile photo</label>
-              <div className="flex items-center gap-4">
-                <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} className="hidden" disabled={imageUploading} />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={imageUploading}
-                  className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative shrink-0"
-                >
-                  {profile.image_url ? (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={profile.image_url} alt={profile.display_name} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-full flex flex-col items-center justify-center gap-0.5">
-                        <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span className="text-[10px] font-medium text-white opacity-0 group-hover:opacity-100 transition-opacity">Change</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-primary-500 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="text-[9px] font-medium">Add</span>
-                    </div>
-                  )}
-                  {imageUploading && (
-                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-full">
-                      <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  )}
-                </button>
-                <div className="text-sm text-gray-500">
-                  <p className="font-medium text-gray-700">{profile.image_url ? "Change photo" : "Add a photo"}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">JPEG, PNG, or WebP. Max 5MB.</p>
-                </div>
+        {/* Completeness row — hidden at 100% */}
+        {percentage < 100 && (
+          <div className="px-6 py-3 bg-gray-50 border-t border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-[5px] bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    percentage >= 80 ? "bg-primary-600" : "bg-amber-500"
+                  }`}
+                  style={{ width: `${percentage}%` }}
+                />
               </div>
-              {imageError && <p className="text-sm text-red-600 mt-2">{imageError}</p>}
-            </div>
-            <Input label="Display name" value={displayName} onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="Your full name" />
-            <Input label="Country" value={country} onChange={(e) => setCountry((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. United States, Ghana" />
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="City" value={city} onChange={(e) => setCity((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. Houston" />
-              <Input label="State / Region" value={state} onChange={(e) => setState((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. TX" />
-            </div>
-            <div className="flex justify-end pt-2">
-              <button type="button" onClick={() => { saveToDb(); setEditingSection(null); }} className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors">
-                Done
-              </button>
+              <span className={`text-[13px] font-semibold shrink-0 ${
+                percentage >= 80 ? "text-primary-700" : "text-amber-700"
+              }`}>
+                {percentage}% complete
+              </span>
             </div>
           </div>
         )}
-      </div>
+
+        {imageError && (
+          <p className="text-sm text-red-600 px-6 pb-4">{imageError}</p>
+        )}
+      </section>
 
       {/* ── Contact Information ── */}
       <SectionCard
         title="Contact Information"
+        subtitle="How providers can reach you. This is shared when you connect."
         status={sectionStatus[1]}
-        isEditing={editingSection === 1}
-        onEdit={() => handleEditToggle(1)}
-        onCancel={handleCancel}
-        onSave={() => { saveToDb(); setEditingSection(null); }}
-        editContent={
-          <div className="space-y-5">
-            <Input label="Email" value={email} onChange={(e) => setEmail((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
-            <Input label="Phone number" type="tel" placeholder="(555) 123-4567" value={phone} onChange={(e) => setPhone((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">How would you like providers to contact you?</label>
-              <div className="flex flex-wrap gap-2">
-                {CONTACT_METHODS.map((m) => (
-                  <Pill key={m} label={m} selected={contactPref === m.toLowerCase()} onClick={() => { setContactPref(m.toLowerCase()); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-          </div>
-        }
+        onEdit={() => openDrawer(1)}
       >
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-gray-100">
           <ViewRow label="Email" value={profile.email || userEmail || null} />
           <ViewRow label="Phone" value={profile.phone} />
-          <ViewRow label="Preferred contact method" value={meta.contact_preference ? CONTACT_PREF_LABELS[meta.contact_preference] || meta.contact_preference : null} />
+          <ViewRow
+            label="Preferred contact method"
+            value={
+              meta.contact_preference
+                ? CONTACT_PREF_LABELS[meta.contact_preference] ||
+                  meta.contact_preference
+                : null
+            }
+          />
         </div>
       </SectionCard>
 
       {/* ── Care Preferences ── */}
       <SectionCard
         title="Care Preferences"
+        subtitle="Auto-filled from your connection request. Shared with every provider you connect with."
         status={sectionStatus[2]}
-        isEditing={editingSection === 2}
-        onEdit={() => handleEditToggle(2)}
-        onCancel={handleCancel}
-        onSave={() => { saveToDb(); setEditingSection(null); }}
-        editContent={
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Who needs care?</label>
-              <div className="flex gap-2">
-                {CARE_RECIPIENTS.map((r) => (
-                  <Pill key={r} label={r} selected={careRecipient === r} onClick={() => { setCareRecipient(r); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <Input label="Age of person needing care" type="number" placeholder="e.g. 72" value={age} onChange={(e) => setAge((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} />
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Type of care needed</label>
-              <div className="flex flex-wrap gap-1.5">
-                {CARE_TYPES.map((ct) => (
-                  <Pill key={ct} label={ct} selected={careTypes.includes(ct)} onClick={() => { setCareTypes((prev) => prev.includes(ct) ? prev.filter((x) => x !== ct) : [...prev, ct]); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Care needs</label>
-              <div className="flex flex-wrap gap-1.5">
-                {CARE_NEED_OPTIONS.map((need) => (
-                  <Pill key={need} label={need} selected={careNeeds.includes(need)} onClick={() => { setCareNeeds((prev) => prev.includes(need) ? prev.filter((x) => x !== need) : [...prev, need]); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">How soon do you need care?</label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {TIMELINES.map((t) => (
-                  <Pill key={t.value} label={t.label} selected={timeline === t.value} onClick={() => { setTimeline(t.value); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <Input label="Additional notes" as="textarea" rows={3} value={notes} onChange={(e) => setNotes((e.target as HTMLTextAreaElement).value)} onBlur={() => saveToDb()} placeholder="Any details about the care situation..." />
-          </div>
-        }
+        onEdit={() => openDrawer(2)}
       >
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-gray-100">
           <ViewRow label="Who needs care" value={meta.relationship_to_recipient || null} />
-          <ViewRow label="Age of person needing care" value={meta.age ? String(meta.age) : null} />
           <ViewRow label="Type of care" value={careTypesDisplay} />
-          <ViewRow label="Care needs" value={meta.care_needs && meta.care_needs.length > 0 ? meta.care_needs.join(", ") : null} />
           <ViewRow label="Timeline" value={timelineDisplay} />
           <ViewRow label="Additional notes" value={profile.description || null} />
         </div>
@@ -476,56 +286,23 @@ export default function FamilyProfileView() {
       {/* ── Payment & Benefits ── */}
       <SectionCard
         title="Payment & Benefits"
+        subtitle="How are you planning to pay for care?"
         status={sectionStatus[3]}
-        isEditing={editingSection === 3}
-        onEdit={() => handleEditToggle(3)}
-        onCancel={handleCancel}
-        onSave={() => { saveToDb(); setEditingSection(null); }}
-        editContent={
-          <div className="space-y-5">
-            <div className="flex flex-wrap gap-2">
-              {PAYMENT_OPTIONS.map((opt) => (
-                <Pill key={opt} label={opt} selected={payments.includes(opt)} onClick={() => { setPayments((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
-              ))}
-            </div>
-            {meta.saved_benefits && meta.saved_benefits.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">Saved from Benefits Finder</label>
-                <div className="flex flex-wrap gap-2">
-                  {meta.saved_benefits.map((benefit) => (
-                    <span key={benefit} className="px-3.5 py-2 text-sm rounded-full border border-gray-200 bg-gray-50 text-gray-600 font-normal">
-                      {benefit}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <BenefitsFinderBanner />
-          </div>
-        }
+        onEdit={() => openDrawer(3)}
       >
         {meta.payment_methods && meta.payment_methods.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-4">
             {meta.payment_methods.map((method) => (
-              <span key={method} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary-50 text-primary-700">
+              <span
+                key={method}
+                className="px-3.5 py-2 text-[15px] font-medium rounded-full bg-primary-50 text-primary-700 border border-primary-100"
+              >
                 {method}
               </span>
             ))}
           </div>
         ) : (
-          <p className="text-[15px] text-gray-300 mb-4">&mdash;</p>
-        )}
-        {meta.saved_benefits && meta.saved_benefits.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Saved Benefits</p>
-            <div className="flex flex-wrap gap-2">
-              {meta.saved_benefits.map((benefit) => (
-                <span key={benefit} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-50 text-gray-600 border border-gray-200">
-                  {benefit}
-                </span>
-              ))}
-            </div>
-          </div>
+          <p className="text-[15px] text-amber-600 italic mb-4">Not provided</p>
         )}
         <BenefitsFinderBanner />
       </SectionCard>
@@ -533,54 +310,44 @@ export default function FamilyProfileView() {
       {/* ── More About Your Situation ── */}
       <SectionCard
         title="More About Your Situation"
+        subtitle="Help providers understand your needs better."
         status={combineSectionStatus()}
-        isEditing={editingSection === 4}
-        onEdit={() => handleEditToggle(4)}
-        onCancel={handleCancel}
-        onSave={() => { saveToDb(); setEditingSection(null); }}
-        editContent={
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Living situation</label>
-              <div className="flex flex-col gap-2">
-                {LIVING_OPTIONS.map((opt) => (
-                  <Pill key={opt} label={opt} selected={living === opt} onClick={() => { setLiving(opt); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">What times of day?</label>
-              <div className="grid grid-cols-2 gap-1.5">
-                {SCHEDULE_OPTIONS.map((opt) => (
-                  <Pill key={opt} label={opt} selected={schedule === opt} onClick={() => { setSchedule(opt); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <Input label="Care location / area" value={careLocation} onChange={(e) => setCareLocation((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. North Austin, near Anderson Mill" />
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Language preference</label>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGE_OPTIONS.map((opt) => (
-                  <Pill key={opt} label={opt} selected={languages.includes(opt)} onClick={() => { setLanguages((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <div>
-              <Input label="About the care situation" as="textarea" rows={4} value={about} onChange={(e) => setAbout((e.target as HTMLTextAreaElement).value)} onBlur={() => saveToDb()} placeholder="Tell providers more about daily life and what you're looking for..." maxLength={500} />
-              <p className="text-sm text-gray-400 mt-1 text-right">{about.length}/500</p>
-            </div>
-          </div>
-        }
+        onEdit={() => openDrawer(4)}
       >
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-gray-100">
           <ViewRow label="Living situation" value={meta.living_situation || null} />
           <ViewRow label="Schedule preference" value={meta.schedule_preference || null} />
           <ViewRow label="Care location" value={meta.care_location || null} />
-          <ViewRow label="Language preference" value={Array.isArray(meta.language_preference) ? meta.language_preference.join(", ") : meta.language_preference || null} />
-          <ViewRow label="About the care situation" value={meta.about_situation ? (meta.about_situation.length > 80 ? meta.about_situation.slice(0, 80) + "..." : meta.about_situation) : null} />
+          <ViewRow
+            label="Language preference"
+            value={
+              Array.isArray(meta.language_preference)
+                ? meta.language_preference.join(", ")
+                : meta.language_preference || null
+            }
+          />
+          <ViewRow
+            label="About the care situation"
+            value={
+              meta.about_situation
+                ? meta.about_situation.length > 80
+                  ? meta.about_situation.slice(0, 80) + "..."
+                  : meta.about_situation
+                : null
+            }
+          />
         </div>
       </SectionCard>
-      </div>
+
+      {/* ── Edit Drawer ── */}
+      <ProfileEditDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        initialStep={drawerStep}
+        profile={profile}
+        userEmail={userEmail}
+        onSaved={handleSaved}
+      />
     </div>
   );
 }
@@ -590,16 +357,17 @@ export default function FamilyProfileView() {
 function SectionBadge({ status }: { status: SectionStatus | undefined }) {
   if (!status || status === "complete") {
     return (
-      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-success-50">
-        <svg className="w-3 h-3 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100">
+        <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
         </svg>
       </span>
     );
   }
+
   const label = status === "empty" ? "Not added" : "Incomplete";
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warning-50 text-warning-700">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
       {label}
     </span>
   );
@@ -607,66 +375,64 @@ function SectionBadge({ status }: { status: SectionStatus | undefined }) {
 
 function SectionCard({
   title,
+  subtitle,
   status,
-  isEditing,
   onEdit,
-  onCancel,
-  onSave,
-  editContent,
   children,
 }: {
   title: string;
+  subtitle: string;
   status: SectionStatus | undefined;
-  isEditing: boolean;
   onEdit: () => void;
-  onCancel: () => void;
-  onSave: () => void;
-  editContent: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const editLabel = isEditing ? "Cancel" : status === "empty" ? "Add \u2192" : "Edit";
+  const editLabel = status === "empty" ? "Add \u2192" : "Edit";
 
   return (
-    <div className={`p-6 ${isEditing ? "bg-gray-50/50" : ""} transition-colors`}>
+    <section
+      role="button"
+      tabIndex={0}
+      onClick={onEdit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onEdit();
+        }
+      }}
+      className="bg-white rounded-2xl border border-gray-200 p-6 cursor-pointer hover:border-gray-300 transition-colors"
+    >
       {/* Header row */}
-      <div className="flex items-center gap-2.5 mb-4">
-        <h3 className="text-[15px] font-semibold text-gray-900">{title}</h3>
+      <div className="flex items-center gap-2.5 mb-0.5">
+        <h3 className="text-[17px] font-bold text-gray-900">{title}</h3>
         <SectionBadge status={status} />
-        <button
-          type="button"
-          onClick={isEditing ? onCancel : onEdit}
-          className="ml-auto text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
-        >
+        <span className="ml-auto text-[14px] font-semibold text-primary-600">
           {editLabel}
-        </button>
+        </span>
       </div>
+      <p className="text-[13px] text-gray-500 mb-5">{subtitle}</p>
 
-      {isEditing ? (
-        <div>
-          {editContent}
-          <div className="flex justify-end pt-4">
-            <button type="button" onClick={onSave} className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors">
-              Done
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div role="button" tabIndex={0} onClick={onEdit} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onEdit(); } }} className="cursor-pointer">
-          {children}
-        </div>
-      )}
-    </div>
+      {/* Content — stop click propagation so internal links/buttons work */}
+      <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+        {children}
+      </div>
+    </section>
   );
 }
 
-function ViewRow({ label, value }: { label: string; value: string | null }) {
+function ViewRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null;
+}) {
   return (
-    <div className="py-3.5">
-      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
+    <div className="py-3">
+      <p className="text-[13px] text-gray-500">{label}</p>
       {value ? (
-        <p className="text-[15px] text-gray-900 mt-1">{value}</p>
+        <p className="text-[15px] text-gray-900 mt-0.5">{value}</p>
       ) : (
-        <p className="text-[15px] text-gray-300 mt-1">&mdash;</p>
+        <p className="text-[15px] text-amber-600 italic mt-0.5">Not provided</p>
       )}
     </div>
   );

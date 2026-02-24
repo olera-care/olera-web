@@ -606,14 +606,12 @@ export default function UnifiedAuthModal({
         </div>
       )}
 
-      {/* ─── Sign In Screen (Luma-style: password + Send Me a Code) ─── */}
+      {/* ─── Sign In Screen ─── */}
       {step === "sign-in" && (
         <div>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Password</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Please enter your password to sign in to your account.
-            </p>
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Welcome back</h2>
+            <p className="text-sm text-gray-500 mt-1">{email || "Sign in to your account"}</p>
           </div>
 
           {error && (
@@ -637,17 +635,6 @@ export default function UnifiedAuthModal({
             )}
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-medium text-gray-700">Password</span>
-                <button
-                  type="button"
-                  onClick={handleSendOtpForSignIn}
-                  disabled={loading || !email.trim()}
-                  className="text-sm text-gray-400 hover:text-gray-600 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Send Me a Code
-                </button>
-              </div>
               <input
                 type="password"
                 name="password"
@@ -658,10 +645,26 @@ export default function UnifiedAuthModal({
                 autoComplete="current-password"
                 className={inputClass}
               />
+              <div className="flex justify-between mt-2">
+                <button
+                  type="button"
+                  onClick={handleSendOtpForSignIn}
+                  disabled={loading || !email.trim()}
+                  className="text-xs text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Email me a code instead
+                </button>
+                <button
+                  type="button"
+                  className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
             <Button type="submit" loading={loading} fullWidth size="lg">
-              Continue
+              Sign in
             </Button>
           </form>
 

@@ -567,6 +567,20 @@ function ProviderOnboardingContent() {
     setSubmitError("");
 
     try {
+      // Ensure account exists (handles edge case where DB trigger didn't fire on signup)
+      if (!account?.id) {
+        const ensureRes = await fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ display_name: data.displayName }),
+        });
+
+        if (!ensureRes.ok) {
+          const errorData = await ensureRes.json().catch(() => ({}));
+          throw new Error(errorData.error || "Failed to set up account");
+        }
+      }
+
       const res = await fetch("/api/auth/create-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

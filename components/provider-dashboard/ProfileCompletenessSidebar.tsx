@@ -32,21 +32,16 @@ export default function ProfileCompletenessSidebar({
       </h3>
 
       {/* Circular progress */}
-      <div className="flex justify-center mb-3">
-        <CircularProgress percent={completeness.overall} size={140} />
+      <div className="flex justify-center mb-2">
+        <CircularProgress percent={completeness.overall} size={100} strokeWidth={8} />
       </div>
 
       {/* Status text */}
-      <p className="text-center text-sm font-semibold tracking-wide uppercase text-gray-900 font-display mb-1">
+      <p className="text-center text-sm font-semibold tracking-wide uppercase text-gray-900 font-display mb-0.5">
         {getStatusText(completeness.overall)}
       </p>
-      <p className="text-center text-sm text-gray-400 mb-6">
+      <p className="text-center text-xs text-gray-400 mb-5">
         Last updated: {formattedDate}
-      </p>
-
-      {/* CTA */}
-      <p className="text-[15px] font-medium text-gray-600 mb-4">
-        Complete your profile to attract more clients
       </p>
 
       {/* Section checklist */}
@@ -61,7 +56,7 @@ export default function ProfileCompletenessSidebar({
             >
               <div className="flex items-center gap-2.5">
                 {isComplete ? (
-                  <div className="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="none"

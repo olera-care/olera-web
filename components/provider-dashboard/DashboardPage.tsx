@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { useProviderDashboardData } from "@/hooks/useProviderDashboardData";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useGuidedOnboarding } from "@/hooks/useGuidedOnboarding";
 import {
   calculateProfileCompleteness,
   type ExtendedMetadata,
 } from "@/lib/profile-completeness";
+import type { SectionId } from "./edit-modals/types";
 import ProfileOverviewCard from "./ProfileOverviewCard";
 import GalleryCard from "./GalleryCard";
 import CareServicesCard from "./CareServicesCard";
@@ -16,10 +19,21 @@ import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
 import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
+import EditOverviewModal from "./edit-modals/EditOverviewModal";
+import EditGalleryModal from "./edit-modals/EditGalleryModal";
+import EditCareServicesModal from "./edit-modals/EditCareServicesModal";
+import EditStaffScreeningModal from "./edit-modals/EditStaffScreeningModal";
+import EditAboutModal from "./edit-modals/EditAboutModal";
+import EditPricingModal from "./edit-modals/EditPricingModal";
+import EditPaymentModal from "./edit-modals/EditPaymentModal";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
   const { metadata, loading } = useProviderDashboardData(profile);
+  const { refreshAccountData } = useAuth();
+
+  // Modal state
+  const [editingSection, setEditingSection] = useState<SectionId | null>(null);
 
   // Loading state
   if (!profile || loading) {
@@ -47,7 +61,7 @@ export default function DashboardPage() {
             <div className="animate-pulse bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
               <div className="h-5 w-44 bg-gray-200 rounded mb-6" />
               <div className="flex justify-center mb-6">
-                <div className="w-[140px] h-[140px] rounded-full bg-gray-100" />
+                <div className="w-[100px] h-[100px] rounded-full bg-gray-100" />
               </div>
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -69,53 +83,179 @@ export default function DashboardPage() {
   const sectionPercent = (id: string) =>
     completeness.sections.find((s) => s.id === id)?.percent ?? 0;
 
-  const cards = [
-    <ProfileOverviewCard
-      key="overview"
+  return (
+    <DashboardContent
       profile={profile}
-      completionPercent={sectionPercent("overview")}
-    />,
-    <GalleryCard
-      key="gallery"
-      metadata={meta}
-      completionPercent={sectionPercent("gallery")}
-    />,
-    <CareServicesCard
-      key="services"
-      profile={profile}
-      completionPercent={sectionPercent("services")}
-    />,
-    <StaffScreeningCard
-      key="screening"
-      metadata={meta}
-      completionPercent={sectionPercent("screening")}
-    />,
-    <AboutCard
-      key="about"
-      profile={profile}
-      metadata={meta}
-      completionPercent={sectionPercent("about")}
-    />,
-    <PricingCard
-      key="pricing"
-      metadata={meta}
-      completionPercent={sectionPercent("pricing")}
-    />,
-    <PaymentInsuranceCard
-      key="payment"
-      metadata={meta}
-      completionPercent={sectionPercent("payment")}
-    />,
-  ];
+      meta={meta}
+      completeness={completeness}
+      sectionPercent={sectionPercent}
+      editingSection={editingSection}
+      setEditingSection={setEditingSection}
+      refreshAccountData={refreshAccountData}
+    />
+  );
+}
+
+// Extracted to a separate component so hooks (useGuidedOnboarding) can be called
+// after completeness is computed (hooks can't be called conditionally).
+function DashboardContent({
+  profile,
+  meta,
+  completeness,
+  sectionPercent,
+  editingSection,
+  setEditingSection,
+  refreshAccountData,
+}: {
+  profile: NonNullable<ReturnType<typeof useProviderProfile>>;
+  meta: ExtendedMetadata;
+  completeness: ReturnType<typeof calculateProfileCompleteness>;
+  sectionPercent: (id: string) => number;
+  editingSection: SectionId | null;
+  setEditingSection: (s: SectionId | null) => void;
+  refreshAccountData: () => Promise<void>;
+}) {
+  const guided = useGuidedOnboarding(completeness);
+
+  const handleEdit = useCallback(
+    (sectionId: SectionId) => setEditingSection(sectionId),
+    [setEditingSection]
+  );
+
+  const handleCloseModal = useCallback(() => {
+    setEditingSection(null);
+    if (guided.isGuidedActive) {
+      guided.stopGuided();
+    }
+  }, [setEditingSection, guided]);
+
+  const handleSaved = useCallback(async () => {
+    await refreshAccountData();
+    if (guided.isGuidedActive && editingSection) {
+      const next = guided.getNextSection(editingSection);
+      if (next) {
+        setEditingSection(next);
+      } else {
+        setEditingSection(null);
+        guided.stopGuided();
+      }
+    } else {
+      setEditingSection(null);
+    }
+  }, [refreshAccountData, guided, editingSection, setEditingSection]);
+
+  const handleGuidedBack = useCallback(() => {
+    if (editingSection) {
+      const prev = guided.getPrevSection(editingSection);
+      if (prev) {
+        setEditingSection(prev);
+      }
+    }
+  }, [editingSection, guided, setEditingSection]);
+
+  // Shared modal props
+  const modalProps = {
+    profile,
+    metadata: meta,
+    onClose: handleCloseModal,
+    onSaved: handleSaved,
+    guidedMode: guided.isGuidedActive,
+    guidedStep: editingSection ? guided.getStepNumber(editingSection) : 1,
+    guidedTotal: guided.totalSteps,
+    onGuidedBack: editingSection && guided.getPrevSection(editingSection)
+      ? handleGuidedBack
+      : undefined,
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <DashboardHeader slug={profile.slug} />
+
+      {/* Guided onboarding banner */}
+      {guided.shouldPrompt && !guided.isGuidedActive && (
+        <div
+          className="mb-6 bg-gradient-to-r from-primary-50 to-vanilla-50 rounded-2xl border border-primary-100/60 p-5 flex items-center justify-between"
+          style={{ animation: "card-enter 0.25s ease-out both" }}
+        >
+          <div>
+            <p className="text-[15px] font-semibold text-gray-900">
+              Complete your profile to attract more families
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              We&apos;ll guide you through each section step by step.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={guided.dismiss}
+              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Dismiss
+            </button>
+            <button
+              onClick={() => {
+                guided.startGuided();
+                if (guided.firstIncompleteSection) {
+                  setEditingSection(guided.firstIncompleteSection);
+                }
+              }}
+              className="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Main content — staggered entrance */}
         <div className="lg:col-span-2 space-y-6">
-          {cards.map((card, i) => (
+          {[
+            <ProfileOverviewCard
+              key="overview"
+              profile={profile}
+              completionPercent={sectionPercent("overview")}
+              onEdit={() => handleEdit("overview")}
+            />,
+            <GalleryCard
+              key="gallery"
+              metadata={meta}
+              completionPercent={sectionPercent("gallery")}
+              onEdit={() => handleEdit("gallery")}
+            />,
+            <CareServicesCard
+              key="services"
+              profile={profile}
+              completionPercent={sectionPercent("services")}
+              onEdit={() => handleEdit("services")}
+            />,
+            <StaffScreeningCard
+              key="screening"
+              metadata={meta}
+              completionPercent={sectionPercent("screening")}
+              onEdit={() => handleEdit("screening")}
+            />,
+            <AboutCard
+              key="about"
+              profile={profile}
+              metadata={meta}
+              completionPercent={sectionPercent("about")}
+              onEdit={() => handleEdit("about")}
+            />,
+            <PricingCard
+              key="pricing"
+              metadata={meta}
+              completionPercent={sectionPercent("pricing")}
+              onEdit={() => handleEdit("pricing")}
+            />,
+            <PaymentInsuranceCard
+              key="payment"
+              metadata={meta}
+              completionPercent={sectionPercent("payment")}
+              onEdit={() => handleEdit("payment")}
+            />,
+          ].map((card, i) => (
             <div
               key={i}
               style={{
@@ -144,6 +284,15 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Modals */}
+      {editingSection === "overview" && <EditOverviewModal {...modalProps} />}
+      {editingSection === "gallery" && <EditGalleryModal {...modalProps} />}
+      {editingSection === "services" && <EditCareServicesModal {...modalProps} />}
+      {editingSection === "screening" && <EditStaffScreeningModal {...modalProps} />}
+      {editingSection === "about" && <EditAboutModal {...modalProps} />}
+      {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
+      {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
     </div>
     </div>
   );

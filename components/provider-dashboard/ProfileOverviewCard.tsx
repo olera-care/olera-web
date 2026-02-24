@@ -36,11 +36,13 @@ function formatCategory(category: ProfileCategory | null): string | null {
 interface ProfileOverviewCardProps {
   profile: Profile;
   completionPercent: number;
+  onEdit?: () => void;
 }
 
 export default function ProfileOverviewCard({
   profile,
   completionPercent,
+  onEdit,
 }: ProfileOverviewCardProps) {
   const location = [profile.address, profile.city, profile.state]
     .filter(Boolean)
@@ -54,10 +56,9 @@ export default function ProfileOverviewCard({
       completionPercent={completionPercent}
       id="overview"
     >
-      {/* Custom header — replaces DashboardSectionCard's default title */}
-      <div className="-mt-5">
+      <div>
         {/* Provider identity */}
-        <div className="flex items-start gap-4 mb-5">
+        <div className="flex items-center gap-4 mb-5">
           {/* Avatar / Logo */}
           {profile.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -85,6 +86,27 @@ export default function ProfileOverviewCard({
               <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>
             )}
           </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+              aria-label="Edit profile overview"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+            </button>
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+              completionPercent >= 100
+                ? "bg-success-50 text-success-700"
+                : "bg-primary-50 text-primary-700"
+            }`}>
+              {completionPercent}%
+            </span>
+          </div>
         </div>
 
         {/* Contact Information */}
@@ -92,7 +114,7 @@ export default function ProfileOverviewCard({
           <h4 className="text-[15px] font-medium text-gray-700 mb-3">
             Contact Information
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <ContactRow
               icon="phone"
               label="Phone"
@@ -153,11 +175,11 @@ function ContactRow({
   value: string | null;
 }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-start gap-2.5 min-w-0">
       <div className="w-8 h-8 rounded-lg bg-vanilla-50 border border-warm-100/40 flex items-center justify-center shrink-0">
         {icon === "phone" && (
           <svg
-            className="w-4 h-4 text-gray-500"
+            className="w-4 h-4 text-warm-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -172,7 +194,7 @@ function ContactRow({
         )}
         {icon === "email" && (
           <svg
-            className="w-4 h-4 text-gray-500"
+            className="w-4 h-4 text-warm-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -187,7 +209,7 @@ function ContactRow({
         )}
         {icon === "website" && (
           <svg
-            className="w-4 h-4 text-gray-500"
+            className="w-4 h-4 text-warm-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -201,9 +223,9 @@ function ContactRow({
           </svg>
         )}
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-medium text-gray-500">{label}</p>
-        <p className={`text-[15px] ${value ? "text-gray-700" : "text-gray-400"}`}>
+        <p className={`text-[15px] truncate ${value ? "text-gray-700" : "text-gray-400"}`}>
           {value || "N/A"}
         </p>
       </div>

@@ -142,7 +142,7 @@ export function calculateProfileCompleteness(
     { id: "about", label: "About", percent: scoreAbout(profile) },
     {
       id: "payment",
-      label: "Bonded and Insured",
+      label: "Accepted Payments & Insurance",
       percent: scorePaymentInsurance(metadata),
     },
   ];

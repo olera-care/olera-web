@@ -40,13 +40,13 @@ export default function WizardNav({
         })}
       </div>
 
-      {/* Back / Next */}
-      <div className="max-w-3xl mx-auto px-6 py-5 flex justify-between items-center">
+      {/* Back / Next — matches the top nav's max-w-7xl container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
         {onBack ? (
           <button
             type="button"
             onClick={onBack}
-            className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
+            className="px-4 py-2 text-[15px] font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
           >
             Back
           </button>

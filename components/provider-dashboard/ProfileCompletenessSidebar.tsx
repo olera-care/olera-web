@@ -25,7 +25,7 @@ export default function ProfileCompletenessSidebar({
   });
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div className="bg-white rounded-xl border border-gray-100 p-6">
       {/* Header */}
       <h3 className="text-lg font-semibold text-gray-900 mb-5">
         Profile completeness
@@ -37,7 +37,7 @@ export default function ProfileCompletenessSidebar({
       </div>
 
       {/* Status text */}
-      <p className="text-center text-xs font-semibold tracking-widest uppercase text-gray-900 mb-1">
+      <p className="text-center text-xs font-semibold tracking-wide uppercase text-gray-900 mb-1">
         {getStatusText(completeness.overall)}
       </p>
       <p className="text-center text-xs text-gray-400 mb-6">
@@ -45,7 +45,7 @@ export default function ProfileCompletenessSidebar({
       </p>
 
       {/* CTA */}
-      <p className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">
+      <p className="text-[13px] font-medium text-gray-600 mb-4">
         Complete your profile to attract more clients
       </p>
 
@@ -60,7 +60,7 @@ export default function ProfileCompletenessSidebar({
             >
               <div className="flex items-center gap-2.5">
                 {isComplete ? (
-                  <div className="w-5 h-5 rounded-full bg-[#12B76A] flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center shrink-0">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="none"

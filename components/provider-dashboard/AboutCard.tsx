@@ -66,7 +66,7 @@ export default function AboutCard({
 function DetailPill({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-gray-50 rounded-lg px-3 py-2.5 text-center">
-      <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+      <p className="text-xs font-medium text-gray-500 mb-0.5">{label}</p>
       <p className="text-sm font-semibold text-gray-700">{value}</p>
     </div>
   );

@@ -50,7 +50,18 @@ export default function Navbar() {
   }, [user]);
 
   const isPortal = pathname.startsWith("/portal");
-  const isProviderPortal = pathname.startsWith("/provider");
+  const isProviderPortal =
+    pathname === "/provider" ||
+    pathname.startsWith("/provider/connections") ||
+    pathname.startsWith("/provider/inbox") ||
+    pathname.startsWith("/provider/onboarding") ||
+    pathname.startsWith("/provider/profile") ||
+    pathname.startsWith("/provider/reviews") ||
+    pathname.startsWith("/provider/matches") ||
+    pathname.startsWith("/provider/pro") ||
+    pathname.startsWith("/provider/statistics") ||
+    pathname.startsWith("/provider/verification") ||
+    pathname.startsWith("/provider/account");
   const isCommunity = pathname.startsWith("/community");
   const isMinimalNav = pathname.startsWith("/portal/inbox");
 

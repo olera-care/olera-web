@@ -34,14 +34,14 @@ export default function CareServicesList({
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            <span className="text-[16px] text-gray-700">{service}</span>
+            <span className="text-sm text-gray-700">{service}</span>
           </div>
         ))}
       </div>
       {needsExpand && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-primary-600 hover:text-primary-700 font-medium text-[16px] mt-4 transition-colors"
+          className="text-primary-600 hover:text-primary-700 font-medium text-sm mt-4 transition-colors"
         >
           {expanded ? "Show less" : "View more"}
         </button>

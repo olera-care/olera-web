@@ -1329,21 +1329,26 @@ export default function ProviderOnboardingPage() {
                       <label htmlFor="no-access-role" className="block text-base font-medium text-gray-700">
                         Your role
                       </label>
-                      <select
-                        id="no-access-role"
-                        value={noAccessReason}
-                        onChange={(e) => setNoAccessReason(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                      >
-                        <option value="">Select your role…</option>
-                        <option value="Owner">Owner</option>
-                        <option value="Administrator">Administrator</option>
-                        <option value="Executive Director">Executive Director</option>
-                        <option value="Office Manager">Office Manager</option>
-                        <option value="Marketing / Communications">Marketing / Communications</option>
-                        <option value="Staff Member">Staff Member</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          id="no-access-role"
+                          value={noAccessReason}
+                          onChange={(e) => setNoAccessReason(e.target.value)}
+                          className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
+                        >
+                          <option value="">Select your role…</option>
+                          <option value="Owner">Owner</option>
+                          <option value="Administrator">Administrator</option>
+                          <option value="Executive Director">Executive Director</option>
+                          <option value="Office Manager">Office Manager</option>
+                          <option value="Marketing / Communications">Marketing / Communications</option>
+                          <option value="Staff Member">Staff Member</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
                     </div>
 
                     <Input
@@ -1428,19 +1433,24 @@ export default function ProviderOnboardingPage() {
                   <label htmlFor="org-type" className="block text-base font-medium text-gray-700">
                     Organization type
                   </label>
-                  <select
-                    id="org-type"
-                    value={data.category}
-                    onChange={(e) => update("category", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                  >
-                    <option value="">Select a type</option>
-                    {ORG_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="org-type"
+                      value={data.category}
+                      onChange={(e) => update("category", e.target.value)}
+                      className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
+                    >
+                      <option value="">Select a type</option>
+                      {ORG_CATEGORIES.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
+                    <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               )}
 
@@ -1467,43 +1477,35 @@ export default function ProviderOnboardingPage() {
                   City
                 </label>
                 <div ref={cityPickerRef} className="relative">
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                      <svg className="w-4.5 h-4.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <input
-                      id="city-picker"
-                      type="text"
-                      role="combobox"
-                      aria-expanded={showCityPicker && cityPickerResults.length > 0}
-                      aria-autocomplete="list"
-                      aria-controls="city-picker-listbox"
-                      value={cityQuery || (data.city ? `${data.city}${data.state ? `, ${data.state}` : ""}` : "")}
-                      onChange={(e) => {
-                        setCityQuery(e.target.value);
-                        setShowCityPicker(true);
-                        // Clear selected city when user types
-                        if (data.city) {
-                          update("city", "");
-                          update("state", "");
-                        }
-                      }}
-                      onFocus={() => {
-                        preloadCityPicker();
-                        setShowCityPicker(true);
-                        // If showing a selected city, put it into query for editing
-                        if (data.city && !cityQuery) {
-                          setCityQuery(`${data.city}${data.state ? `, ${data.state}` : ""}`);
-                        }
-                      }}
-                      placeholder="Search for a city…"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
-                      autoComplete="off"
-                    />
-                  </div>
+                  <input
+                    id="city-picker"
+                    type="text"
+                    role="combobox"
+                    aria-expanded={showCityPicker && cityPickerResults.length > 0}
+                    aria-autocomplete="list"
+                    aria-controls="city-picker-listbox"
+                    value={cityQuery || (data.city ? `${data.city}${data.state ? `, ${data.state}` : ""}` : "")}
+                    onChange={(e) => {
+                      setCityQuery(e.target.value);
+                      setShowCityPicker(true);
+                      // Clear selected city when user types
+                      if (data.city) {
+                        update("city", "");
+                        update("state", "");
+                      }
+                    }}
+                    onFocus={() => {
+                      preloadCityPicker();
+                      setShowCityPicker(true);
+                      // If showing a selected city, put it into query for editing
+                      if (data.city && !cityQuery) {
+                        setCityQuery(`${data.city}${data.state ? `, ${data.state}` : ""}`);
+                      }
+                    }}
+                    placeholder="Search for a city…"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
+                    autoComplete="off"
+                  />
 
                   {/* City suggestions dropdown */}
                   {showCityPicker && cityPickerResults.length > 0 && (
@@ -1540,13 +1542,12 @@ export default function ProviderOnboardingPage() {
               </div>
 
               <Input
-                label="ZIP code"
+                label="ZIP code (Optional)"
                 value={data.zip}
                 onChange={(e) =>
                   update("zip", (e.target as HTMLInputElement).value)
                 }
                 placeholder="e.g. 94102"
-                helpText="Optional"
               />
             </div>
           </div>
@@ -1588,14 +1589,13 @@ export default function ProviderOnboardingPage() {
               />
 
               <Input
-                label="Website"
+                label="Website (Optional)"
                 type="url"
                 value={data.website}
                 onChange={(e) =>
                   update("website", (e.target as HTMLInputElement).value)
                 }
                 placeholder="https://example.com"
-                helpText="Optional"
               />
             </div>
           </div>

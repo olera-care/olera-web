@@ -121,7 +121,7 @@ export default function ProfileOverviewCard({
 
         {/* Contact Information */}
         <div className="border-t border-gray-100 pt-5 mb-5">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
             Contact Information
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -145,7 +145,7 @@ export default function ProfileOverviewCard({
 
         {/* Care categories */}
         <div className="border-t border-gray-100 pt-5">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
             Care categories
           </h4>
           {profile.care_types && profile.care_types.length > 0 ? (
@@ -165,7 +165,7 @@ export default function ProfileOverviewCard({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               No care categories added yet.
             </p>
           )}
@@ -234,7 +234,7 @@ function ContactRow({
         )}
       </div>
       <div>
-        <p className="text-xs text-gray-400">{label}</p>
+        <p className="text-xs font-medium text-gray-500">{label}</p>
         <p className={`text-sm ${value ? "text-gray-700" : "text-gray-400"}`}>
           {value || "N/A"}
         </p>

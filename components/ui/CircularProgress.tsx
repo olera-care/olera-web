@@ -31,7 +31,7 @@ export default function CircularProgress({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="#F2F4F7"
+        className="stroke-gray-100"
         strokeWidth={strokeWidth}
       />
       {/* Progress arc */}
@@ -40,13 +40,12 @@ export default function CircularProgress({
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke="#0891b2"
+        className="stroke-primary-600 transition-all duration-700 ease-out"
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeDasharray={circumference}
         strokeDashoffset={offset}
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        className="transition-all duration-700 ease-out"
       />
       {/* Center text */}
       <text
@@ -54,8 +53,7 @@ export default function CircularProgress({
         y="50%"
         dominantBaseline="central"
         textAnchor="middle"
-        className="text-2xl font-bold"
-        fill="#101828"
+        className="text-2xl font-bold fill-gray-900"
       >
         {percent}%
       </text>

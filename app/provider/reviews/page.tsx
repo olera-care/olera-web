@@ -144,7 +144,7 @@ export default function ProviderReviewsPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           <div className="lg:col-span-2">
-            <div className="animate-pulse bg-white rounded-xl border border-gray-200 p-6">
+            <div className="animate-pulse bg-white rounded-xl border border-gray-100 p-6">
               <div className="h-5 w-28 bg-gray-200 rounded mb-3" />
               <div className="h-3.5 w-full bg-gray-100 rounded mb-6" />
               <div className="h-10 bg-gray-100 rounded-lg mb-6" />
@@ -196,7 +196,7 @@ export default function ProviderReviewsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         {/* ── Left: Get Reviews card ── */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="bg-white rounded-xl border border-gray-100 p-6">
             <h2 className="text-[15px] font-semibold text-gray-900 mb-1">
               Get Reviews
             </h2>

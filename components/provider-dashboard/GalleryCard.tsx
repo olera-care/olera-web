@@ -53,7 +53,7 @@ export default function GalleryCard({
                 />
               </svg>
             </div>
-            <span className="text-xs text-gray-400 font-medium">
+            <span className="text-xs font-medium text-gray-500">
               Add new photos
             </span>
           </div>

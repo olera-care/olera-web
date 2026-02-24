@@ -85,7 +85,7 @@ function TierProgressCard({
           <h2 className="text-[15px] font-semibold text-gray-900">
             Level {currentTier}: {TIER_LABELS[currentTier]}
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-[15px] text-gray-500 mt-0.5">
             {subtitles[currentTier]}
           </p>
         </div>
@@ -113,7 +113,7 @@ function TierProgressCard({
         {([1, 2, 3] as VerificationTier[]).map((tier) => (
           <span
             key={tier}
-            className={`flex-1 text-[11px] ${
+            className={`flex-1 text-xs ${
               tier === 1 ? "text-left" : tier === 2 ? "text-center" : "text-right"
             } ${
               tier <= currentTier
@@ -139,10 +139,10 @@ function StepRow({ step }: { step: VerificationStep }) {
       <div className="flex items-center gap-4 px-5 py-4">
         <div className="w-8 h-8 rounded-full border-2 border-dashed border-gray-200 shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-400">{step.label}</p>
-          <p className="text-xs text-gray-300 mt-0.5">{step.description}</p>
+          <p className="text-[15px] font-medium text-gray-400">{step.label}</p>
+          <p className="text-sm text-gray-300 mt-0.5">{step.description}</p>
         </div>
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
+        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded shrink-0">
           Soon
         </span>
       </div>
@@ -156,10 +156,10 @@ function StepRow({ step }: { step: VerificationStep }) {
           <CheckIcon className="w-4 h-4 text-emerald-600" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900">{step.label}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{step.description}</p>
+          <p className="text-[15px] font-medium text-gray-900">{step.label}</p>
+          <p className="text-sm text-gray-400 mt-0.5">{step.description}</p>
         </div>
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 shrink-0">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 shrink-0">
           Done
         </span>
       </div>
@@ -171,8 +171,8 @@ function StepRow({ step }: { step: VerificationStep }) {
     <div className="flex items-center gap-4 px-5 py-4">
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900">{step.label}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{step.description}</p>
+        <p className="text-[15px] font-medium text-gray-900">{step.label}</p>
+        <p className="text-sm text-gray-500 mt-0.5">{step.description}</p>
       </div>
       {step.href && (
         <Link
@@ -212,11 +212,11 @@ function TierStepGroup({
           {label}
         </h2>
         {comingSoon ? (
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+          <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
             Coming soon
           </span>
         ) : allComplete ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
             <CheckIcon className="w-3 h-3" />
             Complete
           </span>
@@ -268,8 +268,8 @@ function BenefitsSection() {
               {b.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900">{b.title}</p>
-              <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+              <p className="text-[15px] font-medium text-gray-900">{b.title}</p>
+              <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">
                 {b.desc}
               </p>
             </div>
@@ -372,10 +372,10 @@ export default function ProviderVerificationPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900">
           Identity Verification
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-[15px] text-gray-500 mt-1">
           Build trust with families by completing your verification.
         </p>
       </div>
@@ -387,7 +387,7 @@ export default function ProviderVerificationPage() {
         />
 
         {/* Section label */}
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-5">
+        <p className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-5">
           Verification steps
         </p>
 

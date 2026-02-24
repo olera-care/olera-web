@@ -175,8 +175,8 @@ export default function ProviderMatchesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-gray-900">Matches</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900">Matches</h1>
+          <p className="text-[15px] text-gray-500 mt-1">
             Discover families looking for care in your area
           </p>
         </div>
@@ -192,7 +192,7 @@ export default function ProviderMatchesPage() {
           <h3 className="text-base font-semibold text-gray-900">
             No families found
           </h3>
-          <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[360px]">
+          <p className="text-[15px] text-gray-500 mt-2 leading-relaxed max-w-[360px]">
             When families publish care posts looking for providers like you,
             they&apos;ll appear here. Check back soon.
           </p>
@@ -232,7 +232,7 @@ export default function ProviderMatchesPage() {
       {/* Already contacted section */}
       {contactedFamilies.length > 0 && (
         <div className="mt-8">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-4">
+          <p className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-4">
             Already contacted &middot; {contactedFamilies.length}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -285,22 +285,22 @@ function FamilyCareCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2 mb-0.5">
             {timeline && (
-              <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="inline-flex items-center gap-1.5 text-sm text-gray-400">
                 <span className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`} />
                 {timeline.label}
               </span>
             )}
             {publishedAt && (
-              <span className="text-[11px] text-gray-400 shrink-0">
+              <span className="text-xs text-gray-400 shrink-0">
                 {timeAgo(publishedAt)}
               </span>
             )}
           </div>
-          <h3 className="text-sm font-medium text-gray-900 truncate">
+          <h3 className="text-[15px] font-medium text-gray-900 truncate">
             {hasFullAccess ? displayName : blurName(displayName)}
           </h3>
           {locationStr && (
-            <p className="text-xs text-gray-400 truncate">
+            <p className="text-sm text-gray-500 truncate">
               {hasFullAccess ? locationStr : "***"}
             </p>
           )}
@@ -313,13 +313,13 @@ function FamilyCareCard({
           {careNeeds.slice(0, 3).map((need) => (
             <span
               key={need}
-              className="text-[11px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full"
+              className="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full"
             >
               {need}
             </span>
           ))}
           {careNeeds.length > 3 && (
-            <span className="text-[11px] text-gray-400">
+            <span className="text-xs text-gray-400">
               +{careNeeds.length - 3} more
             </span>
           )}
@@ -328,21 +328,21 @@ function FamilyCareCard({
 
       {/* About situation snippet */}
       {aboutSituation && hasFullAccess && (
-        <p className="text-[13px] text-gray-500 leading-relaxed mb-3 line-clamp-2">
+        <p className="text-sm text-gray-500 leading-relaxed mb-3 line-clamp-2">
           {aboutSituation}
         </p>
       )}
 
       {/* Relationship */}
       {relationship && !aboutSituation && (
-        <p className="text-xs text-gray-400 mb-3">
+        <p className="text-sm text-gray-400 mb-3">
           Care for <span className="text-gray-600">{relationship}</span>
         </p>
       )}
 
       {/* Upgrade hint for free tier */}
       {!hasFullAccess && (
-        <p className="text-[11px] text-amber-600 font-medium mb-3">
+        <p className="text-xs text-amber-600 font-medium mb-3">
           Upgrade to view full details
         </p>
       )}

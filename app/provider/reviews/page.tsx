@@ -187,8 +187,8 @@ export default function ProviderReviewsPage() {
 
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-gray-900">Reviews</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900">Reviews</h1>
+        <p className="text-[15px] text-gray-500 mt-1">
           Collect and showcase feedback from families and clients
         </p>
       </div>
@@ -200,16 +200,16 @@ export default function ProviderReviewsPage() {
             <h2 className="text-[15px] font-semibold text-gray-900 mb-1">
               Get Reviews
             </h2>
-            <p className="text-[13px] text-gray-500 mb-5 leading-relaxed">
+            <p className="text-sm text-gray-500 mb-5 leading-relaxed">
               Share your review link with past or current clients to collect feedback.
             </p>
 
             {/* Review link */}
-            <label className="text-xs font-medium text-gray-500 mb-1.5 block">
+            <label className="text-sm font-medium text-gray-500 mb-1.5 block">
               Your review link
             </label>
             <div className="flex items-center gap-2">
-              <div className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] text-gray-600 truncate select-all">
+              <div className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-600 truncate select-all">
                 {reviewUrl || `olera.co/provider/${profile.slug}`}
               </div>
               <button
@@ -241,13 +241,13 @@ export default function ProviderReviewsPage() {
             <h3 className="text-[15px] font-semibold text-gray-900 mb-1">
               Quick send
             </h3>
-            <p className="text-[13px] text-gray-500 mb-4 leading-relaxed">
+            <p className="text-sm text-gray-500 mb-4 leading-relaxed">
               Email a review request directly from your email client.
             </p>
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">
+                <label className="text-sm font-medium text-gray-500 mb-1 block">
                   Recipient name <span className="text-gray-300 font-normal">(optional)</span>
                 </label>
                 <input
@@ -259,7 +259,7 @@ export default function ProviderReviewsPage() {
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">
+                <label className="text-sm font-medium text-gray-500 mb-1 block">
                   Recipient email
                 </label>
                 <input
@@ -308,7 +308,7 @@ export default function ProviderReviewsPage() {
                       />
                     ))}
                   </div>
-                  <p className="text-[13px] text-gray-500">
+                  <p className="text-sm text-gray-500">
                     {reviewCount} review{reviewCount !== 1 ? "s" : ""}
                   </p>
                 </div>
@@ -338,10 +338,10 @@ export default function ProviderReviewsPage() {
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-[15px] font-medium text-gray-900 truncate">
                               {review.name}
                             </p>
-                            <p className="text-xs text-gray-400">{review.date}</p>
+                            <p className="text-sm text-gray-400">{review.date}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-0.5 shrink-0 ml-2">
@@ -359,13 +359,13 @@ export default function ProviderReviewsPage() {
 
                       {/* Relationship */}
                       {review.relationship && (
-                        <span className="inline-block text-[11px] font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full mb-2">
+                        <span className="inline-block text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full mb-2">
                           {review.relationship}
                         </span>
                       )}
 
                       {/* Comment */}
-                      <p className="text-[13px] text-gray-600 leading-relaxed">
+                      <p className="text-sm text-gray-600 leading-relaxed">
                         {review.comment}
                       </p>
                     </div>
@@ -385,7 +385,7 @@ export default function ProviderReviewsPage() {
               <h3 className="text-base font-semibold text-gray-900">
                 No reviews yet
               </h3>
-              <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[340px]">
+              <p className="text-[15px] text-gray-500 mt-2 leading-relaxed max-w-[340px]">
                 Reviews help families feel confident about choosing you. Share your
                 review link to start collecting feedback.
               </p>

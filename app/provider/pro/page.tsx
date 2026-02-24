@@ -305,8 +305,8 @@ export default function OleraProPage() {
         <div className="max-w-3xl">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-xl font-semibold text-gray-900">Olera Pro</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900">Olera Pro</h1>
+            <p className="text-[15px] text-gray-500 mt-1">
               Manage your subscription and see what&apos;s included.
             </p>
           </div>
@@ -346,7 +346,7 @@ export default function OleraProPage() {
                       Active
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-[15px] text-gray-500 mt-0.5">
                     {membership?.billing_cycle === "annual" ? "Annual" : "Monthly"}{" "}
                     billing
                     {nextBillingDate && (
@@ -357,7 +357,7 @@ export default function OleraProPage() {
               </div>
               <a
                 href="/portal/settings"
-                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                className="text-[15px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Manage subscription &rarr;
               </a>
@@ -373,7 +373,7 @@ export default function OleraProPage() {
               {PRO_FEATURE_LIST.map((text) => (
                 <div key={text} className="flex items-center gap-2.5">
                   <FeatureCheck included />
-                  <span className="text-sm text-gray-700">{text}</span>
+                  <span className="text-[15px] text-gray-700">{text}</span>
                 </div>
               ))}
             </div>
@@ -392,8 +392,8 @@ export default function OleraProPage() {
         <div className="max-w-3xl">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-xl font-semibold text-gray-900">Olera Pro</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900">Olera Pro</h1>
+            <p className="text-[15px] text-gray-500 mt-1">
               Re-subscribe to unlock all Pro features.
             </p>
           </div>
@@ -410,7 +410,7 @@ export default function OleraProPage() {
                 <p className="text-[15px] font-semibold text-gray-900">
                   {isPastDue ? "Payment issue" : "Subscription ended"}
                 </p>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-[15px] text-gray-500 mt-0.5">
                   {isPastDue
                     ? "We couldn\u2019t process your last payment. Update your payment method to keep Pro features."
                     : "Your Pro plan has been canceled. Re-subscribe to regain access."}
@@ -428,7 +428,7 @@ export default function OleraProPage() {
               {PRO_FEATURE_LIST.map((text) => (
                 <div key={text} className="flex items-center gap-2.5">
                   <FeatureCheck included={false} />
-                  <span className="text-sm text-gray-500">{text}</span>
+                  <span className="text-[15px] text-gray-500">{text}</span>
                 </div>
               ))}
             </div>
@@ -439,7 +439,7 @@ export default function OleraProPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
               Pick up where you left off
             </h2>
-            <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+            <p className="text-[15px] text-gray-500 mb-6 max-w-sm mx-auto">
               Re-subscribe to unlock unlimited leads, review tools, and
               analytics.
             </p>
@@ -455,7 +455,7 @@ export default function OleraProPage() {
                 Re-subscribe to Pro
               </Button>
             </div>
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="text-sm text-gray-400 mt-3">
               Cancel anytime. No penalties.
             </p>
           </div>
@@ -472,7 +472,7 @@ export default function OleraProPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">Olera Pro</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Olera Pro</h1>
           {isTrial && trialDaysLeft !== null && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
               <span className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
@@ -480,7 +480,7 @@ export default function OleraProPage() {
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-[15px] text-gray-500 mt-1">
           Everything you need to grow your care business online.
         </p>
       </div>
@@ -520,8 +520,8 @@ export default function OleraProPage() {
               <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600 mb-3">
                 {b.icon}
               </div>
-              <h3 className="text-sm font-semibold text-gray-900">{b.title}</h3>
-              <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">
+              <h3 className="text-[15px] font-semibold text-gray-900">{b.title}</h3>
+              <p className="text-sm text-gray-500 mt-1 leading-relaxed">
                 {b.desc}
               </p>
             </div>
@@ -541,7 +541,7 @@ export default function OleraProPage() {
                   Current plan
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mt-1">Free forever</p>
+              <p className="text-[15px] text-gray-500 mt-1">Free forever</p>
             </div>
             <div className="space-y-3">
               {PLAN_FEATURES.map((f) => {
@@ -553,7 +553,7 @@ export default function OleraProPage() {
                   <div key={f.text} className="flex items-center gap-2.5">
                     <FeatureCheck included={included} />
                     <span
-                      className={`text-sm ${included ? "text-gray-700" : "text-gray-400"}`}
+                      className={`text-[15px] ${included ? "text-gray-700" : "text-gray-400"}`}
                     >
                       {label}
                     </span>
@@ -575,7 +575,7 @@ export default function OleraProPage() {
             </div>
             <div className="mb-5 pb-5 border-b border-gray-100">
               <h3 className="text-[15px] font-semibold text-gray-900">Pro</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-[15px] text-gray-500 mt-1">
                 ${billingCycle === "monthly" ? "25/mo" : "249/yr"}
                 {billingCycle === "annual" && (
                   <span className="text-primary-600 font-medium">
@@ -628,7 +628,7 @@ export default function OleraProPage() {
                     onClick={() => setFaqOpen(isOpen ? null : i)}
                     className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
                   >
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-[15px] font-medium text-gray-900">
                       {item.q}
                     </span>
                     <ChevronIcon open={isOpen} />
@@ -640,7 +640,7 @@ export default function OleraProPage() {
                     }}
                   >
                     <div className="overflow-hidden">
-                      <p className="px-5 pb-4 text-sm text-gray-500 leading-relaxed">
+                      <p className="px-5 pb-4 text-[15px] text-gray-500 leading-relaxed">
                         {item.a}
                       </p>
                     </div>
@@ -656,14 +656,14 @@ export default function OleraProPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">
             Ready to grow your business?
           </h2>
-          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+          <p className="text-[15px] text-gray-500 mb-6 max-w-sm mx-auto">
             Join providers who are filling their calendars with Olera Pro.
           </p>
           <Button onClick={handleSubscribe} loading={subscribing} size="md">
             Subscribe to Pro &mdash; $
             {billingCycle === "monthly" ? "25/mo" : "249/yr"}
           </Button>
-          <p className="text-xs text-gray-400 mt-3">
+          <p className="text-sm text-gray-400 mt-3">
             Cancel anytime. No long-term contracts.
           </p>
         </div>

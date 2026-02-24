@@ -86,18 +86,18 @@ function StatCard({
         >
           {icon}
         </div>
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">
           {label}
         </span>
         {comingSoon && (
-          <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+          <span className="ml-auto text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
             Soon
           </span>
         )}
       </div>
 
       {comingSoon ? (
-        <p className="text-sm text-gray-300 font-medium">Coming soon</p>
+        <p className="text-[15px] text-gray-300 font-medium">Coming soon</p>
       ) : locked ? (
         <div className="flex items-center gap-2">
           <div className="text-2xl font-bold text-gray-200 blur-[5px] select-none pointer-events-none" aria-hidden>
@@ -118,7 +118,7 @@ function StatCard({
       )}
 
       {subtitle && !comingSoon && !locked && (
-        <p className="text-xs text-gray-400 mt-1">{subtitle}</p>
+        <p className="text-sm text-gray-400 mt-1">{subtitle}</p>
       )}
     </div>
   );
@@ -144,7 +144,7 @@ function MonthlyChart({
         const pct = maxCount > 0 ? (d.count / maxCount) * 100 : 0;
         return (
           <div key={d.month} className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-500 w-8 shrink-0 text-right">
+            <span className="text-sm text-gray-500 w-8 shrink-0 text-right">
               {d.label}
             </span>
             <div className="flex-1 h-[22px] bg-gray-50 rounded-full overflow-hidden">
@@ -155,7 +155,7 @@ function MonthlyChart({
                 />
               )}
             </div>
-            <span className="text-[13px] font-medium text-gray-700 w-8 text-right tabular-nums">
+            <span className="text-sm font-medium text-gray-700 w-8 text-right tabular-nums">
               {d.count}
             </span>
           </div>
@@ -170,7 +170,7 @@ function MonthlyChart({
         <h2 className="text-[15px] font-semibold text-gray-900">
           Monthly inquiries
         </h2>
-        <p className="text-xs text-gray-400 mt-0.5">Last 6 months</p>
+        <p className="text-sm text-gray-400 mt-0.5">Last 6 months</p>
       </div>
 
       {locked ? (
@@ -183,7 +183,7 @@ function MonthlyChart({
               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <LockIcon className="w-4 h-4 text-gray-400" />
               </div>
-              <p className="text-sm font-medium text-gray-700 mb-1">
+              <p className="text-[15px] font-medium text-gray-700 mb-1">
                 Unlock activity insights
               </p>
               <Link
@@ -202,8 +202,8 @@ function MonthlyChart({
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
             </svg>
           </div>
-          <p className="text-sm font-medium text-gray-700">No activity yet</p>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-[15px] font-medium text-gray-700">No activity yet</p>
+          <p className="text-sm text-gray-400 mt-1">
             Activity will appear here as families connect with you.
           </p>
         </div>
@@ -237,7 +237,7 @@ function ProfileHealthCard({
         <h2 className="text-[15px] font-semibold text-gray-900">
           Profile health
         </h2>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-sm text-gray-400 mt-0.5">
           Complete profiles receive more inquiries
         </p>
       </div>
@@ -287,7 +287,7 @@ function ProfileHealthCard({
                 ) : (
                   <div className="w-4 h-4 rounded-full border-2 border-gray-200 shrink-0" />
                 )}
-                <span className={`text-xs ${done ? "text-gray-700" : "text-gray-400"}`}>
+                <span className={`text-sm ${done ? "text-gray-700" : "text-gray-400"}`}>
                   {s.label}
                 </span>
               </div>
@@ -298,7 +298,7 @@ function ProfileHealthCard({
 
       <Link
         href="/provider"
-        className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+        className="text-[15px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
       >
         Improve your profile &rarr;
       </Link>
@@ -353,10 +353,10 @@ function ConnectionBreakdown({
         {segments.map((s) => (
           <div key={s.label} className="flex items-center gap-1.5">
             <div className={`w-2 h-2 rounded-full ${s.dot}`} />
-            <span className={`text-xs font-medium ${s.text}`}>
+            <span className={`text-sm font-medium ${s.text}`}>
               {s.label}
             </span>
-            <span className="text-xs text-gray-400 tabular-nums">{s.count}</span>
+            <span className="text-sm text-gray-400 tabular-nums">{s.count}</span>
           </div>
         ))}
       </div>
@@ -458,8 +458,8 @@ export default function ProviderStatisticsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-gray-900">Statistics</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900">Statistics</h1>
+        <p className="text-[15px] text-gray-500 mt-1">
           Track how your listing is performing on Olera.
         </p>
       </div>

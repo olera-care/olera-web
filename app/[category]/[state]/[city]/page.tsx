@@ -118,8 +118,8 @@ export default async function CityPage({
 
       {/* Hero — server-rendered for SEO */}
       <div className="bg-vanilla-100 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+          <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
             <Link href="/" className="hover:text-primary-600 transition-colors">Home</Link>
             <span>/</span>
             <Link href={`/${catSlug}`} className="hover:text-primary-600 transition-colors">{config.displayName}</Link>
@@ -129,21 +129,21 @@ export default async function CityPage({
             <span className="text-gray-900 font-medium">{cityName}</span>
           </nav>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 font-serif">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif">
             {config.displayName} in {cityName}, {abbrev}
           </h1>
-          <p className="mt-3 text-lg text-gray-600 max-w-3xl">
-            Find and compare {config.displayName.toLowerCase()} providers in {cityName}, {stateName}. Read reviews, check pricing, and connect with top-rated {config.displayName.toLowerCase()} options.
+          <p className="mt-2 text-base text-gray-500 max-w-2xl">
+            Compare {config.displayName.toLowerCase()} providers in {cityName}, {stateName}. Read reviews, check pricing, and connect with top-rated options.
           </p>
 
           {data && (
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+            <div className="mt-3 flex flex-wrap gap-3 text-sm text-gray-500">
               <span className="inline-flex items-center gap-1.5">
-                <span className="font-semibold text-gray-900">{data.totalCount.toLocaleString()}</span> provider{data.totalCount !== 1 ? "s" : ""} in {cityName}
+                <span className="font-semibold text-gray-900">{data.totalCount.toLocaleString()}</span> provider{data.totalCount !== 1 ? "s" : ""}
               </span>
               {data.avgLowerPrice && data.avgUpperPrice && (
                 <span className="inline-flex items-center gap-1.5">
-                  Average cost: <span className="font-semibold text-gray-900">${data.avgLowerPrice.toLocaleString()} - ${data.avgUpperPrice.toLocaleString()}</span>
+                  Avg. cost: <span className="font-semibold text-gray-900">${data.avgLowerPrice.toLocaleString()} - ${data.avgUpperPrice.toLocaleString()}</span>
                 </span>
               )}
             </div>

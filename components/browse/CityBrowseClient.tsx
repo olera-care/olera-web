@@ -833,15 +833,22 @@ export default function CityBrowseClient({
       <div className="lg:mr-[45%]">
         {/* Left Panel — Provider List */}
         <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
-          {/* Heading + Sort */}
+          {/* Count + Sort */}
           <div className="relative z-20">
-            <div className="flex items-baseline justify-between gap-4 mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold font-serif text-gray-900">
-                {isLoadingProviders
-                  ? ""
-                  : `${filteredProviders.length} `}
-                {careTypeLabel} in {searchLocation || "your area"}
-              </h2>
+            <div className="flex items-center justify-between gap-4 mb-5">
+              <p className="text-sm text-gray-500">
+                {isLoadingProviders ? (
+                  <span className="inline-block w-24 h-4 bg-gray-200 rounded animate-pulse" />
+                ) : (
+                  <>
+                    <span className="font-semibold text-gray-900">{filteredProviders.length}</span>
+                    {" "}{filteredProviders.length === 1 ? "provider" : "providers"}
+                    {hasActiveFilters && searchLocation !== initialLocation && (
+                      <> in {searchLocation}</>
+                    )}
+                  </>
+                )}
+              </p>
 
               {/* Sort Dropdown */}
               <div className="relative dropdown-container flex-shrink-0">

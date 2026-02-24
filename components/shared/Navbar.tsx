@@ -196,8 +196,8 @@ export default function Navbar() {
             <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
               <button
                 type="button"
-                onClick={async () => {
-                  if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                onClick={() => {
+                  if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                   setIsUserMenuOpen(false);
                   router.push("/");
                 }}
@@ -212,9 +212,9 @@ export default function Navbar() {
               </button>
               <button
                 type="button"
-                onClick={async () => {
+                onClick={() => {
                   if (hasProviderProfile && providerProfileId) {
-                    await switchProfile(providerProfileId);
+                    switchProfile(providerProfileId);
                     setIsUserMenuOpen(false);
                     router.push("/provider");
                   } else if (hasAttemptedOnboarding) {
@@ -621,8 +621,8 @@ export default function Navbar() {
                     {user && (
                       <button
                         type="button"
-                        onClick={async () => {
-                          if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                        onClick={() => {
+                          if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                           router.push("/");
                         }}
                         className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
@@ -817,8 +817,8 @@ export default function Navbar() {
                     })}
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                      onClick={() => {
+                        if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                         setIsMobileMenuOpen(false);
                         router.push("/");
                       }}
@@ -944,8 +944,8 @@ export default function Navbar() {
                         <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                           <button
                             type="button"
-                            onClick={async () => {
-                              if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                            onClick={() => {
+                              if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                               setIsMobileMenuOpen(false);
                               router.push("/");
                             }}
@@ -960,9 +960,9 @@ export default function Navbar() {
                           </button>
                           <button
                             type="button"
-                            onClick={async () => {
+                            onClick={() => {
                               if (hasProviderProfile && providerProfileId) {
-                                await switchProfile(providerProfileId);
+                                switchProfile(providerProfileId);
                                 setIsMobileMenuOpen(false);
                                 router.push("/provider");
                               } else if (hasAttemptedOnboarding) {

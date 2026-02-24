@@ -83,15 +83,18 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-200 mt-auto pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-500 text-[15px]">
             &copy; {new Date().getFullYear()} Olera. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="text-gray-400 hover:text-gray-600 text-sm transition-colors">
+            <Link href="/privacy" className="text-gray-500 hover:text-gray-700 text-[15px] transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="text-gray-400 hover:text-gray-600 text-sm transition-colors">
+            <Link href="/terms" className="text-gray-500 hover:text-gray-700 text-[15px] transition-colors">
               Terms
+            </Link>
+            <Link href="/support" className="text-gray-500 hover:text-gray-700 text-[15px] transition-colors">
+              Support
             </Link>
           </div>
         </div>

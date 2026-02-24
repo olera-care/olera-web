@@ -78,7 +78,7 @@ interface AuthContextValue extends AuthState {
   closeUnifiedAuth: () => void;
   signOut: (onComplete?: () => void) => Promise<void>;
   refreshAccountData: () => Promise<void>;
-  switchProfile: (profileId: string) => Promise<void>;
+  switchProfile: (profileId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -604,6 +604,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         localStorage.removeItem("olera_provider_wizard_data");
         localStorage.removeItem("olera_onboarding_step");
         localStorage.removeItem("olera_onboarding_search");
+        localStorage.removeItem("olera_onboarding_claim");
       } catch {
         /* ignore */
       }
@@ -651,26 +652,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, [fetchAccountData]);
 
   /**
-   * Switch the active profile. Uses refs to avoid stale closures.
+   * Switch the active profile. Optimistic-first: updates local state
+   * immediately so callers can navigate without waiting, then persists
+   * to DB and refreshes in the background.
    */
   const switchProfile = useCallback(
-    async (profileId: string) => {
+    (profileId: string) => {
       const userId = userIdRef.current;
       const accountId = accountIdRef.current;
       if (!userId || !accountId || !configured) return;
 
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("accounts")
-        .update({ active_profile_id: profileId })
-        .eq("id", accountId);
-
-      if (error) {
-        console.error("Failed to switch profile:", error.message);
-        return;
-      }
-
-      // Optimistic local update
+      // Optimistic local update — instant
       setState((prev) => {
         const newActive =
           prev.profiles.find((p) => p.id === profileId) || null;
@@ -683,7 +675,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         };
       });
 
-      await refreshAccountData();
+      // DB write + refresh in the background (fire-and-forget)
+      const supabase = createClient();
+      (async () => {
+        try {
+          const { error } = await supabase
+            .from("accounts")
+            .update({ active_profile_id: profileId })
+            .eq("id", accountId);
+          if (error) console.error("Failed to switch profile:", error.message);
+          await refreshAccountData();
+        } catch {
+          // Background sync failed — optimistic state still holds
+        }
+      })();
     },
     [configured, refreshAccountData]
   );

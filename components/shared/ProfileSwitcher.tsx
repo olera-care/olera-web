@@ -54,9 +54,9 @@ export default function ProfileSwitcher({
 
   const hasMultipleProfiles = visibleProfiles.length > 1;
 
-  const handleSwitch = async (profileId: string) => {
+  const handleSwitch = (profileId: string) => {
     if (profileId === activeProfile?.id) return;
-    await switchProfile(profileId);
+    switchProfile(profileId);
     onSwitch?.();
     router.push(navigateTo);
   };

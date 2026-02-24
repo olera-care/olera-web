@@ -33,7 +33,7 @@ export default function UnifiedAuthModal({
   options = {},
 }: UnifiedAuthModalProps) {
   const router = useRouter();
-  const { user, account, refreshAccountData } = useAuth();
+  const { user, account } = useAuth();
 
   // Determine initial step
   const getInitialStep = useCallback((): AuthStep => {
@@ -401,37 +401,50 @@ export default function UnifiedAuthModal({
   // ──────────────────────────────────────────────────────────
 
   const handleAuthComplete = async () => {
-    // Refresh auth context to pick up account data
-    await refreshAccountData();
+    // AuthProvider's onAuthStateChange SIGNED_IN listener calls
+    // fetchAccountData() automatically when setSession() fires —
+    // no need to await refreshAccountData() here (saves ~600ms).
 
-    // Check if user has a completed profile
-    // Re-read from Supabase since refreshAccountData is async and state might not be updated yet
-    if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        const { data: acct } = await supabase
-          .from("accounts")
-          .select("onboarding_completed")
-          .eq("user_id", currentUser.id)
-          .single();
-
-        if (acct?.onboarding_completed) {
-          // Existing user with profile — close modal
-          onClose();
-          return;
-        }
+    // New signups always need onboarding. Skip the DB check entirely —
+    // the accounts row may not even exist yet (DB trigger delay).
+    if (otpContext === "signup") {
+      if (options.intent === "provider") {
+        onClose();
+        router.push("/provider/onboarding");
+        return;
       }
+      setStep("post-auth");
+      return;
     }
 
-    // Provider intent — hand off to full-page onboarding wizard
+    // Provider intent — route straight to onboarding wizard
     if (options.intent === "provider") {
       onClose();
       router.push("/provider/onboarding");
       return;
     }
 
-    // New user — show post-auth onboarding
+    // Returning user (sign-in) — one lightweight query to check onboarding.
+    // Use getSession() (local cookie read) instead of getUser() (network call)
+    // since we just set the session moments ago.
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: acct } = await supabase
+          .from("accounts")
+          .select("onboarding_completed")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (acct?.onboarding_completed) {
+          onClose();
+          return;
+        }
+      }
+    }
+
+    // Returning user without completed onboarding
     setStep("post-auth");
   };
 

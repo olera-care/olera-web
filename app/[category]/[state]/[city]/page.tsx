@@ -116,8 +116,8 @@ export default async function CityPage({
         />
       )}
 
-      {/* Hero — server-rendered for SEO */}
-      <div className="bg-vanilla-100">
+      {/* Hero — server-rendered for SEO (z-40 to sit above the fixed map) */}
+      <div className="bg-vanilla-100 relative z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
           <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
             <Link href="/" className="hover:text-primary-600 transition-colors">Home</Link>

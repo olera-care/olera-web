@@ -103,6 +103,22 @@ export default async function CityPage({
     })
     .filter((link): link is { href: string; label: string } => link !== null);
 
+  // SEO content rendered at the bottom of the left panel (not as a hero)
+  const seoContent = {
+    h1: `${config.displayName} in ${cityName}, ${abbrev}`,
+    description: `Compare ${data?.totalCount.toLocaleString() || ""} ${config.displayName.toLowerCase()} providers in ${cityName}, ${stateName}. Read reviews, check pricing, and connect with top-rated ${config.displayName.toLowerCase()} options for your family.`,
+    breadcrumbs: [
+      { label: "Home", href: "/" },
+      { label: config.displayName, href: `/${catSlug}` },
+      { label: stateName, href: `/${catSlug}/${stateSlug}` },
+      { label: cityName },
+    ],
+    avgCost: data?.avgLowerPrice && data?.avgUpperPrice
+      ? `$${data.avgLowerPrice.toLocaleString()} – $${data.avgUpperPrice.toLocaleString()}/mo`
+      : null,
+    totalCount: data?.totalCount ?? 0,
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <script
@@ -116,31 +132,7 @@ export default async function CityPage({
         />
       )}
 
-      {/* Hero — server-rendered for SEO (z-40 to sit above the fixed map) */}
-      <div className="bg-vanilla-100 relative z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
-          <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
-            <Link href="/" className="hover:text-primary-600 transition-colors">Home</Link>
-            <span>/</span>
-            <Link href={`/${catSlug}`} className="hover:text-primary-600 transition-colors">{config.displayName}</Link>
-            <span>/</span>
-            <Link href={`/${catSlug}/${stateSlug}`} className="hover:text-primary-600 transition-colors">{stateName}</Link>
-            <span>/</span>
-            <span className="text-gray-900 font-medium">{cityName}</span>
-          </nav>
-
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif">
-            {config.displayName} in {cityName}, {abbrev}
-          </h1>
-
-          {/* SEO description — present for crawlers, visually quiet */}
-          <p className="mt-1.5 text-[15px] text-gray-500 max-w-2xl">
-            Compare {data?.totalCount.toLocaleString() || ""} {config.displayName.toLowerCase()} providers in {cityName}.{data?.avgLowerPrice && data?.avgUpperPrice ? ` Average cost: $${data.avgLowerPrice.toLocaleString()} – $${data.avgUpperPrice.toLocaleString()}/mo.` : ""}
-          </p>
-        </div>
-      </div>
-
-      {/* Interactive browse section */}
+      {/* No hero — matches browse page layout: filter bar → heading → cards */}
       {data && data.providers.length > 0 ? (
         <CityBrowseClient
           initialProviders={data.providers}
@@ -152,19 +144,22 @@ export default async function CityPage({
           stateName={stateName}
           stateSlug={stateSlug}
           crossLinks={crossLinks}
+          seoContent={seoContent}
         />
       ) : (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center py-16">
+            <h1 className="text-2xl font-bold text-gray-900 font-serif mb-4">
+              {config.displayName} in {cityName}, {abbrev}
+            </h1>
             <p className="text-lg text-gray-500">
-              No {config.displayName.toLowerCase()} providers found in {cityName}, {abbrev} yet.
+              No {config.displayName.toLowerCase()} providers found yet.
             </p>
             <Link href={`/${catSlug}/${stateSlug}`} className="mt-4 inline-block text-primary-600 hover:text-primary-700 font-medium">
               Browse all {config.displayName.toLowerCase()} in {stateName}
             </Link>
           </div>
 
-          {/* Cross-links for empty state */}
           <section className="mt-12 pt-8 border-t border-gray-200">
             <h2 className="text-xl font-bold text-gray-900 font-serif mb-4">
               More Senior Care Options in {stateName}

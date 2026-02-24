@@ -105,6 +105,14 @@ export interface CrossLink {
   label: string;
 }
 
+interface SeoContent {
+  h1: string;
+  description: string;
+  breadcrumbs: { label: string; href?: string }[];
+  avgCost: string | null;
+  totalCount: number;
+}
+
 interface CityBrowseClientProps {
   initialProviders: ProviderCardData[];
   totalCount: number;
@@ -115,6 +123,7 @@ interface CityBrowseClientProps {
   stateName: string;
   stateSlug: string;
   crossLinks: CrossLink[];
+  seoContent: SeoContent;
 }
 
 // ---------------------------------------------------------------------------
@@ -131,6 +140,7 @@ export default function CityBrowseClient({
   stateName,
   stateSlug,
   crossLinks,
+  seoContent,
 }: CityBrowseClientProps) {
   const { visible: navbarVisible, enableAutoHide, disableAutoHide } = useNavbar();
 
@@ -402,9 +412,9 @@ export default function CityBrowseClient({
 
   return (
     <div className="bg-gray-50">
-      {/* ── Sticky Filter Bar — vanilla to merge with hero ── */}
+      {/* ── Sticky Filter Bar ── */}
       <div
-        className="sticky z-40 bg-vanilla-100 border-b border-gray-200/80"
+        className="sticky z-40 bg-white border-b border-gray-200"
         style={{
           top: navbarVisible ? "64px" : "0px",
           transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1)",
@@ -833,17 +843,12 @@ export default function CityBrowseClient({
       <div className="lg:mr-[45%]">
         {/* Left Panel — Provider List */}
         <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
-          {/* Sort */}
+          {/* Heading + Sort */}
           <div className="relative z-20">
-            <div className="flex items-center justify-between gap-4 mb-5">
-              <p className="text-sm text-gray-500">
-                {!isLoadingProviders && (
-                  <>
-                    <span className="font-semibold text-gray-900">{filteredProviders.length}</span>
-                    {" "}{filteredProviders.length === 1 ? "result" : "results"}
-                  </>
-                )}
-              </p>
+            <div className="flex items-baseline justify-between gap-4 mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900">
+                {isLoadingProviders ? "" : `${filteredProviders.length} `}{careTypeLabel} in {cityName}, {stateAbbrev}
+              </h1>
 
               {/* Sort Dropdown */}
               <div className="relative dropdown-container flex-shrink-0">
@@ -966,6 +971,41 @@ export default function CityBrowseClient({
           ) : (
             <EmptyState onClear={clearFilters} />
           )}
+
+          {/* ── SEO Content (bottom of left panel for crawlers) ── */}
+          <section className="mt-12 pt-8 border-t border-gray-200">
+            {/* Breadcrumbs */}
+            <nav aria-label="Breadcrumb" className="mb-4">
+              <ol className="flex items-center gap-1.5 text-sm text-gray-400">
+                {seoContent.breadcrumbs.map((crumb, i) => (
+                  <li key={i} className="flex items-center gap-1.5">
+                    {i > 0 && <span>/</span>}
+                    {crumb.href ? (
+                      <a href={crumb.href} className="hover:text-primary-600 transition-colors">
+                        {crumb.label}
+                      </a>
+                    ) : (
+                      <span className="text-gray-600">{crumb.label}</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </nav>
+
+            <h2 className="text-xl font-bold text-gray-900 font-serif mb-2">
+              {seoContent.h1}
+            </h2>
+
+            {seoContent.avgCost && (
+              <p className="text-lg font-semibold text-gray-900 mb-2">
+                Avg. Cost: {seoContent.avgCost}
+              </p>
+            )}
+
+            <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">
+              {seoContent.description}
+            </p>
+          </section>
 
           {/* ── Cross-links (SEO internal links) ── */}
           {crossLinks.length > 0 && (

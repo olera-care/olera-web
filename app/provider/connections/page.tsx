@@ -189,12 +189,12 @@ export default function ProviderConnectionsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Leads</h2>
-            <p className="text-sm text-gray-500 mt-1">Families interested in your services</p>
+            <h2 className="text-2xl font-bold text-gray-900">Leads</h2>
+            <p className="text-[15px] text-gray-500 mt-1">Families interested in your services</p>
           </div>
           <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
             {["Needs Attention", "Active", "Past"].map((label) => (
-              <div key={label} className="flex-1 flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-gray-400">
+              <div key={label} className="flex-1 flex items-center justify-center px-3 py-2 rounded-lg text-sm font-semibold text-gray-400 whitespace-nowrap">
                 {label}
               </div>
             ))}
@@ -261,7 +261,7 @@ export default function ProviderConnectionsPage() {
             setSelectedConnectionId(null);
           }}
           className={[
-            "flex-1 flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all relative",
+            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all relative",
             providerTab === tab.id
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700",
@@ -295,7 +295,7 @@ export default function ProviderConnectionsPage() {
           /* ── Compact list mode (split view) ── */
           <div className="flex flex-col h-full">
             <div className="px-4 pt-4 pb-2 shrink-0">
-              <h2 className="text-lg font-semibold text-gray-900">Leads</h2>
+              <h2 className="text-xl font-bold text-gray-900">Leads</h2>
             </div>
 
             <div className="sticky top-0 z-10 bg-white px-4 pb-2 shrink-0">
@@ -331,9 +331,9 @@ export default function ProviderConnectionsPage() {
 
             {error && (
               <div className="mb-4">
-                <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs flex items-center justify-between" role="alert">
+                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between" role="alert">
                   <span>{error}</span>
-                  <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-xs font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
+                  <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
                 </div>
               </div>
             )}
@@ -487,14 +487,14 @@ function ConnectionGridCard({
               </span>
               <span className="text-xs text-gray-400 shrink-0">{createdAt}</span>
             </div>
-            <h3 className="text-sm font-normal text-gray-500 truncate">
+            <h3 className="text-[15px] font-medium text-gray-900 truncate">
               {shouldBlur ? blurName(otherName) : otherName}
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5 truncate">
+            <p className="text-sm text-gray-500 mt-0.5 truncate">
               {otherLocation}
             </p>
             {!!(connection.metadata as Record<string, unknown>)?.provider_initiated && (
-              <p className="text-[11px] text-primary-600 mt-1 font-medium">
+              <p className="text-xs text-primary-600 mt-1 font-medium">
                 You reached out
               </p>
             )}
@@ -504,7 +504,7 @@ function ConnectionGridCard({
       <div className="mt-3 pt-3 border-t border-gray-50 flex justify-end">
         <Link
           href={`/provider/inbox?id=${connection.id}`}
-          className="text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
         >
           Message
         </Link>

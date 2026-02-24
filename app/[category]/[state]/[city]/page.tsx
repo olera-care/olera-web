@@ -9,7 +9,7 @@ import {
   citySlugToDisplay,
   fetchPowerPageData,
 } from "@/lib/power-pages";
-import BrowseCard from "@/components/browse/BrowseCard";
+import CityBrowseClient from "@/components/browse/CityBrowseClient";
 
 export const revalidate = 3600;
 
@@ -66,7 +66,7 @@ export default async function CityPage({
     category: config.dbValue,
     stateAbbrev: abbrev,
     city: cityName,
-    limit: 48,
+    limit: 100,
   });
 
   const breadcrumbJsonLd = {
@@ -93,6 +93,16 @@ export default async function CityPage({
     })),
   } : null;
 
+  // Build cross-links for sibling categories in this state
+  const crossLinks = ["assisted-living", "memory-care", "nursing-home", "home-care", "home-health-care", "independent-living"]
+    .filter((s) => s !== catSlug)
+    .map((s) => {
+      const c = getCategoryBySlug(s);
+      if (!c) return null;
+      return { href: `/${s}/${stateSlug}`, label: `${c.displayName} in ${stateName}` };
+    })
+    .filter((link): link is { href: string; label: string } => link !== null);
+
   return (
     <div className="min-h-screen bg-white">
       <script
@@ -106,7 +116,7 @@ export default async function CityPage({
         />
       )}
 
-      {/* Hero */}
+      {/* Hero — server-rendered for SEO */}
       <div className="bg-vanilla-100 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-4">
@@ -141,20 +151,21 @@ export default async function CityPage({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Provider Listings */}
-        {data && data.providers.length > 0 ? (
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">
-              {data.totalCount} {config.displayName} Provider{data.totalCount !== 1 ? "s" : ""} in {cityName}, {abbrev}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {data.providers.map((provider) => (
-                <BrowseCard key={provider.id} provider={provider} />
-              ))}
-            </div>
-          </section>
-        ) : (
+      {/* Interactive browse section */}
+      {data && data.providers.length > 0 ? (
+        <CityBrowseClient
+          initialProviders={data.providers}
+          totalCount={data.totalCount}
+          categorySlug={catSlug}
+          categoryLabel={config.displayName}
+          cityName={cityName}
+          stateAbbrev={abbrev}
+          stateName={stateName}
+          stateSlug={stateSlug}
+          crossLinks={crossLinks}
+        />
+      ) : (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center py-16">
             <p className="text-lg text-gray-500">
               No {config.displayName.toLowerCase()} providers found in {cityName}, {abbrev} yet.
@@ -163,32 +174,26 @@ export default async function CityPage({
               Browse all {config.displayName.toLowerCase()} in {stateName}
             </Link>
           </div>
-        )}
 
-        {/* Nearby Areas / Cross-links */}
-        <section className="mt-12 pt-8 border-t border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 font-serif mb-4">
-            More Senior Care Options in {stateName}
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {["assisted-living", "memory-care", "nursing-home", "home-care", "home-health-care", "independent-living", "hospice"]
-              .filter((s) => s !== catSlug)
-              .map((s) => {
-                const c = getCategoryBySlug(s);
-                if (!c) return null;
-                return (
-                  <Link
-                    key={s}
-                    href={`/${s}/${stateSlug}`}
-                    className="px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-full hover:bg-primary-50 hover:text-primary-700 transition-colors"
-                  >
-                    {c.displayName} in {stateName}
-                  </Link>
-                );
-              })}
-          </div>
-        </section>
-      </div>
+          {/* Cross-links for empty state */}
+          <section className="mt-12 pt-8 border-t border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900 font-serif mb-4">
+              More Senior Care Options in {stateName}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {crossLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-full hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

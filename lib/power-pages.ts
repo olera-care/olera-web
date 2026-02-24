@@ -61,12 +61,6 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
     displayName: "Independent Living",
     description: "Independent living communities offer active seniors maintenance-free housing with social activities, dining options, and community amenities.",
   },
-  {
-    slug: "hospice",
-    dbValue: "Hospice",
-    displayName: "Hospice Care",
-    description: "Hospice providers deliver compassionate end-of-life care focused on comfort, pain management, and emotional support for patients and their families.",
-  },
 ];
 
 // Also handle these v1.0 slugs — redirect or alias to the primary slug

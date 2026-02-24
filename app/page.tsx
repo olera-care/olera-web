@@ -465,9 +465,9 @@ const bentoCards = [
   },
   {
     id: 5,
-    title: "Hospice Care",
+    title: "Home Health Care",
     image: "https://images.unsplash.com/photo-1559234938-b60fff04894d?w=800&q=80", // caring hands
-    href: "/hospice",
+    href: "/home-health-care",
     className: "col-span-1 row-span-1", // square bottom right-middle
   },
 ];

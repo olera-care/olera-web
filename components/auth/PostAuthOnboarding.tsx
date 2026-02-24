@@ -158,8 +158,19 @@ export default function PostAuthOnboarding({
   // Intent Selection
   // ──────────────────────────────────────────────────────────
 
-  const handleIntentSelect = (selectedIntent: "family" | "provider") => {
+  const handleIntentSelect = async (selectedIntent: "family" | "provider") => {
     if (selectedIntent === "provider") {
+      // Ensure account exists before navigating (DB trigger may not have fired)
+      if (!account?.id) {
+        try {
+          await fetch("/api/auth/ensure-account", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch {
+          // Best-effort; the onboarding wizard will retry if needed
+        }
+      }
       onComplete(); // closes modal
       const hasProviderProfile = (profiles || []).some(
         (p) => p.type === "organization" || p.type === "caregiver"

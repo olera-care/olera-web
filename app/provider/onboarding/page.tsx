@@ -30,8 +30,6 @@ const ORG_CATEGORIES: { value: string; label: string }[] = [
   { value: "nursing_home", label: "Nursing Home / Skilled Nursing" },
   { value: "home_care_agency", label: "Home Care Agency" },
   { value: "home_health_agency", label: "Home Health Agency" },
-  { value: "hospice_agency", label: "Hospice" },
-  { value: "inpatient_hospice", label: "Inpatient Hospice" },
   { value: "rehab_facility", label: "Rehabilitation Facility" },
   { value: "adult_day_care", label: "Adult Day Care" },
   { value: "wellness_center", label: "Wellness Center" },
@@ -44,7 +42,6 @@ const CARE_TYPES = [
   "Skilled Nursing",
   "Home Care",
   "Home Health",
-  "Hospice",
   "Respite Care",
   "Adult Day Care",
   "Rehabilitation",
@@ -91,7 +88,6 @@ function formatAddress(provider: Provider): string {
 const ONBOARDING_HIGHLIGHTS: Record<string, string[]> = {
   "Home Care (Non-medical)": ["In-Home Care", "Certified Caregivers", "Companionship"],
   "Home Health Care": ["Skilled Nursing", "Health Monitoring", "In-Home Care"],
-  "Hospice": ["Nursing Care", "Wellness Support", "Community Resources"],
   "Assisted Living": ["Licensed Community", "Social Activities", "Health Services"],
   "Memory Care": ["Licensed Community", "Certified Staff", "Health Monitoring"],
   "Independent Living": ["Community Living", "Social Activities", "Wellness Programs"],
@@ -567,6 +563,20 @@ function ProviderOnboardingContent() {
     setSubmitError("");
 
     try {
+      // Ensure account exists (handles edge case where DB trigger didn't fire on signup)
+      if (!account?.id) {
+        const ensureRes = await fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ display_name: data.displayName }),
+        });
+
+        if (!ensureRes.ok) {
+          const errorData = await ensureRes.json().catch(() => ({}));
+          throw new Error(errorData.error || "Failed to set up account");
+        }
+      }
+
       const res = await fetch("/api/auth/create-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

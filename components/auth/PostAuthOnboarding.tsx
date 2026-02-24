@@ -33,7 +33,6 @@ const ORG_CATEGORIES: { value: ProfileCategory; label: string }[] = [
   { value: "nursing_home", label: "Nursing Home / Skilled Nursing" },
   { value: "home_care_agency", label: "Home Care Agency" },
   { value: "home_health_agency", label: "Home Health Agency" },
-  { value: "hospice_agency", label: "Hospice" },
   { value: "rehab_facility", label: "Rehabilitation Facility" },
   { value: "adult_day_care", label: "Adult Day Care" },
   { value: "wellness_center", label: "Wellness Center" },
@@ -46,7 +45,6 @@ const CARE_TYPES = [
   "Skilled Nursing",
   "Home Care",
   "Home Health",
-  "Hospice",
   "Respite Care",
   "Adult Day Care",
   "Rehabilitation",
@@ -158,8 +156,19 @@ export default function PostAuthOnboarding({
   // Intent Selection
   // ──────────────────────────────────────────────────────────
 
-  const handleIntentSelect = (selectedIntent: "family" | "provider") => {
+  const handleIntentSelect = async (selectedIntent: "family" | "provider") => {
     if (selectedIntent === "provider") {
+      // Ensure account exists before navigating (DB trigger may not have fired)
+      if (!account?.id) {
+        try {
+          await fetch("/api/auth/ensure-account", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch {
+          // Best-effort; the onboarding wizard will retry if needed
+        }
+      }
       onComplete(); // closes modal
       const hasProviderProfile = (profiles || []).some(
         (p) => p.type === "organization" || p.type === "caregiver"

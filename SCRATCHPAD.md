@@ -7,6 +7,11 @@
 
 ## Current Focus
 
+- **v1.0 → v2.0 Migration** (branch: `swift-faraday`) — IN PROGRESS
+  - Phase 1-3 complete (SEO infra, power pages, asked questions). PR #53 targeting staging.
+  - Phase 4: Unified browse+power page architecture (see below)
+  - Notion: P1 — "Olera v1.0 → v2.0 Migration Playbook"
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Transform from narrow mobile wizard → desktop-native Care Planning Console
   - Two-panel layout, persistent sidebar, real-time eligibility preview, transparent scoring
@@ -87,9 +92,163 @@
 
 ---
 
+## Architecture Research: Directory City Page Patterns (2026-02-24)
+
+> Critical findings from researching how top directories handle SEO + interactive browse.
+> This informs the unified browse/power page architecture for Olera v2.0.
+
+### Key Finding: Every Top Directory Uses ONE Page
+
+Every major directory — Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com — uses a **single page** per city+category that serves BOTH as the SEO landing page AND the interactive search/browse page. Nobody maintains separate "SEO page" and "search page."
+
+The architecture is: **server-render the first load** (Google sees full HTML with listings, meta, JSON-LD), then **hydrate client-side** for filters/sort/map.
+
+### Two-Tier URL Strategy (Universal Pattern)
+
+| Tier | URL Type | Example | Indexed? |
+|------|----------|---------|----------|
+| Tier 1 | Clean path (high-value combos) | `/assisted-living/texas/houston` | Yes |
+| Tier 2 | Query params (user-applied filters) | `?rating=4&sort=price` | Blocked in robots.txt |
+
+### Site-Specific Findings
+
+**Zillow (Next.js SSR)**
+- Listings embedded in HTML as `__NEXT_DATA__` JSON. True SSR.
+- City page IS the search page. Filters hydrate client-side.
+- `robots.txt`: `Disallow: /*?searchQueryState=*` — filter params blocked
+- High-value combos get clean paths: `/austin-tx/2-bedrooms/`
+
+**A Place for Mom (Closest Competitor)**
+- Fully server-rendered: 25 facility cards in initial HTML
+- Extensive JSON-LD: `ItemList`, `LocalBusiness`, `FAQPage`, `BreadcrumbList`
+- Filters operate **client-side without changing URL**
+- `robots.txt`: blocks `*city=`, `*state=`, `/search-results`
+- **One page = SEO + search. No separate browse.**
+
+**Caring.com (Next.js SSR)**
+- `robots.txt`: `Disallow: /*?` — ALL query strings blocked (most aggressive)
+- Only clean-path pages allowed: `/senior-living/assisted-living/*/*`
+- 87 facilities in `ItemList` schema in initial HTML
+
+**Zocdoc (ASP.NET Razor SSR)**
+- Creates indexable pages for every `specialty + city` AND `specialty + city + insurance`
+- Insurance filter gets its own clean-path URL (high conversion value)
+- Dynamic filters (time, gender) operate client-side without URL changes
+
+**Apartments.com**
+- Most aggressive programmatic SEO: clean-path URLs for city+bedrooms, city+price, city+amenity
+- Each filtered variant has unique title tag with live listing count
+- All are server-rendered pages
+
+### Implications for Olera
+
+1. Current architecture (separate `/browse` client page + `/[category]/[state]/[city]` server power page) is **wrong**
+2. Must merge into a single page that is server-rendered for SEO + client-hydrated for interactivity
+3. Filters should operate client-side without changing URL (or use query params blocked in robots.txt)
+4. The hero search CTA can stay pointing to `/browse` as a fallback for ZIP/geolocation searches
+5. All internal links (footer, nav, bento grid) should point to power page clean paths
+
+### Current Browse Page Architecture (for reference)
+
+- **Client-side only**: `BrowseClient.tsx` fetches from Supabase browser client
+- **100 providers** per query, filtered/sorted entirely on client
+- **Map**: MapLibre GL with CartoDB Positron tiles, score bubbles, popup cards
+- **Filters**: Location, care type, rating, payment, sort (5 filters, all client-side)
+- **Pagination**: Client-side, 24 per page
+- **No SSR**: Google sees empty shell
+
+### Current Power Page Architecture
+
+- **Server-rendered**: `fetchPowerPageData()` via server Supabase client
+- **48 providers** per query, sorted by community_Score then rating
+- **ISR**: 1-hour revalidation
+- **JSON-LD**: BreadcrumbList + ItemList
+- **No interactivity**: No filters, no sort, no map
+
+---
+
+## Phase 4 Plan: Unified Browse+Power Page
+
+> Merge the interactive browse experience into the power page architecture.
+> Single URL serves both SEO (server-rendered) and UX (client-hydrated).
+
+### Architecture
+
+```
+/[category]/[state]/[city]/page.tsx (Server Component)
+  ├─ Server-fetches providers via fetchPowerPageData()
+  ├─ Generates metadata, JSON-LD, breadcrumbs
+  ├─ Renders SEO content (H1, description, stats)
+  └─ Passes providers as props to:
+      └─ <CityBrowseClient providers={serverProviders} /> (Client Component)
+          ├─ Hydrates with filter/sort/map interactivity
+          ├─ Filter changes update results client-side (no URL change)
+          ├─ Map renders with MapLibre GL (existing BrowseMap)
+          └─ Pagination client-side (24 per page)
+```
+
+### Key Decisions Needed
+
+1. **Map on city pages**: Yes/No? (A Place for Mom has no map; Zillow does)
+2. **Which filters**: Rating, sort, payment? (Keep it simple initially)
+3. **What happens to `/browse`**: Keep as fallback for ZIP/geolocation, or redirect?
+4. **Provider limit**: Server fetches 48 currently; browse fetches 100. What limit for unified?
+
+### Implementation Steps (Estimated)
+
+1. Create `CityBrowseClient` component — takes server-fetched providers, adds filter/sort/map
+2. Update city power page to use `CityBrowseClient` instead of static grid
+3. Preserve all existing SEO elements (metadata, JSON-LD, breadcrumbs, ISR)
+4. Port map component (already exists in `BrowseMap.tsx`)
+5. Port filter UI (rating, sort, payment) from `BrowseClient.tsx`
+6. Update robots.txt to block `/*?` query params on power pages
+7. Decide fate of `/browse` (keep as fallback or redirect)
+8. Test: verify server HTML contains full listings for Google, filters work client-side
+
+---
+
 ## Session Log
 
-### 2026-02-24 (Session 17) — Web QA Test Plan on Notion
+### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
+
+**Branch:** `swift-faraday` | **PR:** #53 targeting staging (merged)
+
+**Phase 1 — SEO Infrastructure:**
+- `app/robots.ts` — allows `/`, disallows `/admin/`, `/portal/`, `/api/`
+- `app/sitemap.ts` — dynamic sitemap: static pages, power pages, 39K+ provider profiles
+- `app/layout.tsx` — GA4 (`G-F2F7FG745B`), Organization JSON-LD, enhanced metadata
+- `app/provider/[slug]/page.tsx` — `generateMetadata()`, LocalBusiness JSON-LD
+- `next.config.ts` — 17 static 301 redirects (v1.0 → v2.0 URLs)
+- `middleware.ts` — pattern redirect: `/[category]/[state]/[city]/[slug]` → `/provider/[slug]`
+
+**Phase 2 — Power Pages:**
+- `lib/power-pages.ts` — shared utils: 7 categories, 51 states, slug mapping, data fetching
+- `app/[category]/page.tsx` — category landing (state grid + top providers)
+- `app/[category]/[state]/page.tsx` — state page (city links + provider listing)
+- `app/[category]/[state]/[city]/page.tsx` — city page (provider grid + cross-category links)
+- All with `generateMetadata()`, JSON-LD, ISR (1hr revalidation)
+
+**Phase 3 — Asked Questions:**
+- `supabase/migrations/005_provider_questions.sql` — `provider_questions` table + RLS policies
+- `app/api/questions/route.ts` — public GET + authenticated POST
+- `app/api/admin/questions/route.ts` — admin moderation GET + PATCH
+- `components/providers/QASectionV2.tsx` — wired up with live API
+- `app/admin/questions/page.tsx` — moderation UI with status tabs
+
+**Phase 4 — City Browse Experience:**
+- `components/browse/CityBrowseClient.tsx` — interactive browse merged into city power pages
+- Filters (location, care type, rating), sort, pagination, MapLibre sticky map
+- CSS grid + sticky map (Airbnb pattern) so footer renders full-width
+- Footer redesign with warm vanilla discovery zone + expandable cities (72 deep internal links)
+- Removed hospice from all customer-facing surfaces
+
+**Architecture Research:**
+- Deep research on Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com, Yelp
+- Key finding: ALL use single server-rendered page for SEO + interactive browse
+
+---
+
+### 2026-02-24 (Session 17a) — Web QA Test Plan on Notion
 
 **Branch:** `hopeful-swartz` (no code changes)
 

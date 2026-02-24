@@ -439,35 +439,35 @@ const bentoCards = [
     id: 1,
     title: "Memory Care",
     image: "https://images.unsplash.com/photo-1442458370899-ae20e367c5d8?w=800&q=80", // grandmother with family
-    href: "/browse?type=memory-care",
+    href: "/memory-care",
     className: "col-span-1 row-span-2", // tall left
   },
   {
     id: 2,
     title: "Home Care",
     image: "https://images.unsplash.com/photo-1586105251261-72a756497a11?w=800&q=80", // caregiver and senior
-    href: "/browse?type=home-care",
+    href: "/home-care",
     className: "col-span-2 row-span-1", // wide top middle
   },
   {
     id: 3,
     title: "Assisted Living",
     image: "https://images.unsplash.com/photo-1505455184862-554165e5f6ba?w=800&q=80", // happy seniors
-    href: "/browse?type=assisted-living",
+    href: "/assisted-living",
     className: "col-span-1 row-span-2", // tall right
   },
   {
     id: 4,
     title: "Skilled Nursing",
     image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80", // nurse caring
-    href: "/browse?type=skilled-nursing",
+    href: "/nursing-home",
     className: "col-span-1 row-span-1", // square bottom left-middle
   },
   {
     id: 5,
-    title: "Hospice Care",
+    title: "Home Health Care",
     image: "https://images.unsplash.com/photo-1559234938-b60fff04894d?w=800&q=80", // caring hands
-    href: "/browse?type=hospice",
+    href: "/home-health-care",
     className: "col-span-1 row-span-1", // square bottom right-middle
   },
 ];

@@ -1,7 +1,31 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
+// v1.0 category slugs — used for pattern-based redirects
+const V1_CATEGORY_SLUGS = new Set([
+  "senior-communities",
+  "nursing-home",
+  "assisted-living",
+  "home-health-care",
+  "independent-living",
+  "memory-care",
+  "home-care",
+  "home-care-non-medical",
+  "elder-law-attorney",
+  "financial-legal-other-services",
+]);
+
 export async function middleware(request: NextRequest) {
+  // ── Tier 2: v1.0 provider canonical URLs ──
+  // /[category]/[state]/[city]/[slug] → /provider/[slug]
+  const segments = request.nextUrl.pathname.split("/").filter(Boolean);
+  if (segments.length === 4 && V1_CATEGORY_SLUGS.has(segments[0])) {
+    const providerSlug = segments[3];
+    const url = request.nextUrl.clone();
+    url.pathname = `/provider/${providerSlug}`;
+    return NextResponse.redirect(url, 301);
+  }
+
   return await updateSession(request);
 }
 

@@ -102,9 +102,9 @@ const EMPTY_STATE: AuthState = {
 };
 
 // ─── Query timeout ──────────────────────────────────────────────────────
-// Bounded wait: if Supabase doesn't respond in 15s, fail explicitly
+// Bounded wait: if Supabase doesn't respond in 5s, fail explicitly
 // so the user sees an error + retry instead of an infinite spinner.
-const QUERY_TIMEOUT_MS = 15_000;
+const QUERY_TIMEOUT_MS = 5_000;
 
 function withBoundedTimeout<T>(
   promise: PromiseLike<T>,
@@ -410,13 +410,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           fetchError: false,
         }));
 
-        // Fetch fresh data. For brand-new accounts the DB trigger may
-        // not have run yet, so retry once after a short delay.
+        // Fetch fresh data in the background. Don't block the user.
+        // Only retry (once) if the account row is missing (DB trigger delay),
+        // NOT on timeout — retrying a timeout just doubles the wait.
         const version = ++versionRef.current;
         try {
           let data = await fetchAccountData(userId);
 
-          if (!data?.account) {
+          // Retry once for missing account row (new signup, DB trigger delay).
+          // Skip retry if it was a timeout — no point waiting again.
+          if (!data?.account && !cancelled && versionRef.current === version) {
             await new Promise((r) => setTimeout(r, 1500));
             if (cancelled || versionRef.current !== version) return;
             data = await fetchAccountData(userId);
@@ -438,6 +441,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             setState((prev) => ({ ...prev, fetchError: true }));
           }
         } catch (err) {
+          // Timeout or network error — don't retry, just use cache
           console.error("[olera] SIGNED_IN fetch failed:", err);
           if (cancelled || versionRef.current !== version) return;
           if (!cached?.account) {

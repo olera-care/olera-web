@@ -403,7 +403,7 @@ export default function UnifiedAuthModal({
   const handleAuthComplete = async () => {
     // AuthProvider's onAuthStateChange SIGNED_IN listener calls
     // fetchAccountData() automatically when setSession() fires —
-    // no need to await refreshAccountData() here (saves ~600ms).
+    // no need to await refreshAccountData() here.
 
     // New signups always need onboarding. Skip the DB check entirely —
     // the accounts row may not even exist yet (DB trigger delay).
@@ -424,27 +424,40 @@ export default function UnifiedAuthModal({
       return;
     }
 
-    // Returning user (sign-in) — one lightweight query to check onboarding.
-    // Use getSession() (local cookie read) instead of getUser() (network call)
-    // since we just set the session moments ago.
-    if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: acct } = await supabase
-          .from("accounts")
-          .select("onboarding_completed")
-          .eq("user_id", session.user.id)
-          .single();
+    // Returning user — check onboarding status.
+    // 1) Use account already in auth context (cached/loaded on page init)
+    if (account?.onboarding_completed) {
+      onClose();
+      return;
+    }
 
-        if (acct?.onboarding_completed) {
-          onClose();
-          return;
+    // 2) Fallback: lightweight DB query with a tight 3s timeout.
+    //    If Supabase is slow, don't block the user — default to post-auth.
+    if (isSupabaseConfigured()) {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const result = await Promise.race([
+            supabase
+              .from("accounts")
+              .select("onboarding_completed")
+              .eq("user_id", session.user.id)
+              .single(),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+          ]);
+
+          if (result && "data" in result && result.data?.onboarding_completed) {
+            onClose();
+            return;
+          }
         }
+      } catch {
+        // Timeout or error — fall through to post-auth
       }
     }
 
-    // Returning user without completed onboarding
+    // No confirmed onboarding — show post-auth
     setStep("post-auth");
   };
 

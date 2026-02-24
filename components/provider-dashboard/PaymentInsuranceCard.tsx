@@ -35,7 +35,7 @@ export default function PaymentInsuranceCard({
           {(acceptsMedicaid || acceptsMedicare) && (
             <div className="flex flex-wrap gap-2">
               {acceptsMedicare && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary-50 text-primary-700 border border-primary-100">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-medium bg-primary-50 text-primary-700 border border-primary-100">
                   <svg
                     className="w-3.5 h-3.5"
                     fill="none"
@@ -53,7 +53,7 @@ export default function PaymentInsuranceCard({
                 </span>
               )}
               {acceptsMedicaid && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-primary-50 text-primary-700 border border-primary-100">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[15px] font-medium bg-primary-50 text-primary-700 border border-primary-100">
                   <svg
                     className="w-3.5 h-3.5"
                     fill="none"
@@ -77,7 +77,7 @@ export default function PaymentInsuranceCard({
               {payments.map((method) => (
                 <span
                   key={method}
-                  className="px-3 py-1.5 rounded-full text-sm text-gray-600 bg-gray-50 border border-gray-200"
+                  className="px-3 py-1.5 rounded-full text-[15px] text-gray-600 bg-gray-50 border border-gray-100"
                 >
                   {method}
                 </span>

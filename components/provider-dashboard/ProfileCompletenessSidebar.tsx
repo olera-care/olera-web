@@ -40,12 +40,12 @@ export default function ProfileCompletenessSidebar({
       <p className="text-center text-xs font-semibold tracking-wide uppercase text-gray-900 mb-1">
         {getStatusText(completeness.overall)}
       </p>
-      <p className="text-center text-xs text-gray-400 mb-6">
+      <p className="text-center text-sm text-gray-400 mb-6">
         Last updated: {formattedDate}
       </p>
 
       {/* CTA */}
-      <p className="text-[13px] font-medium text-gray-600 mb-4">
+      <p className="text-[15px] font-medium text-gray-600 mb-4">
         Complete your profile to attract more clients
       </p>
 
@@ -79,7 +79,7 @@ export default function ProfileCompletenessSidebar({
                   <div className="w-5 h-5 rounded-full border-2 border-gray-200 shrink-0" />
                 )}
                 <span
-                  className={`text-sm ${
+                  className={`text-[15px] ${
                     isComplete
                       ? "text-primary-600 font-medium"
                       : "text-gray-600"
@@ -89,7 +89,7 @@ export default function ProfileCompletenessSidebar({
                 </span>
               </div>
               {!isComplete && (
-                <span className="text-xs font-medium text-primary-600">
+                <span className="text-sm font-medium text-primary-600">
                   {section.percent}%
                 </span>
               )}

@@ -43,9 +43,9 @@ export default function SectionEmptyState({
       <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 border border-gray-100">
         {icons[icon]}
       </div>
-      <p className="text-sm font-medium text-gray-900">{message}</p>
+      <p className="text-[15px] font-medium text-gray-900">{message}</p>
       {subMessage && (
-        <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">{subMessage}</p>
+        <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">{subMessage}</p>
       )}
       {ctaLabel && onCtaClick && (
         <button

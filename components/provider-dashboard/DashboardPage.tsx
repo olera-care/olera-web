@@ -68,8 +68,8 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your listing and track your profile</p>
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-[15px] text-gray-500 mt-1">Manage your listing and track your profile</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Main content */}

@@ -20,7 +20,7 @@ export default function DashboardSectionCard({
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-[15px] font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         <div className="flex items-center gap-2.5">
           {/* Pencil icon (non-functional in Phase 1) */}
           <button

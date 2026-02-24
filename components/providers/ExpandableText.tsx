@@ -21,14 +21,14 @@ export default function ExpandableText({
 
   return (
     <div className={className}>
-      <p className="text-sm text-gray-600 leading-relaxed">
+      <p className="text-base text-gray-600 leading-relaxed">
         {displayText}
         {needsTruncation && (
           <>
             {" "}
             <button
               onClick={() => setExpanded(!expanded)}
-              className="text-primary-600 hover:text-primary-700 font-medium text-sm transition-colors"
+              className="text-primary-600 hover:text-primary-700 font-medium text-base transition-colors"
             >
               {expanded ? "Show less" : "Read more"}
             </button>

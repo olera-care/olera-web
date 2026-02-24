@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -103,7 +103,21 @@ function getProviderHighlights(provider: Provider): string[] {
 }
 
 export default function ProviderOnboardingPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ProviderOnboardingContent />
+    </Suspense>
+  );
+}
+
+function ProviderOnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isAdding = searchParams.get("adding") === "true";
   const { user, account, profiles, isLoading, refreshAccountData } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [providerType, setProviderType] = useState<ProviderType | null>(null);
@@ -206,12 +220,26 @@ export default function ProviderOnboardingPage() {
     }
 
     // If they already have a provider profile, redirect to hub
+    // (unless they're explicitly adding another profile via ?adding=true)
     const hasProviderProfile = (profiles || []).some(
       (p) => p.type === "organization" || p.type === "caregiver"
     );
-    if (hasProviderProfile) {
+    if (hasProviderProfile && !isAdding) {
       router.replace("/provider");
       return;
+    }
+
+    // When adding a new profile, clear stale wizard data so we start fresh
+    if (isAdding) {
+      try {
+        localStorage.removeItem(TYPE_KEY);
+        localStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(STEP_KEY);
+        localStorage.removeItem(SEARCH_KEY);
+        localStorage.removeItem(CLAIM_KEY);
+      } catch {
+        // localStorage unavailable
+      }
     }
 
     // Check for a previously started session
@@ -251,7 +279,7 @@ export default function ProviderOnboardingPage() {
     } catch {
       // localStorage unavailable
     }
-  }, [user, profiles, isLoading, router]);
+  }, [user, profiles, isLoading, isAdding, router]);
 
   const update = (key: keyof WizardData, value: string | string[]) => {
     setData((prev) => {
@@ -557,6 +585,7 @@ export default function ProviderOnboardingPage() {
           state: data.state || undefined,
           zip: data.zip || undefined,
           careTypes: data.careTypes,
+          isAddingProfile: isAdding,
         }),
       });
 
@@ -1757,10 +1786,12 @@ export default function ProviderOnboardingPage() {
 
             <div className="text-center mb-8">
               <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
-                You&apos;re all set up!
+                {isAdding ? "New profile created!" : "You\u0027re all set up!"}
               </h1>
               <p className="text-gray-500 mt-3 text-base leading-relaxed max-w-sm mx-auto">
-                You&apos;ve taken the first step. A few more details and families will be able to find you.
+                {isAdding
+                  ? "Your new listing has been created. Switch to it from the profile menu to start filling in details."
+                  : "You\u0027ve taken the first step. A few more details and families will be able to find you."}
               </p>
             </div>
 

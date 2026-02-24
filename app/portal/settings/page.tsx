@@ -367,39 +367,16 @@ function SettingsContent() {
         </div>
       </div>
 
-      {/* ── Add Provider Profile (family only) ── */}
-      {isFamily && (
-        <div className="p-6">
-          <button
-            type="button"
-            onClick={() => setShowProviderModal(true)}
-            className="w-full text-left flex items-center gap-4 rounded-lg p-4 hover:bg-gray-50 transition-colors group -mx-1"
-          >
-            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
-              <svg
-                className="w-6 h-6 text-primary-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-semibold text-gray-900">
-                Add a provider profile
-              </p>
-              <p className="text-xs text-gray-400">
-                List your care services on Olera and connect with families.
-              </p>
-            </div>
+      {/* ── Add Provider Profile ── */}
+      <div className="p-6">
+        <button
+          type="button"
+          onClick={() => setShowProviderModal(true)}
+          className="w-full text-left flex items-center gap-4 rounded-lg p-4 hover:bg-gray-50 transition-colors group -mx-1"
+        >
+          <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
             <svg
-              className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-primary-400 transition-colors"
+              className="w-6 h-6 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -407,19 +384,42 @@ function SettingsContent() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
+                strokeWidth={1.5}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
               />
             </svg>
-          </button>
-        </div>
-      )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[15px] font-semibold text-gray-900">
+              {isProvider ? "Add another provider profile" : "Add a provider profile"}
+            </p>
+            <p className="text-xs text-gray-400">
+              {isProvider
+                ? "Create a listing for another location or service."
+                : "List your care services on Olera and connect with families."}
+            </p>
+          </div>
+          <svg
+            className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-primary-400 transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
 
       {/* Add Provider Profile Confirmation Modal */}
       <Modal
         isOpen={showProviderModal}
         onClose={() => setShowProviderModal(false)}
-        title="Add a Provider Profile"
+        title={isProvider ? "Add Another Profile" : "Add a Provider Profile"}
         size="sm"
       >
         <div className="text-center">
@@ -439,11 +439,14 @@ function SettingsContent() {
             </svg>
           </div>
           <p className="text-base text-gray-700 mb-2">
-            Want to list your care services?
+            {isProvider
+              ? "Create a new provider listing?"
+              : "Want to list your care services?"}
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            Setting up a provider profile lets families find and connect with you
-            on Olera. Your family profile will remain active.
+            {isProvider
+              ? "This will create a separate listing for another location or service. You can switch between profiles anytime."
+              : "Setting up a provider profile lets families find and connect with you on Olera. Your family profile will remain active."}
           </p>
           <div className="flex gap-3">
             <Button
@@ -457,7 +460,7 @@ function SettingsContent() {
               fullWidth
               onClick={() => {
                 setShowProviderModal(false);
-                router.push("/onboarding?intent=provider");
+                router.push(isProvider ? "/provider/onboarding?adding=true" : "/onboarding?intent=provider");
               }}
             >
               Continue to setup

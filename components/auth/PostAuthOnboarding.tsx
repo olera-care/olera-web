@@ -94,7 +94,7 @@ export default function PostAuthOnboarding({
   onComplete,
 }: PostAuthOnboardingProps) {
   const router = useRouter();
-  const { user, account, activeProfile, refreshAccountData } = useAuth();
+  const { user, account, activeProfile, profiles, refreshAccountData } = useAuth();
   const isAddingProfile = !!activeProfile;
 
   // Determine starting step
@@ -161,7 +161,10 @@ export default function PostAuthOnboarding({
   const handleIntentSelect = (selectedIntent: "family" | "provider") => {
     if (selectedIntent === "provider") {
       onComplete(); // closes modal
-      router.push("/provider/onboarding");
+      const hasProviderProfile = (profiles || []).some(
+        (p) => p.type === "organization" || p.type === "caregiver"
+      );
+      router.push(hasProviderProfile ? "/provider/onboarding?adding=true" : "/provider/onboarding");
       return;
     }
     setIntent(selectedIntent);

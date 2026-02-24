@@ -209,9 +209,9 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 
 ## Session Log
 
-### 2026-02-24 (Session 17) — v1.0 → v2.0 Migration Phases 1-3 + Internal Linking
+### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
 
-**Branch:** `swift-faraday` | **PR:** #53 targeting staging
+**Branch:** `swift-faraday` | **PR:** #53 targeting staging (merged)
 
 **Phase 1 — SEO Infrastructure:**
 - `app/robots.ts` — allows `/`, disallows `/admin/`, `/portal/`, `/api/`
@@ -234,21 +234,48 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 - `app/api/admin/questions/route.ts` — admin moderation GET + PATCH
 - `components/providers/QASectionV2.tsx` — wired up with live API
 - `app/admin/questions/page.tsx` — moderation UI with status tabs
-- `components/admin/AdminSidebar.tsx` — added Questions nav item
 
-**Internal Linking (this session, uncommitted):**
-- Re-pointed bento grid, BrowseByCareType "View all", mega menu, footer links to power pages
-- Added "Find Care Near You" section to footer: care types + 12 popular cities + 12 popular states
-- Hero search CTA left pointing to `/browse` (the interactive city page) — business as usual
+**Phase 4 — City Browse Experience:**
+- `components/browse/CityBrowseClient.tsx` — interactive browse merged into city power pages
+- Filters (location, care type, rating), sort, pagination, MapLibre sticky map
+- CSS grid + sticky map (Airbnb pattern) so footer renders full-width
+- Footer redesign with warm vanilla discovery zone + expandable cities (72 deep internal links)
+- Removed hospice from all customer-facing surfaces
 
 **Architecture Research:**
 - Deep research on Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com, Yelp
 - Key finding: ALL use single server-rendered page for SEO + interactive browse
-- Plan scoped for Phase 4: merge browse interactivity into power pages
-- Findings captured in SCRATCHPAD architecture section above
 
-**Commits:** `2a23021` (Phase 1), `a9837fe` (Phase 2), `b4033df` (Phase 3)
-**Status:** Phases 1-3 committed + pushed. Internal linking changes uncommitted. Phase 4 plan scoped.
+---
+
+### 2026-02-24 (Session 17a) — Web QA Test Plan on Notion
+
+**Branch:** `hopeful-swartz` (no code changes)
+
+**What:** Created a comprehensive Web QA Test Plan database on Notion, modeled after the existing App Store QA Test Plan. Explored the full codebase to identify all major features, pages, and user flows.
+
+**Notion database:** https://www.notion.so/9f68deb000be474f919f215dee5f4605
+- Parent: Product Development
+- 85 test cases across 13 sections
+- Schema: Name (title), Browser (multi_select), Passed (checkbox), Section (select), Risk (P0/P1/P2), Notes (text)
+- Grouped by Section in table view (configured manually in Notion UI)
+
+**Sections:**
+- A. Smoke Tests (8) — homepage, browse, detail, nav, auth redirects
+- B. Auth & Sessions (10) — sign-up, sign-in, OAuth, OTP, session, profile switcher
+- C. Browse & Search (8) — city search, care type filter, sort, map, pagination
+- D. Provider Detail (10) — gallery, about, services, reviews, CTA, bookmarks
+- E. Family Portal (11) — inbox, messaging, connections, matches, saved
+- F. Provider Hub (9) — dashboard, completeness, connections, inbox, stats
+- G. Community & Resources (8) — forum, posts, resources, benefits finder
+- H. Admin Dashboard (9) — overview, provider mgmt, directory, images, team
+- I. Onboarding & Claims (7) — wizard, claim search, phone OTP, org creation
+- J. Payments & Pro (5) — Stripe checkout, Pro unlock, tier access
+- K. Responsive & Mobile (8) — mobile layouts, touch targets, map
+- L. SEO & Performance (6) — meta tags, OG, schema.org, lazy load, CLS
+- M. Error Handling (6) — 404, API errors, empty states, validation
+
+**Handed off to:** Esther for QA execution
 
 ---
 

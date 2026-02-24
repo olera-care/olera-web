@@ -402,9 +402,9 @@ export default function CityBrowseClient({
 
   return (
     <div className="bg-gray-50">
-      {/* ── Sticky Filter Bar ── */}
+      {/* ── Sticky Filter Bar — vanilla to merge with hero ── */}
       <div
-        className="sticky z-40 bg-white border-b border-gray-200"
+        className="sticky z-40 bg-vanilla-100 border-b border-gray-200/80"
         style={{
           top: navbarVisible ? "64px" : "0px",
           transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1)",
@@ -833,19 +833,14 @@ export default function CityBrowseClient({
       <div className="lg:mr-[45%]">
         {/* Left Panel — Provider List */}
         <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
-          {/* Count + Sort */}
+          {/* Sort */}
           <div className="relative z-20">
             <div className="flex items-center justify-between gap-4 mb-5">
               <p className="text-sm text-gray-500">
-                {isLoadingProviders ? (
-                  <span className="inline-block w-24 h-4 bg-gray-200 rounded animate-pulse" />
-                ) : (
+                {!isLoadingProviders && (
                   <>
                     <span className="font-semibold text-gray-900">{filteredProviders.length}</span>
-                    {" "}{filteredProviders.length === 1 ? "provider" : "providers"}
-                    {hasActiveFilters && searchLocation !== initialLocation && (
-                      <> in {searchLocation}</>
-                    )}
+                    {" "}{filteredProviders.length === 1 ? "result" : "results"}
                   </>
                 )}
               </p>

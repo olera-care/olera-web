@@ -117,8 +117,8 @@ export default async function CityPage({
       )}
 
       {/* Hero — server-rendered for SEO */}
-      <div className="bg-vanilla-100 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+      <div className="bg-vanilla-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4">
           <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
             <Link href="/" className="hover:text-primary-600 transition-colors">Home</Link>
             <span>/</span>
@@ -132,22 +132,11 @@ export default async function CityPage({
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif">
             {config.displayName} in {cityName}, {abbrev}
           </h1>
-          <p className="mt-2 text-base text-gray-500 max-w-2xl">
-            Compare {config.displayName.toLowerCase()} providers in {cityName}, {stateName}. Read reviews, check pricing, and connect with top-rated options.
-          </p>
 
-          {data && (
-            <div className="mt-3 flex flex-wrap gap-3 text-sm text-gray-500">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="font-semibold text-gray-900">{data.totalCount.toLocaleString()}</span> provider{data.totalCount !== 1 ? "s" : ""}
-              </span>
-              {data.avgLowerPrice && data.avgUpperPrice && (
-                <span className="inline-flex items-center gap-1.5">
-                  Avg. cost: <span className="font-semibold text-gray-900">${data.avgLowerPrice.toLocaleString()} - ${data.avgUpperPrice.toLocaleString()}</span>
-                </span>
-              )}
-            </div>
-          )}
+          {/* SEO description — present for crawlers, visually quiet */}
+          <p className="mt-1.5 text-[15px] text-gray-500 max-w-2xl">
+            Compare {data?.totalCount.toLocaleString() || ""} {config.displayName.toLowerCase()} providers in {cityName}.{data?.avgLowerPrice && data?.avgUpperPrice ? ` Average cost: $${data.avgLowerPrice.toLocaleString()} – $${data.avgUpperPrice.toLocaleString()}/mo.` : ""}
+          </p>
         </div>
       </div>
 

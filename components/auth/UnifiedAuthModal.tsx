@@ -33,7 +33,7 @@ export default function UnifiedAuthModal({
   options = {},
 }: UnifiedAuthModalProps) {
   const router = useRouter();
-  const { user, account, refreshAccountData } = useAuth();
+  const { user, account } = useAuth();
 
   // Determine initial step
   const getInitialStep = useCallback((): AuthStep => {
@@ -78,7 +78,7 @@ export default function UnifiedAuthModal({
   }, [resendCooldown]);
 
   // ──────────────────────────────────────────────────────────
-  // Email-first flow: check if email exists
+  // Email-first flow: check if email exists, show password or sign-up
   // ──────────────────────────────────────────────────────────
 
   const handleEmailContinue = async (e: React.FormEvent) => {
@@ -191,7 +191,7 @@ export default function UnifiedAuthModal({
 
       // No email confirmation — proceed to post-auth
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("Sign up error:", err);
       setError("Something went wrong. Please try again.");
@@ -232,7 +232,7 @@ export default function UnifiedAuthModal({
       }
 
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("Sign in error:", err);
       setError("Something went wrong. Please try again.");
@@ -283,18 +283,20 @@ export default function UnifiedAuthModal({
         return;
       }
 
-      // Transfer session to the main SSR client (cookie-based) so
-      // middleware, server components, and AuthProvider all see it.
+      // Close modal IMMEDIATELY — don't wait for session transfer.
+      // This is the Telegram approach: UI responds the instant we
+      // know the code is correct.
+      setLoading(false);
+      handleAuthComplete();
+
+      // Transfer session to SSR client in background. This sets cookies
+      // so middleware and server components see the session on next navigation.
       if (verifyData.session) {
-        const mainClient = createClient();
-        await mainClient.auth.setSession({
+        createClient().auth.setSession({
           access_token: verifyData.session.access_token,
           refresh_token: verifyData.session.refresh_token,
-        });
+        }).catch((err) => console.error("[olera] Background setSession failed:", err));
       }
-
-      setLoading(false);
-      await handleAuthComplete();
     } catch (err) {
       console.error("OTP verification error:", err);
       setError("Something went wrong. Please try again.");
@@ -400,39 +402,31 @@ export default function UnifiedAuthModal({
   // Post-auth routing
   // ──────────────────────────────────────────────────────────
 
-  const handleAuthComplete = async () => {
-    // Refresh auth context to pick up account data
-    await refreshAccountData();
+  const handleAuthComplete = () => {
+    // Zero network calls here. AuthProvider's SIGNED_IN listener handles
+    // data loading in the background, and its onboarding-detection useEffect
+    // will auto-open post-auth if onboarding is incomplete.
 
-    // Check if user has a completed profile
-    // Re-read from Supabase since refreshAccountData is async and state might not be updated yet
-    if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        const { data: acct } = await supabase
-          .from("accounts")
-          .select("onboarding_completed")
-          .eq("user_id", currentUser.id)
-          .single();
-
-        if (acct?.onboarding_completed) {
-          // Existing user with profile — close modal
-          onClose();
-          return;
-        }
+    // New signups always need onboarding
+    if (otpContext === "signup") {
+      if (options.intent === "provider") {
+        onClose();
+        router.push("/provider/onboarding");
+        return;
       }
+      setStep("post-auth");
+      return;
     }
 
-    // Provider intent — hand off to full-page onboarding wizard
+    // Provider intent — route to onboarding wizard
     if (options.intent === "provider") {
       onClose();
       router.push("/provider/onboarding");
       return;
     }
 
-    // New user — show post-auth onboarding
-    setStep("post-auth");
+    // Returning user — close instantly. AuthProvider handles the rest.
+    onClose();
   };
 
   const handlePostAuthComplete = () => {
@@ -735,6 +729,18 @@ export default function UnifiedAuthModal({
                 </p>
               )}
             </div>
+
+            {otpContext === "signin" && (
+              <p className="text-center text-sm text-gray-400 mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setStep("sign-in"); setOtpCode(""); setError(""); }}
+                  className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none"
+                >
+                  Use password instead
+                </button>
+              </p>
+            )}
           </form>
         </div>
       )}

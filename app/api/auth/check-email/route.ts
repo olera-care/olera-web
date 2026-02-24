@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
 /**
  * POST /api/auth/check-email
@@ -7,6 +6,9 @@ import { createClient } from "@supabase/supabase-js";
  * Checks whether an email address already exists in auth.users.
  * Used by the unified auth modal to detect new vs returning users
  * after the email-first entry screen.
+ *
+ * Uses the GoTrue admin REST API with the `filter` parameter for a
+ * fast server-side lookup instead of listing all users.
  *
  * Request body: { email: string }
  * Response:     { exists: boolean }
@@ -27,23 +29,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ exists: false });
     }
 
-    const admin = createClient(url, serviceKey);
+    const normalizedEmail = email.toLowerCase().trim();
 
-    // Use listUsers with a filter — Supabase admin API supports
-    // filtering by passing the page/perPage and checking manually.
-    // We list users and filter by email match.
-    const { data, error } = await admin.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
+    // Direct REST call to GoTrue admin endpoint with filter parameter.
+    // This does a server-side search instead of loading all users.
+    const res = await fetch(
+      `${url}/auth/v1/admin/users?filter=${encodeURIComponent(normalizedEmail)}&page=1&per_page=1`,
+      {
+        headers: {
+          Authorization: `Bearer ${serviceKey}`,
+          apikey: serviceKey,
+        },
+      }
+    );
 
-    if (error || !data?.users) {
+    if (!res.ok) {
       return NextResponse.json({ exists: false });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    const exists = data.users.some(
-      (u) => u.email?.toLowerCase() === normalizedEmail
+    const data = await res.json();
+    // Filter is a LIKE match — verify exact email match
+    const exists = (data.users ?? []).some(
+      (u: { email?: string }) => u.email?.toLowerCase() === normalizedEmail
     );
 
     return NextResponse.json({ exists });

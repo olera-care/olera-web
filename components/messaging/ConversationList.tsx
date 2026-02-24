@@ -22,6 +22,8 @@ interface ConversationListProps {
   onLoadArchived?: () => void;
   archivedCount?: number;
   className?: string;
+  /** "family" (default) or "provider" — controls empty state copy */
+  variant?: "family" | "provider";
 }
 
 /** Deterministic gradient for fallback avatars */
@@ -179,6 +181,7 @@ export default function ConversationList({
   onLoadArchived,
   archivedCount = 0,
   className = "",
+  variant = "family",
 }: ConversationListProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -476,13 +479,19 @@ export default function ConversationList({
               </svg>
             </div>
             <p className="text-[15px] font-medium text-gray-900 mb-1">No conversations yet</p>
-            <p className="text-sm text-gray-500 mb-4">Connect with a provider to start messaging</p>
-            <Link
-              href="/browse"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Browse providers
-            </Link>
+            {variant === "provider" ? (
+              <p className="text-sm text-gray-500">When families connect with you, their messages will appear here</p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-500 mb-4">Connect with a provider to start messaging</p>
+                <Link
+                  href="/browse"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Browse providers
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -638,13 +647,19 @@ export default function ConversationList({
               ) : (
                 <div className="text-center">
                   <p className="text-[15px] font-medium text-gray-900 mb-1">You have no messages yet</p>
-                  <p className="text-sm text-gray-500 mb-4">Browse providers to start a conversation</p>
-                  <Link
-                    href="/browse"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-                  >
-                    Browse providers
-                  </Link>
+                  {variant === "provider" ? (
+                    <p className="text-sm text-gray-500">When families connect with you, their messages will appear here</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-500 mb-4">Browse providers to start a conversation</p>
+                      <Link
+                        href="/browse"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                      >
+                        Browse providers
+                      </Link>
+                    </>
+                  )}
                 </div>
               )}
             </div>

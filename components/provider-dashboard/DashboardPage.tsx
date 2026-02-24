@@ -29,7 +29,7 @@ export default function DashboardPage() {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="animate-pulse bg-white rounded-xl border border-gray-200 p-6"
+                className="animate-pulse bg-white rounded-xl border border-gray-100 p-6"
               >
                 <div className="h-5 w-40 bg-gray-200 rounded mb-4" />
                 <div className="space-y-3">
@@ -41,7 +41,7 @@ export default function DashboardPage() {
           </div>
           {/* Sidebar skeleton */}
           <div className="lg:col-span-1">
-            <div className="animate-pulse bg-white rounded-xl border border-gray-200 p-6">
+            <div className="animate-pulse bg-white rounded-xl border border-gray-100 p-6">
               <div className="h-5 w-44 bg-gray-200 rounded mb-6" />
               <div className="flex justify-center mb-6">
                 <div className="w-[140px] h-[140px] rounded-full bg-gray-100" />
@@ -67,6 +67,10 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-[15px] text-gray-500 mt-1">Manage your listing and track your profile</p>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Main content */}
         <div className="lg:col-span-2 space-y-6">

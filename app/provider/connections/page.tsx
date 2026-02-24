@@ -7,11 +7,10 @@ import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
 import type { Connection, Profile } from "@/lib/types";
-import Button from "@/components/ui/Button";
 import EmptyState from "@/components/ui/EmptyState";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
 import SplitViewLayout from "@/components/portal/SplitViewLayout";
-import ConnectionDetailContent from "@/components/portal/ConnectionDetailContent";
+import LeadDetailPanel from "@/components/provider-dashboard/LeadDetailPanel";
 import ConnectionListItem from "@/components/portal/ConnectionListItem";
 import type { ConnectionWithProfile } from "@/components/portal/ConnectionListItem";
 import { avatarGradient, blurName } from "@/components/portal/ConnectionDetailContent";
@@ -179,28 +178,8 @@ export default function ProviderConnectionsPage() {
     fetchConnections();
   };
 
-  const handleStatusChange = (connectionId: string, newStatus: string) => {
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId ? { ...c, status: newStatus as Connection["status"] } : c
-      )
-    );
-  };
-
-  const handleWithdraw = (connectionId: string) => {
-    setConnections((prev) =>
-      prev.map((c) =>
-        c.id === connectionId
-          ? { ...c, status: "expired" as Connection["status"], metadata: { ...(c.metadata || {}), withdrawn: true } }
-          : c
-      )
-    );
-    clearSelection();
-  };
-
-  const handleHide = (connectionId: string) => {
+  const handleArchive = (connectionId: string) => {
     setConnections((prev) => prev.filter((c) => c.id !== connectionId));
-    clearSelection();
   };
 
   // ── Loading state ──
@@ -210,12 +189,12 @@ export default function ProviderConnectionsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Connections</h2>
-            <p className="text-sm text-gray-500 mt-1">Manage inquiries from families seeking care.</p>
+            <h2 className="text-2xl font-bold text-gray-900">Leads</h2>
+            <p className="text-[15px] text-gray-500 mt-1">Families interested in your services</p>
           </div>
           <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
             {["Needs Attention", "Active", "Past"].map((label) => (
-              <div key={label} className="flex-1 flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-gray-400">
+              <div key={label} className="flex-1 flex items-center justify-center px-3 py-2 rounded-lg text-sm font-semibold text-gray-400 whitespace-nowrap">
                 {label}
               </div>
             ))}
@@ -248,13 +227,8 @@ export default function ProviderConnectionsPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <EmptyState
-          title="No connections yet"
-          description="When families reach out or you connect with them, their requests will appear here."
-          action={
-            <Link href="/portal/discover/families">
-              <Button>Discover Families</Button>
-            </Link>
-          }
+          title="No leads yet"
+          description="When families express interest in your services, they'll appear here."
         />
       </div>
     );
@@ -287,7 +261,7 @@ export default function ProviderConnectionsPage() {
             setSelectedConnectionId(null);
           }}
           className={[
-            "flex-1 flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all relative",
+            "flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all relative",
             providerTab === tab.id
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700",
@@ -321,7 +295,7 @@ export default function ProviderConnectionsPage() {
           /* ── Compact list mode (split view) ── */
           <div className="flex flex-col h-full">
             <div className="px-4 pt-4 pb-2 shrink-0">
-              <h2 className="text-lg font-semibold text-gray-900">Connections</h2>
+              <h2 className="text-xl font-bold text-gray-900">Leads</h2>
             </div>
 
             <div className="sticky top-0 z-10 bg-white px-4 pb-2 shrink-0">
@@ -351,15 +325,15 @@ export default function ProviderConnectionsPage() {
           /* ── Card grid mode (full width) ── */
           <div className="h-full overflow-y-auto max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Connections</h2>
-              <p className="text-sm text-gray-500 mt-1">Manage inquiries from families seeking care.</p>
+              <h2 className="text-xl font-semibold text-gray-900">Leads</h2>
+              <p className="text-sm text-gray-500 mt-1">Families interested in your services</p>
             </div>
 
             {error && (
               <div className="mb-4">
-                <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-xs flex items-center justify-between" role="alert">
+                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between" role="alert">
                   <span>{error}</span>
-                  <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-xs font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
+                  <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
                 </div>
               </div>
             )}
@@ -392,15 +366,11 @@ export default function ProviderConnectionsPage() {
       }
       right={
         selectedConnectionId ? (
-          <ConnectionDetailContent
+          <LeadDetailPanel
             connectionId={selectedConnectionId}
-            isActive={true}
-            onClose={clearSelection}
-            onStatusChange={handleStatusChange}
-            onWithdraw={handleWithdraw}
-            onHide={handleHide}
             preloadedConnection={preloadedConnection}
-            showHeader={false}
+            onClose={clearSelection}
+            onArchive={handleArchive}
           />
         ) : null
       }
@@ -414,18 +384,18 @@ function ProviderTabEmptyState({ tab }: { tab: ProviderConnectionTab }) {
   const config: Record<ProviderConnectionTab, { icon: string; title: string; subtitle: string }> = {
     attention: {
       icon: "\u{1F4E8}",
-      title: "No pending requests",
-      subtitle: "New family inquiries will appear here for you to review.",
+      title: "No new leads",
+      subtitle: "When a family reaches out, new leads appear here for you to review.",
     },
     active: {
       icon: "\u{1F4AC}",
-      title: "No active connections",
-      subtitle: "When you connect with families, conversations will show up here.",
+      title: "No active leads",
+      subtitle: "Leads you've responded to or are in conversation with will show here.",
     },
     past: {
       icon: "\u{1F4C2}",
-      title: "No past connections",
-      subtitle: "Expired, declined, and ended connections will be archived here.",
+      title: "No past leads",
+      subtitle: "Expired, declined, and ended leads will be archived here.",
     },
   };
   const { icon, title, subtitle } = config[tab];
@@ -482,53 +452,63 @@ function ConnectionGridCard({
   const initial = otherName.charAt(0).toUpperCase();
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(connection.id)}
-      className="w-full text-left rounded-xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-200 cursor-pointer"
-    >
-      <div className="flex items-start gap-3.5">
-        {/* Avatar */}
-        <div className="relative shrink-0">
-          {imageUrl && !shouldBlur ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imageUrl}
-              alt={otherName}
-              className="w-12 h-12 rounded-full object-cover"
-            />
-          ) : (
-            <div
-              className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
-              style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
-            >
-              {shouldBlur ? "?" : initial}
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
-              <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-              {statusConfig.label}
-            </span>
-            <span className="text-xs text-gray-400 shrink-0">{createdAt}</span>
+    <div className="w-full text-left rounded-xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-200">
+      <button
+        type="button"
+        onClick={() => onSelect(connection.id)}
+        className="w-full text-left cursor-pointer"
+      >
+        <div className="flex items-start gap-3.5">
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            {imageUrl && !shouldBlur ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={imageUrl}
+                alt={otherName}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+            ) : (
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                style={{ background: shouldBlur ? "#9ca3af" : avatarGradient(otherName) }}
+              >
+                {shouldBlur ? "?" : initial}
+              </div>
+            )}
           </div>
-          <h3 className="text-sm font-normal text-gray-500 truncate">
-            {shouldBlur ? blurName(otherName) : otherName}
-          </h3>
-          <p className="text-xs text-gray-400 mt-0.5 truncate">
-            {otherLocation}
-          </p>
-          {!!(connection.metadata as Record<string, unknown>)?.provider_initiated && (
-            <p className="text-[11px] text-primary-600 mt-1 font-medium">
-              You reached out
+
+          {/* Content */}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2 mb-0.5">
+              <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
+                <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                {statusConfig.label}
+              </span>
+              <span className="text-xs text-gray-400 shrink-0">{createdAt}</span>
+            </div>
+            <h3 className="text-[15px] font-medium text-gray-900 truncate">
+              {shouldBlur ? blurName(otherName) : otherName}
+            </h3>
+            <p className="text-sm text-gray-500 mt-0.5 truncate">
+              {otherLocation}
             </p>
-          )}
+            {!!(connection.metadata as Record<string, unknown>)?.provider_initiated && (
+              <p className="text-xs text-primary-600 mt-1 font-medium">
+                You reached out
+              </p>
+            )}
+          </div>
         </div>
+      </button>
+      <div className="mt-3 pt-3 border-t border-gray-50 flex justify-end">
+        <Link
+          href={`/provider/inbox?id=${connection.id}`}
+          className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+        >
+          Message
+        </Link>
       </div>
-    </button>
+    </div>
   );
 }

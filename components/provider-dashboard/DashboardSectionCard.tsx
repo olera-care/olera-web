@@ -16,7 +16,7 @@ export default function DashboardSectionCard({
   return (
     <section
       id={id}
-      className="bg-white rounded-xl border border-gray-200 p-6"
+      className="bg-white rounded-xl border border-gray-100 p-6"
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-5">

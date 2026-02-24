@@ -435,6 +435,7 @@ function ProviderInboxContent() {
           onDeleteConnection={handleDelete}
           onLoadArchived={fetchArchived}
           archivedCount={archivedCount}
+          variant="provider"
           className={`w-full lg:w-[360px] lg:shrink-0 ${selectedId ? "hidden lg:flex" : "flex"}`}
         />
 

@@ -126,6 +126,42 @@
   animation: step-in 0.2s ease-out;
 }
 
+/* Wizard step transition — fade + subtle rise for onboarding steps */
+@keyframes wizard-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-wizard-in {
+  animation: wizard-fade-in 0.3s ease-out;
+}
+
+/* Success checkmark — bouncy scale-in */
+@keyframes success-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-success-pop {
+  animation: success-pop 0.5s ease-out;
+}
+
 /* Card entrance — staggered fade + lift for results grid */
 @keyframes card-enter {
   from {

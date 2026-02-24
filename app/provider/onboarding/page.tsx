@@ -1,24 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import WizardNav from "@/components/ui/WizardNav";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4;
+type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4 | 5 | "success";
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
 const STEP_KEY = "olera_onboarding_step";
 const SEARCH_KEY = "olera_onboarding_search";
+const CLAIM_KEY = "olera_onboarding_claim";
 const RESULTS_PER_PAGE = 6;
 
 const ORG_CATEGORIES: { value: string; label: string }[] = [
@@ -74,33 +76,6 @@ const EMPTY: WizardData = {
   careTypes: [],
 };
 
-function StepDots({ current, total }: { current: number; total: number }) {
-  return (
-    <div className="flex items-center justify-center gap-1.5 mb-8">
-      {Array.from({ length: total }, (_, i) => (
-        <div key={i} className="flex items-center gap-1.5">
-          <div
-            className={`rounded-full transition-all duration-300 ${
-              i < current - 1
-                ? "w-2 h-2 bg-primary-600"
-                : i === current - 1
-                ? "w-2.5 h-2.5 bg-primary-600"
-                : "w-2 h-2 bg-gray-200"
-            }`}
-          />
-          {i < total - 1 && (
-            <div
-              className={`w-8 h-0.5 rounded-full transition-colors duration-300 ${
-                i < current - 1 ? "bg-primary-600" : "bg-gray-200"
-              }`}
-            />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function getProviderImage(provider: Provider): string | null {
   if (!provider.provider_images) return null;
   const first = provider.provider_images.split("|")[0].trim();
@@ -128,14 +103,27 @@ function getProviderHighlights(provider: Provider): string[] {
 }
 
 export default function ProviderOnboardingPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ProviderOnboardingContent />
+    </Suspense>
+  );
+}
+
+function ProviderOnboardingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isAdding = searchParams.get("adding") === "true";
   const { user, account, profiles, isLoading, refreshAccountData } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [providerType, setProviderType] = useState<ProviderType | null>(null);
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
@@ -150,7 +138,13 @@ export default function ProviderOnboardingPage() {
   const locationDropdownRef = useRef<HTMLDivElement>(null);
   const { results: cityResults, preload: preloadCities } = useCitySearch(searchQuery);
 
-  // Close location dropdown on outside click
+  // Step 3 city picker state
+  const [cityQuery, setCityQuery] = useState("");
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const cityPickerRef = useRef<HTMLDivElement>(null);
+  const { results: cityPickerResults, preload: preloadCityPicker } = useCitySearch(cityQuery);
+
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -159,6 +153,12 @@ export default function ProviderOnboardingPage() {
       ) {
         setShowLocationDropdown(false);
       }
+      if (
+        cityPickerRef.current &&
+        !cityPickerRef.current.contains(e.target as Node)
+      ) {
+        setShowCityPicker(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -166,7 +166,7 @@ export default function ProviderOnboardingPage() {
 
   // Persist step + search query so resume works properly
   useEffect(() => {
-    if (step === "resume" || step === 1) return; // don't overwrite during init
+    if (step === "resume" || step === 1 || step === "success") return; // don't overwrite during init
     try {
       localStorage.setItem(STEP_KEY, String(step));
     } catch {
@@ -220,12 +220,26 @@ export default function ProviderOnboardingPage() {
     }
 
     // If they already have a provider profile, redirect to hub
+    // (unless they're explicitly adding another profile via ?adding=true)
     const hasProviderProfile = (profiles || []).some(
       (p) => p.type === "organization" || p.type === "caregiver"
     );
-    if (hasProviderProfile) {
+    if (hasProviderProfile && !isAdding) {
       router.replace("/provider");
       return;
+    }
+
+    // When adding a new profile, clear stale wizard data so we start fresh
+    if (isAdding) {
+      try {
+        localStorage.removeItem(TYPE_KEY);
+        localStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(STEP_KEY);
+        localStorage.removeItem(SEARCH_KEY);
+        localStorage.removeItem(CLAIM_KEY);
+      } catch {
+        // localStorage unavailable
+      }
     }
 
     // Check for a previously started session
@@ -248,12 +262,24 @@ export default function ProviderOnboardingPage() {
         } catch {
           // ignore
         }
+        // Restore claimed provider so verify step can resume
+        try {
+          const savedClaim = localStorage.getItem(CLAIM_KEY);
+          if (savedClaim) {
+            const parsed = JSON.parse(savedClaim);
+            if (parsed?.provider_id && parsed?.provider_name) {
+              setClaimingProvider(parsed as Provider);
+            }
+          }
+        } catch {
+          // ignore corrupt data
+        }
         setStep("resume");
       }
     } catch {
       // localStorage unavailable
     }
-  }, [user, profiles, isLoading, router]);
+  }, [user, profiles, isLoading, isAdding, router]);
 
   const update = (key: keyof WizardData, value: string | string[]) => {
     setData((prev) => {
@@ -281,24 +307,31 @@ export default function ProviderOnboardingPage() {
     } catch {
       // localStorage unavailable
     }
-    setStep(type === "organization" ? "search" : 2);
+  };
+
+  const handleStep1Next = () => {
+    if (!providerType) return;
+    setStep(providerType === "organization" ? "search" : 2);
   };
 
   const handleResume = () => {
     let savedStep: Step | null = null;
     try {
       const raw = localStorage.getItem(STEP_KEY);
-      if (raw === "2" || raw === "3" || raw === "4") savedStep = Number(raw) as 2 | 3 | 4;
+      if (raw === "2" || raw === "3" || raw === "4" || raw === "5") savedStep = Number(raw) as 2 | 3 | 4 | 5;
       else if (raw === "search" || raw === "verify") savedStep = raw;
     } catch {
       // localStorage unavailable
     }
 
     if (providerType === "organization") {
-      // For org flow: if they were on step 2/3/4, go there directly.
-      // If they were on search/verify, go to search and auto-run the search.
-      if (savedStep === 2 || savedStep === 3 || savedStep === 4) {
+      // For org flow: if they were on step 2-5, go there directly.
+      if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
         setStep(savedStep);
+      } else if (savedStep === "verify" && claimingProvider) {
+        // Resume directly to verify — the claimed provider was restored from localStorage.
+        // OTP code is NOT persisted (time-sensitive), so user will need to request a new code.
+        setStep("verify");
       } else {
         // Default: go to search. If there's a saved query, auto-search.
         setStep("search");
@@ -311,7 +344,7 @@ export default function ProviderOnboardingPage() {
       }
     } else {
       // Caregiver flow: go to saved step or default to step 2
-      if (savedStep === 2 || savedStep === 3 || savedStep === 4) {
+      if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
         setStep(savedStep);
       } else {
         setStep(2);
@@ -325,11 +358,13 @@ export default function ProviderOnboardingPage() {
       localStorage.removeItem(DATA_KEY);
       localStorage.removeItem(STEP_KEY);
       localStorage.removeItem(SEARCH_KEY);
+      localStorage.removeItem(CLAIM_KEY);
     } catch {
       // localStorage unavailable
     }
     setProviderType(null);
     setData(EMPTY);
+    setClaimingProvider(null);
     setStep(1);
   };
 
@@ -550,6 +585,7 @@ export default function ProviderOnboardingPage() {
           state: data.state || undefined,
           zip: data.zip || undefined,
           careTypes: data.careTypes,
+          isAddingProfile: isAdding,
         }),
       });
 
@@ -564,12 +600,13 @@ export default function ProviderOnboardingPage() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
+        localStorage.removeItem(CLAIM_KEY);
       } catch {
         // localStorage unavailable (SSR or private mode)
       }
 
       await refreshAccountData();
-      router.push("/provider");
+      setStep("success");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
@@ -580,12 +617,14 @@ export default function ProviderOnboardingPage() {
   const displayName =
     account?.display_name || user?.email?.split("@")[0] || "back";
 
-  // StepDots position helpers
-  const orgTotal = 4;
-  const careTotal = 3;
-  const stepDotTotal = providerType === "organization" ? orgTotal : careTotal;
-  const stepDotCurrent = (s: 2 | 3 | 4) =>
-    providerType === "organization" ? s : s - 1;
+  // WizardNav step mapping — org: 6 steps, caregiver: 5 steps
+  const isOrg = providerType === "organization";
+  const wizardTotal = isOrg ? 6 : 5;
+  const wizardCurrentMap: Record<string, number> = isOrg
+    ? { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 }
+    : { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+  const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
+  const showWizardNav = step !== "resume" && step !== "success";
 
   if (isLoading) {
     return (
@@ -618,12 +657,12 @@ export default function ProviderOnboardingPage() {
             href="/"
             className="px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors"
           >
-            Exit
+            Save & exit
           </Link>
         </div>
       </nav>
 
-      <div className={`flex-1 ${isResultsGrid ? "" : showResultsBg ? "px-4 py-12" : "px-4 flex items-center justify-center py-16"}`}>
+      <div key={String(step)} className={`flex-1 animate-wizard-in ${isResultsGrid ? "" : showResultsBg ? "px-4 py-12" : "px-4 flex items-center justify-center py-16"}`}>
 
         {/* ── Resume screen ── */}
         {step === "resume" && (
@@ -632,7 +671,7 @@ export default function ProviderOnboardingPage() {
               <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Welcome back, {displayName}
               </h1>
-              <p className="text-gray-400 mt-3 text-base">
+              <p className="text-gray-500 mt-3 text-base">
                 Pick up where you left off.
               </p>
             </div>
@@ -691,7 +730,7 @@ export default function ProviderOnboardingPage() {
 
         {/* ── Step 1: Choose provider type ── */}
         {step === 1 && (
-          <div className="w-full max-w-2xl">
+          <div className="w-full max-w-2xl pb-24">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
                 How would you describe yourself?
@@ -703,9 +742,15 @@ export default function ProviderOnboardingPage() {
               <button
                 type="button"
                 onClick={() => handleSelectType("organization")}
-                className="group flex flex-col items-center text-center p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
+                className={`group flex flex-col items-center text-center p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
+                  providerType === "organization"
+                    ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
+                    : "border-gray-200 hover:border-primary-400 hover:shadow-md"
+                }`}
               >
-                <div className="w-20 h-20 rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-6 transition-colors duration-200">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200 ${
+                  providerType === "organization" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
+                }`}>
                   <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -720,9 +765,15 @@ export default function ProviderOnboardingPage() {
               <button
                 type="button"
                 onClick={() => handleSelectType("caregiver")}
-                className="group flex flex-col items-center text-center p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
+                className={`group flex flex-col items-center text-center p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
+                  providerType === "caregiver"
+                    ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
+                    : "border-gray-200 hover:border-primary-400 hover:shadow-md"
+                }`}
               >
-                <div className="w-20 h-20 rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-6 transition-colors duration-200">
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200 ${
+                  providerType === "caregiver" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
+                }`}>
                   <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -741,19 +792,12 @@ export default function ProviderOnboardingPage() {
           <>
             {/* ── State A: Initial search form ── */}
             {!hasSearched && (
-              <div className="w-full max-w-xl mx-auto">
-                {/* Step indicator */}
-                <div className="flex justify-center mb-10">
-                  <span className="text-sm font-medium text-gray-400 tracking-wide">
-                    Step 1 of 4
-                  </span>
-                </div>
-
+              <div className="w-full max-w-xl mx-auto pb-24">
                 <div className="text-center mb-14">
                   <h1 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight">
                     Find your organization
                   </h1>
-                  <p className="text-gray-400 mt-6 text-xl leading-relaxed">
+                  <p className="text-gray-500 mt-6 text-xl leading-relaxed">
                     Let&apos;s check if we already have a listing for you.
                   </p>
                 </div>
@@ -769,6 +813,7 @@ export default function ProviderOnboardingPage() {
                       </div>
                       <input
                         type="text"
+                        aria-label="Search by name or location"
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);
@@ -831,36 +876,12 @@ export default function ProviderOnboardingPage() {
                   )}
                 </form>
 
-                {/* Skip link */}
-                <div className="mt-10 text-center">
-                  <p className="text-base text-gray-500">
-                    Don&apos;t see your organization?{" "}
-                    <button
-                      type="button"
-                      onClick={() => setStep(2)}
-                      className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                    >
-                      Set up a new page &rarr;
-                    </button>
-                  </p>
-                </div>
-
-                {/* Back */}
-                <div className="mt-6 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="text-base text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    &larr; Back
-                  </button>
-                </div>
               </div>
             )}
 
             {/* ── State B: Results found ── */}
             {hasSearched && searchResults.length > 0 && (
-              <div className="w-full">
+              <div className="w-full pb-24">
                 {/* Sticky search bar */}
                 <div className="sticky top-[65px] z-40 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4">
                   <div className="max-w-2xl mx-auto py-4">
@@ -874,6 +895,7 @@ export default function ProviderOnboardingPage() {
                           </div>
                           <input
                             type="text"
+                            aria-label="Search by name or location"
                             value={searchQuery}
                             onChange={(e) => {
                               setSearchQuery(e.target.value);
@@ -929,11 +951,10 @@ export default function ProviderOnboardingPage() {
                         )}
                       </div>
                     </form>
-                    <div className="flex items-center justify-between mt-3">
+                    <div className="mt-3">
                       <p className="text-sm text-gray-500">
                         {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
                       </p>
-                      <span className="text-sm font-medium text-gray-400">Step 1 of 4</span>
                     </div>
                   </div>
                 </div>
@@ -1020,6 +1041,12 @@ export default function ProviderOnboardingPage() {
                                     type="button"
                                     onClick={() => {
                                       setClaimingProvider(provider);
+                                      try {
+                                        localStorage.setItem(CLAIM_KEY, JSON.stringify({
+                                          provider_id: provider.provider_id,
+                                          provider_name: provider.provider_name,
+                                        }));
+                                      } catch { /* localStorage unavailable */ }
                                       setStep("verify");
                                       handleSendVerificationCode(provider);
                                     }}
@@ -1155,14 +1182,7 @@ export default function ProviderOnboardingPage() {
 
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (
-              <div className="w-full max-w-xl mx-auto text-center">
-                {/* Step indicator */}
-                <div className="flex justify-center mb-10">
-                  <span className="text-sm font-medium text-gray-400 tracking-wide">
-                    Step 1 of 4
-                  </span>
-                </div>
-
+              <div className="w-full max-w-xl mx-auto text-center pb-24">
                 <div className="w-16 h-16 rounded-full bg-vanilla-100 ring-1 ring-gray-200 flex items-center justify-center mx-auto mb-8">
                   <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1172,29 +1192,17 @@ export default function ProviderOnboardingPage() {
                 <h2 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight mb-4">
                   No matches found
                 </h2>
-                <p className="text-gray-500 text-lg leading-relaxed mb-10">
+                <p className="text-gray-500 text-lg leading-relaxed mb-6">
                   We couldn&apos;t find any listings for &ldquo;{searchQuery}&rdquo;
                 </p>
 
-                {/* Primary action — create new page */}
                 <button
                   type="button"
-                  onClick={() => setStep(2)}
-                  className="px-8 py-3.5 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 transition-all shadow-sm"
+                  onClick={() => setHasSearched(false)}
+                  className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
                 >
-                  Create a new page
+                  Try a different search
                 </button>
-
-                {/* Secondary — try different search */}
-                <div className="mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setHasSearched(false)}
-                    className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    &larr; Try a different search
-                  </button>
-                </div>
               </div>
             )}
           </>
@@ -1202,14 +1210,7 @@ export default function ProviderOnboardingPage() {
 
         {/* ── Verify step: Email verification for claiming ── */}
         {step === "verify" && claimingProvider && (
-          <div className="w-full max-w-lg">
-            {/* Step indicator — matches search step spacing */}
-            <div className="flex justify-center mb-10">
-              <span className="text-sm font-medium text-gray-400 tracking-wide">
-                Step 1 of 4
-              </span>
-            </div>
-
+          <div className="w-full max-w-lg pb-24">
             {noAccessSuccess ? (
               /* ── Success state after no-access form submission ── */
               <div className="text-center">
@@ -1221,21 +1222,10 @@ export default function ProviderOnboardingPage() {
                 <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight mb-4">
                   Request submitted
                 </h1>
-                <p className="text-gray-500 text-lg leading-relaxed mb-10 max-w-sm mx-auto">
+                <p className="text-gray-500 text-lg leading-relaxed max-w-sm mx-auto">
                   We&apos;ve received your request to claim <strong className="text-gray-700">{claimingProvider.provider_name}</strong>.
                   Our team will review it and get back to you within 2–3 business days.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep("search");
-                    setNoAccessSuccess(false);
-                    setShowNoAccess(false);
-                  }}
-                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  &larr; Back to search
-                </button>
               </div>
             ) : (
               /* ── Verification form ── */
@@ -1251,19 +1241,19 @@ export default function ProviderOnboardingPage() {
                     Verify your organization
                   </h1>
                   {verifySending ? (
-                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">Sending verification code…</p>
+                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">Sending verification code…</p>
                   ) : verifyNoEmail ? (
-                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
                       We don&apos;t have an email on file for <strong className="text-gray-600">{claimingProvider.provider_name}</strong>.
                       <br />Please submit a request below.
                     </p>
                   ) : verifyEmailHint ? (
-                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
                       We sent a 6-digit code to <strong className="text-gray-600">{verifyEmailHint}</strong>.
                       <br />Enter it below to verify you represent {claimingProvider.provider_name}.
                     </p>
                   ) : verifyError ? (
-                    <p className="text-gray-400 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
                       There was an issue sending the code. Please try again.
                     </p>
                   ) : null}
@@ -1288,19 +1278,10 @@ export default function ProviderOnboardingPage() {
                       <p className="text-base text-red-600 text-center" role="alert">{verifyError}</p>
                     )}
 
-                    <Button
-                      onClick={handleVerifyCode}
-                      disabled={verifyCode.length !== 6 || verifyChecking}
-                      loading={verifyChecking}
-                      fullWidth
-                    >
-                      Verify
-                    </Button>
-
                     {/* Resend */}
                     <div className="text-center">
                       {verifyResendCooldown > 0 ? (
-                        <p className="text-sm text-gray-400">Resend code in {verifyResendCooldown}s</p>
+                        <p className="text-sm text-gray-500">Resend code in {verifyResendCooldown}s</p>
                       ) : (
                         <button
                           type="button"
@@ -1348,7 +1329,7 @@ export default function ProviderOnboardingPage() {
                       <p className="text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
                         No access to this email?
                       </p>
-                      <p className="text-sm text-gray-400 mt-0.5">
+                      <p className="text-sm text-gray-500 mt-0.5">
                         Request a manual review instead
                       </p>
                     </div>
@@ -1360,7 +1341,7 @@ export default function ProviderOnboardingPage() {
                   <div className="space-y-5">
                     <div className="mb-1">
                       <h2 className="text-lg font-semibold text-gray-900">Request manual review</h2>
-                      <p className="text-base text-gray-400 mt-1">
+                      <p className="text-base text-gray-500 mt-1">
                         Tell us a bit about yourself so we can verify your access.
                       </p>
                     </div>
@@ -1377,21 +1358,26 @@ export default function ProviderOnboardingPage() {
                       <label htmlFor="no-access-role" className="block text-base font-medium text-gray-700">
                         Your role
                       </label>
-                      <select
-                        id="no-access-role"
-                        value={noAccessReason}
-                        onChange={(e) => setNoAccessReason(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                      >
-                        <option value="">Select your role…</option>
-                        <option value="Owner">Owner</option>
-                        <option value="Administrator">Administrator</option>
-                        <option value="Executive Director">Executive Director</option>
-                        <option value="Office Manager">Office Manager</option>
-                        <option value="Marketing / Communications">Marketing / Communications</option>
-                        <option value="Staff Member">Staff Member</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      <div className="relative">
+                        <select
+                          id="no-access-role"
+                          value={noAccessReason}
+                          onChange={(e) => setNoAccessReason(e.target.value)}
+                          className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
+                        >
+                          <option value="">Select your role…</option>
+                          <option value="Owner">Owner</option>
+                          <option value="Administrator">Administrator</option>
+                          <option value="Executive Director">Executive Director</option>
+                          <option value="Office Manager">Office Manager</option>
+                          <option value="Marketing / Communications">Marketing / Communications</option>
+                          <option value="Staff Member">Staff Member</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
                     </div>
 
                     <Input
@@ -1416,7 +1402,7 @@ export default function ProviderOnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setShowNoAccess(false)}
-                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
                       >
                         Cancel
                       </button>
@@ -1431,34 +1417,6 @@ export default function ProviderOnboardingPage() {
                   </div>
                 )}
 
-                {/* Temp testing link */}
-                <div className="mt-10 pt-6 border-t border-dashed border-gray-200 text-center">
-                  <Link
-                    href="/provider"
-                    className="text-xs text-gray-400 hover:text-gray-500 transition-colors"
-                  >
-                    Go to dashboard (testing only)
-                  </Link>
-                </div>
-
-                {/* Back */}
-                <div className="mt-6 text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep("search");
-                      setVerifyCode("");
-                      setVerifyError("");
-                      setVerifyEmailHint("");
-                      setVerifyNoEmail(false);
-                      setShowNoAccess(false);
-                      setNoAccessSuccess(false);
-                    }}
-                    className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    &larr; Back to search
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -1466,16 +1424,17 @@ export default function ProviderOnboardingPage() {
 
         {/* ── Step 2: About ── */}
         {step === 2 && (
-          <div className="w-full max-w-lg">
-            <StepDots current={stepDotCurrent(2)} total={stepDotTotal} />
+          <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight">
+              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
                 {providerType === "organization"
                   ? "Tell us about your organization"
-                  : "Tell us about yourself"}
+                  : "What\u2019s your name?"}
               </h1>
-              <p className="text-gray-400 mt-3 text-base">
-                This is what families will see on your public profile.
+              <p className="text-gray-500 mt-3 text-base">
+                {providerType === "organization"
+                  ? "This is what families will see on your public profile."
+                  : "This is how families will find you on Olera."}
               </p>
             </div>
 
@@ -1498,105 +1457,144 @@ export default function ProviderOnboardingPage() {
                 }
               />
 
-              <Input
-                label="Description"
-                as="textarea"
-                value={data.description}
-                onChange={(e) =>
-                  update(
-                    "description",
-                    (e.target as HTMLTextAreaElement).value
-                  )
-                }
-                placeholder={
-                  providerType === "organization"
-                    ? "What makes your organization unique? What services do you offer?"
-                    : "Describe your experience and approach to caregiving."
-                }
-                rows={4}
-              />
-
               {providerType === "organization" && (
                 <div className="space-y-1.5">
-                  <label className="block text-base font-medium text-gray-700">
+                  <label htmlFor="org-type" className="block text-base font-medium text-gray-700">
                     Organization type
                   </label>
-                  <select
-                    value={data.category}
-                    onChange={(e) => update("category", e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="">Select a type</option>
-                    {ORG_CATEGORIES.map((cat) => (
-                      <option key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="org-type"
+                      value={data.category}
+                      onChange={(e) => update("category", e.target.value)}
+                      className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
+                    >
+                      <option value="">Select a type</option>
+                      {ORG_CATEGORIES.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
+                    <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               )}
 
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep(providerType === "organization" ? "search" : 1)}
-                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  ← Back
-                </button>
-                <Button
-                  onClick={() => setStep(3)}
-                  disabled={!data.displayName.trim()}
-                >
-                  Continue
-                </Button>
-              </div>
             </div>
           </div>
         )}
 
-        {/* ── Step 3: Location & Contact ── */}
+        {/* ── Step 3: Location ── */}
         {step === 3 && (
-          <div className="w-full max-w-lg">
-            <StepDots current={stepDotCurrent(3)} total={stepDotTotal} />
+          <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight">
-                Location &amp; contact
+              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+                Where are you located?
               </h1>
-              <p className="text-gray-400 mt-3 text-base">
-                Help families find and reach you. All fields are optional.
+              <p className="text-gray-500 mt-3 text-base">
+                Families search by location — this helps them find you.
               </p>
             </div>
 
             <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="City"
-                  value={data.city}
-                  onChange={(e) =>
-                    update("city", (e.target as HTMLInputElement).value)
-                  }
-                  placeholder="e.g. San Francisco"
-                />
-                <Input
-                  label="State"
-                  value={data.state}
-                  onChange={(e) =>
-                    update("state", (e.target as HTMLInputElement).value)
-                  }
-                  placeholder="e.g. CA"
-                />
+              {/* City search picker */}
+              <div className="space-y-1.5">
+                <label htmlFor="city-picker" className="block text-base font-medium text-gray-700">
+                  City
+                </label>
+                <div ref={cityPickerRef} className="relative">
+                  <input
+                    id="city-picker"
+                    type="text"
+                    role="combobox"
+                    aria-expanded={showCityPicker && cityPickerResults.length > 0}
+                    aria-autocomplete="list"
+                    aria-controls="city-picker-listbox"
+                    value={cityQuery || (data.city ? `${data.city}${data.state ? `, ${data.state}` : ""}` : "")}
+                    onChange={(e) => {
+                      setCityQuery(e.target.value);
+                      setShowCityPicker(true);
+                      // Clear selected city when user types
+                      if (data.city) {
+                        update("city", "");
+                        update("state", "");
+                      }
+                    }}
+                    onFocus={() => {
+                      preloadCityPicker();
+                      setShowCityPicker(true);
+                      // If showing a selected city, put it into query for editing
+                      if (data.city && !cityQuery) {
+                        setCityQuery(`${data.city}${data.state ? `, ${data.state}` : ""}`);
+                      }
+                    }}
+                    placeholder="Search for a city…"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px] placeholder:text-gray-400"
+                    autoComplete="off"
+                  />
+
+                  {/* City suggestions dropdown */}
+                  {showCityPicker && cityPickerResults.length > 0 && (
+                    <div id="city-picker-listbox" role="listbox" aria-label="City suggestions" className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                      {!cityQuery.trim() && (
+                        <div className="px-4 pt-1 pb-2">
+                          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                        </div>
+                      )}
+                      {cityPickerResults.map((loc) => (
+                        <button
+                          key={loc.full}
+                          type="button"
+                          role="option"
+                          aria-selected={data.city === loc.city && data.state === loc.state}
+                          onClick={() => {
+                            update("city", loc.city);
+                            update("state", loc.state);
+                            setCityQuery("");
+                            setShowCityPicker(false);
+                          }}
+                          className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                        >
+                          <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="font-medium text-gray-700">{loc.full}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <Input
-                label="ZIP code"
+                label="ZIP code (Optional)"
                 value={data.zip}
                 onChange={(e) =>
                   update("zip", (e.target as HTMLInputElement).value)
                 }
                 placeholder="e.g. 94102"
               />
+            </div>
+          </div>
+        )}
 
+        {/* ── Step 4: Contact ── */}
+        {step === 4 && (
+          <div className="w-full max-w-lg pb-24">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+                How can families reach you?
+              </h1>
+              <p className="text-gray-500 mt-3 text-base">
+                Give families a way to connect with you.
+              </p>
+            </div>
+
+            <div className="space-y-5">
               <Input
                 label="Phone"
                 type="tel"
@@ -1605,6 +1603,7 @@ export default function ProviderOnboardingPage() {
                   update("phone", (e.target as HTMLInputElement).value)
                 }
                 placeholder="(555) 123-4567"
+                required
               />
 
               <Input
@@ -1615,10 +1614,11 @@ export default function ProviderOnboardingPage() {
                   update("email", (e.target as HTMLInputElement).value)
                 }
                 placeholder="contact@example.com"
+                required
               />
 
               <Input
-                label="Website"
+                label="Website (Optional)"
                 type="url"
                 value={data.website}
                 onChange={(e) =>
@@ -1626,92 +1626,132 @@ export default function ProviderOnboardingPage() {
                 }
                 placeholder="https://example.com"
               />
-
-              <div className="flex justify-between items-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  ← Back
-                </button>
-                <Button onClick={() => setStep(4)}>Continue</Button>
-              </div>
             </div>
           </div>
         )}
 
-        {/* ── Step 4: Services + Review + Submit ── */}
-        {step === 4 && (
-          <div className="w-full max-w-lg">
-            <StepDots current={stepDotCurrent(4)} total={stepDotTotal} />
+        {/* ── Step 5: Services + Review + Submit ── */}
+        {step === 5 && (
+          <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight">
+              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Services offered
               </h1>
-              <p className="text-gray-400 mt-3 text-base">
+              <p className="text-gray-500 mt-3 text-base">
                 Select the care types you provide. You can always update these later.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-8">
-              {CARE_TYPES.map((ct) => (
-                <button
-                  key={ct}
-                  type="button"
-                  onClick={() => toggleCareType(ct)}
-                  className={[
-                    "px-4 py-2 rounded-lg text-sm font-medium border transition-colors",
-                    data.careTypes.includes(ct)
-                      ? "bg-primary-50 border-primary-500 text-primary-700"
-                      : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
-                  ].join(" ")}
-                >
-                  {ct}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-3 mb-10">
+              {CARE_TYPES.map((ct) => {
+                const selected = data.careTypes.includes(ct);
+                return (
+                  <button
+                    key={ct}
+                    type="button"
+                    role="switch"
+                    aria-checked={selected}
+                    onClick={() => toggleCareType(ct)}
+                    className={[
+                      "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[15px] font-medium border transition-all duration-200",
+                      selected
+                        ? "bg-primary-50 border-primary-500 text-primary-700"
+                        : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                    ].join(" ")}
+                  >
+                    {selected && (
+                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {ct}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Profile preview */}
-            <div className="bg-vanilla-100 rounded-xl p-5 mb-6">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                Profile preview
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex gap-3">
-                  <span className="text-gray-400 w-20 shrink-0">Type</span>
-                  <span className="text-gray-900 font-medium">
-                    {providerType === "organization"
-                      ? "Organization"
-                      : "Private Caregiver"}
+            {/* Mini listing card preview */}
+            <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+              {/* Gradient header with initials */}
+              <div className="h-28 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                  <span className="text-xl font-bold text-primary-500">
+                    {(data.displayName || "")
+                      .split(/\s+/)
+                      .map((w) => w[0])
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase() || "?"}
                   </span>
                 </div>
-                <div className="flex gap-3">
-                  <span className="text-gray-400 w-20 shrink-0">Name</span>
-                  <span className="text-gray-900 font-medium">
-                    {data.displayName || "—"}
-                  </span>
-                </div>
+              </div>
+
+              {/* Card content */}
+              <div className="p-5">
+                {/* Category label */}
+                {providerType === "organization" && data.category && (
+                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
+                    {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
+                  </p>
+                )}
+                {providerType === "caregiver" && (
+                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
+                    Private Caregiver
+                  </p>
+                )}
+
+                {/* Name */}
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {data.displayName || "Your listing"}
+                </h3>
+
+                {/* Location */}
                 {(data.city || data.state) && (
-                  <div className="flex gap-3">
-                    <span className="text-gray-400 w-20 shrink-0">Location</span>
-                    <span className="text-gray-900">
-                      {[data.city, data.state].filter(Boolean).join(", ")}
-                    </span>
+                  <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+                    <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {[data.city, data.state].filter(Boolean).join(", ")}
                   </div>
                 )}
-                {data.phone && (
-                  <div className="flex gap-3">
-                    <span className="text-gray-400 w-20 shrink-0">Phone</span>
-                    <span className="text-gray-900">{data.phone}</span>
-                  </div>
-                )}
+
+                {/* Service tags */}
                 {data.careTypes.length > 0 && (
-                  <div className="flex gap-3">
-                    <span className="text-gray-400 w-20 shrink-0">Services</span>
-                    <span className="text-gray-900">
-                      {data.careTypes.join(", ")}
-                    </span>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {data.careTypes.slice(0, 3).map((ct) => (
+                      <span key={ct} className="bg-primary-50 text-primary-700 text-xs px-2.5 py-1 rounded-full">
+                        {ct}
+                      </span>
+                    ))}
+                    {data.careTypes.length > 3 && (
+                      <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
+                        +{data.careTypes.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Contact line */}
+                {(data.phone || data.email) && (
+                  <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
+                    {data.phone && (
+                      <span className="flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        {data.phone}
+                      </span>
+                    )}
+                    {data.email && (
+                      <span className="flex items-center gap-1 min-w-0">
+                        <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span className="truncate">{data.email}</span>
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1719,36 +1759,258 @@ export default function ProviderOnboardingPage() {
 
             {submitError && (
               <div
-                className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm mb-5"
+                className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm mt-5"
                 role="alert"
               >
                 {submitError}
               </div>
             )}
 
-            <div className="flex justify-between items-center">
-              <button
-                type="button"
-                onClick={() => setStep(3)}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                ← Back
-              </button>
-              <Button
-                onClick={handleSubmit}
-                loading={submitting}
-                disabled={!data.displayName.trim() || submitting}
-              >
-                Create profile
-              </Button>
-            </div>
-
-            <p className="text-center text-xs text-gray-400 mt-5">
+            <p className="text-center text-sm text-gray-500 mt-5">
               You can add more details — photos, certifications, pricing — after setup.
             </p>
           </div>
         )}
+
+        {/* ── Success screen ── */}
+        {step === "success" && (
+          <div className="w-full max-w-lg">
+            {/* Animated checkmark */}
+            <div className="flex justify-center mb-8">
+              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center animate-success-pop">
+                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+                {isAdding ? "New profile created!" : "You\u0027re all set up!"}
+              </h1>
+              <p className="text-gray-500 mt-3 text-base leading-relaxed max-w-sm mx-auto">
+                {isAdding
+                  ? "Your new listing has been created. Switch to it from the profile menu to start filling in details."
+                  : "You\u0027ve taken the first step. A few more details and families will be able to find you."}
+              </p>
+            </div>
+
+            {/* Mini listing card — same as Step 5 preview */}
+            <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+              <div className="h-28 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                  <span className="text-xl font-bold text-primary-500">
+                    {(data.displayName || "")
+                      .split(/\s+/)
+                      .map((w) => w[0])
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase() || "?"}
+                  </span>
+                </div>
+              </div>
+              <div className="p-5">
+                {providerType === "organization" && data.category && (
+                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
+                    {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
+                  </p>
+                )}
+                {providerType === "caregiver" && (
+                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
+                    Private Caregiver
+                  </p>
+                )}
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {data.displayName || "Your listing"}
+                </h3>
+                {(data.city || data.state) && (
+                  <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
+                    <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {[data.city, data.state].filter(Boolean).join(", ")}
+                  </div>
+                )}
+                {data.careTypes.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {data.careTypes.slice(0, 3).map((ct) => (
+                      <span key={ct} className="bg-primary-50 text-primary-700 text-xs px-2.5 py-1 rounded-full">
+                        {ct}
+                      </span>
+                    ))}
+                    {data.careTypes.length > 3 && (
+                      <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
+                        +{data.careTypes.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+                {(data.phone || data.email) && (
+                  <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
+                    {data.phone && (
+                      <span className="flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        {data.phone}
+                      </span>
+                    )}
+                    {data.email && (
+                      <span className="flex items-center gap-1 min-w-0">
+                        <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <span className="truncate">{data.email}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick-action cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+              <Link
+                href="/provider#gallery"
+                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 hover:shadow-sm transition-all group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center mb-3">
+                  <svg className="w-4.5 h-4.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-900 mb-0.5">Add photos</p>
+                <p className="text-xs text-gray-500">Listings with photos get more views</p>
+                <div className="mt-2">
+                  <span className="text-xs font-medium text-primary-600 group-hover:translate-x-0.5 inline-block transition-transform">Complete →</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/provider/verification"
+                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 hover:shadow-sm transition-all group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
+                  <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-900 mb-0.5">Get verified</p>
+                <p className="text-xs text-gray-500">Build trust with families</p>
+                <div className="mt-2">
+                  <span className="text-xs font-medium text-primary-600 group-hover:translate-x-0.5 inline-block transition-transform">Complete →</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/provider/reviews"
+                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 hover:shadow-sm transition-all group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
+                  <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-900 mb-0.5">Collect reviews</p>
+                <p className="text-xs text-gray-500">Share your link to get feedback</p>
+                <div className="mt-2">
+                  <span className="text-xs font-medium text-primary-600 group-hover:translate-x-0.5 inline-block transition-transform">Complete →</span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Dashboard link */}
+            <div className="text-center mt-8">
+              <Link
+                href="/provider"
+                className="text-[15px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Go to your dashboard →
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Sticky bottom wizard nav — all steps except resume */}
+      {showWizardNav && (
+        <WizardNav
+          currentStep={wizardCurrentStep}
+          totalSteps={wizardTotal}
+          onBack={
+            step === 1
+              ? undefined
+              : step === "search"
+              ? () => setStep(1)
+              : step === "verify"
+              ? () => {
+                  setStep("search");
+                  setVerifyCode("");
+                  setVerifyError("");
+                  setVerifyEmailHint("");
+                  setVerifyNoEmail(false);
+                  setShowNoAccess(false);
+                  setNoAccessSuccess(false);
+                }
+              : step === 2
+              ? () => setStep(isOrg ? "search" : 1)
+              : step === 3
+              ? () => setStep(2)
+              : step === 4
+              ? () => setStep(3)
+              : step === 5
+              ? () => setStep(4)
+              : undefined
+          }
+          onNext={
+            step === 1
+              ? handleStep1Next
+              : step === "search"
+              ? () => setStep(2)
+              : step === "verify"
+              ? handleVerifyCode
+              : step === 5
+              ? handleSubmit
+              : step === 2
+              ? () => setStep(3)
+              : step === 3
+              ? () => setStep(4)
+              : () => setStep(5)
+          }
+          nextLabel={
+            step === 1
+              ? "Next"
+              : step === "search"
+              ? "Create new listing"
+              : step === "verify"
+              ? "Verify"
+              : step === 5
+              ? "Create profile"
+              : "Next"
+          }
+          nextDisabled={
+            step === 1
+              ? !providerType
+              : step === "verify"
+              ? verifyCode.length !== 6 || verifyChecking
+              : step === 2
+              ? !data.displayName.trim()
+              : step === 3
+              ? !data.city.trim()
+              : step === 4
+              ? !data.phone.trim() || !data.email.trim()
+              : step === 5
+              ? !data.displayName.trim() || submitting
+              : false
+          }
+          nextLoading={
+            step === "verify" ? verifyChecking : step === 5 ? submitting : false
+          }
+        />
+      )}
     </div>
   );
 }

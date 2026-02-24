@@ -55,9 +55,15 @@ export default function Navbar() {
     pathname.startsWith("/provider/connections") ||
     pathname.startsWith("/provider/inbox") ||
     pathname.startsWith("/provider/onboarding") ||
-    pathname.startsWith("/provider/profile");
+    pathname.startsWith("/provider/profile") ||
+    pathname.startsWith("/provider/reviews") ||
+    pathname.startsWith("/provider/matches") ||
+    pathname.startsWith("/provider/pro") ||
+    pathname.startsWith("/provider/statistics") ||
+    pathname.startsWith("/provider/verification") ||
+    pathname.startsWith("/provider/account");
   const isCommunity = pathname.startsWith("/community");
-  const isMinimalNav = pathname === "/portal/inbox" || pathname === "/provider/inbox";
+  const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
@@ -201,8 +207,8 @@ export default function Navbar() {
             <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
               <button
                 type="button"
-                onClick={async () => {
-                  if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                onClick={() => {
+                  if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                   setIsUserMenuOpen(false);
                   router.push("/");
                 }}
@@ -217,9 +223,9 @@ export default function Navbar() {
               </button>
               <button
                 type="button"
-                onClick={async () => {
+                onClick={() => {
                   if (hasProviderProfile && providerProfileId) {
-                    await switchProfile(providerProfileId);
+                    switchProfile(providerProfileId);
                     setIsUserMenuOpen(false);
                     router.push("/provider");
                   } else if (hasAttemptedOnboarding) {
@@ -248,9 +254,9 @@ export default function Navbar() {
           <div className="px-2 py-1.5">
             {isProviderPortal ? (
               <>
-                {/* Provider Hub links — all point to /provider (coming soon) */}
+                {/* Provider Hub links */}
                 <Link
-                  href="/provider"
+                  href="/provider/statistics"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
@@ -262,7 +268,7 @@ export default function Navbar() {
                   Statistics
                 </Link>
                 <Link
-                  href="/provider"
+                  href="/provider/verification"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
@@ -273,7 +279,7 @@ export default function Navbar() {
                   Identity Verification
                 </Link>
                 <Link
-                  href="/provider"
+                  href="/provider/pro"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
@@ -526,17 +532,34 @@ export default function Navbar() {
             {!isMinimalNav && (
               <div className="hidden lg:flex items-center gap-1">
                 {isProviderPortal ? (
-                  /* Provider Hub nav links — all "coming soon", point to /provider */
+                  /* Provider Hub nav links */
                   <>
-                    {(["Dashboard", "Inbox", "Leads", "Reviews", "Matches"]).map((label) => (
-                      <Link
-                        key={label}
-                        href="/provider"
-                        className="px-4 py-2 text-[15px] font-medium rounded-full transition-colors text-gray-700 hover:bg-gray-50"
-                      >
-                        {label}
-                      </Link>
-                    ))}
+                    {([
+                      { label: "Dashboard", href: "/provider", match: "/provider" },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
+                    ] as const).map((item) => {
+                      const active = item.match
+                        ? item.match === "/provider"
+                          ? pathname === "/provider"
+                          : pathname.startsWith(item.match)
+                        : false;
+                      return (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          className={`px-4 py-2 text-[15px] font-medium transition-colors ${
+                            active
+                              ? "text-primary-600"
+                              : "text-gray-700 hover:text-gray-900"
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                   </>
                 ) : (
                   /* Family / public nav links */
@@ -609,8 +632,8 @@ export default function Navbar() {
                     {user && (
                       <button
                         type="button"
-                        onClick={async () => {
-                          if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                        onClick={() => {
+                          if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                           router.push("/");
                         }}
                         className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
@@ -776,20 +799,37 @@ export default function Navbar() {
                 {isProviderPortal ? (
                   /* Provider mobile nav */
                   <>
-                    {(["Dashboard", "Inbox", "Leads", "Reviews", "Matches"]).map((label) => (
-                      <Link
-                        key={label}
-                        href="/provider"
-                        className="block py-3 text-gray-700 hover:text-primary-600 font-medium"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {label}
-                      </Link>
-                    ))}
+                    {([
+                      { label: "Dashboard", href: "/provider", match: "/provider" },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
+                    ] as const).map((item) => {
+                      const active = item.match
+                        ? item.match === "/provider"
+                          ? pathname === "/provider"
+                          : pathname.startsWith(item.match)
+                        : false;
+                      return (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          className={`block py-3 font-medium ${
+                            active
+                              ? "text-primary-600"
+                              : "text-gray-700 hover:text-primary-600"
+                          }`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
                     <button
                       type="button"
-                      onClick={async () => {
-                        if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                      onClick={() => {
+                        if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                         setIsMobileMenuOpen(false);
                         router.push("/");
                       }}
@@ -915,8 +955,8 @@ export default function Navbar() {
                         <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                           <button
                             type="button"
-                            onClick={async () => {
-                              if (hasFamilyProfile && familyProfileId) await switchProfile(familyProfileId);
+                            onClick={() => {
+                              if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                               setIsMobileMenuOpen(false);
                               router.push("/");
                             }}
@@ -931,9 +971,9 @@ export default function Navbar() {
                           </button>
                           <button
                             type="button"
-                            onClick={async () => {
+                            onClick={() => {
                               if (hasProviderProfile && providerProfileId) {
-                                await switchProfile(providerProfileId);
+                                switchProfile(providerProfileId);
                                 setIsMobileMenuOpen(false);
                                 router.push("/provider");
                               } else if (hasAttemptedOnboarding) {
@@ -960,7 +1000,7 @@ export default function Navbar() {
                         {isProviderPortal ? (
                           <>
                             <Link
-                              href="/provider"
+                              href="/provider/statistics"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
@@ -972,7 +1012,7 @@ export default function Navbar() {
                               Statistics
                             </Link>
                             <Link
-                              href="/provider"
+                              href="/provider/verification"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
@@ -983,7 +1023,7 @@ export default function Navbar() {
                               Identity Verification
                             </Link>
                             <Link
-                              href="/provider"
+                              href="/provider/pro"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >

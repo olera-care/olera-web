@@ -82,7 +82,7 @@ export default function StaffScreeningCard({
                   )}
                 </div>
                 <span
-                  className={`text-sm font-medium ${
+                  className={`text-[15px] font-medium ${
                     isActive ? "text-primary-700" : "text-gray-500"
                   }`}
                 >

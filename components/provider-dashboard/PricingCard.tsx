@@ -32,24 +32,24 @@ export default function PricingCard({
         <div className="space-y-4">
           {priceRange && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Starting from</span>
-              <span className="text-lg font-bold text-gray-900">
+              <span className="text-[15px] text-gray-500">Starting from</span>
+              <span className="text-xl font-bold text-gray-900">
                 {priceRange}
               </span>
             </div>
           )}
           {pricingDetails.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-gray-200">
-              <table className="w-full text-sm">
+            <div className="overflow-hidden rounded-lg border border-gray-100">
+              <table className="w-full text-[15px]">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="text-left px-4 py-2.5 font-medium text-gray-500">
+                    <th className="text-left px-4 py-2.5 text-sm font-medium text-gray-500">
                       Service
                     </th>
-                    <th className="text-left px-4 py-2.5 font-medium text-gray-500">
+                    <th className="text-left px-4 py-2.5 text-sm font-medium text-gray-500">
                       Rate
                     </th>
-                    <th className="text-left px-4 py-2.5 font-medium text-gray-500">
+                    <th className="text-left px-4 py-2.5 text-sm font-medium text-gray-500">
                       Type
                     </th>
                   </tr>

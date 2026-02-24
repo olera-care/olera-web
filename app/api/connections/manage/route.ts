@@ -36,11 +36,13 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { connectionId, action, reportReason, reportDetails } = body as {
+    const { connectionId, action, reportReason, reportDetails, archiveReason, archiveMessage } = body as {
       connectionId: string;
       action: Action;
       reportReason?: string;
       reportDetails?: string;
+      archiveReason?: string;
+      archiveMessage?: string;
     };
 
     if (!connectionId || !action) {
@@ -110,15 +112,45 @@ export async function POST(request: Request) {
       case "archive": {
         // Store archive state in metadata — do NOT change status (DB CHECK constraint
         // only allows pending/accepted/declined/expired, not archived).
+        const archiveMeta: Record<string, unknown> = {
+          ...existingMeta,
+          archived: true,
+          archived_from_status: connection.status,
+        };
+
+        // Store reason if provided (e.g. from provider Leads page)
+        if (archiveReason) {
+          archiveMeta.archive_reason = archiveReason;
+          archiveMeta.archive_message = archiveMessage || null;
+          archiveMeta.archived_by = actingProfileId;
+          archiveMeta.archived_at = new Date().toISOString();
+
+          // Append a system thread message so it appears in conversation history
+          const existingThread = (existingMeta.thread as Array<{
+            from_profile_id: string;
+            text: string;
+            created_at: string;
+          }>) || [];
+
+          let systemText = `This provider has passed on this inquiry. Reason: ${archiveReason}`;
+          if (archiveMessage) {
+            systemText += `\n"${archiveMessage}"`;
+          }
+
+          archiveMeta.thread = [
+            ...existingThread,
+            {
+              from_profile_id: "system",
+              type: "system",
+              text: systemText,
+              created_at: new Date().toISOString(),
+            },
+          ];
+        }
+
         const { error: updateError } = await admin
           .from("connections")
-          .update({
-            metadata: {
-              ...existingMeta,
-              archived: true,
-              archived_from_status: connection.status,
-            },
-          })
+          .update({ metadata: archiveMeta })
           .eq("id", connectionId);
 
         if (updateError) {

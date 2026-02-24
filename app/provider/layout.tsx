@@ -16,7 +16,7 @@ export default function ProviderLayout({ children }: { children: ReactNode }) {
 
   // Public provider detail pages (/provider/[slug]) and onboarding manage
   // their own state — skip all layout gates. Only known hub routes are gated.
-  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox"];
+  const HUB_ROUTES = ["/provider", "/provider/connections", "/provider/inbox", "/provider/reviews", "/provider/matches", "/provider/pro", "/provider/statistics", "/provider/verification"];
   if (!HUB_ROUTES.includes(pathname)) {
     return <>{children}</>;
   }

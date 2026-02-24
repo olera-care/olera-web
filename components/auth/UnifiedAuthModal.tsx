@@ -191,7 +191,7 @@ export default function UnifiedAuthModal({
 
       // No email confirmation — proceed to post-auth
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("Sign up error:", err);
       setError("Something went wrong. Please try again.");
@@ -232,7 +232,7 @@ export default function UnifiedAuthModal({
       }
 
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("Sign in error:", err);
       setError("Something went wrong. Please try again.");
@@ -294,7 +294,7 @@ export default function UnifiedAuthModal({
       }
 
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("OTP verification error:", err);
       setError("Something went wrong. Please try again.");
@@ -400,13 +400,12 @@ export default function UnifiedAuthModal({
   // Post-auth routing
   // ──────────────────────────────────────────────────────────
 
-  const handleAuthComplete = async () => {
-    // AuthProvider's onAuthStateChange SIGNED_IN listener calls
-    // fetchAccountData() automatically when setSession() fires —
-    // no need to await refreshAccountData() here.
+  const handleAuthComplete = () => {
+    // Zero network calls here. AuthProvider's SIGNED_IN listener handles
+    // data loading in the background, and its onboarding-detection useEffect
+    // will auto-open post-auth if onboarding is incomplete.
 
-    // New signups always need onboarding. Skip the DB check entirely —
-    // the accounts row may not even exist yet (DB trigger delay).
+    // New signups always need onboarding
     if (otpContext === "signup") {
       if (options.intent === "provider") {
         onClose();
@@ -417,48 +416,15 @@ export default function UnifiedAuthModal({
       return;
     }
 
-    // Provider intent — route straight to onboarding wizard
+    // Provider intent — route to onboarding wizard
     if (options.intent === "provider") {
       onClose();
       router.push("/provider/onboarding");
       return;
     }
 
-    // Returning user — check onboarding status.
-    // 1) Use account already in auth context (cached/loaded on page init)
-    if (account?.onboarding_completed) {
-      onClose();
-      return;
-    }
-
-    // 2) Fallback: lightweight DB query with a tight 3s timeout.
-    //    If Supabase is slow, don't block the user — default to post-auth.
-    if (isSupabaseConfigured()) {
-      try {
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const result = await Promise.race([
-            supabase
-              .from("accounts")
-              .select("onboarding_completed")
-              .eq("user_id", session.user.id)
-              .single(),
-            new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
-          ]);
-
-          if (result && "data" in result && result.data?.onboarding_completed) {
-            onClose();
-            return;
-          }
-        }
-      } catch {
-        // Timeout or error — fall through to post-auth
-      }
-    }
-
-    // No confirmed onboarding — show post-auth
-    setStep("post-auth");
+    // Returning user — close instantly. AuthProvider handles the rest.
+    onClose();
   };
 
   const handlePostAuthComplete = () => {

@@ -53,6 +53,15 @@ const categoryToProviderCategory: Record<string, string> = {
   "nursing-home": "Nursing Home",
 };
 
+const categoryToPowerPage: Record<string, string> = {
+  "home-care": "/home-care",
+  "home-health": "/home-health-care",
+  "assisted-living": "/assisted-living",
+  "memory-care": "/memory-care",
+  "independent-living": "/independent-living",
+  "nursing-home": "/nursing-home",
+};
+
 export default function BrowseByCareTypeSection() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>("home-care");
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -248,7 +257,7 @@ export default function BrowseByCareTypeSection() {
 
           <div className="mt-4 text-center">
             <Link
-              href={`/browse?type=${selectedCategory}`}
+              href={categoryToPowerPage[selectedCategory || ""] || `/browse?type=${selectedCategory}`}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white shadow-sm shadow-primary-600/20 hover:shadow-md hover:shadow-primary-600/30 transition-all"
             >
               View all

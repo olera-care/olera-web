@@ -16,6 +16,7 @@ export default function GalleryCard({
   return (
     <DashboardSectionCard
       title="Gallery"
+      icon={<svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" /></svg>}
       completionPercent={completionPercent}
       id="gallery"
     >
@@ -33,14 +34,14 @@ export default function GalleryCard({
               key={i}
               src={src}
               alt={`Gallery photo ${i + 1}`}
-              className="rounded-lg object-cover aspect-square w-full"
+              className="rounded-xl object-cover aspect-square w-full shadow-xs hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
             />
           ))}
           {/* Add new photos placeholder */}
-          <div className="rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center aspect-square hover:border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+          <div className="group/upload rounded-xl border-2 border-dashed border-primary-200/50 flex flex-col items-center justify-center aspect-square hover:border-primary-300 hover:bg-primary-25 transition-all duration-300 cursor-pointer">
+            <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center mb-2 group-hover/upload:scale-110 transition-transform duration-300">
               <svg
-                className="w-5 h-5 text-gray-400"
+                className="w-5 h-5 text-primary-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -53,7 +54,7 @@ export default function GalleryCard({
                 />
               </svg>
             </div>
-            <span className="text-xs font-medium text-gray-500">
+            <span className="text-xs font-medium text-primary-500">
               Add new photos
             </span>
           </div>

@@ -22,6 +22,7 @@ export default function StaffScreeningCard({
   return (
     <DashboardSectionCard
       title="Staff Screening"
+      icon={<svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>}
       completionPercent={completionPercent}
       id="screening"
     >
@@ -40,8 +41,8 @@ export default function StaffScreeningCard({
                 key={key}
                 className={`flex items-center gap-3 rounded-xl p-4 ${
                   isActive
-                    ? "bg-primary-50 border border-primary-100"
-                    : "bg-gray-50 border border-gray-100"
+                    ? "bg-primary-50/80 border border-primary-200/50 shadow-xs shadow-primary-500/[0.03]"
+                    : "bg-gray-50/80 border border-gray-200/50"
                 }`}
               >
                 <div

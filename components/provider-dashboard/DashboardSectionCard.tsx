@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 interface DashboardSectionCardProps {
   title: string;
+  icon?: ReactNode;
   completionPercent?: number;
   children: ReactNode;
   id?: string;
@@ -9,6 +10,7 @@ interface DashboardSectionCardProps {
 
 export default function DashboardSectionCard({
   title,
+  icon,
   completionPercent,
   children,
   id,
@@ -16,16 +18,23 @@ export default function DashboardSectionCard({
   return (
     <section
       id={id}
-      className="bg-white rounded-xl border border-gray-100 p-6"
+      className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300"
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <div className="flex items-center gap-2.5">
-          {/* Pencil icon (non-functional in Phase 1) */}
+        <div className="flex items-center gap-3 min-w-0">
+          {icon && (
+            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
+              {icon}
+            </div>
+          )}
+          <h3 className="text-lg font-display font-bold text-gray-900 truncate">{title}</h3>
+        </div>
+        <div className="flex items-center gap-2.5 shrink-0">
+          {/* Edit icon */}
           <button
             type="button"
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
             aria-label={`Edit ${title}`}
           >
             <svg
@@ -44,7 +53,11 @@ export default function DashboardSectionCard({
           </button>
           {/* Completion percentage */}
           {completionPercent != null && (
-            <span className="text-xs font-semibold text-primary-600">
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+              completionPercent >= 100
+                ? "bg-success-50 text-success-700"
+                : "bg-primary-50 text-primary-700"
+            }`}>
               {completionPercent}%
             </span>
           )}

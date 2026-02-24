@@ -127,12 +127,14 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 // ── Care Request Card ──
 
-function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, editable, connectionId, autoIntro, onUpdated }: {
+function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, editable, connectionId, autoIntro, onUpdated }: {
   careRequest: CareRequestData;
   time: string;
   dateStr: string;
   isInbound: boolean;
   otherName: string;
+  otherInitial: string;
+  imageUrl?: string | null;
   editable: boolean;
   connectionId: string;
   autoIntro?: string | null;
@@ -142,9 +144,22 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, edi
   const senderName = careRequest.seekerName;
 
   return (
-    <div className="flex justify-end">
+    <div className={isInbound ? "flex items-end gap-2.5" : "flex justify-end"}>
+      {isInbound && (
+        imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+        ) : (
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
+            style={{ background: avatarGradient(otherName) }}
+          >
+            {otherInitial}
+          </div>
+        )
+      )}
       <div className="max-w-[420px]">
-        <div className="rounded-2xl rounded-br-md overflow-hidden shadow-sm border border-gray-200">
+        <div className={`rounded-2xl ${isInbound ? "rounded-bl-md" : "rounded-br-md"} overflow-hidden shadow-sm border border-gray-200`}>
           {/* Teal gradient header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-5 py-3">
             <div className="flex items-center gap-2">
@@ -233,7 +248,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, edi
             </p>
           </div>
         </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{time}</p>
+        <p className={`text-xs text-gray-400 mt-1.5 ${isInbound ? "ml-1" : "text-right mr-1"}`}>{time}</p>
       </div>
 
       {/* Edit modal */}
@@ -447,6 +462,8 @@ export default function ConversationPanel({
                   dateStr={formatDateSeparator(connection.created_at)}
                   isInbound={isInbound}
                   otherName={otherName}
+                  otherInitial={otherInitial}
+                  imageUrl={imageUrl}
                   editable={!isInbound && (connection.status === "pending" || connection.status === "accepted")}
                   connectionId={connection.id}
                   autoIntro={autoIntro}

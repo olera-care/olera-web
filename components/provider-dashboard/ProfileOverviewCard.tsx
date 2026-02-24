@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import DashboardSectionCard from "./DashboardSectionCard";
@@ -65,11 +64,11 @@ export default function ProfileOverviewCard({
             <img
               src={profile.image_url}
               alt={profile.display_name}
-              className="w-16 h-16 rounded-xl object-cover shrink-0"
+              className="w-16 h-16 rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
             />
           ) : (
-            <div className="w-16 h-16 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
-              <span className="text-lg font-bold text-primary-600">
+            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+              <span className="text-lg font-display font-bold text-primary-700">
                 {initials}
               </span>
             </div>
@@ -77,7 +76,7 @@ export default function ProfileOverviewCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-gray-900 truncate">
+              <h2 className="text-xl font-bold text-gray-900 font-display truncate">
                 {profile.display_name}
               </h2>
               {isVerified && <Badge variant="verified">Verified</Badge>}
@@ -86,37 +85,6 @@ export default function ProfileOverviewCard({
               <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>
             )}
           </div>
-
-          {/* See public view */}
-          {profile.slug && (
-            <Link
-              href={`/provider/${profile.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 border border-gray-200 rounded-lg px-3 py-1.5"
-            >
-              <svg
-                className="w-3.5 h-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-              See public view
-            </Link>
-          )}
         </div>
 
         {/* Contact Information */}
@@ -186,7 +154,7 @@ function ContactRow({
 }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-vanilla-50 border border-warm-100/40 flex items-center justify-center shrink-0">
         {icon === "phone" && (
           <svg
             className="w-4 h-4 text-gray-500"

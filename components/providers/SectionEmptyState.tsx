@@ -39,8 +39,8 @@ export default function SectionEmptyState({
   onCtaClick,
 }: SectionEmptyStateProps) {
   return (
-    <div className="bg-gray-50 rounded-xl py-10 px-6 flex flex-col items-center text-center">
-      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 border border-gray-100">
+    <div className="bg-gradient-to-br from-vanilla-50 to-warm-25 rounded-xl py-10 px-6 flex flex-col items-center text-center border border-warm-100/40">
+      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 border border-warm-100/60 shadow-xs">
         {icons[icon]}
       </div>
       <p className="text-[15px] font-medium text-gray-900">{message}</p>

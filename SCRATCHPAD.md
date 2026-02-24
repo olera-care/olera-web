@@ -89,6 +89,37 @@
 
 ## Session Log
 
+### 2026-02-24 (Session 17) — Web QA Test Plan on Notion
+
+**Branch:** `hopeful-swartz` (no code changes)
+
+**What:** Created a comprehensive Web QA Test Plan database on Notion, modeled after the existing App Store QA Test Plan. Explored the full codebase to identify all major features, pages, and user flows.
+
+**Notion database:** https://www.notion.so/9f68deb000be474f919f215dee5f4605
+- Parent: Product Development
+- 85 test cases across 13 sections
+- Schema: Name (title), Browser (multi_select), Passed (checkbox), Section (select), Risk (P0/P1/P2), Notes (text)
+- Grouped by Section in table view (configured manually in Notion UI)
+
+**Sections:**
+- A. Smoke Tests (8) — homepage, browse, detail, nav, auth redirects
+- B. Auth & Sessions (10) — sign-up, sign-in, OAuth, OTP, session, profile switcher
+- C. Browse & Search (8) — city search, care type filter, sort, map, pagination
+- D. Provider Detail (10) — gallery, about, services, reviews, CTA, bookmarks
+- E. Family Portal (11) — inbox, messaging, connections, matches, saved
+- F. Provider Hub (9) — dashboard, completeness, connections, inbox, stats
+- G. Community & Resources (8) — forum, posts, resources, benefits finder
+- H. Admin Dashboard (9) — overview, provider mgmt, directory, images, team
+- I. Onboarding & Claims (7) — wizard, claim search, phone OTP, org creation
+- J. Payments & Pro (5) — Stripe checkout, Pro unlock, tier access
+- K. Responsive & Mobile (8) — mobile layouts, touch targets, map
+- L. SEO & Performance (6) — meta tags, OG, schema.org, lazy load, CLS
+- M. Error Handling (6) — 404, API errors, empty states, validation
+
+**Handed off to:** Esther for QA execution
+
+---
+
 ### 2026-02-21 (Session 16) — Admin Provider Directory Editor
 
 **Branch:** `stellar-hypatia` → merged to `staging` via PR #40

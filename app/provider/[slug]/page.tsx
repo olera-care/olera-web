@@ -660,9 +660,9 @@ export default async function ProviderPage({
               {/* ── Customer Questions & Answers ── */}
               <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <QASectionV2
+                  providerId={profile.slug}
                   providerName={profile.display_name}
                   providerImage={images[0]}
-                  questions={[]}
                 />
               </div>
 

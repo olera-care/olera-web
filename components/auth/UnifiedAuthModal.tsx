@@ -78,7 +78,7 @@ export default function UnifiedAuthModal({
   }, [resendCooldown]);
 
   // ──────────────────────────────────────────────────────────
-  // Email-first flow: check if email exists
+  // Email-first flow: Telegram-style — send OTP immediately
   // ──────────────────────────────────────────────────────────
 
   const handleEmailContinue = async (e: React.FormEvent) => {
@@ -88,20 +88,36 @@ export default function UnifiedAuthModal({
     setCheckingEmail(true);
 
     try {
-      const res = await fetch("/api/auth/check-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const { exists } = await res.json();
+      if (!isSupabaseConfigured()) {
+        setError("Authentication is not configured.");
+        setCheckingEmail(false);
+        return;
+      }
 
-      if (exists) {
-        setStep("sign-in");
+      // One call that both checks if user exists AND sends OTP.
+      // Replaces the old check-email API (which listed 1000 users).
+      const authClient = createAuthClient();
+      const { error: otpError } = await authClient.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      });
+
+      if (otpError) {
+        if (otpError.message.includes("not found") || otpError.message.includes("not registered")) {
+          // User doesn't exist → sign up
+          setStep("sign-up");
+        } else {
+          // Other error (rate limit, etc)
+          setError(otpError.message);
+        }
       } else {
-        setStep("sign-up");
+        // OTP sent → go straight to verify screen
+        setOtpContext("signin");
+        setResendCooldown(30);
+        setStep("verify-otp");
       }
     } catch {
-      // On error, default to sign-up
+      // Network error → default to sign-up
       setStep("sign-up");
     } finally {
       setCheckingEmail(false);
@@ -283,18 +299,20 @@ export default function UnifiedAuthModal({
         return;
       }
 
-      // Transfer session to the main SSR client (cookie-based) so
-      // middleware, server components, and AuthProvider all see it.
-      if (verifyData.session) {
-        const mainClient = createClient();
-        await mainClient.auth.setSession({
-          access_token: verifyData.session.access_token,
-          refresh_token: verifyData.session.refresh_token,
-        });
-      }
-
+      // Close modal IMMEDIATELY — don't wait for session transfer.
+      // This is the Telegram approach: UI responds the instant we
+      // know the code is correct.
       setLoading(false);
       handleAuthComplete();
+
+      // Transfer session to SSR client in background. This sets cookies
+      // so middleware and server components see the session on next navigation.
+      if (verifyData.session) {
+        createClient().auth.setSession({
+          access_token: verifyData.session.access_token,
+          refresh_token: verifyData.session.refresh_token,
+        }).catch((err) => console.error("[olera] Background setSession failed:", err));
+      }
     } catch (err) {
       console.error("OTP verification error:", err);
       setError("Something went wrong. Please try again.");
@@ -727,6 +745,18 @@ export default function UnifiedAuthModal({
                 </p>
               )}
             </div>
+
+            {otpContext === "signin" && (
+              <p className="text-center text-sm text-gray-400 mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setStep("sign-in"); setOtpCode(""); setError(""); }}
+                  className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none"
+                >
+                  Use password instead
+                </button>
+              </p>
+            )}
           </form>
         </div>
       )}

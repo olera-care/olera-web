@@ -64,6 +64,12 @@ function SettingsContent() {
   const [deleteProfileError, setDeleteProfileError] = useState("");
   const [deleteProfileConfirmText, setDeleteProfileConfirmText] = useState("");
 
+  // Request listing deletion
+  const [showDeletionRequestModal, setShowDeletionRequestModal] = useState(false);
+  const [requestingDeletion, setRequestingDeletion] = useState(false);
+  const [deletionRequestError, setDeletionRequestError] = useState("");
+  const [deletionRequestSuccess, setDeletionRequestSuccess] = useState(false);
+
   const isProvider =
     activeProfile?.type === "organization" ||
     activeProfile?.type === "caregiver";
@@ -237,6 +243,41 @@ function SettingsContent() {
       setDeletingProfile(false);
     }
   };
+
+  // ── Request listing deletion ──
+  const handleRequestDeletion = async () => {
+    if (!activeProfile) return;
+    setRequestingDeletion(true);
+    setDeletionRequestError("");
+
+    try {
+      const res = await fetch("/api/portal/request-deletion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: activeProfile.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit deletion request");
+      }
+
+      setDeletionRequestSuccess(true);
+      setShowDeletionRequestModal(false);
+      await refreshAccountData();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Something went wrong";
+      setDeletionRequestError(msg);
+    } finally {
+      setRequestingDeletion(false);
+    }
+  };
+
+  const canRequestDeletion =
+    isProvider && !!activeProfile?.source_provider_id && !activeProfile?.deletion_requested;
 
   // ── Stripe upgrade ──
   const handleUpgrade = async (billingCycle: "monthly" | "annual") => {
@@ -600,6 +641,66 @@ function SettingsContent() {
         </div>
       )}
 
+      {/* ── Request Listing Deletion (claimed providers only) ── */}
+      {isProvider && activeProfile?.source_provider_id && (
+        <div className="p-6">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
+                <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[15px] font-semibold text-gray-900">
+                  Request Listing Deletion
+                </h4>
+                {activeProfile.deletion_requested ? (
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span className="text-xs font-medium text-amber-700">
+                        Deletion requested — under review
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      We&apos;ll review your request and remove this listing within 2-3 business days.
+                    </p>
+                  </div>
+                ) : deletionRequestSuccess ? (
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
+                      <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-xs font-medium text-green-700">
+                        Deletion request submitted
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      We&apos;ll review your request and remove this listing within 2-3 business days.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-400 mt-1">
+                      We&apos;ll review your request and remove this listing within 2-3 business days. This cannot be undone.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeletionRequestModal(true)}
+                      className="mt-3 text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      Request Deletion
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Remove this profile ── */}
       <div className="p-6">
         <div className="flex items-start justify-between">
@@ -731,6 +832,75 @@ function SettingsContent() {
               className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
             >
               {deleting ? "Deleting..." : "Delete my account"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Request Listing Deletion Confirmation Modal */}
+      <Modal
+        isOpen={showDeletionRequestModal}
+        onClose={() => {
+          setShowDeletionRequestModal(false);
+          setDeletionRequestError("");
+        }}
+        title="Request Listing Deletion"
+        size="sm"
+      >
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            Approving will soft-delete{" "}
+            <span className="font-semibold text-gray-900">
+              {activeProfile?.display_name}
+            </span>
+            . You can contact support if you change your mind before the request is processed.
+          </p>
+          <ul className="space-y-2 mb-5">
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Your listing will be removed from search results
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Families will no longer be able to find or contact you through Olera
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Review takes 2-3 business days
+            </li>
+          </ul>
+
+          {deletionRequestError && (
+            <div className="mb-4 bg-red-50 text-red-700 px-3 py-2.5 rounded-lg text-sm">
+              {deletionRequestError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeletionRequestModal(false);
+                setDeletionRequestError("");
+              }}
+              disabled={requestingDeletion}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 px-3 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleRequestDeletion}
+              disabled={requestingDeletion}
+              className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
+            >
+              {requestingDeletion ? "Submitting..." : "Request Deletion"}
             </button>
           </div>
         </div>

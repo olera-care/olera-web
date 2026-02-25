@@ -90,6 +90,9 @@ export default function ProfileSwitcher({
                 </p>
                 <p className="text-xs text-gray-400">
                   {TYPE_LABELS[profile.type] || profile.type}
+                  {profile.deletion_requested && (
+                    <span className="ml-1 text-amber-500"> &middot; Pending deletion</span>
+                  )}
                 </p>
               </div>
               {isActive && (
@@ -149,6 +152,9 @@ export default function ProfileSwitcher({
               </p>
               <p className="text-xs text-gray-400">
                 {TYPE_LABELS[profile.type] || profile.type}
+                {profile.deletion_requested && (
+                  <span className="ml-1 text-amber-500"> &middot; Pending deletion</span>
+                )}
               </p>
             </div>
             {isActive && (

@@ -633,6 +633,9 @@ export function mockProviderToProfile(provider: Provider): Profile {
     verification_state: provider.reviews && provider.reviews.length > 0 ? "verified" : "unverified",
     source: "seeded",
     is_active: true,
+    deletion_requested: false,
+    deletion_requested_at: null,
+    deletion_approved_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -732,6 +735,9 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     verification_state: "unverified", // iOS data doesn't have verification status
     source: "seeded",
     is_active: !provider.deleted,
+    deletion_requested: false,
+    deletion_requested_at: null,
+    deletion_approved_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

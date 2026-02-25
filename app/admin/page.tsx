@@ -6,6 +6,7 @@ import Badge from "@/components/ui/Badge";
 
 interface OverviewStats {
   pendingProviders: number;
+  deletionRequests: number;
   totalInquiries: number;
   adminCount: number;
   imagesToReview: number;
@@ -30,8 +31,9 @@ export default function AdminOverviewPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes] = await Promise.all([
+        const [providersRes, deletionsRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes] = await Promise.all([
           fetch("/api/admin/providers?status=pending&count_only=true"),
+          fetch("/api/admin/deletions?tab=requests&count_only=true"),
           fetch("/api/admin/leads?count_only=true"),
           fetch("/api/admin/team"),
           fetch("/api/admin/audit?limit=10"),
@@ -40,6 +42,7 @@ export default function AdminOverviewPage() {
         ]);
 
         const pendingData = providersRes.ok ? await providersRes.json() : { count: 0 };
+        const deletionsData = deletionsRes.ok ? await deletionsRes.json() : { count: 0 };
         const leadsData = leadsRes.ok ? await leadsRes.json() : { count: 0 };
         const teamData = teamRes.ok ? await teamRes.json() : { admins: [] };
         const auditData = auditRes.ok ? await auditRes.json() : { entries: [] };
@@ -48,6 +51,7 @@ export default function AdminOverviewPage() {
 
         setStats({
           pendingProviders: pendingData.count ?? 0,
+          deletionRequests: deletionsData.count ?? 0,
           totalInquiries: leadsData.count ?? 0,
           adminCount: teamData.admins?.length ?? 0,
           imagesToReview: imageStats.needs_review ?? 0,
@@ -88,6 +92,15 @@ export default function AdminOverviewPage() {
             <p className="text-base text-gray-500 mb-1">Pending Providers</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
               {stats?.pendingProviders ?? 0}
+            </p>
+            <p className="text-base text-gray-500">Awaiting review</p>
+          </div>
+        </Link>
+        <Link href="/admin/deletions" className="block">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
+            <p className="text-base text-gray-500 mb-1">Deletion Requests</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {stats?.deletionRequests ?? 0}
             </p>
             <p className="text-base text-gray-500">Awaiting review</p>
           </div>
@@ -161,6 +174,10 @@ function formatAction(action: string, targetType: string): string {
     add_admin: "Added an admin",
     remove_admin: "Removed an admin",
     update_directory_provider: "Updated a directory provider",
+    approve_deletion: "Approved a deletion request",
+    deny_deletion: "Denied a deletion request",
+    restore_provider: "Restored a deleted provider",
+    purge_provider: "Permanently purged a provider",
   };
   return actionLabels[action] ?? `${action} on ${targetType}`;
 }
@@ -175,8 +192,10 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function getActionBadgeVariant(action: string): "verified" | "pending" | "default" {
-  if (action.includes("approve")) return "verified";
-  if (action.includes("reject")) return "pending";
+function getActionBadgeVariant(action: string): "verified" | "pending" | "rejected" | "default" {
+  if (action === "restore_provider") return "verified";
+  if (action.includes("approve") && !action.includes("deletion")) return "verified";
+  if (action.includes("reject") || action.includes("deny")) return "pending";
+  if (action.includes("deletion") || action.includes("purge")) return "rejected";
   return "default";
 }

@@ -349,15 +349,19 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Profile switcher */}
-      <div className="mx-4 border-t border-gray-100" />
-      <div className="px-2 py-1">
-        <ProfileSwitcher
-          onSwitch={() => setIsUserMenuOpen(false)}
-          variant="dropdown"
-          navigateTo={isProviderPortal ? "/provider" : "/"}
-        />
-      </div>
+      {/* Profile switcher — only show once profile data is available */}
+      {isFullyLoaded && (
+        <>
+          <div className="mx-4 border-t border-gray-100" />
+          <div className="px-2 py-1">
+            <ProfileSwitcher
+              onSwitch={() => setIsUserMenuOpen(false)}
+              variant="dropdown"
+              navigateTo={isProviderPortal ? "/provider" : "/"}
+            />
+          </div>
+        </>
+      )}
 
       {isAdmin && (
         <>
@@ -1078,14 +1082,16 @@ export default function Navbar() {
                       </>
                     )}
 
-                    {/* Profile switcher */}
-                    <div className="border-t border-gray-100 pt-2">
-                      <ProfileSwitcher
-                        onSwitch={() => setIsMobileMenuOpen(false)}
-                        variant="dropdown"
-                        navigateTo={isProviderPortal ? "/provider" : "/"}
-                      />
-                    </div>
+                    {/* Profile switcher — only show once profile data is available */}
+                    {isFullyLoaded && (
+                      <div className="border-t border-gray-100 pt-2">
+                        <ProfileSwitcher
+                          onSwitch={() => setIsMobileMenuOpen(false)}
+                          variant="dropdown"
+                          navigateTo={isProviderPortal ? "/provider" : "/"}
+                        />
+                      </div>
+                    )}
 
                     {isAdmin && (
                       <>

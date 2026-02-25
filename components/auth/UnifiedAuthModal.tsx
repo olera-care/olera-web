@@ -33,7 +33,7 @@ export default function UnifiedAuthModal({
   options = {},
 }: UnifiedAuthModalProps) {
   const router = useRouter();
-  const { user, account } = useAuth();
+  const { user, account, refreshAccountData } = useAuth();
 
   // Determine initial step
   const getInitialStep = useCallback((): AuthStep => {
@@ -216,7 +216,7 @@ export default function UnifiedAuthModal({
       }
 
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -229,6 +229,22 @@ export default function UnifiedAuthModal({
         );
         setLoading(false);
         return;
+      }
+
+      // Pre-warm the auth cache so the dropdown has data immediately.
+      // signInWithPassword triggers SIGNED_IN which starts a background
+      // fetch, but we await here to guarantee the cache is warm before
+      // the modal closes. 3s timeout as a safety net.
+      const userId = signInData?.user?.id;
+      if (userId) {
+        try {
+          await Promise.race([
+            refreshAccountData(userId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
+          ]);
+        } catch {
+          // Timeout or error — SIGNED_IN handler will continue in background
+        }
       }
 
       setLoading(false);
@@ -285,9 +301,7 @@ export default function UnifiedAuthModal({
 
       // Transfer session to SSR client BEFORE closing the modal.
       // setSession is fast (~100ms) — it writes cookies locally and fires
-      // the SIGNED_IN event in AuthProvider, which triggers profile data
-      // fetching. Doing this before close avoids the race where init()
-      // finds no session and clears the cache.
+      // the SIGNED_IN event in AuthProvider.
       if (verifyData.session) {
         try {
           await Promise.race([
@@ -299,6 +313,21 @@ export default function UnifiedAuthModal({
           ]);
         } catch (err) {
           console.error("[olera] setSession failed or timed out:", err);
+        }
+      }
+
+      // Pre-warm the auth cache so the dropdown has data immediately.
+      // The SIGNED_IN handler also fetches, but we await here to
+      // guarantee data is cached before the modal closes. 3s timeout.
+      const userId = verifyData.user?.id;
+      if (userId) {
+        try {
+          await Promise.race([
+            refreshAccountData(userId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
+          ]);
+        } catch {
+          // Timeout — SIGNED_IN handler continues in background
         }
       }
 

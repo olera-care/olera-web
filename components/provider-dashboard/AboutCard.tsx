@@ -8,12 +8,14 @@ interface AboutCardProps {
   profile: Profile;
   metadata: ExtendedMetadata;
   completionPercent: number;
+  onEdit?: () => void;
 }
 
 export default function AboutCard({
   profile,
   metadata,
   completionPercent,
+  onEdit,
 }: AboutCardProps) {
   const description = profile.description || null;
 
@@ -29,6 +31,7 @@ export default function AboutCard({
       title="About"
       completionPercent={completionPercent}
       id="about"
+      onEdit={onEdit}
     >
       {!description && !hasDetails ? (
         <SectionEmptyState
@@ -42,7 +45,7 @@ export default function AboutCard({
             <ExpandableText text={description} maxLength={200} />
           )}
           {hasDetails && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div className={`flex flex-wrap gap-2.5 ${description ? "pt-3 border-t border-gray-100" : ""}`}>
               {yearFounded && (
                 <DetailPill label="Founded" value={String(yearFounded)} />
               )}
@@ -65,9 +68,9 @@ export default function AboutCard({
 
 function DetailPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-gray-50 rounded-lg px-3 py-2.5 text-center">
-      <p className="text-sm font-medium text-gray-500 mb-0.5">{label}</p>
-      <p className="text-[15px] font-semibold text-gray-700">{value}</p>
+    <div className="flex flex-col items-center justify-center rounded-xl bg-warm-25 border border-warm-100/60 px-4 py-2.5 min-w-[80px]">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{label}</span>
+      <span className="text-[17px] font-bold text-gray-900 mt-0.5">{value}</span>
     </div>
   );
 }

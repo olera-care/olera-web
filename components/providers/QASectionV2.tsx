@@ -1,28 +1,23 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 
 interface QAEntry {
-  id?: string;
   question: string;
   answer: string;
-  asker_name?: string;
-  created_at?: string;
 }
 
 interface QASectionProps {
-  providerId: string;
   providerName: string;
   providerImage?: string;
-  questions?: QAEntry[];
+  questions: QAEntry[];
   suggestedQuestions?: string[];
 }
 
 export default function QASectionV2({
-  providerId,
   providerName,
   providerImage,
-  questions: initialQuestions = [],
+  questions,
   suggestedQuestions = [
     "When can a caregiver be available?",
     "Do you have shift minimums?",
@@ -32,68 +27,6 @@ export default function QASectionV2({
 }: QASectionProps) {
   const [inputValue, setInputValue] = useState("");
   const [showAll, setShowAll] = useState(false);
-  const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error" | "auth_required">("idle");
-
-  // Fetch public questions on mount
-  const fetchQuestions = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/questions?provider_id=${encodeURIComponent(providerId)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.questions?.length > 0) {
-          setQuestions(data.questions.map((q: { question: string; answer: string | null; asker_name: string; created_at: string; id: string }) => ({
-            id: q.id,
-            question: q.question,
-            answer: q.answer || "",
-            asker_name: q.asker_name,
-            created_at: q.created_at,
-          })));
-        }
-      }
-    } catch {
-      // Silently fail — questions are non-critical
-    }
-  }, [providerId]);
-
-  useEffect(() => {
-    fetchQuestions();
-  }, [fetchQuestions]);
-
-  const handleSubmit = async () => {
-    if (!inputValue.trim() || submitting) return;
-
-    setSubmitting(true);
-    setSubmitStatus("idle");
-
-    try {
-      const res = await fetch("/api/questions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId, question: inputValue.trim() }),
-      });
-
-      if (res.status === 401) {
-        setSubmitStatus("auth_required");
-        return;
-      }
-
-      if (!res.ok) {
-        setSubmitStatus("error");
-        return;
-      }
-
-      setInputValue("");
-      setSubmitStatus("success");
-      // Clear success message after 4 seconds
-      setTimeout(() => setSubmitStatus("idle"), 4000);
-    } catch {
-      setSubmitStatus("error");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const visibleQuestions = showAll ? questions : questions.slice(0, 2);
   const hasMore = questions.length > 2;
@@ -134,27 +67,11 @@ export default function QASectionV2({
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Type your question..."
           rows={3}
-          maxLength={1000}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all"
         />
-        <div className="flex items-center justify-between mt-3">
-          <div className="text-sm">
-            {submitStatus === "success" && (
-              <span className="text-green-600">Question submitted! It will appear after review.</span>
-            )}
-            {submitStatus === "error" && (
-              <span className="text-red-600">Failed to submit. Please try again.</span>
-            )}
-            {submitStatus === "auth_required" && (
-              <span className="text-amber-600">Please sign in to ask a question.</span>
-            )}
-          </div>
-          <button
-            onClick={handleSubmit}
-            disabled={!inputValue.trim() || submitting}
-            className="px-5 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-full hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {submitting ? "Submitting..." : "Post Question"}
+        <div className="flex justify-end mt-3">
+          <button className="px-5 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-full hover:bg-primary-700 transition-colors">
+            Post Question
           </button>
         </div>
       </div>
@@ -164,7 +81,7 @@ export default function QASectionV2({
         <>
           <div className="space-y-6">
             {visibleQuestions.map((qa, index) => (
-              <div key={qa.id || index} className="border-b border-gray-100 pb-6 last:border-b-0">
+              <div key={index} className="border-b border-gray-100 pb-6 last:border-b-0">
                 {/* Question */}
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -173,12 +90,23 @@ export default function QASectionV2({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-semibold text-gray-900">{qa.question}</p>
+                    <p className="text-base font-semibold text-gray-900">{qa.question}</p>
+
+                    {/* Interaction row */}
+                    <div className="flex items-center gap-3 mt-2.5">
+                      <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-600 transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3.215a.678.678 0 01.678-.678 2.487 2.487 0 012.322 3.354l-.57 1.49a.75.75 0 00.699 1.024h2.51a1.5 1.5 0 011.46 1.848l-1.474 6.396a3 3 0 01-2.921 2.32H10.32a3 3 0 01-2.32-1.1L6 14.5" />
+                        </svg>
+                        1
+                      </button>
+                      <button className="flex items-center gap-1 text-xs text-gray-400 hover:text-primary-600 transition-colors">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
+                        </svg>
+                        1
+                      </button>
                     </div>
-                    {qa.asker_name && (
-                      <p className="text-xs text-gray-400 mt-1">Asked by {qa.asker_name}</p>
-                    )}
                   </div>
                 </div>
 
@@ -204,12 +132,18 @@ export default function QASectionV2({
                           <span className="text-sm font-semibold text-primary-700">{providerName}</span>
                           <span className="text-xs font-medium text-primary-600">· Provider</span>
                         </div>
+                        {/* Answer in muted background */}
                         <div className="bg-gray-50 rounded-lg px-4 py-3 mt-2">
                           <p className="text-sm text-gray-600 leading-relaxed">
                             {qa.answer.length > 200
                               ? qa.answer.slice(0, 200).trimEnd() + "..."
                               : qa.answer}
                           </p>
+                        </div>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                          <button className="hover:text-gray-600 transition-colors">Helpful</button>
+                          <span>·</span>
+                          <button className="hover:text-gray-600 transition-colors">Report</button>
                         </div>
                       </div>
                     </div>

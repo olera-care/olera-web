@@ -21,7 +21,7 @@ export default function CareServicesCard({
       title="Care Services"
       completionPercent={completionPercent}
       id="services"
-
+      onEdit={onEdit}
     >
       {services.length === 0 ? (
         <SectionEmptyState

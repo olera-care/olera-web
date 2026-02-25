@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, useCallback, type ReactNode } from "react";
+import { useEffect, useRef, useState, useCallback, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -9,18 +9,19 @@ interface ModalProps {
   title?: string;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
-  size?: "sm" | "md" | "lg" | "2xl";
-  /** Optional footer rendered below the body */
-  footer?: ReactNode;
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
   /** Optional back button handler. Shows a small circular back arrow in the header. */
   onBack?: () => void;
+  /** Sticky footer content (pinned below scrollable body). */
+  footer?: ReactNode;
 }
 
 const sizeClasses: Record<string, string> = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
-  "2xl": "max-w-2xl",
+  xl: "max-w-xl",
+  "2xl": "max-w-[640px]",
 };
 
 /**
@@ -37,8 +38,8 @@ export default function Modal({
   title,
   children,
   size = "md",
-  footer,
   onBack,
+  footer,
 }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -54,69 +55,31 @@ export default function Modal({
     setMounted(true);
   }, []);
 
-  // Blur + close: blur the focused element BEFORE triggering the state
-  // change that removes the portal. When a portal is removed while an
-  // element inside it has focus, the browser instantly scrolls to the
-  // next focusable element in the DOM (often in the footer). Blurring
-  // first means there's nothing focused when the portal unmounts, so
-  // the browser has no reason to scroll.
-  const handleClose = useCallback(() => {
-    const active = document.activeElement;
-    if (active && active !== document.body) {
-      (active as HTMLElement).blur();
-    }
-    onCloseRef.current();
-  }, []);
-
   // Close on Escape key — uses ref so effect doesn't depend on onClose identity
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
-      handleClose();
+      onCloseRef.current();
     }
-  }, [handleClose]);
+  }, []);
 
-  // Scroll lock — uses useLayoutEffect so cleanup runs synchronously
-  // BEFORE the browser paints. A regular useEffect cleanup is deferred
-  // and runs AFTER paint, which allows the browser to render a frame
-  // with the wrong scroll position (visible jump to the footer).
-  //
-  // Uses the position:fixed body technique: the body is pinned in place
-  // with top:-Npx encoding the scroll offset, so no scroll changes are
-  // physically possible while the modal is open. On cleanup we restore
-  // the body styles and call scrollTo to return to the saved position.
-  useLayoutEffect(() => {
+  // Keyboard listener + scroll lock — only re-runs when isOpen changes.
+  // Compensates for scrollbar width to prevent layout shift.
+  useEffect(() => {
     if (!isOpen) return;
 
-    const scrollY = window.scrollY;
     const scrollbarWidth = getScrollbarWidth();
 
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
+    document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
     return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
+      document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
-      // 'instant' overrides the global scroll-behavior:smooth on <html>,
-      // which would otherwise animate the scroll and get interrupted.
-      window.scrollTo({ top: scrollY, behavior: "instant" });
     };
-  }, [isOpen]);
-
-  // Keyboard listener for Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, handleKeyDown]);
 
   // Auto-focus first focusable element — only on initial open
@@ -151,7 +114,7 @@ export default function Modal({
         onMouseDown={(e) => {
           // Only close if the mousedown started on the backdrop itself
           if (e.target === e.currentTarget) {
-            handleClose();
+            onCloseRef.current();
           }
         }}
       />
@@ -160,50 +123,54 @@ export default function Modal({
       <div
         ref={contentRef}
         className={[
-          "relative bg-white rounded-2xl shadow-2xl w-full",
+          "relative bg-white rounded-2xl shadow-2xl w-full min-h-[50vh] max-h-[85vh] flex flex-col",
           "animate-slide-up",
           sizeClasses[size],
         ].join(" ")}
       >
-        {/* Header — always show back/close buttons */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-0">
-          {/* Back button (left) */}
-          {onBack ? (
+        {/* Header — pinned top */}
+        <div className="flex items-center gap-3 px-7 pt-6 pb-0 shrink-0">
+          {/* Back button */}
+          {onBack && (
             <button
               onClick={onBack}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
               aria-label="Go back"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-          ) : (
-            <div className="w-8" />
           )}
 
-          {/* Title (center) */}
+          {/* Title (left-aligned) */}
           {title ? (
-            <h2 className="text-xl font-semibold text-gray-900 text-center flex-1">{title}</h2>
+            <h2 className="text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
           ) : (
             <div className="flex-1" />
           )}
 
-          {/* Close button (right) */}
+          {/* Close button */}
           <button
-            onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            onClick={() => onCloseRef.current()}
+            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
             aria-label="Close"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-7 pb-7 pt-2">{children}</div>
-        {footer && <div className="px-7 pb-5">{footer}</div>}
+        {/* Scrollable body */}
+        <div className={`px-7 pt-2 flex-1 min-h-0 overflow-y-auto ${footer ? "" : "pb-7"}`}>
+          {children}
+        </div>
+
+        {/* Sticky footer — pinned bottom */}
+        {footer && (
+          <div className="px-7 pb-7 shrink-0">{footer}</div>
+        )}
       </div>
     </div>
   );

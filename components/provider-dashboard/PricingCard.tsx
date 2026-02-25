@@ -5,22 +5,26 @@ import SectionEmptyState from "@/components/providers/SectionEmptyState";
 interface PricingCardProps {
   metadata: ExtendedMetadata;
   completionPercent: number;
+  onEdit?: () => void;
 }
 
 export default function PricingCard({
   metadata,
   completionPercent,
+  onEdit,
 }: PricingCardProps) {
-  const pricingDetails = metadata.pricing_details || [];
+  const pricingDetails = Array.isArray(metadata.pricing_details) ? metadata.pricing_details : [];
   const priceRange = metadata.price_range;
+  const contactForPricing = metadata.contact_for_pricing;
 
-  const hasData = pricingDetails.length > 0 || priceRange;
+  const hasData = pricingDetails.length > 0 || priceRange || contactForPricing;
 
   return (
     <DashboardSectionCard
       title="Pricing"
       completionPercent={completionPercent}
       id="pricing"
+      onEdit={onEdit}
     >
       {!hasData ? (
         <SectionEmptyState
@@ -30,46 +34,39 @@ export default function PricingCard({
         />
       ) : (
         <div className="space-y-4">
-          {priceRange && (
-            <div className="flex items-center gap-2">
-              <span className="text-[15px] text-gray-500">Starting from</span>
-              <span className="text-xl font-bold text-gray-900">
-                {priceRange}
-              </span>
+          {/* Price range or contact for pricing */}
+          {(contactForPricing || priceRange) && (
+            <div className="rounded-lg bg-gray-50 px-5 py-4">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
+                {contactForPricing ? "Pricing" : "Starting from"}
+              </p>
+              <p className="text-2xl font-display font-bold text-gray-900 tracking-tight">
+                {contactForPricing ? "Contact for pricing" : priceRange}
+              </p>
             </div>
           )}
+
+          {/* Service pricing rows */}
           {pricingDetails.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-gray-100">
-              <table className="w-full text-[15px]">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left px-4 py-2.5 text-sm font-medium text-gray-500">
-                      Service
-                    </th>
-                    <th className="text-left px-4 py-2.5 text-sm font-medium text-gray-500">
-                      Rate
-                    </th>
-                    <th className="text-left px-4 py-2.5 text-sm font-medium text-gray-500">
-                      Type
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {pricingDetails.map((item, i) => (
-                    <tr key={i}>
-                      <td className="px-4 py-3 text-gray-700">
-                        {item.service}
-                      </td>
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        {item.rate}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {item.rateType}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {pricingDetails.filter(Boolean).map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between py-3.5 px-4 bg-gray-50 rounded-lg"
+                >
+                  <span className="text-base font-medium text-gray-900">
+                    {item.service || "Service"}
+                  </span>
+                  <span className="text-base font-semibold text-gray-900 shrink-0">
+                    {item.rate || "—"}{" "}
+                    {item.rateType && (
+                      <span className="font-normal text-gray-500">
+                        /{item.rateType.replace("per ", "").replace("flat rate", "flat")}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </div>

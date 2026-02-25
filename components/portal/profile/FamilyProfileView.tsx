@@ -28,7 +28,7 @@ const CONTACT_METHODS = ["Call", "Text", "Email"] as const;
 const CARE_RECIPIENTS = ["Myself", "My parent", "My spouse", "Someone else"];
 const CARE_TYPES = [
   "Home Care", "Home Health Care", "Assisted Living", "Memory Care",
-  "Nursing Home", "Independent Living", "Adult Day Care",
+  "Nursing Home", "Independent Living", "Hospice Care", "Adult Day Care",
   "Rehabilitation", "Private Caregiver",
 ];
 const TIMELINES = [

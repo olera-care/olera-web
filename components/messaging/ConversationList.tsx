@@ -443,7 +443,7 @@ export default function ConversationList({
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
         <div className="pl-[44px] pr-5 py-5">
-          <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
+          <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -468,7 +468,7 @@ export default function ConversationList({
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
         <div className="pl-[44px] pr-5 py-5">
-          <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
+          <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="text-center">
@@ -478,7 +478,7 @@ export default function ConversationList({
                 <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" strokeWidth={1.5} />
               </svg>
             </div>
-            <p className="text-[15px] font-medium text-gray-900 mb-1">No conversations yet</p>
+            <p className="text-[15px] font-display font-medium text-gray-900 mb-1">No conversations yet</p>
             {variant === "provider" ? (
               <p className="text-sm text-gray-500">When families connect with you, their messages will appear here</p>
             ) : (
@@ -512,7 +512,7 @@ export default function ConversationList({
                 : "opacity-100 translate-y-0"
             }`}
           >
-            <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
+            <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
             <button
               onClick={() => setSearchOpen(true)}
               className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -587,7 +587,7 @@ export default function ConversationList({
                 </svg>
               </button>
               {filterDropdownOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10">
+                <div className="absolute left-0 top-full mt-1.5 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
                   {(Object.keys(FILTER_LABELS) as FilterOption[]).map((key) => (
                     <button
                       key={key}
@@ -646,7 +646,7 @@ export default function ConversationList({
                 <p className="text-[15px] text-gray-500">No results found</p>
               ) : (
                 <div className="text-center">
-                  <p className="text-[15px] font-medium text-gray-900 mb-1">You have no messages yet</p>
+                  <p className="text-[15px] font-display font-medium text-gray-900 mb-1">You have no messages yet</p>
                   {variant === "provider" ? (
                     <p className="text-sm text-gray-500">When families connect with you, their messages will appear here</p>
                   ) : (

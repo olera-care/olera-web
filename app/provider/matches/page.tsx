@@ -1153,6 +1153,45 @@ export default function ProviderMatchesPage() {
         </p>
       </div>
 
+      {/* ── Filter tabs + Sort — full width to align with sidebar ── */}
+      <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
+        <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
+          {FILTER_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveFilter(tab.id)}
+              className={[
+                "px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150",
+                activeFilter === tab.id
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700",
+              ].join(" ")}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative shrink-0">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            aria-label="Sort matches"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg pl-8 pr-4 py-2 shadow-xs hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h4m0 0l3-3m-3 3l3 3M21 17h-4m0 0l-3 3m3-3l-3-3" />
+          </svg>
+        </div>
+      </div>
+
       {/* ── Content grid ── */}
       {families.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -1162,48 +1201,6 @@ export default function ProviderMatchesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Main content — 2/3 */}
           <div className="lg:col-span-2 space-y-5">
-            {/* ── Filter tabs + Sort — constrained to card column ── */}
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
-                {FILTER_TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveFilter(tab.id)}
-                    className={[
-                      "px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150",
-                      activeFilter === tab.id
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-500 hover:text-gray-700",
-                    ].join(" ")}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm text-gray-400">Sort by:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  aria-label="Sort matches"
-                  className="text-sm font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:outline-none focus:ring-0 pr-6 appearance-none"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 0 center",
-                    fontSize: "14px",
-                  }}
-                >
-                  {SORT_OPTIONS.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
             {filteredFamilies.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm text-center py-16 px-8">
                 <div className="w-12 h-12 rounded-2xl bg-warm-50 border border-warm-100/60 flex items-center justify-center mx-auto mb-4">

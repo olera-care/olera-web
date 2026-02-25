@@ -59,9 +59,14 @@ export default function Modal({
 
   // Keyboard listener + scroll lock — only re-runs when isOpen changes.
   // Compensates for scrollbar width to prevent layout shift.
+  // Saves scroll position & focus so we can restore them on close —
+  // without this, removing the portal causes the browser to lose focus
+  // and scroll to a random element (often the footer).
   useEffect(() => {
     if (!isOpen) return;
 
+    const scrollY = window.scrollY;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     const scrollbarWidth = getScrollbarWidth();
 
     document.addEventListener("keydown", handleKeyDown);
@@ -74,6 +79,10 @@ export default function Modal({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
+      // Restore scroll position before the browser paints
+      window.scrollTo(0, scrollY);
+      // Return focus to the element that opened the modal
+      previouslyFocused?.focus({ preventScroll: true });
     };
   }, [isOpen, handleKeyDown]);
 

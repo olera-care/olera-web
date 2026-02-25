@@ -388,7 +388,7 @@ function LeadDetailDrawer({
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[600px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col transition-transform duration-400 ease-[cubic-bezier(0.33,1,0.68,1)] ${
+        className={`fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[640px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col transition-transform duration-400 ease-[cubic-bezier(0.33,1,0.68,1)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

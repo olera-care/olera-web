@@ -316,7 +316,7 @@ function MatchesSidebar({
 
               {/* Families stat */}
               <div className="flex items-center justify-center gap-2.5 bg-warm-50/50 rounded-xl px-4 py-3">
-                <PeopleIcon className="w-4.5 h-4.5 text-gray-400 shrink-0" />
+                <PeopleIcon className="w-5 h-5 text-gray-400 shrink-0" />
                 <p className="text-[13px] text-gray-500">
                   <span className="font-bold text-gray-900">{totalFamilies}</span> families waiting
                 </p>
@@ -328,7 +328,7 @@ function MatchesSidebar({
                 Your matches
               </h4>
               <div className="flex items-center gap-2.5 bg-warm-50/50 rounded-xl px-4 py-3">
-                <PeopleIcon className="w-4.5 h-4.5 text-gray-400 shrink-0" />
+                <PeopleIcon className="w-5 h-5 text-gray-400 shrink-0" />
                 <p className="text-[13px] text-gray-500">
                   <span className="font-bold text-gray-900">{totalFamilies}</span> families near you are looking for care
                 </p>

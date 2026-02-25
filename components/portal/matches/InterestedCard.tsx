@@ -35,16 +35,20 @@ export default function InterestedCard({
   const name = profile?.display_name || "Unknown Provider";
   const location = [profile?.city, profile?.state].filter(Boolean).join(", ");
   const imageUrl = profile?.image_url;
-  const initial = name.charAt(0).toUpperCase();
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
   const viewed = (item.metadata as Record<string, unknown>)?.viewed === true;
   const matchReasons = ((item.metadata as Record<string, unknown>)?.match_reasons as string[]) || [];
+  const reachOutNote = (item.metadata as Record<string, unknown>)?.reach_out_note as string | undefined;
   const dateLabel = formatRelativeDate(item.created_at);
 
-  // Determine provider type label
+  // Provider type / care types
   const careTypes = profile?.care_types || [];
-  const typeLabel = careTypes[0] || (profile?.category
-    ? String(profile.category).replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())
-    : "Care Provider");
+  const description = profile?.description;
 
   return (
     <button
@@ -54,100 +58,127 @@ export default function InterestedCard({
       }}
       disabled={isDeclined && !onReconsider}
       className={[
-        "w-full text-left rounded-xl bg-white border p-5 transition-all duration-200",
+        "w-full text-left bg-white rounded-2xl border overflow-hidden transition-[border-color,box-shadow] duration-300",
         isDeclined
-          ? "border-gray-100 opacity-60 cursor-default"
-          : "border-gray-100 hover:border-gray-200 cursor-pointer",
+          ? "border-gray-200/80 opacity-55 cursor-default"
+          : "border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300 cursor-pointer",
       ].join(" ")}
     >
-      <div className="flex items-start gap-3.5">
-        {/* Avatar */}
-        <div className="relative shrink-0">
+      {/* ── Card body ── */}
+      <div className="p-7">
+        {/* Header: avatar + name/location + unread dot + time */}
+        <div className="flex items-start gap-4 mb-5">
           {imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={imageUrl}
               alt={name}
-              className="w-12 h-12 rounded-full object-cover"
+              className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-sm"
             />
           ) : (
             <div
-              className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white"
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-[15px] font-bold text-white shadow-sm"
               style={{ background: avatarGradient(name) }}
             >
-              {initial}
+              {initials}
             </div>
           )}
-        </div>
-
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          {/* Date row */}
-          <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className={[
-              "text-xs",
-              isDeclined ? "text-gray-400" : "text-gray-400",
-            ].join(" ")}>
-              {typeLabel}
-            </span>
-            <span className="text-xs text-gray-400 shrink-0">{dateLabel}</span>
-          </div>
-
-          {/* Name + unread dot */}
-          <div className="flex items-center gap-1.5">
-            {!isDeclined && !viewed && (
-              <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+          <div className="min-w-0 flex-1 pt-0.5">
+            <div className="flex items-center gap-2">
+              {!isDeclined && !viewed && (
+                <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+              )}
+              <h3
+                className={[
+                  "text-lg font-display truncate leading-tight",
+                  isDeclined
+                    ? "font-medium text-gray-400"
+                    : !viewed
+                      ? "font-bold text-gray-900"
+                      : "font-bold text-gray-900",
+                ].join(" ")}
+              >
+                {name}
+              </h3>
+            </div>
+            {location && (
+              <p className={`text-[13px] mt-1 ${isDeclined ? "text-gray-400" : "text-gray-500"}`}>
+                {location}
+              </p>
             )}
-            <h3
-              className={[
-                "text-sm truncate",
-                isDeclined
-                  ? "font-normal text-gray-400"
-                  : !viewed
-                    ? "font-bold text-gray-900"
-                    : "font-medium text-gray-700",
-              ].join(" ")}
-            >
-              {name}
-            </h3>
           </div>
-
-          {/* Location */}
-          <p className={[
-            "text-xs mt-0.5 truncate",
-            isDeclined ? "text-gray-400" : "text-gray-500",
-          ].join(" ")}>
-            {location}
-          </p>
-
-          {/* Match reason pills (pending only) */}
-          {!isDeclined && matchReasons.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {matchReasons.slice(0, 2).map((reason) => (
-                <span
-                  key={reason}
-                  className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700"
-                >
-                  {reason}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Reconsider button (declined only) */}
-          {isDeclined && onReconsider && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onReconsider(item.id);
-              }}
-              className="mt-2 text-xs font-medium text-primary-600 hover:text-primary-700 border border-gray-200 rounded-lg px-3 py-1 transition-colors"
-            >
-              Reconsider
-            </button>
-          )}
+          <span className="text-[13px] text-gray-400 tabular-nums shrink-0">
+            {dateLabel}
+          </span>
         </div>
+
+        {/* ── Reach-out note (the message the provider sent) ── */}
+        {reachOutNote && !isDeclined && (
+          <div className="border-l-2 border-warm-200 pl-4 mb-5">
+            <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-2">
+              {reachOutNote}
+            </p>
+          </div>
+        )}
+
+        {/* ── Description fallback if no note ── */}
+        {!reachOutNote && description && !isDeclined && (
+          <div className="border-l-2 border-warm-200 pl-4 mb-5">
+            <p className="text-[15px] text-gray-500 leading-relaxed line-clamp-2">
+              {description}
+            </p>
+          </div>
+        )}
+
+        {/* ── Care type tags ── */}
+        {careTypes.length > 0 && !isDeclined && (
+          <div className="flex flex-wrap gap-2 mb-5">
+            {careTypes.slice(0, 4).map((ct) => (
+              <span
+                key={ct}
+                className="text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-600 bg-white"
+              >
+                {ct}
+              </span>
+            ))}
+            {careTypes.length > 4 && (
+              <span className="text-[13px] text-gray-400 self-center pl-1">
+                +{careTypes.length - 4}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── Match reason pills ── */}
+        {!isDeclined && matchReasons.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {matchReasons.slice(0, 3).map((reason) => (
+              <span
+                key={reason}
+                className="inline-flex items-center gap-1.5 text-[12px] font-medium px-2.5 py-1 rounded-full bg-[#F5F4F1] text-gray-700"
+              >
+                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+                {reason}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* ── Reconsider button (declined only) ── */}
+        {isDeclined && onReconsider && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReconsider(item.id);
+            }}
+            className="mt-2 text-[13px] font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-4 py-2 transition-colors"
+          >
+            Reconsider
+          </button>
+        )}
       </div>
     </button>
   );

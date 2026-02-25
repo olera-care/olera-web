@@ -729,9 +729,35 @@ export default function HomePage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedLocation = location.trim();
+
+    // Try to parse "City, ST" format for power page routing
+    if (trimmedLocation) {
+      const match = trimmedLocation.match(/^(.+),\s*([A-Z]{2})$/);
+      if (match) {
+        const city = match[1].trim();
+        const stateAbbrev = match[2];
+
+        // Reverse-lookup state name from abbreviation
+        const stateName = Object.entries(stateAbbreviations).find(
+          ([, abbr]) => abbr === stateAbbrev
+        )?.[0];
+
+        if (stateName) {
+          const stateSlug = stateName.toLowerCase().replace(/\s+/g, "-");
+          const citySlug = city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+          const categorySlug = careType === "home-health" ? "home-health-care" : careType;
+
+          router.push(`/${categorySlug}/${stateSlug}/${citySlug}`);
+          return;
+        }
+      }
+    }
+
+    // Fallback to browse page for ZIP codes, unrecognized formats, or no location
     const params = new URLSearchParams();
-    if (location.trim()) {
-      params.set("location", location.trim());
+    if (trimmedLocation) {
+      params.set("location", trimmedLocation);
     }
     if (careType) {
       params.set("type", careType);

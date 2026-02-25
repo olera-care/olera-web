@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 
 // ── Types ──
@@ -29,20 +29,21 @@ interface ActivityEvent {
 }
 
 interface LeadDetail extends Lead {
-  email: string;
-  phone: string;
-  contactPreference: ContactMethod;
-  careRecipient: string;
-  careType: string[];
-  careNeeds: string[];
-  livingSituation: string;
-  schedulePreference: string;
-  careLocation: string;
-  languagePreference: string;
-  insuranceType: string;
-  benefits: string[];
-  additionalNotes: string;
-  activity: ActivityEvent[];
+  email?: string;
+  phone?: string;
+  contactPreference?: ContactMethod;
+  careRecipient?: string;
+  careRecipientName?: string;
+  careType?: string[];
+  careNeeds?: string[];
+  livingSituation?: string;
+  schedulePreference?: string;
+  careLocation?: string;
+  languagePreference?: string;
+  insuranceType?: string;
+  benefits?: string[];
+  additionalNotes?: string;
+  activity?: ActivityEvent[];
 }
 
 // ── Mock data ──
@@ -52,7 +53,7 @@ const MOCK_LEADS: LeadDetail[] = [
     id: "1", name: "Sarah Reynolds", initials: "SR", subtitle: "For her mother, 78",
     location: "Austin, TX", urgency: "immediate", status: "new", date: "2h ago", isNew: true,
     email: "sarah.reynolds@gmail.com", phone: "(512) 555-0147", contactPreference: "phone",
-    careRecipient: "Mother, 78", careType: ["In-home care", "Companionship"],
+    careRecipient: "Mother, 78", careRecipientName: "Margaret", careType: ["In-home care", "Companionship"],
     careNeeds: ["Mobility assistance", "Medication management", "Meal preparation"],
     livingSituation: "Lives alone", schedulePreference: "Weekdays, daytime", careLocation: "Care recipient's home", languagePreference: "English",
     insuranceType: "Medicare Advantage", benefits: ["Long-term care insurance", "VA benefits"],
@@ -66,7 +67,7 @@ const MOCK_LEADS: LeadDetail[] = [
     id: "2", name: "James Adeyemi", initials: "JA", subtitle: "For his father, 85",
     location: "Round Rock, TX", urgency: "within_1_month", status: "new", date: "5h ago", isNew: true,
     email: "james.adeyemi@outlook.com", phone: "(512) 555-0231", contactPreference: "email",
-    careRecipient: "Father, 85", careType: ["In-home care", "Personal care"],
+    careRecipient: "Father, 85", careRecipientName: "Emmanuel", careType: ["In-home care", "Personal care"],
     careNeeds: ["Bathing assistance", "Transportation", "Light housekeeping"],
     livingSituation: "Lives with family", schedulePreference: "Flexible", careLocation: "Care recipient's home", languagePreference: "English, Yoruba",
     insuranceType: "Medicaid", benefits: ["Medicaid waiver program"],
@@ -80,7 +81,7 @@ const MOCK_LEADS: LeadDetail[] = [
     id: "3", name: "Diana Nguyen", initials: "DN", subtitle: "For her grandmother, 91",
     location: "Austin, TX", urgency: "immediate", status: "new", date: "1d ago", isNew: true,
     email: "diana.nguyen@yahoo.com", phone: "(512) 555-0389", contactPreference: "either",
-    careRecipient: "Grandmother, 91", careType: ["In-home care", "Memory care"],
+    careRecipient: "Grandmother, 91", careRecipientName: "Mei", careType: ["In-home care", "Memory care"],
     careNeeds: ["Dementia support", "24/7 supervision", "Medication management"],
     livingSituation: "Lives with family", schedulePreference: "Full-time, live-in preferred", careLocation: "Care recipient's home", languagePreference: "English, Vietnamese",
     insuranceType: "Medicare", benefits: ["Long-term care insurance"],
@@ -93,14 +94,14 @@ const MOCK_LEADS: LeadDetail[] = [
     id: "4", name: "Linda Washington", initials: "LW", subtitle: "For her husband, 72",
     location: "Austin, TX", urgency: "immediate", status: "replied", date: "2d ago", isNew: false,
     email: "linda.washington@gmail.com", phone: "(512) 555-0512", contactPreference: "phone",
-    careRecipient: "Husband, 72", careType: ["In-home care", "Post-surgery care"],
+    careRecipient: "Husband, 72", careRecipientName: "David", careType: ["In-home care", "Post-surgery care"],
     careNeeds: ["Physical therapy support", "Wound care", "Mobility assistance"],
     livingSituation: "Lives with spouse", schedulePreference: "Weekdays, mornings", careLocation: "Care recipient's home", languagePreference: "English",
     insuranceType: "Private insurance", benefits: ["Short-term disability"],
     additionalNotes: "My husband just had hip replacement surgery. We need someone experienced with post-op recovery. He\u2019ll need help for about 6\u20138 weeks.",
     activity: [
       { label: "Lead received", date: "2d ago \u00b7 Via Olera search" },
-      { label: "You replied", date: "1d ago" },
+      { label: "You sent a message", date: "1d ago" },
       { label: "Profile viewed by you", date: "1d ago" },
     ],
   },
@@ -108,7 +109,7 @@ const MOCK_LEADS: LeadDetail[] = [
     id: "5", name: "Robert Park", initials: "RP", subtitle: "For his wife, 68",
     location: "Pflugerville, TX", urgency: "exploring", status: "replied", date: "3d ago", isNew: false,
     email: "robert.park@gmail.com", phone: "(512) 555-0678", contactPreference: "email",
-    careRecipient: "Wife, 68", careType: ["Companionship", "Respite care"],
+    careRecipient: "Wife, 68", careRecipientName: "Soo-jin", careType: ["Companionship", "Respite care"],
     careNeeds: ["Companionship", "Light housekeeping", "Meal preparation"],
     livingSituation: "Lives with spouse", schedulePreference: "Weekends", careLocation: "Care recipient's home", languagePreference: "English, Korean",
     insuranceType: "Medicare Advantage", benefits: [],
@@ -122,7 +123,7 @@ const MOCK_LEADS: LeadDetail[] = [
     id: "6", name: "Maria Kowalski", initials: "MK", subtitle: "For her parents, both 80s",
     location: "Cedar Park, TX", urgency: "exploring", status: "no_reply", date: "5d ago", isNew: false,
     email: "maria.kowalski@hotmail.com", phone: "(512) 555-0845", contactPreference: "either",
-    careRecipient: "Parents, both 80s", careType: ["In-home care", "Companionship"],
+    careRecipient: "Parents, both 80s", careRecipientName: "her parents", careType: ["In-home care", "Companionship"],
     careNeeds: ["Meal preparation", "Transportation", "Medication reminders"],
     livingSituation: "Live together, own home", schedulePreference: "Flexible, part-time", careLocation: "Care recipients' home", languagePreference: "English, Polish",
     insuranceType: "Medicare", benefits: ["Long-term care insurance", "VA benefits"],
@@ -135,7 +136,7 @@ const MOCK_LEADS: LeadDetail[] = [
     id: "7", name: "Tomoko Chen", initials: "TC", subtitle: "For her father, 89",
     location: "Austin, TX", urgency: "within_1_month", status: "replied", date: "1w ago", isNew: false,
     email: "tomoko.chen@gmail.com", phone: "(512) 555-0923", contactPreference: "phone",
-    careRecipient: "Father, 89", careType: ["In-home care", "Hospice support"],
+    careRecipient: "Father, 89", careRecipientName: "Wei", careType: ["In-home care", "Hospice support"],
     careNeeds: ["End-of-life care", "Pain management support", "Companionship"],
     livingSituation: "Lives with family", schedulePreference: "Full-time", careLocation: "Care recipient's home", languagePreference: "English, Mandarin",
     insuranceType: "Medicare", benefits: ["Hospice benefit"],
@@ -144,13 +145,15 @@ const MOCK_LEADS: LeadDetail[] = [
       { label: "Lead received", date: "1w ago \u00b7 Via Olera search" },
       { label: "You replied", date: "5d ago" },
       { label: "Family responded", date: "4d ago" },
+      { label: "You sent a message", date: "3d ago" },
+      { label: "Lead archived", date: "2d ago" },
     ],
   },
   {
     id: "8", name: "Angela Johnson", initials: "AJ", subtitle: "For herself, 66",
     location: "Georgetown, TX", urgency: "within_1_month", status: "no_reply", date: "1w ago", isNew: false,
     email: "angela.johnson@aol.com", phone: "(512) 555-0101", contactPreference: "phone",
-    careRecipient: "Self, 66", careType: ["Companionship", "Personal care"],
+    careRecipient: "Self, 66", careRecipientName: "Angela", careType: ["Companionship", "Personal care"],
     careNeeds: ["Companionship", "Grocery shopping", "Light exercise assistance"],
     livingSituation: "Lives alone", schedulePreference: "Weekdays, afternoons", careLocation: "Own home", languagePreference: "English",
     insuranceType: "Private insurance", benefits: [],
@@ -279,10 +282,60 @@ function LeadDetailDrawer({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const [showComposer, setShowComposer] = useState(false);
+  const [messageSent, setMessageSent] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
+  const [archiveReason, setArchiveReason] = useState<string | null>(null);
+  const [archiveOtherText, setArchiveOtherText] = useState("");
+  const [archived, setArchived] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Generate pre-filled template from lead data
+  const firstName = lead?.name.split(" ")[0] ?? "";
+  const recipientName = lead?.careRecipientName ?? "";
+  const defaultTemplate = `Hi ${firstName},\n\nThank you for reaching out about care for ${recipientName}. I'd love to learn more about her needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`;
+  const [messageText, setMessageText] = useState(defaultTemplate);
+
+  // Reset composer state when drawer closes or lead changes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowComposer(false);
+      setMessageSent(false);
+      setShowArchive(false);
+      setArchiveReason(null);
+      setArchiveOtherText("");
+      setArchived(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (lead) {
+      const fn = lead.name.split(" ")[0];
+      const rn = lead.careRecipientName;
+      setMessageText(`Hi ${fn},\n\nThank you for reaching out about care for ${rn}. I'd love to learn more about her needs and discuss how we can help.\n\nWould you be available for a brief call this week to talk through the details?\n\nWarm regards`);
+      setShowComposer(false);
+      setMessageSent(false);
+      setShowArchive(false);
+      setArchiveReason(null);
+      setArchiveOtherText("");
+      setArchived(false);
+    }
+  }, [lead]);
+
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (showComposer) {
+          setShowComposer(false);
+        } else if (showArchive) {
+          setShowArchive(false);
+          setArchiveReason(null);
+          setArchiveOtherText("");
+        } else {
+          onClose();
+        }
+      }
     };
     if (isOpen) {
       document.addEventListener("keydown", handleKeyDown);
@@ -292,7 +345,34 @@ function LeadDetailDrawer({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, showComposer, showArchive]);
+
+  const handleSendMessage = () => {
+    setMessageSent(true);
+    setTimeout(() => {
+      setMessageSent(false);
+      setShowComposer(false);
+    }, 2000);
+  };
+
+  const handleArchive = () => {
+    setArchived(true);
+    setTimeout(() => {
+      setArchived(false);
+      setShowArchive(false);
+      setArchiveReason(null);
+      setArchiveOtherText("");
+      onClose();
+    }, 1500);
+  };
+
+  const ARCHIVE_REASONS = [
+    { value: "already_connected", label: "Already connected", description: "We\u2019ve been in touch outside Olera" },
+    { value: "not_a_fit", label: "Not a good fit", description: "Care needs, location, or budget don\u2019t match" },
+    { value: "not_accepting", label: "Not accepting new clients", description: "We\u2019re at capacity right now" },
+    { value: "unable_to_reach", label: "Unable to reach", description: "Tried contacting but no response" },
+    { value: "other", label: "Other" },
+  ];
 
   if (!lead) return null;
 
@@ -373,191 +453,382 @@ function LeadDetailDrawer({
                 {lead.date}
               </span>
               {/* Contact preference */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
-                <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  {lead.contactPreference === "phone" ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                  )}
-                </svg>
-                {CONTACT_METHOD_LABELS[lead.contactPreference]}
-              </span>
+              {lead.contactPreference && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    {lead.contactPreference === "phone" ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                    )}
+                  </svg>
+                  {CONTACT_METHOD_LABELS[lead.contactPreference]}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
         {/* ── Scrollable middle ── */}
-        <div className="flex-1 overflow-y-auto">
-          {/* 1. Contact Information — 2-column with copy buttons */}
-          <CollapsibleSection title="Contact Information">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Email */}
-              <div className="group/row flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[13px] text-gray-400 font-medium mb-1">Email</p>
-                  <p className="text-[15px] text-gray-800 truncate">{lead.email}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard.writeText(lead.email)}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 opacity-0 group-hover/row:opacity-100 shrink-0 mt-4"
-                  title="Copy email"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
-                  </svg>
-                </button>
-              </div>
-              {/* Phone */}
-              <div className="group/row flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[13px] text-gray-400 font-medium mb-1">Phone</p>
-                  <p className="text-[15px] text-gray-800 truncate">{lead.phone}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigator.clipboard.writeText(lead.phone)}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 opacity-0 group-hover/row:opacity-100 shrink-0 mt-4"
-                  title="Copy phone"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
-                  </svg>
-                </button>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+
+          {/* ── Inline message composer ── */}
+          {showComposer && (
+            <div className="px-6 pt-5 pb-2">
+              <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                {messageSent ? (
+                  /* ── Confirmation state ── */
+                  <div className="px-6 py-10 flex flex-col items-center justify-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                    </div>
+                    <p className="text-[15px] font-semibold text-gray-900">Message sent</p>
+                    <p className="text-[13px] text-gray-500">Your message has been sent to {firstName}</p>
+                  </div>
+                ) : (
+                  /* ── Composer form ── */
+                  <div>
+                    {/* Header */}
+                    <div className="flex items-start justify-between px-5 pt-4 pb-3">
+                      <div>
+                        <h3 className="text-[15px] font-semibold text-gray-900">Message {firstName}</h3>
+                        <p className="text-[13px] text-gray-400 mt-0.5">
+                          {lead.contactPreference ? `${CONTACT_METHOD_LABELS[lead.contactPreference]} \u00b7 ` : ""}Pre-filled template
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowComposer(false)}
+                        className="text-[13px] font-medium text-gray-400 hover:text-gray-600 transition-colors duration-150 pt-0.5"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+
+                    {/* Textarea */}
+                    <div className="px-5 pb-4">
+                      <textarea
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        rows={8}
+                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-[15px] text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                      />
+                    </div>
+
+                    {/* Send button */}
+                    <div className="px-5 pb-5">
+                      <button
+                        type="button"
+                        onClick={handleSendMessage}
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                        </svg>
+                        Send Message
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </CollapsibleSection>
+          )}
+
+          {/* 1. Contact Information — 2-column with copy buttons */}
+          {(lead.email || lead.phone) ? (
+            <CollapsibleSection title="Contact Information">
+              <div className="grid grid-cols-2 gap-x-8">
+                {/* Email */}
+                <div>
+                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Email</p>
+                  {lead.email ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-[15px] text-gray-800 truncate">{lead.email}</p>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(lead.email!)}
+                        className="w-6 h-6 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 shrink-0"
+                        title="Copy email"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-[15px] text-gray-400 italic">Not provided</p>
+                  )}
+                </div>
+                {/* Phone */}
+                <div>
+                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Phone</p>
+                  {lead.phone ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-[15px] text-gray-800 truncate">{lead.phone}</p>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(lead.phone!)}
+                        className="w-6 h-6 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors duration-150 shrink-0"
+                        title="Copy phone"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-[15px] text-gray-400 italic">Not provided</p>
+                  )}
+                </div>
+              </div>
+            </CollapsibleSection>
+          ) : (
+            <CollapsibleSection title="Contact Information">
+              <p className="text-[15px] text-gray-400 italic">No contact information provided yet</p>
+            </CollapsibleSection>
+          )}
 
           {/* 2. Care Preferences — who needs care, type tags, needs tags */}
           <CollapsibleSection title="Care Preferences">
-            <div className="space-y-4">
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-1.5">Who needs care</p>
-                <p className="text-[15px] text-gray-800">{lead.careRecipient}</p>
+            {(lead.careRecipient || (lead.careType && lead.careType.length > 0) || (lead.careNeeds && lead.careNeeds.length > 0)) ? (
+              <div className="space-y-5">
+                {lead.careRecipient && (
+                  <div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Who needs care</p>
+                    <p className="text-[15px] text-gray-800">{lead.careRecipient}</p>
+                  </div>
+                )}
+                {lead.careType && lead.careType.length > 0 && (
+                  <div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Type of care</p>
+                    <div className="flex flex-wrap gap-2">
+                      {lead.careType.map((type) => (
+                        <span key={type} className="inline-flex px-3.5 py-1.5 rounded-full bg-primary-50/60 border border-primary-100/40 text-[13px] font-medium text-primary-700">
+                          {type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {lead.careNeeds && lead.careNeeds.length > 0 && (
+                  <div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Care needs</p>
+                    <div className="flex flex-wrap gap-2">
+                      {lead.careNeeds.map((need) => (
+                        <span key={need} className="inline-flex px-3.5 py-1.5 rounded-full bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+                          {need}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-2">Type of care</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {lead.careType.map((type) => (
-                    <span key={type} className="inline-flex px-2.5 py-1 rounded-lg bg-primary-50/60 border border-primary-100/40 text-[13px] font-medium text-primary-700">
-                      {type}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-2">Care needs</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {lead.careNeeds.map((need) => (
-                    <span key={need} className="inline-flex px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
-                      {need}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+            ) : (
+              <p className="text-[15px] text-gray-400 italic">No care preferences specified yet</p>
+            )}
           </CollapsibleSection>
 
           {/* 3. Living Situation — 2-column grid */}
           <CollapsibleSection title="Living Situation">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-1">Living situation</p>
-                <p className="text-[15px] text-gray-800">{lead.livingSituation}</p>
+            {(lead.livingSituation || lead.schedulePreference || lead.careLocation || lead.languagePreference) ? (
+              <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+                <div>
+                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Living situation</p>
+                  <p className="text-[15px] text-gray-800">{lead.livingSituation || <span className="text-gray-400 italic">Not provided</span>}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Schedule preference</p>
+                  <p className="text-[15px] text-gray-800">{lead.schedulePreference || <span className="text-gray-400 italic">Not provided</span>}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Care location</p>
+                  <p className="text-[15px] text-gray-800">{lead.careLocation || <span className="text-gray-400 italic">Not provided</span>}</p>
+                </div>
+                <div>
+                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Language preference</p>
+                  <p className="text-[15px] text-gray-800">{lead.languagePreference || <span className="text-gray-400 italic">Not provided</span>}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-1">Schedule preference</p>
-                <p className="text-[15px] text-gray-800">{lead.schedulePreference}</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-1">Care location</p>
-                <p className="text-[15px] text-gray-800">{lead.careLocation}</p>
-              </div>
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-1">Language preference</p>
-                <p className="text-[15px] text-gray-800">{lead.languagePreference}</p>
-              </div>
-            </div>
+            ) : (
+              <p className="text-[15px] text-gray-400 italic">No living situation details provided yet</p>
+            )}
           </CollapsibleSection>
 
           {/* 4. Payment & Benefits — insurance type + benefit cards */}
           <CollapsibleSection title="Payment & Benefits">
-            <div className="space-y-4">
-              <div>
-                <p className="text-[13px] text-gray-400 font-medium mb-1">Insurance type</p>
-                <p className="text-[15px] text-gray-800">{lead.insuranceType}</p>
-              </div>
-              {lead.benefits.length > 0 && (
+            {(lead.insuranceType || (lead.benefits && lead.benefits.length > 0)) ? (
+              <div className="space-y-5">
                 <div>
-                  <p className="text-[13px] text-gray-400 font-medium mb-2">Saved benefits</p>
-                  <div className="flex flex-wrap gap-2">
-                    {lead.benefits.map((benefit) => (
-                      <div key={benefit} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
-                        <svg className="w-4 h-4 text-primary-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        <span className="text-[13px] font-medium text-gray-700">{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Insurance</p>
+                  <p className="text-[15px] text-gray-800">{lead.insuranceType || <span className="text-gray-400 italic">Not provided</span>}</p>
                 </div>
-              )}
-            </div>
+                {lead.benefits && lead.benefits.length > 0 && (
+                  <div>
+                    <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2.5">Saved benefits</p>
+                    <div className="space-y-2">
+                      {lead.benefits.map((benefit) => (
+                        <div key={benefit} className="px-4 py-3 rounded-xl bg-gray-50/80 border border-gray-100">
+                          <span className="text-[15px] text-gray-700">{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-[15px] text-gray-400 italic">No payment or benefits information yet</p>
+            )}
           </CollapsibleSection>
 
           {/* 5. Additional Notes — blockquote style */}
           <CollapsibleSection title="Additional Notes">
-            <div className="border-l-2 border-gray-200 pl-4 py-1">
-              <p className="text-[15px] text-gray-600 leading-relaxed italic">
-                {lead.additionalNotes}
-              </p>
-            </div>
+            {lead.additionalNotes ? (
+              <div className="border-l-[3px] border-primary-300 bg-primary-50/40 rounded-r-xl rounded-l-sm px-5 py-4">
+                <p className="text-[15px] text-gray-700 leading-relaxed">
+                  {lead.additionalNotes}
+                </p>
+              </div>
+            ) : (
+              <p className="text-[15px] text-gray-400 italic">No additional notes</p>
+            )}
           </CollapsibleSection>
 
           {/* 6. Activity — vertical timeline, collapsed by default */}
           <CollapsibleSection title="Activity" defaultOpen={false}>
-            <div className="relative pl-5">
-              {/* Timeline line */}
-              <div className="absolute left-[5px] top-1.5 bottom-1.5 w-px bg-gray-200" />
+            {lead.activity && lead.activity.length > 0 ? (
+              <div className="relative pl-5">
+                {/* Timeline line */}
+                <div className="absolute left-[5px] top-1.5 bottom-1.5 w-px bg-gray-200" />
 
-              <div className="space-y-5">
-                {lead.activity.map((event, idx) => (
-                  <div key={idx} className="relative">
-                    {/* Timeline dot */}
-                    <div className="absolute -left-5 top-1 w-[11px] h-[11px] rounded-full bg-white border-2 border-gray-300" />
-                    <div>
-                      <p className="text-[15px] font-medium text-gray-800">{event.label}</p>
-                      <p className="text-[13px] text-gray-400 mt-0.5">{event.date}</p>
+                <div className="space-y-5">
+                  {lead.activity.map((event, idx) => (
+                    <div key={idx} className="relative">
+                      {/* Timeline dot */}
+                      <div className="absolute -left-5 top-1.5 w-[9px] h-[9px] rounded-full bg-gray-300" />
+                      <div>
+                        <p className="text-[15px] font-medium text-gray-800">{event.label}</p>
+                        <p className="text-[13px] text-gray-400 mt-0.5">{event.date}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-[15px] text-gray-400 italic">No activity yet</p>
+            )}
           </CollapsibleSection>
         </div>
 
         {/* ── Fixed footer ── */}
-        <div className="shrink-0 border-t border-gray-100 px-6 py-4 flex items-center gap-3">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-            </svg>
-            Archive
-          </button>
-          <button
-            type="button"
-            className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-            </svg>
-            Send Message
-          </button>
-        </div>
+        {showComposer ? null : showArchive ? (
+          /* Archive reason selector */
+          <div className="shrink-0 border-t border-gray-100">
+            {archived ? (
+              /* Archived confirmation */
+              <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                </div>
+                <p className="text-[15px] font-semibold text-gray-900">Lead archived</p>
+              </div>
+            ) : (
+              <div className="px-6 py-5">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
+                  <button
+                    type="button"
+                    onClick={() => { setShowArchive(false); setArchiveReason(null); setArchiveOtherText(""); }}
+                    className="text-[13px] font-medium text-gray-400 hover:text-gray-600 transition-colors duration-150"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {/* Reason options */}
+                <div className="space-y-2.5">
+                  {ARCHIVE_REASONS.map((reason) => (
+                    <button
+                      key={reason.value}
+                      type="button"
+                      onClick={() => setArchiveReason(reason.value)}
+                      className={`w-full flex items-start gap-3.5 px-4 py-3.5 rounded-xl border text-left transition-all duration-150 ${
+                        archiveReason === reason.value
+                          ? "border-primary-200 bg-primary-50/30"
+                          : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
+                      }`}
+                    >
+                      {/* Radio circle */}
+                      <div className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-colors duration-150 ${
+                        archiveReason === reason.value ? "border-primary-500" : "border-gray-300"
+                      }`}>
+                        {archiveReason === reason.value && (
+                          <div className="w-2 h-2 rounded-full bg-primary-500" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-medium text-gray-800">{reason.label}</p>
+                        {reason.description && (
+                          <p className="text-[13px] text-gray-400 mt-0.5">{reason.description}</p>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Other text field */}
+                {archiveReason === "other" && (
+                  <textarea
+                    value={archiveOtherText}
+                    onChange={(e) => setArchiveOtherText(e.target.value)}
+                    placeholder="Tell us more (optional)"
+                    rows={2}
+                    className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                  />
+                )}
+
+                {/* Archive confirmation button — appears after selecting a reason */}
+                {archiveReason && (
+                  <button
+                    type="button"
+                    onClick={handleArchive}
+                    className="w-full mt-4 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-[15px] font-semibold text-white shadow-sm hover:bg-gray-800 transition-all duration-150 active:scale-[0.98]"
+                  >
+                    Archive Lead
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Default footer buttons */
+          <div className="shrink-0 border-t border-gray-100 px-6 py-4 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowArchive(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+              </svg>
+              Archive
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowComposer(true); scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+              </svg>
+              Send Message
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

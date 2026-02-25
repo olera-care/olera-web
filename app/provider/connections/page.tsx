@@ -961,16 +961,16 @@ export default function ProviderLeadsPage() {
               </div>
 
               {/* Location */}
-              <span className="text-base text-gray-700">{lead.location}</span>
+              <span className="text-[14px] font-medium text-gray-700">{lead.location}</span>
 
               {/* Urgency */}
-              <span className="text-base text-gray-700">{URGENCY_LABELS[lead.urgency]}</span>
+              <span className="text-[14px] font-medium text-gray-700">{URGENCY_LABELS[lead.urgency]}</span>
 
               {/* Status */}
-              <span className="text-base text-gray-700">{STATUS_LABELS[lead.status]}</span>
+              <span className="text-[14px] font-medium text-gray-700">{STATUS_LABELS[lead.status]}</span>
 
               {/* Date */}
-              <span className="text-base text-gray-700">{lead.date}</span>
+              <span className="text-[14px] font-medium text-gray-700">{lead.date}</span>
 
               {/* Action */}
               <button

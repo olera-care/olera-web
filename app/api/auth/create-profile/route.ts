@@ -245,7 +245,22 @@ export async function POST(request: Request) {
         });
       }
     } else {
-      // Create family profile
+      // Create family profile — only one allowed per account
+      const { data: existingFamily } = await db
+        .from("business_profiles")
+        .select("id")
+        .eq("account_id", accountId)
+        .eq("type", "family")
+        .limit(1)
+        .maybeSingle();
+
+      if (existingFamily) {
+        return NextResponse.json(
+          { error: "You already have a family profile. Only one family profile is allowed per account." },
+          { status: 409 }
+        );
+      }
+
       const slug = generateSlug(displayName, city || "", state || "");
 
       const { data: newProfile, error: insertErr } = await db

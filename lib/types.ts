@@ -80,6 +80,9 @@ export interface BusinessProfile {
   verification_state: VerificationState;
   source: ProfileSource;
   is_active: boolean;
+  deletion_requested: boolean;
+  deletion_requested_at: string | null;
+  deletion_approved_at: string | null;
   created_at: string;
   updated_at: string;
 }

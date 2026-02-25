@@ -33,7 +33,7 @@ export default function UnifiedAuthModal({
   options = {},
 }: UnifiedAuthModalProps) {
   const router = useRouter();
-  const { user, account, refreshAccountData } = useAuth();
+  const { user, account } = useAuth();
 
   // Determine initial step
   const getInitialStep = useCallback((): AuthStep => {

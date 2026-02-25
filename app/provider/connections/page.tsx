@@ -181,7 +181,7 @@ function CollapsibleSection({
       >
         <span className="text-[15px] font-semibold text-gray-900">{title}</span>
         <svg
-          className={`w-4.5 h-4.5 text-gray-400 transition-transform duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] ${
+          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] ${
             isOpen ? "rotate-180" : ""
           }`}
           fill="none"
@@ -244,7 +244,7 @@ function LeadDetailDrawer({
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] transition-opacity duration-300 ${
+        className={`fixed inset-0 top-16 z-30 bg-black/20 backdrop-blur-[2px] transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -252,7 +252,7 @@ function LeadDetailDrawer({
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-[600px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col transition-transform duration-400 ease-[cubic-bezier(0.33,1,0.68,1)] ${
+        className={`fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[600px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col transition-transform duration-400 ease-[cubic-bezier(0.33,1,0.68,1)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

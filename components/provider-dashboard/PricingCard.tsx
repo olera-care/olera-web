@@ -13,7 +13,7 @@ export default function PricingCard({
   completionPercent,
   onEdit,
 }: PricingCardProps) {
-  const pricingDetails = metadata.pricing_details || [];
+  const pricingDetails = Array.isArray(metadata.pricing_details) ? metadata.pricing_details : [];
   const priceRange = metadata.price_range;
   const contactForPricing = metadata.contact_for_pricing;
 
@@ -49,13 +49,13 @@ export default function PricingCard({
           {/* Service pricing rows */}
           {pricingDetails.length > 0 && (
             <div className="space-y-2">
-              {pricingDetails.map((item, i) => (
+              {pricingDetails.filter(Boolean).map((item, i) => (
                 <div
                   key={i}
                   className="flex items-center justify-between py-3.5 px-4 bg-gray-50 rounded-lg"
                 >
                   <span className="text-base font-medium text-gray-900">
-                    {item.service}
+                    {item.service || "Service"}
                   </span>
                   <span className="text-base font-semibold text-gray-900 shrink-0">
                     {item.rate || "—"}{" "}

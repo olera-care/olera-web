@@ -12,7 +12,7 @@ export default function GalleryCard({
   completionPercent,
   onEdit,
 }: GalleryCardProps) {
-  const images = metadata.images || [];
+  const images = Array.isArray(metadata.images) ? metadata.images : [];
 
   return (
     <DashboardSectionCard

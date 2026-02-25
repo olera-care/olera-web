@@ -14,7 +14,7 @@ export default function StaffScreeningCard({
   completionPercent,
   onEdit,
 }: StaffScreeningCardProps) {
-  const screenings = metadata.staff_screening || [];
+  const screenings = Array.isArray(metadata.staff_screening) ? metadata.staff_screening : [];
 
   return (
     <DashboardSectionCard

@@ -14,7 +14,7 @@ export default function CareServicesCard({
   completionPercent,
   onEdit,
 }: CareServicesCardProps) {
-  const services: string[] = [...(profile.care_types ?? [])];
+  const services: string[] = Array.isArray(profile.care_types) ? [...profile.care_types] : [];
 
   return (
     <DashboardSectionCard

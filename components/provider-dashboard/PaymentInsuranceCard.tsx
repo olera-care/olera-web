@@ -16,7 +16,7 @@ export default function PaymentInsuranceCard({
   onEdit,
 }: PaymentInsuranceCardProps) {
   // Merge legacy booleans into a unified list
-  const allPayments = [...(metadata.accepted_payments || [])];
+  const allPayments = [...(Array.isArray(metadata.accepted_payments) ? metadata.accepted_payments : [])];
   if (metadata.accepts_medicare && !allPayments.includes("Medicare")) allPayments.push("Medicare");
   if (metadata.accepts_medicaid && !allPayments.includes("Medicaid")) allPayments.push("Medicaid");
 

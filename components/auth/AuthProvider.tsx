@@ -262,6 +262,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const profiles = (profilesResult.data as Profile[]) || [];
       const membershipRows = (membershipResult.data as Membership[]) || [];
       const membership = membershipRows[0] ?? null;
+      console.log("[olera] fetchAccountData result:", { accountId: account.id, profileCount: profiles.length, profileTypes: profiles.map(p => p.type), profileNames: profiles.map(p => p.display_name) });
 
       let activeProfile: Profile | null = null;
       if (account.active_profile_id) {

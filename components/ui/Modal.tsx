@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useCallback, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 interface ModalProps {
@@ -50,31 +50,69 @@ export default function Modal({
     setMounted(true);
   }, []);
 
+  // Blur + close: blur the focused element BEFORE triggering the state
+  // change that removes the portal. When a portal is removed while an
+  // element inside it has focus, the browser instantly scrolls to the
+  // next focusable element in the DOM (often in the footer). Blurring
+  // first means there's nothing focused when the portal unmounts, so
+  // the browser has no reason to scroll.
+  const handleClose = useCallback(() => {
+    const active = document.activeElement;
+    if (active && active !== document.body) {
+      (active as HTMLElement).blur();
+    }
+    onCloseRef.current();
+  }, []);
+
   // Close on Escape key — uses ref so effect doesn't depend on onClose identity
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
-      onCloseRef.current();
+      handleClose();
     }
-  }, []);
+  }, [handleClose]);
 
-  // Keyboard listener + scroll lock — only re-runs when isOpen changes.
-  // Compensates for scrollbar width to prevent layout shift.
-  useEffect(() => {
+  // Scroll lock — uses useLayoutEffect so cleanup runs synchronously
+  // BEFORE the browser paints. A regular useEffect cleanup is deferred
+  // and runs AFTER paint, which allows the browser to render a frame
+  // with the wrong scroll position (visible jump to the footer).
+  //
+  // Uses the position:fixed body technique: the body is pinned in place
+  // with top:-Npx encoding the scroll offset, so no scroll changes are
+  // physically possible while the modal is open. On cleanup we restore
+  // the body styles and call scrollTo to return to the saved position.
+  useLayoutEffect(() => {
     if (!isOpen) return;
 
+    const scrollY = window.scrollY;
     const scrollbarWidth = getScrollbarWidth();
 
-    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
     document.body.style.overflow = "hidden";
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
+      // 'instant' overrides the global scroll-behavior:smooth on <html>,
+      // which would otherwise animate the scroll and get interrupted.
+      window.scrollTo({ top: scrollY, behavior: "instant" });
     };
+  }, [isOpen]);
+
+  // Keyboard listener for Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, handleKeyDown]);
 
   // Auto-focus first focusable element — only on initial open
@@ -109,7 +147,7 @@ export default function Modal({
         onMouseDown={(e) => {
           // Only close if the mousedown started on the backdrop itself
           if (e.target === e.currentTarget) {
-            onCloseRef.current();
+            handleClose();
           }
         }}
       />
@@ -149,7 +187,7 @@ export default function Modal({
 
           {/* Close button (right) */}
           <button
-            onClick={() => onCloseRef.current()}
+            onClick={handleClose}
             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Close"
           >

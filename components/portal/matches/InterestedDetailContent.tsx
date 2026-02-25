@@ -94,13 +94,12 @@ export default function InterestedDetailContent({
   // Provider metadata for pricing/payment/rating
   const provMeta = (profile?.metadata || {}) as OrganizationMetadata & Record<string, unknown>;
   const priceRange = provMeta.price_range || "Contact for pricing";
-  const acceptsMedicaid = provMeta.accepts_medicaid;
-  const acceptsMedicare = provMeta.accepts_medicare;
-  const acceptsPrivateInsurance = provMeta.accepts_private_insurance;
-  const paymentMethods: string[] = [];
-  if (acceptsMedicaid) paymentMethods.push("Medicaid");
-  if (acceptsMedicare) paymentMethods.push("Medicare");
-  if (acceptsPrivateInsurance) paymentMethods.push("Private insurance");
+  const acceptedPayments = (provMeta.accepted_payments as string[]) || [];
+  // Merge legacy booleans for backwards compatibility
+  const paymentMethods: string[] = [...acceptedPayments];
+  if (provMeta.accepts_medicare && !paymentMethods.includes("Medicare")) paymentMethods.push("Medicare");
+  if (provMeta.accepts_medicaid && !paymentMethods.includes("Medicaid")) paymentMethods.push("Medicaid");
+  if (provMeta.accepts_private_insurance && !paymentMethods.includes("Private Health Insurance")) paymentMethods.push("Private Health Insurance");
   if (paymentMethods.length === 0) paymentMethods.push("Contact provider");
 
   // Rating from iOS data (stored in metadata by hook)
@@ -197,7 +196,7 @@ export default function InterestedDetailContent({
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h2 className="text-lg font-semibold text-gray-900 leading-snug">
+                <h2 className="text-lg font-display font-bold text-gray-900 leading-snug">
                   {name}
                 </h2>
                 <p className="text-sm text-gray-500 leading-tight">
@@ -255,14 +254,14 @@ export default function InterestedDetailContent({
         {/* Match reasons */}
         {matchReasons.length > 0 && (
           <div className="pb-4 mb-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            <h3 className="text-sm font-display font-bold text-gray-900 mb-3">
               Why this provider reached out
             </h3>
             <div className="space-y-2">
               {matchReasons.map((reason) => (
                 <div key={reason} className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-0.5">
-                    <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-5 h-5 rounded-full bg-warm-100/70 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
@@ -276,7 +275,7 @@ export default function InterestedDetailContent({
         {/* About */}
         {description && (
           <div className="pb-4 mb-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">About</h3>
+            <h3 className="text-sm font-display font-bold text-gray-900 mb-2">About</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
               {description}
             </p>
@@ -299,7 +298,7 @@ export default function InterestedDetailContent({
               {paymentMethods.map((method) => (
                 <span
                   key={method}
-                  className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700"
+                  className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#F5F4F1] text-gray-700"
                 >
                   {method}
                 </span>

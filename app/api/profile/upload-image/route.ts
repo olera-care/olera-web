@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const profileId = formData.get("profileId") as string | null;
+    const setAsProfilePhoto = formData.get("setAsProfilePhoto") === "true";
 
     if (!file || !profileId) {
       return NextResponse.json(
@@ -113,18 +114,20 @@ export async function POST(req: NextRequest) {
       .from(BUCKET)
       .getPublicUrl(filePath);
 
-    // Update profile
-    const { error: updateError } = await admin
-      .from("business_profiles")
-      .update({ image_url: urlData.publicUrl })
-      .eq("id", profileId);
+    // Update profile photo only when explicitly requested
+    if (setAsProfilePhoto) {
+      const { error: updateError } = await admin
+        .from("business_profiles")
+        .update({ image_url: urlData.publicUrl })
+        .eq("id", profileId);
 
-    if (updateError) {
-      console.error("Profile update error:", updateError);
-      return NextResponse.json(
-        { error: "Image uploaded but failed to update profile." },
-        { status: 500 }
-      );
+      if (updateError) {
+        console.error("Profile update error:", updateError);
+        return NextResponse.json(
+          { error: "Image uploaded but failed to update profile." },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({ imageUrl: urlData.publicUrl });

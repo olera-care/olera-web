@@ -25,7 +25,7 @@ export default function EditGalleryModal({
   guidedTotal,
   onGuidedBack,
 }: BaseEditModalProps) {
-  const [images, setImages] = useState<string[]>(metadata.images || []);
+  const [images, setImages] = useState<string[]>(Array.isArray(metadata.images) ? metadata.images : []);
   const [profilePhoto, setProfilePhoto] = useState<string>(profile.image_url || "");
   const [newUrl, setNewUrl] = useState("");
   const [uploading, setUploading] = useState<UploadingFile[]>([]);
@@ -35,7 +35,7 @@ export default function EditGalleryModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasChanges =
-    JSON.stringify(images) !== JSON.stringify(metadata.images || []) ||
+    JSON.stringify(images) !== JSON.stringify(Array.isArray(metadata.images) ? metadata.images : []) ||
     profilePhoto !== (profile.image_url || "");
 
   const uploadFiles = useCallback(

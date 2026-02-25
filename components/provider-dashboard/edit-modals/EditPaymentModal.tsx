@@ -54,7 +54,7 @@ export default function EditPaymentModal({
   onGuidedBack,
 }: BaseEditModalProps) {
   // Merge legacy booleans into the array for backwards compatibility
-  const initial = [...(metadata.accepted_payments || [])];
+  const initial = [...(Array.isArray(metadata.accepted_payments) ? metadata.accepted_payments : [])];
   if (metadata.accepts_medicare && !initial.includes("Medicare")) initial.push("Medicare");
   if (metadata.accepts_medicaid && !initial.includes("Medicaid")) initial.push("Medicaid");
 

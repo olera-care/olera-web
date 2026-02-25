@@ -39,16 +39,15 @@ export default function EditCareServicesModal({
   guidedTotal,
   onGuidedBack,
 }: BaseEditModalProps) {
-  const [selected, setSelected] = useState<string[]>(
-    [...(profile.care_types || [])]
-  );
+  const initialCareTypes = Array.isArray(profile.care_types) ? profile.care_types : [];
+  const [selected, setSelected] = useState<string[]>([...initialCareTypes]);
   const [customService, setCustomService] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const hasChanges =
-    JSON.stringify(selected.sort()) !==
-    JSON.stringify([...(profile.care_types || [])].sort());
+    JSON.stringify([...selected].sort()) !==
+    JSON.stringify([...initialCareTypes].sort());
 
   function toggle(service: string) {
     setSelected((prev) =>

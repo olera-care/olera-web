@@ -28,16 +28,15 @@ export default function EditStaffScreeningModal({
   guidedTotal,
   onGuidedBack,
 }: BaseEditModalProps) {
-  const [selected, setSelected] = useState<string[]>(
-    [...(metadata.staff_screening || [])]
-  );
+  const initial = Array.isArray(metadata.staff_screening) ? metadata.staff_screening : [];
+  const [selected, setSelected] = useState<string[]>([...initial]);
   const [customScreening, setCustomScreening] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const hasChanges =
     JSON.stringify([...selected].sort()) !==
-    JSON.stringify([...(metadata.staff_screening || [])].sort());
+    JSON.stringify([...initial].sort());
 
   function toggle(screening: string) {
     setSelected((prev) =>

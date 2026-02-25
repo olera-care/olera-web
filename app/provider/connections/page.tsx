@@ -976,7 +976,7 @@ export default function ProviderLeadsPage() {
               <button
                 type="button"
                 onClick={() => openDrawer(lead)}
-                className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg px-4 py-2.5 hover:bg-white hover:border-gray-300 hover:text-gray-900 hover:shadow-sm transition-all duration-150 active:scale-[0.97]"
+                className="text-sm font-semibold text-primary-600 border border-primary-200 rounded-lg px-4 py-2.5 hover:bg-primary-50 hover:border-primary-300 hover:shadow-sm transition-all duration-150 active:scale-[0.97]"
               >
                 View
               </button>

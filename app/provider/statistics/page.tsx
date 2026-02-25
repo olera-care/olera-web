@@ -15,6 +15,7 @@ export default function ProviderStatisticsPage() {
   }
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex flex-col items-center justify-center text-center min-h-[70vh]">
         {/* Icon — bar chart */}
@@ -78,6 +79,7 @@ export default function ProviderStatisticsPage() {
           Back to dashboard
         </Link>
       </div>
+    </div>
     </div>
   );
 }

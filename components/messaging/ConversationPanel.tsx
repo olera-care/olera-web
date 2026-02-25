@@ -188,7 +188,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
           <div className="bg-white px-5 pt-4 pb-4">
             {/* Care type — hero heading */}
             {careRequest.careType && (
-              <h3 className="text-lg font-bold text-gray-900 leading-tight">
+              <h3 className="text-lg font-display font-bold text-gray-900 leading-tight">
                 {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
               </h3>
             )}
@@ -342,7 +342,7 @@ export default function ConversationPanel({
               <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" strokeWidth={1.5} />
             </svg>
           </div>
-          <p className="text-lg font-medium text-gray-900 mb-1">Select a conversation</p>
+          <p className="text-lg font-display font-medium text-gray-900 mb-1">Select a conversation</p>
           <p className="text-[15px] text-gray-500">Choose from your existing conversations to start messaging</p>
         </div>
       </div>
@@ -419,7 +419,7 @@ export default function ConversationPanel({
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <Link href={profileHref} className="text-lg font-semibold text-gray-900 hover:underline truncate block">
+          <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
             {otherName}
           </Link>
           {otherProfile?.city || otherProfile?.state ? (

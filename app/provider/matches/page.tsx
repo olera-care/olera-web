@@ -190,6 +190,7 @@ function EyeIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 function MatchesSkeleton() {
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="animate-pulse">
         <div className="mb-8">
@@ -241,6 +242,7 @@ function MatchesSkeleton() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
@@ -1067,6 +1069,7 @@ export default function ProviderMatchesPage() {
   }
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
       {/* ── Page header ── */}
@@ -1206,6 +1209,7 @@ export default function ProviderMatchesPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

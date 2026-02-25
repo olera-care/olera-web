@@ -194,6 +194,7 @@ function FeatureCheck({ included }: { included: boolean }) {
 
 function ProPageSkeleton() {
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-3xl">
         <div className="animate-pulse space-y-8">
@@ -223,6 +224,7 @@ function ProPageSkeleton() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
@@ -301,6 +303,7 @@ export default function OleraProPage() {
   // =====================================================================
   if (isSubscribed) {
     return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="max-w-3xl">
           {/* Header */}
@@ -380,6 +383,7 @@ export default function OleraProPage() {
           </div>
         </div>
       </div>
+      </div>
     );
   }
 
@@ -388,6 +392,7 @@ export default function OleraProPage() {
   // =====================================================================
   if (isCanceled || isPastDue) {
     return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="max-w-3xl">
           {/* Header */}
@@ -461,6 +466,7 @@ export default function OleraProPage() {
           </div>
         </div>
       </div>
+      </div>
     );
   }
 
@@ -468,6 +474,7 @@ export default function OleraProPage() {
   // Free / Trialing View (Conversion Page)
   // =====================================================================
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-8">
@@ -668,6 +675,7 @@ export default function OleraProPage() {
           </p>
         </div>
       </div>
+    </div>
     </div>
   );
 }

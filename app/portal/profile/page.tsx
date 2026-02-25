@@ -16,6 +16,7 @@ export default function PortalProfilePage() {
   if (!familyProfile) return null;
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex items-center justify-between mb-5">
         <div>
@@ -59,6 +60,7 @@ export default function PortalProfilePage() {
       ) : (
         <FamilyProfileView profile={familyProfile} />
       )}
+    </div>
     </div>
   );
 }

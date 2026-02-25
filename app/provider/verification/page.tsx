@@ -245,6 +245,7 @@ function UploadArea({
 
 function VerificationSkeleton() {
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-3xl animate-pulse">
         <div className="h-7 w-48 bg-warm-100 rounded mb-2" />
@@ -261,6 +262,7 @@ function VerificationSkeleton() {
           ))}
         </div>
       </div>
+    </div>
     </div>
   );
 }
@@ -473,6 +475,7 @@ export default function ProviderVerificationPage() {
   ];
 
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-3xl">
 
@@ -708,6 +711,7 @@ export default function ProviderVerificationPage() {
           </button>
         )}
       </div>
+    </div>
     </div>
   );
 }

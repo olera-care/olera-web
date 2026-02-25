@@ -98,6 +98,7 @@ function MatchesContent() {
   // Profile guard
   if (!hasRequiredFields) {
     return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="px-8 py-6 h-full"><div>
         <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
         <p className="text-[15px] text-gray-500 mt-1 mb-8">
@@ -117,12 +118,14 @@ function MatchesContent() {
           </Link>
         </div>
       </div></div>
+      </div>
     );
   }
 
   // ── DEFAULT STATE — no care post and no interested providers ──
   if (step === "default" && !hasPost && totalInterested === 0) {
     return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
         <div className="mb-6">
           <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
@@ -220,12 +223,14 @@ function MatchesContent() {
           </div>
         </div>
       </div>
+      </div>
     );
   }
 
   // ── REVIEW STATE — reviewing care post before publishing ──
   if (step === "review" && !hasPost) {
     return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
         <div className="mb-6">
           <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
@@ -247,12 +252,14 @@ function MatchesContent() {
           )}
         </div>
       </div>
+      </div>
     );
   }
 
   // ── WAITING STATE — care post exists (active/paused) but no providers yet ──
   if (hasPost && totalInterested === 0) {
     return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
         <div className="mb-6">
           <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
@@ -329,11 +336,13 @@ function MatchesContent() {
           </div>
         </div>
       </div>
+      </div>
     );
   }
 
   // ── ACTIVE STATE — providers interested (regardless of post status), show grid ──
   return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
       {/* Header */}
       <div className="mb-6">
@@ -370,6 +379,7 @@ function MatchesContent() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

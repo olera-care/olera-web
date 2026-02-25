@@ -176,7 +176,7 @@ export default function ProviderLeadsPage() {
             <div
               key={lead.id}
               className={[
-                "group grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 items-center px-8 py-6 transition-colors duration-100 hover:bg-vanilla-50/40 cursor-pointer",
+                "group grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 items-center px-8 py-4 transition-colors duration-100 hover:bg-vanilla-50/40 cursor-pointer",
                 idx < filteredLeads.length - 1 ? "border-b border-gray-100/80" : "",
               ].join(" ")}
             >

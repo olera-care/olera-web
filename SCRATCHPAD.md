@@ -18,10 +18,10 @@
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
   - Notion: P1 — "Senior Benefits Finder Improvements & Optimizations"
 
-- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
-  - Port iOS deletion request/approve/deny/restore/purge flow to web
+- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage` → merged to `staging` via PR #60) — DONE
+  - Ported iOS deletion request/approve/deny/restore/purge flow to web
   - Plan: `plans/provider-deletion-request-plan.md`
-  - 4 phases: DB migration → Provider portal UI → Admin deletions tab → Polish
+  - Also: enforced single family profile per account + cleanup SQL
 
 - **Admin Provider Directory Editor** (branch: `stellar-hypatia` → merged to `staging`) — DONE
   - Django-admin-style CRUD for 36K+ providers in `olera-providers` table
@@ -85,6 +85,8 @@
 | 2026-02-21 | Reuse existing images API for image actions | Detail page calls `/api/admin/images/[id]` — no code duplication |
 | 2026-02-21 | Lightweight admin check in Navbar | Single fetch to `/api/admin/auth`, silently fails for non-admins |
 | 2026-02-21 | `hero_image_url` column doesn't exist on `olera-providers` | Removed from SELECT; detail uses `SELECT *` which handles gracefully |
+| 2026-02-25 | Deletion columns on `business_profiles` (not separate table) | Mirrors iOS pattern on `provider_claims`; avoids joins, keeps queries simple |
+| 2026-02-25 | Single family profile per account | Reduces cognitive load; providers can still have multiple profiles (branches) |
 
 ---
 
@@ -213,6 +215,35 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 ---
 
 ## Session Log
+
+### 2026-02-25 (Session 18) — Provider Deletion Request + Admin Approval
+
+**Branch:** `relaxed-babbage` | **PR:** #60 targeting staging (merged)
+
+**Provider Deletion Request Flow (ported from iOS):**
+- `supabase/migrations/006_deletion_request_columns.sql` — adds `deletion_requested`, `deletion_requested_at`, `deletion_approved_at` to business_profiles
+- `app/api/portal/request-deletion/route.ts` — provider requests deletion (auth + ownership check)
+- `components/provider-dashboard/DashboardPage.tsx` — deletion card in sidebar + pending banner
+- `app/portal/settings/page.tsx` — deletion card in settings page (alternate path)
+
+**Admin Dashboard Deletions Tab:**
+- `app/admin/deletions/page.tsx` — Requests (pending) + History (deleted) sub-tabs
+- `app/api/admin/deletions/route.ts` — GET requests/history
+- `app/api/admin/deletions/[profileId]/route.ts` — approve/deny/restore/purge actions
+- `components/admin/AdminSidebar.tsx` — added Deletions nav item
+- `app/admin/page.tsx` — stat card + audit log formatting for new actions
+
+**Profile Cleanup:**
+- `app/api/auth/create-profile/route.ts` — block duplicate family profiles (409)
+- `components/shared/ProfileSwitcher.tsx` — hide "Add profile" for family-only users, show "Pending deletion" indicator
+- Cleanup SQL provided to delete duplicate family profiles
+
+**Key decisions:**
+- Added deletion columns to `business_profiles` (not a separate table) — mirrors iOS `provider_claims` pattern
+- Deletion card shows for all org/caregiver profiles, not just claimed ones
+- Admin approve soft-deletes from `olera-providers` (if linked) + marks claim_state='rejected'
+
+---
 
 ### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
 

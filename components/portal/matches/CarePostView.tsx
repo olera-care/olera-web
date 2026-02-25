@@ -11,6 +11,10 @@ interface CarePostViewProps {
   userEmail?: string;
   onPublish: () => Promise<void>;
   onDeactivate: () => Promise<void>;
+  /** Start directly in "review" mode (skip the empty state) */
+  initialStep?: "empty" | "review" | "active";
+  /** Called when user clicks "Back" from the review step */
+  onBack?: () => void;
 }
 
 function CheckIcon() {
@@ -50,6 +54,8 @@ export default function CarePostView({
   userEmail,
   onPublish,
   onDeactivate,
+  initialStep,
+  onBack,
 }: CarePostViewProps) {
   const meta = (activeProfile.metadata || {}) as FamilyMetadata;
   const carePost = meta.care_post;
@@ -57,7 +63,7 @@ export default function CarePostView({
 
   // Local UI step: empty → review → active
   const [step, setStep] = useState<"empty" | "review" | "active">(
-    isActive ? "active" : "empty"
+    initialStep || (isActive ? "active" : "empty")
   );
   const [publishing, setPublishing] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
@@ -143,7 +149,7 @@ export default function CarePostView({
   // ── EMPTY STATE ──
   if (step === "empty") {
     return (
-      <div className="max-w-[560px]">
+      <div>
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
           <div
             className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center text-3xl mx-auto mb-4"
@@ -184,12 +190,12 @@ export default function CarePostView({
       : "?";
 
     return (
-      <div className="max-w-[560px]">
+      <div>
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col h-[calc(100vh-250px)]">
           {/* Sticky header */}
           <div className="flex-shrink-0 px-6 pt-5 pb-4 border-b border-gray-100 bg-white">
             <button
-              onClick={() => setStep("empty")}
+              onClick={() => onBack ? onBack() : setStep("empty")}
               className="flex items-center gap-1.5 mb-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               <svg
@@ -362,7 +368,7 @@ export default function CarePostView({
     : "Recently";
 
   return (
-    <div className="max-w-[560px]">
+    <div>
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col h-[calc(100vh-250px)]">
         {/* Sticky header */}
         <div className="flex-shrink-0 px-6 pt-5 pb-4 border-b border-gray-100 bg-white">

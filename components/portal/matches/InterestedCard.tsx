@@ -184,7 +184,7 @@ export default function InterestedCard({
   // ── Accepted / Connected state ──
   if (isAccepted) {
     return (
-      <div className="bg-white rounded-2xl border border-l-[3px] border-l-primary-400 border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
         <div className="px-7 py-7 text-center">
           {/* Success icon */}
           <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
@@ -256,7 +256,7 @@ export default function InterestedCard({
       className={[
         "bg-white rounded-2xl border overflow-hidden transition-[border-color,box-shadow] duration-500 ease-[cubic-bezier(0.33,1,0.68,1)]",
         isExpanded
-          ? "border-l-[3px] border-l-primary-400 border-gray-300 shadow-lg shadow-gray-900/[0.06] ring-1 ring-gray-200/60"
+          ? "border-gray-300 shadow-lg shadow-gray-900/[0.06] ring-1 ring-gray-200/60"
           : isDeclined
             ? "border-gray-200/80 opacity-55"
             : "border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300",
@@ -484,7 +484,7 @@ export default function InterestedCard({
           onClick={() => isExpanded ? onCollapse?.() : onExpand?.(item.id)}
           className="w-full border-t border-warm-100/60 bg-warm-50/30 px-7 py-3 flex items-center justify-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-700 hover:bg-warm-50/60 transition-all duration-200"
         >
-          View details
+          {isExpanded ? "Close details" : "View details"}
           <svg
             className={[
               "w-4 h-4 transition-transform duration-300",

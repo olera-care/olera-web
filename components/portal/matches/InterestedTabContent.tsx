@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Button from "@/components/ui/Button";
 import InterestedCard from "@/components/portal/matches/InterestedCard";
 import {
   useInterestedProviders,
@@ -11,7 +10,6 @@ import {
 interface InterestedTabContentProps {
   profileId: string;
   hasCarePost: boolean;
-  onSwitchToCarePost: () => void;
   familyLat?: number | null;
   familyLng?: number | null;
 }
@@ -19,7 +17,6 @@ interface InterestedTabContentProps {
 export default function InterestedTabContent({
   profileId,
   hasCarePost,
-  onSwitchToCarePost,
   familyLat,
   familyLng,
 }: InterestedTabContentProps) {
@@ -207,7 +204,7 @@ export default function InterestedTabContent({
   // ── Loading state ──
   if (loading) {
     return (
-      <div className="space-y-5 max-w-2xl">
+      <div className="space-y-5">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
@@ -244,17 +241,12 @@ export default function InterestedTabContent({
             📝
           </div>
           <h3 className="text-base font-display font-bold text-gray-900">
-            Publish your care post to let providers find you
+            Publish your care post first
           </h3>
           <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">
             Once your care post is live, providers in your area can see it and
-            reach out.
+            reach out to you.
           </p>
-          <div className="mt-5">
-            <Button size="sm" onClick={onSwitchToCarePost}>
-              Go to My Care Post
-            </Button>
-          </div>
           <style jsx>{`
             @keyframes emptyFloat {
               0%,
@@ -302,7 +294,7 @@ export default function InterestedTabContent({
 
   // ── Card list ──
   return (
-    <div className="max-w-2xl">
+    <div>
       {/* Pending cards */}
       {pending.length > 0 && (
         <div className="space-y-5 mb-6">

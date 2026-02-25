@@ -88,7 +88,9 @@ export default function Modal({
       document.body.style.right = "";
       document.body.style.overflow = "";
       document.body.style.paddingRight = "";
-      window.scrollTo(0, scrollY);
+      // 'instant' overrides the global scroll-behavior:smooth on <html>,
+      // which would otherwise animate the scroll and get interrupted.
+      window.scrollTo({ top: scrollY, behavior: "instant" });
     };
   }, [isOpen]);
 

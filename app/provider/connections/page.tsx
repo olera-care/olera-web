@@ -189,10 +189,10 @@ export default function ProviderConnectionsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Leads</h2>
+            <h2 className="text-2xl font-display font-bold text-gray-900">Leads</h2>
             <p className="text-[15px] text-gray-500 mt-1">Families interested in your services</p>
           </div>
-          <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl max-w-md">
             {["Needs Attention", "Active", "Past"].map((label) => (
               <div key={label} className="flex-1 flex items-center justify-center px-3 py-2 rounded-lg text-sm font-semibold text-gray-400 whitespace-nowrap">
                 {label}
@@ -201,16 +201,16 @@ export default function ProviderConnectionsPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {[0, 1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="animate-pulse rounded-xl border border-gray-100 p-5">
+              <div key={i} className="animate-pulse rounded-2xl border border-warm-100/60 bg-white p-5">
                 <div className="flex items-start gap-3.5">
-                  <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
+                  <div className="w-12 h-12 rounded-full bg-warm-100 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="h-3 w-16 bg-gray-200 rounded" />
-                      <div className="h-3 w-12 bg-gray-200 rounded" />
+                      <div className="h-3 w-16 bg-warm-100 rounded" />
+                      <div className="h-3 w-12 bg-warm-50 rounded" />
                     </div>
-                    <div className="h-4 w-36 bg-gray-200 rounded mb-1.5" />
-                    <div className="h-3 w-44 bg-gray-200 rounded" />
+                    <div className="h-4 w-36 bg-warm-100 rounded mb-1.5" />
+                    <div className="h-3 w-44 bg-warm-50 rounded" />
                   </div>
                 </div>
               </div>
@@ -251,7 +251,7 @@ export default function ProviderConnectionsPage() {
 
   // Shared tab bar
   const tabBar = (
-    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+    <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl max-w-md">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -270,7 +270,7 @@ export default function ProviderConnectionsPage() {
           {tab.label}
           <span className={[
             "text-xs font-semibold px-1.5 py-0.5 rounded",
-            providerTab === tab.id ? "text-gray-600 bg-gray-100" : "text-gray-400",
+            providerTab === tab.id ? "text-gray-600 bg-warm-50" : "text-gray-400",
           ].join(" ")}>
             {tab.count}
           </span>
@@ -295,7 +295,7 @@ export default function ProviderConnectionsPage() {
           /* ── Compact list mode (split view) ── */
           <div className="flex flex-col h-full">
             <div className="px-4 pt-4 pb-2 shrink-0">
-              <h2 className="text-xl font-bold text-gray-900">Leads</h2>
+              <h2 className="text-xl font-display font-bold text-gray-900">Leads</h2>
             </div>
 
             <div className="sticky top-0 z-10 bg-white px-4 pb-2 shrink-0">
@@ -325,13 +325,13 @@ export default function ProviderConnectionsPage() {
           /* ── Card grid mode (full width) ── */
           <div className="h-full overflow-y-auto max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Leads</h2>
-              <p className="text-sm text-gray-500 mt-1">Families interested in your services</p>
+              <h2 className="text-2xl font-display font-bold text-gray-900">Leads</h2>
+              <p className="text-[15px] text-gray-500 mt-1">Families interested in your services</p>
             </div>
 
             {error && (
               <div className="mb-4">
-                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between" role="alert">
+                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center justify-between border border-red-100" role="alert">
                   <span>{error}</span>
                   <button type="button" onClick={() => { setError(""); setLoading(true); fetchConnections(); }} className="text-sm font-medium text-red-700 hover:text-red-800 underline ml-2">Retry</button>
                 </div>
@@ -381,40 +381,43 @@ export default function ProviderConnectionsPage() {
 // ── Provider Tab Empty States ──
 
 function ProviderTabEmptyState({ tab }: { tab: ProviderConnectionTab }) {
-  const config: Record<ProviderConnectionTab, { icon: string; title: string; subtitle: string }> = {
+  const config: Record<ProviderConnectionTab, { title: string; subtitle: string; icon: React.ReactNode }> = {
     attention: {
-      icon: "\u{1F4E8}",
       title: "No new leads",
       subtitle: "When a family reaches out, new leads appear here for you to review.",
+      icon: (
+        <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+        </svg>
+      ),
     },
     active: {
-      icon: "\u{1F4AC}",
       title: "No active leads",
       subtitle: "Leads you've responded to or are in conversation with will show here.",
+      icon: (
+        <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+        </svg>
+      ),
     },
     past: {
-      icon: "\u{1F4C2}",
       title: "No past leads",
       subtitle: "Expired, declined, and ended leads will be archived here.",
+      icon: (
+        <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+        </svg>
+      ),
     },
   };
-  const { icon, title, subtitle } = config[tab];
+  const { title, subtitle, icon } = config[tab];
   return (
     <div className="py-16 text-center px-8">
-      <div
-        className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-2xl mx-auto mb-5"
-        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
-      >
+      <div className="w-14 h-14 rounded-2xl bg-primary-50 border border-primary-100/50 flex items-center justify-center mx-auto mb-5">
         {icon}
       </div>
-      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <h3 className="text-base font-display font-semibold text-gray-900">{title}</h3>
       <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">{subtitle}</p>
-      <style jsx>{`
-        @keyframes emptyFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
-        }
-      `}</style>
     </div>
   );
 }
@@ -452,7 +455,7 @@ function ConnectionGridCard({
   const initial = otherName.charAt(0).toUpperCase();
 
   return (
-    <div className="w-full text-left rounded-xl bg-white border border-gray-100 p-5 hover:border-gray-200 transition-all duration-200">
+    <div className="w-full text-left rounded-2xl bg-white border border-gray-200/80 shadow-sm p-5 hover:shadow-lg hover:border-gray-300 transition-all duration-300">
       <button
         type="button"
         onClick={() => onSelect(connection.id)}
@@ -501,7 +504,7 @@ function ConnectionGridCard({
           </div>
         </div>
       </button>
-      <div className="mt-3 pt-3 border-t border-gray-50 flex justify-end">
+      <div className="mt-3 pt-3 border-t border-warm-100/60 flex justify-end">
         <Link
           href={`/provider/inbox?id=${connection.id}`}
           className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"

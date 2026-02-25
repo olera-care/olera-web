@@ -134,7 +134,7 @@ function BillingToggle({
   onChange: (c: "monthly" | "annual") => void;
 }) {
   return (
-    <div className="inline-flex items-center bg-gray-100 p-0.5 rounded-xl">
+    <div className="inline-flex items-center bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
       <button
         type="button"
         onClick={() => onChange("monthly")}
@@ -168,7 +168,7 @@ function PriceDisplay({ cycle, centered }: { cycle: "monthly" | "annual"; center
   const monthly = cycle === "monthly";
   return (
     <div className={`flex items-baseline gap-1 ${centered ? "justify-center" : ""}`}>
-      <span className="text-4xl font-bold text-gray-900 tracking-tight">
+      <span className="text-4xl font-display font-bold text-gray-900 tracking-tight">
         ${monthly ? "25" : "249"}
       </span>
       <span className="text-base text-gray-500 font-medium">/{monthly ? "mo" : "yr"}</span>
@@ -182,7 +182,7 @@ function FeatureCheck({ included }: { included: boolean }) {
       <CheckIcon className="w-3 h-3 text-primary-600" />
     </div>
   ) : (
-    <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
+    <div className="w-5 h-5 bg-warm-50 rounded-full flex items-center justify-center shrink-0">
       <XMarkIcon className="w-3 h-3 text-gray-400" />
     </div>
   );
@@ -199,25 +199,25 @@ function ProPageSkeleton() {
         <div className="animate-pulse space-y-8">
           {/* Header skeleton */}
           <div>
-            <div className="h-6 w-32 bg-gray-200 rounded" />
-            <div className="h-4 w-64 bg-gray-100 rounded mt-2" />
+            <div className="h-6 w-32 bg-warm-100 rounded" />
+            <div className="h-4 w-64 bg-warm-50 rounded mt-2" />
           </div>
           {/* Hero skeleton */}
-          <div className="bg-white rounded-xl border border-gray-100 p-8">
-            <div className="h-8 w-72 bg-gray-200 rounded mb-3" />
-            <div className="h-4 w-96 bg-gray-100 rounded mb-6" />
+          <div className="bg-white rounded-2xl border border-warm-100/60 p-8">
+            <div className="h-8 w-72 bg-warm-100 rounded mb-3" />
+            <div className="h-4 w-96 bg-warm-50 rounded mb-6" />
             <div className="flex items-center gap-4">
-              <div className="h-10 w-48 bg-gray-100 rounded-xl" />
-              <div className="h-12 w-40 bg-gray-200 rounded-xl" />
+              <div className="h-10 w-48 bg-warm-50 rounded-xl" />
+              <div className="h-12 w-40 bg-warm-100 rounded-xl" />
             </div>
           </div>
           {/* Cards skeleton */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-100 p-5">
-                <div className="w-9 h-9 bg-gray-100 rounded-lg mb-3" />
-                <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
-                <div className="h-3 w-full bg-gray-100 rounded" />
+              <div key={i} className="bg-white rounded-2xl border border-warm-100/60 p-5">
+                <div className="w-9 h-9 bg-warm-50 rounded-lg mb-3" />
+                <div className="h-4 w-24 bg-warm-100 rounded mb-2" />
+                <div className="h-3 w-full bg-warm-50 rounded" />
               </div>
             ))}
           </div>
@@ -305,7 +305,7 @@ export default function OleraProPage() {
         <div className="max-w-3xl">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Olera Pro</h1>
+            <h1 className="text-2xl font-display font-bold text-gray-900">Olera Pro</h1>
             <p className="text-[15px] text-gray-500 mt-1">
               Manage your subscription and see what&apos;s included.
             </p>
@@ -313,7 +313,7 @@ export default function OleraProPage() {
 
           {/* Upgraded banner */}
           {showUpgradedBanner && (
-            <div className="mb-6 bg-primary-50 border border-primary-200 rounded-xl px-5 py-4 flex items-center gap-3">
+            <div className="mb-6 bg-primary-50 border border-primary-200 rounded-2xl px-5 py-4 flex items-center gap-3">
               <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
                 <CheckIcon className="w-4 h-4 text-primary-600" />
               </div>
@@ -329,17 +329,17 @@ export default function OleraProPage() {
           )}
 
           {/* Status card */}
-          <div className="bg-white rounded-xl border border-primary-200 p-6 mb-8">
+          <div className="bg-white rounded-2xl border border-primary-200 shadow-sm p-6 mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-primary-50 rounded-2xl flex items-center justify-center">
                   <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
                   </svg>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[15px] font-semibold text-gray-900">
+                    <span className="text-[15px] font-display font-semibold text-gray-900">
                       Pro Plan
                     </span>
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
@@ -365,8 +365,8 @@ export default function OleraProPage() {
           </div>
 
           {/* Your Pro features */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+            <h2 className="text-[15px] font-display font-semibold text-gray-900 mb-4">
               Your Pro Features
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -392,22 +392,22 @@ export default function OleraProPage() {
         <div className="max-w-3xl">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Olera Pro</h1>
+            <h1 className="text-2xl font-display font-bold text-gray-900">Olera Pro</h1>
             <p className="text-[15px] text-gray-500 mt-1">
               Re-subscribe to unlock all Pro features.
             </p>
           </div>
 
           {/* Status card */}
-          <div className="bg-white rounded-xl border border-warm-200 p-6 mb-8">
+          <div className="bg-white rounded-2xl border border-warm-200 shadow-sm p-6 mb-8">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-warm-50 rounded-xl flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-warm-50 rounded-2xl flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5 text-warm-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
                 </svg>
               </div>
               <div>
-                <p className="text-[15px] font-semibold text-gray-900">
+                <p className="text-[15px] font-display font-semibold text-gray-900">
                   {isPastDue ? "Payment issue" : "Subscription ended"}
                 </p>
                 <p className="text-[15px] text-gray-500 mt-0.5">
@@ -420,8 +420,8 @@ export default function OleraProPage() {
           </div>
 
           {/* What you're missing */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-8">
-            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 mb-8">
+            <h2 className="text-[15px] font-display font-semibold text-gray-900 mb-4">
               What you&apos;re missing
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -435,8 +435,8 @@ export default function OleraProPage() {
           </div>
 
           {/* Re-subscribe CTA */}
-          <div className="bg-gray-50 rounded-xl p-8 text-center">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <div className="bg-vanilla-50 border border-warm-100/60 rounded-2xl p-8 text-center">
+            <h2 className="text-lg font-display font-semibold text-gray-900 mb-2">
               Pick up where you left off
             </h2>
             <p className="text-[15px] text-gray-500 mb-6 max-w-sm mx-auto">
@@ -472,7 +472,7 @@ export default function OleraProPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-gray-900">Olera Pro</h1>
+          <h1 className="text-2xl font-display font-bold text-gray-900">Olera Pro</h1>
           {isTrial && trialDaysLeft !== null && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
               <span className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
@@ -487,8 +487,8 @@ export default function OleraProPage() {
 
       <div className="max-w-3xl">
         {/* Hero / Value Proposition */}
-        <div className="rounded-xl border border-primary-100 bg-gradient-to-br from-primary-50/60 via-white to-white p-8 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">
+        <div className="rounded-2xl border border-primary-100 bg-gradient-to-br from-primary-50/60 via-white to-white p-8 mb-8">
+          <h2 className="text-2xl font-display font-bold text-gray-900 tracking-tight leading-tight">
             Convert more leads with{" "}
             <span className="text-primary-600">Olera Pro</span>
           </h2>
@@ -515,12 +515,12 @@ export default function OleraProPage() {
           {BENEFITS.map((b) => (
             <div
               key={b.title}
-              className="bg-white rounded-xl border border-gray-100 p-5 hover:border-primary-200 hover:shadow-sm transition-all duration-200"
+              className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 hover:shadow-lg hover:border-primary-200 transition-all duration-300"
             >
-              <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600 mb-3">
+              <div className="w-9 h-9 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600 mb-3">
                 {b.icon}
               </div>
-              <h3 className="text-[15px] font-semibold text-gray-900">{b.title}</h3>
+              <h3 className="text-[15px] font-display font-semibold text-gray-900">{b.title}</h3>
               <p className="text-sm text-gray-500 mt-1 leading-relaxed">
                 {b.desc}
               </p>
@@ -531,13 +531,13 @@ export default function OleraProPage() {
         {/* Plan Comparison */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {/* Basic */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <div className="mb-5 pb-5 border-b border-gray-100">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+            <div className="mb-5 pb-5 border-b border-warm-100/60">
               <div className="flex items-center gap-2">
-                <h3 className="text-[15px] font-semibold text-gray-900">
+                <h3 className="text-[15px] font-display font-semibold text-gray-900">
                   Basic
                 </h3>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warm-50 text-gray-500">
                   Current plan
                 </span>
               </div>
@@ -564,7 +564,7 @@ export default function OleraProPage() {
           </div>
 
           {/* Pro */}
-          <div className="bg-white rounded-xl border-2 border-primary-200 p-6 relative">
+          <div className="bg-white rounded-2xl border-2 border-primary-200 shadow-sm p-6 relative">
             <div className="absolute -top-3 left-5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-600 text-white">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -573,8 +573,8 @@ export default function OleraProPage() {
                 Recommended
               </span>
             </div>
-            <div className="mb-5 pb-5 border-b border-gray-100">
-              <h3 className="text-[15px] font-semibold text-gray-900">Pro</h3>
+            <div className="mb-5 pb-5 border-b border-warm-100/60">
+              <h3 className="text-[15px] font-display font-semibold text-gray-900">Pro</h3>
               <p className="text-[15px] text-gray-500 mt-1">
                 ${billingCycle === "monthly" ? "25/mo" : "249/yr"}
                 {billingCycle === "annual" && (
@@ -612,7 +612,7 @@ export default function OleraProPage() {
 
         {/* FAQ */}
         <div className="mb-8">
-          <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+          <h2 className="text-[15px] font-display font-semibold text-gray-900 mb-4">
             Frequently asked questions
           </h2>
           <div className="space-y-2">
@@ -621,12 +621,12 @@ export default function OleraProPage() {
               return (
                 <div
                   key={i}
-                  className="bg-white rounded-xl border border-gray-100 overflow-hidden"
+                  className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden"
                 >
                   <button
                     type="button"
                     onClick={() => setFaqOpen(isOpen ? null : i)}
-                    className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
+                    className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-vanilla-50/50 transition-colors"
                   >
                     <span className="text-[15px] font-medium text-gray-900">
                       {item.q}
@@ -652,8 +652,8 @@ export default function OleraProPage() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="bg-gray-50 rounded-xl p-8 text-center">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="bg-vanilla-50 border border-warm-100/60 rounded-2xl p-8 text-center">
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-2">
             Ready to grow your business?
           </h2>
           <p className="text-[15px] text-gray-500 mb-6 max-w-sm mx-auto">

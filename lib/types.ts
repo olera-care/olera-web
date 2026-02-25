@@ -126,9 +126,16 @@ export interface OrganizationMetadata {
   staff_count?: number;
   accepts_medicaid?: boolean;
   accepts_medicare?: boolean;
+  accepted_payments?: string[];
   amenities?: string[];
   hours?: string;
   price_range?: string;
+  // Verification fields
+  verification_id_type?: string;
+  verification_id_image?: string;
+  verification_manager_photo?: string;
+  verification_role?: string;
+  verification_affiliation_image?: string;
 }
 
 export interface CaregiverMetadata {

@@ -226,17 +226,17 @@ export default function LeadDetailPanel({
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-[15px] font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-gray-900 truncate">
                 {shouldBlur ? blurName(otherName) : otherName}
               </p>
               {otherLocation && !shouldBlur && (
-                <p className="text-sm text-gray-400">{otherLocation}</p>
+                <p className="text-xs text-gray-400">{otherLocation}</p>
               )}
             </div>
           </div>
 
           {/* Reason */}
-          <p className="text-[15px] text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             Let {shouldBlur ? "them" : firstName} know why you&apos;re not able to help right now.
           </p>
 
@@ -269,7 +269,7 @@ export default function LeadDetailPanel({
                     <span className="w-2 h-2 rounded-full bg-primary-600" />
                   )}
                 </span>
-                <span className="text-sm text-gray-700">{reason}</span>
+                <span className="text-[13px] text-gray-700">{reason}</span>
               </label>
             ))}
           </div>
@@ -280,7 +280,7 @@ export default function LeadDetailPanel({
             onChange={(e) => setPassNote(e.target.value)}
             placeholder="Add a note (optional)"
             rows={3}
-            className="w-full text-sm border border-gray-200 rounded-xl px-3.5 py-3 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 resize-none mb-6"
+            className="w-full text-[13px] border border-gray-200 rounded-xl px-3.5 py-3 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 resize-none mb-6"
           />
 
           {/* Actions */}
@@ -302,7 +302,7 @@ export default function LeadDetailPanel({
               }
             }}
             disabled={passing}
-            className="w-full mt-2 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            className="w-full mt-2 py-2.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
           >
             Cancel
           </button>
@@ -355,7 +355,7 @@ export default function LeadDetailPanel({
           </h2>
 
           {otherLocation && !shouldBlur && (
-            <p className="text-sm text-gray-500 mt-0.5">{otherLocation}</p>
+            <p className="text-[13px] text-gray-500 mt-0.5">{otherLocation}</p>
           )}
 
           <div className="flex items-center gap-2 mt-3">
@@ -367,18 +367,18 @@ export default function LeadDetailPanel({
             </span>
           </div>
 
-          <p className="text-sm text-gray-400 mt-2">Received {receivedDate}</p>
+          <p className="text-xs text-gray-400 mt-2">Received {receivedDate}</p>
         </div>
 
         {/* Care request details */}
         {parsedMsg && !shouldBlur && (
           <div className="mb-5">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
               What they&apos;re looking for
             </h3>
             <div className="bg-gray-50 rounded-xl p-4 space-y-2.5">
               {parsedMsg.careRecipient && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-[13px]">
                   <span className="text-gray-500">Care recipient</span>
                   <span className="text-gray-900 font-medium">
                     {parsedMsg.careRecipient}
@@ -386,7 +386,7 @@ export default function LeadDetailPanel({
                 </div>
               )}
               {parsedMsg.careType && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-[13px]">
                   <span className="text-gray-500">Care type</span>
                   <span className="text-gray-900 font-medium">
                     {parsedMsg.careType}
@@ -394,7 +394,7 @@ export default function LeadDetailPanel({
                 </div>
               )}
               {parsedMsg.urgency && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-[13px]">
                   <span className="text-gray-500">Urgency</span>
                   <span className="text-gray-900 font-medium">
                     {parsedMsg.urgency}
@@ -408,11 +408,11 @@ export default function LeadDetailPanel({
         {/* Personal note */}
         {parsedMsg?.notes && !shouldBlur && (
           <div className="mb-5">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
               Personal note
             </h3>
             <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-sm text-gray-700 leading-relaxed italic">
+              <p className="text-[13px] text-gray-700 leading-relaxed italic">
                 &ldquo;{parsedMsg.notes}&rdquo;
               </p>
             </div>
@@ -422,14 +422,14 @@ export default function LeadDetailPanel({
         {/* Contact info */}
         {(hasPhone || hasEmail) && (
           <div className="mb-5">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
+            <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2.5">
               Contact
             </h3>
             <div className="space-y-2">
               {hasPhone && (
                 <a
                   href={`tel:${otherProfile!.phone}`}
-                  className="flex items-center gap-2.5 text-sm text-gray-700 hover:text-primary-600 transition-colors"
+                  className="flex items-center gap-2.5 text-[13px] text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <svg
                     className="w-4 h-4 text-gray-400"
@@ -450,7 +450,7 @@ export default function LeadDetailPanel({
               {hasEmail && (
                 <a
                   href={`mailto:${otherProfile!.email}`}
-                  className="flex items-center gap-2.5 text-sm text-gray-700 hover:text-primary-600 transition-colors"
+                  className="flex items-center gap-2.5 text-[13px] text-gray-700 hover:text-primary-600 transition-colors"
                 >
                   <svg
                     className="w-4 h-4 text-gray-400"
@@ -475,7 +475,7 @@ export default function LeadDetailPanel({
         {/* Blurred state message */}
         {shouldBlur && (
           <div className="mb-5 bg-gray-50 rounded-xl p-4 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-[13px] text-gray-500">
               Upgrade your plan to see full lead details and contact information.
             </p>
           </div>
@@ -498,7 +498,7 @@ export default function LeadDetailPanel({
             <button
               type="button"
               onClick={() => setView("pass")}
-              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
             >
               Pass on lead
             </button>

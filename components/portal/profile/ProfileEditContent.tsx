@@ -26,7 +26,6 @@ const CARE_TYPES = [
   "Memory Care",
   "Nursing Home",
   "Independent Living",
-  "Hospice Care",
   "Adult Day Care",
   "Rehabilitation",
   "Private Caregiver",

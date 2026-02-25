@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
+import TestimonialCarousel from "@/components/providers/TestimonialCarousel";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -75,6 +76,32 @@ const FAQ = [
   },
 ];
 
+const TESTIMONIALS = [
+  {
+    quote:
+      "I went from one or two calls a week to hearing from families every day. Pro paid for itself before the trial ended\u00a0\u2014 I booked three new families in the first week.",
+    name: "Maria Rodriguez",
+    initials: "MR",
+    role: "Home Care Provider",
+    location: "Austin, TX",
+  },
+  {
+    quote:
+      "The review tools alone are worth it. Families tell me they chose us because of our Olera reviews. We\u2019ve doubled our monthly inquiries since upgrading.",
+    name: "James Thompson",
+    initials: "JT",
+    role: "Assisted Living Director",
+    location: "Denver, CO",
+  },
+  {
+    quote:
+      "Before Pro, I was spending hours on lead-gen sites and paying per click. Now families come to me directly and I keep every dollar. It\u2019s the best investment I\u2019ve made in my business.",
+    name: "Priya Sharma",
+    initials: "PS",
+    role: "In-Home Care Provider",
+    location: "Charlotte, NC",
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Icons
@@ -464,31 +491,7 @@ export default function OleraProPage() {
           </div>
         </section>
 
-        {/* ── TESTIMONIAL ── */}
-        <section className="bg-vanilla-50 border-y border-warm-100/60 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-8">
-              <div className="flex gap-5">
-                <div className="w-[3px] shrink-0 rounded-full bg-primary-400" />
-                <div>
-                  <p className="text-lg sm:text-xl font-display text-gray-900 leading-relaxed italic">
-                    I went from one or two calls a week to hearing from families every day.
-                    Pro paid for itself before the trial ended&nbsp;&mdash; I booked three new families in the first week.
-                  </p>
-                  <div className="flex items-center gap-3 mt-6">
-                    <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-semibold text-primary-700">MR</span>
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">Maria Rodriguez</p>
-                      <p className="text-sm text-gray-500">Home Care Provider &middot; Austin, TX</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <TestimonialCarousel testimonials={TESTIMONIALS} />
 
         {/* ── FAQ ── */}
         <section className="py-16 px-4 sm:px-6 lg:px-8">
@@ -533,7 +536,7 @@ export default function OleraProPage() {
 
         {/* ── BOTTOM CTA ── */}
         <section className="bg-vanilla-50 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-3xl mx-auto">
             <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-12 text-center">
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-6">
                 You&apos;re all set.
@@ -689,31 +692,7 @@ export default function OleraProPage() {
           </div>
         </section>
 
-        {/* ── TESTIMONIAL ── */}
-        <section className="bg-vanilla-50 border-y border-warm-100/60 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-8">
-              <div className="flex gap-5">
-                <div className="w-[3px] shrink-0 rounded-full bg-primary-400" />
-                <div>
-                  <p className="text-lg sm:text-xl font-display text-gray-900 leading-relaxed italic">
-                    I went from one or two calls a week to hearing from families every day.
-                    Pro paid for itself before the trial ended&nbsp;&mdash; I booked three new families in the first week.
-                  </p>
-                  <div className="flex items-center gap-3 mt-6">
-                    <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-semibold text-primary-700">MR</span>
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold text-gray-900">Maria Rodriguez</p>
-                      <p className="text-sm text-gray-500">Home Care Provider &middot; Austin, TX</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <TestimonialCarousel testimonials={TESTIMONIALS} />
 
         {/* ── FAQ ── */}
         <section className="py-16 px-4 sm:px-6 lg:px-8">
@@ -758,7 +737,7 @@ export default function OleraProPage() {
 
         {/* ── BOTTOM CTA ── */}
         <section className="bg-vanilla-50 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-3xl mx-auto">
             <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-12 text-center">
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-6">
                 Your families are waiting.
@@ -928,31 +907,7 @@ export default function OleraProPage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIAL ── */}
-      <section className="bg-vanilla-50 border-y border-warm-100/60 py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-8">
-            <div className="flex gap-5">
-              <div className="w-[3px] shrink-0 rounded-full bg-primary-400" />
-              <div>
-                <p className="text-lg sm:text-xl font-display text-gray-900 leading-relaxed italic">
-                  I went from one or two calls a week to hearing from families every day.
-                  Pro paid for itself before the trial ended&nbsp;&mdash; I booked three new families in the first week.
-                </p>
-                <div className="flex items-center gap-3 mt-6">
-                  <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-semibold text-primary-700">MR</span>
-                  </div>
-                  <div>
-                    <p className="text-[15px] font-semibold text-gray-900">Maria Rodriguez</p>
-                    <p className="text-sm text-gray-500">Home Care Provider &middot; Austin, TX</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <TestimonialCarousel testimonials={TESTIMONIALS} />
 
       {/* ── FAQ ── */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
@@ -997,7 +952,7 @@ export default function OleraProPage() {
 
       {/* ── BOTTOM CTA ── */}
       <section className="bg-vanilla-50 py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-12 text-center">
             <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-6">
               One new family covers the cost.

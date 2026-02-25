@@ -187,33 +187,33 @@ export default function ProviderLeadsPage() {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5">
-                    <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.name}</p>
+                    <p className="text-base font-semibold text-gray-900 truncate">{lead.name}</p>
                     {lead.isNew && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
                         New
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-400 truncate mt-1">{lead.subtitle}</p>
+                  <p className="text-sm text-gray-500 truncate mt-1">{lead.subtitle}</p>
                 </div>
               </div>
 
               {/* Location */}
-              <span className="text-sm text-gray-600">{lead.location}</span>
+              <span className="text-base text-gray-700">{lead.location}</span>
 
               {/* Urgency */}
-              <span className="text-sm text-gray-600">{URGENCY_LABELS[lead.urgency]}</span>
+              <span className="text-base text-gray-700">{URGENCY_LABELS[lead.urgency]}</span>
 
               {/* Status */}
-              <span className="text-sm text-gray-600">{STATUS_LABELS[lead.status]}</span>
+              <span className="text-base text-gray-700">{STATUS_LABELS[lead.status]}</span>
 
               {/* Date */}
-              <span className="text-sm text-gray-400">{lead.date}</span>
+              <span className="text-base text-gray-700">{lead.date}</span>
 
               {/* Action */}
               <button
                 type="button"
-                className="text-sm font-semibold text-gray-600 border border-gray-200 rounded-lg px-4 py-2.5 hover:bg-white hover:border-gray-300 hover:text-gray-900 hover:shadow-sm transition-all duration-150 active:scale-[0.97]"
+                className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg px-4 py-2.5 hover:bg-white hover:border-gray-300 hover:text-gray-900 hover:shadow-sm transition-all duration-150 active:scale-[0.97]"
               >
                 View
               </button>

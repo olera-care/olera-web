@@ -121,9 +121,9 @@ function withBoundedTimeout<T>(
 
 // ─── Persistent cache (localStorage) ────────────────────────────────────
 // Persists auth data across tabs, refreshes, and browser restarts.
-// 30-minute TTL ensures stale data is refreshed.
+// Background fetch on every page load keeps data fresh.
 const CACHE_KEY = "olera_auth_cache";
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours — background fetch refreshes on every page load
 
 interface CachedAuthData {
   userId: string;
@@ -262,7 +262,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const profiles = (profilesResult.data as Profile[]) || [];
       const membershipRows = (membershipResult.data as Membership[]) || [];
       const membership = membershipRows[0] ?? null;
-      console.log("[olera] fetchAccountData result:", { accountId: account.id, profileCount: profiles.length, profileTypes: profiles.map(p => p.type), profileNames: profiles.map(p => p.display_name) });
 
       let activeProfile: Profile | null = null;
       if (account.active_profile_id) {
@@ -312,8 +311,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         if (cancelled) return;
 
         if (!validatedUser) {
-          // Truly no session — clear everything
-          clearAuthCache();
+          // No session found. Don't clear the cache here — the session
+          // might be in flight (OTP flow: setSession hasn't completed yet).
+          // Cache is cleared on explicit SIGNED_OUT instead, which is the
+          // only reliable signal that the user intentionally logged out.
           setState({ ...EMPTY_STATE, isLoading: false });
           initHandlingRef.current = false;
           console.timeEnd("[olera] init");

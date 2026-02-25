@@ -283,20 +283,27 @@ export default function UnifiedAuthModal({
         return;
       }
 
-      // Close modal IMMEDIATELY — don't wait for session transfer.
-      // This is the Telegram approach: UI responds the instant we
-      // know the code is correct.
+      // Transfer session to SSR client BEFORE closing the modal.
+      // setSession is fast (~100ms) — it writes cookies locally and fires
+      // the SIGNED_IN event in AuthProvider, which triggers profile data
+      // fetching. Doing this before close avoids the race where init()
+      // finds no session and clears the cache.
+      if (verifyData.session) {
+        try {
+          await Promise.race([
+            createClient().auth.setSession({
+              access_token: verifyData.session.access_token,
+              refresh_token: verifyData.session.refresh_token,
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("setSession timeout")), 2000)),
+          ]);
+        } catch (err) {
+          console.error("[olera] setSession failed or timed out:", err);
+        }
+      }
+
       setLoading(false);
       handleAuthComplete();
-
-      // Transfer session to SSR client in background. This sets cookies
-      // so middleware and server components see the session on next navigation.
-      if (verifyData.session) {
-        createClient().auth.setSession({
-          access_token: verifyData.session.access_token,
-          refresh_token: verifyData.session.refresh_token,
-        }).catch((err) => console.error("[olera] Background setSession failed:", err));
-      }
     } catch (err) {
       console.error("OTP verification error:", err);
       setError("Something went wrong. Please try again.");

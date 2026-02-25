@@ -9,7 +9,9 @@ interface ModalProps {
   title?: string;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "2xl";
+  /** Optional footer rendered below the body */
+  footer?: ReactNode;
   /** Optional back button handler. Shows a small circular back arrow in the header. */
   onBack?: () => void;
 }
@@ -18,6 +20,7 @@ const sizeClasses: Record<string, string> = {
   sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-lg",
+  "2xl": "max-w-2xl",
 };
 
 /**
@@ -34,6 +37,7 @@ export default function Modal({
   title,
   children,
   size = "md",
+  footer,
   onBack,
 }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -199,6 +203,7 @@ export default function Modal({
 
         {/* Body */}
         <div className="px-7 pb-7 pt-2">{children}</div>
+        {footer && <div className="px-7 pb-5">{footer}</div>}
       </div>
     </div>
   );

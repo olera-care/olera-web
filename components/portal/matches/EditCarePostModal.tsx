@@ -171,19 +171,8 @@ export default function EditCarePostModal({
       isOpen
       onClose={onClose}
       title="Edit care post"
-      size="2xl"
-      footer={
-        <ModalFooter
-          saving={saving}
-          hasChanges={hasChanges}
-          onClose={onClose}
-          onSave={handleSave}
-          guidedMode
-          guidedStep={step}
-          guidedTotal={TOTAL_STEPS}
-          onGuidedBack={step > 1 ? handleBack : undefined}
-        />
-      }
+      size="lg"
+      onBack={step > 1 ? handleBack : undefined}
     >
       <div className="space-y-5 pt-2">
         {error && (
@@ -407,6 +396,16 @@ export default function EditCarePostModal({
             </label>
           </div>
         )}
+        <ModalFooter
+          saving={saving}
+          hasChanges={hasChanges}
+          onClose={onClose}
+          onSave={handleSave}
+          guidedMode
+          guidedStep={step}
+          guidedTotal={TOTAL_STEPS}
+          onGuidedBack={step > 1 ? handleBack : undefined}
+        />
       </div>
     </Modal>
   );

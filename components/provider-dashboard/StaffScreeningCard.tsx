@@ -34,7 +34,7 @@ export default function StaffScreeningCard({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {SCREENING_ITEMS.map(({ key, label }) => {
-            const isActive = screening[key];
+            const isActive = screening.includes(key);
             return (
               <div
                 key={key}

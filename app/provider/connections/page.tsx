@@ -181,9 +181,9 @@ export default function ProviderLeadsPage() {
               ].join(" ")}
             >
               {/* Name */}
-              <div className="flex items-center gap-4 min-w-0">
-                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
-                  <span className="text-sm font-bold text-gray-600/80">{lead.initials}</span>
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                  <span className="text-xs font-bold text-gray-600/80">{lead.initials}</span>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5">
@@ -194,7 +194,7 @@ export default function ProviderLeadsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 truncate mt-1">{lead.subtitle}</p>
+                  <p className="text-sm text-gray-500 truncate mt-0.5">{lead.subtitle}</p>
                 </div>
               </div>
 

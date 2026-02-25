@@ -281,20 +281,29 @@ function MatchesSidebar({
   remaining,
   totalFamilies,
   isFreeTier,
+  contactedCount,
+  respondedCount,
+  newMatchesToday,
 }: {
   remaining: number | null;
   totalFamilies: number;
   isFreeTier: boolean;
+  contactedCount: number;
+  respondedCount: number;
+  newMatchesToday: number;
 }) {
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  const isPro = !isFreeTier;
+  const responseRate = contactedCount > 0 ? Math.round((respondedCount / contactedCount) * 100) : 0;
 
   return (
     <div className="sticky top-24 space-y-3">
-      {/* ── Combined card: Stats + Pro upsell ── */}
+      {/* ── Main sidebar card ── */}
       <div className="rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        {/* White top: usage stats */}
         <div className="bg-white p-6">
-          {isFreeTier && remaining !== null ? (
+
+          {/* ── FREE TIER: reach-outs ring + families count ── */}
+          {isFreeTier && remaining !== null && (
             <>
               {/* Circular progress + count */}
               <div className="flex flex-col items-center text-center mb-5">
@@ -324,22 +333,112 @@ function MatchesSidebar({
                 </p>
               </div>
             </>
-          ) : (
+          )}
+
+          {/* ── PRO + FAMILIES WAITING ── */}
+          {isPro && totalFamilies > 0 && (
             <>
-              <h4 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4">
-                Your matches
-              </h4>
-              <div className="flex items-center gap-2.5 bg-warm-50/50 rounded-xl px-4 py-3">
-                <PeopleIcon className="w-5 h-5 text-gray-400 shrink-0" />
-                <p className="text-[13px] text-gray-500">
-                  <span className="font-bold text-gray-900">{totalFamilies}</span> families near you are looking for care
+              {/* Pro badge */}
+              <div className="flex justify-center mb-5">
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-50/60 border border-primary-100/60">
+                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  <span className="text-xs font-bold text-primary-700 tracking-wide uppercase">Pro</span>
+                </div>
+              </div>
+
+              {/* Big family count */}
+              <div className="text-center mb-2">
+                <p className="text-[52px] font-display font-bold text-gray-900 leading-none tracking-tight">
+                  {totalFamilies}
                 </p>
               </div>
+              <p className="text-[17px] text-gray-700 text-center font-medium leading-snug">
+                {totalFamilies === 1 ? "family" : "families"} waiting for you
+              </p>
+              <p className="text-[13px] text-gray-400 text-center mt-1.5 leading-relaxed">
+                Families choose the first provider who responds.
+              </p>
+
+              {/* Stats row */}
+              <div className="mt-6 pt-5 border-t border-gray-100">
+                <div className="grid grid-cols-3 gap-1">
+                  <div className="text-center">
+                    <p className="text-xl font-display font-bold text-gray-900 tracking-tight">{contactedCount}</p>
+                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">Reached out</p>
+                  </div>
+                  <div className="text-center border-x border-gray-100">
+                    <p className="text-xl font-display font-bold text-gray-900 tracking-tight">{respondedCount}</p>
+                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">Responded</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-display font-bold text-gray-900 tracking-tight">{responseRate}%</p>
+                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">Rate</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── PRO + ALL CAUGHT UP ── */}
+          {isPro && totalFamilies === 0 && (
+            <>
+              {/* Pro badge */}
+              <div className="flex justify-center mb-5">
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-50/60 border border-primary-100/60">
+                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  <span className="text-xs font-bold text-primary-700 tracking-wide uppercase">Pro</span>
+                </div>
+              </div>
+
+              {/* Checkmark circle */}
+              <div className="flex justify-center mb-5">
+                <div className="w-14 h-14 rounded-full bg-primary-50/60 flex items-center justify-center">
+                  <svg className="w-7 h-7 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+              </div>
+
+              <h3 className="text-lg font-display font-bold text-gray-900 text-center">
+                You&apos;re all caught up
+              </h3>
+              <p className="text-[13px] text-gray-400 text-center mt-2 leading-relaxed max-w-[220px] mx-auto">
+                No new families waiting. We&apos;ll notify you when someone&apos;s looking for care in your area.
+              </p>
             </>
           )}
         </div>
 
-        {/* Dark bottom: Pro upsell (free tier only) */}
+        {/* ── Contextual footer strip ── */}
+
+        {/* Pro + families: urgency nudge */}
+        {isPro && totalFamilies > 0 && newMatchesToday > 0 && (
+          <div className="px-5 py-3.5 bg-amber-50/60 border-t border-amber-100/40 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+              <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+              </svg>
+            </div>
+            <p className="text-[13px] text-gray-600 leading-relaxed">
+              <span className="font-semibold text-gray-800">{newMatchesToday} new {newMatchesToday === 1 ? "match" : "matches"} today</span> — respond within 24hrs for the best chance.
+            </p>
+          </div>
+        )}
+
+        {/* Pro + all caught up: profile tip */}
+        {isPro && totalFamilies === 0 && (
+          <div className="px-5 py-3.5 bg-warm-50/50 border-t border-warm-100/60">
+            <p className="text-[13px] text-gray-500 text-center leading-relaxed">
+              Tip: <Link href="/provider/profile" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">Complete your profile</Link> to match with more families.
+            </p>
+          </div>
+        )}
+
+        {/* Free tier: dark Pro upsell */}
         {isFreeTier && (
           <div
             className="relative"
@@ -1205,6 +1304,14 @@ export default function ProviderMatchesPage() {
               remaining={freeRemaining}
               totalFamilies={families.length}
               isFreeTier={isFreeTier}
+              contactedCount={contactedIds.size}
+              respondedCount={families.filter((f) => contactedIds.has(f.id)).length}
+              newMatchesToday={families.filter((f) => {
+                const created = f.created_at ? new Date(f.created_at) : null;
+                if (!created) return false;
+                const today = new Date();
+                return created.toDateString() === today.toDateString();
+              }).length}
             />
           </div>
         </div>

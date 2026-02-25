@@ -512,9 +512,7 @@ export default function Navbar() {
             {/* ── LEFT COLUMN — always Olera logo ── */}
             <div className="flex-1 flex items-center">
               <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-                  <span className="font-bold text-lg text-white">O</span>
-                </div>
+                <img src="/images/olera-logo.png" alt="Olera" className="w-8 h-8 object-contain" />
                 <span className="text-xl font-bold text-gray-900">Olera</span>
               </Link>
             </div>

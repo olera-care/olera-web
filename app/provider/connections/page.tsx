@@ -925,11 +925,11 @@ export default function ProviderLeadsPage() {
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
           {/* Table header */}
           <div className="grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 px-8 py-4 border-b border-gray-100">
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Name</span>
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Location</span>
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Urgency</span>
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Status</span>
-            <span className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Date</span>
+            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Name</span>
+            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Location</span>
+            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Urgency</span>
+            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Status</span>
+            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Date</span>
             <span />
           </div>
 

@@ -51,18 +51,37 @@ const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: "most_urgent", label: "Most urgent" },
 ];
 
-const URGENCY_LABELS: Record<Urgency, string> = {
-  immediate: "Immediate",
-  within_1_month: "Within 1 month",
-  exploring: "Exploring",
+const URGENCY_CONFIG: Record<Urgency, { label: string; dot: string; text: string }> = {
+  immediate:      { label: "Immediate",      dot: "bg-red-400",   text: "text-gray-700" },
+  within_1_month: { label: "Within 1 month", dot: "bg-amber-400", text: "text-gray-700" },
+  exploring:      { label: "Exploring",      dot: "bg-warm-300",  text: "text-gray-500" },
 };
 
-const STATUS_LABELS: Record<LeadStatus, string> = {
-  new: "New",
-  replied: "Replied",
-  no_reply: "No reply",
-  archived: "Archived",
+const STATUS_CONFIG: Record<LeadStatus, { label: string; dot: string; text: string }> = {
+  new:      { label: "New",      dot: "bg-primary-400", text: "text-primary-700" },
+  replied:  { label: "Replied",  dot: "bg-emerald-400", text: "text-emerald-700" },
+  no_reply: { label: "No reply", dot: "bg-gray-300",    text: "text-gray-500" },
+  archived: { label: "Archived", dot: "bg-gray-300",    text: "text-gray-400" },
 };
+
+// ── Avatar gradients (deterministic by name) ──
+
+const AVATAR_GRADIENTS = [
+  "from-rose-100 to-pink-50",
+  "from-sky-100 to-blue-50",
+  "from-amber-100 to-yellow-50",
+  "from-emerald-100 to-green-50",
+  "from-violet-100 to-purple-50",
+  "from-orange-100 to-amber-50",
+  "from-teal-100 to-cyan-50",
+  "from-fuchsia-100 to-pink-50",
+];
+
+function avatarGradient(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+}
 
 // ── Page ──
 
@@ -143,12 +162,12 @@ export default function ProviderLeadsPage() {
       {filteredLeads.length > 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
           {/* Table header */}
-          <div className="grid grid-cols-[1fr_140px_140px_100px_90px_80px] gap-4 px-7 py-4 border-b border-gray-100 bg-gray-50/40">
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Name</span>
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Location</span>
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Urgency</span>
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Status</span>
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Date</span>
+          <div className="grid grid-cols-[1fr_150px_150px_110px_90px_84px] gap-4 px-8 py-3.5 border-b border-gray-100">
+            <span className="text-[13px] font-medium text-gray-400">Name</span>
+            <span className="text-[13px] font-medium text-gray-400">Location</span>
+            <span className="text-[13px] font-medium text-gray-400">Urgency</span>
+            <span className="text-[13px] font-medium text-gray-400">Status</span>
+            <span className="text-[13px] font-medium text-gray-400">Date</span>
             <span />
           </div>
 
@@ -157,36 +176,46 @@ export default function ProviderLeadsPage() {
             <div
               key={lead.id}
               className={[
-                "grid grid-cols-[1fr_140px_140px_100px_90px_80px] gap-4 items-center px-7 py-5 transition-colors hover:bg-gray-50/40",
-                idx < filteredLeads.length - 1 ? "border-b border-gray-100" : "",
+                "group grid grid-cols-[1fr_150px_150px_110px_90px_84px] gap-4 items-center px-8 py-[22px] transition-colors duration-100 hover:bg-vanilla-50/40 cursor-pointer",
+                idx < filteredLeads.length - 1 ? "border-b border-gray-100/80" : "",
               ].join(" ")}
             >
               {/* Name */}
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-semibold text-gray-500">{lead.initials}</span>
+                <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
+                  <span className="text-[13px] font-bold text-gray-600/80">{lead.initials}</span>
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.name}</p>
+                  <div className="flex items-center gap-2.5">
+                    <p className="text-[15px] font-semibold text-gray-900 truncate leading-snug">{lead.name}</p>
                     {lead.isNew && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary-50 text-primary-600 border border-primary-100/60 shrink-0">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
                         New
                       </span>
                     )}
                   </div>
-                  <p className="text-[13px] text-gray-500 truncate mt-0.5">{lead.subtitle}</p>
+                  <p className="text-[13px] text-gray-400 truncate mt-0.5 leading-snug">{lead.subtitle}</p>
                 </div>
               </div>
 
               {/* Location */}
-              <span className="text-[13px] text-gray-600">{lead.location}</span>
+              <span className="text-[13px] text-gray-500">{lead.location}</span>
 
               {/* Urgency */}
-              <span className="text-[13px] text-gray-700 font-medium">{URGENCY_LABELS[lead.urgency]}</span>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${URGENCY_CONFIG[lead.urgency].dot} shrink-0`} />
+                <span className={`text-[13px] font-medium ${URGENCY_CONFIG[lead.urgency].text}`}>
+                  {URGENCY_CONFIG[lead.urgency].label}
+                </span>
+              </div>
 
               {/* Status */}
-              <span className="text-[13px] text-gray-600">{STATUS_LABELS[lead.status]}</span>
+              <div className="flex items-center gap-2">
+                <div className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[lead.status].dot} shrink-0`} />
+                <span className={`text-[13px] ${STATUS_CONFIG[lead.status].text}`}>
+                  {STATUS_CONFIG[lead.status].label}
+                </span>
+              </div>
 
               {/* Date */}
               <span className="text-[13px] text-gray-400">{lead.date}</span>
@@ -194,7 +223,7 @@ export default function ProviderLeadsPage() {
               {/* Action */}
               <button
                 type="button"
-                className="text-[13px] font-semibold text-gray-700 border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150"
+                className="text-[13px] font-semibold text-gray-600 border border-gray-200 rounded-lg px-4 py-2 hover:bg-white hover:border-gray-300 hover:text-gray-900 hover:shadow-sm transition-all duration-150 active:scale-[0.97]"
               >
                 View
               </button>

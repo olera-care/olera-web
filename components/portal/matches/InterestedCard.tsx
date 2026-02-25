@@ -131,7 +131,7 @@ export default function InterestedCard({
     .slice(0, 2);
   const viewed = (item.metadata as Record<string, unknown>)?.viewed === true;
   const matchReasons = ((item.metadata as Record<string, unknown>)?.match_reasons as string[]) || [];
-  const reachOutNote = (item.metadata as Record<string, unknown>)?.reach_out_note as string | undefined;
+  const reachOutNote = item.message || (item.metadata as Record<string, unknown>)?.reach_out_note as string | undefined;
   const dateLabel = formatRelativeDate(item.created_at);
   const categoryLabel = getCategoryLabel(
     profile?.category as ProfileCategory | null,
@@ -185,48 +185,48 @@ export default function InterestedCard({
   if (isAccepted) {
     return (
       <div className="bg-white rounded-2xl border border-l-[3px] border-l-primary-400 border-gray-200/80 shadow-sm overflow-hidden">
-        <div className="px-7 py-10 text-center">
+        <div className="px-7 py-7 text-center">
           {/* Success icon */}
-          <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-5">
-            <svg className="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <div className="w-12 h-12 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
           </div>
 
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1.5">
             You&apos;re connected!
           </h3>
-          <p className="text-[15px] text-gray-500 leading-relaxed max-w-[420px] mx-auto mb-6">
+          <p className="text-[14px] text-gray-500 leading-relaxed max-w-[360px] mx-auto mb-5">
             Your details have been shared with this provider. They&apos;ll see your care post and can reply directly.
           </p>
 
           {/* Provider mini card */}
-          <div className="inline-flex items-center gap-3 bg-white border border-gray-200/80 rounded-2xl px-5 py-3 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2.5 bg-white border border-gray-200/80 rounded-xl px-4 py-2.5 shadow-sm mb-5">
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={imageUrl}
                 alt={name}
-                className="w-10 h-10 rounded-xl object-cover shrink-0"
+                className="w-9 h-9 rounded-lg object-cover shrink-0"
               />
             ) : (
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-[13px] font-bold text-white"
+                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-[12px] font-bold text-white"
                 style={{ background: avatarGradient(name) }}
               >
                 {initials}
               </div>
             )}
-            <span className="text-[15px] font-semibold text-gray-900">{name}</span>
+            <span className="text-[14px] font-semibold text-gray-900">{name}</span>
           </div>
 
           {/* Go to inbox button */}
-          <div className="mb-3">
+          <div className="mb-2.5">
             <Link
               href="/portal/inbox"
-              className="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap px-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
             >
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
               </svg>
               Go to inbox
@@ -237,7 +237,7 @@ export default function InterestedCard({
           <button
             type="button"
             onClick={() => onDismiss?.(item.id)}
-            className="text-[14px] text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
           >
             or keep reviewing providers
           </button>
@@ -490,7 +490,7 @@ export default function InterestedCard({
                 type="button"
                 onClick={() => onDecline?.(item.id)}
                 disabled={isDeclining || isAccepting}
-                className="inline-flex items-center px-5 py-2.5 rounded-full text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
+                className="inline-flex items-center px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
               >
                 {isDeclining ? (
                   <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
@@ -502,7 +502,7 @@ export default function InterestedCard({
                 type="button"
                 onClick={() => onAccept?.(item.id)}
                 disabled={isAccepting || isDeclining}
-                className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
+                className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
               >
                 {isAccepting ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -524,7 +524,7 @@ export default function InterestedCard({
             <button
               type="button"
               onClick={() => onExpand?.(item.id)}
-              className="group inline-flex items-center gap-1.5 text-[14px] font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-full px-5 py-2.5 shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
+              className="group inline-flex items-center gap-1.5 text-[14px] font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl px-5 py-2.5 shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
             >
               View details
               <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -631,7 +631,7 @@ function DeclineFeedbackCard({
         <button
           type="button"
           onClick={() => onUndo?.(item.id)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
@@ -641,7 +641,7 @@ function DeclineFeedbackCard({
         <button
           type="button"
           onClick={() => onDone?.(item.id, selectedReasons)}
-          className="px-5 py-2.5 rounded-full text-[14px] font-semibold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.97] transition-all duration-200"
+          className="px-5 py-2.5 rounded-xl text-[14px] font-semibold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.97] transition-all duration-200"
         >
           Done
         </button>

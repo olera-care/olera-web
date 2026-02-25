@@ -237,49 +237,96 @@ function MatchesEmptyState() {
 }
 
 // ---------------------------------------------------------------------------
-// Free-tier Usage Banner
+// Matches Sidebar (sticky — mirrors dashboard completeness sidebar)
 // ---------------------------------------------------------------------------
 
-function UsageBanner({
+function MatchesSidebar({
   remaining,
   totalFamilies,
+  isFreeTier,
 }: {
-  remaining: number;
+  remaining: number | null;
   totalFamilies: number;
+  isFreeTier: boolean;
 }) {
+  const exhausted = remaining !== null && remaining <= 0;
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-7 py-4.5 flex items-center justify-between mb-8">
-      <div className="flex items-center gap-3.5">
-        <div className="flex items-center gap-1.5">
-          {Array.from({ length: FREE_CONNECTION_LIMIT }).map((_, i) => (
-            <div
-              key={i}
-              className={`w-[9px] h-[9px] rounded-full ${
-                i < remaining ? "bg-primary-500" : "bg-warm-200"
-              }`}
-            />
-          ))}
+    <div className="sticky top-24 space-y-5">
+      {/* Usage card — free tier only */}
+      {isFreeTier && remaining !== null && (
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+          <h4 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-5">
+            Monthly usage
+          </h4>
+
+          {/* Dots indicator */}
+          <div className="flex items-center gap-2 mb-4">
+            {Array.from({ length: FREE_CONNECTION_LIMIT }).map((_, i) => (
+              <div
+                key={i}
+                className={`w-3 h-3 rounded-full transition-colors ${
+                  i < remaining ? "bg-primary-500" : "bg-warm-200"
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Count */}
+          <p className="text-[26px] font-display font-bold text-gray-900 tracking-tight leading-none mb-1">
+            {remaining}
+          </p>
+          <p className="text-[13px] text-gray-400 mb-5">
+            reach-out{remaining !== 1 ? "s" : ""} remaining this month
+          </p>
+
+          {/* Divider */}
+          <div className="border-t border-warm-100/60 my-5" />
+
+          {/* Families stat */}
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
+              <PeopleIcon className="w-4.5 h-4.5 text-primary-600" />
+            </div>
+            <div>
+              <p className="text-lg font-display font-bold text-gray-900 leading-tight">{totalFamilies}</p>
+              <p className="text-[13px] text-gray-400">families near you</p>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <Link
+            href="/provider/pro"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-900 text-white text-[14px] font-semibold hover:bg-gray-800 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+            </svg>
+            Get unlimited
+          </Link>
+          <p className="text-center text-[12px] text-gray-400 mt-2.5">
+            From <span className="font-semibold text-gray-500">$25/mo</span>
+          </p>
         </div>
-        <p className="text-[15px] text-gray-600">
-          <span className="font-bold text-gray-900">{remaining} reach-out{remaining !== 1 ? "s" : ""}</span>{" "}
-          <span className="text-gray-400">remaining this month</span>
-        </p>
-      </div>
-      <div className="flex items-center gap-5">
-        <p className="text-[15px] text-gray-400 hidden sm:block">
-          <span className="font-semibold text-gray-700">{totalFamilies}</span>{" "}
-          families near you
-        </p>
-        <Link
-          href="/provider/pro"
-          className="inline-flex items-center gap-2 pl-4 pr-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-colors shadow-sm"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-          </svg>
-          Get unlimited
-        </Link>
-      </div>
+      )}
+
+      {/* Pro active — show families stat only */}
+      {!isFreeTier && totalFamilies > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+          <h4 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-5">
+            Your matches
+          </h4>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
+              <PeopleIcon className="w-4.5 h-4.5 text-primary-600" />
+            </div>
+            <div>
+              <p className="text-lg font-display font-bold text-gray-900 leading-tight">{totalFamilies}</p>
+              <p className="text-[13px] text-gray-400">families near you</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -741,14 +788,6 @@ export default function ProviderMatchesPage() {
         </div>
       </div>
 
-      {/* ── Free-tier usage banner ── */}
-      {isFreeTier && (
-        <UsageBanner
-          remaining={freeRemaining}
-          totalFamilies={families.length}
-        />
-      )}
-
       {/* ── Content grid ── */}
       {families.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -817,7 +856,11 @@ export default function ProviderMatchesPage() {
 
           {/* Sidebar — 1/3 */}
           <div className="lg:col-span-1">
-            {/* Placeholder for future sidebar content */}
+            <MatchesSidebar
+              remaining={freeRemaining}
+              totalFamilies={families.length}
+              isFreeTier={isFreeTier}
+            />
           </div>
         </div>
       )}

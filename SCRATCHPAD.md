@@ -80,6 +80,9 @@
 | 2026-02-21 | Reuse existing images API for image actions | Detail page calls `/api/admin/images/[id]` — no code duplication |
 | 2026-02-21 | Lightweight admin check in Navbar | Single fetch to `/api/admin/auth`, silently fails for non-admins |
 | 2026-02-21 | `hero_image_url` column doesn't exist on `olera-providers` | Removed from SELECT; detail uses `SELECT *` which handles gracefully |
+| 2026-02-25 | Hero search routes to power pages, not /browse | Power pages have SSR + interactive browse; /browse is client-only with no SEO |
+| 2026-02-25 | Blur before close for portal focus management | Browser scrolls during DOM mutation — must act before React state change, not in effect cleanup |
+| 2026-02-25 | `globals.css` has `scroll-behavior:smooth` | Always use `behavior:'instant'` for programmatic scrollTo that needs to be synchronous |
 
 ---
 
@@ -208,6 +211,41 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 ---
 
 ## Session Log
+
+### 2026-02-25 (Session 18) — Hero Search → Power Pages + Modal Scroll Fix
+
+**Branch:** `tender-knuth` | **PRs:** #58, #59 targeting staging (both merged)
+
+**Hero Search CTA → Power Pages (PR #58):**
+- `app/page.tsx` — `handleSearch()` now parses "City, ST" format and routes to power page URLs
+- "Houston, TX" + "Home Care" → `/home-care/texas/houston` instead of `/browse?location=...&type=...`
+- Maps care type dropdown values to power page slugs (`home-health` → `home-health-care`)
+- Falls back to `/browse` for ZIP codes, unrecognized formats, or empty location
+- Generic "View all providers" links still go to `/browse` (no city context)
+
+**Modal Scroll Jump Fix (PR #59) — 4 attempts:**
+- **Bug:** Closing the auth modal on homepage snapped page to pre-footer "Find senior care by city" section
+- **Root cause:** When React removes a portal while an element inside has focus, the browser's native focus management instantly scrolls to the next focusable element in DOM order (footer links)
+- **Why 3 fixes failed:**
+  1. `useEffect` cleanup — deferred, runs after paint (too late)
+  2. `useLayoutEffect` + `position:fixed` — runs after DOM mutation (still too late)
+  3. `behavior:'instant'` — `scroll-behavior:smooth` was a red herring; scroll was instant
+- **Fix:** Blur the active element in the event handler BEFORE `onClose()` triggers the state change. No focused element when portal unmounts = no browser focus management = no scroll
+- **Safety net kept:** `useLayoutEffect` with `position:fixed` body lock + `scrollTo({ behavior: 'instant' })`
+
+**Files modified:**
+- `app/page.tsx` — `handleSearch()` routes to power pages
+- `components/ui/Modal.tsx` — `handleClose()` blurs before close; `useLayoutEffect` body lock; all 3 close paths (backdrop, X, Escape) use `handleClose()`
+- `docs/POSTMORTEMS.md` — detailed post-mortem with prevention checklist
+
+**Key decisions:**
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| 2026-02-25 | Hero search routes to power pages, not /browse | Power pages have SSR + interactivity; /browse is client-only (no SEO value) |
+| 2026-02-25 | Blur before close for portal focus management | Browser scrolls during DOM mutation — no React effect (even useLayoutEffect) can prevent it; must act before state change |
+| 2026-02-25 | `scroll-behavior:smooth` exists in globals.css | Must use `behavior:'instant'` for any programmatic scrollTo that needs to be synchronous |
+
+---
 
 ### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
 

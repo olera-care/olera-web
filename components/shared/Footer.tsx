@@ -168,9 +168,7 @@ export default function Footer() {
             {/* Brand */}
             <div className="col-span-1 md:col-span-2">
               <Link href="/" className="flex items-center space-x-2.5 mb-4">
-                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-base">O</span>
-                </div>
+                <img src="/images/olera-logo.png" alt="Olera" className="w-8 h-8 object-contain" />
                 <span className="text-lg font-bold text-gray-900">Olera</span>
               </Link>
               <p className="text-gray-400 max-w-xs leading-relaxed text-sm">

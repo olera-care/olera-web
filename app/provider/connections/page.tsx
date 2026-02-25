@@ -51,17 +51,17 @@ const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: "most_urgent", label: "Most urgent" },
 ];
 
-const URGENCY_CONFIG: Record<Urgency, { label: string; dot: string; text: string }> = {
-  immediate:      { label: "Immediate",      dot: "bg-red-400",   text: "text-gray-700" },
-  within_1_month: { label: "Within 1 month", dot: "bg-amber-400", text: "text-gray-700" },
-  exploring:      { label: "Exploring",      dot: "bg-warm-300",  text: "text-gray-500" },
+const URGENCY_LABELS: Record<Urgency, string> = {
+  immediate: "Immediate",
+  within_1_month: "Within 1 month",
+  exploring: "Exploring",
 };
 
-const STATUS_CONFIG: Record<LeadStatus, { label: string; dot: string; text: string }> = {
-  new:      { label: "New",      dot: "bg-primary-400", text: "text-primary-700" },
-  replied:  { label: "Replied",  dot: "bg-emerald-400", text: "text-emerald-700" },
-  no_reply: { label: "No reply", dot: "bg-gray-300",    text: "text-gray-500" },
-  archived: { label: "Archived", dot: "bg-gray-300",    text: "text-gray-400" },
+const STATUS_LABELS: Record<LeadStatus, string> = {
+  new: "New",
+  replied: "Replied",
+  no_reply: "No reply",
+  archived: "Archived",
 };
 
 // ── Avatar gradients (deterministic by name) ──
@@ -202,20 +202,10 @@ export default function ProviderLeadsPage() {
               <span className="text-sm text-gray-600">{lead.location}</span>
 
               {/* Urgency */}
-              <div className="flex items-center gap-2.5">
-                <div className={`w-2 h-2 rounded-full ${URGENCY_CONFIG[lead.urgency].dot} shrink-0`} />
-                <span className={`text-sm font-medium ${URGENCY_CONFIG[lead.urgency].text}`}>
-                  {URGENCY_CONFIG[lead.urgency].label}
-                </span>
-              </div>
+              <span className="text-sm text-gray-600">{URGENCY_LABELS[lead.urgency]}</span>
 
               {/* Status */}
-              <div className="flex items-center gap-2">
-                <div className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[lead.status].dot} shrink-0`} />
-                <span className={`text-sm ${STATUS_CONFIG[lead.status].text}`}>
-                  {STATUS_CONFIG[lead.status].label}
-                </span>
-              </div>
+              <span className="text-sm text-gray-600">{STATUS_LABELS[lead.status]}</span>
 
               {/* Date */}
               <span className="text-sm text-gray-400">{lead.date}</span>

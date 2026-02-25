@@ -587,7 +587,7 @@ export default function ConversationList({
                 </svg>
               </button>
               {filterDropdownOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10">
+                <div className="absolute left-0 top-full mt-1.5 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
                   {(Object.keys(FILTER_LABELS) as FilterOption[]).map((key) => (
                     <button
                       key={key}

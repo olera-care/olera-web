@@ -471,211 +471,266 @@ export default function OleraProPage() {
   }
 
   // =====================================================================
-  // Free / Trialing View (Conversion Page)
+  // Free / Trialing View (Landing Page)
   // =====================================================================
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-display font-bold text-gray-900">Olera Pro</h1>
-          {isTrial && trialDaysLeft !== null && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
-              <span className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
-              {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left in trial
-            </span>
-          )}
-        </div>
-        <p className="text-[15px] text-gray-500 mt-1">
-          Everything you need to grow your care business online.
-        </p>
-      </div>
 
-      <div className="max-w-3xl">
-        {/* Hero / Value Proposition */}
-        <div className="rounded-2xl border border-primary-100 bg-gradient-to-br from-primary-50/60 via-white to-white p-8 mb-8">
-          <h2 className="text-2xl font-display font-bold text-gray-900 tracking-tight leading-tight">
-            Convert more leads with{" "}
-            <span className="text-primary-600">Olera Pro</span>
-          </h2>
-          <p className="text-base text-gray-600 mt-3 leading-relaxed max-w-lg">
-            Get priority placement, unlimited leads, review tools, and full
-            analytics. Everything you need to fill your calendar.
+  const priceLabel = billingCycle === "monthly" ? "$25/mo" : "$249/yr";
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* ── HERO SECTION ── */}
+      <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-50/60 border border-primary-100/60 mb-8">
+            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+            </svg>
+            <span className="text-sm font-semibold text-primary-700">Olera Pro</span>
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-[clamp(2.5rem,5vw,3.5rem)] font-display font-bold text-gray-900 leading-[1.1] tracking-tight">
+            More families.<br />
+            Less <em className="text-primary-600 not-italic font-display" style={{ fontStyle: "italic" }}>wondering</em>.
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-lg text-gray-500 mt-6 leading-relaxed">
+            Everything you need to fill your calendar. {priceLabel}.
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-6">
-            <div className="space-y-3">
-              <BillingToggle cycle={billingCycle} onChange={setBillingCycle} />
-              <PriceDisplay cycle={billingCycle} />
-            </div>
-            <div className="sm:ml-auto">
-              <Button onClick={handleSubscribe} loading={subscribing} size="md">
-                Subscribe to Pro
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Benefit Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {BENEFITS.map((b) => (
-            <div
-              key={b.title}
-              className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 hover:shadow-lg hover:border-primary-200 transition-all duration-300"
-            >
-              <div className="w-9 h-9 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600 mb-3">
-                {b.icon}
-              </div>
-              <h3 className="text-[15px] font-display font-semibold text-gray-900">{b.title}</h3>
-              <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-                {b.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Plan Comparison */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Basic */}
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-            <div className="mb-5 pb-5 border-b border-warm-100/60">
-              <div className="flex items-center gap-2">
-                <h3 className="text-[15px] font-display font-semibold text-gray-900">
-                  Basic
-                </h3>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warm-50 text-gray-500">
-                  Current plan
-                </span>
-              </div>
-              <p className="text-[15px] text-gray-500 mt-1">Free forever</p>
-            </div>
-            <div className="space-y-3">
-              {PLAN_FEATURES.map((f) => {
-                const included =
-                  typeof f.basic === "boolean" ? f.basic : true;
-                const label =
-                  typeof f.basic === "string" ? f.basic : f.text;
-                return (
-                  <div key={f.text} className="flex items-center gap-2.5">
-                    <FeatureCheck included={included} />
-                    <span
-                      className={`text-[15px] ${included ? "text-gray-700" : "text-gray-400"}`}
-                    >
-                      {label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Pro */}
-          <div className="bg-white rounded-2xl border-2 border-primary-200 shadow-sm p-6 relative">
-            <div className="absolute -top-3 left-5">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-600 text-white">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-                </svg>
-                Recommended
+          {/* Trial badge */}
+          {isTrial && trialDaysLeft !== null && (
+            <div className="mt-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
+                <span className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
+                {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left in trial
               </span>
             </div>
-            <div className="mb-5 pb-5 border-b border-warm-100/60">
-              <h3 className="text-[15px] font-display font-semibold text-gray-900">Pro</h3>
-              <p className="text-[15px] text-gray-500 mt-1">
-                ${billingCycle === "monthly" ? "25/mo" : "249/yr"}
-                {billingCycle === "annual" && (
-                  <span className="text-primary-600 font-medium">
-                    {" "}&middot; Save 17%
+          )}
+
+          {/* CTA */}
+          <div className="mt-10">
+            <button
+              onClick={handleSubscribe}
+              disabled={subscribing}
+              className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-500 hover:bg-primary-600 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
+            >
+              {subscribing ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  Try Pro free for 14 days
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS STRIP ── */}
+      <section className="bg-vanilla-50 border-y border-warm-100/60 py-14 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { value: "3.2\u00d7", label: "more inquiries" },
+              { value: "500+", label: "providers on Pro" },
+              { value: "89%", label: "fill rate" },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="bg-white rounded-xl border border-warm-100/60 border-t-2 border-t-primary-400 px-6 py-5 text-center"
+              >
+                <p className="text-2xl sm:text-3xl font-display font-bold text-gray-900 tracking-tight">
+                  {stat.value}
+                </p>
+                <p className="text-sm text-gray-500 mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── REMAINING SECTIONS (benefits, comparison, FAQ, bottom CTA) ── */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Benefit Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+            {BENEFITS.map((b) => (
+              <div
+                key={b.title}
+                className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-5 hover:shadow-lg hover:border-primary-200 transition-all duration-300"
+              >
+                <div className="w-9 h-9 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600 mb-3">
+                  {b.icon}
+                </div>
+                <h3 className="text-[15px] font-display font-semibold text-gray-900">{b.title}</h3>
+                <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                  {b.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Plan Comparison */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
+            {/* Basic */}
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+              <div className="mb-5 pb-5 border-b border-warm-100/60">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[15px] font-display font-semibold text-gray-900">
+                    Basic
+                  </h3>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warm-50 text-gray-500">
+                    Current plan
                   </span>
-                )}
-              </p>
+                </div>
+                <p className="text-[15px] text-gray-500 mt-1">Free forever</p>
+              </div>
+              <div className="space-y-3">
+                {PLAN_FEATURES.map((f) => {
+                  const included =
+                    typeof f.basic === "boolean" ? f.basic : true;
+                  const label =
+                    typeof f.basic === "string" ? f.basic : f.text;
+                  return (
+                    <div key={f.text} className="flex items-center gap-2.5">
+                      <FeatureCheck included={included} />
+                      <span
+                        className={`text-[15px] ${included ? "text-gray-700" : "text-gray-400"}`}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="space-y-3">
-              {PLAN_FEATURES.map((f) => {
-                const label =
-                  typeof f.pro === "string"
-                    ? f.pro
-                    : f.proLabel || f.text;
+
+            {/* Pro */}
+            <div className="bg-white rounded-2xl border-2 border-primary-200 shadow-sm p-6 relative">
+              <div className="absolute -top-3 left-5">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-600 text-white">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                  </svg>
+                  Recommended
+                </span>
+              </div>
+              <div className="mb-5 pb-5 border-b border-warm-100/60">
+                <h3 className="text-[15px] font-display font-semibold text-gray-900">Pro</h3>
+                <p className="text-[15px] text-gray-500 mt-1">
+                  {priceLabel}
+                  {billingCycle === "annual" && (
+                    <span className="text-primary-600 font-medium">
+                      {" "}&middot; Save 17%
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="space-y-3">
+                {PLAN_FEATURES.map((f) => {
+                  const label =
+                    typeof f.pro === "string"
+                      ? f.pro
+                      : f.proLabel || f.text;
+                  return (
+                    <div key={f.text} className="flex items-center gap-2.5">
+                      <FeatureCheck included />
+                      <span className="text-sm text-gray-700">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-6">
+                <Button
+                  onClick={handleSubscribe}
+                  loading={subscribing}
+                  fullWidth
+                >
+                  Get started
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div className="mb-16">
+            <h2 className="text-xl font-display font-bold text-gray-900 text-center mb-6">
+              Frequently asked questions
+            </h2>
+            <div className="space-y-2">
+              {FAQ.map((item, i) => {
+                const isOpen = faqOpen === i;
                 return (
-                  <div key={f.text} className="flex items-center gap-2.5">
-                    <FeatureCheck included />
-                    <span className="text-sm text-gray-700">{label}</span>
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setFaqOpen(isOpen ? null : i)}
+                      className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-vanilla-50/50 transition-colors"
+                    >
+                      <span className="text-[15px] font-medium text-gray-900">
+                        {item.q}
+                      </span>
+                      <ChevronIcon open={isOpen} />
+                    </button>
+                    <div
+                      className="grid transition-all duration-200 ease-in-out"
+                      style={{
+                        gridTemplateRows: isOpen ? "1fr" : "0fr",
+                      }}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="px-5 pb-4 text-[15px] text-gray-500 leading-relaxed">
+                          {item.a}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-6">
-              <Button
-                onClick={handleSubscribe}
-                loading={subscribing}
-                fullWidth
-              >
-                Get started
-              </Button>
-            </div>
           </div>
         </div>
+      </section>
 
-        {/* FAQ */}
-        <div className="mb-8">
-          <h2 className="text-[15px] font-display font-semibold text-gray-900 mb-4">
-            Frequently asked questions
-          </h2>
-          <div className="space-y-2">
-            {FAQ.map((item, i) => {
-              const isOpen = faqOpen === i;
-              return (
-                <div
-                  key={i}
-                  className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setFaqOpen(isOpen ? null : i)}
-                    className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-vanilla-50/50 transition-colors"
-                  >
-                    <span className="text-[15px] font-medium text-gray-900">
-                      {item.q}
-                    </span>
-                    <ChevronIcon open={isOpen} />
-                  </button>
-                  <div
-                    className="grid transition-all duration-200 ease-in-out"
-                    style={{
-                      gridTemplateRows: isOpen ? "1fr" : "0fr",
-                    }}
-                  >
-                    <div className="overflow-hidden">
-                      <p className="px-5 pb-4 text-[15px] text-gray-500 leading-relaxed">
-                        {item.a}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="bg-vanilla-50 border border-warm-100/60 rounded-2xl p-8 text-center">
-          <h2 className="text-lg font-display font-semibold text-gray-900 mb-2">
+      {/* ── BOTTOM CTA ── */}
+      <section className="bg-vanilla-50 border-t border-warm-100/60 py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl mx-auto text-center">
+          <h2 className="text-2xl font-display font-bold text-gray-900 mb-3">
             Ready to grow your business?
           </h2>
-          <p className="text-[15px] text-gray-500 mb-6 max-w-sm mx-auto">
+          <p className="text-[15px] text-gray-500 mb-8 max-w-sm mx-auto leading-relaxed">
             Join providers who are filling their calendars with Olera Pro.
           </p>
-          <Button onClick={handleSubscribe} loading={subscribing} size="md">
-            Subscribe to Pro &mdash; $
-            {billingCycle === "monthly" ? "25/mo" : "249/yr"}
-          </Button>
-          <p className="text-sm text-gray-400 mt-3">
+          <button
+            onClick={handleSubscribe}
+            disabled={subscribing}
+            className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-500 hover:bg-primary-600 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
+          >
+            {subscribing ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                Subscribe to Pro &mdash; {priceLabel}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </>
+            )}
+          </button>
+          <p className="text-sm text-gray-400 mt-4">
             Cancel anytime. No long-term contracts.
           </p>
         </div>
-      </div>
-    </div>
+      </section>
     </div>
   );
 }

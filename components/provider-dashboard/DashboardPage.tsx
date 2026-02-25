@@ -169,8 +169,8 @@ export default function DashboardPage() {
               lastUpdated={profile.updated_at}
             />
 
-            {/* Request Listing Deletion — only for claimed providers */}
-            {profile.source_provider_id && (
+            {/* Request Listing Deletion */}
+            {(profile.type === "organization" || profile.type === "caregiver") && (
               <div className="bg-white rounded-xl border border-gray-200 p-5">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">

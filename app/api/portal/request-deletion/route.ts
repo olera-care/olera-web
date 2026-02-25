@@ -71,17 +71,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Only organization/caregiver profiles with a claimed listing can request deletion
-    if (!profile.source_provider_id) {
-      return NextResponse.json(
-        {
-          error:
-            "This profile is not linked to a provider listing. Use 'Remove profile' instead.",
-        },
-        { status: 400 }
-      );
-    }
-
+    // Only organization/caregiver profiles can request deletion
     if (profile.type === "family") {
       return NextResponse.json(
         { error: "Family profiles cannot request listing deletion." },

@@ -642,7 +642,7 @@ function SettingsContent() {
       )}
 
       {/* ── Request Listing Deletion (claimed providers only) ── */}
-      {isProvider && activeProfile?.source_provider_id && (
+      {isProvider && (
         <div className="p-6">
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
             <div className="flex items-start gap-3">

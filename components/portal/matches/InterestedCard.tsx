@@ -351,7 +351,7 @@ export default function InterestedCard({
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
                 <span className="font-semibold text-gray-700">{matchCount} service{matchCount !== 1 ? "s" : ""}</span>{" "}
-                match
+                match your needs
               </span>
             )}
             {driveTime && (
@@ -477,62 +477,65 @@ export default function InterestedCard({
         </div>
       )}
 
+      {/* ── "View details" toggle ── */}
+      {!isDeclined && (
+        <button
+          type="button"
+          onClick={() => isExpanded ? onCollapse?.() : onExpand?.(item.id)}
+          className="w-full border-t border-warm-100/60 bg-warm-50/30 px-7 py-3 flex items-center justify-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-700 hover:bg-warm-50/60 transition-all duration-200"
+        >
+          View details
+          <svg
+            className={[
+              "w-4 h-4 transition-transform duration-300",
+              isExpanded ? "rotate-180" : "",
+            ].join(" ")}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+      )}
+
       {/* ── Footer ── */}
       {!isDeclined ? (
-        isExpanded ? (
-          /* Expanded footer: hint + Decline + Start conversation */
-          <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-between gap-4">
-            <p className="text-[13px] text-gray-400 min-w-0">
-              Starting a conversation doesn&apos;t commit you
-            </p>
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => onDecline?.(item.id)}
-                disabled={isDeclining || isAccepting}
-                className="inline-flex items-center px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
-              >
-                {isDeclining ? (
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                ) : (
-                  "Decline"
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => onAccept?.(item.id)}
-                disabled={isAccepting || isDeclining}
-                className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
-              >
-                {isAccepting ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                  </svg>
-                )}
-                {isAccepting ? "Connecting\u2026" : "Start conversation"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Collapsed footer: View details */
-          <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-between">
-            <p className="text-[13px] text-gray-400">
-              Review details before connecting
-            </p>
+        <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-between gap-4">
+          <p className="text-[13px] text-gray-400 min-w-0">
+            Starting a conversation doesn&apos;t commit you
+          </p>
+          <div className="flex items-center gap-3 shrink-0">
             <button
               type="button"
-              onClick={() => onExpand?.(item.id)}
-              className="group inline-flex items-center gap-1.5 text-[14px] font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl px-5 py-2.5 shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
+              onClick={() => onDecline?.(item.id)}
+              disabled={isDeclining || isAccepting}
+              className="inline-flex items-center px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
             >
-              View details
-              <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-              </svg>
+              {isDeclining ? (
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+              ) : (
+                "Decline"
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => onAccept?.(item.id)}
+              disabled={isAccepting || isDeclining}
+              className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
+            >
+              {isAccepting ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                </svg>
+              )}
+              {isAccepting ? "Connecting\u2026" : "Start conversation"}
             </button>
           </div>
-        )
+        </div>
       ) : onReconsider ? (
         <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4">
           <button

@@ -410,8 +410,8 @@ function LeadDetailDrawer({
           {/* Lead identity */}
           <div className="px-6 pb-4">
             <div className="flex items-start gap-4">
-              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
-                <span className="text-sm font-bold text-gray-600/80">{lead.initials}</span>
+              <div className={`w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
+                <span className="text-sm font-bold text-gray-500">{lead.initials}</span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2.5">
@@ -944,8 +944,8 @@ export default function ProviderLeadsPage() {
             >
               {/* Name */}
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0`}>
-                  <span className="text-xs font-bold text-gray-600/80">{lead.initials}</span>
+                <div className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
+                  <span className="text-xs font-bold text-gray-500">{lead.initials}</span>
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5">

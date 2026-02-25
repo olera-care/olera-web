@@ -27,7 +27,7 @@ export default function ConditionalFooter() {
     pathname.startsWith("/portal") ||
     pathname.startsWith("/provider")
   ) {
-    return <SimpleFooter />;
+    return <SimpleFooter variant={pathname === "/provider/pro" ? "warm" : "default"} />;
   }
 
   // Everything else — full marketing footer

@@ -365,7 +365,7 @@ function MatchesSidebar({
 
               <div className="flex items-center justify-between mb-5">
                 <div className="text-center">
-                  <p className="text-lg font-display font-bold text-white tracking-tight leading-none">&infin;</p>
+                  <p className="text-sm font-display font-bold text-white tracking-tight leading-none uppercase">Unlimited</p>
                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1.5">Reach-outs</p>
                 </div>
                 <div className="text-center">
@@ -388,7 +388,7 @@ function MatchesSidebar({
                 Get unlimited
               </Link>
               <p className="text-center text-[11px] text-gray-500 mt-2.5">
-                From <span className="font-semibold text-gray-400">$49/month</span>
+                From <span className="font-semibold text-gray-400">$25/mo</span>
               </p>
             </div>
           </div>

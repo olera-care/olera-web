@@ -66,8 +66,8 @@ function MatchesContent() {
   if (!hasRequiredFields) {
     return (
       <div className="px-8 py-6 h-full"><div>
-        <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
-        <p className="text-sm text-gray-500 mt-1 mb-8">
+        <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
+        <p className="text-[15px] text-gray-500 mt-1 mb-8">
           Discover providers or let them find you.
         </p>
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
@@ -89,7 +89,7 @@ function MatchesContent() {
 
   // ── Sub-tab bar (shared between normal view and split view left panel) ──
   const matchesTabBar = (
-    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl w-fit">
+    <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-fit">
       {(
         [
           { id: "carepost", label: "My Care Post", badge: 0 },
@@ -100,7 +100,7 @@ function MatchesContent() {
           key={tab.id}
           onClick={() => setSubTab(tab.id)}
           className={[
-            "px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5",
+            "px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150 flex items-center gap-1.5",
             subTab === tab.id
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700",
@@ -108,7 +108,7 @@ function MatchesContent() {
         >
           {tab.label}
           {tab.badge > 0 && subTab !== tab.id && (
-            <span className="text-[10px] font-bold text-primary-600 bg-primary-50 rounded-full w-4 h-4 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-gray-600 bg-warm-100 rounded-full w-4 h-4 flex items-center justify-center">
               {tab.badge}
             </span>
           )}
@@ -129,8 +129,8 @@ function MatchesContent() {
         <>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Matches</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
+              <p className="text-[15px] text-gray-500 mt-1">
                 Discover providers or let them find you.
               </p>
             </div>

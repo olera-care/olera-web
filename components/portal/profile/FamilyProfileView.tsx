@@ -277,7 +277,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
 
   return (
     <div className="max-w-2xl">
-      <div className="rounded-xl bg-white border border-gray-200 divide-y divide-gray-100">
+      <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
       {/* ── Profile Header ── */}
       <div className={`${editingSection === 0 ? "bg-gray-50/50" : ""} transition-colors`}>
         <div className="p-6 flex items-center gap-5">
@@ -297,7 +297,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
           </div>
 
           <div className="min-w-0 flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 truncate tracking-tight">
+            <h2 className="text-2xl font-display font-bold text-gray-900 truncate tracking-tight">
               {profile.display_name || "Your Name"}
             </h2>
             <p className="text-base text-gray-500 mt-1">
@@ -309,11 +309,11 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
               <div className="flex items-center gap-2.5 mt-2.5">
                 <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${percentage >= 80 ? "bg-primary-500" : "bg-warning-400"}`}
+                    className={`h-full rounded-full transition-all duration-500 ${percentage >= 80 ? "bg-gray-700" : "bg-warning-400"}`}
                     style={{ width: `${percentage}%` }}
                   />
                 </div>
-                <span className={`text-xs font-medium ${percentage >= 80 ? "text-primary-600" : "text-warning-600"}`}>
+                <span className={`text-xs font-medium ${percentage >= 80 ? "text-gray-600" : "text-warning-600"}`}>
                   {percentage}%
                 </span>
               </div>
@@ -341,7 +341,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={imageUploading}
-                  className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative shrink-0"
+                  className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-warm-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative shrink-0"
                 >
                   {profile.image_url ? (
                     <>
@@ -356,7 +356,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-primary-500 transition-colors">
+                    <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-gray-600 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -513,7 +513,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         {meta.payment_methods && meta.payment_methods.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-4">
             {meta.payment_methods.map((method) => (
-              <span key={method} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary-50 text-primary-700">
+              <span key={method} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-[#F5F4F1] text-gray-700">
                 {method}
               </span>
             ))}
@@ -636,7 +636,7 @@ function SectionCard({
     <div className={`p-6 ${isEditing ? "bg-gray-50/50" : ""} transition-colors`}>
       {/* Header row */}
       <div className="flex items-center gap-2.5 mb-4">
-        <h3 className="text-[15px] font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-[15px] font-display font-bold text-gray-900">{title}</h3>
         <SectionBadge status={status} />
         <button
           type="button"

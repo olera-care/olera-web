@@ -174,19 +174,23 @@ export default function InterestedTabContent({
   // ── Loading state ──
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {[0, 1, 2, 3].map((i) => (
+      <div className="space-y-5">
+        {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="animate-pulse rounded-xl border border-gray-100 p-5"
+            className="animate-pulse rounded-2xl border border-gray-200/80 bg-white p-7"
           >
-            <div className="flex items-start gap-3.5">
-              <div className="w-12 h-12 rounded-full bg-gray-200 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="h-3 w-20 bg-gray-200 rounded mb-2" />
-                <div className="h-4 w-36 bg-gray-200 rounded mb-1.5" />
-                <div className="h-3 w-28 bg-gray-200 rounded" />
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gray-200 shrink-0" />
+              <div className="flex-1 min-w-0 pt-0.5">
+                <div className="h-5 w-40 bg-gray-200 rounded mb-2" />
+                <div className="h-3.5 w-28 bg-gray-200 rounded" />
               </div>
+            </div>
+            <div className="h-12 bg-gray-100 rounded-xl mt-5 w-full" />
+            <div className="flex gap-2 mt-5">
+              <div className="h-7 w-24 bg-gray-100 rounded-full" />
+              <div className="h-7 w-20 bg-gray-100 rounded-full" />
             </div>
           </div>
         ))}
@@ -201,12 +205,12 @@ export default function InterestedTabContent({
       return (
         <div className="py-16 text-center">
           <div
-            className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-2xl mx-auto mb-5"
+            className="w-14 h-14 rounded-full bg-warm-100/60 flex items-center justify-center text-2xl mx-auto mb-5"
             style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
           >
             📝
           </div>
-          <h3 className="text-base font-semibold text-gray-900">
+          <h3 className="text-base font-display font-bold text-gray-900">
             Publish your care post to let providers find you
           </h3>
           <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">
@@ -237,12 +241,12 @@ export default function InterestedTabContent({
     return (
       <div className="py-16 text-center">
         <div
-          className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center text-2xl mx-auto mb-5"
+          className="w-14 h-14 rounded-full bg-warm-100/60 flex items-center justify-center text-2xl mx-auto mb-5"
           style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
         >
           👀
         </div>
-        <h3 className="text-base font-semibold text-gray-900">
+        <h3 className="text-base font-display font-bold text-gray-900">
           No providers have reached out yet
         </h3>
         <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">

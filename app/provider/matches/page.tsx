@@ -254,10 +254,10 @@ function MatchesEmptyState() {
     <div className="lg:col-span-2">
       <div className="flex flex-col items-center text-center py-20 px-8">
         <div
-          className="w-16 h-16 rounded-2xl bg-primary-50 border border-primary-100/50 flex items-center justify-center mb-6"
+          className="w-16 h-16 rounded-2xl bg-warm-100/60 border border-warm-200/50 flex items-center justify-center mb-6"
           style={{ animation: "matchFloat 3s ease-in-out infinite" }}
         >
-          <PeopleIcon className="w-8 h-8 text-primary-500" />
+          <PeopleIcon className="w-8 h-8 text-gray-400" />
         </div>
         <h3 className="text-lg font-display font-bold text-gray-900">
           No families found yet
@@ -284,161 +284,137 @@ function MatchesSidebar({
   totalFamilies: number;
   isFreeTier: boolean;
 }) {
-  const exhausted = remaining !== null && remaining <= 0;
-
   return (
     <div className="sticky top-24 space-y-5">
-      {/* Usage card — free tier only */}
-      {isFreeTier && remaining !== null && (
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-          <h4 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-5">
-            Monthly usage
-          </h4>
+      {/* ── Card 1: Usage + How It Works ── */}
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm">
+        {/* Top section */}
+        <div className="p-6 pb-0">
+          {/* Free tier: dots + remaining count */}
+          {isFreeTier && remaining !== null && (
+            <>
+              <div className="flex items-center gap-2 mb-3">
+                {Array.from({ length: FREE_CONNECTION_LIMIT }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                      i < remaining ? "bg-gray-700" : "bg-warm-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-gray-900 mb-4">
+                <span className="text-[28px] font-display font-bold tracking-tight leading-none">{remaining}</span>
+                {" "}
+                <span className="text-[15px] text-gray-400">reach-out{remaining !== 1 ? "s" : ""} left</span>
+              </p>
+            </>
+          )}
 
-          {/* Dots indicator */}
-          <div className="flex items-center gap-2 mb-4">
-            {Array.from({ length: FREE_CONNECTION_LIMIT }).map((_, i) => (
-              <div
-                key={i}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  i < remaining ? "bg-primary-500" : "bg-warm-200"
-                }`}
-              />
+          {/* Pro tier: simple header */}
+          {!isFreeTier && (
+            <h4 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+              Your matches
+            </h4>
+          )}
+
+          {/* Families stat pill */}
+          <div className="flex items-center gap-3 bg-warm-50/50 rounded-xl px-4 py-3.5 mb-6">
+            <PeopleIcon className="w-5 h-5 text-gray-500 shrink-0" />
+            <p className="text-[14px] text-gray-600 leading-snug">
+              <span className="font-bold text-gray-900">{totalFamilies}</span> families near you are looking for care
+            </p>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-warm-100/60" />
+
+        {/* How It Works */}
+        <div className="p-6">
+          <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.08em] mb-5">
+            How it works
+          </h4>
+          <div className="space-y-5">
+            {[
+              { num: 1, bold: "Send a note", rest: "explaining why you\u2019re a good fit" },
+              { num: 2, bold: "Family reviews", rest: "your profile and message" },
+              { num: 3, bold: "If they accept,", rest: "a conversation opens in your inbox" },
+            ].map((step) => (
+              <div key={step.num} className="flex items-start gap-3.5">
+                <div className="w-7 h-7 rounded-full bg-warm-100/70 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-[13px] font-bold text-gray-600">{step.num}</span>
+                </div>
+                <p className="text-[14px] text-gray-500 leading-relaxed">
+                  <span className="font-semibold text-gray-900">{step.bold}</span> {step.rest}
+                </p>
+              </div>
             ))}
           </div>
-
-          {/* Count */}
-          <p className="text-[26px] font-display font-bold text-gray-900 tracking-tight leading-none mb-1">
-            {remaining}
-          </p>
-          <p className="text-[13px] text-gray-400 mb-5">
-            reach-out{remaining !== 1 ? "s" : ""} remaining this month
-          </p>
-
-          {/* Divider */}
-          <div className="border-t border-warm-100/60 my-5" />
-
-          {/* Families stat */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
-              <PeopleIcon className="w-4.5 h-4.5 text-primary-600" />
-            </div>
-            <div>
-              <p className="text-lg font-display font-bold text-gray-900 leading-tight">{totalFamilies}</p>
-              <p className="text-[13px] text-gray-400">families near you</p>
-            </div>
-          </div>
-
-          {/* CTA */}
-          <Link
-            href="/provider/pro"
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gray-900 text-white text-[14px] font-semibold hover:bg-gray-800 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-            </svg>
-            Get unlimited
-          </Link>
-          <p className="text-center text-[12px] text-gray-400 mt-2.5">
-            From <span className="font-semibold text-gray-500">$25/mo</span>
-          </p>
-        </div>
-      )}
-
-      {/* Pro active — show families stat only */}
-      {!isFreeTier && totalFamilies > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
-          <h4 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-5">
-            Your matches
-          </h4>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
-              <PeopleIcon className="w-4.5 h-4.5 text-primary-600" />
-            </div>
-            <div>
-              <p className="text-lg font-display font-bold text-gray-900 leading-tight">{totalFamilies}</p>
-              <p className="text-[13px] text-gray-400">families near you</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Pro Upgrade Banner (shown after 3rd card for free-tier users)
-// ---------------------------------------------------------------------------
-
-function ProUpgradeBanner({ remainingFamilies }: { remainingFamilies: number }) {
-  return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ background: "linear-gradient(135deg, #1a1d23 0%, #252830 50%, #1e2127 100%)" }}>
-      {/* Subtle warm glow accent — top-right */}
-      <div
-        className="absolute top-0 right-0 w-72 h-72 opacity-[0.07] pointer-events-none"
-        style={{ background: "radial-gradient(circle at 80% 20%, #199087, transparent 70%)" }}
-      />
-
-      <div className="relative px-8 py-9 sm:px-10 sm:py-10">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-500/15 border border-primary-500/20 mb-6">
-          <svg className="w-3.5 h-3.5 text-primary-400" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-          </svg>
-          <span className="text-xs font-bold text-primary-400 tracking-wide uppercase">
-            Olera Pro
-          </span>
-        </div>
-
-        {/* Headline */}
-        <h3 className="text-[22px] sm:text-[26px] font-display font-bold text-white leading-tight mb-3 tracking-tight">
-          {remainingFamilies} more {remainingFamilies === 1 ? "family is" : "families are"} waiting to hear from you
-        </h3>
-        <p className="text-[15px] text-gray-400 leading-relaxed max-w-lg mb-8">
-          You&apos;ve reached your monthly limit. Upgrade to connect with every family
-          that matches your services, get priority visibility, and convert more leads into clients.
-        </p>
-
-        {/* Value stats */}
-        <div className="flex items-start gap-8 sm:gap-12 mb-9">
-          <div>
-            <p className="text-2xl font-display font-bold text-primary-400 tracking-tight">
-              &infin;
-            </p>
-            <p className="text-[13px] text-gray-500 mt-0.5">Reach-outs</p>
-          </div>
-          <div className="w-px h-10 bg-gray-700/60" />
-          <div>
-            <p className="text-2xl font-display font-bold text-primary-400 tracking-tight">
-              3&times;
-            </p>
-            <p className="text-[13px] text-gray-500 mt-0.5">Visibility</p>
-          </div>
-          <div className="w-px h-10 bg-gray-700/60" />
-          <div>
-            <p className="text-2xl font-display font-bold text-primary-400 tracking-tight">
-              2&times;
-            </p>
-            <p className="text-[13px] text-gray-500 mt-0.5">More leads</p>
-          </div>
-        </div>
-
-        {/* CTA row */}
-        <div className="flex items-center gap-5">
-          <Link
-            href="/provider/pro"
-            className="inline-flex items-center gap-2.5 pl-6 pr-7 py-3.5 rounded-xl bg-primary-500 text-white text-[15px] font-bold hover:bg-primary-600 transition-colors shadow-lg shadow-primary-500/20"
-          >
-            Upgrade to Pro
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-            </svg>
-          </Link>
-          <span className="text-[14px] text-gray-500">
-            From <span className="font-semibold text-gray-400">$25/mo</span>
-          </span>
         </div>
       </div>
+
+      {/* ── Card 2: Pro Upsell (free tier only) ── */}
+      {isFreeTier && (
+        <div
+          className="relative rounded-2xl overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #1a1d23 0%, #252830 50%, #1e2127 100%)" }}
+        >
+          {/* Subtle teal glow */}
+          <div
+            className="absolute top-0 right-0 w-48 h-48 opacity-[0.06] pointer-events-none"
+            style={{ background: "radial-gradient(circle at 80% 20%, #199087, transparent 70%)" }}
+          />
+
+          <div className="relative p-6">
+            {/* PRO badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 mb-5">
+              <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+              </svg>
+              <span className="text-[11px] font-bold text-amber-400 tracking-wide uppercase">Pro</span>
+            </div>
+
+            {/* Headline */}
+            <h3 className="text-[18px] font-display font-bold text-white leading-tight mb-2 tracking-tight">
+              Connect with every family
+            </h3>
+            <p className="text-[13px] text-gray-400 leading-relaxed mb-6">
+              Unlimited reach-outs, priority visibility, and more leads.
+            </p>
+
+            {/* Value stats */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="text-center">
+                <p className="text-lg font-display font-bold text-white tracking-tight leading-none">&infin;</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1.5">Reach-outs</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-display font-bold text-white tracking-tight leading-none">3&times;</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1.5">Visibility</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-display font-bold text-white tracking-tight leading-none">2&times;</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1.5">More leads</p>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Link
+              href="/provider/pro"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary-500 text-white text-[14px] font-bold hover:bg-primary-400 transition-colors shadow-lg shadow-primary-500/20"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+              </svg>
+              Get unlimited
+            </Link>
+            <p className="text-center text-[11px] text-gray-500 mt-2.5">
+              From <span className="font-semibold text-gray-400">$49/month</span>
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -526,7 +502,7 @@ function FamilyCareCard({
       className={[
         "bg-white rounded-2xl border overflow-hidden transition-all duration-300",
         isExpanded
-          ? "border-primary-200/80 shadow-lg shadow-primary-500/[0.06] ring-1 ring-primary-100/60"
+          ? "border-gray-300 shadow-lg shadow-gray-900/[0.06] ring-1 ring-gray-200/60"
           : "border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300",
         contacted ? "opacity-55" : "",
       ].join(" ")}
@@ -578,7 +554,7 @@ function FamilyCareCard({
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
             <CheckCircleIcon className="w-4 h-4 text-primary-500" />
             <p className="text-[13px] text-gray-500">
-              <span className="font-bold text-primary-600">{matchCount} service{matchCount !== 1 ? "s" : ""}</span>{" "}
+              <span className="font-bold text-gray-700">{matchCount} service{matchCount !== 1 ? "s" : ""}</span>{" "}
               match
             </p>
           </div>
@@ -598,7 +574,7 @@ function FamilyCareCard({
             <PeopleIcon className={`w-4 h-4 ${reachOuts === 0 ? "text-primary-500" : reachOuts >= 4 ? "text-amber-500" : "text-primary-500"}`} />
             <p className="text-[13px] text-gray-500">
               {reachOuts === 0 ? (
-                <span className="font-bold text-primary-600">Be first!</span>
+                <span className="font-bold text-gray-700">Be first!</span>
               ) : (
                 <><span className={`font-bold ${reachOuts >= 4 ? "text-amber-600" : "text-gray-700"}`}>{reachOuts >= 4 ? "4+" : reachOuts}</span> reached out</>
               )}
@@ -631,8 +607,8 @@ function FamilyCareCard({
                   key={need}
                   className={`inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border ${
                     isMatch
-                      ? "border-primary-200 text-primary-700 bg-primary-50/50"
-                      : "border-warm-100 text-gray-600 bg-white"
+                      ? "border-[#F5F4F1] text-gray-700 bg-[#F5F4F1]"
+                      : "border-warm-100 text-gray-500 bg-white"
                   }`}
                 >
                   {isMatch && (
@@ -676,7 +652,7 @@ function FamilyCareCard({
             />
 
             {/* Social proof nudge */}
-            <p className="text-[13px] text-primary-600 font-medium mt-2.5 mb-4">
+            <p className="text-[13px] text-gray-400 font-medium mt-2.5 mb-4">
               Providers who write a personal note get 3&times; more responses
             </p>
 
@@ -697,84 +673,64 @@ function FamilyCareCard({
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <EyeIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider">
+                <span className="text-[13px] font-medium text-gray-500">
                   What {familyFirstName} will see from you
                 </span>
               </div>
 
               {providerProfile && (
-                <div className="bg-white rounded-xl border border-warm-100/80 shadow-sm p-5">
-                  {/* Provider identity */}
-                  <div className="flex items-center gap-3.5 mb-4">
+                <div className="bg-warm-50/30 rounded-2xl border border-warm-100/80 p-5">
+                  {/* Provider identity + completeness */}
+                  <div className="flex items-start gap-3.5 mb-4">
                     {providerProfile.image_url ? (
                       <img
                         src={providerProfile.image_url}
                         alt=""
-                        className="w-11 h-11 rounded-xl object-cover shrink-0"
+                        className="w-[52px] h-[52px] rounded-2xl object-cover shrink-0"
                       />
                     ) : (
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0"
+                        className="w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-base font-bold text-white shrink-0"
                         style={{ background: avatarGradient(providerName) }}
                       >
                         {providerInitials}
                       </div>
                     )}
-                    <div className="min-w-0">
-                      <p className="text-[15px] font-display font-bold text-gray-900 truncate">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[16px] font-display font-bold text-gray-900 truncate leading-tight">
                         {providerName}
                       </p>
                       {providerLocation && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <LocationIcon className="w-3.5 h-3.5 text-gray-400" />
-                          <span className="text-[13px] text-gray-500">{providerLocation}</span>
-                        </div>
+                        <p className="text-[13px] text-gray-500 mt-0.5">
+                          {providerLocation}
+                        </p>
                       )}
                     </div>
+                    {/* Compact completeness indicator */}
+                    {providerCompleteness && (
+                      <div className="shrink-0 flex flex-col items-end gap-1.5">
+                        <div className="w-16 h-[5px] bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gray-400 rounded-full transition-all duration-500"
+                            style={{ width: `${providerCompleteness.overall}%` }}
+                          />
+                        </div>
+                        <span className="text-[11px] font-medium text-gray-400">
+                          {providerCompleteness.overall}% complete
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Care types */}
-                  {providerProfile.care_types.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {providerProfile.care_types.slice(0, 4).map((ct) => (
-                        <span
-                          key={ct}
-                          className="text-[12px] font-medium px-2.5 py-1 rounded-full bg-primary-50/60 text-primary-700 border border-primary-100/50"
-                        >
-                          {ct}
-                        </span>
-                      ))}
-                      {providerProfile.care_types.length > 4 && (
-                        <span className="text-[12px] text-gray-400 self-center">
-                          +{providerProfile.care_types.length - 4}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Completeness bar */}
-                  {providerCompleteness && (
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[12px] font-semibold text-gray-500">
-                          Profile completeness
-                        </span>
-                        <span className="text-[12px] font-bold text-primary-600">
-                          {providerCompleteness.overall}%
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-warm-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary-500 rounded-full transition-all duration-500"
-                          style={{ width: `${providerCompleteness.overall}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <p className="text-[12px] text-gray-400 leading-relaxed">
-                    Complete profiles get 3&times; more responses from families
-                  </p>
+                  {/* Completeness hint */}
+                  <div className="flex items-center gap-2 bg-warm-50/60 rounded-xl px-3.5 py-2.5">
+                    <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                    <p className="text-[13px] text-gray-500 leading-snug">
+                      Complete profiles get <span className="font-bold text-gray-700">3&times; more responses</span>
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -787,34 +743,36 @@ function FamilyCareCard({
             )}
           </div>
 
-          {/* ── Expanded footer: cancel / usage / send ── */}
+          {/* ── Expanded footer: usage left / cancel + send ── */}
           <div className="border-t border-warm-100/60 px-7 py-4 flex items-center justify-between gap-4">
-            <button
-              type="button"
-              onClick={onCollapse}
-              disabled={sending}
-              className="text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 shrink-0"
-            >
-              Cancel
-            </button>
-            {freeRemaining !== null && (
-              <p className="text-[13px] text-gray-400 text-center min-w-0 truncate">
+            {freeRemaining !== null ? (
+              <p className="text-[13px] text-gray-400 min-w-0 truncate">
                 This will use 1 of your {freeRemaining} monthly reach-out{freeRemaining !== 1 ? "s" : ""}
               </p>
-            )}
-            <button
-              type="button"
-              onClick={onSend}
-              disabled={sending}
-              className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 disabled:hover:shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] transition-all duration-200 shrink-0"
-            >
-              {sending ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <SendIcon className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              )}
-              {sending ? "Sending\u2026" : "Send reach-out"}
-            </button>
+            ) : <div />}
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={onCollapse}
+                disabled={sending}
+                className="inline-flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={onSend}
+                disabled={sending}
+                className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 disabled:hover:shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] transition-all duration-200 shrink-0"
+              >
+                {sending ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <SendIcon className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                )}
+                {sending ? "Sending\u2026" : "Send reach-out"}
+              </button>
+            </div>
           </div>
         </div>
         </div>
@@ -827,13 +785,13 @@ function FamilyCareCard({
             /* Already reached out */
             <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-center">
               <div className="flex items-center gap-2">
-                <CheckCircleIcon className="w-4 h-4 text-primary-500" />
+                <CheckCircleIcon className="w-4 h-4 text-gray-400" />
                 <p className="text-[13px] text-gray-500 font-medium">Reached out</p>
               </div>
             </div>
           ) : freeRemaining !== null && freeRemaining <= 0 ? (
             /* Exhausted state — dashed border + upgrade CTA */
-            <div className="border-t border-dashed border-primary-200/60 px-7 py-4 flex items-center justify-between">
+            <div className="border-t border-dashed border-warm-200/60 px-7 py-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
@@ -1237,12 +1195,6 @@ export default function ProviderMatchesPage() {
                     sendError={sendError}
                     reachOutCount={reachOutCounts.get(family.id) || 0}
                   />
-                  {/* Pro banner after the 3rd card for free-tier users */}
-                  {idx === 2 && isFreeTier && filteredFamilies.length > FREE_CONNECTION_LIMIT && (
-                    <div className="mt-5">
-                      <ProUpgradeBanner remainingFamilies={filteredFamilies.length - FREE_CONNECTION_LIMIT} />
-                    </div>
-                  )}
                 </div>
               ))
             )}

@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT } from "@/lib/membership";
+import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfileShareable } from "@/lib/membership";
 import type { Profile, FamilyMetadata } from "@/lib/types";
-import ConnectButton from "@/components/shared/ConnectButton";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
+import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
 
 // ── Types ──
 
@@ -72,12 +72,38 @@ function computeMatchingServices(
   return familyNeeds.filter((n) => providerSet.has(n.toLowerCase())).length;
 }
 
+function haversineDistance(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number,
+): number {
+  const R = 3959; // miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function estimateDriveTime(miles: number): string {
+  const minutes = Math.round(miles / 0.5); // ~30 mph avg
+  if (minutes < 1) return "1 min";
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rem = minutes % 60;
+  return rem > 0 ? `${hours}h ${rem}m` : `${hours}h`;
+}
+
 const URGENCY_ORDER: Record<string, number> = {
   immediate: 0,
   within_1_month: 1,
   within_3_months: 2,
   exploring: 3,
 };
+
+const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
 
 // ── Inline keyframes ──
 
@@ -145,6 +171,15 @@ function InfoIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+    </svg>
+  );
+}
+
+function EyeIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
     </svg>
   );
 }
@@ -419,6 +454,18 @@ function FamilyCareCard({
   providerCareTypes,
   freeRemaining,
   contacted,
+  isExpanded,
+  onExpand,
+  onCollapse,
+  providerProfile,
+  reachOutNote,
+  onNoteChange,
+  saveAsDefault,
+  onSaveAsDefaultChange,
+  sending,
+  onSend,
+  sendError,
+  reachOutCount,
 }: {
   family: Profile;
   hasFullAccess: boolean;
@@ -426,6 +473,18 @@ function FamilyCareCard({
   providerCareTypes: string[];
   freeRemaining: number | null;
   contacted?: boolean;
+  isExpanded?: boolean;
+  onExpand?: () => void;
+  onCollapse?: () => void;
+  providerProfile?: Profile | null;
+  reachOutNote?: string;
+  onNoteChange?: (v: string) => void;
+  saveAsDefault?: boolean;
+  onSaveAsDefaultChange?: (v: boolean) => void;
+  sending?: boolean;
+  onSend?: () => void;
+  sendError?: string | null;
+  reachOutCount?: number;
 }) {
   const meta = family.metadata as FamilyMetadata;
   const locationStr = [family.city, family.state].filter(Boolean).join(", ");
@@ -435,25 +494,53 @@ function FamilyCareCard({
   const publishedAt = meta?.care_post?.published_at;
   const displayName = family.display_name || "Family";
   const initials = getInitials(displayName);
-
-  // Compute matching services
+  const familyFirstName = displayName.split(/\s+/)[0];
   const matchCount = computeMatchingServices(careNeeds, providerCareTypes);
+  const reachOuts = reachOutCount ?? 0;
+
+  // Distance computation
+  const providerLat = providerProfile?.lat;
+  const providerLng = providerProfile?.lng;
+  const familyLat = family.lat;
+  const familyLng = family.lng;
+  const driveTime =
+    providerLat != null && providerLng != null && familyLat != null && familyLng != null
+      ? estimateDriveTime(haversineDistance(providerLat, providerLng, familyLat, familyLng))
+      : null;
+
+  // Provider preview data
+  const providerName = providerProfile?.display_name || "Your profile";
+  const providerLocation = providerProfile
+    ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ")
+    : "";
+  const providerInitials = providerProfile ? getInitials(providerName) : "";
+  const providerCompleteness = providerProfile
+    ? calculateProfileCompleteness(
+        providerProfile,
+        (providerProfile.metadata || {}) as ExtendedMetadata,
+      )
+    : null;
 
   return (
-    <div className={`bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-300 ${contacted ? "opacity-55" : ""}`}>
+    <div
+      className={[
+        "bg-white rounded-2xl border overflow-hidden transition-all duration-300",
+        isExpanded
+          ? "border-primary-200/80 shadow-lg shadow-primary-500/[0.06] ring-1 ring-primary-100/60"
+          : "border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300",
+        contacted ? "opacity-55" : "",
+      ].join(" ")}
+    >
       {/* ── Card body ── */}
       <div className="p-7">
         {/* Header: avatar + name/location + timeline + time */}
         <div className="flex items-start gap-4 mb-5">
-          {/* Avatar — rounded-2xl, warm tones */}
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-[15px] font-bold text-white shadow-sm"
             style={{ background: hasFullAccess ? avatarGradient(displayName) : "#9ca3af" }}
           >
             {hasFullAccess ? initials : "?"}
           </div>
-
-          {/* Name + location */}
           <div className="min-w-0 flex-1 pt-0.5">
             <h3 className="text-lg font-display font-bold text-gray-900 truncate leading-tight">
               {hasFullAccess ? displayName : blurName(displayName)}
@@ -467,8 +554,6 @@ function FamilyCareCard({
               </div>
             )}
           </div>
-
-          {/* Timeline pill + timestamp — right side */}
           <div className="flex items-center gap-3 shrink-0">
             {timeline && (
               <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
@@ -487,7 +572,7 @@ function FamilyCareCard({
           </div>
         </div>
 
-        {/* ── Stats bar — 3 columns ── */}
+        {/* ── Stats bar ── */}
         <div className="grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
           {/* Services match */}
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
@@ -497,27 +582,34 @@ function FamilyCareCard({
               match
             </p>
           </div>
-          {/* Location */}
+          {/* Distance / location */}
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30 border-x border-warm-100/80">
             <LocationIcon className="w-4 h-4 text-primary-500" />
             <p className="text-[13px] text-gray-500">
-              <span className="font-bold text-gray-700">{locationStr || "—"}</span>
+              {driveTime ? (
+                <><span className="font-bold text-gray-700">{driveTime}</span> from you</>
+              ) : (
+                <span className="font-bold text-gray-700">{locationStr || "—"}</span>
+              )}
             </p>
           </div>
-          {/* Competition indicator */}
+          {/* Providers reached out */}
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <PeopleIcon className="w-4 h-4 text-primary-500" />
+            <PeopleIcon className={`w-4 h-4 ${reachOuts === 0 ? "text-primary-500" : reachOuts >= 4 ? "text-amber-500" : "text-primary-500"}`} />
             <p className="text-[13px] text-gray-500">
-              <span className="font-bold text-gray-700">{careNeeds.length}</span>{" "}
-              care need{careNeeds.length !== 1 ? "s" : ""}
+              {reachOuts === 0 ? (
+                <span className="font-bold text-primary-600">Be first!</span>
+              ) : (
+                <><span className={`font-bold ${reachOuts >= 4 ? "text-amber-600" : "text-gray-700"}`}>{reachOuts >= 4 ? "4+" : reachOuts}</span> reached out</>
+              )}
             </p>
           </div>
         </div>
 
-        {/* ── About situation — blockquote style (fixed height: 2 lines) ── */}
+        {/* ── About situation — full text when expanded ── */}
         <div className="border-l-2 border-warm-200 pl-4 mb-5 min-h-[3.25rem]">
           {aboutSituation && hasFullAccess ? (
-            <p className="text-[15px] text-gray-600 leading-relaxed line-clamp-2">
+            <p className={`text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
               {aboutSituation}
             </p>
           ) : (
@@ -527,7 +619,7 @@ function FamilyCareCard({
           )}
         </div>
 
-        {/* ── Care need tags with checkmarks ── */}
+        {/* ── Care need tags ── */}
         {careNeeds.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {careNeeds.slice(0, 5).map((need) => {
@@ -559,51 +651,229 @@ function FamilyCareCard({
             )}
           </div>
         )}
-
       </div>
 
-      {/* ── Card footer ── */}
-      {freeRemaining !== null && freeRemaining <= 0 ? (
-        /* Exhausted state — dashed border + upgrade CTA */
-        <div className="border-t border-dashed border-primary-200/60 px-7 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-            </svg>
-            <p className="text-[13px] text-gray-400">
-              You&apos;ve used all {FREE_CONNECTION_LIMIT} free reach-outs this month
+      {/* ── Inline reach-out expansion ── */}
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
+        style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div className={`border-t border-warm-100/60 bg-gradient-to-b from-vanilla-50/40 to-warm-50/20 transition-all duration-300 ${isExpanded ? "opacity-100 translate-y-0 delay-100" : "opacity-0 translate-y-2"}`}>
+          <div className="px-7 py-6">
+            {/* Message heading */}
+            <h4 className="text-[15px] font-display font-semibold text-gray-900 mb-3">
+              Tell the {familyFirstName} family why you&apos;re a good fit
+            </h4>
+
+            {/* Textarea */}
+            <textarea
+              value={reachOutNote}
+              onChange={(e) => onNoteChange?.(e.target.value)}
+              placeholder={`Share what makes your care approach a great match for the ${familyFirstName} family...`}
+              rows={4}
+              className="w-full px-4 py-3.5 text-[15px] leading-relaxed text-gray-700 bg-white border border-warm-200/80 rounded-xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none placeholder:text-gray-400"
+            />
+
+            {/* Social proof nudge */}
+            <p className="text-[13px] text-primary-600 font-medium mt-2.5 mb-4">
+              Providers who write a personal note get 3&times; more responses
             </p>
+
+            {/* Save as default checkbox */}
+            <label className="inline-flex items-center gap-2.5 cursor-pointer select-none mb-6">
+              <input
+                type="checkbox"
+                checked={saveAsDefault}
+                onChange={(e) => onSaveAsDefaultChange?.(e.target.checked)}
+                className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
+              />
+              <span className="text-[13px] text-gray-500">
+                Save as my default note for future reach-outs
+              </span>
+            </label>
+
+            {/* ── Provider preview ── */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <EyeIcon className="w-4 h-4 text-gray-400" />
+                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider">
+                  What {familyFirstName} will see from you
+                </span>
+              </div>
+
+              {providerProfile && (
+                <div className="bg-white rounded-xl border border-warm-100/80 shadow-sm p-5">
+                  {/* Provider identity */}
+                  <div className="flex items-center gap-3.5 mb-4">
+                    {providerProfile.image_url ? (
+                      <img
+                        src={providerProfile.image_url}
+                        alt=""
+                        className="w-11 h-11 rounded-xl object-cover shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0"
+                        style={{ background: avatarGradient(providerName) }}
+                      >
+                        {providerInitials}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-[15px] font-display font-bold text-gray-900 truncate">
+                        {providerName}
+                      </p>
+                      {providerLocation && (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <LocationIcon className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-[13px] text-gray-500">{providerLocation}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Care types */}
+                  {providerProfile.care_types.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {providerProfile.care_types.slice(0, 4).map((ct) => (
+                        <span
+                          key={ct}
+                          className="text-[12px] font-medium px-2.5 py-1 rounded-full bg-primary-50/60 text-primary-700 border border-primary-100/50"
+                        >
+                          {ct}
+                        </span>
+                      ))}
+                      {providerProfile.care_types.length > 4 && (
+                        <span className="text-[12px] text-gray-400 self-center">
+                          +{providerProfile.care_types.length - 4}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Completeness bar */}
+                  {providerCompleteness && (
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[12px] font-semibold text-gray-500">
+                          Profile completeness
+                        </span>
+                        <span className="text-[12px] font-bold text-primary-600">
+                          {providerCompleteness.overall}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-warm-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary-500 rounded-full transition-all duration-500"
+                          style={{ width: `${providerCompleteness.overall}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-[12px] text-gray-400 leading-relaxed">
+                    Complete profiles get 3&times; more responses from families
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Error */}
+            {sendError && (
+              <div className="mt-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-600">
+                {sendError}
+              </div>
+            )}
           </div>
-          <Link
-            href="/provider/pro"
-            className="inline-flex items-center gap-2 pl-4 pr-5 py-2.5 rounded-full bg-gray-900 text-white text-[13px] font-semibold hover:bg-gray-800 transition-colors"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-            </svg>
-            Upgrade to reach out
-          </Link>
-        </div>
-      ) : (
-        /* Normal state — warm strip with connect button */
-        <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <InfoIcon className="w-4 h-4 text-gray-400" />
-            <p className="text-[13px] text-gray-400">
-              Your profile will be shared with this family
-            </p>
+
+          {/* ── Expanded footer: cancel / usage / send ── */}
+          <div className="border-t border-warm-100/60 px-7 py-4 flex items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={onCollapse}
+              disabled={sending}
+              className="text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50 shrink-0"
+            >
+              Cancel
+            </button>
+            {freeRemaining !== null && (
+              <p className="text-[13px] text-gray-400 text-center min-w-0 truncate">
+                This will use 1 of your {freeRemaining} monthly reach-out{freeRemaining !== 1 ? "s" : ""}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={onSend}
+              disabled={sending}
+              className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 disabled:hover:shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] transition-all duration-200 shrink-0"
+            >
+              {sending ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <SendIcon className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              )}
+              {sending ? "Sending\u2026" : "Send reach-out"}
+            </button>
           </div>
-          <ConnectButton
-            fromProfileId={fromProfileId}
-            toProfileId={family.id}
-            toName={family.display_name}
-            connectionType="request"
-            connectionMetadata={{ provider_initiated: true }}
-            label="Reach out"
-            sentLabel="Sent"
-            size="sm"
-          />
         </div>
+        </div>
+      </div>
+
+      {/* ── Card footer (collapsed states) ── */}
+      {!isExpanded && (
+        <>
+          {contacted ? (
+            /* Already reached out */
+            <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-center">
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className="w-4 h-4 text-primary-500" />
+                <p className="text-[13px] text-gray-500 font-medium">Reached out</p>
+              </div>
+            </div>
+          ) : freeRemaining !== null && freeRemaining <= 0 ? (
+            /* Exhausted state — dashed border + upgrade CTA */
+            <div className="border-t border-dashed border-primary-200/60 px-7 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+                <p className="text-[13px] text-gray-400">
+                  You&apos;ve used all {FREE_CONNECTION_LIMIT} free reach-outs this month
+                </p>
+              </div>
+              <Link
+                href="/provider/pro"
+                className="inline-flex items-center gap-2 pl-4 pr-5 py-2.5 rounded-full bg-gray-900 text-white text-[13px] font-semibold hover:bg-gray-800 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                </svg>
+                Upgrade to reach out
+              </Link>
+            </div>
+          ) : (
+            /* Normal — reach out button */
+            <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <InfoIcon className="w-4 h-4 text-gray-400" />
+                <p className="text-[13px] text-gray-400">
+                  Your profile will be shared with this family
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onExpand}
+                className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
+              >
+                <svg className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0 .075 5.925m3.075-5.925v2.1a1.575 1.575 0 0 1 3.15 0v1.425M13.2 8.1v-1.5a1.575 1.575 0 0 1 3.15 0v3.075M13.2 8.1l.075 3.525M6.9 7.575a1.575 1.575 0 0 1 3.15 0v1.5m-3.15-1.5v4.65c0 2.733 1.566 5.1 3.853 6.25.484.243 1.01.427 1.553.546a7.462 7.462 0 0 0 5.956-1.553A7.466 7.466 0 0 0 21 12.376V9.75a1.575 1.575 0 0 0-3.15 0v1.875" />
+                </svg>
+                Reach out
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -615,12 +885,20 @@ function FamilyCareCard({
 
 export default function ProviderMatchesPage() {
   const providerProfile = useProviderProfile();
-  const { membership } = useAuth();
+  const { membership, refreshAccountData } = useAuth();
   const [families, setFamilies] = useState<Profile[]>([]);
   const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
+  const [reachOutCounts, setReachOutCounts] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
+
+  // Reach-out expansion state
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [reachOutNote, setReachOutNote] = useState("");
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const hasFullAccess = canEngage(
     providerProfile?.type,
@@ -634,6 +912,116 @@ export default function ProviderMatchesPage() {
 
   const profileId = providerProfile?.id;
 
+  // ── Expansion handlers ──
+
+  const handleExpand = useCallback(
+    (familyId: string) => {
+      if (!isProfileShareable(providerProfile)) return;
+      setExpandedCardId(familyId);
+      setSendError(null);
+      try {
+        const saved = localStorage.getItem(DEFAULT_NOTE_KEY);
+        if (saved) {
+          setReachOutNote(saved);
+          setSaveAsDefault(true);
+        } else {
+          setReachOutNote("");
+          setSaveAsDefault(false);
+        }
+      } catch {
+        setReachOutNote("");
+        setSaveAsDefault(false);
+      }
+    },
+    [providerProfile],
+  );
+
+  const handleCollapse = useCallback(() => {
+    if (!sending) {
+      setExpandedCardId(null);
+      setSendError(null);
+    }
+  }, [sending]);
+
+  const handleSend = useCallback(
+    async (toProfileId: string) => {
+      if (!profileId || !isSupabaseConfigured()) return;
+
+      setSending(true);
+      setSendError(null);
+
+      try {
+        const supabase = createClient();
+
+        const { error: insertError } = await supabase
+          .from("connections")
+          .insert({
+            from_profile_id: profileId,
+            to_profile_id: toProfileId,
+            type: "request",
+            status: "pending",
+            message: reachOutNote.trim() || null,
+            metadata: { provider_initiated: true },
+          });
+
+        if (insertError) {
+          if (
+            insertError.code === "23505" ||
+            insertError.message.includes("duplicate") ||
+            insertError.message.includes("unique")
+          ) {
+            setContactedIds((prev) => new Set([...prev, toProfileId]));
+            setExpandedCardId(null);
+            return;
+          }
+          throw new Error(insertError.message);
+        }
+
+        // Increment free_responses_used for free tier
+        if (
+          membership &&
+          (membership.status === "free" || membership.status === "trialing")
+        ) {
+          const newCount = (membership.free_responses_used ?? 0) + 1;
+          await supabase
+            .from("memberships")
+            .update({ free_responses_used: newCount })
+            .eq("account_id", membership.account_id);
+
+          await refreshAccountData();
+        }
+
+        // Persist default note
+        if (saveAsDefault && reachOutNote.trim()) {
+          try {
+            localStorage.setItem(DEFAULT_NOTE_KEY, reachOutNote.trim());
+          } catch {
+            /* ignore */
+          }
+        } else if (!saveAsDefault) {
+          try {
+            localStorage.removeItem(DEFAULT_NOTE_KEY);
+          } catch {
+            /* ignore */
+          }
+        }
+
+        setContactedIds((prev) => new Set([...prev, toProfileId]));
+        setExpandedCardId(null);
+        setReachOutNote("");
+      } catch (err: unknown) {
+        const msg =
+          err && typeof err === "object" && "message" in err
+            ? (err as { message: string }).message
+            : String(err);
+        setSendError(`Something went wrong: ${msg}`);
+      } finally {
+        setSending(false);
+      }
+    },
+    [profileId, reachOutNote, saveAsDefault, membership, refreshAccountData],
+  );
+
   useEffect(() => {
     if (!profileId || !isSupabaseConfigured()) {
       setLoading(false);
@@ -644,10 +1032,11 @@ export default function ProviderMatchesPage() {
       try {
         const supabase = createClient();
 
+        // Round 1: families + provider's own connections
         const [familiesRes, connectionsRes] = await Promise.all([
           supabase
             .from("business_profiles")
-            .select("id, display_name, city, state, type, care_types, metadata, image_url, slug, created_at")
+            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at")
             .eq("type", "family")
             .eq("is_active", true)
             .filter("metadata->care_post->>status", "eq", "active")
@@ -665,10 +1054,28 @@ export default function ProviderMatchesPage() {
           console.error("[olera] matches fetch error:", familiesRes.error.message);
         }
 
-        setFamilies((familiesRes.data as Profile[]) || []);
+        const fetchedFamilies = (familiesRes.data as Profile[]) || [];
+        setFamilies(fetchedFamilies);
         setContactedIds(
           new Set(connectionsRes.data?.map((c) => c.to_profile_id) || [])
         );
+
+        // Round 2: reach-out counts per family
+        const familyIds = fetchedFamilies.map((f) => f.id);
+        if (familyIds.length > 0) {
+          const { data: reachOuts } = await supabase
+            .from("connections")
+            .select("to_profile_id")
+            .in("to_profile_id", familyIds)
+            .eq("type", "request")
+            .in("status", ["pending", "accepted"]);
+
+          const counts = new Map<string, number>();
+          (reachOuts || []).forEach((r) => {
+            counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
+          });
+          setReachOutCounts(counts);
+        }
       } catch (err) {
         console.error("[olera] matches fetch failed:", err);
       } finally {
@@ -746,48 +1153,6 @@ export default function ProviderMatchesPage() {
         </p>
       </div>
 
-      {/* ── Filter tabs + Sort ── */}
-      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-        <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveFilter(tab.id)}
-              className={[
-                "px-5 py-2.5 rounded-[10px] text-[13px] font-semibold whitespace-nowrap transition-all duration-150",
-                activeFilter === tab.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[13px] text-gray-400">Sort by:</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            aria-label="Sort matches"
-            className="text-[13px] font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:outline-none focus:ring-0 pr-5 appearance-none"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 0 center",
-            }}
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.id} value={opt.id}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
       {/* ── Content grid ── */}
       {families.length === 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -797,6 +1162,48 @@ export default function ProviderMatchesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Main content — 2/3 */}
           <div className="lg:col-span-2 space-y-5">
+            {/* ── Filter tabs + Sort — constrained to card column ── */}
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
+                {FILTER_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveFilter(tab.id)}
+                    className={[
+                      "px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150",
+                      activeFilter === tab.id
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700",
+                    ].join(" ")}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-sm text-gray-400">Sort by:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  aria-label="Sort matches"
+                  className="text-sm font-bold text-gray-900 bg-transparent border-none cursor-pointer focus:outline-none focus:ring-0 pr-6 appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0 center",
+                    fontSize: "14px",
+                  }}
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             {filteredFamilies.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm text-center py-16 px-8">
                 <div className="w-12 h-12 rounded-2xl bg-warm-50 border border-warm-100/60 flex items-center justify-center mx-auto mb-4">
@@ -820,6 +1227,18 @@ export default function ProviderMatchesPage() {
                     fromProfileId={profileId!}
                     providerCareTypes={providerCareTypes}
                     freeRemaining={freeRemaining}
+                    isExpanded={expandedCardId === family.id}
+                    onExpand={() => handleExpand(family.id)}
+                    onCollapse={handleCollapse}
+                    providerProfile={providerProfile}
+                    reachOutNote={reachOutNote}
+                    onNoteChange={setReachOutNote}
+                    saveAsDefault={saveAsDefault}
+                    onSaveAsDefaultChange={setSaveAsDefault}
+                    sending={sending}
+                    onSend={() => handleSend(family.id)}
+                    sendError={sendError}
+                    reachOutCount={reachOutCounts.get(family.id) || 0}
                   />
                   {/* Pro banner after the 3rd card for free-tier users */}
                   {idx === 2 && isFreeTier && filteredFamilies.length > FREE_CONNECTION_LIMIT && (
@@ -847,8 +1266,11 @@ export default function ProviderMatchesPage() {
                       providerCareTypes={providerCareTypes}
                       freeRemaining={freeRemaining}
                       contacted
+                      reachOutCount={reachOutCounts.get(family.id) || 0}
+                      providerProfile={providerProfile}
                     />
                   ))}
+
                 </div>
               </div>
             )}

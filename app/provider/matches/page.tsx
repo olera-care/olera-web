@@ -500,7 +500,7 @@ function FamilyCareCard({
   return (
     <div
       className={[
-        "bg-white rounded-2xl border overflow-hidden transition-all duration-300",
+        "bg-white rounded-2xl border overflow-hidden transition-[border-color,box-shadow] duration-500 ease-[cubic-bezier(0.33,1,0.68,1)]",
         isExpanded
           ? "border-gray-300 shadow-lg shadow-gray-900/[0.06] ring-1 ring-gray-200/60"
           : "border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300",
@@ -574,7 +574,7 @@ function FamilyCareCard({
             <PeopleIcon className={`w-4 h-4 ${reachOuts === 0 ? "text-primary-500" : reachOuts >= 4 ? "text-amber-500" : "text-primary-500"}`} />
             <p className="text-[13px] text-gray-500">
               {reachOuts === 0 ? (
-                <span className="font-bold text-gray-700">Be first!</span>
+                <span className="font-bold text-gray-700">Be first to connect!</span>
               ) : (
                 <><span className={`font-bold ${reachOuts >= 4 ? "text-amber-600" : "text-gray-700"}`}>{reachOuts >= 4 ? "4+" : reachOuts}</span> reached out</>
               )}
@@ -631,11 +631,11 @@ function FamilyCareCard({
 
       {/* ── Inline reach-out expansion ── */}
       <div
-        className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]"
+        className="grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.33,1,0.68,1)]"
         style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className={`border-t border-warm-100/60 bg-gradient-to-b from-vanilla-50/40 to-warm-50/20 transition-all duration-300 ${isExpanded ? "opacity-100 translate-y-0 delay-100" : "opacity-0 translate-y-2"}`}>
+          <div className={`border-t border-warm-100/60 bg-gradient-to-b from-vanilla-50/40 to-warm-50/20 transition-[opacity,transform] ${isExpanded ? "duration-400 delay-150 opacity-100 translate-y-0" : "duration-200 opacity-0 translate-y-1"}`}>
           <div className="px-7 py-6">
             {/* Message heading */}
             <h4 className="text-[15px] font-display font-semibold text-gray-900 mb-3">
@@ -651,35 +651,35 @@ function FamilyCareCard({
               className="w-full px-4 py-3.5 text-[15px] leading-relaxed text-gray-700 bg-white border border-warm-200/80 rounded-xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none placeholder:text-gray-400"
             />
 
-            {/* Social proof nudge */}
-            <p className="text-[13px] text-gray-400 font-medium mt-2.5 mb-4">
-              Providers who write a personal note get 3&times; more responses
-            </p>
-
-            {/* Save as default checkbox */}
-            <label className="inline-flex items-center gap-2.5 cursor-pointer select-none mb-6">
-              <input
-                type="checkbox"
-                checked={saveAsDefault}
-                onChange={(e) => onSaveAsDefaultChange?.(e.target.checked)}
-                className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
-              />
-              <span className="text-[13px] text-gray-500">
-                Save as my default note for future reach-outs
-              </span>
-            </label>
+            {/* Hint + save as default */}
+            <div className="flex items-center justify-between mt-2.5 mb-6">
+              <p className="text-[13px] text-gray-400">
+                Personal notes get <span className="font-medium">3&times; more responses</span>
+              </p>
+              <label className="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+                <input
+                  type="checkbox"
+                  checked={saveAsDefault}
+                  onChange={(e) => onSaveAsDefaultChange?.(e.target.checked)}
+                  className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="text-[13px] text-gray-500">
+                  Save as default
+                </span>
+              </label>
+            </div>
 
             {/* ── Provider preview ── */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <EyeIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-[13px] font-medium text-gray-500">
-                  What {familyFirstName} will see from you
-                </span>
-              </div>
-
               {providerProfile && (
                 <div className="bg-warm-50/30 rounded-2xl border border-warm-100/80 p-5">
+                  {/* Section label inside card */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <EyeIcon className="w-4 h-4 text-gray-400" />
+                    <span className="text-[13px] font-medium text-gray-500">
+                      What {familyFirstName} will see from you
+                    </span>
+                  </div>
                   {/* Provider identity + completeness */}
                   <div className="flex items-start gap-3.5 mb-4">
                     {providerProfile.image_url ? (
@@ -708,28 +708,23 @@ function FamilyCareCard({
                     </div>
                     {/* Compact completeness indicator */}
                     {providerCompleteness && (
-                      <div className="shrink-0 flex flex-col items-end gap-1.5">
-                        <div className="w-16 h-[5px] bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gray-400 rounded-full transition-all duration-500"
-                            style={{ width: `${providerCompleteness.overall}%` }}
-                          />
+                      <div className="shrink-0 flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-14 h-[5px] bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gray-400 rounded-full transition-all duration-500"
+                              style={{ width: `${providerCompleteness.overall}%` }}
+                            />
+                          </div>
+                          <span className="text-[11px] font-medium text-gray-400">
+                            {providerCompleteness.overall}%
+                          </span>
                         </div>
-                        <span className="text-[11px] font-medium text-gray-400">
-                          {providerCompleteness.overall}% complete
+                        <span className="text-[11px] text-gray-400">
+                          Complete profiles get <span className="font-semibold">3&times; more responses</span>
                         </span>
                       </div>
                     )}
-                  </div>
-
-                  {/* Completeness hint */}
-                  <div className="flex items-center gap-2 bg-warm-50/60 rounded-xl px-3.5 py-2.5">
-                    <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                    </svg>
-                    <p className="text-[13px] text-gray-500 leading-snug">
-                      Complete profiles get <span className="font-bold text-gray-700">3&times; more responses</span>
-                    </p>
                   </div>
                 </div>
               )}
@@ -1131,22 +1126,25 @@ export default function ProviderMatchesPage() {
           ))}
         </div>
 
-        <div className="relative shrink-0">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            aria-label="Sort matches"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-lg pl-8 pr-4 py-2 shadow-xs hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.id} value={opt.id}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h4m0 0l3-3m-3 3l3 3M21 17h-4m0 0l-3 3m3-3l-3-3" />
-          </svg>
+        <div className="relative shrink-0 flex items-center">
+          <span className="text-sm text-gray-400 mr-2">Sort by:</span>
+          <div className="relative">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              aria-label="Sort matches"
+              className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-xl pl-3.5 pr-8 py-2.5 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <svg className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
         </div>
       </div>
 

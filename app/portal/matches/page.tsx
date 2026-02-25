@@ -35,9 +35,6 @@ function MatchesContent() {
   const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
   const hasCarePost = carePostStatus === "active";
 
-  // Track when InterestedTabContent is in split view mode
-  const [interestedSplitView, setInterestedSplitView] = useState(false);
-
   const hasRequiredFields =
     activeProfile?.care_types?.length && activeProfile?.state;
 
@@ -87,7 +84,7 @@ function MatchesContent() {
     );
   }
 
-  // ── Sub-tab bar (shared between normal view and split view left panel) ──
+  // ── Sub-tab bar ──
   const matchesTabBar = (
     <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-fit">
       {(
@@ -117,30 +114,20 @@ function MatchesContent() {
     </div>
   );
 
-  // When Interested tab is in split view, render without wrapper so
-  // SplitViewLayout aligns with the sidebar (matching Connections page)
-  const isInterestedSplitView = subTab === "interested" && interestedSplitView;
-
   return (
-    <div className={isInterestedSplitView ? "h-full" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full"}>
-      {/* Header + Tabs — hidden when Interested split view is active
-          (they move into the split view's left panel instead) */}
-      {!isInterestedSplitView && (
-        <>
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-              <p className="text-[15px] text-gray-500 mt-1">
-                Discover providers or let them find you.
-              </p>
-            </div>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
+          <p className="text-[15px] text-gray-500 mt-1">
+            Discover providers or let them find you.
+          </p>
+        </div>
+      </div>
 
-          <div className="flex items-center justify-between mb-6">
-            {matchesTabBar}
-          </div>
-        </>
-      )}
+      <div className="flex items-center justify-between mb-6">
+        {matchesTabBar}
+      </div>
 
       {/* My Care Post view */}
       {subTab === "carepost" && activeProfile && (
@@ -152,14 +139,14 @@ function MatchesContent() {
         />
       )}
 
-      {/* Interested view — always at same tree position to preserve state */}
+      {/* Interested providers list */}
       {subTab === "interested" && activeProfile && (
         <InterestedTabContent
           profileId={activeProfile.id}
           hasCarePost={hasCarePost}
           onSwitchToCarePost={() => setSubTab("carepost")}
-          onSelectionChange={setInterestedSplitView}
-          matchesTabBar={matchesTabBar}
+          familyLat={activeProfile.lat}
+          familyLng={activeProfile.lng}
         />
       )}
     </div>

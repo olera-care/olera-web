@@ -275,7 +275,7 @@ function SettingsContent() {
       <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
       {/* ── Notifications ── */}
       <div className="p-6">
-        <h3 className="text-[15px] font-display font-bold text-gray-900 mb-5">Notifications</h3>
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Notifications</h3>
         <div className="divide-y divide-gray-50">
           <NotificationRow
             title="Connection updates"
@@ -318,7 +318,7 @@ function SettingsContent() {
 
       {/* ── Account ── */}
       <div className="p-6">
-        <h3 className="text-[15px] font-display font-bold text-gray-900 mb-5">Account</h3>
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Account</h3>
         <div className="divide-y divide-gray-100">
           <AccountRow
             label="Email"
@@ -390,7 +390,7 @@ function SettingsContent() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-display font-bold text-gray-900">
+            <p className="text-lg font-display font-bold text-gray-900">
               {isProvider ? "Add another provider profile" : "Add a provider profile"}
             </p>
             <p className="text-xs text-gray-400">
@@ -472,7 +472,7 @@ function SettingsContent() {
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
         <div className="p-6">
-          <h3 className="text-[15px] font-display font-bold text-gray-900 mb-5">
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-5">
             Subscription
           </h3>
 
@@ -604,7 +604,7 @@ function SettingsContent() {
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-[15px] font-display font-bold text-gray-900">
+            <h3 className="text-lg font-display font-bold text-gray-900">
               Remove this profile
             </h3>
             <p className="text-xs text-gray-400 mt-1">
@@ -635,7 +635,7 @@ function SettingsContent() {
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-[15px] font-display font-bold text-gray-900">
+            <h3 className="text-lg font-display font-bold text-gray-900">
               Delete account
             </h3>
             <p className="text-xs text-gray-400 mt-1">

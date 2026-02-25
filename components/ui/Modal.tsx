@@ -9,9 +9,11 @@ interface ModalProps {
   title?: string;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
   /** Optional back button handler. Shows a small circular back arrow in the header. */
   onBack?: () => void;
+  /** Sticky footer content (pinned below scrollable body). */
+  footer?: ReactNode;
 }
 
 const sizeClasses: Record<string, string> = {
@@ -19,6 +21,7 @@ const sizeClasses: Record<string, string> = {
   md: "max-w-md",
   lg: "max-w-lg",
   xl: "max-w-xl",
+  "2xl": "max-w-[640px]",
 };
 
 /**
@@ -36,6 +39,7 @@ export default function Modal({
   children,
   size = "md",
   onBack,
+  footer,
 }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -119,49 +123,54 @@ export default function Modal({
       <div
         ref={contentRef}
         className={[
-          "relative bg-white rounded-2xl shadow-2xl w-full",
+          "relative bg-white rounded-2xl shadow-2xl w-full min-h-[50vh] max-h-[85vh] flex flex-col",
           "animate-slide-up",
           sizeClasses[size],
         ].join(" ")}
       >
-        {/* Header — always show back/close buttons */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-0">
-          {/* Back button (left) */}
-          {onBack ? (
+        {/* Header — pinned top */}
+        <div className="flex items-center gap-3 px-7 pt-6 pb-0 shrink-0">
+          {/* Back button */}
+          {onBack && (
             <button
               onClick={onBack}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
               aria-label="Go back"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-          ) : (
-            <div className="w-8" />
           )}
 
-          {/* Title (center) */}
+          {/* Title (left-aligned) */}
           {title ? (
-            <h2 className="text-xl font-semibold text-gray-900 text-center flex-1">{title}</h2>
+            <h2 className="text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
           ) : (
             <div className="flex-1" />
           )}
 
-          {/* Close button (right) */}
+          {/* Close button */}
           <button
             onClick={() => onCloseRef.current()}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
             aria-label="Close"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-7 pb-7 pt-2 max-h-[70vh] overflow-y-auto">{children}</div>
+        {/* Scrollable body */}
+        <div className={`px-7 pt-2 flex-1 min-h-0 overflow-y-auto ${footer ? "" : "pb-7"}`}>
+          {children}
+        </div>
+
+        {/* Sticky footer — pinned bottom */}
+        {footer && (
+          <div className="px-7 pb-7 shrink-0">{footer}</div>
+        )}
       </div>
     </div>
   );

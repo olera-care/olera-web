@@ -94,13 +94,12 @@ export default function InterestedDetailContent({
   // Provider metadata for pricing/payment/rating
   const provMeta = (profile?.metadata || {}) as OrganizationMetadata & Record<string, unknown>;
   const priceRange = provMeta.price_range || "Contact for pricing";
-  const acceptsMedicaid = provMeta.accepts_medicaid;
-  const acceptsMedicare = provMeta.accepts_medicare;
-  const acceptsPrivateInsurance = provMeta.accepts_private_insurance;
-  const paymentMethods: string[] = [];
-  if (acceptsMedicaid) paymentMethods.push("Medicaid");
-  if (acceptsMedicare) paymentMethods.push("Medicare");
-  if (acceptsPrivateInsurance) paymentMethods.push("Private insurance");
+  const acceptedPayments = (provMeta.accepted_payments as string[]) || [];
+  // Merge legacy booleans for backwards compatibility
+  const paymentMethods: string[] = [...acceptedPayments];
+  if (provMeta.accepts_medicare && !paymentMethods.includes("Medicare")) paymentMethods.push("Medicare");
+  if (provMeta.accepts_medicaid && !paymentMethods.includes("Medicaid")) paymentMethods.push("Medicaid");
+  if (provMeta.accepts_private_insurance && !paymentMethods.includes("Private Health Insurance")) paymentMethods.push("Private Health Insurance");
   if (paymentMethods.length === 0) paymentMethods.push("Contact provider");
 
   // Rating from iOS data (stored in metadata by hook)

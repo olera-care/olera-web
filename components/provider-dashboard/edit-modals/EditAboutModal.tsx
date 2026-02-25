@@ -68,7 +68,24 @@ export default function EditAboutModal({
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="Edit About" size="lg">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Edit About"
+      size="2xl"
+      footer={
+        <ModalFooter
+          saving={saving}
+          hasChanges={hasChanges}
+          onClose={onClose}
+          onSave={handleSave}
+          guidedMode={guidedMode}
+          guidedStep={guidedStep}
+          guidedTotal={guidedTotal}
+          onGuidedBack={onGuidedBack}
+        />
+      }
+    >
       <div className="space-y-5 pt-2">
         <Input
           as="textarea"
@@ -111,17 +128,6 @@ export default function EditAboutModal({
         </div>
         {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
       </div>
-
-      <ModalFooter
-        saving={saving}
-        hasChanges={hasChanges}
-        onClose={onClose}
-        onSave={handleSave}
-        guidedMode={guidedMode}
-        guidedStep={guidedStep}
-        guidedTotal={guidedTotal}
-        onGuidedBack={onGuidedBack}
-      />
     </Modal>
   );
 }

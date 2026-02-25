@@ -92,7 +92,24 @@ export default function EditOverviewModal({
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="Edit Profile Overview" size="xl">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Edit Profile Overview"
+      size="2xl"
+      footer={
+        <ModalFooter
+          saving={saving}
+          hasChanges={hasChanges}
+          onClose={onClose}
+          onSave={handleSave}
+          guidedMode={guidedMode}
+          guidedStep={guidedStep}
+          guidedTotal={guidedTotal}
+          onGuidedBack={onGuidedBack}
+        />
+      }
+    >
       <div className="space-y-5 pt-2">
         <Input
           label="Organization Name"
@@ -174,17 +191,6 @@ export default function EditOverviewModal({
 
         {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
       </div>
-
-      <ModalFooter
-        saving={saving}
-        hasChanges={hasChanges}
-        onClose={onClose}
-        onSave={handleSave}
-        guidedMode={guidedMode}
-        guidedStep={guidedStep}
-        guidedTotal={guidedTotal}
-        onGuidedBack={onGuidedBack}
-      />
     </Modal>
   );
 }

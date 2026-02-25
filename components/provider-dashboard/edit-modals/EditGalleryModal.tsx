@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
-import Input from "@/components/ui/Input";
 import { saveProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
@@ -27,6 +26,7 @@ export default function EditGalleryModal({
   onGuidedBack,
 }: BaseEditModalProps) {
   const [images, setImages] = useState<string[]>(metadata.images || []);
+  const [profilePhoto, setProfilePhoto] = useState<string>(profile.image_url || "");
   const [newUrl, setNewUrl] = useState("");
   const [uploading, setUploading] = useState<UploadingFile[]>([]);
   const [saving, setSaving] = useState(false);
@@ -35,7 +35,8 @@ export default function EditGalleryModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const hasChanges =
-    JSON.stringify(images) !== JSON.stringify(metadata.images || []);
+    JSON.stringify(images) !== JSON.stringify(metadata.images || []) ||
+    profilePhoto !== (profile.image_url || "");
 
   const uploadFiles = useCallback(
     async (files: FileList | File[]) => {
@@ -45,11 +46,13 @@ export default function EditGalleryModal({
       // Client-side validation
       for (const file of fileArray) {
         if (!ALLOWED_TYPES.includes(file.type)) {
-          setError(`"${file.name}" is not a supported format. Use JPEG, PNG, or WebP.`);
+          const ext = file.name.split(".").pop()?.toUpperCase() || "unknown";
+          setError(`${ext} files aren't supported. Please use JPEG, PNG, or WebP images.`);
           return;
         }
         if (file.size > MAX_SIZE) {
-          setError(`"${file.name}" exceeds the 5MB limit.`);
+          const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+          setError(`This image is ${sizeMB}MB — the maximum is 5MB. Try compressing or resizing it before uploading.`);
           return;
         }
       }
@@ -146,8 +149,13 @@ export default function EditGalleryModal({
     setSaving(true);
     setError(null);
     try {
+      const topLevelFields: Record<string, unknown> = {};
+      if (profilePhoto !== (profile.image_url || "")) {
+        topLevelFields.image_url = profilePhoto || null;
+      }
       await saveProfile({
         profileId: profile.id,
+        topLevelFields,
         metadataFields: { images },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });
@@ -162,7 +170,24 @@ export default function EditGalleryModal({
   const isUploading = uploading.length > 0;
 
   return (
-    <Modal isOpen onClose={onClose} title="Edit Gallery" size="lg">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Edit Gallery"
+      size="2xl"
+      footer={
+        <ModalFooter
+          saving={saving || isUploading}
+          hasChanges={hasChanges}
+          onClose={onClose}
+          onSave={handleSave}
+          guidedMode={guidedMode}
+          guidedStep={guidedStep}
+          guidedTotal={guidedTotal}
+          onGuidedBack={onGuidedBack}
+        />
+      }
+    >
       <div className="space-y-5 pt-2">
         {/* Drop zone */}
         <div
@@ -225,26 +250,48 @@ export default function EditGalleryModal({
         {/* Current images grid + uploading placeholders */}
         {(images.length > 0 || uploading.length > 0) && (
           <div className="grid grid-cols-3 gap-3">
-            {images.map((src, i) => (
-              <div key={src} className="relative group rounded-xl overflow-hidden aspect-square">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={src}
-                  alt={`Gallery photo ${i + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeImage(i)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-red-500"
-                  aria-label={`Remove photo ${i + 1}`}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            ))}
+            {images.map((src, i) => {
+              const isProfilePhoto = src === profilePhoto;
+              return (
+                <div key={src} className={`relative group rounded-xl overflow-hidden aspect-square ${isProfilePhoto ? "ring-2 ring-primary-500 ring-offset-2" : ""}`}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt={`Gallery photo ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Profile photo badge */}
+                  {isProfilePhoto && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-primary-500 text-white text-[10px] font-semibold uppercase tracking-wide">
+                      Profile
+                    </div>
+                  )}
+                  {/* Hover actions */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-end justify-center pb-2 gap-1.5 opacity-0 group-hover:opacity-100">
+                    {!isProfilePhoto && (
+                      <button
+                        type="button"
+                        onClick={() => setProfilePhoto(src)}
+                        className="px-2.5 py-1 rounded-lg bg-white/90 text-[11px] font-medium text-gray-900 hover:bg-white transition-colors"
+                        aria-label={`Set photo ${i + 1} as profile photo`}
+                      >
+                        Set as profile
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(i)}
+                      className="w-7 h-7 rounded-lg bg-white/90 text-gray-600 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
+                      aria-label={`Remove photo ${i + 1}`}
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
             {/* Uploading placeholders */}
             {uploading.map((u) => (
               <div key={u.id} className="relative rounded-xl overflow-hidden aspect-square bg-warm-50">
@@ -267,13 +314,14 @@ export default function EditGalleryModal({
           <p className="text-xs font-medium text-warm-500 uppercase tracking-wide mb-2">
             Or add image URL
           </p>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                label="Image URL"
+          <div className="space-y-1.5">
+            <label htmlFor="image-url" className="block text-base font-medium text-gray-700">Image URL</label>
+            <div className="relative">
+              <input
+                id="image-url"
                 type="url"
                 value={newUrl}
-                onChange={(e) => setNewUrl((e.target as HTMLInputElement).value)}
+                onChange={(e) => setNewUrl(e.target.value)}
                 placeholder="https://example.com/photo.jpg"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -281,32 +329,39 @@ export default function EditGalleryModal({
                     addImageUrl();
                   }
                 }}
+                className="w-full pl-4 pr-16 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
               />
+              <button
+                type="button"
+                onClick={addImageUrl}
+                disabled={!newUrl.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                Add
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={addImageUrl}
-              disabled={!newUrl.trim()}
-              className="self-end px-4 py-3 text-sm font-medium text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Add
-            </button>
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+        {error && (
+          <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4" role="alert">
+            <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <p className="text-sm text-red-700 flex-1">{error}</p>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="text-red-300 hover:text-red-500 transition-colors shrink-0"
+              aria-label="Dismiss error"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
-
-      <ModalFooter
-        saving={saving || isUploading}
-        hasChanges={hasChanges}
-        onClose={onClose}
-        onSave={handleSave}
-        guidedMode={guidedMode}
-        guidedStep={guidedStep}
-        guidedTotal={guidedTotal}
-        onGuidedBack={onGuidedBack}
-      />
     </Modal>
   );
 }

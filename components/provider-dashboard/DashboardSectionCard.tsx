@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 interface DashboardSectionCardProps {
   title: string;
-  icon?: ReactNode;
   completionPercent?: number;
   children: ReactNode;
   id?: string;
@@ -11,7 +10,6 @@ interface DashboardSectionCardProps {
 
 export default function DashboardSectionCard({
   title,
-  icon,
   completionPercent,
   children,
   id,
@@ -22,23 +20,16 @@ export default function DashboardSectionCard({
       id={id}
       className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300"
     >
-      {/* Header row — hidden when no title and no icon (e.g. ProfileOverviewCard) */}
-      {(title || icon) && (
+      {/* Header row — hidden when no title (e.g. ProfileOverviewCard) */}
+      {title && (
         <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3 min-w-0">
-            {icon && (
-              <div className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
-                {icon}
-              </div>
-            )}
-            <h3 className="text-lg font-display font-bold text-gray-900 truncate">{title}</h3>
-          </div>
+          <h3 className="text-[24px] font-display font-bold text-gray-900 truncate min-w-0">{title}</h3>
           <div className="flex items-center gap-2.5 shrink-0">
             {/* Edit icon */}
             <button
               type="button"
               onClick={onEdit}
-              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
               aria-label={`Edit ${title}`}
             >
               <svg

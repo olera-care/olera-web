@@ -6,15 +6,42 @@ import { saveProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
 
-const PAYMENT_OPTIONS = [
-  "Private Pay",
-  "Long-Term Care Insurance",
-  "VA Benefits",
-  "Credit Card",
-  "Check",
-  "Wire Transfer",
-  "Sliding Scale",
+const PAYMENT_GROUPS = [
+  {
+    label: "Government & Insurance",
+    options: [
+      "Medicare",
+      "Medicaid",
+      "VA Benefits",
+      "TRICARE",
+      "PACE",
+      "HCBS Waivers",
+      "Long-Term Care Insurance",
+      "Private Health Insurance",
+      "Medigap",
+    ],
+  },
+  {
+    label: "Payment Methods",
+    options: [
+      "Private Pay",
+      "Credit Card",
+      "Check",
+      "Wire Transfer",
+      "ACH / Bank Transfer",
+    ],
+  },
+  {
+    label: "Assistance Programs",
+    options: [
+      "Sliding Scale",
+      "State-Funded Programs",
+      "Workers' Compensation",
+    ],
+  },
 ];
+
+const ALL_OPTIONS = PAYMENT_GROUPS.flatMap((g) => g.options);
 
 export default function EditPaymentModal({
   profile,
@@ -26,25 +53,21 @@ export default function EditPaymentModal({
   guidedTotal,
   onGuidedBack,
 }: BaseEditModalProps) {
-  const [acceptsMedicare, setAcceptsMedicare] = useState(
-    metadata.accepts_medicare || false
-  );
-  const [acceptsMedicaid, setAcceptsMedicaid] = useState(
-    metadata.accepts_medicaid || false
-  );
-  const [payments, setPayments] = useState<string[]>(
-    metadata.accepted_payments || []
-  );
+  // Merge legacy booleans into the array for backwards compatibility
+  const initial = [...(metadata.accepted_payments || [])];
+  if (metadata.accepts_medicare && !initial.includes("Medicare")) initial.push("Medicare");
+  if (metadata.accepts_medicaid && !initial.includes("Medicaid")) initial.push("Medicaid");
+
+  const [selected, setSelected] = useState<string[]>(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const hasChanges =
-    acceptsMedicare !== (metadata.accepts_medicare || false) ||
-    acceptsMedicaid !== (metadata.accepts_medicaid || false) ||
-    JSON.stringify(payments) !== JSON.stringify(metadata.accepted_payments || []);
+    JSON.stringify([...selected].sort()) !==
+    JSON.stringify([...initial].sort());
 
-  function togglePayment(method: string) {
-    setPayments((prev) =>
+  function toggle(method: string) {
+    setSelected((prev) =>
       prev.includes(method)
         ? prev.filter((p) => p !== method)
         : [...prev, method]
@@ -62,9 +85,10 @@ export default function EditPaymentModal({
       await saveProfile({
         profileId: profile.id,
         metadataFields: {
-          accepts_medicare: acceptsMedicare,
-          accepts_medicaid: acceptsMedicaid,
-          accepted_payments: payments,
+          accepted_payments: selected,
+          // Clear legacy booleans so they don't drift
+          accepts_medicare: selected.includes("Medicare"),
+          accepts_medicaid: selected.includes("Medicaid"),
         },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });
@@ -77,92 +101,81 @@ export default function EditPaymentModal({
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="Accepted Payments & Insurance" size="lg">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Accepted Payments & Insurance"
+      size="2xl"
+      footer={
+        <ModalFooter
+          saving={saving}
+          hasChanges={hasChanges}
+          onClose={onClose}
+          onSave={handleSave}
+          guidedMode={guidedMode}
+          guidedStep={guidedStep}
+          guidedTotal={guidedTotal}
+          onGuidedBack={onGuidedBack}
+        />
+      }
+    >
       <div className="space-y-5 pt-2">
-        {/* Insurance toggles */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Government Insurance
-          </label>
-          <div className="space-y-2">
-            {[
-              { key: "medicare", label: "Medicare", value: acceptsMedicare, setter: setAcceptsMedicare },
-              { key: "medicaid", label: "Medicaid", value: acceptsMedicaid, setter: setAcceptsMedicaid },
-            ].map(({ key, label, value, setter }) => (
-              <button
-                key={key}
-                type="button"
-                role="checkbox"
-                aria-checked={value}
-                onClick={() => setter(!value)}
-                className={`w-full flex items-center gap-3 rounded-xl p-4 border transition-all duration-200 text-left ${
-                  value
-                    ? "bg-primary-50/80 border-primary-200/60"
-                    : "bg-warm-50 border-warm-100 hover:border-warm-200"
-                }`}
-              >
-                <div
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors duration-200 ${
-                    value
-                      ? "bg-primary-600 border-primary-600"
-                      : "border-warm-300 bg-white"
-                  }`}
-                >
-                  {value && (
-                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <span className={`text-[15px] font-medium ${value ? "text-primary-700" : "text-gray-700"}`}>
-                  {label}
-                </span>
-              </button>
-            ))}
+        {PAYMENT_GROUPS.map((group) => (
+          <div key={group.label}>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              {group.label}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {group.options.map((method) => {
+                const isSelected = selected.includes(method);
+                return (
+                  <button
+                    key={method}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={isSelected}
+                    onClick={() => toggle(method)}
+                    className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                      isSelected
+                        ? "bg-primary-50 border-primary-300 text-primary-700"
+                        : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
+                    }`}
+                  >
+                    {method}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ))}
 
-        {/* Payment methods */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Payment Methods
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {PAYMENT_OPTIONS.map((method) => {
-              const selected = payments.includes(method);
-              return (
-                <button
-                  key={method}
-                  type="button"
-                  role="checkbox"
-                  aria-checked={selected}
-                  onClick={() => togglePayment(method)}
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                    selected
-                      ? "bg-primary-50 border-primary-300 text-primary-700"
-                      : "bg-white border-warm-100 text-warm-600 hover:border-warm-200"
-                  }`}
-                >
-                  {method}
-                </button>
-              );
-            })}
+        {/* Show any custom entries not in predefined groups */}
+        {selected.filter((s) => !ALL_OPTIONS.includes(s)).length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Other
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {selected
+                .filter((s) => !ALL_OPTIONS.includes(s))
+                .map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    role="checkbox"
+                    aria-checked
+                    onClick={() => toggle(method)}
+                    className="px-3.5 py-2 rounded-xl text-sm font-medium border bg-primary-50 border-primary-300 text-primary-700 transition-all duration-200"
+                  >
+                    {method}
+                  </button>
+                ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
       </div>
-
-      <ModalFooter
-        saving={saving}
-        hasChanges={hasChanges}
-        onClose={onClose}
-        onSave={handleSave}
-        guidedMode={guidedMode}
-        guidedStep={guidedStep}
-        guidedTotal={guidedTotal}
-        onGuidedBack={onGuidedBack}
-      />
     </Modal>
   );
 }

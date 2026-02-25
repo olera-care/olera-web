@@ -143,6 +143,7 @@ export default function ProfileEditContent({
       const formData = new FormData();
       formData.append("file", file);
       formData.append("profileId", profile.id);
+      formData.append("setAsProfilePhoto", "true");
 
       const res = await fetch("/api/profile/upload-image", {
         method: "POST",

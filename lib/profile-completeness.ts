@@ -12,6 +12,7 @@ export interface ExtendedMetadata {
   amenities?: string[];
   hours?: string;
   price_range?: string;
+  contact_for_pricing?: boolean;
 
   // Caregiver fields
   hourly_rate_min?: number;
@@ -29,11 +30,7 @@ export interface ExtendedMetadata {
   badge?: string;
   accepted_payments?: string[];
   pricing_details?: { service: string; rate: string; rateType: string }[];
-  staff_screening?: {
-    background_checked: boolean;
-    licensed: boolean;
-    insured: boolean;
-  };
+  staff_screening?: string[];
   reviews?: {
     name: string;
     rating: number;
@@ -73,18 +70,17 @@ function scoreProfileOverview(profile: Profile): number {
 
 function scorePricing(meta: ExtendedMetadata): number {
   let score = 0;
-  if (meta.price_range?.trim()) score += 50;
+  if (meta.contact_for_pricing || meta.price_range?.trim()) score += 50;
   if (meta.pricing_details && meta.pricing_details.length > 0) score += 50;
   return clamp(score);
 }
 
 function scoreStaffScreening(meta: ExtendedMetadata): number {
-  if (!meta.staff_screening) return 0;
-  let score = 0;
-  if (meta.staff_screening.background_checked) score += 34;
-  if (meta.staff_screening.licensed) score += 33;
-  if (meta.staff_screening.insured) score += 33;
-  return clamp(score);
+  const count = meta.staff_screening?.length ?? 0;
+  if (count >= 5) return 100;
+  if (count >= 3) return 75;
+  if (count >= 1) return 50;
+  return 0;
 }
 
 function scoreCareServices(profile: Profile): number {

@@ -33,7 +33,7 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   badge?: string;
   accepted_payments?: string[];
   pricing_details?: { service: string; rate: string; rateType: string }[];
-  staff_screening?: { background_checked: boolean; licensed: boolean; insured: boolean };
+  staff_screening?: string[];
   reviews?: { name: string; rating: number; date: string; comment: string; relationship?: string }[];
   community_score?: number;
   value_score?: number;
@@ -209,7 +209,7 @@ export default async function ProviderPage({
   const hasStaff = staff != null;
   const hasReviews = reviews.length > 0;
   const hasOleraScore = oleraScore != null;
-  const hasStaffScreening = staffScreening != null;
+  const hasStaffScreening = staffScreening != null && staffScreening.length > 0;
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
   // Build care services: real data first, then pad with category-inferred services
@@ -224,9 +224,11 @@ export default async function ProviderPage({
 
   // Build highlights: real data first, then pad with category-inferred highlights
   const highlights: string[] = [];
-  if (staffScreening?.background_checked) highlights.push("Background-Checked");
-  if (staffScreening?.licensed) highlights.push("Licensed");
-  if (staffScreening?.insured) highlights.push("Insured");
+  if (staffScreening && staffScreening.length > 0) {
+    for (const s of staffScreening.slice(0, 3)) {
+      highlights.push(s);
+    }
+  }
   if (profile.care_types && profile.care_types.length > 0) {
     for (const ct of profile.care_types.slice(0, 4 - highlights.length)) {
       highlights.push(ct);
@@ -431,14 +433,10 @@ export default async function ProviderPage({
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Staff Screening</h2>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    {[
-                      { label: "Background Checked", verified: staffScreening!.background_checked },
-                      { label: "Licensed", verified: staffScreening!.licensed },
-                      { label: "Insured", verified: staffScreening!.insured },
-                    ].filter(item => item.verified).map((item) => (
-                      <div key={item.label} className="flex items-center gap-2.5">
+                    {staffScreening!.map((item) => (
+                      <div key={item} className="flex items-center gap-2.5">
                         <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                        <span className="text-base text-gray-700">{item.label}</span>
+                        <span className="text-base text-gray-700">{item}</span>
                       </div>
                     ))}
                   </div>

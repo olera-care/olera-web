@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
-import Input from "@/components/ui/Input";
 import { saveProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
@@ -89,12 +88,25 @@ export default function EditCareServicesModal({
   }
 
   return (
-    <Modal isOpen onClose={onClose} title="Care Services" size="lg">
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Care Services"
+      size="2xl"
+      footer={
+        <ModalFooter
+          saving={saving}
+          hasChanges={hasChanges}
+          onClose={onClose}
+          onSave={handleSave}
+          guidedMode={guidedMode}
+          guidedStep={guidedStep}
+          guidedTotal={guidedTotal}
+          onGuidedBack={onGuidedBack}
+        />
+      }
+    >
       <div className="space-y-5 pt-2">
-        <p className="text-sm text-warm-600">
-          Select all services your organization provides.
-        </p>
-
         <div className="flex flex-wrap gap-2">
           {COMMON_SERVICES.map((service) => {
             const isSelected = selected.includes(service);
@@ -108,7 +120,7 @@ export default function EditCareServicesModal({
                 className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
                   isSelected
                     ? "bg-primary-50 border-primary-300 text-primary-700"
-                    : "bg-white border-warm-100 text-warm-600 hover:border-warm-200"
+                    : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
                 }`}
               >
                 {service}
@@ -133,12 +145,14 @@ export default function EditCareServicesModal({
         </div>
 
         {/* Add custom service */}
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Input
-              label="Add custom service"
+        <div className="space-y-1.5">
+          <label htmlFor="custom-service" className="block text-base font-medium text-gray-700">Add custom service</label>
+          <div className="relative">
+            <input
+              id="custom-service"
+              type="text"
               value={customService}
-              onChange={(e) => setCustomService((e.target as HTMLInputElement).value)}
+              onChange={(e) => setCustomService(e.target.value)}
               placeholder="e.g. Pet Therapy"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -146,31 +160,21 @@ export default function EditCareServicesModal({
                   addCustom();
                 }
               }}
+              className="w-full pl-4 pr-16 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
             />
+            <button
+              type="button"
+              onClick={addCustom}
+              disabled={!customService.trim()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Add
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={addCustom}
-            disabled={!customService.trim()}
-            className="self-end px-4 py-3 text-sm font-medium text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Add
-          </button>
         </div>
 
         {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
       </div>
-
-      <ModalFooter
-        saving={saving}
-        hasChanges={hasChanges}
-        onClose={onClose}
-        onSave={handleSave}
-        guidedMode={guidedMode}
-        guidedStep={guidedStep}
-        guidedTotal={guidedTotal}
-        onGuidedBack={onGuidedBack}
-      />
     </Modal>
   );
 }

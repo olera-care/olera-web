@@ -65,17 +65,22 @@ export default function ProfileOverviewCard({
             <img
               src={profile.image_url}
               alt={profile.display_name}
-              className="w-16 h-16 rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
+              className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
             />
           ) : (
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-              <span className="text-lg font-display font-bold text-primary-700">
+            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+              <span className="text-xl font-display font-bold text-primary-700">
                 {initials}
               </span>
             </div>
           )}
 
           <div className="flex-1 min-w-0">
+            {profile.category && (
+              <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-1">
+                {formatCategory(profile.category)}
+              </p>
+            )}
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-gray-900 font-display truncate">
                 {profile.display_name}
@@ -92,7 +97,7 @@ export default function ProfileOverviewCard({
             <button
               type="button"
               onClick={onEdit}
-              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
               aria-label="Edit profile overview"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +119,7 @@ export default function ProfileOverviewCard({
           <h4 className="text-[15px] font-medium text-gray-700 mb-3">
             Contact Information
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-4">
             <ContactRow
               icon="phone"
               label="Phone"
@@ -133,33 +138,6 @@ export default function ProfileOverviewCard({
           </div>
         </div>
 
-        {/* Care categories */}
-        <div className="border-t border-gray-100 pt-5">
-          <h4 className="text-[15px] font-medium text-gray-700 mb-3">
-            Care categories
-          </h4>
-          {profile.care_types && profile.care_types.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {profile.category && (
-                <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-primary-50 text-primary-700 border border-primary-100">
-                  {formatCategory(profile.category)}
-                </span>
-              )}
-              {profile.care_types.map((ct) => (
-                <span
-                  key={ct}
-                  className="px-3 py-1.5 rounded-full text-sm text-gray-600 bg-gray-50 border border-gray-200"
-                >
-                  {ct}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-[15px] text-gray-500">
-              No care categories added yet.
-            </p>
-          )}
-        </div>
       </div>
     </DashboardSectionCard>
   );
@@ -179,7 +157,7 @@ function ContactRow({
       <div className="w-8 h-8 rounded-lg bg-vanilla-50 border border-warm-100/40 flex items-center justify-center shrink-0">
         {icon === "phone" && (
           <svg
-            className="w-4 h-4 text-warm-400"
+            className="w-4 h-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -194,7 +172,7 @@ function ContactRow({
         )}
         {icon === "email" && (
           <svg
-            className="w-4 h-4 text-warm-400"
+            className="w-4 h-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -209,7 +187,7 @@ function ContactRow({
         )}
         {icon === "website" && (
           <svg
-            className="w-4 h-4 text-warm-400"
+            className="w-4 h-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

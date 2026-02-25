@@ -137,12 +137,11 @@ export async function POST() {
       }
 
       // Payment method overlap
-      const provAcceptsMedicaid = providerMeta?.accepts_medicaid === true;
-      if (provAcceptsMedicaid && seekerPayments.includes("Medicaid")) {
+      const provPayments: string[] = (providerMeta?.accepted_payments as string[]) || [];
+      if (provPayments.includes("Medicaid") && seekerPayments.includes("Medicaid")) {
         reasons.push("Accepts Medicaid");
       }
-      const provAcceptsMedicare = providerMeta?.accepts_medicare === true;
-      if (provAcceptsMedicare) {
+      if (provPayments.includes("Medicare")) {
         reasons.push("Accepts Medicare");
       }
 

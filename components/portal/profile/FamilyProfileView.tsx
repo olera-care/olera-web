@@ -205,6 +205,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       const formData = new FormData();
       formData.append("file", file);
       formData.append("profileId", profile.id);
+      formData.append("setAsProfilePhoto", "true");
       const res = await fetch("/api/profile/upload-image", { method: "POST", body: formData });
       if (!res.ok) {
         const data = await res.json();

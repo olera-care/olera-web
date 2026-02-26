@@ -352,6 +352,36 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         if (cancelled) return;
 
         if (data) {
+          // If account exists but no family profile, ensure one gets created
+          const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
+          if (!hasFamilyProfile) {
+            try {
+              await fetch("/api/auth/ensure-account", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              if (cancelled) return;
+              // Re-fetch to pick up the new family profile
+              const refreshed = await fetchAccountData(userId);
+              if (cancelled) return;
+              if (refreshed) {
+                cacheAuthData(userId, refreshed);
+                setState((prev) => ({
+                  ...prev,
+                  account: refreshed.account,
+                  activeProfile: refreshed.activeProfile,
+                  profiles: refreshed.profiles,
+                  membership: refreshed.membership,
+                  isLoading: false,
+                  fetchError: false,
+                }));
+                console.timeEnd("[olera] init");
+                return;
+              }
+            } catch {
+              // Best-effort — continue with what we have
+            }
+          }
           cacheAuthData(userId, data);
           setState((prev) => ({
             ...prev,

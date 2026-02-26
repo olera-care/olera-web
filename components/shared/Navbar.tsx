@@ -19,7 +19,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
-  const { user, account, activeProfile, profiles, openAuth, signOut, fetchError, switchProfile } =
+  const { user, account, activeProfile, profiles, openAuth, signOut, fetchError, isLoading: authLoading, switchProfile } =
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -30,8 +30,9 @@ export default function Navbar() {
   const unreadInboxCount = useUnreadInboxCount(profileIds);
   const providerProfileIds = (profiles || []).filter((p) => p.type !== "family").map((p) => p.id);
   const providerInboxCount = useUnreadInboxCount(providerProfileIds);
+  const familyProfileForMatches = (profiles || []).find((p) => p.type === "family");
   const { pendingCount: matchesPendingCount } = useInterestedProviders(
-    activeProfile?.type === "family" ? activeProfile?.id : undefined
+    familyProfileForMatches?.id
   );
   const [newLeadsCount, setNewLeadsCount] = useState(() => {
     try {
@@ -81,7 +82,7 @@ export default function Navbar() {
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
-  const isFullyLoaded = !!user && (!!account || fetchError);
+  const isFullyLoaded = !!user && !authLoading;
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
   const hasProviderProfile = (profiles || []).some(
@@ -99,10 +100,11 @@ export default function Navbar() {
   const displayName = account?.display_name || user?.email || "";
   const initials = getInitials(displayName);
 
-  // In provider mode, show the provider profile type instead of the active (family) profile type
+  // Show the contextual profile type based on which portal the user is in,
+  // not the database-stored activeProfile (which may be stale).
   const contextProfileType = isProviderPortal
     ? (profiles || []).find((p) => p.type === "organization" || p.type === "caregiver")?.type
-    : activeProfile?.type;
+    : hasFamilyProfile ? "family" : activeProfile?.type;
   const profileTypeLabel = contextProfileType
     ? contextProfileType === "organization"
       ? "Organization"
@@ -331,7 +333,7 @@ export default function Navbar() {
                   </svg>
                   Account
                 </Link>
-                {activeProfile?.type === "family" && (
+                {hasFamilyProfile && (
                   <Link
                     href="/portal/matches"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
@@ -1080,7 +1082,7 @@ export default function Navbar() {
                               </svg>
                               Account
                             </Link>
-                            {activeProfile?.type === "family" && (
+                            {hasFamilyProfile && (
                               <Link
                                 href="/portal/matches"
                                 className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"

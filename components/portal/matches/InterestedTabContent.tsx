@@ -241,10 +241,10 @@ export default function InterestedTabContent({
             📝
           </div>
           <h3 className="text-base font-display font-bold text-gray-900">
-            Publish your care post first
+            Share your care profile first
           </h3>
           <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">
-            Once your care post is live, providers in your area can see it and
+            Once your care profile is live, providers in your area can see it and
             reach out to you.
           </p>
           <style jsx>{`
@@ -274,7 +274,7 @@ export default function InterestedTabContent({
           No providers have reached out yet
         </h3>
         <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">
-          Providers in your area are reviewing care posts daily. You&apos;ll be
+          Providers in your area are reviewing care profiles daily. You&apos;ll be
           notified when someone expresses interest.
         </p>
         <style jsx>{`

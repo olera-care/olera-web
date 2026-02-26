@@ -159,7 +159,7 @@ export default function CarePostSidebar({
     }
   };
 
-  // ── No care post ──
+  // ── No care profile ──
   if (!hasPost) {
     return (
       <div className="sticky top-24">
@@ -172,14 +172,14 @@ export default function CarePostSidebar({
               Let providers find you
             </h4>
             <p className="text-[13px] text-gray-500 leading-relaxed mb-4">
-              Post your care need so qualified providers can reach out directly.
+              Share your care profile so qualified providers can reach out directly.
             </p>
             <button
               onClick={handlePublishAction}
               disabled={publishing}
               className="w-full py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-sm disabled:opacity-50"
             >
-              {publishing ? "Publishing..." : "Publish Care Post"}
+              {publishing ? "Publishing..." : "Publish Care Profile"}
             </button>
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function CarePostSidebar({
     );
   }
 
-  // ── Active / Paused care post ──
+  // ── Active / Paused care profile ──
   return (
     <div className="sticky top-24 space-y-3">
       <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
@@ -196,7 +196,7 @@ export default function CarePostSidebar({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                Your Care Post
+                Your Care Profile
               </h4>
               {acceptingMatches ? (
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-50 border border-primary-100/60 text-[10px] font-semibold text-primary-600">
@@ -338,7 +338,7 @@ export default function CarePostSidebar({
                     <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                   <p className="text-[13px] text-gray-600 leading-relaxed">
-                    Your post is now visible. Providers can find and reach out to you.
+                    Your profile is now visible. Providers can find and reach out to you.
                   </p>
                 </div>
               )}
@@ -349,7 +349,7 @@ export default function CarePostSidebar({
                     <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                   <p className="text-[13px] text-gray-600 leading-relaxed">
-                    New providers won&apos;t see your post. Anyone who already reached out can still be reviewed.
+                    New providers won&apos;t see your profile. Anyone who already reached out can still be reviewed.
                   </p>
                 </div>
               )}
@@ -365,7 +365,7 @@ export default function CarePostSidebar({
               {showDeleteConfirm && (
                 <div className="rounded-xl border border-red-200/60 bg-red-50/30 px-4 py-4 mt-1 space-y-3">
                   <p className="text-[13px] text-gray-700 leading-relaxed">
-                    <span className="font-semibold text-gray-900">Remove your care post?</span>{" "}
+                    <span className="font-semibold text-gray-900">Remove your care profile?</span>{" "}
                     Providers will no longer be able to find or reach out to you. Existing conversations are not affected.
                   </p>
                   <p className="text-[13px] font-medium text-gray-600">
@@ -400,7 +400,7 @@ export default function CarePostSidebar({
                       }}
                       className="flex-1 py-2 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                     >
-                      Keep post
+                      Keep profile
                     </button>
                     <button
                       type="button"
@@ -408,7 +408,7 @@ export default function CarePostSidebar({
                       disabled={deleting}
                       className="flex-1 py-2 rounded-lg bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
                     >
-                      {deleting ? "Removing..." : "Delete post"}
+                      {deleting ? "Removing..." : "Delete profile"}
                     </button>
                   </div>
                 </div>
@@ -422,7 +422,7 @@ export default function CarePostSidebar({
               onClick={() => setShowDeleteConfirm(true)}
               className="text-[13px] text-gray-400 hover:text-red-600 transition-colors"
             >
-              Delete post
+              Delete profile
             </button>
           )}
         </div>
@@ -438,12 +438,12 @@ export default function CarePostSidebar({
         <p className="text-[13px] text-gray-600 leading-relaxed">
           {interestedCount > 0
             ? <>Take your time. There&apos;s <span className="font-semibold text-gray-800">no pressure</span> to respond immediately.</>
-            : <>Most providers respond within <span className="font-semibold text-gray-800">3–5 days</span> of seeing a matching post.</>
+            : <>Most providers respond within <span className="font-semibold text-gray-800">3–5 days</span> of seeing a matching profile.</>
           }
         </p>
       </div>
 
-      {/* Edit care post modal */}
+      {/* Edit care profile modal */}
       {editModalOpen && (
         <EditCarePostModal
           profile={activeProfile}

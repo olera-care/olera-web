@@ -101,7 +101,7 @@ function CityRow({ city }: { city: CityEntry }) {
 
 export default function Footer() {
   return (
-    <footer>
+    <footer className="relative">
       {/* ── Discovery Zone — warm vanilla background ── */}
       <div className="bg-vanilla-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">

@@ -169,6 +169,8 @@ export default function PostAuthOnboarding({
           // Best-effort; the onboarding wizard will retry if needed
         }
       }
+      // Persist provider intent so the modal doesn't reopen if onboarding is abandoned
+      try { localStorage.setItem("olera_provider_intent_started", "true"); } catch { /* noop */ }
       onComplete(); // closes modal
       const hasProviderProfile = (profiles || []).some(
         (p) => p.type === "organization" || p.type === "caregiver"

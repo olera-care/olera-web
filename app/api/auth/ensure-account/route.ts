@@ -67,6 +67,28 @@ export async function POST(request: Request) {
       .single();
 
     if (existingAccount) {
+      // Account exists — also ensure a baseline family profile exists
+      const acctId = (existingAccount as Account).id;
+      const { data: existingFamilyProfile } = await dbClient
+        .from("business_profiles")
+        .select("id")
+        .eq("account_id", acctId)
+        .eq("type", "family")
+        .limit(1)
+        .maybeSingle();
+
+      if (!existingFamilyProfile) {
+        const name = (existingAccount as Account).display_name || user.email?.split("@")[0] || "My Family";
+        await dbClient.from("business_profiles").insert({
+          account_id: acctId,
+          slug: `family-${acctId.slice(0, 8)}`,
+          type: "family",
+          display_name: name,
+          claim_state: "claimed",
+          visibility: false,
+        });
+      }
+
       return NextResponse.json({ account: existingAccount as Account });
     }
 
@@ -116,6 +138,29 @@ export async function POST(request: Request) {
         { error: `Failed to create account: ${insertError.message}` },
         { status: 500 }
       );
+    }
+
+    // Also ensure a baseline family profile exists so the Family Portal
+    // is always accessible. Every authenticated user gets a family profile.
+    const accountId = (newAccount as Account).id;
+    const { data: existingFamily } = await dbClient
+      .from("business_profiles")
+      .select("id")
+      .eq("account_id", accountId)
+      .eq("type", "family")
+      .limit(1)
+      .maybeSingle();
+
+    if (!existingFamily) {
+      const familyDisplayName = displayName || user.email?.split("@")[0] || "My Family";
+      await dbClient.from("business_profiles").insert({
+        account_id: accountId,
+        slug: `family-${accountId.slice(0, 8)}`,
+        type: "family",
+        display_name: familyDisplayName,
+        claim_state: "claimed",
+        visibility: false,
+      });
     }
 
     return NextResponse.json({ account: newAccount as Account });

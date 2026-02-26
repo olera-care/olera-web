@@ -349,10 +349,6 @@ function LeadDetailDrawer({
 
   const handleSendMessage = () => {
     setMessageSent(true);
-    setTimeout(() => {
-      setMessageSent(false);
-      setShowComposer(false);
-    }, 2000);
   };
 
   const handleArchive = () => {
@@ -472,17 +468,41 @@ function LeadDetailDrawer({
           {/* ── Inline message composer ── */}
           {showComposer && (
             <div className="px-6 pt-5 pb-2">
-              <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+              <div className={`rounded-2xl overflow-hidden ${messageSent ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white shadow-sm"}`}>
                 {messageSent ? (
-                  /* ── Confirmation state ── */
-                  <div className="px-6 py-10 flex flex-col items-center justify-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  /* ── Persistent confirmation state with actions ── */
+                  <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
+                    <div className="w-11 h-11 rounded-full bg-primary-600 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                       </svg>
                     </div>
                     <p className="text-[15px] font-semibold text-gray-900">Message sent</p>
-                    <p className="text-[13px] text-gray-500">Your message has been sent to {firstName}</p>
+                    <p className="text-[13px] text-gray-500">{firstName} will receive your message shortly</p>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-3 w-full mt-2">
+                      <button
+                        type="button"
+                        onClick={() => { setShowComposer(false); setMessageSent(false); }}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                        </svg>
+                        Continue in Inbox
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowComposer(false); setMessageSent(false); setShowArchive(true); }}
+                        className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                        </svg>
+                        Archive
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   /* ── Composer form ── */

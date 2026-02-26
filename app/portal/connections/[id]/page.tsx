@@ -456,16 +456,10 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
               <dd className="text-gray-900 font-medium">{priceRange}</dd>
             </div>
           )}
-          {meta?.accepts_medicaid !== undefined && (
-            <div>
-              <dt className="text-sm text-gray-500">Medicaid</dt>
-              <dd className="text-gray-900 font-medium">{meta.accepts_medicaid ? "Accepted" : "Not accepted"}</dd>
-            </div>
-          )}
-          {meta?.accepts_medicare !== undefined && (
-            <div>
-              <dt className="text-sm text-gray-500">Medicare</dt>
-              <dd className="text-gray-900 font-medium">{meta.accepts_medicare ? "Accepted" : "Not accepted"}</dd>
+          {meta?.accepted_payments && meta.accepted_payments.length > 0 && (
+            <div className="col-span-2">
+              <dt className="text-sm text-gray-500 mb-1">Accepted Payments</dt>
+              <dd className="text-gray-900 font-medium">{meta.accepted_payments.join(", ")}</dd>
             </div>
           )}
           {meta?.amenities && meta.amenities.length > 0 && (

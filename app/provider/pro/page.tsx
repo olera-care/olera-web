@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import TestimonialCarousel from "@/components/providers/TestimonialCarousel";
+import Button from "@/components/ui/Button";
 
 // ---------------------------------------------------------------------------
 // Data
@@ -48,59 +48,44 @@ const BENEFITS = [
   },
 ];
 
-const PLAN_FEATURES: { text: string; free: string | boolean; pro: string | boolean }[] = [
-  { text: "Search placement", free: "Standard", pro: "Priority" },
-  { text: "Lead responses", free: "3/month", pro: "Unlimited" },
-  { text: "Match reach-outs", free: "3/month", pro: "Unlimited" },
-  { text: "Contact info visible", free: false, pro: true },
-  { text: "Reviews & shareable links", free: false, pro: true },
-  { text: "Analytics, SEO & chat notes", free: false, pro: true },
+const PLAN_FEATURES = [
+  { text: "Listing on Olera", basic: true, pro: true, proLabel: "Optimized listing" },
+  { text: "Images", basic: "Up to 3", pro: "Unlimited" },
+  { text: "Google reviews", basic: "Up to 3", pro: "Unlimited" },
+  { text: "Contact info visible", basic: false, pro: true },
+  { text: "Review generation tools", basic: false, pro: true },
+  { text: "Shareable review links", basic: false, pro: true },
+  { text: "Q&A", basic: false, pro: true },
+  { text: "Chat notes", basic: false, pro: true },
+  { text: "Lead tracking & analytics", basic: false, pro: true },
 ];
 
 const FAQ = [
   {
-    q: "What\u2019s in the free trial?",
-    a: "You get full access to every Pro feature for 14 days \u2014 priority placement, unlimited leads, review tools, analytics, and more. No credit card required to start.",
+    q: "What is Olera Pro?",
+    a: "Olera Pro gives your listing priority placement, unlimited lead access, review generation tools, and full analytics \u2014 everything you need to grow your care business online.",
   },
   {
     q: "What happens after the trial?",
     a: "After your trial ends, your listing reverts to the free tier. You\u2019ll keep your profile but lose access to Pro features like unlimited leads, review tools, and analytics. You can upgrade anytime.",
   },
   {
-    q: "Can I cancel anytime?",
+    q: "Can I cancel at anytime?",
     a: "Yes. You can cancel your subscription at any time with no penalties. Your Pro features remain active until the end of your current billing period.",
-  },
-  {
-    q: "How is this different from lead gen sites?",
-    a: "Lead gen sites charge per lead and sell your information to multiple providers. Olera connects you directly with families \u2014 no per-lead fees, no bidding wars. You pay one flat monthly price and keep every connection.",
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "I went from one or two calls a week to hearing from families every day. Pro paid for itself before the trial ended\u00a0\u2014 I booked three new families in the first week.",
-    name: "Maria Rodriguez",
-    initials: "MR",
-    role: "Home Care Provider",
-    location: "Austin, TX",
-  },
-  {
-    quote:
-      "The review tools alone are worth it. Families tell me they chose us because of our Olera reviews. We\u2019ve doubled our monthly inquiries since upgrading.",
-    name: "James Thompson",
-    initials: "JT",
-    role: "Assisted Living Director",
-    location: "Denver, CO",
-  },
-  {
-    quote:
-      "Before Pro, I was spending hours on lead-gen sites and paying per click. Now families come to me directly and I keep every dollar. It\u2019s the best investment I\u2019ve made in my business.",
-    name: "Priya Sharma",
-    initials: "PS",
-    role: "In-Home Care Provider",
-    location: "Charlotte, NC",
-  },
+// Active subscriber feature list (for the post-subscribe and canceled views)
+const PRO_FEATURE_LIST = [
+  "Optimized listing",
+  "Unlimited images",
+  "Unlimited reviews",
+  "Contact info visible",
+  "Review generation tools",
+  "Shareable review links",
+  "Q&A",
+  "Chat notes",
+  "Lead tracking & analytics",
 ];
 
 // ---------------------------------------------------------------------------
@@ -149,7 +134,7 @@ function BillingToggle({
   onChange: (c: "monthly" | "annual") => void;
 }) {
   return (
-    <div className="inline-flex items-center bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
+    <div className="inline-flex items-center bg-gray-100 p-0.5 rounded-xl">
       <button
         type="button"
         onClick={() => onChange("monthly")}
@@ -179,82 +164,26 @@ function BillingToggle({
   );
 }
 
-function ComparisonTable({
-  open,
-  onToggle,
-  children,
-}: {
-  open: boolean;
-  onToggle: () => void;
-  children?: React.ReactNode;
-}) {
+function PriceDisplay({ cycle, centered }: { cycle: "monthly" | "annual"; centered?: boolean }) {
+  const monthly = cycle === "monthly";
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm border-t-[3px] border-t-primary-400 overflow-hidden">
-      {/* Toggle header */}
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-center gap-2 px-5 sm:px-6 py-4 hover:bg-vanilla-50/50 transition-colors"
-      >
-        <span className="text-[15px] font-display font-semibold text-gray-900">
-          Compare Free vs Pro
-        </span>
-        <ChevronIcon open={open} />
-      </button>
+    <div className={`flex items-baseline gap-1 ${centered ? "justify-center" : ""}`}>
+      <span className="text-4xl font-bold text-gray-900 tracking-tight">
+        ${monthly ? "25" : "249"}
+      </span>
+      <span className="text-base text-gray-500 font-medium">/{monthly ? "mo" : "yr"}</span>
+    </div>
+  );
+}
 
-      {/* Collapsible body */}
-      <div
-        className="grid transition-all duration-300 ease-in-out"
-        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          {/* Column headers */}
-          <div className="grid grid-cols-[1fr_80px_80px] sm:grid-cols-[1fr_120px_120px] items-center px-5 sm:px-6 py-4 border-y border-gray-100 bg-vanilla-50/50">
-            <span className="text-sm font-medium text-gray-400 uppercase tracking-wide">Feature</span>
-            <span className="text-sm font-semibold text-gray-500 text-center">Free</span>
-            <span className="text-sm font-semibold text-primary-600 text-center">Pro</span>
-          </div>
-
-          {/* Rows */}
-          {PLAN_FEATURES.map((f, i) => (
-            <div
-              key={f.text}
-              className={`grid grid-cols-[1fr_80px_80px] sm:grid-cols-[1fr_120px_120px] items-center px-5 sm:px-6 py-4 ${
-                i < PLAN_FEATURES.length - 1 ? "border-b border-gray-100/80" : ""
-              }`}
-            >
-              <span className="text-[15px] text-gray-700">{f.text}</span>
-
-              {/* Free column */}
-              <div className="flex justify-center">
-                {typeof f.free === "boolean" ? (
-                  f.free ? (
-                    <CheckIcon className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <span className="text-gray-300">&mdash;</span>
-                  )
-                ) : (
-                  <span className="text-sm text-gray-500">{f.free}</span>
-                )}
-              </div>
-
-              {/* Pro column */}
-              <div className="flex justify-center">
-                {typeof f.pro === "boolean" ? (
-                  f.pro ? (
-                    <CheckIcon className="w-4 h-4 text-primary-600" />
-                  ) : (
-                    <span className="text-gray-300">&mdash;</span>
-                  )
-                ) : (
-                  <span className="text-sm font-medium text-primary-700">{f.pro}</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      {children}
+function FeatureCheck({ included }: { included: boolean }) {
+  return included ? (
+    <div className="w-5 h-5 bg-primary-50 rounded-full flex items-center justify-center shrink-0">
+      <CheckIcon className="w-3 h-3 text-primary-600" />
+    </div>
+  ) : (
+    <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
+      <XMarkIcon className="w-3 h-3 text-gray-400" />
     </div>
   );
 }
@@ -265,31 +194,35 @@ function ComparisonTable({
 
 function ProPageSkeleton() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero skeleton */}
-      <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center animate-pulse">
-          <div className="h-9 w-32 bg-warm-100 rounded-full mx-auto mb-8" />
-          <div className="h-12 w-80 bg-warm-100 rounded mx-auto mb-3" />
-          <div className="h-12 w-64 bg-warm-50 rounded mx-auto mb-6" />
-          <div className="h-5 w-72 bg-warm-50 rounded mx-auto mb-10" />
-          <div className="h-14 w-56 bg-warm-100 rounded-full mx-auto" />
-        </div>
-      </section>
-
-      {/* Stats strip skeleton */}
-      <section className="bg-vanilla-50 border-y border-warm-100/60 py-14 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto animate-pulse">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-warm-100/60 border-t-[3px] border-t-warm-200 px-6 py-5 text-center">
-                <div className="h-8 w-16 bg-warm-100 rounded mx-auto mb-2" />
-                <div className="h-4 w-24 bg-warm-50 rounded mx-auto" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-3xl">
+        <div className="animate-pulse space-y-8">
+          {/* Header skeleton */}
+          <div>
+            <div className="h-6 w-32 bg-gray-200 rounded" />
+            <div className="h-4 w-64 bg-gray-100 rounded mt-2" />
+          </div>
+          {/* Hero skeleton */}
+          <div className="bg-white rounded-xl border border-gray-100 p-8">
+            <div className="h-8 w-72 bg-gray-200 rounded mb-3" />
+            <div className="h-4 w-96 bg-gray-100 rounded mb-6" />
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-48 bg-gray-100 rounded-xl" />
+              <div className="h-12 w-40 bg-gray-200 rounded-xl" />
+            </div>
+          </div>
+          {/* Cards skeleton */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-100 p-5">
+                <div className="w-9 h-9 bg-gray-100 rounded-lg mb-3" />
+                <div className="h-4 w-24 bg-gray-200 rounded mb-2" />
+                <div className="h-3 w-full bg-gray-100 rounded" />
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
@@ -305,18 +238,14 @@ export default function OleraProPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const [subscribing, setSubscribing] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
-  const [tableOpen, setTableOpen] = useState(true);
+  const [showUpgradedBanner, setShowUpgradedBanner] = useState(false);
 
-  // Preview mode: cycle through views before Stripe is connected
-  // Remove this block once Stripe integration is live
-  const [previewStatus, setPreviewStatus] = useState<"free" | "active" | "canceled">("free");
-
-  // Membership state (preview overrides real status)
+  // Membership state
   const status = membership?.status;
-  const isSubscribed = previewStatus === "active" || (!previewStatus && status === "active");
-  const isTrial = previewStatus === "free" ? false : status === "trialing";
-  const isCanceled = previewStatus === "canceled" || (!previewStatus && status === "canceled");
-  const isPastDue = previewStatus ? false : status === "past_due";
+  const isSubscribed = status === "active";
+  const isTrial = status === "trialing";
+  const isCanceled = status === "canceled";
+  const isPastDue = status === "past_due";
 
   // Trial days remaining
   const trialDaysLeft = membership?.trial_ends_at
@@ -338,10 +267,13 @@ export default function OleraProPage() {
       })
     : null;
 
-  // Handle ?upgraded=true — refresh membership data
+  // Handle ?upgraded=true
   useEffect(() => {
     if (searchParams.get("upgraded") === "true") {
+      setShowUpgradedBanner(true);
       refreshAccountData();
+      const timer = setTimeout(() => setShowUpgradedBanner(false), 6000);
+      return () => clearTimeout(timer);
     }
   }, [searchParams, refreshAccountData]);
 
@@ -364,195 +296,89 @@ export default function OleraProPage() {
   // Loading
   if (isLoading) return <ProPageSkeleton />;
 
-  // Preview toggle — remove once Stripe integration is live
-  const previewToggle = (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-1 bg-white/90 backdrop-blur border border-gray-200 rounded-full px-1 py-1 shadow-lg">
-      {(["free", "active", "canceled"] as const).map((s) => (
-        <button
-          key={s}
-          type="button"
-          onClick={() => { setPreviewStatus(s); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
-            previewStatus === s
-              ? "bg-gray-900 text-white"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          {s === "free" ? "Free" : s === "active" ? "Pro" : "Canceled"}
-        </button>
-      ))}
-    </div>
-  );
-
   // =====================================================================
   // Active Subscriber View
   // =====================================================================
   if (isSubscribed) {
     return (
-      <div className="min-h-screen bg-white">
-        {previewToggle}
-        {/* ── HERO ── */}
-        <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-50/60 border border-primary-100/60 mb-8">
-              <CheckIcon className="w-4 h-4 text-primary-600" />
-              <span className="text-sm font-semibold text-primary-700">You&apos;re on Pro</span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-[clamp(2.5rem,5vw,3.5rem)] font-display font-bold text-gray-900 leading-[1.1] tracking-tight">
-              You&apos;re getting the<br />
-              most out of <span className="text-primary-600 italic">Olera</span>.
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-lg text-gray-500 mt-6 leading-relaxed">
-              Your Pro plan is active. Here&apos;s what you have.
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-3xl">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-xl font-semibold text-gray-900">Olera Pro</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage your subscription and see what&apos;s included.
             </p>
           </div>
-        </section>
 
-        {/* ── STATS STRIP ── */}
-        <section className="bg-vanilla-50 border-y border-warm-100/60 py-14 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { value: "3.2\u00d7", label: "more inquiries", detail: "vs. free listings" },
-                { value: "500+", label: "providers on Pro", detail: "and growing" },
-                { value: "89%", label: "fill rate", detail: "within 30 days" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="bg-white rounded-xl border border-warm-100/60 border-t-[3px] border-t-primary-400 px-6 py-5 text-center"
-                >
-                  <p className="text-3xl font-display font-bold text-gray-900 tracking-tight">
-                    {stat.value}
+          {/* Upgraded banner */}
+          {showUpgradedBanner && (
+            <div className="mb-6 bg-primary-50 border border-primary-200 rounded-xl px-5 py-4 flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center shrink-0">
+                <CheckIcon className="w-4 h-4 text-primary-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-primary-900">
+                  Welcome to Olera Pro!
+                </p>
+                <p className="text-sm text-primary-700">
+                  Your subscription is active. All Pro features are now unlocked.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Status card */}
+          <div className="bg-white rounded-xl border border-primary-200 p-6 mb-8">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-semibold text-gray-900">
+                      Pro Plan
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    {membership?.billing_cycle === "annual" ? "Annual" : "Monthly"}{" "}
+                    billing
+                    {nextBillingDate && (
+                      <> &middot; Renews {nextBillingDate}</>
+                    )}
                   </p>
-                  <p className="text-sm font-medium text-gray-700 mt-1">{stat.label}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{stat.detail}</p>
+                </div>
+              </div>
+              <a
+                href="/portal/settings"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+              >
+                Manage subscription &rarr;
+              </a>
+            </div>
+          </div>
+
+          {/* Your Pro features */}
+          <div className="bg-white rounded-xl border border-gray-100 p-6">
+            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+              Your Pro Features
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PRO_FEATURE_LIST.map((text) => (
+                <div key={text} className="flex items-center gap-2.5">
+                  <FeatureCheck included />
+                  <span className="text-sm text-gray-700">{text}</span>
                 </div>
               ))}
             </div>
           </div>
-        </section>
-
-        {/* ── COMPARISON TABLE + BILLING ── */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <ComparisonTable open={tableOpen} onToggle={() => setTableOpen(!tableOpen)}>
-              {/* Billing details */}
-              <div className="px-6 pt-8 pb-6 flex justify-center">
-                <div className="w-full max-w-xl bg-vanilla-50/60 rounded-2xl border border-gray-200/60 overflow-hidden">
-                  {[
-                    { label: "Plan", value: "Olera Pro" },
-                    { label: "Status", value: "Active", teal: true },
-                    {
-                      label: "Billing",
-                      value: `${membership?.billing_cycle === "annual" ? "$249/yr" : "$25/mo"} \u00b7 ${membership?.billing_cycle === "annual" ? "Annual" : "Monthly"}`,
-                    },
-                    ...(nextBillingDate ? [{ label: "Next payment", value: nextBillingDate }] : []),
-                    ...(membership?.created_at
-                      ? [{
-                          label: "Member since",
-                          value: new Date(membership.created_at).toLocaleDateString("en-US", {
-                            month: "long",
-                            day: "numeric",
-                            year: "numeric",
-                          }),
-                        }]
-                      : []),
-                  ].map((row, i, arr) => (
-                    <div
-                      key={row.label}
-                      className={`flex items-center justify-between px-6 py-4 ${
-                        i < arr.length - 1 ? "border-b border-gray-100/80" : ""
-                      }`}
-                    >
-                      <span className="text-[15px] text-gray-500">{row.label}</span>
-                      <span className={`text-[15px] font-semibold ${"teal" in row && row.teal ? "text-primary-600" : "text-gray-900"}`}>
-                        {row.value}
-                      </span>
-                    </div>
-                  ))}
-
-                  {/* Manage billing button */}
-                  <div className="px-6 py-5 border-t border-gray-100/80 flex justify-center">
-                    <a
-                      href="/portal/settings"
-                      className="inline-flex items-center px-6 py-2.5 rounded-full border border-gray-200 text-[15px] font-medium text-gray-700 hover:bg-vanilla-50 hover:border-gray-300 transition-all duration-200"
-                    >
-                      Manage billing
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </ComparisonTable>
-          </div>
-        </section>
-
-        <TestimonialCarousel testimonials={TESTIMONIALS} />
-
-        {/* ── FAQ ── */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-display font-bold text-gray-900 text-center mb-8">
-              Questions &amp; answers
-            </h2>
-            <div className="space-y-3">
-              {FAQ.map((item, i) => {
-                const isOpen = faqOpen === i;
-                return (
-                  <div
-                    key={i}
-                    className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setFaqOpen(isOpen ? null : i)}
-                      className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-vanilla-50/50 transition-colors"
-                    >
-                      <span className="text-[15px] font-display font-semibold text-gray-900">
-                        {item.q}
-                      </span>
-                      <ChevronIcon open={isOpen} />
-                    </button>
-                    <div
-                      className="grid transition-all duration-200 ease-in-out"
-                      style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-                    >
-                      <div className="overflow-hidden">
-                        <p className="px-5 pb-4 text-[15px] text-gray-500 leading-relaxed">
-                          {item.a}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* ── BOTTOM CTA ── */}
-        <section className="bg-vanilla-50 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-12 text-center">
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-6">
-                You&apos;re all set.
-              </h2>
-              <a
-                href="/provider"
-                className="inline-flex items-center gap-2.5 px-10 py-4 bg-gray-900 hover:bg-gray-800 text-white text-[17px] font-semibold rounded-full active:scale-[0.98] transition-all duration-200"
-              >
-                Back to dashboard
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                </svg>
-              </a>
-            </div>
-          </div>
-        </section>
+        </div>
       </div>
     );
   }
@@ -561,384 +387,260 @@ export default function OleraProPage() {
   // Canceled / Past Due View
   // =====================================================================
   if (isCanceled || isPastDue) {
-    const endedDate = membership?.current_period_ends_at
-      ? new Date(membership.current_period_ends_at).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
-      : null;
-
     return (
-      <div className="min-h-screen bg-white">
-        {previewToggle}
-        {/* ── HERO ── */}
-        <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50/60 border border-red-100/60 mb-8">
-              <XMarkIcon className="w-4 h-4 text-red-500" />
-              <span className="text-sm font-semibold text-red-600">Pro canceled</span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-[clamp(2.5rem,5vw,3.5rem)] font-display font-bold text-gray-900 leading-[1.1] tracking-tight">
-              We saved your spot.
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-lg text-gray-500 mt-6 leading-relaxed">
-              {isPastDue
-                ? "There was an issue with your payment. Update your billing to keep Pro."
-                : endedDate
-                  ? `Your Pro benefits ended on ${endedDate}. Pick up where you left off.`
-                  : "Your Pro benefits have ended. Pick up where you left off."}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-3xl">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-xl font-semibold text-gray-900">Olera Pro</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Re-subscribe to unlock all Pro features.
             </p>
+          </div>
 
-            {/* CTA */}
-            <div className="mt-10">
-              <button
-                onClick={handleSubscribe}
-                disabled={subscribing}
-                className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-600 hover:bg-primary-700 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
-              >
-                {subscribing ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    Resubscribe to Pro
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
-                  </>
-                )}
-              </button>
+          {/* Status card */}
+          <div className="bg-white rounded-xl border border-warm-200 p-6 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-warm-50 rounded-xl flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-warm-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[15px] font-semibold text-gray-900">
+                  {isPastDue ? "Payment issue" : "Subscription ended"}
+                </p>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {isPastDue
+                    ? "We couldn\u2019t process your last payment. Update your payment method to keep Pro features."
+                    : "Your Pro plan has been canceled. Re-subscribe to regain access."}
+                </p>
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* ── STATS STRIP ── */}
-        <section className="bg-vanilla-50 border-y border-warm-100/60 py-14 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { value: "3.2\u00d7", label: "more inquiries", detail: "vs. free listings" },
-                { value: "500+", label: "providers on Pro", detail: "and growing" },
-                { value: "89%", label: "fill rate", detail: "within 30 days" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="bg-white rounded-xl border border-warm-100/60 border-t-[3px] border-t-primary-400 px-6 py-5 text-center"
-                >
-                  <p className="text-3xl font-display font-bold text-gray-900 tracking-tight">
-                    {stat.value}
-                  </p>
-                  <p className="text-sm font-medium text-gray-700 mt-1">{stat.label}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{stat.detail}</p>
+          {/* What you're missing */}
+          <div className="bg-white rounded-xl border border-gray-100 p-6 mb-8">
+            <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+              What you&apos;re missing
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PRO_FEATURE_LIST.map((text) => (
+                <div key={text} className="flex items-center gap-2.5">
+                  <FeatureCheck included={false} />
+                  <span className="text-sm text-gray-500">{text}</span>
                 </div>
               ))}
             </div>
           </div>
-        </section>
 
-        {/* ── COMPARISON + PRICING (unified card) ── */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-display font-bold text-gray-900 text-center mb-8">
-              Why providers upgrade
+          {/* Re-subscribe CTA */}
+          <div className="bg-gray-50 rounded-xl p-8 text-center">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Pick up where you left off
             </h2>
+            <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+              Re-subscribe to unlock unlimited leads, review tools, and
+              analytics.
+            </p>
 
-            <ComparisonTable open={tableOpen} onToggle={() => setTableOpen(!tableOpen)}>
-              <div className="border-t border-gray-100 bg-vanilla-50/50 px-5 sm:px-6 py-10 text-center">
-                <div className="flex justify-center mb-5">
-                  <BillingToggle cycle={billingCycle} onChange={setBillingCycle} />
-                </div>
-
-                <div className="flex items-baseline justify-center gap-1 mb-2">
-                  <span className="text-5xl font-display font-bold text-gray-900 tracking-tight">
-                    ${billingCycle === "monthly" ? "25" : "249"}
-                  </span>
-                  <span className="text-lg text-gray-400 font-medium">
-                    /{billingCycle === "monthly" ? "mo" : "yr"}
-                  </span>
-                </div>
-
-                <p className="text-[15px] text-gray-500 mb-8">
-                  One new family more than covers it.
-                </p>
-
-                <button
-                  onClick={handleSubscribe}
-                  disabled={subscribing}
-                  className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-600 hover:bg-primary-700 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
-                >
-                  {subscribing ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      Resubscribe to Pro
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-
-                <p className="text-sm text-gray-400 mt-4">
-                  Instant reactivation &middot; Cancel anytime
-                </p>
-              </div>
-            </ComparisonTable>
-          </div>
-        </section>
-
-        <TestimonialCarousel testimonials={TESTIMONIALS} />
-
-        {/* ── FAQ ── */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl font-display font-bold text-gray-900 text-center mb-8">
-              Questions &amp; answers
-            </h2>
-            <div className="space-y-3">
-              {FAQ.map((item, i) => {
-                const isOpen = faqOpen === i;
-                return (
-                  <div
-                    key={i}
-                    className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setFaqOpen(isOpen ? null : i)}
-                      className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-vanilla-50/50 transition-colors"
-                    >
-                      <span className="text-[15px] font-display font-semibold text-gray-900">
-                        {item.q}
-                      </span>
-                      <ChevronIcon open={isOpen} />
-                    </button>
-                    <div
-                      className="grid transition-all duration-200 ease-in-out"
-                      style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-                    >
-                      <div className="overflow-hidden">
-                        <p className="px-5 pb-4 text-[15px] text-gray-500 leading-relaxed">
-                          {item.a}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex justify-center mb-5">
+              <BillingToggle cycle={billingCycle} onChange={setBillingCycle} />
             </div>
-          </div>
-        </section>
 
-        {/* ── BOTTOM CTA ── */}
-        <section className="bg-vanilla-50 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-12 text-center">
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-6">
-                Your families are waiting.
-              </h2>
-              <button
-                onClick={handleSubscribe}
-                disabled={subscribing}
-                className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-600 hover:bg-primary-700 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
-              >
-                {subscribing ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    Resubscribe to Pro
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
-                  </>
-                )}
-              </button>
-              <p className="text-sm text-gray-400 mt-4">
-                $25/mo &middot; Instant reactivation
-              </p>
+            <PriceDisplay cycle={billingCycle} centered />
+
+            <div className="mt-5">
+              <Button onClick={handleSubscribe} loading={subscribing}>
+                Re-subscribe to Pro
+              </Button>
             </div>
+            <p className="text-xs text-gray-400 mt-3">
+              Cancel anytime. No penalties.
+            </p>
           </div>
-        </section>
+        </div>
       </div>
     );
   }
 
   // =====================================================================
-  // Free / Trialing View (Landing Page)
+  // Free / Trialing View (Conversion Page)
   // =====================================================================
-
-  const priceLabel = billingCycle === "monthly" ? "$25/mo" : "$249/yr";
-
   return (
-    <div className="min-h-screen bg-white">
-      {previewToggle}
-      {/* ── HERO SECTION ── */}
-      <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-50/60 border border-primary-100/60 mb-8">
-            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-            </svg>
-            <span className="text-sm font-semibold text-primary-700">Olera Pro</span>
-          </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-gray-900">Olera Pro</h1>
+          {isTrial && trialDaysLeft !== null && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
+              <span className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
+              {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left in trial
+            </span>
+          )}
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          Everything you need to grow your care business online.
+        </p>
+      </div>
 
-          {/* Headline */}
-          <h1 className="text-[clamp(2.5rem,5vw,3.5rem)] font-display font-bold text-gray-900 leading-[1.1] tracking-tight">
-            More families.<br />
-            Less <span className="text-primary-600 italic">wondering</span>.
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-lg text-gray-500 mt-6 leading-relaxed">
-            Everything you need to fill your calendar.{" "}
-            <span className="font-semibold text-gray-700">{priceLabel}</span>.
+      <div className="max-w-3xl">
+        {/* Hero / Value Proposition */}
+        <div className="rounded-xl border border-primary-100 bg-gradient-to-br from-primary-50/60 via-white to-white p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 tracking-tight leading-tight">
+            Convert more leads with{" "}
+            <span className="text-primary-600">Olera Pro</span>
+          </h2>
+          <p className="text-base text-gray-600 mt-3 leading-relaxed max-w-lg">
+            Get priority placement, unlimited leads, review tools, and full
+            analytics. Everything you need to fill your calendar.
           </p>
 
-          {/* Trial badge */}
-          {isTrial && trialDaysLeft !== null && (
-            <div className="mt-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary-50 text-primary-700">
-                <span className="w-1.5 h-1.5 bg-primary-500 rounded-full" />
-                {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left in trial
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-6">
+            <div className="space-y-3">
+              <BillingToggle cycle={billingCycle} onChange={setBillingCycle} />
+              <PriceDisplay cycle={billingCycle} />
+            </div>
+            <div className="sm:ml-auto">
+              <Button onClick={handleSubscribe} loading={subscribing} size="md">
+                Subscribe to Pro
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Benefit Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {BENEFITS.map((b) => (
+            <div
+              key={b.title}
+              className="bg-white rounded-xl border border-gray-100 p-5 hover:border-primary-200 hover:shadow-sm transition-all duration-200"
+            >
+              <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center text-primary-600 mb-3">
+                {b.icon}
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900">{b.title}</h3>
+              <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">
+                {b.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Plan Comparison */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* Basic */}
+          <div className="bg-white rounded-xl border border-gray-100 p-6">
+            <div className="mb-5 pb-5 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <h3 className="text-[15px] font-semibold text-gray-900">
+                  Basic
+                </h3>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                  Current plan
+                </span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">Free forever</p>
+            </div>
+            <div className="space-y-3">
+              {PLAN_FEATURES.map((f) => {
+                const included =
+                  typeof f.basic === "boolean" ? f.basic : true;
+                const label =
+                  typeof f.basic === "string" ? f.basic : f.text;
+                return (
+                  <div key={f.text} className="flex items-center gap-2.5">
+                    <FeatureCheck included={included} />
+                    <span
+                      className={`text-sm ${included ? "text-gray-700" : "text-gray-400"}`}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Pro */}
+          <div className="bg-white rounded-xl border-2 border-primary-200 p-6 relative">
+            <div className="absolute -top-3 left-5">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-600 text-white">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                </svg>
+                Recommended
               </span>
             </div>
-          )}
-
-          {/* CTA */}
-          <div className="mt-10">
-            <button
-              onClick={handleSubscribe}
-              disabled={subscribing}
-              className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-600 hover:bg-primary-700 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
-            >
-              {subscribing ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Try Pro free for 14 days
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS STRIP ── */}
-      <section className="bg-vanilla-50 border-y border-warm-100/60 py-14 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { value: "3.2\u00d7", label: "more inquiries", detail: "vs. free listings" },
-              { value: "500+", label: "providers on Pro", detail: "and growing" },
-              { value: "89%", label: "fill rate", detail: "within 30 days" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-white rounded-xl border border-warm-100/60 border-t-[3px] border-t-primary-400 px-6 py-5 text-center"
-              >
-                <p className="text-3xl font-display font-bold text-gray-900 tracking-tight">
-                  {stat.value}
-                </p>
-                <p className="text-sm font-medium text-gray-700 mt-1">{stat.label}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{stat.detail}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── COMPARISON + PRICING (unified card) ── */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-display font-bold text-gray-900 text-center mb-8">
-            Why providers upgrade
-          </h2>
-
-          <ComparisonTable open={tableOpen} onToggle={() => setTableOpen(!tableOpen)}>
-            <div className="border-t border-gray-100 bg-vanilla-50/50 px-5 sm:px-6 py-10 text-center">
-              <div className="flex justify-center mb-5">
-                <BillingToggle cycle={billingCycle} onChange={setBillingCycle} />
-              </div>
-
-              <div className="flex items-baseline justify-center gap-1 mb-2">
-                <span className="text-5xl font-display font-bold text-gray-900 tracking-tight">
-                  ${billingCycle === "monthly" ? "25" : "249"}
-                </span>
-                <span className="text-lg text-gray-400 font-medium">
-                  /{billingCycle === "monthly" ? "mo" : "yr"}
-                </span>
-              </div>
-
-              <p className="text-[15px] text-gray-500 mb-8">
-                One new family more than covers it.
-              </p>
-
-              <button
-                onClick={handleSubscribe}
-                disabled={subscribing}
-                className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-600 hover:bg-primary-700 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
-              >
-                {subscribing ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    Start your free trial
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
-                  </>
+            <div className="mb-5 pb-5 border-b border-gray-100">
+              <h3 className="text-[15px] font-semibold text-gray-900">Pro</h3>
+              <p className="text-sm text-gray-500 mt-1">
+                ${billingCycle === "monthly" ? "25/mo" : "249/yr"}
+                {billingCycle === "annual" && (
+                  <span className="text-primary-600 font-medium">
+                    {" "}&middot; Save 17%
+                  </span>
                 )}
-              </button>
-
-              <p className="text-sm text-gray-400 mt-4">
-                14-day free trial &middot; Cancel anytime &middot; No contracts
               </p>
             </div>
-          </ComparisonTable>
+            <div className="space-y-3">
+              {PLAN_FEATURES.map((f) => {
+                const label =
+                  typeof f.pro === "string"
+                    ? f.pro
+                    : f.proLabel || f.text;
+                return (
+                  <div key={f.text} className="flex items-center gap-2.5">
+                    <FeatureCheck included />
+                    <span className="text-sm text-gray-700">{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6">
+              <Button
+                onClick={handleSubscribe}
+                loading={subscribing}
+                fullWidth
+              >
+                Get started
+              </Button>
+            </div>
+          </div>
         </div>
-      </section>
 
-      <TestimonialCarousel testimonials={TESTIMONIALS} />
-
-      {/* ── FAQ ── */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-display font-bold text-gray-900 text-center mb-8">
-            Questions &amp; answers
+        {/* FAQ */}
+        <div className="mb-8">
+          <h2 className="text-[15px] font-semibold text-gray-900 mb-4">
+            Frequently asked questions
           </h2>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {FAQ.map((item, i) => {
               const isOpen = faqOpen === i;
               return (
                 <div
                   key={i}
-                  className="bg-white rounded-2xl border border-gray-200/80 overflow-hidden"
+                  className="bg-white rounded-xl border border-gray-100 overflow-hidden"
                 >
                   <button
                     type="button"
                     onClick={() => setFaqOpen(isOpen ? null : i)}
-                    className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-vanilla-50/50 transition-colors"
+                    className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
                   >
-                    <span className="text-[15px] font-display font-semibold text-gray-900">
+                    <span className="text-sm font-medium text-gray-900">
                       {item.q}
                     </span>
                     <ChevronIcon open={isOpen} />
                   </button>
                   <div
                     className="grid transition-all duration-200 ease-in-out"
-                    style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+                    style={{
+                      gridTemplateRows: isOpen ? "1fr" : "0fr",
+                    }}
                   >
                     <div className="overflow-hidden">
-                      <p className="px-5 pb-4 text-[15px] text-gray-500 leading-relaxed">
+                      <p className="px-5 pb-4 text-sm text-gray-500 leading-relaxed">
                         {item.a}
                       </p>
                     </div>
@@ -948,37 +650,24 @@ export default function OleraProPage() {
             })}
           </div>
         </div>
-      </section>
 
-      {/* ── BOTTOM CTA ── */}
-      <section className="bg-vanilla-50 py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm px-8 py-12 text-center">
-            <h2 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 mb-6">
-              One new family covers the cost.
-            </h2>
-            <button
-              onClick={handleSubscribe}
-              disabled={subscribing}
-              className="inline-flex items-center gap-2.5 px-10 py-4 bg-primary-600 hover:bg-primary-700 text-white text-[17px] font-semibold rounded-full shadow-[0_2px_8px_rgba(25,144,135,0.25)] hover:shadow-[0_4px_16px_rgba(25,144,135,0.35)] active:scale-[0.98] transition-all duration-200"
-            >
-              {subscribing ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Start your free trial
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
-                </>
-              )}
-            </button>
-            <p className="text-sm text-gray-400 mt-4">
-              14-day free trial &middot; Cancel anytime
-            </p>
-          </div>
+        {/* Bottom CTA */}
+        <div className="bg-gray-50 rounded-xl p-8 text-center">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Ready to grow your business?
+          </h2>
+          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+            Join providers who are filling their calendars with Olera Pro.
+          </p>
+          <Button onClick={handleSubscribe} loading={subscribing} size="md">
+            Subscribe to Pro &mdash; $
+            {billingCycle === "monthly" ? "25/mo" : "249/yr"}
+          </Button>
+          <p className="text-xs text-gray-400 mt-3">
+            Cancel anytime. No long-term contracts.
+          </p>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

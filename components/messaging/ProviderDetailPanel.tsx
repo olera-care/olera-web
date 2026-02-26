@@ -76,7 +76,7 @@ export default function ProviderDetailPanel({
     <div className={`flex flex-col bg-white border-l border-gray-200 ${className}`}>
       {/* Header */}
       <div className="shrink-0 px-[44px] h-[68px] border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-lg font-display font-semibold text-gray-900">Details</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Details</h3>
         <button
           onClick={onClose}
           className="w-[44px] h-[44px] rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
@@ -141,7 +141,7 @@ export default function ProviderDetailPanel({
 
         {/* Provider info */}
         <div className="px-[44px] py-5">
-          <h2 className="text-xl font-display font-bold text-gray-900 leading-tight">
+          <h2 className="text-xl font-bold text-gray-900 leading-tight">
             {profile.display_name}
           </h2>
           {category && (

@@ -40,7 +40,11 @@ export interface Provider {
     rateType: string; // e.g., "per month"
   }[];
   // Staff screening & safety
-  staffScreening?: string[];
+  staffScreening?: {
+    background_checked: boolean;
+    licensed: boolean;
+    insured: boolean;
+  };
   // Reviews
   reviews?: {
     name: string;

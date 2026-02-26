@@ -83,7 +83,7 @@ export function useProviderDashboardData(profile: Profile | null) {
       setMetadata(baseMeta);
       setLoading(false);
     }
-  }, [profile]);
+  }, [profile?.id, profile?.source_provider_id]);
 
   return { metadata, loading };
 }

@@ -20,11 +20,8 @@ export default function Error({
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           Something went wrong
         </h1>
-        <p className="text-lg text-gray-600 mb-4">
+        <p className="text-lg text-gray-600 mb-8">
           An unexpected error occurred. Please try again.
-        </p>
-        <p className="text-xs text-gray-400 mb-8 font-mono break-all">
-          {error.message}
         </p>
         <button
           onClick={reset}

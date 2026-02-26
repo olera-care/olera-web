@@ -6,22 +6,19 @@ import SectionEmptyState from "@/components/providers/SectionEmptyState";
 interface CareServicesCardProps {
   profile: Profile;
   completionPercent: number;
-  onEdit?: () => void;
 }
 
 export default function CareServicesCard({
   profile,
   completionPercent,
-  onEdit,
 }: CareServicesCardProps) {
-  const services: string[] = Array.isArray(profile.care_types) ? [...profile.care_types] : [];
+  const services: string[] = [...(profile.care_types ?? [])];
 
   return (
     <DashboardSectionCard
       title="Care Services"
       completionPercent={completionPercent}
       id="services"
-      onEdit={onEdit}
     >
       {services.length === 0 ? (
         <SectionEmptyState

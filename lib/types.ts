@@ -80,6 +80,9 @@ export interface BusinessProfile {
   verification_state: VerificationState;
   source: ProfileSource;
   is_active: boolean;
+  deletion_requested: boolean;
+  deletion_requested_at: string | null;
+  deletion_approved_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -126,16 +129,9 @@ export interface OrganizationMetadata {
   staff_count?: number;
   accepts_medicaid?: boolean;
   accepts_medicare?: boolean;
-  accepted_payments?: string[];
   amenities?: string[];
   hours?: string;
   price_range?: string;
-  // Verification fields
-  verification_id_type?: string;
-  verification_id_image?: string;
-  verification_manager_photo?: string;
-  verification_role?: string;
-  verification_affiliation_image?: string;
 }
 
 export interface CaregiverMetadata {

@@ -25,23 +25,28 @@ export default function ProfileCompletenessSidebar({
   });
 
   return (
-    <div className="bg-gradient-to-b from-white to-vanilla-50 rounded-2xl border border-gray-200/80 shadow-sm p-6">
+    <div className="bg-white rounded-xl border border-gray-100 p-6">
       {/* Header */}
-      <h3 className="text-lg font-display font-bold text-gray-900 mb-5">
+      <h3 className="text-lg font-semibold text-gray-900 mb-5">
         Profile completeness
       </h3>
 
       {/* Circular progress */}
-      <div className="flex justify-center mb-2">
-        <CircularProgress percent={completeness.overall} size={100} strokeWidth={8} />
+      <div className="flex justify-center mb-3">
+        <CircularProgress percent={completeness.overall} size={140} />
       </div>
 
       {/* Status text */}
-      <p className="text-center text-sm font-semibold tracking-wide uppercase text-gray-900 font-display mb-0.5">
+      <p className="text-center text-xs font-semibold tracking-wide uppercase text-gray-900 mb-1">
         {getStatusText(completeness.overall)}
       </p>
-      <p className="text-center text-xs text-gray-400 mb-5">
+      <p className="text-center text-sm text-gray-400 mb-6">
         Last updated: {formattedDate}
+      </p>
+
+      {/* CTA */}
+      <p className="text-[15px] font-medium text-gray-600 mb-4">
+        Complete your profile to attract more clients
       </p>
 
       {/* Section checklist */}
@@ -49,14 +54,13 @@ export default function ProfileCompletenessSidebar({
         {completeness.sections.map((section) => {
           const isComplete = section.percent >= 100;
           return (
-            <a
+            <div
               key={section.id}
-              href={`#${section.id}`}
-              className="flex items-center justify-between py-2.5 px-2.5 -mx-2.5 rounded-lg hover:bg-vanilla-100 transition-colors cursor-pointer"
+              className="flex items-center justify-between py-2"
             >
               <div className="flex items-center gap-2.5">
                 {isComplete ? (
-                  <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                  <div className="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center shrink-0">
                     <svg
                       className="w-3 h-3 text-white"
                       fill="none"
@@ -78,7 +82,7 @@ export default function ProfileCompletenessSidebar({
                   className={`text-[15px] ${
                     isComplete
                       ? "text-primary-600 font-medium"
-                      : "text-gray-700"
+                      : "text-gray-600"
                   }`}
                 >
                   {section.label}
@@ -89,7 +93,7 @@ export default function ProfileCompletenessSidebar({
                   {section.percent}%
                 </span>
               )}
-            </a>
+            </div>
           );
         })}
       </div>

@@ -64,6 +64,12 @@ function SettingsContent() {
   const [deleteProfileError, setDeleteProfileError] = useState("");
   const [deleteProfileConfirmText, setDeleteProfileConfirmText] = useState("");
 
+  // Request listing deletion
+  const [showDeletionRequestModal, setShowDeletionRequestModal] = useState(false);
+  const [requestingDeletion, setRequestingDeletion] = useState(false);
+  const [deletionRequestError, setDeletionRequestError] = useState("");
+  const [deletionRequestSuccess, setDeletionRequestSuccess] = useState(false);
+
   const isProvider =
     activeProfile?.type === "organization" ||
     activeProfile?.type === "caregiver";
@@ -238,6 +244,41 @@ function SettingsContent() {
     }
   };
 
+  // ── Request listing deletion ──
+  const handleRequestDeletion = async () => {
+    if (!activeProfile) return;
+    setRequestingDeletion(true);
+    setDeletionRequestError("");
+
+    try {
+      const res = await fetch("/api/portal/request-deletion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: activeProfile.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to submit deletion request");
+      }
+
+      setDeletionRequestSuccess(true);
+      setShowDeletionRequestModal(false);
+      await refreshAccountData();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Something went wrong";
+      setDeletionRequestError(msg);
+    } finally {
+      setRequestingDeletion(false);
+    }
+  };
+
+  const canRequestDeletion =
+    isProvider && !!activeProfile?.source_provider_id && !activeProfile?.deletion_requested;
+
   // ── Stripe upgrade ──
   const handleUpgrade = async (billingCycle: "monthly" | "annual") => {
     setLoading(billingCycle);
@@ -267,15 +308,15 @@ function SettingsContent() {
   return (
     <div className="max-w-2xl">
       {justUpgraded && (
-        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-base mb-5">
+        <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base mb-5">
           Your subscription is now active. You have full access to all features.
         </div>
       )}
 
-      <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
+      <div className="rounded-xl bg-white border border-gray-200 divide-y divide-gray-100">
       {/* ── Notifications ── */}
       <div className="p-6">
-        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Notifications</h3>
+        <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Notifications</h3>
         <div className="divide-y divide-gray-50">
           <NotificationRow
             title="Connection updates"
@@ -318,7 +359,7 @@ function SettingsContent() {
 
       {/* ── Account ── */}
       <div className="p-6">
-        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Account</h3>
+        <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Account</h3>
         <div className="divide-y divide-gray-100">
           <AccountRow
             label="Email"
@@ -374,9 +415,9 @@ function SettingsContent() {
           onClick={() => setShowProviderModal(true)}
           className="w-full text-left flex items-center gap-4 rounded-lg p-4 hover:bg-gray-50 transition-colors group -mx-1"
         >
-          <div className="w-12 h-12 rounded-xl bg-warm-100/60 flex items-center justify-center shrink-0 group-hover:bg-warm-100 transition-colors">
+          <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
             <svg
-              className="w-6 h-6 text-gray-500"
+              className="w-6 h-6 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -390,7 +431,7 @@ function SettingsContent() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-lg font-display font-bold text-gray-900">
+            <p className="text-[15px] font-semibold text-gray-900">
               {isProvider ? "Add another provider profile" : "Add a provider profile"}
             </p>
             <p className="text-xs text-gray-400">
@@ -400,7 +441,7 @@ function SettingsContent() {
             </p>
           </div>
           <svg
-            className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-gray-500 transition-colors"
+            className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-primary-400 transition-colors"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -423,9 +464,9 @@ function SettingsContent() {
         size="sm"
       >
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-warm-100/60 flex items-center justify-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
             <svg
-              className="w-6 h-6 text-gray-500"
+              className="w-6 h-6 text-primary-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -472,7 +513,7 @@ function SettingsContent() {
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
         <div className="p-6">
-          <h3 className="text-lg font-display font-bold text-gray-900 mb-5">
+          <h3 className="text-[15px] font-semibold text-gray-900 mb-5">
             Subscription
           </h3>
 
@@ -550,7 +591,7 @@ function SettingsContent() {
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
+                <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-primary-300 transition-colors">
                   <p className="text-lg font-semibold text-gray-900">
                     Monthly
                   </p>
@@ -570,8 +611,8 @@ function SettingsContent() {
                     Subscribe Monthly
                   </Button>
                 </div>
-                <div className="border-2 border-gray-900 rounded-xl p-5 relative">
-                  <div className="absolute -top-3 right-4 bg-gray-900 text-white text-sm font-semibold px-3 py-1 rounded-full">
+                <div className="border-2 border-primary-300 rounded-xl p-5 relative">
+                  <div className="absolute -top-3 right-4 bg-primary-600 text-white text-sm font-semibold px-3 py-1 rounded-full">
                     Save 17%
                   </div>
                   <p className="text-lg font-semibold text-gray-900">
@@ -600,11 +641,71 @@ function SettingsContent() {
         </div>
       )}
 
+      {/* ── Request Listing Deletion (claimed providers only) ── */}
+      {isProvider && (
+        <div className="p-6">
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0 mt-0.5">
+                <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[15px] font-semibold text-gray-900">
+                  Request Listing Deletion
+                </h4>
+                {activeProfile.deletion_requested ? (
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span className="text-xs font-medium text-amber-700">
+                        Deletion requested — under review
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      We&apos;ll review your request and remove this listing within 2-3 business days.
+                    </p>
+                  </div>
+                ) : deletionRequestSuccess ? (
+                  <div className="mt-2">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
+                      <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-xs font-medium text-green-700">
+                        Deletion request submitted
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      We&apos;ll review your request and remove this listing within 2-3 business days.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-400 mt-1">
+                      We&apos;ll review your request and remove this listing within 2-3 business days. This cannot be undone.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeletionRequestModal(true)}
+                      className="mt-3 text-sm font-medium text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      Request Deletion
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Remove this profile ── */}
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-display font-bold text-gray-900">
+            <h3 className="text-[15px] font-semibold text-gray-900">
               Remove this profile
             </h3>
             <p className="text-xs text-gray-400 mt-1">
@@ -635,7 +736,7 @@ function SettingsContent() {
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-lg font-display font-bold text-gray-900">
+            <h3 className="text-[15px] font-semibold text-gray-900">
               Delete account
             </h3>
             <p className="text-xs text-gray-400 mt-1">
@@ -736,6 +837,75 @@ function SettingsContent() {
         </div>
       </Modal>
 
+      {/* Request Listing Deletion Confirmation Modal */}
+      <Modal
+        isOpen={showDeletionRequestModal}
+        onClose={() => {
+          setShowDeletionRequestModal(false);
+          setDeletionRequestError("");
+        }}
+        title="Request Listing Deletion"
+        size="sm"
+      >
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            Approving will soft-delete{" "}
+            <span className="font-semibold text-gray-900">
+              {activeProfile?.display_name}
+            </span>
+            . You can contact support if you change your mind before the request is processed.
+          </p>
+          <ul className="space-y-2 mb-5">
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Your listing will be removed from search results
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Families will no longer be able to find or contact you through Olera
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Review takes 2-3 business days
+            </li>
+          </ul>
+
+          {deletionRequestError && (
+            <div className="mb-4 bg-red-50 text-red-700 px-3 py-2.5 rounded-lg text-sm">
+              {deletionRequestError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeletionRequestModal(false);
+                setDeletionRequestError("");
+              }}
+              disabled={requestingDeletion}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 px-3 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleRequestDeletion}
+              disabled={requestingDeletion}
+              className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
+            >
+              {requestingDeletion ? "Submitting..." : "Request Deletion"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       {/* Remove Profile Confirmation Modal */}
       <Modal
         isOpen={showDeleteProfileModal}
@@ -769,7 +939,7 @@ function SettingsContent() {
               Delete all connections for this profile
             </li>
             <li className="flex items-start gap-2.5 text-sm text-gray-600">
-              <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               You can add a new profile later from the profile switcher

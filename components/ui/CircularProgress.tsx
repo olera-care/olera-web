@@ -53,7 +53,7 @@ export default function CircularProgress({
         y="50%"
         dominantBaseline="central"
         textAnchor="middle"
-        className={`font-bold fill-gray-900 ${size <= 100 ? "text-xl" : "text-2xl"}`}
+        className="text-2xl font-bold fill-gray-900"
       >
         {percent}%
       </text>

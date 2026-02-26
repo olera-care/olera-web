@@ -11,19 +11,6 @@ function getAdminClient() {
   return createClient(url, serviceKey);
 }
 
-const REACH_OUT_MESSAGES = [
-  (name: string, city: string) =>
-    `We'd love to help with your mother's care. Our team at ${name} specializes in companion care with a focus on daily living support — meal prep, light housekeeping, and medication reminders are exactly what we do best. We have caregivers available in your area who can start within the week.`,
-  (name: string, city: string) =>
-    `Hi! I noticed your care post and wanted to reach out. ${name} has been serving families in ${city} for years, and your needs align well with the services we provide. We'd love to set up a free consultation to discuss how we can help.`,
-  (name: string, city: string) =>
-    `Your family's care needs caught our attention. At ${name}, we understand how important it is to find the right provider. We offer flexible scheduling and personalized care plans. Would love to connect and learn more about what you're looking for.`,
-  (name: string, city: string) =>
-    `We saw your care post and believe we can be a great fit. ${name} provides experienced, compassionate caregivers right here in ${city}. Let's start a conversation about how we can support your family.`,
-  (name: string, city: string) =>
-    `Hello! ${name} would be honored to help care for your loved one. We have availability in the ${city} area and our team is experienced with the specific care needs you described. Looking forward to connecting with you.`,
-];
-
 /**
  * POST /api/dev/seed-interested
  *
@@ -150,11 +137,12 @@ export async function POST() {
       }
 
       // Payment method overlap
-      const provPayments: string[] = (providerMeta?.accepted_payments as string[]) || [];
-      if (provPayments.includes("Medicaid") && seekerPayments.includes("Medicaid")) {
+      const provAcceptsMedicaid = providerMeta?.accepts_medicaid === true;
+      if (provAcceptsMedicaid && seekerPayments.includes("Medicaid")) {
         reasons.push("Accepts Medicaid");
       }
-      if (provPayments.includes("Medicare")) {
+      const provAcceptsMedicare = providerMeta?.accepts_medicare === true;
+      if (provAcceptsMedicare) {
         reasons.push("Accepts Medicare");
       }
 
@@ -195,7 +183,7 @@ export async function POST() {
           status: "pending",
           from_profile_id: provider.id,
           to_profile_id: careSeekerProfileId,
-          message: REACH_OUT_MESSAGES[i % REACH_OUT_MESSAGES.length](provider.display_name, provider.city || seekerCity),
+          message: null,
           metadata: {
             match_reasons: matchReasons,
             viewed: false,

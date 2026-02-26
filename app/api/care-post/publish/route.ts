@@ -5,7 +5,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
  * POST /api/care-post/publish
  *
  * Updates metadata.care_post on the user's business_profiles record.
- * Actions: "publish" | "deactivate" | "delete"
+ * Actions: "publish" | "deactivate"
  */
 export async function POST(request: Request) {
   try {
@@ -20,12 +20,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { action, reasons } = body as {
-      action: "publish" | "deactivate" | "delete";
-      reasons?: string[];
-    };
+    const { action } = body as { action: "publish" | "deactivate" };
 
-    if (!action || !["publish", "deactivate", "delete"].includes(action)) {
+    if (!action || !["publish", "deactivate"].includes(action)) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
@@ -57,16 +54,6 @@ export async function POST(request: Request) {
         status: "active",
         published_at: new Date().toISOString(),
       };
-    } else if (action === "delete") {
-      // Store deletion metadata for analytics, then remove the care post
-      metadata.care_post_deleted = {
-        deleted_at: new Date().toISOString(),
-        reasons: reasons || [],
-        ...(typeof metadata.care_post === "object" && metadata.care_post !== null
-          ? { published_at: (metadata.care_post as Record<string, unknown>).published_at }
-          : {}),
-      };
-      delete metadata.care_post;
     } else {
       metadata.care_post = {
         status: "paused",

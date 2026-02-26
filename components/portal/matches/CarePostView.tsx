@@ -167,11 +167,11 @@ export default function CarePostView({
             Let providers find you
           </h3>
           <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-[380px] mx-auto">
-            Post your care need so qualified providers in your area can reach
-            out to you directly. We&apos;ll use your existing profile details.
+            Share your care profile so qualified providers in your area can reach
+            out to you directly.
           </p>
           <Button size="sm" onClick={() => setStep("review")}>
-            Create Care Post
+            Share Care Profile
           </Button>
         </div>
       </div>
@@ -212,7 +212,7 @@ export default function CarePostView({
               Back
             </button>
             <h3 className="text-lg font-semibold text-gray-900 mb-1">
-              Review your care post
+              Review your care profile
             </h3>
             <p className="text-sm text-gray-500">
               This is what providers will see.
@@ -349,7 +349,7 @@ export default function CarePostView({
                 disabled={!reviewFields.filter((f) => f.required).every((f) => f.value)}
                 className="w-full"
               >
-                Publish Post
+                Publish
               </Button>
             </div>
           </div>
@@ -376,7 +376,7 @@ export default function CarePostView({
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-primary-600" />
               <span className="text-sm font-semibold text-primary-600">
-                Active care post
+                Active care profile
               </span>
             </div>
             <span className="text-xs text-gray-400">Posted {publishedDate}</span>
@@ -451,7 +451,7 @@ export default function CarePostView({
           <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex gap-2.5 rounded-b-2xl">
             <Link href="/portal/profile" className="flex-1">
               <button className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                <PencilIcon /> Edit post
+                <PencilIcon /> Edit profile
               </button>
             </Link>
             <button

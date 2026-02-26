@@ -297,7 +297,7 @@ function SettingsContent() {
           />
           <NotificationRow
             title="Match updates"
-            description="New provider matches and care post responses"
+            description="New provider matches and care profile responses"
             emailOn={notifPrefs.match_updates?.email ?? true}
             smsOn={notifPrefs.match_updates?.sms ?? false}
             onToggle={(channel) =>

@@ -265,7 +265,7 @@ function MatchesEmptyState() {
           No families found yet
         </h3>
         <p className="text-[15px] text-gray-500 mt-2 leading-relaxed max-w-sm">
-          When families publish care posts matching your services and location,
+          When families publish care profiles matching your services and location,
           they&apos;ll appear here. Check back soon.
         </p>
       </div>

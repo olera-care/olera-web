@@ -119,7 +119,7 @@ export default function EditCarePostModal({
     );
   }
 
-  const hasChanges = true; // Always allow saving since we're editing a care post
+  const hasChanges = true; // Always allow saving since we're editing a care profile
 
   async function handleSave() {
     // If not last step, just advance
@@ -170,7 +170,7 @@ export default function EditCarePostModal({
     <Modal
       isOpen
       onClose={onClose}
-      title="Edit care post"
+      title="Edit care profile"
       size="2xl"
       footer={
         <ModalFooter

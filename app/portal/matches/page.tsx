@@ -41,26 +41,23 @@ function MatchesContent() {
   const subtitle = (() => {
     if (hasPost && totalInterested === 0) {
       return isActive
-        ? "Your care post is live — providers are looking."
-        : "Your care post is paused. Resume to get new matches.";
+        ? "Your care profile is live — providers are looking."
+        : "Your care profile is paused. Resume to get new matches.";
     }
     if (totalInterested > 0) {
       if (isActive) {
         return `${totalInterested} provider${totalInterested === 1 ? "" : "s"} interested in your care needs.`;
       }
       if (isPaused) {
-        return "Your post is paused, but you can still review matches.";
+        return "Your profile is paused, but you can still review matches.";
       }
       return "Review providers who reached out.";
     }
-    if (step === "review") return "Review your care post before publishing.";
+    if (step === "review") return "Review your care profile before publishing.";
     return "Discover providers or let them find you.";
   })();
 
-  const hasRequiredFields =
-    activeProfile?.care_types?.length && activeProfile?.state;
-
-  // Care Post handlers
+  // Care Profile handlers
   const handlePublish = useCallback(async () => {
     const res = await fetch("/api/care-post/publish", {
       method: "POST",
@@ -96,62 +93,7 @@ function MatchesContent() {
     }
   }, [refreshAccountData, totalInterested]);
 
-  // Profile guard
-  if (!hasRequiredFields) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
-        <div className="mb-6">
-          <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-          <p className="text-[15px] text-gray-500 mt-1">
-            Discover providers or let them find you.
-          </p>
-        </div>
-
-        <div className="max-w-2xl">
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-            <div className="px-8 pt-10 pb-8 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-5">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-primary-500">
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
-                Complete your profile first
-              </h3>
-              <p className="text-[15px] text-gray-500 leading-relaxed max-w-[380px] mx-auto mb-7">
-                We need your care type preferences and location to find providers
-                that match your needs.
-              </p>
-              <button
-                onClick={() => setEditModalOpen(true)}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
-              >
-                Complete profile
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {activeProfile && editModalOpen && (
-          <EditCarePostModal
-            profile={activeProfile}
-            userEmail={user?.email}
-            onClose={() => setEditModalOpen(false)}
-            onSaved={async () => {
-              setEditModalOpen(false);
-              await refreshAccountData();
-            }}
-          />
-        )}
-      </div>
-      </div>
-    );
-  }
-
-  // ── DEFAULT STATE — no care post and no interested providers ──
+  // ── DEFAULT STATE — no care profile and no interested providers ──
   if (step === "default" && !hasPost && totalInterested === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -190,20 +132,19 @@ function MatchesContent() {
                 Let providers find you
               </h3>
               <p className="text-[15px] text-gray-500 leading-relaxed max-w-[380px] mx-auto mb-7">
-                Publish a care post and qualified providers in your area will
-                reach out directly. We use your existing profile — it only takes
-                a moment.
+                Share your care profile and qualified providers in your area will
+                reach out directly. It only takes a moment.
               </p>
 
               <button
-                onClick={() => setStep("review")}
+                onClick={() => setEditModalOpen(true)}
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                Create your care post
+                Share your care profile
               </button>
             </div>
 
@@ -232,8 +173,8 @@ function MatchesContent() {
                 <div className="overflow-hidden">
                   <div className="px-8 pb-6 space-y-4 border-t border-warm-100/60 pt-4">
                     {[
-                      { num: 1, bold: "Create your care post", rest: "— we use your existing profile details" },
-                      { num: 2, bold: "Providers review", rest: "your post and reach out if they're a good fit" },
+                      { num: 1, bold: "Share your care profile", rest: "— we use your existing profile details" },
+                      { num: 2, bold: "Providers review", rest: "your profile and reach out if they're a good fit" },
                       { num: 3, bold: "You choose", rest: "— review their profiles and start a conversation" },
                     ].map((s) => (
                       <div key={s.num} className="flex items-start gap-3">
@@ -251,12 +192,25 @@ function MatchesContent() {
             </div>
           </div>
         </div>
+
+        {activeProfile && editModalOpen && (
+          <EditCarePostModal
+            profile={activeProfile}
+            userEmail={user?.email}
+            onClose={() => setEditModalOpen(false)}
+            onSaved={async () => {
+              setEditModalOpen(false);
+              await refreshAccountData();
+              setStep("review");
+            }}
+          />
+        )}
       </div>
       </div>
     );
   }
 
-  // ── REVIEW STATE — reviewing care post before publishing ──
+  // ── REVIEW STATE — reviewing care profile before publishing ──
   if (step === "review" && !hasPost) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -285,7 +239,7 @@ function MatchesContent() {
     );
   }
 
-  // ── WAITING STATE — care post exists (active/paused) but no providers yet ──
+  // ── WAITING STATE — care profile exists (active/paused) but no providers yet ──
   if (hasPost && totalInterested === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -323,10 +277,10 @@ function MatchesContent() {
                 `}</style>
 
                 <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
-                  Your post is out there
+                  Your profile is out there
                 </h3>
                 <p className="text-[15px] text-gray-500 leading-relaxed max-w-[420px] mx-auto">
-                  Providers in your area are reviewing posts daily.
+                  Providers in your area are reviewing profiles daily.
                   We&apos;ll email you when someone reaches out.
                 </p>
               </div>
@@ -369,7 +323,7 @@ function MatchesContent() {
     );
   }
 
-  // ── ACTIVE STATE — providers interested (regardless of post status), show grid ──
+  // ── ACTIVE STATE — providers interested (regardless of profile status), show grid ──
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">

@@ -218,7 +218,7 @@ export default function InterestedCard({
             You&apos;re connected!
           </h3>
           <p className="text-[14px] text-gray-500 leading-relaxed max-w-[360px] mx-auto mb-5">
-            Your details have been shared with this provider. They&apos;ll see your care post and can reply directly.
+            Your details have been shared with this provider. They&apos;ll see your care profile and can reply directly.
           </p>
 
           {/* Provider mini card */}

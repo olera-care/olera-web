@@ -27,6 +27,8 @@ export default function Navbar() {
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
   const profileIds = (profiles || []).map((p) => p.id);
   const unreadInboxCount = useUnreadInboxCount(profileIds);
+  const providerProfileIds = (profiles || []).filter((p) => p.type !== "family").map((p) => p.id);
+  const providerInboxCount = useUnreadInboxCount(providerProfileIds);
   const { pendingCount: matchesPendingCount } = useInterestedProviders(
     activeProfile?.type === "family" ? activeProfile?.id : undefined
   );
@@ -536,8 +538,8 @@ export default function Navbar() {
                   <>
                     {([
                       { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: unreadInboxCount },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 3 },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 0 },
                       { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
                       { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {
@@ -806,8 +808,8 @@ export default function Navbar() {
                   <>
                     {([
                       { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: unreadInboxCount },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 3 },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 0 },
                       { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
                       { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {

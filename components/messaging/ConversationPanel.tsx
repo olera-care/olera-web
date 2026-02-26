@@ -10,6 +10,7 @@ interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
   activeProfile: Profile | null;
   onMessageSent: (connectionId: string, thread: ThreadMessage[]) => void;
+  onSendMessage?: (connectionId: string, text: string) => Promise<ThreadMessage[]>;
   onCareRequestUpdated?: (connectionId: string, message: string, metadata: Record<string, unknown>) => void;
   onBack?: () => void;
   detailOpen?: boolean;
@@ -127,12 +128,14 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 // ── Care Request Card ──
 
-function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, editable, connectionId, autoIntro, onUpdated }: {
+function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, editable, connectionId, autoIntro, onUpdated }: {
   careRequest: CareRequestData;
   time: string;
   dateStr: string;
   isInbound: boolean;
   otherName: string;
+  otherInitial: string;
+  imageUrl?: string | null;
   editable: boolean;
   connectionId: string;
   autoIntro?: string | null;
@@ -142,9 +145,22 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, edi
   const senderName = careRequest.seekerName;
 
   return (
-    <div className="flex justify-end">
+    <div className={isInbound ? "flex items-end gap-2.5" : "flex justify-end"}>
+      {isInbound && (
+        imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+        ) : (
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
+            style={{ background: avatarGradient(otherName) }}
+          >
+            {otherInitial}
+          </div>
+        )
+      )}
       <div className="max-w-[420px]">
-        <div className="rounded-2xl rounded-br-md overflow-hidden shadow-sm border border-gray-200">
+        <div className={`rounded-2xl ${isInbound ? "rounded-bl-md" : "rounded-br-md"} overflow-hidden shadow-sm border border-gray-200`}>
           {/* Teal gradient header */}
           <div className="bg-gradient-to-r from-primary-600 to-primary-500 px-5 py-3">
             <div className="flex items-center gap-2">
@@ -173,7 +189,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, edi
           <div className="bg-white px-5 pt-4 pb-4">
             {/* Care type — hero heading */}
             {careRequest.careType && (
-              <h3 className="text-lg font-bold text-gray-900 leading-tight">
+              <h3 className="text-lg font-display font-bold text-gray-900 leading-tight">
                 {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
               </h3>
             )}
@@ -233,7 +249,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, edi
             </p>
           </div>
         </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-right mr-1">{time}</p>
+        <p className={`text-xs text-gray-400 mt-1.5 ${isInbound ? "ml-1" : "text-right mr-1"}`}>{time}</p>
       </div>
 
       {/* Edit modal */}
@@ -258,6 +274,7 @@ export default function ConversationPanel({
   connection,
   activeProfile,
   onMessageSent,
+  onSendMessage,
   onCareRequestUpdated,
   onBack,
   detailOpen,
@@ -290,19 +307,26 @@ export default function ConversationPanel({
     if (!connection || !messageText.trim() || !activeProfile) return;
     setSending(true);
     try {
-      const res = await fetch("/api/connections/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId: connection.id,
-          text: messageText.trim(),
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to send");
-      const data = await res.json();
+      let thread: ThreadMessage[];
+      if (onSendMessage) {
+        // Mock-aware send — bypasses API
+        thread = await onSendMessage(connection.id, messageText.trim());
+      } else {
+        const res = await fetch("/api/connections/message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId: connection.id,
+            text: messageText.trim(),
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to send");
+        const data = await res.json();
+        thread = data.thread;
+      }
       setMessageText("");
       if (messageInputRef.current) messageInputRef.current.style.height = 'auto';
-      onMessageSent(connection.id, data.thread);
+      onMessageSent(connection.id, thread);
       requestAnimationFrame(() => {
         conversationRef.current?.scrollTo({
           top: conversationRef.current.scrollHeight,
@@ -314,7 +338,7 @@ export default function ConversationPanel({
     } finally {
       setSending(false);
     }
-  }, [connection, messageText, activeProfile, onMessageSent]);
+  }, [connection, messageText, activeProfile, onMessageSent, onSendMessage]);
 
   // ── Empty state ──
   if (!connection) {
@@ -327,7 +351,7 @@ export default function ConversationPanel({
               <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" strokeWidth={1.5} />
             </svg>
           </div>
-          <p className="text-lg font-medium text-gray-900 mb-1">Select a conversation</p>
+          <p className="text-lg font-display font-medium text-gray-900 mb-1">Select a conversation</p>
           <p className="text-[15px] text-gray-500">Choose from your existing conversations to start messaging</p>
         </div>
       </div>
@@ -404,7 +428,7 @@ export default function ConversationPanel({
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <Link href={profileHref} className="text-lg font-semibold text-gray-900 hover:underline truncate block">
+          <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
             {otherName}
           </Link>
           {otherProfile?.city || otherProfile?.state ? (
@@ -447,6 +471,8 @@ export default function ConversationPanel({
                   dateStr={formatDateSeparator(connection.created_at)}
                   isInbound={isInbound}
                   otherName={otherName}
+                  otherInitial={otherInitial}
+                  imageUrl={imageUrl}
                   editable={!isInbound && (connection.status === "pending" || connection.status === "accepted")}
                   connectionId={connection.id}
                   autoIntro={autoIntro}

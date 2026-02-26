@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Connection, ConnectionStatus, Profile } from "@/lib/types";
+import { getMockConnections, getMockThreadOverrides, persistMockThread } from "@/lib/mock/provider-leads";
 import ConversationList from "@/components/messaging/ConversationList";
 import type { ConnectionWithProfile } from "@/components/messaging/ConversationList";
 import ConversationPanel from "@/components/messaging/ConversationPanel";
@@ -53,10 +54,29 @@ function ProviderInboxContent() {
     if (id) setSelectedId(id);
   }, [searchParams]);
 
+  // Load mock conversations as fallback when Supabase has no real connections
+  const loadMockFallback = useCallback(() => {
+    if (!providerProfile) return;
+    const mockConns = getMockConnections(providerProfile);
+    mockConns.sort((a, b) => getLastActivityTime(b) - getLastActivityTime(a));
+    setConnections(mockConns);
+    setLoading(false);
+    const urlId = searchParams.get("id");
+    if (urlId) {
+      setSelectedId(urlId);
+    } else if (mockConns.length > 0 && window.innerWidth >= 1024) {
+      setSelectedId(mockConns[0].id);
+    }
+  }, [providerProfile, searchParams]);
+
   // Fetch connections for the provider profile only
   const fetchConnections = useCallback(async () => {
-    if (!providerProfile || !isSupabaseConfigured()) {
+    if (!providerProfile) {
       setLoading(false);
+      return;
+    }
+    if (!isSupabaseConfigured()) {
+      loadMockFallback();
       return;
     }
 
@@ -122,13 +142,21 @@ function ProviderInboxContent() {
       const uniqueConns = Array.from(deduped.values());
 
       if (uniqueConns.length === 0) {
+        // Check if we have any managed operations pending (user just archived/deleted a real connection)
+        const hasManagedOps = managedOpsRef.current.size > 0;
         for (const [id, expected] of [...managedOpsRef.current.entries()]) {
           if (expected === "expect_absent") managedOpsRef.current.delete(id);
         }
-        const managedSnapshot = new Set(managedOpsRef.current.keys());
-        setConnections((prev) =>
-          prev.filter((c) => c.status === "archived" || managedSnapshot.has(c.id))
-        );
+        if (hasManagedOps) {
+          const managedSnapshot = new Set(managedOpsRef.current.keys());
+          setConnections((prev) =>
+            prev.filter((c) => c.status === "archived" || managedSnapshot.has(c.id))
+          );
+        } else {
+          // No real connections — fall back to mock data
+          loadMockFallback();
+          return;
+        }
         setLoading(false);
         return;
       }
@@ -225,7 +253,7 @@ function ProviderInboxContent() {
     } finally {
       setLoading(false);
     }
-  }, [providerProfile]);
+  }, [providerProfile, loadMockFallback]);
 
   useEffect(() => {
     fetchConnections();
@@ -236,6 +264,34 @@ function ProviderInboxContent() {
     window.addEventListener("olera:connection-created", handler);
     return () => window.removeEventListener("olera:connection-created", handler);
   }, [fetchConnections]);
+
+  // Listen for messages sent from the leads drawer (via localStorage)
+  useEffect(() => {
+    const handler = () => {
+      if (!providerProfile) return;
+      const overrides = getMockThreadOverrides();
+      setConnections((prev) =>
+        prev.map((conn) => {
+          if (!conn.id.startsWith("mock-lead-")) return conn;
+          const extra = overrides[conn.id];
+          if (!extra) return conn;
+          // Normalize "provider" → actual profile ID
+          const normalized = extra.map((msg: ThreadMessage) => ({
+            ...msg,
+            from_profile_id: msg.from_profile_id === "provider" ? providerProfile.id : msg.from_profile_id,
+          }));
+          const meta = (conn.metadata as Record<string, unknown>) || {};
+          const baseThread = (meta.thread as ThreadMessage[]) || [];
+          // Keep base thread (mock activity messages) and append localStorage messages
+          const baseIds = new Set(baseThread.map((m) => m.created_at));
+          const newMsgs = normalized.filter((m: ThreadMessage) => !baseIds.has(m.created_at));
+          return { ...conn, metadata: { ...meta, thread: [...baseThread, ...newMsgs] } };
+        })
+      );
+    };
+    window.addEventListener("olera:mock-thread-updated", handler);
+    return () => window.removeEventListener("olera:mock-thread-updated", handler);
+  }, [providerProfile]);
 
   // Lazy-load archived connections
   const archivedLoadedRef = useRef(false);
@@ -306,6 +362,10 @@ function ProviderInboxContent() {
   }, [providerProfile]);
 
   const handleMessageSent = useCallback((connectionId: string, thread: ThreadMessage[]) => {
+    // Persist mock threads to localStorage so they survive page refresh
+    if (connectionId.startsWith("mock-lead-")) {
+      persistMockThread(connectionId, thread);
+    }
     setConnections((prev) =>
       prev.map((conn) =>
         conn.id === connectionId
@@ -314,6 +374,22 @@ function ProviderInboxContent() {
       )
     );
   }, []);
+
+  // Mock-aware message sender — builds thread locally instead of hitting API
+  const mockSendMessage = useCallback(
+    async (connectionId: string, text: string): Promise<ThreadMessage[]> => {
+      const conn = connectionsRef.current.find((c) => c.id === connectionId);
+      const meta = (conn?.metadata as Record<string, unknown>) || {};
+      const existingThread = (meta.thread as ThreadMessage[]) || [];
+      const newMessage: ThreadMessage = {
+        from_profile_id: providerProfile?.id || "",
+        text,
+        created_at: new Date().toISOString(),
+      };
+      return [...existingThread, newMessage];
+    },
+    [providerProfile]
+  );
 
   const handleCareRequestUpdated = useCallback(
     (connectionId: string, message: string, metadata: Record<string, unknown>) => {
@@ -335,6 +411,8 @@ function ProviderInboxContent() {
 
   const manageConnection = useCallback(
     async (payload: { connectionId: string; action: string; reportReason?: string; reportDetails?: string }) => {
+      // Mock connections — skip API, just return success
+      if (payload.connectionId.startsWith("mock-lead-")) return { ok: true };
       const res = await fetch("/api/connections/manage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -443,6 +521,7 @@ function ProviderInboxContent() {
           connection={selectedConnection}
           activeProfile={providerProfile ?? null}
           onMessageSent={handleMessageSent}
+          onSendMessage={selectedConnection?.id.startsWith("mock-lead-") ? mockSendMessage : undefined}
           onCareRequestUpdated={handleCareRequestUpdated}
           onBack={() => setSelectedId(null)}
           detailOpen={detailOpen}

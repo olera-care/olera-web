@@ -66,7 +66,7 @@ export function useInterestedProviders(
         const { data: profiles } = await supabase
           .from("business_profiles")
           .select(
-            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id, metadata"
+            "id, display_name, description, image_url, city, state, lat, lng, type, email, phone, website, slug, care_types, category, source_provider_id, metadata"
           )
           .in("id", providerIds);
 
@@ -74,16 +74,24 @@ export function useInterestedProviders(
           ((profiles as Profile[]) || []).map((p) => [p.id, p])
         );
 
-        // Resolve iOS data (images + ratings) from olera-providers
-        const iosSourceIds = ((profiles as Profile[]) || [])
-          .filter((p) => p.source_provider_id)
-          .map((p) => p.source_provider_id as string);
+        // Resolve iOS data (images, ratings, pricing) from olera-providers.
+        // Use source_provider_id when available, fall back to slug (seeded
+        // profiles use the olera-providers provider_id as their slug).
+        const iosLookupIds: string[] = [];
+        const profileToIosKey = new Map<string, string>();
+        for (const p of (profiles as Profile[]) || []) {
+          const iosKey = p.source_provider_id || p.slug;
+          if (iosKey) {
+            if (!iosLookupIds.includes(iosKey)) iosLookupIds.push(iosKey);
+            profileToIosKey.set(p.id, iosKey);
+          }
+        }
 
-        if (iosSourceIds.length > 0) {
+        if (iosLookupIds.length > 0) {
           const { data: iosProviders } = await supabase
             .from("olera-providers")
-            .select("provider_id, provider_logo, provider_images, google_rating, provider_description, review_count")
-            .in("provider_id", iosSourceIds);
+            .select("provider_id, provider_logo, provider_images, google_rating, provider_description, review_count, lower_price, upper_price")
+            .in("provider_id", iosLookupIds);
 
           if (iosProviders?.length) {
             const iosMap = new Map(
@@ -95,12 +103,15 @@ export function useInterestedProviders(
                   google_rating: number | null;
                   provider_description: string | null;
                   review_count: number | null;
+                  lower_price: number | null;
+                  upper_price: number | null;
                 }) => [p.provider_id, p]
               )
             );
             for (const [id, profile] of profileMap) {
-              if (profile.source_provider_id && iosMap.has(profile.source_provider_id)) {
-                const ios = iosMap.get(profile.source_provider_id)!;
+              const iosKey = profileToIosKey.get(id);
+              if (iosKey && iosMap.has(iosKey)) {
+                const ios = iosMap.get(iosKey)!;
                 const iosImage = ios.provider_logo || ios.provider_images?.split(" | ")[0] || null;
                 profileMap.set(id, {
                   ...profile,
@@ -110,6 +121,8 @@ export function useInterestedProviders(
                     ...((profile.metadata || {}) as Record<string, unknown>),
                     ...(ios.google_rating ? { google_rating: ios.google_rating } : {}),
                     ...(ios.review_count ? { review_count: ios.review_count } : {}),
+                    ...(ios.lower_price ? { lower_price: ios.lower_price } : {}),
+                    ...(ios.upper_price ? { upper_price: ios.upper_price } : {}),
                   } as Profile["metadata"],
                 });
               }

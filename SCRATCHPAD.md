@@ -18,6 +18,11 @@
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
   - Notion: P1 — "Senior Benefits Finder Improvements & Optimizations"
 
+- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
+  - Port iOS deletion request/approve/deny/restore/purge flow to web
+  - Plan: `plans/provider-deletion-request-plan.md`
+  - 4 phases: DB migration → Provider portal UI → Admin deletions tab → Polish
+
 - **Admin Provider Directory Editor** (branch: `stellar-hypatia` → merged to `staging`) — DONE
   - Django-admin-style CRUD for 36K+ providers in `olera-providers` table
   - Search, filters, server-side pagination, sectioned edit form, audit logging

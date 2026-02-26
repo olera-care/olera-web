@@ -267,15 +267,15 @@ function SettingsContent() {
   return (
     <div className="max-w-2xl">
       {justUpgraded && (
-        <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base mb-5">
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-base mb-5">
           Your subscription is now active. You have full access to all features.
         </div>
       )}
 
-      <div className="rounded-xl bg-white border border-gray-200 divide-y divide-gray-100">
+      <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
       {/* ── Notifications ── */}
       <div className="p-6">
-        <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Notifications</h3>
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Notifications</h3>
         <div className="divide-y divide-gray-50">
           <NotificationRow
             title="Connection updates"
@@ -318,7 +318,7 @@ function SettingsContent() {
 
       {/* ── Account ── */}
       <div className="p-6">
-        <h3 className="text-[15px] font-semibold text-gray-900 mb-5">Account</h3>
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Account</h3>
         <div className="divide-y divide-gray-100">
           <AccountRow
             label="Email"
@@ -374,9 +374,9 @@ function SettingsContent() {
           onClick={() => setShowProviderModal(true)}
           className="w-full text-left flex items-center gap-4 rounded-lg p-4 hover:bg-gray-50 transition-colors group -mx-1"
         >
-          <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
+          <div className="w-12 h-12 rounded-xl bg-warm-100/60 flex items-center justify-center shrink-0 group-hover:bg-warm-100 transition-colors">
             <svg
-              className="w-6 h-6 text-primary-600"
+              className="w-6 h-6 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -390,7 +390,7 @@ function SettingsContent() {
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-semibold text-gray-900">
+            <p className="text-lg font-display font-bold text-gray-900">
               {isProvider ? "Add another provider profile" : "Add a provider profile"}
             </p>
             <p className="text-xs text-gray-400">
@@ -400,7 +400,7 @@ function SettingsContent() {
             </p>
           </div>
           <svg
-            className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-primary-400 transition-colors"
+            className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-gray-500 transition-colors"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -423,9 +423,9 @@ function SettingsContent() {
         size="sm"
       >
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-warm-100/60 flex items-center justify-center">
             <svg
-              className="w-6 h-6 text-primary-600"
+              className="w-6 h-6 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -472,7 +472,7 @@ function SettingsContent() {
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
         <div className="p-6">
-          <h3 className="text-[15px] font-semibold text-gray-900 mb-5">
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-5">
             Subscription
           </h3>
 
@@ -550,7 +550,7 @@ function SettingsContent() {
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-primary-300 transition-colors">
+                <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
                   <p className="text-lg font-semibold text-gray-900">
                     Monthly
                   </p>
@@ -570,8 +570,8 @@ function SettingsContent() {
                     Subscribe Monthly
                   </Button>
                 </div>
-                <div className="border-2 border-primary-300 rounded-xl p-5 relative">
-                  <div className="absolute -top-3 right-4 bg-primary-600 text-white text-sm font-semibold px-3 py-1 rounded-full">
+                <div className="border-2 border-gray-900 rounded-xl p-5 relative">
+                  <div className="absolute -top-3 right-4 bg-gray-900 text-white text-sm font-semibold px-3 py-1 rounded-full">
                     Save 17%
                   </div>
                   <p className="text-lg font-semibold text-gray-900">
@@ -604,7 +604,7 @@ function SettingsContent() {
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-[15px] font-semibold text-gray-900">
+            <h3 className="text-lg font-display font-bold text-gray-900">
               Remove this profile
             </h3>
             <p className="text-xs text-gray-400 mt-1">
@@ -635,7 +635,7 @@ function SettingsContent() {
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-[15px] font-semibold text-gray-900">
+            <h3 className="text-lg font-display font-bold text-gray-900">
               Delete account
             </h3>
             <p className="text-xs text-gray-400 mt-1">
@@ -769,7 +769,7 @@ function SettingsContent() {
               Delete all connections for this profile
             </li>
             <li className="flex items-start gap-2.5 text-sm text-gray-600">
-              <svg className="w-4 h-4 text-primary-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               You can add a new profile later from the profile switcher

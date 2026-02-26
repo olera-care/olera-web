@@ -890,12 +890,12 @@ function ProviderOnboardingContent() {
                   )}
                 </form>
 
-                <p className="text-center mt-6 text-base text-gray-500">
+                <p className="text-center mt-4 text-[15px] text-gray-400">
                   or{" "}
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                    className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
                   >
                     create a new account
                   </button>

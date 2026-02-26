@@ -11,6 +11,7 @@ import { useNavbar } from "@/components/shared/NavbarContext";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { useUnreadInboxCount } from "@/hooks/useUnreadInboxCount";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
+import { MOCK_LEADS } from "@/lib/mock/provider-leads";
 
 export default function Navbar() {
   const router = useRouter();
@@ -33,7 +34,12 @@ export default function Navbar() {
     activeProfile?.type === "family" ? activeProfile?.id : undefined
   );
   const [newLeadsCount, setNewLeadsCount] = useState(() => {
-    try { return parseInt(localStorage.getItem("olera_leads_new_count") || "0", 10) || 0; } catch { return 0; }
+    try {
+      const stored = localStorage.getItem("olera_leads_new_count");
+      if (stored !== null) return parseInt(stored, 10) || 0;
+    } catch { /* localStorage unavailable */ }
+    // No stored value yet — compute from source data
+    return MOCK_LEADS.filter((l) => l.isNew).length;
   });
   useEffect(() => {
     const handler = (e: Event) => setNewLeadsCount((e as CustomEvent).detail as number);

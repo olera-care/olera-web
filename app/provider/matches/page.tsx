@@ -751,38 +751,42 @@ function FamilyCareCard({
         )}
 
         {/* ── Payment & benefits ── */}
-        {(primaryPayment || allBenefits.length > 0) && (
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mr-1">
-              Payment
-            </span>
-            {primaryPayment && (
+        <div className="flex flex-wrap items-center gap-2 mt-4">
+          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mr-1">
+            Payment
+          </span>
+          {primaryPayment ? (
+            <>
               <span className="inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border border-primary-100 text-primary-700 bg-primary-50/40">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
                 </svg>
                 {primaryPayment}
               </span>
-            )}
-            {paymentExpanded ? (
-              allBenefits.map((b) => (
-                <span key={b} className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-500 bg-white">
-                  {b}
-                </span>
-              ))
-            ) : (
-              allBenefits.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setPaymentExpanded(true)}
-                  className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors"
-                >
-                  +{allBenefits.length} benefit{allBenefits.length !== 1 ? "s" : ""}
-                </button>
-              )
-            )}
-          </div>
-        )}
+              {paymentExpanded ? (
+                allBenefits.map((b) => (
+                  <span key={b} className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-500 bg-white">
+                    {b}
+                  </span>
+                ))
+              ) : (
+                allBenefits.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentExpanded(true)}
+                    className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors"
+                  >
+                    +{allBenefits.length} benefit{allBenefits.length !== 1 ? "s" : ""}
+                  </button>
+                )
+              )}
+            </>
+          ) : (
+            <span className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-dashed border-warm-200 text-gray-400 bg-white">
+              Not specified
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── Inline reach-out expansion ── */}

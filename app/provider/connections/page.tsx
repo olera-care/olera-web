@@ -281,12 +281,14 @@ function LeadDetailDrawer({
   onClose,
   onArchive,
   onRestore,
+  onDelete,
 }: {
   lead: LeadDetail | null;
   isOpen: boolean;
   onClose: () => void;
   onArchive: (leadId: string, reason: string) => void;
   onRestore: (leadId: string) => void;
+  onDelete: (leadId: string) => void;
 }) {
   const [showComposer, setShowComposer] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
@@ -295,6 +297,7 @@ function LeadDetailDrawer({
   const [archiveOtherText, setArchiveOtherText] = useState("");
   const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Generate pre-filled template from lead data
@@ -313,6 +316,7 @@ function LeadDetailDrawer({
       setArchiveOtherText("");
       setArchived(false);
       setRestored(false);
+      setShowDeleteConfirm(false);
     }
   }, [isOpen]);
 
@@ -328,6 +332,7 @@ function LeadDetailDrawer({
       setArchiveOtherText("");
       setArchived(false);
       setRestored(false);
+      setShowDeleteConfirm(false);
     }
   }, [lead]);
 
@@ -341,6 +346,8 @@ function LeadDetailDrawer({
           setShowArchive(false);
           setArchiveReason(null);
           setArchiveOtherText("");
+        } else if (showDeleteConfirm) {
+          setShowDeleteConfirm(false);
         } else {
           onClose();
         }
@@ -354,7 +361,7 @@ function LeadDetailDrawer({
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isOpen, onClose, showComposer, showArchive]);
+  }, [isOpen, onClose, showComposer, showArchive, showDeleteConfirm]);
 
   const handleSendMessage = () => {
     setMessageSent(true);
@@ -379,8 +386,15 @@ function LeadDetailDrawer({
     onRestore(lead.id);
     setTimeout(() => {
       setRestored(false);
+      setShowDeleteConfirm(false);
       onClose();
     }, 1500);
+  };
+
+  const handleDelete = () => {
+    if (!lead) return;
+    onDelete(lead.id);
+    onClose();
   };
 
   const ARCHIVE_REASONS = [
@@ -801,10 +815,43 @@ function LeadDetailDrawer({
                 <p className="text-[15px] font-semibold text-gray-900">Lead restored</p>
                 <p className="text-[13px] text-gray-500">Moved back to active leads</p>
               </div>
+            ) : showDeleteConfirm ? (
+              <div className="px-6 py-5">
+                <div className="rounded-2xl border border-red-200 bg-red-50/50 px-5 py-5">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-semibold text-gray-900">Delete permanently?</p>
+                      <p className="text-[13px] text-gray-500 mt-1 leading-relaxed">This will permanently remove this lead and any message history. This action can&apos;t be undone.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl border border-gray-200 bg-white text-[14px] font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-3 rounded-xl bg-red-600 text-[14px] font-semibold text-white shadow-sm hover:bg-red-700 transition-all duration-150 active:scale-[0.98]"
+                    >
+                      Yes, Delete Forever
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="px-6 py-4 flex items-center gap-3">
                 <button
                   type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
                   className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -978,6 +1025,11 @@ export default function ProviderLeadsPage() {
           : l
       )
     );
+  }, []);
+
+  const handleDeleteLead = useCallback((leadId: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId));
+    setSelectedLeadId(null);
   }, []);
 
   const filteredLeads = useMemo(() => {
@@ -1155,6 +1207,7 @@ export default function ProviderLeadsPage() {
         onClose={closeDrawer}
         onArchive={handleArchiveLead}
         onRestore={handleRestoreLead}
+        onDelete={handleDeleteLead}
       />
     </div>
   );

@@ -46,8 +46,6 @@ export default function Navbar() {
     window.addEventListener("olera:leads-count", handler);
     return () => window.removeEventListener("olera:leads-count", handler);
   }, []);
-  const [heartPulse, setHeartPulse] = useState(false);
-  const prevSavedCount = useRef(savedCount);
   const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -177,19 +175,6 @@ export default function Navbar() {
     setIsFindCareOpen(false);
   }, [pathname]);
 
-  // Pulse heart icon only on user-initiated saves (not initial data load)
-  useEffect(() => {
-    if (!savedInitialized) {
-      prevSavedCount.current = savedCount;
-      return;
-    }
-    if (savedCount > prevSavedCount.current) {
-      setHeartPulse(true);
-      const timer = setTimeout(() => setHeartPulse(false), 600);
-      return () => clearTimeout(timer);
-    }
-    prevSavedCount.current = savedCount;
-  }, [savedCount, savedInitialized]);
 
   // Shared dropdown content (context-aware links, mode switcher, sign out)
   // User menu is always in the right column, so dropdown always aligns right
@@ -729,9 +714,7 @@ export default function Navbar() {
                       aria-label="Saved providers"
                     >
                       <svg
-                        className={`w-[18px] h-[18px] transition-all duration-300 ${
-                          heartPulse ? "scale-125 text-red-500 fill-red-500" : ""
-                        }`}
+                        className="w-[18px] h-[18px]"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth={2}

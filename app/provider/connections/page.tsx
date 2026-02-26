@@ -380,7 +380,7 @@ function LeadDetailDrawer({
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 top-16 z-30 bg-black/50 transition-opacity duration-300 ${
+        className={`fixed inset-0 top-16 z-30 bg-black/50 transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -388,28 +388,25 @@ function LeadDetailDrawer({
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[640px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col transition-transform duration-400 ease-[cubic-bezier(0.33,1,0.68,1)] ${
+        className={`fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[640px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* ── Fixed header ── */}
         <div className="shrink-0 border-b border-gray-100">
-          {/* Close button row */}
-          <div className="flex items-center justify-end px-6 pt-5 pb-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors duration-150"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Lead identity */}
-          <div className="px-6 pb-4">
+          {/* Lead identity + close button */}
+          <div className="px-6 pt-6 pb-4">
             <div className="flex items-start gap-4">
+              {/* Close button — top right */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
               <div className={`w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
                 <span className="text-sm font-bold text-gray-500">{lead.initials}</span>
               </div>
@@ -501,7 +498,7 @@ function LeadDetailDrawer({
                       <button
                         type="button"
                         onClick={() => setShowComposer(false)}
-                        className="text-[13px] font-medium text-gray-400 hover:text-gray-600 transition-colors duration-150 pt-0.5"
+                        className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150 pt-0.5"
                       >
                         Cancel
                       </button>
@@ -743,7 +740,7 @@ function LeadDetailDrawer({
                   <button
                     type="button"
                     onClick={() => { setShowArchive(false); setArchiveReason(null); setArchiveOtherText(""); }}
-                    className="text-[13px] font-medium text-gray-400 hover:text-gray-600 transition-colors duration-150"
+                    className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors duration-150"
                   >
                     Cancel
                   </button>

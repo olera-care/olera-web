@@ -362,11 +362,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             isLoading: false,
             fetchError: false,
           }));
-        } else if (!hasCachedData) {
-          setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
         } else {
-          // Had cache, fetch returned null (edge case) — stop loading
-          setState((prev) => ({ ...prev, isLoading: false }));
+          // No account found — ensure one exists (creates account + family profile)
+          try {
+            await fetch("/api/auth/ensure-account", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            });
+            if (cancelled) return;
+            // Re-fetch now that account + family profile exist
+            const retryData = await fetchAccountData(userId);
+            if (cancelled) return;
+            if (retryData) {
+              cacheAuthData(userId, retryData);
+              setState((prev) => ({
+                ...prev,
+                account: retryData.account,
+                activeProfile: retryData.activeProfile,
+                profiles: retryData.profiles,
+                membership: retryData.membership,
+                isLoading: false,
+                fetchError: false,
+              }));
+            } else {
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+            }
+          } catch {
+            if (cancelled) return;
+            setState((prev) => ({ ...prev, isLoading: false, fetchError: !hasCachedData }));
+          }
         }
       } catch (err) {
         console.error("[olera] init fetch failed:", err);

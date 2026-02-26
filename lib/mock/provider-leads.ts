@@ -366,3 +366,13 @@ export function getMockConnections(providerProfile: Profile): ConnectionWithProf
     .filter((lead) => lead.status !== "archived")
     .map((lead) => leadToConnection(lead, providerProfile));
 }
+
+/**
+ * Return mock connection IDs (lightweight — no profile needed).
+ * Used by the unread count hook to count mock inbox conversations.
+ */
+export function getMockConnectionIds(): string[] {
+  return MOCK_LEADS
+    .filter((lead) => lead.status !== "archived")
+    .map((lead) => `mock-lead-${lead.id}`);
+}

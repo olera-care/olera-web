@@ -840,9 +840,10 @@ export default function ProviderLeadsPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Broadcast new-leads count to Navbar badge
+  // Broadcast new-leads count to Navbar badge and persist to localStorage
   const newLeadsCount = useMemo(() => leads.filter((l) => l.isNew).length, [leads]);
   useEffect(() => {
+    try { localStorage.setItem("olera_leads_new_count", String(newLeadsCount)); } catch { /* */ }
     window.dispatchEvent(new CustomEvent("olera:leads-count", { detail: newLeadsCount }));
   }, [newLeadsCount]);
 

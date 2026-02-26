@@ -32,7 +32,9 @@ export default function Navbar() {
   const { pendingCount: matchesPendingCount } = useInterestedProviders(
     activeProfile?.type === "family" ? activeProfile?.id : undefined
   );
-  const [newLeadsCount, setNewLeadsCount] = useState(0);
+  const [newLeadsCount, setNewLeadsCount] = useState(() => {
+    try { return parseInt(localStorage.getItem("olera_leads_new_count") || "0", 10) || 0; } catch { return 0; }
+  });
   useEffect(() => {
     const handler = (e: Event) => setNewLeadsCount((e as CustomEvent).detail as number);
     window.addEventListener("olera:leads-count", handler);

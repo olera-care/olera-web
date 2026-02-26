@@ -52,3 +52,21 @@ The core error: **treating the plan as authoritative when the code told a differ
 **Lesson**: When the browser does something during DOM mutation, no React effect can prevent it — you must act before React processes the state change. Prefer preventing problems over undoing them.
 
 ---
+
+### 2026-02-26: PR merge silently regressed SEO, auth, and branding on staging
+
+**Symptom**: After merging PRs #66 and #65 to staging, the footer discovery zone (72+ SEO links), homepage power page routing, auth OTP performance (24hr cache → 30min, 5s timeout → 15s), GA4 analytics, v1.0 301 redirects, provider detail JSON-LD, and teal bird branding were all silently reverted to older versions. Staging looked fine at a glance but had lost critical care-seeker infrastructure.
+
+**Root Cause**: The `/pr-merge` command analyzed PR #66 using `git merge-base` and found that staging had 0 files changed since the branch point — technically correct, but dangerously misleading. PR #66 was a "revert of the revert" of PR #64, which restored PR #64's file versions. Those versions were **older** than what existed on staging after TJ's PRs #53-55 improved shared files (footer, auth, homepage, SEO config). The revert→re-apply cycle made git's commit topology look clean while the file content was regressive. The command only compared commit history (which files were modified recently), not actual file content (would merging change files that are already in a good state).
+
+**Fix**: Created `reconcile-staging` branch from `fond-fermi` (TJ's known-good state), merged staging in, explicitly restored fond-fermi's versions of 17 care-seeker/SEO/auth files, kept staging's provider hub files. One type fix needed (`isActive` prop). PR #67 merged cleanly.
+
+**Prevention**:
+- Updated `/pr-merge` command with **Phase 2.5: Content Regression Check** — compares actual file content between the PR branch and staging for high-value files, regardless of what git merge-base says
+- Added **revert chain detection** — flags PRs whose history includes revert commits touching shared files
+- Added **critical file watchlist** for Olera (footer, auth, homepage, SEO config, navbar, layout) that always get content-diffed
+- Added warning for PRs branched from old staging states (>5 commits behind)
+
+**Lesson**: Git merge-base analysis detects *structural* conflicts (two people editing the same file). It cannot detect *semantic* regressions (a PR bringing back old versions of files that were improved after it branched). When a PR involves reverts, always compare actual file content against the target branch — not just commit history.
+
+---

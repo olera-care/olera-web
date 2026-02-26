@@ -85,6 +85,9 @@
 | 2026-02-21 | Reuse existing images API for image actions | Detail page calls `/api/admin/images/[id]` — no code duplication |
 | 2026-02-21 | Lightweight admin check in Navbar | Single fetch to `/api/admin/auth`, silently fails for non-admins |
 | 2026-02-21 | `hero_image_url` column doesn't exist on `olera-providers` | Removed from SELECT; detail uses `SELECT *` which handles gracefully |
+| 2026-02-26 | Content regression checks needed beyond git merge-base | Revert→re-apply cycles make commit topology misleading; must compare actual file content for critical files |
+| 2026-02-26 | PR merge reports go to Notion | Automated reports in Product Development > PR Merge Reports for audit trail and team visibility |
+| 2026-02-26 | Smaller, more frequent merges to staging | Avoids big reconciliation sessions when multiple contributors touch shared files |
 
 ---
 
@@ -213,6 +216,35 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 ---
 
 ## Session Log
+
+### 2026-02-26 (Session 19) — Staging Reconciliation + PR Merge Command
+
+**Branch:** `wonderful-euler` → `reconcile-staging` (PR #67, merged) + `pr-merge-improvements`
+
+**What:** Processed Esther's PRs #66 and #65 to staging, discovered they regressed TJ's SEO/auth/branding work, reconciled both workstreams, then built tooling to prevent it from happening again.
+
+**PR merge sequence:**
+- PR #66 (Provider Hub Redesign, 81 files) → merged to staging
+- PR #65 (Refinements, 20 files) → converted from draft, merged to staging
+- Discovered regression: footer discovery zone, homepage power page routing, auth OTP performance, GA4 analytics, v1.0 redirects, provider detail JSON-LD, teal bird branding all silently reverted
+- PR #67 (Reconciliation) → started from `fond-fermi`, merged staging in, restored TJ's 17 care-seeker/SEO/auth files while keeping Esther's provider hub files. Build passes.
+
+**New tooling created:**
+- `.claude/commands/pr-merge.md` — slash command for safe PR merges with analysis, content regression detection, and Notion reporting
+- Phase 2.5: Content Regression Check — compares actual file content (not just commit history) against a critical file watchlist
+- Phase 6: Notion Reporting — auto-creates merge reports in Product Development > PR Merge Reports
+- Notion folder: "PR Merge Reports" under Product Development
+
+**Post-mortem:**
+- Logged in `docs/POSTMORTEMS.md` — root cause was revert→re-apply cycle making git merge-base unreliable
+- Key lesson: git merge-base detects structural conflicts, not semantic regressions
+
+**Files created/modified:**
+- `.claude/commands/pr-merge.md` — new slash command (created), then upgraded with Phase 2.5 + Phase 6
+- `docs/POSTMORTEMS.md` — new post-mortem entry
+- `app/provider/[slug]/page.tsx` — removed `isActive` prop (type fix for Esther's refactored ConnectionCard)
+
+---
 
 ### 2026-02-25 (Session 18) — Branding Update: Teal Bird Logo + App Store Badge
 

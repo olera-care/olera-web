@@ -44,6 +44,8 @@ interface LeadDetail extends Lead {
   benefits?: string[];
   additionalNotes?: string;
   activity?: ActivityEvent[];
+  archivedDate?: string;
+  archiveReason?: string;
 }
 
 // ── Mock data ──
@@ -277,10 +279,14 @@ function LeadDetailDrawer({
   lead,
   isOpen,
   onClose,
+  onArchive,
+  onRestore,
 }: {
   lead: LeadDetail | null;
   isOpen: boolean;
   onClose: () => void;
+  onArchive: (leadId: string, reason: string) => void;
+  onRestore: (leadId: string) => void;
 }) {
   const [showComposer, setShowComposer] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
@@ -288,6 +294,7 @@ function LeadDetailDrawer({
   const [archiveReason, setArchiveReason] = useState<string | null>(null);
   const [archiveOtherText, setArchiveOtherText] = useState("");
   const [archived, setArchived] = useState(false);
+  const [restored, setRestored] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Generate pre-filled template from lead data
@@ -305,6 +312,7 @@ function LeadDetailDrawer({
       setArchiveReason(null);
       setArchiveOtherText("");
       setArchived(false);
+      setRestored(false);
     }
   }, [isOpen]);
 
@@ -319,6 +327,7 @@ function LeadDetailDrawer({
       setArchiveReason(null);
       setArchiveOtherText("");
       setArchived(false);
+      setRestored(false);
     }
   }, [lead]);
 
@@ -352,12 +361,24 @@ function LeadDetailDrawer({
   };
 
   const handleArchive = () => {
+    if (!lead || !archiveReason) return;
     setArchived(true);
+    onArchive(lead.id, archiveReason);
     setTimeout(() => {
       setArchived(false);
       setShowArchive(false);
       setArchiveReason(null);
       setArchiveOtherText("");
+      onClose();
+    }, 1500);
+  };
+
+  const handleRestore = () => {
+    if (!lead) return;
+    setRestored(true);
+    onRestore(lead.id);
+    setTimeout(() => {
+      setRestored(false);
       onClose();
     }, 1500);
   };
@@ -423,13 +444,22 @@ function LeadDetailDrawer({
 
             {/* Context pills */}
             <div className="flex flex-wrap items-center gap-2 mt-4">
-              {/* Urgency */}
+              {/* Urgency or Archived badge */}
+              {lead.status === "archived" ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-500">
+                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                  </svg>
+                  Archived
+                </span>
+              ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   lead.urgency === "immediate" ? "bg-red-400" : lead.urgency === "within_1_month" ? "bg-amber-400" : "bg-blue-400"
                 }`} />
                 {URGENCY_LABELS[lead.urgency]}
               </span>
+              )}
               {/* Location */}
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
                 <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -549,6 +579,25 @@ function LeadDetailDrawer({
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* ── Archived banner ── */}
+          {lead.status === "archived" && lead.archivedDate && (
+            <div className="px-6 pt-5 pb-2">
+              <div className="flex items-start gap-3.5 rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[15px] font-semibold text-gray-800">Archived on {lead.archivedDate}</p>
+                  {lead.archiveReason && (
+                    <p className="text-[13px] text-gray-400 mt-0.5">Reason: {lead.archiveReason}</p>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -739,14 +788,50 @@ function LeadDetailDrawer({
         </div>
 
         {/* ── Fixed footer ── */}
-        {showComposer ? null : showArchive ? (
+        {lead.status === "archived" ? (
+          /* Archived lead footer — Delete + Restore */
+          <div className="shrink-0 border-t border-gray-100">
+            {restored ? (
+              <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                </div>
+                <p className="text-[15px] font-semibold text-gray-900">Lead restored</p>
+                <p className="text-[13px] text-gray-500">Moved back to active leads</p>
+              </div>
+            ) : (
+              <div className="px-6 py-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                  </svg>
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRestore}
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+                  </svg>
+                  Restore Lead
+                </button>
+              </div>
+            )}
+          </div>
+        ) : showComposer ? null : showArchive ? (
           /* Archive reason selector */
           <div className="shrink-0 border-t border-gray-100">
             {archived ? (
-              /* Archived confirmation */
               <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                   </svg>
                 </div>
@@ -754,7 +839,6 @@ function LeadDetailDrawer({
               </div>
             ) : (
               <div className="px-6 py-5">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
                   <button
@@ -765,8 +849,6 @@ function LeadDetailDrawer({
                     Cancel
                   </button>
                 </div>
-
-                {/* Reason options */}
                 <div className="space-y-2.5">
                   {ARCHIVE_REASONS.map((reason) => (
                     <button
@@ -779,7 +861,6 @@ function LeadDetailDrawer({
                           : "border-gray-100 bg-gray-50/50 hover:border-gray-200"
                       }`}
                     >
-                      {/* Radio circle */}
                       <div className={`mt-0.5 w-[18px] h-[18px] rounded-full border-2 shrink-0 flex items-center justify-center transition-colors duration-150 ${
                         archiveReason === reason.value ? "border-primary-500" : "border-gray-300"
                       }`}>
@@ -796,8 +877,6 @@ function LeadDetailDrawer({
                     </button>
                   ))}
                 </div>
-
-                {/* Other text field */}
                 {archiveReason === "other" && (
                   <textarea
                     value={archiveOtherText}
@@ -807,8 +886,6 @@ function LeadDetailDrawer({
                     className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
                   />
                 )}
-
-                {/* Archive confirmation button — appears after selecting a reason */}
                 {archiveReason && (
                   <button
                     type="button"
@@ -822,7 +899,7 @@ function LeadDetailDrawer({
             )}
           </div>
         ) : (
-          /* Default footer buttons */
+          /* Default footer buttons — active leads */
           <div className="shrink-0 border-t border-gray-100 px-6 py-4 flex items-center gap-3">
             <button
               type="button"
@@ -856,11 +933,18 @@ function LeadDetailDrawer({
 export default function ProviderLeadsPage() {
   const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
-  const [selectedLead, setSelectedLead] = useState<LeadDetail | null>(null);
+  const [leads, setLeads] = useState<LeadDetail[]>(MOCK_LEADS);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Derive selectedLead from current leads so it stays in sync after archive/restore
+  const selectedLead = useMemo(
+    () => (selectedLeadId ? leads.find((l) => l.id === selectedLeadId) ?? null : null),
+    [selectedLeadId, leads]
+  );
+
   const openDrawer = useCallback((lead: LeadDetail) => {
-    setSelectedLead(lead);
+    setSelectedLeadId(lead.id);
     setIsDrawerOpen(true);
   }, []);
 
@@ -868,19 +952,43 @@ export default function ProviderLeadsPage() {
     setIsDrawerOpen(false);
   }, []);
 
+  const handleArchiveLead = useCallback((leadId: string, reason: string) => {
+    const reasonLabel = {
+      already_connected: "Already connected",
+      not_a_fit: "Not a good fit",
+      not_accepting: "Not accepting new clients",
+      unable_to_reach: "Unable to reach",
+      other: "Other",
+    }[reason] || reason;
+
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId
+          ? { ...l, status: "archived" as LeadStatus, archivedDate: "Feb 26, 2026", archiveReason: reasonLabel }
+          : l
+      )
+    );
+  }, []);
+
+  const handleRestoreLead = useCallback((leadId: string) => {
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId
+          ? { ...l, status: "new" as LeadStatus, archivedDate: undefined, archiveReason: undefined }
+          : l
+      )
+    );
+  }, []);
+
   const filteredLeads = useMemo(() => {
-    let leads = MOCK_LEADS;
-
     if (activeFilter === "archived") {
-      leads = leads.filter((l) => l.status === "archived");
+      return leads.filter((l) => l.status === "archived");
     } else if (activeFilter !== "all") {
-      leads = leads.filter((l) => l.urgency === activeFilter && l.status !== "archived");
+      return leads.filter((l) => l.urgency === activeFilter && l.status !== "archived");
     } else {
-      leads = leads.filter((l) => l.status !== "archived");
+      return leads.filter((l) => l.status !== "archived");
     }
-
-    return leads;
-  }, [activeFilter]);
+  }, [activeFilter, leads]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -1045,6 +1153,8 @@ export default function ProviderLeadsPage() {
         lead={selectedLead}
         isOpen={isDrawerOpen}
         onClose={closeDrawer}
+        onArchive={handleArchiveLead}
+        onRestore={handleRestoreLead}
       />
     </div>
   );

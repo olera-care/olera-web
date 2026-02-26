@@ -700,9 +700,9 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       </div>
 
       {/* Main Content - Split Layout */}
-      <div className="lg:mr-[45%]">
+      <div className="lg:flex">
         {/* Left Panel - Provider List */}
-        <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
+        <div className="flex-1 min-w-0 px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
           {/* Heading + Sort */}
           <div className="relative z-20">
             <div className="flex items-baseline justify-between gap-4 mb-6">
@@ -812,23 +812,25 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
             <EmptyState onClear={clearFilters} />
           )}
         </div>
-      </div>
 
-      {/* Right Panel - Fixed Map */}
-      <div
-        className="hidden lg:block fixed right-0 w-[45%] p-4 z-20"
-        style={{
-          top: navbarVisible ? "125px" : "61px",
-          height: navbarVisible ? "calc(100vh - 125px - 16px)" : "calc(100vh - 61px - 16px)",
-          transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1)",
-        }}
-      >
-        <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
-          <BrowseMap
-            providers={filteredProviders}
-            hoveredProviderId={hoveredProviderId}
-            onMarkerHover={setHoveredProviderId}
-          />
+        {/* Right Panel - Sticky Map */}
+        <div className="hidden lg:block w-[45%] flex-shrink-0">
+          <div
+            className="sticky p-4"
+            style={{
+              top: navbarVisible ? "125px" : "61px",
+              height: navbarVisible ? "calc(100vh - 125px)" : "calc(100vh - 61px)",
+              transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1)",
+            }}
+          >
+            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
+              <BrowseMap
+                providers={filteredProviders}
+                hoveredProviderId={hoveredProviderId}
+                onMarkerHover={setHoveredProviderId}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -66,7 +66,7 @@ export function useInterestedProviders(
         const { data: profiles } = await supabase
           .from("business_profiles")
           .select(
-            "id, display_name, description, image_url, city, state, type, email, phone, website, slug, care_types, category, source_provider_id, metadata"
+            "id, display_name, description, image_url, city, state, lat, lng, type, email, phone, website, slug, care_types, category, source_provider_id, metadata"
           )
           .in("id", providerIds);
 

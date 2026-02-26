@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
@@ -25,100 +24,6 @@ import {
   getSimilarProviders,
 } from "@/lib/provider-utils";
 
-// ============================================================
-// Dynamic Metadata (SEO title, description, OG, canonical)
-// ============================================================
-
-async function fetchProviderForMeta(slug: string) {
-  try {
-    const supabase = await createClient();
-    const { data: iosProvider } = await supabase
-      .from("olera-providers")
-      .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
-      .eq("provider_id", slug)
-      .not("deleted", "is", true)
-      .single();
-    if (iosProvider) return iosProvider;
-  } catch { /* fall through */ }
-
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("business_profiles")
-      .select("display_name, category, city, state, description, image_url")
-      .eq("slug", slug)
-      .in("type", ["organization", "caregiver"])
-      .single();
-    if (data) {
-      return {
-        provider_name: data.display_name,
-        provider_category: data.category,
-        city: data.city,
-        state: data.state,
-        provider_description: data.description,
-        provider_images: null,
-        provider_logo: data.image_url,
-      };
-    }
-  } catch { /* fall through */ }
-
-  return null;
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-  const provider = await fetchProviderForMeta(slug);
-
-  if (!provider) {
-    return { title: "Provider Not Found | Olera" };
-  }
-
-  const name = provider.provider_name;
-  const category = provider.provider_category || "Senior Care";
-  const city = provider.city;
-  const state = provider.state;
-  const location = [city, state].filter(Boolean).join(", ");
-
-  const title = `${name} | ${category} in ${location || "Your Area"} | Olera`;
-  const description = provider.provider_description
-    ? provider.provider_description.slice(0, 160).trimEnd() + (provider.provider_description.length > 160 ? "..." : "")
-    : `Find details, reviews, and pricing for ${name}, a ${category} provider${location ? ` in ${location}` : ""}. Compare options on Olera.`;
-
-  const images: string[] = [];
-  if (provider.provider_images) {
-    const first = provider.provider_images.split(" | ")[0];
-    if (first) images.push(first);
-  } else if (provider.provider_logo) {
-    images.push(provider.provider_logo);
-  }
-
-  return {
-    title,
-    description,
-    alternates: {
-      canonical: `https://olera.care/provider/${slug}`,
-    },
-    openGraph: {
-      title,
-      description,
-      url: `https://olera.care/provider/${slug}`,
-      siteName: "Olera",
-      type: "website",
-      ...(images.length > 0 && { images }),
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      ...(images.length > 0 && { images }),
-    },
-  };
-}
-
 // Extended metadata type that includes mock-specific fields
 interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   rating?: number;
@@ -128,7 +33,7 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   badge?: string;
   accepted_payments?: string[];
   pricing_details?: { service: string; rate: string; rateType: string }[];
-  staff_screening?: { background_checked: boolean; licensed: boolean; insured: boolean };
+  staff_screening?: string[];
   reviews?: { name: string; rating: number; date: string; comment: string; relationship?: string }[];
   community_score?: number;
   value_score?: number;
@@ -304,7 +209,7 @@ export default async function ProviderPage({
   const hasStaff = staff != null;
   const hasReviews = reviews.length > 0;
   const hasOleraScore = oleraScore != null;
-  const hasStaffScreening = staffScreening != null;
+  const hasStaffScreening = staffScreening != null && staffScreening.length > 0;
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
   // Build care services: real data first, then pad with category-inferred services
@@ -319,9 +224,11 @@ export default async function ProviderPage({
 
   // Build highlights: real data first, then pad with category-inferred highlights
   const highlights: string[] = [];
-  if (staffScreening?.background_checked) highlights.push("Background-Checked");
-  if (staffScreening?.licensed) highlights.push("Licensed");
-  if (staffScreening?.insured) highlights.push("Insured");
+  if (staffScreening && staffScreening.length > 0) {
+    for (const s of staffScreening.slice(0, 3)) {
+      highlights.push(s);
+    }
+  }
   if (profile.care_types && profile.care_types.length > 0) {
     for (const ct of profile.care_types.slice(0, 4 - highlights.length)) {
       highlights.push(ct);
@@ -360,61 +267,8 @@ export default async function ProviderPage({
   // Render
   // ============================================================
 
-  // ── JSON-LD structured data ──
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
-      ...(categoryLabel
-        ? [{ "@type": "ListItem", position: 2, name: categoryLabel, item: `https://olera.care/browse?type=${profile.category}` }]
-        : []),
-      ...(profile.city && profile.state
-        ? [{ "@type": "ListItem", position: categoryLabel ? 3 : 2, name: `${profile.city}, ${profile.state}` }]
-        : []),
-      { "@type": "ListItem", position: (categoryLabel ? 3 : 2) + (profile.city ? 1 : 0), name: profile.display_name },
-    ],
-  };
-
-  const localBusinessJsonLd: Record<string, unknown> = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    name: profile.display_name,
-    url: `https://olera.care/provider/${profile.slug}`,
-    ...(profile.description && { description: profile.description.slice(0, 300) }),
-    ...(profile.address && {
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: profile.address,
-        addressLocality: profile.city,
-        addressRegion: profile.state,
-      },
-    }),
-    ...(profile.phone && { telephone: profile.phone }),
-    ...(images.length > 0 && { image: images[0] }),
-    ...(oleraScore != null && {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: oleraScore,
-        bestRating: 5,
-        worstRating: 0,
-        ...(reviewCount != null && { reviewCount }),
-      },
-    }),
-    ...(priceRange && { priceRange }),
-  };
-
   return (
     <div className="min-h-screen">
-      {/* Structured data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
-      />
 
       {/* Section Navigation (appears on scroll) */}
       <SectionNav
@@ -579,14 +433,10 @@ export default async function ProviderPage({
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Staff Screening</h2>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
-                    {[
-                      { label: "Background Checked", verified: staffScreening!.background_checked },
-                      { label: "Licensed", verified: staffScreening!.licensed },
-                      { label: "Insured", verified: staffScreening!.insured },
-                    ].filter(item => item.verified).map((item) => (
-                      <div key={item.label} className="flex items-center gap-2.5">
+                    {staffScreening!.map((item) => (
+                      <div key={item} className="flex items-center gap-2.5">
                         <CheckIcon className="w-5 h-5 text-primary-600 flex-shrink-0" />
-                        <span className="text-base text-gray-700">{item.label}</span>
+                        <span className="text-base text-gray-700">{item}</span>
                       </div>
                     ))}
                   </div>
@@ -660,9 +510,9 @@ export default async function ProviderPage({
               {/* ── Customer Questions & Answers ── */}
               <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <QASectionV2
-                  providerId={profile.slug}
                   providerName={profile.display_name}
                   providerImage={images[0]}
+                  questions={[]}
                 />
               </div>
 

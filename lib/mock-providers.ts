@@ -57,7 +57,7 @@ export const topProviders: Provider[] = [
       { service: "Memory Care", rate: "$4,800", rateType: "per month" },
       { service: "Respite Care", rate: "$250", rateType: "per day" },
     ],
-    staffScreening: { background_checked: true, licensed: true, insured: true },
+    staffScreening: ["Background checks", "Drug screening", "Reference checks", "Training", "Work eligibility"],
     reviews: [
       {
         name: "Margaret T.",
@@ -115,7 +115,7 @@ export const topProviders: Provider[] = [
       { service: "Hospice Care", rate: "$5,100", rateType: "per month" },
       { service: "Skilled Nursing", rate: "$6,000", rateType: "per month" },
     ],
-    staffScreening: { background_checked: true, licensed: true, insured: true },
+    staffScreening: ["Background checks", "Drug screening", "Reference checks", "Training", "Work eligibility"],
   },
   {
     id: "3",
@@ -157,7 +157,7 @@ export const topProviders: Provider[] = [
       { service: "Independent Living", rate: "$2,800", rateType: "per month" },
       { service: "Assisted Living", rate: "$3,900", rateType: "per month" },
     ],
-    staffScreening: { background_checked: true, licensed: true, insured: true },
+    staffScreening: ["Background checks", "Drug screening", "Reference checks", "Training", "Work eligibility"],
     reviews: [
       {
         name: "James P.",
@@ -208,7 +208,7 @@ export const topProviders: Provider[] = [
       { service: "Companion Care", rate: "$22", rateType: "per hour" },
       { service: "Respite Care", rate: "$28", rateType: "per hour" },
     ],
-    staffScreening: { background_checked: true, licensed: false, insured: true },
+    staffScreening: ["Background checks", "Reference checks", "Work eligibility"],
     reviews: [
       {
         name: "Susan M.",
@@ -284,7 +284,7 @@ export const topProviders: Provider[] = [
       { service: "Independent Living", rate: "$3,200", rateType: "per month" },
       { service: "Assisted Living", rate: "$4,500", rateType: "per month" },
     ],
-    staffScreening: { background_checked: true, licensed: true, insured: true },
+    staffScreening: ["Background checks", "Drug screening", "Reference checks", "Training", "Work eligibility"],
     reviews: [
       {
         name: "Richard M.",
@@ -334,7 +334,7 @@ export const topProviders: Provider[] = [
       { service: "Palliative Care", rate: "$3,600", rateType: "per month" },
       { service: "Skilled Nursing", rate: "$5,500", rateType: "per month" },
     ],
-    staffScreening: { background_checked: true, licensed: true, insured: true },
+    staffScreening: ["Background checks", "Drug screening", "Reference checks", "Training", "Work eligibility"],
     reviews: [
       {
         name: "Catherine D.",
@@ -588,13 +588,11 @@ export function mockProviderToProfile(provider: Provider): Profile {
     badge?: string;
     accepted_payments?: string[];
     pricing_details?: { service: string; rate: string; rateType: string }[];
-    staff_screening?: { background_checked: boolean; licensed: boolean; insured: boolean };
+    staff_screening?: string[];
     reviews?: { name: string; rating: number; date: string; comment: string; relationship?: string }[];
   } = {
     price_range: provider.priceRange,
     amenities: provider.highlights || [],
-    accepts_medicaid: provider.acceptedPayments?.includes("Medicaid") ?? false,
-    accepts_medicare: provider.acceptedPayments?.includes("Medicare") ?? false,
     // Extra fields the detail page can read from metadata
     rating: provider.rating,
     review_count: provider.reviewCount,
@@ -633,9 +631,6 @@ export function mockProviderToProfile(provider: Provider): Profile {
     verification_state: provider.reviews && provider.reviews.length > 0 ? "verified" : "unverified",
     source: "seeded",
     is_active: true,
-    deletion_requested: false,
-    deletion_requested_at: null,
-    deletion_approved_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -735,9 +730,6 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     verification_state: "unverified", // iOS data doesn't have verification status
     source: "seeded",
     is_active: !provider.deleted,
-    deletion_requested: false,
-    deletion_requested_at: null,
-    deletion_approved_at: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

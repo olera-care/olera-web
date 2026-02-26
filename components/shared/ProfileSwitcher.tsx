@@ -52,13 +52,6 @@ export default function ProfileSwitcher({
     ? profiles.filter((p) => allowedTypes.includes(p.type))
     : profiles;
 
-  // Only show "Add profile" for provider-type users (families get one profile max)
-  const hasFamilyProfile = profiles.some((p) => p.type === "family");
-  const hasProviderProfile = profiles.some(
-    (p) => p.type === "organization" || p.type === "caregiver"
-  );
-  const showAddProfile = hasProviderProfile || !hasFamilyProfile;
-
   const hasMultipleProfiles = visibleProfiles.length > 1;
 
   const handleSwitch = (profileId: string) => {
@@ -97,9 +90,6 @@ export default function ProfileSwitcher({
                 </p>
                 <p className="text-xs text-gray-400">
                   {TYPE_LABELS[profile.type] || profile.type}
-                  {profile.deletion_requested && (
-                    <span className="ml-1 text-amber-500"> &middot; Pending deletion</span>
-                  )}
                 </p>
               </div>
               {isActive && (
@@ -114,20 +104,18 @@ export default function ProfileSwitcher({
             </button>
           );
         })}
-        {showAddProfile && (
-          <button
-            type="button"
-            onClick={() => { onSwitch?.(); openAuth({ startAtPostAuth: true }); }}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors min-h-[44px] w-full"
-          >
-            <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <span className="text-sm font-medium">Add profile</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => { onSwitch?.(); openAuth({ startAtPostAuth: true }); }}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors min-h-[44px] w-full"
+        >
+          <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <span className="text-sm font-medium">Add profile</span>
+        </button>
       </div>
     );
   }
@@ -161,9 +149,6 @@ export default function ProfileSwitcher({
               </p>
               <p className="text-xs text-gray-400">
                 {TYPE_LABELS[profile.type] || profile.type}
-                {profile.deletion_requested && (
-                  <span className="ml-1 text-amber-500"> &middot; Pending deletion</span>
-                )}
               </p>
             </div>
             {isActive && (
@@ -178,20 +163,18 @@ export default function ProfileSwitcher({
           </button>
         );
       })}
-      {showAddProfile && (
-        <button
-          type="button"
-          onClick={() => { onSwitch?.(); openAuth({ startAtPostAuth: true }); }}
-          className="flex items-center gap-3 px-4 py-2.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors w-full"
-        >
-          <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center shrink-0">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </div>
-          <span className="text-sm font-medium">Add profile</span>
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => { onSwitch?.(); openAuth({ startAtPostAuth: true }); }}
+        className="flex items-center gap-3 px-4 py-2.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors w-full"
+      >
+        <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center shrink-0">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </div>
+        <span className="text-sm font-medium">Add profile</span>
+      </button>
     </div>
   );
 }

@@ -77,7 +77,7 @@ interface AuthContextValue extends AuthState {
   /** Close the unified auth modal */
   closeUnifiedAuth: () => void;
   signOut: (onComplete?: () => void) => Promise<void>;
-  refreshAccountData: (overrideUserId?: string) => Promise<void>;
+  refreshAccountData: () => Promise<void>;
   switchProfile: (profileId: string) => void;
 }
 
@@ -102,9 +102,9 @@ const EMPTY_STATE: AuthState = {
 };
 
 // ─── Query timeout ──────────────────────────────────────────────────────
-// Bounded wait: if Supabase doesn't respond in 5s, fail explicitly
+// Bounded wait: if Supabase doesn't respond in 15s, fail explicitly
 // so the user sees an error + retry instead of an infinite spinner.
-const QUERY_TIMEOUT_MS = 5_000;
+const QUERY_TIMEOUT_MS = 15_000;
 
 function withBoundedTimeout<T>(
   promise: PromiseLike<T>,
@@ -121,9 +121,9 @@ function withBoundedTimeout<T>(
 
 // ─── Persistent cache (localStorage) ────────────────────────────────────
 // Persists auth data across tabs, refreshes, and browser restarts.
-// Background fetch on every page load keeps data fresh.
+// 30-minute TTL ensures stale data is refreshed.
 const CACHE_KEY = "olera_auth_cache";
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours — background fetch refreshes on every page load
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 interface CachedAuthData {
   userId: string;
@@ -311,10 +311,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         if (cancelled) return;
 
         if (!validatedUser) {
-          // No session found. Don't clear the cache here — the session
-          // might be in flight (OTP flow: setSession hasn't completed yet).
-          // Cache is cleared on explicit SIGNED_OUT instead, which is the
-          // only reliable signal that the user intentionally logged out.
+          // Truly no session — clear everything
+          clearAuthCache();
           setState({ ...EMPTY_STATE, isLoading: false });
           initHandlingRef.current = false;
           console.timeEnd("[olera] init");
@@ -331,22 +329,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const cached = getCachedAuthData(userId);
       const hasCachedData = !!cached?.account;
 
-      // Set user immediately so the avatar pill shows. If cache is warm,
-      // also set account/profiles for instant render. If cache is cold,
-      // keep isLoading true — the dropdown will show a brief loading state
-      // instead of an empty-then-full flash.
       setState({
         user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
         account: cached?.account ?? null,
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],
         membership: cached?.membership ?? null,
-        isLoading: !hasCachedData, // Only "done" if we have cached data
+        isLoading: false,
         fetchError: false,
       });
 
-      // Fetch fresh data. When cache is cold this is the critical path —
-      // the UI stays in loading state until this completes.
+      // Background refresh — keeps data current without blocking UI
       try {
         const data = await fetchAccountData(userId);
         if (cancelled) return;
@@ -359,23 +352,22 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             activeProfile: data.activeProfile,
             profiles: data.profiles,
             membership: data.membership,
-            isLoading: false,
             fetchError: false,
           }));
         } else if (!hasCachedData) {
-          setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
-        } else {
-          // Had cache, fetch returned null (edge case) — stop loading
-          setState((prev) => ({ ...prev, isLoading: false }));
+          // Fetch returned null (no account row yet) and we have no cache.
+          // Signal error so the UI can show a retry button.
+          setState((prev) => ({ ...prev, fetchError: true }));
         }
       } catch (err) {
         console.error("[olera] init fetch failed:", err);
         if (cancelled) return;
-        setState((prev) => ({
-          ...prev,
-          isLoading: false,
-          fetchError: !hasCachedData,
-        }));
+        if (!hasCachedData) {
+          // Timeout or network error with no cache — show error + retry
+          setState((prev) => ({ ...prev, fetchError: true }));
+        }
+        // If we have cache, silently keep it — user sees stale data
+        // which is much better than a spinner or error.
       }
 
       // Allow the SIGNED_IN listener to fire on subsequent sign-ins
@@ -418,16 +410,13 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           fetchError: false,
         }));
 
-        // Fetch fresh data in the background. Don't block the user.
-        // Only retry (once) if the account row is missing (DB trigger delay),
-        // NOT on timeout — retrying a timeout just doubles the wait.
+        // Fetch fresh data. For brand-new accounts the DB trigger may
+        // not have run yet, so retry once after a short delay.
         const version = ++versionRef.current;
         try {
           let data = await fetchAccountData(userId);
 
-          // Retry once for missing account row (new signup, DB trigger delay).
-          // Skip retry if it was a timeout — no point waiting again.
-          if (!data?.account && !cancelled && versionRef.current === version) {
+          if (!data?.account) {
             await new Promise((r) => setTimeout(r, 1500));
             if (cancelled || versionRef.current !== version) return;
             data = await fetchAccountData(userId);
@@ -449,7 +438,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             setState((prev) => ({ ...prev, fetchError: true }));
           }
         } catch (err) {
-          // Timeout or network error — don't retry, just use cache
           console.error("[olera] SIGNED_IN fetch failed:", err);
           if (cancelled || versionRef.current !== version) return;
           if (!cached?.account) {
@@ -634,12 +622,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Refresh account data from the database.
-   * Accepts an optional userId override for use immediately after
-   * authentication (before React state has updated the ref).
    * Updates cache on success. Clears fetchError on success.
    */
-  const refreshAccountData = useCallback(async (overrideUserId?: string) => {
-    const userId = overrideUserId || userIdRef.current;
+  const refreshAccountData = useCallback(async () => {
+    const userId = userIdRef.current;
     if (!userId) return;
 
     const version = ++versionRef.current;

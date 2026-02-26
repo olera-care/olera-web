@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import DashboardSectionCard from "./DashboardSectionCard";
@@ -37,11 +36,13 @@ function formatCategory(category: ProfileCategory | null): string | null {
 interface ProfileOverviewCardProps {
   profile: Profile;
   completionPercent: number;
+  onEdit?: () => void;
 }
 
 export default function ProfileOverviewCard({
   profile,
   completionPercent,
+  onEdit,
 }: ProfileOverviewCardProps) {
   const location = [profile.address, profile.city, profile.state]
     .filter(Boolean)
@@ -55,29 +56,33 @@ export default function ProfileOverviewCard({
       completionPercent={completionPercent}
       id="overview"
     >
-      {/* Custom header — replaces DashboardSectionCard's default title */}
-      <div className="-mt-5">
+      <div>
         {/* Provider identity */}
-        <div className="flex items-start gap-4 mb-5">
+        <div className="flex items-center gap-4 mb-5">
           {/* Avatar / Logo */}
           {profile.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.image_url}
               alt={profile.display_name}
-              className="w-16 h-16 rounded-xl object-cover shrink-0"
+              className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
             />
           ) : (
-            <div className="w-16 h-16 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
-              <span className="text-lg font-bold text-primary-600">
+            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+              <span className="text-xl font-display font-bold text-primary-700">
                 {initials}
               </span>
             </div>
           )}
 
           <div className="flex-1 min-w-0">
+            {profile.category && (
+              <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-1">
+                {formatCategory(profile.category)}
+              </p>
+            )}
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-gray-900 truncate">
+              <h2 className="text-xl font-bold text-gray-900 font-display truncate">
                 {profile.display_name}
               </h2>
               {isVerified && <Badge variant="verified">Verified</Badge>}
@@ -87,36 +92,26 @@ export default function ProfileOverviewCard({
             )}
           </div>
 
-          {/* See public view */}
-          {profile.slug && (
-            <Link
-              href={`/provider/${profile.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 border border-gray-200 rounded-lg px-3 py-1.5"
+          {/* Controls */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+              aria-label="Edit profile overview"
             >
-              <svg
-                className="w-3.5 h-3.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
               </svg>
-              See public view
-            </Link>
-          )}
+            </button>
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+              completionPercent >= 100
+                ? "bg-success-50 text-success-700"
+                : "bg-primary-50 text-primary-700"
+            }`}>
+              {completionPercent}%
+            </span>
+          </div>
         </div>
 
         {/* Contact Information */}
@@ -124,7 +119,7 @@ export default function ProfileOverviewCard({
           <h4 className="text-[15px] font-medium text-gray-700 mb-3">
             Contact Information
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-4">
             <ContactRow
               icon="phone"
               label="Phone"
@@ -143,33 +138,6 @@ export default function ProfileOverviewCard({
           </div>
         </div>
 
-        {/* Care categories */}
-        <div className="border-t border-gray-100 pt-5">
-          <h4 className="text-[15px] font-medium text-gray-700 mb-3">
-            Care categories
-          </h4>
-          {profile.care_types && profile.care_types.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {profile.category && (
-                <span className="px-3 py-1.5 rounded-full text-sm font-medium bg-primary-50 text-primary-700 border border-primary-100">
-                  {formatCategory(profile.category)}
-                </span>
-              )}
-              {profile.care_types.map((ct) => (
-                <span
-                  key={ct}
-                  className="px-3 py-1.5 rounded-full text-sm text-gray-600 bg-gray-50 border border-gray-200"
-                >
-                  {ct}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="text-[15px] text-gray-500">
-              No care categories added yet.
-            </p>
-          )}
-        </div>
       </div>
     </DashboardSectionCard>
   );
@@ -185,11 +153,11 @@ function ContactRow({
   value: string | null;
 }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+    <div className="flex items-start gap-2.5 min-w-0">
+      <div className="w-8 h-8 rounded-lg bg-vanilla-50 border border-warm-100/40 flex items-center justify-center shrink-0">
         {icon === "phone" && (
           <svg
-            className="w-4 h-4 text-gray-500"
+            className="w-4 h-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -204,7 +172,7 @@ function ContactRow({
         )}
         {icon === "email" && (
           <svg
-            className="w-4 h-4 text-gray-500"
+            className="w-4 h-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -219,7 +187,7 @@ function ContactRow({
         )}
         {icon === "website" && (
           <svg
-            className="w-4 h-4 text-gray-500"
+            className="w-4 h-4 text-gray-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -233,9 +201,9 @@ function ContactRow({
           </svg>
         )}
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-medium text-gray-500">{label}</p>
-        <p className={`text-[15px] ${value ? "text-gray-700" : "text-gray-400"}`}>
+        <p className={`text-[15px] truncate ${value ? "text-gray-700" : "text-gray-400"}`}>
           {value || "N/A"}
         </p>
       </div>

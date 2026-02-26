@@ -439,35 +439,35 @@ const bentoCards = [
     id: 1,
     title: "Memory Care",
     image: "https://images.unsplash.com/photo-1442458370899-ae20e367c5d8?w=800&q=80", // grandmother with family
-    href: "/memory-care",
+    href: "/browse?type=memory-care",
     className: "col-span-1 row-span-2", // tall left
   },
   {
     id: 2,
     title: "Home Care",
     image: "https://images.unsplash.com/photo-1586105251261-72a756497a11?w=800&q=80", // caregiver and senior
-    href: "/home-care",
+    href: "/browse?type=home-care",
     className: "col-span-2 row-span-1", // wide top middle
   },
   {
     id: 3,
     title: "Assisted Living",
     image: "https://images.unsplash.com/photo-1505455184862-554165e5f6ba?w=800&q=80", // happy seniors
-    href: "/assisted-living",
+    href: "/browse?type=assisted-living",
     className: "col-span-1 row-span-2", // tall right
   },
   {
     id: 4,
     title: "Skilled Nursing",
     image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80", // nurse caring
-    href: "/nursing-home",
+    href: "/browse?type=skilled-nursing",
     className: "col-span-1 row-span-1", // square bottom left-middle
   },
   {
     id: 5,
-    title: "Home Health Care",
+    title: "Hospice Care",
     image: "https://images.unsplash.com/photo-1559234938-b60fff04894d?w=800&q=80", // caring hands
-    href: "/home-health-care",
+    href: "/browse?type=hospice",
     className: "col-span-1 row-span-1", // square bottom right-middle
   },
 ];
@@ -729,35 +729,9 @@ export default function HomePage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedLocation = location.trim();
-
-    // Try to parse "City, ST" format for power page routing
-    if (trimmedLocation) {
-      const match = trimmedLocation.match(/^(.+),\s*([A-Z]{2})$/);
-      if (match) {
-        const city = match[1].trim();
-        const stateAbbrev = match[2];
-
-        // Reverse-lookup state name from abbreviation
-        const stateName = Object.entries(stateAbbreviations).find(
-          ([, abbr]) => abbr === stateAbbrev
-        )?.[0];
-
-        if (stateName) {
-          const stateSlug = stateName.toLowerCase().replace(/\s+/g, "-");
-          const citySlug = city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-          const categorySlug = careType === "home-health" ? "home-health-care" : careType;
-
-          router.push(`/${categorySlug}/${stateSlug}/${citySlug}`);
-          return;
-        }
-      }
-    }
-
-    // Fallback to browse page for ZIP codes, unrecognized formats, or no location
     const params = new URLSearchParams();
-    if (trimmedLocation) {
-      params.set("location", trimmedLocation);
+    if (location.trim()) {
+      params.set("location", location.trim());
     }
     if (careType) {
       params.set("type", careType);

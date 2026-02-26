@@ -56,10 +56,12 @@ feature/xyz ──PR──▶ staging ──PR──▶ main (production)
               staging-olera.vercel.app    olera.vercel.app
 ```
 
-### Branch protection
+### Branch protection & merge permissions
 
-- **`main`**: Requires PR with 1 approval. No direct pushes. No force pushes.
-- **`staging`**: Requires PR (self-merge OK). No direct pushes.
+- **`main`** and **`staging`** are protected by GitHub rulesets. No direct pushes. No force pushes. All changes require a PR.
+- **Only TJ (`tfalohun`) can merge PRs** to `main` and `staging`. This is enforced via the `merge-admins` team bypass in rulesets.
+- Everyone else can create branches, push code, and open PRs — but cannot merge.
+- See [Merge Permissions](docs/MERGE_PERMISSIONS.md) for details.
 
 ### Environment variables
 
@@ -170,13 +172,13 @@ git push origin your-branch-name
 5. Write a description of what you changed and why
 6. Click "Create pull request"
 
-### Step 8: Get Reviewed
+### Step 8: Get Reviewed & Merged
 
 - Someone will review your PR
 - They might suggest changes - that's normal and helpful!
 - Make any requested changes on your branch and push again
-- Once approved, your PR will be merged into `staging`
-- When staging is validated, a separate PR promotes `staging` → `main` (production)
+- Once approved, **TJ will merge your PR** into `staging` (only TJ has merge access)
+- When staging is validated, TJ promotes `staging` → `main` (production)
 
 ---
 
@@ -439,11 +441,11 @@ First time? GitHub may ask you to set up credentials.
 4. Add description: `Adding myself to the README`
 5. Click **Create pull request**
 
-#### Step 7: Get Reviewed & Merge (5 min)
+#### Step 7: Get Reviewed & Merged (5 min)
 
 - Wait for a teammate to approve (we'll do this together)
-- Once approved, click **Merge pull request**
-- Click **Delete branch** (cleanup)
+- Once approved, **ask TJ to merge** your PR (only TJ has merge access)
+- TJ will click **Merge pull request** and **Delete branch** (cleanup)
 
 #### Step 8: Sync Your Local (1 min)
 
@@ -486,10 +488,10 @@ For fixes that can't wait for the staging cycle:
 ### The Golden Rule
 
 ```
-staging → branch → changes → push → PR to staging → review → merge → promote to main
+staging → branch → changes → push → PR to staging → review → TJ merges → promote to main
 ```
 
-**Never push directly to `main` or `staging`. Always use a PR.**
+**Never push directly to `main` or `staging`. Always use a PR. Only TJ merges.**
 
 ---
 

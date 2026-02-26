@@ -25,6 +25,13 @@ feature branch → PR to staging → QA → PR to main → production
 | `main` | olera2-web.vercel.app | Production |
 | `staging` | staging-olera2-web.vercel.app | QA / Demo |
 
+### Merge permissions
+
+- **Only `tfalohun` (TJ) can merge PRs** to `main` and `staging`
+- Enforced via GitHub rulesets with `merge-admins` team as the only bypass actor
+- Everyone else can create branches, push, and open PRs — but cannot merge
+- The `/pr-merge` command authenticates as TJ, so it works as expected
+
 ### Commit conventions
 
 - Imperative mood: "Add X" not "Added X"

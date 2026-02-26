@@ -88,6 +88,8 @@
 | 2026-02-26 | Content regression checks needed beyond git merge-base | Revert→re-apply cycles make commit topology misleading; must compare actual file content for critical files |
 | 2026-02-26 | PR merge reports go to Notion | Automated reports in Product Development > PR Merge Reports for audit trail and team visibility |
 | 2026-02-26 | Smaller, more frequent merges to staging | Avoids big reconciliation sessions when multiple contributors touch shared files |
+| 2026-02-26 | Only TJ can merge to main/staging | Rulesets + merge-admins team. Prevents uncontrolled merges that caused regressions (Feb 26 post-mortem) |
+| 2026-02-26 | jakub300 keeps org admin | XFive tech lead needs admin for transfer tasks; not in merge-admins so can't merge |
 
 ---
 
@@ -216,6 +218,39 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 ---
 
 ## Session Log
+
+### 2026-02-26 (Session 20) — Merge Access Lockdown
+
+**Branch:** `neat-morse`
+
+**What:** Locked down merge access so only TJ can merge PRs to `main` and `staging`. Implemented via GitHub rulesets + org team, downgraded collaborator roles, updated all docs.
+
+**GitHub changes (via API):**
+- Created `merge-admins` org team (TJ as sole member)
+- Created `main-branch-protection` ruleset (active) — only `merge-admins` can bypass
+- Created `staging-branch-protection` ruleset (active) — only `merge-admins` can bypass
+- Deleted old classic branch protection on `main`
+- Downgraded chantel-stack to org member + repo maintain
+- logan447 stays at write (COO, 2nd in charge)
+- jakub300 stays at org admin (XFive tech lead, needs admin for transfer tasks)
+- Efuanyamekye stays at write
+
+**Final roles:**
+| User | Role | Can Merge |
+|------|------|-----------|
+| tfalohun | admin | Yes (sole merger) |
+| jakub300 | admin | No (not in merge-admins) |
+| logan447 | write | No |
+| chantel-stack | maintain | No |
+| Efuanyamekye | write | No |
+
+**Files created/modified:**
+- `CLAUDE.md` — added merge permissions section
+- `CONTRIBUTING.md` — updated branch protection, Step 8, hands-on Step 7, golden rule
+- `docs/GITHUB_SETUP.md` — replaced classic branch protection with rulesets, updated role guidance
+- `docs/MERGE_PERMISSIONS.md` — new reference doc (who can merge, how it works, emergency procedure)
+
+---
 
 ### 2026-02-26 (Session 19) — Staging Reconciliation + PR Merge Command
 

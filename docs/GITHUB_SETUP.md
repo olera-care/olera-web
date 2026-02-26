@@ -4,22 +4,30 @@ One-time setup steps for the repository owner.
 
 ---
 
-## 1. Enable Branch Protection (Recommended)
+## 1. Branch Protection (Rulesets)
 
-Branch protection prevents accidental pushes directly to `main`. All changes go through pull requests.
+Branch protection is enforced via **repository rulesets** (not classic branch protection). Two rulesets exist:
 
-### Steps:
+- **`main-branch-protection`** — Protects `main`
+- **`staging-branch-protection`** — Protects `staging`
 
-1. Go to https://github.com/olera-care/olera-web/settings/branches
-2. Under "Branch protection rules", click "Add rule"
-3. In "Branch name pattern", type: `main`
-4. Check these options:
-   - [x] Require a pull request before merging
-   - [x] Require approvals (set to 1)
-   - [x] Dismiss stale pull request approvals when new commits are pushed
-5. Click "Create"
+### What the rulesets enforce:
 
-**Why?** This ensures everyone uses branches and PRs. No one accidentally breaks the main code.
+- All changes must go through a pull request (no direct pushes)
+- No branch deletion
+- No force pushes
+- **Only the `merge-admins` team can merge PRs** (currently only TJ)
+
+### To view or edit rulesets:
+
+1. Go to https://github.com/olera-care/olera-web/settings/rules
+2. Click on a ruleset to view/edit
+
+### How merge permissions work:
+
+The rulesets require PRs but set 0 required approvals. Since only `merge-admins` team members are listed as bypass actors, only they can actually merge. Everyone else can create PRs but will see "merge blocked."
+
+See [Merge Permissions](MERGE_PERMISSIONS.md) for details.
 
 ---
 
@@ -46,8 +54,9 @@ Now every push to `main` auto-deploys, and every PR gets a preview URL!
 2. Click "Add people"
 3. Enter their GitHub username or email
 4. Choose role:
-   - **Write** - Can push branches, create PRs (use this for team members)
-   - **Admin** - Full control (use sparingly)
+   - **Write** - Can push branches, create PRs (default for most team members)
+   - **Maintain** - Write + manage issues/PRs/labels (for senior contributors)
+   - **Admin** - Full control (TJ only — do not grant to others)
 
 ### To Vercel (if needed):
 

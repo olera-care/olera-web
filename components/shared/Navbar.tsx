@@ -32,6 +32,12 @@ export default function Navbar() {
   const { pendingCount: matchesPendingCount } = useInterestedProviders(
     activeProfile?.type === "family" ? activeProfile?.id : undefined
   );
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
+  useEffect(() => {
+    const handler = (e: Event) => setNewLeadsCount((e as CustomEvent).detail as number);
+    window.addEventListener("olera:leads-count", handler);
+    return () => window.removeEventListener("olera:leads-count", handler);
+  }, []);
   const [heartPulse, setHeartPulse] = useState(false);
   const prevSavedCount = useRef(savedCount);
   const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(false);
@@ -539,7 +545,7 @@ export default function Navbar() {
                     {([
                       { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
                       { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 0 },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount },
                       { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
                       { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {
@@ -809,7 +815,7 @@ export default function Navbar() {
                     {([
                       { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
                       { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 0 },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount },
                       { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
                       { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {

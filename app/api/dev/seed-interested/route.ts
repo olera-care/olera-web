@@ -363,3 +363,65 @@ export async function POST() {
     );
   }
 }
+
+/**
+ * DELETE /api/dev/seed-interested
+ *
+ * Removes all provider-initiated request connections for the current user,
+ * so you can re-seed with fresh data.
+ */
+export async function DELETE() {
+  try {
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("active_profile_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account?.active_profile_id) {
+      return NextResponse.json(
+        { error: "No active profile" },
+        { status: 400 }
+      );
+    }
+
+    const admin = getAdminClient();
+    const db = admin || supabase;
+
+    // Delete all provider-initiated request connections to this care seeker
+    const { data: deleted, error: delError } = await db
+      .from("connections")
+      .delete()
+      .eq("to_profile_id", account.active_profile_id)
+      .eq("type", "request")
+      .select("id");
+
+    if (delError) {
+      return NextResponse.json(
+        { error: delError.message },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      status: "cleared",
+      count: deleted?.length ?? 0,
+    });
+  } catch (err) {
+    console.error("Delete interested error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

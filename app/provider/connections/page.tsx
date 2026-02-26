@@ -46,6 +46,7 @@ interface LeadDetail extends Lead {
   activity?: ActivityEvent[];
   archivedDate?: string;
   archiveReason?: string;
+  messagedAt?: string;
 }
 
 // ── Mock data ──
@@ -282,6 +283,7 @@ function LeadDetailDrawer({
   onArchive,
   onRestore,
   onDelete,
+  onMessage,
 }: {
   lead: LeadDetail | null;
   isOpen: boolean;
@@ -289,6 +291,7 @@ function LeadDetailDrawer({
   onArchive: (leadId: string, reason: string) => void;
   onRestore: (leadId: string) => void;
   onDelete: (leadId: string) => void;
+  onMessage: (leadId: string) => void;
 }) {
   const [showComposer, setShowComposer] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
@@ -364,7 +367,9 @@ function LeadDetailDrawer({
   }, [isOpen, onClose, showComposer, showArchive, showDeleteConfirm]);
 
   const handleSendMessage = () => {
+    if (!lead) return;
     setMessageSent(true);
+    onMessage(lead.id);
   };
 
   const handleArchive = () => {
@@ -509,11 +514,11 @@ function LeadDetailDrawer({
         {/* ── Scrollable middle ── */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto">
 
-          {/* ── Inline message composer ── */}
-          {showComposer && (
+          {/* ── Inline message composer / persistent sent state ── */}
+          {(showComposer || lead.messagedAt) && (
             <div className="px-6 pt-5 pb-2">
-              <div className={`rounded-2xl overflow-hidden ${messageSent ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white shadow-sm"}`}>
-                {messageSent ? (
+              <div className={`rounded-2xl overflow-hidden ${(messageSent || lead.messagedAt) ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white shadow-sm"}`}>
+                {(messageSent || lead.messagedAt) ? (
                   /* ── Persistent confirmation state with actions ── */
                   <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
                     <div className="w-11 h-11 rounded-full bg-primary-600 flex items-center justify-center">
@@ -528,7 +533,7 @@ function LeadDetailDrawer({
                     <div className="flex items-center gap-3 w-full mt-2">
                       <button
                         type="button"
-                        onClick={() => { setShowComposer(false); setMessageSent(false); }}
+                        onClick={onClose}
                         className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -872,7 +877,7 @@ function LeadDetailDrawer({
               </div>
             )}
           </div>
-        ) : showComposer ? null : showArchive ? (
+        ) : (showComposer || (lead.messagedAt && !showArchive)) ? null : showArchive ? (
           /* Archive reason selector */
           <div className="shrink-0 border-t border-gray-100">
             {archived ? (
@@ -993,6 +998,12 @@ export default function ProviderLeadsPage() {
   const openDrawer = useCallback((lead: LeadDetail) => {
     setSelectedLeadId(lead.id);
     setIsDrawerOpen(true);
+    // Clear "New" badge once viewed
+    if (lead.isNew) {
+      setLeads((prev) =>
+        prev.map((l) => (l.id === lead.id ? { ...l, isNew: false } : l))
+      );
+    }
   }, []);
 
   const closeDrawer = useCallback(() => {
@@ -1030,6 +1041,16 @@ export default function ProviderLeadsPage() {
   const handleDeleteLead = useCallback((leadId: string) => {
     setLeads((prev) => prev.filter((l) => l.id !== leadId));
     setSelectedLeadId(null);
+  }, []);
+
+  const handleMessageLead = useCallback((leadId: string) => {
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === leadId
+          ? { ...l, messagedAt: "Just now", status: "replied" as LeadStatus }
+          : l
+      )
+    );
   }, []);
 
   const filteredLeads = useMemo(() => {
@@ -1208,6 +1229,7 @@ export default function ProviderLeadsPage() {
         onArchive={handleArchiveLead}
         onRestore={handleRestoreLead}
         onDelete={handleDeleteLead}
+        onMessage={handleMessageLead}
       />
     </div>
   );

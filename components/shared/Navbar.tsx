@@ -535,11 +535,11 @@ export default function Navbar() {
                   /* Provider Hub nav links */
                   <>
                     {([
-                      { label: "Dashboard", href: "/provider", match: "/provider" },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
-                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
-                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
+                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: unreadInboxCount },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 3 },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {
                       const active = item.match
                         ? item.match === "/provider"
@@ -550,13 +550,18 @@ export default function Navbar() {
                         <Link
                           key={item.label}
                           href={item.href}
-                          className={`px-4 py-2 text-[15px] font-medium transition-colors ${
+                          className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
                             active
                               ? "text-primary-600"
                               : "text-gray-700 hover:text-gray-900"
                           }`}
                         >
                           {item.label}
+                          {item.badge > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}
@@ -800,11 +805,11 @@ export default function Navbar() {
                   /* Provider mobile nav */
                   <>
                     {([
-                      { label: "Dashboard", href: "/provider", match: "/provider" },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
-                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
-                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
+                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: unreadInboxCount },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: 3 },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {
                       const active = item.match
                         ? item.match === "/provider"
@@ -815,7 +820,7 @@ export default function Navbar() {
                         <Link
                           key={item.label}
                           href={item.href}
-                          className={`block py-3 font-medium ${
+                          className={`flex items-center gap-2 py-3 font-medium ${
                             active
                               ? "text-primary-600"
                               : "text-gray-700 hover:text-primary-600"
@@ -823,6 +828,11 @@ export default function Navbar() {
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           {item.label}
+                          {item.badge > 0 && (
+                            <span className="min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}

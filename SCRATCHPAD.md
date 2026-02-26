@@ -214,6 +214,25 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 
 ## Session Log
 
+### 2026-02-25 (Session 18) — Branding Update: Teal Bird Logo + App Store Badge
+
+**Branch:** `fond-fermi` | **PR:** #63 targeting staging (merged)
+
+**What:** Replaced all Olera branding with the teal bird logo and added App Store badge to benefits finder.
+
+**Changes:**
+- `public/images/olera-logo.png` — replaced with teal bird (was 3D heart briefly, then swapped to bird)
+- `app/icon.png` (32x32) + `app/apple-icon.png` (180x180) — new favicon/touch icon using bird
+- `components/shared/Navbar.tsx` — replaced hardcoded blue "O" div with `<img>` tag
+- `components/shared/Footer.tsx` — replaced hardcoded blue "O" div with `<img>` tag
+- `components/auth/UnifiedAuthModal.tsx` — already referenced `/images/olera-logo.png`, auto-updated
+- `public/images/app-store-badge.png` — official "Download on the App Store" badge
+- `components/benefits/CareProfileSidebar.tsx` — replaced text link with App Store badge image
+
+**Status:** Merged to staging via PR #63.
+
+---
+
 ### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
 
 **Branch:** `swift-faraday` | **PR:** #53 targeting staging (merged)

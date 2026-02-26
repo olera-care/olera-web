@@ -142,6 +142,26 @@
   animation: wizard-fade-in 0.3s ease-out;
 }
 
+/* Success checkmark — bouncy scale-in */
+@keyframes success-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-success-pop {
+  animation: success-pop 0.5s ease-out;
+}
+
 /* Card entrance — staggered fade + lift for results grid */
 @keyframes card-enter {
   from {
@@ -174,21 +194,6 @@
 
 .animate-bookmark-pop {
   animation: bookmark-pop 0.25s ease-out;
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.25s ease-out;
 }
 
 /* Smooth expand/collapse using grid row trick */

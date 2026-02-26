@@ -47,6 +47,15 @@ feature branch → PR to staging → QA → PR to main → production
 - **Payments**: Stripe (configured, not fully live)
 - **Hosting**: Vercel
 
+## Supabase Projects
+
+| Environment | Project ID | Dashboard |
+|-------------|-----------|-----------|
+| Production | `ocaabzfiilkjcgqwhbwr` | Supabase → Olera (main / PRODUCTION) |
+| Staging | TODO | Supabase → Olera Staging |
+
+**Credentials:** Stored in Claude Code auto-memory at `memory/supabase-credentials.md`. Each worktree needs its own `.env.local` — copy `.env.example` and fill in values from that file. Never commit `.env.local`.
+
 ## Key Files
 
 - `lib/supabase/client.ts` — Browser Supabase client

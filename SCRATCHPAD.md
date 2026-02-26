@@ -27,6 +27,11 @@
   - Django-admin-style CRUD for 36K+ providers in `olera-providers` table
   - Search, filters, server-side pagination, sectioned edit form, audit logging
 
+- **Content CMS** (branch: `shiny-thompson` → merged to `staging` via PR #72) — DONE
+  - Tiptap rich text editor, CRUD APIs, image upload, SEO, server-rendered public pages
+  - DB migration + 6 seed articles live
+  - Admin Panel Guide on Notion (Product Development)
+
 ---
 
 ## In Progress
@@ -218,6 +223,50 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 ---
 
 ## Session Log
+
+### 2026-02-26 (Session 21) — Content CMS
+
+**Branch:** `shiny-thompson` | **PR:** #72 (merged to staging)
+
+**What:** Shipped a complete Content CMS for the Resources page — Tiptap rich text editor, CRUD API, image upload, SEO metadata, server-rendered public pages with JSON-LD.
+
+**New files (16):**
+- `app/admin/content/page.tsx` — article list with search, tabs, filters, pagination
+- `app/admin/content/[articleId]/page.tsx` — full article editor (6 sections)
+- `app/api/admin/content/route.ts` — list + create API
+- `app/api/admin/content/[articleId]/route.ts` — read + update + delete API
+- `app/api/admin/content/upload/route.ts` — image upload to Supabase Storage
+- `app/api/resources/route.ts` — public API (published articles only)
+- `app/resources/layout.tsx` — resources page layout
+- `components/admin/content/TiptapEditor.tsx` — rich text editor
+- `components/admin/content/ImageDropZone.tsx` — drag-and-drop image upload
+- `components/admin/content/SEOSection.tsx` — SEO metadata form
+- `lib/content.ts` — server-side article fetchers
+- `lib/render-content.ts` — Tiptap JSON→HTML renderer
+- `lib/slugify.ts` — slug utility
+- `types/content.ts` — ContentArticle types
+- `scripts/create-content-articles.sql` — DB migration
+- `scripts/seed-content.ts` — seed data (6 articles)
+
+**Modified files (6):**
+- `app/globals.css` — Tiptap + prose styles
+- `app/resources/page.tsx` — API integration with mock fallback
+- `app/resources/[slug]/page.tsx` — server-rendered articles with JSON-LD + related articles
+- `components/admin/AdminSidebar.tsx` — added "Content" nav link
+- `package.json` + `package-lock.json` — 8 Tiptap deps
+
+**DB:** Migration already existed; seeded 6 articles successfully.
+
+**Also done:**
+- Fixed Supabase credentials (project ref has 3 `i`s: `ocaabzfiiikjcgqwhbwr`)
+- Saved credentials to `memory/supabase-credentials.md` for future sessions
+- Updated CLAUDE.md with Supabase Projects section
+- Created Admin Panel Guide on Notion (under Product Development)
+- Added backlog task: CMS for category/state/city editorial content
+
+**Next:** CMS editing for category/state/city page editorial content (backlogged)
+
+---
 
 ### 2026-02-26 (Session 20) — Merge Access Lockdown
 

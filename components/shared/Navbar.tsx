@@ -11,6 +11,7 @@ import { useNavbar } from "@/components/shared/NavbarContext";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { useUnreadInboxCount } from "@/hooks/useUnreadInboxCount";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
+import { MOCK_LEADS } from "@/lib/mock/provider-leads";
 
 export default function Navbar() {
   const router = useRouter();
@@ -27,11 +28,24 @@ export default function Navbar() {
   const { savedCount, hasInitialized: savedInitialized } = useSavedProviders();
   const profileIds = (profiles || []).map((p) => p.id);
   const unreadInboxCount = useUnreadInboxCount(profileIds);
+  const providerProfileIds = (profiles || []).filter((p) => p.type !== "family").map((p) => p.id);
+  const providerInboxCount = useUnreadInboxCount(providerProfileIds);
   const { pendingCount: matchesPendingCount } = useInterestedProviders(
     activeProfile?.type === "family" ? activeProfile?.id : undefined
   );
-  const [heartPulse, setHeartPulse] = useState(false);
-  const prevSavedCount = useRef(savedCount);
+  const [newLeadsCount, setNewLeadsCount] = useState(() => {
+    try {
+      const stored = localStorage.getItem("olera_leads_new_count");
+      if (stored !== null) return parseInt(stored, 10) || 0;
+    } catch { /* localStorage unavailable */ }
+    // No stored value yet — compute from source data
+    return MOCK_LEADS.filter((l) => l.isNew).length;
+  });
+  useEffect(() => {
+    const handler = (e: Event) => setNewLeadsCount((e as CustomEvent).detail as number);
+    window.addEventListener("olera:leads-count", handler);
+    return () => window.removeEventListener("olera:leads-count", handler);
+  }, []);
   const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -161,19 +175,6 @@ export default function Navbar() {
     setIsFindCareOpen(false);
   }, [pathname]);
 
-  // Pulse heart icon only on user-initiated saves (not initial data load)
-  useEffect(() => {
-    if (!savedInitialized) {
-      prevSavedCount.current = savedCount;
-      return;
-    }
-    if (savedCount > prevSavedCount.current) {
-      setHeartPulse(true);
-      const timer = setTimeout(() => setHeartPulse(false), 600);
-      return () => clearTimeout(timer);
-    }
-    prevSavedCount.current = savedCount;
-  }, [savedCount, savedInitialized]);
 
   // Shared dropdown content (context-aware links, mode switcher, sign out)
   // User menu is always in the right column, so dropdown always aligns right
@@ -535,11 +536,11 @@ export default function Navbar() {
                   /* Provider Hub nav links */
                   <>
                     {([
-                      { label: "Dashboard", href: "/provider", match: "/provider" },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
-                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
-                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
+                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {
                       const active = item.match
                         ? item.match === "/provider"
@@ -550,13 +551,18 @@ export default function Navbar() {
                         <Link
                           key={item.label}
                           href={item.href}
-                          className={`px-4 py-2 text-[15px] font-medium transition-colors ${
+                          className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
                             active
                               ? "text-primary-600"
                               : "text-gray-700 hover:text-gray-900"
                           }`}
                         >
                           {item.label}
+                          {item.badge > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}
@@ -708,9 +714,7 @@ export default function Navbar() {
                       aria-label="Saved providers"
                     >
                       <svg
-                        className={`w-[18px] h-[18px] transition-all duration-300 ${
-                          heartPulse ? "scale-125 text-red-500 fill-red-500" : ""
-                        }`}
+                        className="w-[18px] h-[18px]"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth={2}
@@ -800,11 +804,11 @@ export default function Navbar() {
                   /* Provider mobile nav */
                   <>
                     {([
-                      { label: "Dashboard", href: "/provider", match: "/provider" },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox" },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections" },
-                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews" },
-                      { label: "Matches", href: "/provider/matches", match: "/provider/matches" },
+                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
                     ] as const).map((item) => {
                       const active = item.match
                         ? item.match === "/provider"
@@ -815,7 +819,7 @@ export default function Navbar() {
                         <Link
                           key={item.label}
                           href={item.href}
-                          className={`block py-3 font-medium ${
+                          className={`flex items-center gap-2 py-3 font-medium ${
                             active
                               ? "text-primary-600"
                               : "text-gray-700 hover:text-primary-600"
@@ -823,6 +827,11 @@ export default function Navbar() {
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           {item.label}
+                          {item.badge > 0 && (
+                            <span className="min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
                         </Link>
                       );
                     })}

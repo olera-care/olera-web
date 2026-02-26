@@ -90,14 +90,20 @@ function estimateDriveTime(miles: number): string {
 
 function getPricingLabel(profile: InterestedProvider["providerProfile"]): string | null {
   if (!profile) return null;
-  const meta = profile.metadata as (OrganizationMetadata & CaregiverMetadata) | null;
+  const meta = profile.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
   if (!meta) return null;
+  // Check business_profiles metadata first (user-entered)
   if (meta.hourly_rate_min && meta.hourly_rate_max) {
     return `$${meta.hourly_rate_min}–$${meta.hourly_rate_max}/hr`;
   }
   if (meta.hourly_rate_min) return `From $${meta.hourly_rate_min}/hr`;
   if (meta.price_range) return meta.price_range;
-  return "Contact for rates";
+  // Fall back to iOS olera-providers pricing (enriched by hook)
+  const lower = meta.lower_price as number | undefined;
+  const upper = meta.upper_price as number | undefined;
+  if (lower && upper) return `$${lower}–$${upper}/hr`;
+  if (lower) return `From $${lower}/hr`;
+  return "Contact for pricing";
 }
 
 export default function InterestedCard({
@@ -153,10 +159,25 @@ export default function InterestedCard({
       : null;
 
   // Provider metadata for expanded view
-  const providerMeta = profile?.metadata as (OrganizationMetadata & CaregiverMetadata) | null;
-  const isVerified = profile?.verification_state === "verified";
+  const providerMeta = profile?.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
   const pricingLabel = getPricingLabel(profile);
   const profileSlug = profile?.slug;
+
+  // Accepted payments
+  const acceptedPayments = (providerMeta?.accepted_payments as string[]) || [];
+  const paymentMethods: string[] = [...acceptedPayments];
+  if (providerMeta?.accepts_medicaid && !paymentMethods.includes("Medicaid")) paymentMethods.push("Medicaid");
+  if (providerMeta?.accepts_medicare && !paymentMethods.includes("Medicare")) paymentMethods.push("Medicare");
+  if (providerMeta?.accepts_private_insurance && !paymentMethods.includes("Private Health Insurance")) paymentMethods.push("Private Health Insurance");
+  const primaryPayment = paymentMethods[0] || null;
+  const remainingPayments = paymentMethods.slice(1);
+
+  // Rating from iOS data (stored in metadata by hook)
+  const googleRating = (providerMeta?.google_rating as number) || 0;
+  const reviewCount = (providerMeta?.review_count as number) || 0;
+
+  // Payment expand state
+  const [paymentExpanded, setPaymentExpanded] = useState(false);
   const providerCity = profile?.city;
 
   // "Why they're a good fit" reasons
@@ -399,6 +420,46 @@ export default function InterestedCard({
             )}
           </div>
         )}
+
+        {/* ── Accepted Payments ── */}
+        {!isDeclined && (
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mr-1">
+              Payment
+            </span>
+            {primaryPayment ? (
+              <>
+                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border border-primary-100 text-primary-700 bg-primary-50/40">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                  </svg>
+                  {primaryPayment}
+                </span>
+                {paymentExpanded ? (
+                  remainingPayments.map((p) => (
+                    <span key={p} className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-500 bg-white">
+                      {p}
+                    </span>
+                  ))
+                ) : (
+                  remainingPayments.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setPaymentExpanded(true)}
+                      className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors"
+                    >
+                      +{remainingPayments.length} more
+                    </button>
+                  )
+                )}
+              </>
+            ) : (
+              <span className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-dashed border-warm-200 text-gray-400 bg-white">
+                Not specified
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Expanded detail section (grid animation) ── */}
@@ -443,32 +504,33 @@ export default function InterestedCard({
                   </Link>
                 )}
 
-                {/* Info cards: Pricing + Background Check */}
+                {/* Info cards: Pricing + Rating */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-xl border border-gray-200/80 bg-white px-5 py-4">
                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                       Pricing
                     </p>
                     <p className="text-[15px] font-semibold text-gray-900">
-                      {pricingLabel || "Contact for rates"}
+                      {pricingLabel || "Contact for pricing"}
                     </p>
                   </div>
                   <div className="rounded-xl border border-gray-200/80 bg-white px-5 py-4">
                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                      Background check
+                      Rating
                     </p>
-                    <p className="text-[15px] font-semibold text-gray-900">
-                      {isVerified ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          Verified
-                          <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                          </svg>
-                        </span>
-                      ) : (
-                        "Unverified"
-                      )}
-                    </p>
+                    {googleRating > 0 ? (
+                      <div className="flex items-center gap-1.5">
+                        <svg className="w-4 h-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-[15px] font-semibold text-gray-900">{googleRating.toFixed(1)}</span>
+                        {reviewCount > 0 && (
+                          <span className="text-[13px] text-gray-400">({reviewCount})</span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-[14px] font-medium text-primary-600">New on Olera</p>
+                    )}
                   </div>
                 </div>
               </div>

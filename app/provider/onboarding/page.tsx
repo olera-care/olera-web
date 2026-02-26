@@ -14,7 +14,7 @@ import OtpInput from "@/components/auth/OtpInput";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4 | 5 | "success";
+type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4 | 5;
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
@@ -166,7 +166,7 @@ function ProviderOnboardingContent() {
 
   // Persist step + search query so resume works properly
   useEffect(() => {
-    if (step === "resume" || step === 1 || step === "success") return; // don't overwrite during init
+    if (step === "resume" || step === 1) return; // don't overwrite during init
     try {
       localStorage.setItem(STEP_KEY, String(step));
     } catch {
@@ -424,8 +424,19 @@ function ProviderOnboardingContent() {
         setVerifyError(result.error || "Incorrect code. Please try again.");
         return;
       }
-      // Verified — proceed to step 2
-      setStep(2);
+      // Verified — clear wizard state and go straight to dashboard
+      // (claimed providers already have their data from olera-providers)
+      try {
+        localStorage.removeItem(TYPE_KEY);
+        localStorage.removeItem(DATA_KEY);
+        localStorage.removeItem(STEP_KEY);
+        localStorage.removeItem(SEARCH_KEY);
+        localStorage.removeItem(CLAIM_KEY);
+      } catch {
+        // localStorage unavailable
+      }
+      await refreshAccountData();
+      router.replace("/provider");
     } catch {
       setVerifyError("Something went wrong. Please try again.");
     } finally {
@@ -620,7 +631,7 @@ function ProviderOnboardingContent() {
       }
 
       await refreshAccountData();
-      setStep("success");
+      router.replace("/provider");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
     } finally {
@@ -638,7 +649,7 @@ function ProviderOnboardingContent() {
     ? { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 }
     : { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
-  const showWizardNav = step !== "resume" && step !== "success";
+  const showWizardNav = step !== "resume";
 
   if (isLoading) {
     return (
@@ -889,6 +900,17 @@ function ProviderOnboardingContent() {
                     <p className="text-base text-red-600 mt-3">{searchError}</p>
                   )}
                 </form>
+
+                <p className="text-center mt-4 text-[15px] text-gray-400">
+                  or{" "}
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    create a new account
+                  </button>
+                </p>
 
               </div>
             )}
@@ -1786,167 +1808,6 @@ function ProviderOnboardingContent() {
           </div>
         )}
 
-        {/* ── Success screen ── */}
-        {step === "success" && (
-          <div className="w-full max-w-lg">
-            {/* Animated checkmark */}
-            <div className="flex justify-center mb-8">
-              <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center animate-success-pop">
-                <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
-                {isAdding ? "New profile created!" : "You\u0027re all set up!"}
-              </h1>
-              <p className="text-gray-500 mt-3 text-base leading-relaxed max-w-sm mx-auto">
-                {isAdding
-                  ? "Your new listing has been created. Switch to it from the profile menu to start filling in details."
-                  : "You\u0027ve taken the first step. A few more details and families will be able to find you."}
-              </p>
-            </div>
-
-            {/* Mini listing card — same as Step 5 preview */}
-            <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
-              <div className="h-28 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative flex items-center justify-center">
-                <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-                  <span className="text-xl font-bold text-primary-500">
-                    {(data.displayName || "")
-                      .split(/\s+/)
-                      .map((w) => w[0])
-                      .filter(Boolean)
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase() || "?"}
-                  </span>
-                </div>
-              </div>
-              <div className="p-5">
-                {providerType === "organization" && data.category && (
-                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
-                    {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
-                  </p>
-                )}
-                {providerType === "caregiver" && (
-                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
-                    Private Caregiver
-                  </p>
-                )}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {data.displayName || "Your listing"}
-                </h3>
-                {(data.city || data.state) && (
-                  <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-3">
-                    <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {[data.city, data.state].filter(Boolean).join(", ")}
-                  </div>
-                )}
-                {data.careTypes.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {data.careTypes.slice(0, 3).map((ct) => (
-                      <span key={ct} className="bg-primary-50 text-primary-700 text-xs px-2.5 py-1 rounded-full">
-                        {ct}
-                      </span>
-                    ))}
-                    {data.careTypes.length > 3 && (
-                      <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
-                        +{data.careTypes.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                )}
-                {(data.phone || data.email) && (
-                  <div className="flex items-center gap-4 text-xs text-gray-500 pt-3 border-t border-gray-100">
-                    {data.phone && (
-                      <span className="flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                        {data.phone}
-                      </span>
-                    )}
-                    {data.email && (
-                      <span className="flex items-center gap-1 min-w-0">
-                        <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <span className="truncate">{data.email}</span>
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Quick-action cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
-              <Link
-                href="/provider#gallery"
-                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 hover:shadow-sm transition-all group"
-              >
-                <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center mb-3">
-                  <svg className="w-4.5 h-4.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-900 mb-0.5">Add photos</p>
-                <p className="text-xs text-gray-500">Listings with photos get more views</p>
-                <div className="mt-2">
-                  <span className="text-xs font-medium text-primary-600 group-hover:translate-x-0.5 inline-block transition-transform">Complete →</span>
-                </div>
-              </Link>
-
-              <Link
-                href="/provider/verification"
-                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 hover:shadow-sm transition-all group"
-              >
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
-                  <svg className="w-4.5 h-4.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-900 mb-0.5">Get verified</p>
-                <p className="text-xs text-gray-500">Build trust with families</p>
-                <div className="mt-2">
-                  <span className="text-xs font-medium text-primary-600 group-hover:translate-x-0.5 inline-block transition-transform">Complete →</span>
-                </div>
-              </Link>
-
-              <Link
-                href="/provider/reviews"
-                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-primary-200 hover:shadow-sm transition-all group"
-              >
-                <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center mb-3">
-                  <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-medium text-gray-900 mb-0.5">Collect reviews</p>
-                <p className="text-xs text-gray-500">Share your link to get feedback</p>
-                <div className="mt-2">
-                  <span className="text-xs font-medium text-primary-600 group-hover:translate-x-0.5 inline-block transition-transform">Complete →</span>
-                </div>
-              </Link>
-            </div>
-
-            {/* Dashboard link */}
-            <div className="text-center mt-8">
-              <Link
-                href="/provider"
-                className="text-[15px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                Go to your dashboard →
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Sticky bottom wizard nav — all steps except resume */}

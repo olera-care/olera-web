@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { getMockConnectionIds } from "@/lib/mock/provider-leads";
 
 /**
  * Lightweight hook that counts unread inbox conversations.
  * Fetches active inquiry connections (pending/accepted) for the given profiles,
  * excludes hidden (soft-deleted) ones, checks against `olera_inbox_read`
  * localStorage, and returns the count.
+ *
+ * Falls back to mock connection IDs when Supabase has no real connections.
  *
  * Listens for "olera:inbox-read" custom events so the count updates
  * immediately when a conversation is opened in the inbox.
@@ -19,7 +22,22 @@ export function useUnreadInboxCount(profileIds: string[]): number {
   const profileKey = profileIds.join(",");
 
   const recount = useCallback(() => {
-    if (!profileKey || !isSupabaseConfigured()) return;
+    if (!profileKey) return;
+
+    let readIds = new Set<string>();
+    try {
+      const stored = localStorage.getItem("olera_inbox_read");
+      if (stored) readIds = new Set(JSON.parse(stored));
+    } catch {
+      // localStorage may be unavailable
+    }
+
+    if (!isSupabaseConfigured()) {
+      // No Supabase — count mock connections as unread
+      const mockIds = getMockConnectionIds();
+      setCount(mockIds.filter((id) => !readIds.has(id)).length);
+      return;
+    }
 
     const ids = profileKey.split(",");
 
@@ -53,12 +71,11 @@ export function useUnreadInboxCount(profileIds: string[]): number {
         connectionIds.push(conn.id);
       }
 
-      let readIds = new Set<string>();
-      try {
-        const stored = localStorage.getItem("olera_inbox_read");
-        if (stored) readIds = new Set(JSON.parse(stored));
-      } catch {
-        // localStorage may be unavailable
+      // If Supabase returned no real connections, fall back to mock data
+      if (connectionIds.length === 0) {
+        const mockIds = getMockConnectionIds();
+        setCount(mockIds.filter((id) => !readIds.has(id)).length);
+        return;
       }
 
       setCount(connectionIds.filter((id) => !readIds.has(id)).length);

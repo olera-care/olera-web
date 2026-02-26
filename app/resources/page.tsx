@@ -1,32 +1,69 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { MOCK_RESOURCES, searchResources } from "@/data/mock/resources";
+import { MOCK_RESOURCES } from "@/data/mock/resources";
 import { Resource } from "@/types/resource";
 import { CareTypeId, CARE_TYPE_CONFIG, ALL_CARE_TYPES } from "@/types/forum";
 import Pagination from "@/components/ui/Pagination";
 
 // Color-coded category styles (matching Community Forum)
 const CATEGORY_STYLES: Record<CareTypeId, { emoji: string; bg: string; text: string }> = {
-  "home-health": { emoji: "🏥", bg: "bg-rose-100", text: "text-rose-700" },
-  "home-care": { emoji: "🏠", bg: "bg-amber-100", text: "text-amber-700" },
-  "assisted-living": { emoji: "🤝", bg: "bg-blue-100", text: "text-blue-700" },
-  "memory-care": { emoji: "🧠", bg: "bg-purple-100", text: "text-purple-700" },
-  "nursing-homes": { emoji: "🏢", bg: "bg-emerald-100", text: "text-emerald-700" },
-  "independent-living": { emoji: "☀️", bg: "bg-orange-100", text: "text-orange-700" },
+  "home-health": { emoji: "\u{1F3E5}", bg: "bg-rose-100", text: "text-rose-700" },
+  "home-care": { emoji: "\u{1F3E0}", bg: "bg-amber-100", text: "text-amber-700" },
+  "assisted-living": { emoji: "\u{1F91D}", bg: "bg-blue-100", text: "text-blue-700" },
+  "memory-care": { emoji: "\u{1F9E0}", bg: "bg-purple-100", text: "text-purple-700" },
+  "nursing-homes": { emoji: "\u{1F3E2}", bg: "bg-emerald-100", text: "text-emerald-700" },
+  "independent-living": { emoji: "\u2600\uFE0F", bg: "bg-orange-100", text: "text-orange-700" },
 };
 
 // Care type emojis for the CTA banner
 const CARE_TYPE_EMOJI: Record<CareTypeId, string> = {
-  "home-health": "🏥",
-  "home-care": "🏠",
-  "assisted-living": "🤝",
-  "memory-care": "🧠",
-  "nursing-homes": "🏢",
-  "independent-living": "☀️",
+  "home-health": "\u{1F3E5}",
+  "home-care": "\u{1F3E0}",
+  "assisted-living": "\u{1F91D}",
+  "memory-care": "\u{1F9E0}",
+  "nursing-homes": "\u{1F3E2}",
+  "independent-living": "\u2600\uFE0F",
 };
+
+interface ArticleFromAPI {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  excerpt: string;
+  cover_image_url: string | null;
+  care_types: CareTypeId[];
+  category: string;
+  author_name: string;
+  author_role: string;
+  author_avatar: string | null;
+  featured: boolean;
+  reading_time: string;
+  tags: string[];
+  published_at: string | null;
+}
+
+/** Map a Supabase article to the Resource shape used by the UI */
+function apiToResource(a: ArticleFromAPI): Resource {
+  return {
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    subtitle: a.subtitle || "",
+    excerpt: a.excerpt || "",
+    coverImage: a.cover_image_url || "/images/home-health.webp",
+    careTypes: a.care_types || [],
+    category: (a.category as Resource["category"]) || "guide",
+    author: { name: a.author_name, role: a.author_role || "" },
+    publishedAt: a.published_at || new Date().toISOString(),
+    readingTime: (a.reading_time as Resource["readingTime"]) || "5 min",
+    featured: a.featured,
+    tags: a.tags || [],
+  };
+}
 
 // Contextual CTA Banner component
 function ProviderBanner({ careType }: { careType: CareTypeId }) {
@@ -116,20 +153,47 @@ function ResourcesPageContent() {
     (typeParam as CareTypeId) || "all"
   );
   const [currentPage, setCurrentPage] = useState(1);
+  const [apiResources, setApiResources] = useState<Resource[] | null>(null);
+  const [loadingApi, setLoadingApi] = useState(true);
+
+  // Try fetching from Supabase API
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchFromApi() {
+      try {
+        const res = await fetch("/api/resources?per_page=200");
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled && data.articles && data.articles.length > 0) {
+            setApiResources(data.articles.map(apiToResource));
+          }
+        }
+      } catch {
+        // Silently fall back to mock data
+      } finally {
+        if (!cancelled) setLoadingApi(false);
+      }
+    }
+    fetchFromApi();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Use API data if available, otherwise fall back to mock data
+  const allResources = apiResources ?? MOCK_RESOURCES;
 
   // Calculate counts for each category
   const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: MOCK_RESOURCES.length };
+    const counts: Record<string, number> = { all: allResources.length };
     ALL_CARE_TYPES.forEach((careType) => {
-      counts[careType] = MOCK_RESOURCES.filter((r) =>
+      counts[careType] = allResources.filter((r) =>
         r.careTypes.includes(careType)
       ).length;
     });
     return counts;
-  }, []);
+  }, [allResources]);
 
   const filteredResources = useMemo(() => {
-    let resources = MOCK_RESOURCES;
+    let resources = allResources;
 
     if (activeCareType !== "all") {
       resources = resources.filter((r) => r.careTypes.includes(activeCareType));
@@ -138,7 +202,7 @@ function ResourcesPageContent() {
     return [...resources].sort((a, b) =>
       new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
-  }, [activeCareType]);
+  }, [activeCareType, allResources]);
 
   // Pagination
   const totalPages = Math.ceil(filteredResources.length / ARTICLES_PER_PAGE);

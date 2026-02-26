@@ -90,13 +90,19 @@ function estimateDriveTime(miles: number): string {
 
 function getPricingLabel(profile: InterestedProvider["providerProfile"]): string | null {
   if (!profile) return null;
-  const meta = profile.metadata as (OrganizationMetadata & CaregiverMetadata) | null;
+  const meta = profile.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
   if (!meta) return null;
+  // Check business_profiles metadata first (user-entered)
   if (meta.hourly_rate_min && meta.hourly_rate_max) {
     return `$${meta.hourly_rate_min}–$${meta.hourly_rate_max}/hr`;
   }
   if (meta.hourly_rate_min) return `From $${meta.hourly_rate_min}/hr`;
   if (meta.price_range) return meta.price_range;
+  // Fall back to iOS olera-providers pricing (enriched by hook)
+  const lower = meta.lower_price as number | undefined;
+  const upper = meta.upper_price as number | undefined;
+  if (lower && upper) return `$${lower}–$${upper}/hr`;
+  if (lower) return `From $${lower}/hr`;
   return "Contact for pricing";
 }
 

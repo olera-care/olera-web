@@ -24,14 +24,29 @@ const REACH_OUT_MESSAGES = [
     `Hello! ${name} would be honored to help care for your loved one. We have availability in the ${city} area and our team is experienced with the specific care needs you described. Looking forward to connecting with you.`,
 ];
 
+interface IOSProvider {
+  provider_id: string;
+  provider_name: string;
+  provider_category: string;
+  main_category: string | null;
+  city: string | null;
+  state: string | null;
+  phone: string | null;
+  provider_logo: string | null;
+  provider_images: string | null;
+  google_rating: number | null;
+  lower_price: number | null;
+  upper_price: number | null;
+}
+
 /**
  * POST /api/dev/seed-interested
  *
- * DEV-ONLY: Seeds 4-6 provider-initiated "request" connections (provider → care seeker)
+ * DEV-ONLY: Seeds 5 provider-initiated "request" connections (provider → care seeker)
  * so the "Interested" tab in Matches has data for testing.
  *
- * Each connection uses type="request", status="pending", metadata.provider_initiated=true,
- * and includes match_reasons and viewed=false in metadata.
+ * Queries real iOS providers from olera-providers, creates linked business_profiles
+ * entries (with source_provider_id), so match cards display images, pricing, and ratings.
  */
 export async function POST() {
   try {
@@ -74,7 +89,7 @@ export async function POST() {
     const seekerMeta = (seekerProfile?.metadata || {}) as Record<string, unknown>;
     const seekerPayments = (seekerMeta.payment_methods as string[]) || [];
 
-    // Find existing application connections to skip duplicates
+    // Find existing connections to skip duplicates
     const { data: existingApps } = await supabase
       .from("connections")
       .select("from_profile_id")
@@ -85,42 +100,140 @@ export async function POST() {
       (existingApps ?? []).map((c) => c.from_profile_id as string)
     );
 
-    // Find provider profiles — prefer same city, fall back to any
-    let providers: typeof providerResult.data = null;
-    type ProviderResult = { data: { id: string; display_name: string; image_url: string | null; city: string | null; state: string | null; care_types: string[]; category: string | null; description: string | null; metadata: Record<string, unknown> }[] | null; error: unknown };
-    const providerResult: ProviderResult = await supabase
-      .from("business_profiles")
-      .select("id, display_name, image_url, city, state, care_types, category, description, metadata")
-      .eq("type", "organization")
-      .eq("city", seekerCity)
+    // Use admin client to bypass RLS
+    const admin = getAdminClient();
+    const db = admin || supabase;
+
+    // ── Query iOS providers from olera-providers ──
+    let iosProviders: IOSProvider[] | null = null;
+
+    const { data: cityProviders } = await db
+      .from("olera-providers")
+      .select(
+        "provider_id, provider_name, provider_category, main_category, city, state, phone, provider_logo, provider_images, google_rating, lower_price, upper_price"
+      )
+      .ilike("city", seekerCity)
+      .not("deleted", "is", true)
       .limit(20);
 
-    providers = providerResult.data;
+    iosProviders = cityProviders as IOSProvider[] | null;
 
-    // Fall back to any organization if no city matches
-    if (!providers || providers.length === 0) {
-      const { data: fallback, error: fallbackError } = await supabase
-        .from("business_profiles")
-        .select("id, display_name, image_url, city, state, care_types, category, description, metadata")
-        .eq("type", "organization")
+    // Fall back to any providers if no city matches
+    if (!iosProviders || iosProviders.length === 0) {
+      const { data: fallback } = await db
+        .from("olera-providers")
+        .select(
+          "provider_id, provider_name, provider_category, main_category, city, state, phone, provider_logo, provider_images, google_rating, lower_price, upper_price"
+        )
+        .not("deleted", "is", true)
         .limit(20);
 
-      if (fallbackError) {
-        return NextResponse.json(
-          { error: "Failed to query providers" },
-          { status: 500 }
-        );
-      }
-      providers = fallback;
+      iosProviders = fallback as IOSProvider[] | null;
     }
 
-    // Filter out existing and pick 5
-    const eligible = (providers ?? []).filter(
-      (p) => !existingProviderIds.has(p.id)
-    );
-    const selected = eligible.slice(0, 5);
+    if (!iosProviders || iosProviders.length === 0) {
+      return NextResponse.json({
+        status: "no_providers",
+        count: 0,
+        message: "No iOS providers found in olera-providers table.",
+      });
+    }
 
-    if (selected.length === 0) {
+    // ── Find or create business_profiles entries for each iOS provider ──
+    type ResolvedProvider = {
+      profileId: string;
+      ios: IOSProvider;
+      careTypes: string[];
+    };
+
+    const resolved: ResolvedProvider[] = [];
+
+    for (const ios of iosProviders) {
+      if (resolved.length >= 5) break;
+
+      // Check if a business_profiles entry already exists for this iOS provider
+      const { data: existing } = await db
+        .from("business_profiles")
+        .select("id")
+        .eq("source_provider_id", ios.provider_id)
+        .limit(1)
+        .single();
+
+      let profileId: string | null = existing?.id ?? null;
+
+      if (!profileId) {
+        // Also check if slug matches (in case it was created without source_provider_id)
+        const { data: bySlug } = await db
+          .from("business_profiles")
+          .select("id")
+          .eq("slug", ios.provider_id)
+          .limit(1)
+          .single();
+
+        profileId = bySlug?.id ?? null;
+      }
+
+      if (!profileId) {
+        // Create a new business_profiles entry linked to iOS data
+        const iosImage =
+          ios.provider_logo ||
+          ios.provider_images?.split(" | ")?.[0] ||
+          null;
+        const careTypes: string[] = [ios.provider_category];
+        if (ios.main_category && ios.main_category !== ios.provider_category) {
+          careTypes.push(ios.main_category);
+        }
+
+        const { data: newProfile, error: insertErr } = await db
+          .from("business_profiles")
+          .insert({
+            source_provider_id: ios.provider_id,
+            slug: ios.provider_id,
+            type: "organization",
+            category: ios.provider_category,
+            display_name: ios.provider_name,
+            phone: ios.phone,
+            city: ios.city,
+            state: ios.state,
+            image_url: iosImage,
+            care_types: careTypes,
+            claim_state: "unclaimed",
+            verification_state: "unverified",
+            source: "seeded",
+            is_active: true,
+            metadata: {},
+          })
+          .select("id")
+          .single();
+
+        if (insertErr) {
+          // Handle unique constraint (slug collision) — try to find existing
+          if (insertErr.code === "23505") {
+            const { data: retry } = await db
+              .from("business_profiles")
+              .select("id")
+              .eq("source_provider_id", ios.provider_id)
+              .limit(1)
+              .single();
+            profileId = retry?.id ?? null;
+          }
+          if (!profileId) continue; // Skip this provider
+        } else {
+          profileId = newProfile?.id ?? null;
+        }
+      }
+
+      if (!profileId || existingProviderIds.has(profileId)) continue;
+
+      const careTypes: string[] = [ios.provider_category];
+      if (ios.main_category && ios.main_category !== ios.provider_category) {
+        careTypes.push(ios.main_category);
+      }
+
+      resolved.push({ profileId, ios, careTypes });
+    }
+
+    if (resolved.length === 0) {
       return NextResponse.json({
         status: "already_seeded",
         count: 0,
@@ -128,37 +241,45 @@ export async function POST() {
       });
     }
 
-    // Generate match reasons based on overlap
+    // ── Generate match reasons ──
     function generateMatchReasons(
       providerCareTypes: string[],
-      providerMeta: Record<string, unknown>,
-      providerCity: string | null
+      providerCity: string | null,
+      googleRating: number | null
     ): string[] {
       const reasons: string[] = [];
 
       // Care type overlap
       for (const ct of seekerCareTypes) {
-        if (providerCareTypes.some((pct) => pct.toLowerCase() === ct.toLowerCase())) {
-          reasons.push(`Specializes in ${ct}`);
+        if (
+          providerCareTypes.some(
+            (pct) => pct.toLowerCase() === ct.toLowerCase()
+          )
+        ) {
+          reasons.push(ct);
           break;
         }
       }
 
       // Location match
-      if (providerCity && providerCity.toLowerCase() === seekerCity.toLowerCase()) {
+      if (
+        providerCity &&
+        providerCity.toLowerCase() === seekerCity.toLowerCase()
+      ) {
         reasons.push(`Serves ${seekerCity} area`);
       }
 
-      // Payment method overlap
-      const provPayments: string[] = (providerMeta?.accepted_payments as string[]) || [];
-      if (provPayments.includes("Medicaid") && seekerPayments.includes("Medicaid")) {
-        reasons.push("Accepts Medicaid");
-      }
-      if (provPayments.includes("Medicare")) {
-        reasons.push("Accepts Medicare");
+      // Rating
+      if (googleRating && googleRating >= 4.0) {
+        reasons.push(`Highly rated (${googleRating.toFixed(1)} stars)`);
       }
 
-      // Fallback reasons if nothing matched
+      // Payment overlap
+      if (seekerPayments.includes("Medicaid")) {
+        reasons.push("Accepts Medicaid");
+      }
+
+      // Fallback
       if (reasons.length === 0) {
         reasons.push(`Serves ${seekerCity}, ${seekerState}`);
       }
@@ -166,36 +287,36 @@ export async function POST() {
       return reasons.slice(0, 3);
     }
 
-    // Use admin client to bypass RLS for inbound connection inserts
-    const admin = getAdminClient();
-    const db = admin || supabase;
-
-    // Stagger creation dates for realistic ordering
+    // ── Create connections ──
     const now = new Date();
     const insertedIds: string[] = [];
     const errors: { provider: string; error: string; code?: string }[] = [];
 
-    for (let i = 0; i < selected.length; i++) {
-      const provider = selected[i];
-      const provMeta = (provider.metadata || {}) as Record<string, unknown>;
+    for (let i = 0; i < resolved.length; i++) {
+      const { profileId, ios, careTypes } = resolved[i];
       const matchReasons = generateMatchReasons(
-        provider.care_types || [],
-        provMeta,
-        provider.city
+        careTypes,
+        ios.city,
+        ios.google_rating
       );
 
-      // Stagger by hours so they appear at different times
+      // Stagger creation dates
       const createdAt = new Date(now);
-      createdAt.setHours(createdAt.getHours() - i * 6 - Math.floor(Math.random() * 4));
+      createdAt.setHours(
+        createdAt.getHours() - i * 6 - Math.floor(Math.random() * 4)
+      );
 
       const { data: inserted, error: insertError } = await db
         .from("connections")
         .insert({
           type: "request",
           status: "pending",
-          from_profile_id: provider.id,
+          from_profile_id: profileId,
           to_profile_id: careSeekerProfileId,
-          message: REACH_OUT_MESSAGES[i % REACH_OUT_MESSAGES.length](provider.display_name, provider.city || seekerCity),
+          message: REACH_OUT_MESSAGES[i % REACH_OUT_MESSAGES.length](
+            ios.provider_name,
+            ios.city || seekerCity
+          ),
           metadata: {
             match_reasons: matchReasons,
             viewed: false,
@@ -207,8 +328,15 @@ export async function POST() {
         .single();
 
       if (insertError) {
-        console.error(`Insert error for provider ${provider.id}:`, insertError);
-        errors.push({ provider: provider.display_name, error: insertError.message, code: insertError.code });
+        console.error(
+          `Insert error for provider ${ios.provider_name}:`,
+          insertError
+        );
+        errors.push({
+          provider: ios.provider_name,
+          error: insertError.message,
+          code: insertError.code,
+        });
         continue;
       }
 
@@ -221,9 +349,10 @@ export async function POST() {
       connectionIds: insertedIds,
       hasAdmin: !!admin,
       errors,
-      providers: selected.map((p) => ({
-        profile_id: p.id,
-        name: p.display_name,
+      providers: resolved.map((r) => ({
+        profile_id: r.profileId,
+        name: r.ios.provider_name,
+        ios_id: r.ios.provider_id,
       })),
     });
   } catch (err) {

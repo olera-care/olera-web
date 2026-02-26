@@ -816,10 +816,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
       {/* Right Panel - Fixed Map */}
       <div
-        className="hidden lg:block fixed right-0 w-[45%] p-4 z-30"
+        className="hidden lg:block fixed right-0 w-[45%] p-4 z-20"
         style={{
           top: navbarVisible ? "125px" : "61px",
-          height: navbarVisible ? "calc(100vh - 125px)" : "calc(100vh - 61px)",
+          height: navbarVisible ? "calc(100vh - 125px - 16px)" : "calc(100vh - 61px - 16px)",
           transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1)",
         }}
       >

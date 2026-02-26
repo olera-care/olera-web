@@ -659,6 +659,15 @@ function ProviderOnboardingContent() {
     );
   }
 
+  // Prevent flash: if user already has a provider profile and isn't adding another,
+  // render nothing while the useEffect redirect fires.
+  const hasProviderProfile = (profiles || []).some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
+  if (hasProviderProfile && !isAdding) {
+    return null;
+  }
+
   const showResultsBg = step === "search" && hasSearched;
   const isResultsGrid = showResultsBg && searchResults.length > 0;
   const totalPages = Math.ceil(searchResults.length / RESULTS_PER_PAGE);

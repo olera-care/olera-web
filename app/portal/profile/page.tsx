@@ -6,14 +6,28 @@ import FamilyProfileView from "@/components/portal/profile/FamilyProfileView";
 import SettingsPage from "../settings/page";
 
 export default function PortalProfilePage() {
-  const { profiles } = useAuth();
+  const { profiles, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<"profile" | "settings">("profile");
 
   // Always use the family profile for this page — it's the shared personal info
   // page accessible from both portals. Every account has an auto-created family profile.
   const familyProfile = profiles.find((p) => p.type === "family") ?? null;
 
-  if (!familyProfile) return null;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!familyProfile) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+        <p>No family profile found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">

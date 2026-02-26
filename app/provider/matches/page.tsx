@@ -693,12 +693,12 @@ function FamilyCareCard({
           </div>
           {/* Providers reached out */}
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <PeopleIcon className={`w-4 h-4 ${reachOuts === 0 ? "text-primary-500" : reachOuts >= 4 ? "text-amber-500" : "text-primary-500"}`} />
+            <PeopleIcon className="w-4 h-4 text-primary-500" />
             <p className="text-[13px] text-gray-500">
               {reachOuts === 0 ? (
-                <span className="font-bold text-gray-700">Be first to connect!</span>
+                <><span className="font-bold text-gray-700">Be first</span> to connect!</>
               ) : (
-                <><span className={`font-bold ${reachOuts >= 4 ? "text-amber-600" : "text-gray-700"}`}>{reachOuts >= 4 ? "4+" : reachOuts}</span> reached out</>
+                <><span className="font-bold text-gray-900">{reachOuts >= 4 ? "4+" : reachOuts} provider{reachOuts !== 1 ? "s" : ""}</span> reached out</>
               )}
             </p>
           </div>

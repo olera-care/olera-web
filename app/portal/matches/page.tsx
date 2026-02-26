@@ -4,10 +4,10 @@ import { useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { FamilyMetadata } from "@/lib/types";
-import Button from "@/components/ui/Button";
 import CarePostView from "@/components/portal/matches/CarePostView";
 import InterestedTabContent from "@/components/portal/matches/InterestedTabContent";
 import CarePostSidebar from "@/components/portal/matches/CarePostSidebar";
+import EditCarePostModal from "@/components/portal/matches/EditCarePostModal";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 
 export default function MatchesPage() {
@@ -35,6 +35,7 @@ function MatchesContent() {
     hasPost ? "active" : "default"
   );
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Dynamic subtitle based on state
   const subtitle = (() => {
@@ -99,25 +100,53 @@ function MatchesContent() {
   if (!hasRequiredFields) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="px-8 py-6 h-full"><div>
-        <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-        <p className="text-[15px] text-gray-500 mt-1 mb-8">
-          Discover providers or let them find you.
-        </p>
-        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-          <span className="text-5xl mb-4 block">📋</span>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Complete your profile first
-          </h3>
-          <p className="text-sm text-gray-500 mb-6 max-w-[380px] mx-auto leading-relaxed">
-            We need your care type preferences and location to find providers
-            that match your needs.
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
+        <div className="mb-6">
+          <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
+          <p className="text-[15px] text-gray-500 mt-1">
+            Discover providers or let them find you.
           </p>
-          <Link href="/portal/profile">
-            <Button size="sm">Complete profile</Button>
-          </Link>
         </div>
-      </div></div>
+
+        <div className="max-w-2xl">
+          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+            <div className="px-8 pt-10 pb-8 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-5">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-primary-500">
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
+                Complete your profile first
+              </h3>
+              <p className="text-[15px] text-gray-500 leading-relaxed max-w-[380px] mx-auto mb-7">
+                We need your care type preferences and location to find providers
+                that match your needs.
+              </p>
+              <button
+                onClick={() => setEditModalOpen(true)}
+                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
+              >
+                Complete profile
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {activeProfile && editModalOpen && (
+          <EditCarePostModal
+            profile={activeProfile}
+            userEmail={user?.email}
+            onClose={() => setEditModalOpen(false)}
+            onSaved={async () => {
+              setEditModalOpen(false);
+              await refreshAccountData();
+            }}
+          />
+        )}
+      </div>
       </div>
     );
   }

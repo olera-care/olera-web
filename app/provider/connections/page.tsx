@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { MOCK_LEADS, persistMockMessage, type LeadDetail } from "@/lib/mock/provider-leads";
 
 // ── Types ──
 
@@ -10,162 +12,6 @@ type SortOption = "best_match" | "most_recent" | "most_urgent";
 type LeadStatus = "new" | "replied" | "no_reply" | "archived";
 type Urgency = "immediate" | "within_1_month" | "exploring";
 type ContactMethod = "phone" | "email" | "either";
-
-interface Lead {
-  id: string;
-  name: string;
-  initials: string;
-  subtitle: string;
-  location: string;
-  urgency: Urgency;
-  status: LeadStatus;
-  date: string;
-  isNew: boolean;
-}
-
-interface ActivityEvent {
-  label: string;
-  date: string;
-}
-
-interface LeadDetail extends Lead {
-  email?: string;
-  phone?: string;
-  contactPreference?: ContactMethod;
-  careRecipient?: string;
-  careRecipientName?: string;
-  careType?: string[];
-  careNeeds?: string[];
-  livingSituation?: string;
-  schedulePreference?: string;
-  careLocation?: string;
-  languagePreference?: string;
-  insuranceType?: string;
-  benefits?: string[];
-  additionalNotes?: string;
-  activity?: ActivityEvent[];
-  archivedDate?: string;
-  archiveReason?: string;
-  messagedAt?: string;
-}
-
-// ── Mock data ──
-
-const MOCK_LEADS: LeadDetail[] = [
-  {
-    id: "1", name: "Sarah Reynolds", initials: "SR", subtitle: "For her mother, 78",
-    location: "Austin, TX", urgency: "immediate", status: "new", date: "2h ago", isNew: true,
-    email: "sarah.reynolds@gmail.com", phone: "(512) 555-0147", contactPreference: "phone",
-    careRecipient: "Mother, 78", careRecipientName: "Margaret", careType: ["In-home care", "Companionship"],
-    careNeeds: ["Mobility assistance", "Medication management", "Meal preparation"],
-    livingSituation: "Lives alone", schedulePreference: "Weekdays, daytime", careLocation: "Care recipient's home", languagePreference: "English",
-    insuranceType: "Medicare Advantage", benefits: ["Long-term care insurance", "VA benefits"],
-    additionalNotes: "Mom recently had a fall and needs someone who can help with daily activities. She\u2019s very independent and would prefer someone patient and friendly. We\u2019re hoping to start as soon as possible.",
-    activity: [
-      { label: "Lead received", date: "2h ago \u00b7 Via Olera search" },
-      { label: "Profile viewed by you", date: "Just now" },
-    ],
-  },
-  {
-    id: "2", name: "James Adeyemi", initials: "JA", subtitle: "For his father, 85",
-    location: "Round Rock, TX", urgency: "within_1_month", status: "new", date: "5h ago", isNew: true,
-    email: "james.adeyemi@outlook.com", phone: "(512) 555-0231", contactPreference: "email",
-    careRecipient: "Father, 85", careRecipientName: "Emmanuel", careType: ["In-home care", "Personal care"],
-    careNeeds: ["Bathing assistance", "Transportation", "Light housekeeping"],
-    livingSituation: "Lives with family", schedulePreference: "Flexible", careLocation: "Care recipient's home", languagePreference: "English, Yoruba",
-    insuranceType: "Medicaid", benefits: ["Medicaid waiver program"],
-    additionalNotes: "My father speaks both English and Yoruba. A caregiver who understands Nigerian culture would be a huge plus. He needs help a few hours each day while I\u2019m at work.",
-    activity: [
-      { label: "Lead received", date: "5h ago \u00b7 Via provider profile" },
-      { label: "Profile viewed by you", date: "Just now" },
-    ],
-  },
-  {
-    id: "3", name: "Diana Nguyen", initials: "DN", subtitle: "For her grandmother, 91",
-    location: "Austin, TX", urgency: "immediate", status: "new", date: "1d ago", isNew: true,
-    email: "diana.nguyen@yahoo.com", phone: "(512) 555-0389", contactPreference: "either",
-    careRecipient: "Grandmother, 91", careRecipientName: "Mei", careType: ["In-home care", "Memory care"],
-    careNeeds: ["Dementia support", "24/7 supervision", "Medication management"],
-    livingSituation: "Lives with family", schedulePreference: "Full-time, live-in preferred", careLocation: "Care recipient's home", languagePreference: "English, Vietnamese",
-    insuranceType: "Medicare", benefits: ["Long-term care insurance"],
-    additionalNotes: "Grandmother has moderate dementia and needs constant supervision. She sometimes wanders and gets confused at night. Vietnamese-speaking caregiver strongly preferred.",
-    activity: [
-      { label: "Lead received", date: "1d ago \u00b7 Via Olera search" },
-    ],
-  },
-  {
-    id: "4", name: "Linda Washington", initials: "LW", subtitle: "For her husband, 72",
-    location: "Austin, TX", urgency: "immediate", status: "replied", date: "2d ago", isNew: false,
-    email: "linda.washington@gmail.com", phone: "(512) 555-0512", contactPreference: "phone",
-    careRecipient: "Husband, 72", careRecipientName: "David", careType: ["In-home care", "Post-surgery care"],
-    careNeeds: ["Physical therapy support", "Wound care", "Mobility assistance"],
-    livingSituation: "Lives with spouse", schedulePreference: "Weekdays, mornings", careLocation: "Care recipient's home", languagePreference: "English",
-    insuranceType: "Private insurance", benefits: ["Short-term disability"],
-    additionalNotes: "My husband just had hip replacement surgery. We need someone experienced with post-op recovery. He\u2019ll need help for about 6\u20138 weeks.",
-    activity: [
-      { label: "Lead received", date: "2d ago \u00b7 Via Olera search" },
-      { label: "You sent a message", date: "1d ago" },
-      { label: "Profile viewed by you", date: "1d ago" },
-    ],
-  },
-  {
-    id: "5", name: "Robert Park", initials: "RP", subtitle: "For his wife, 68",
-    location: "Pflugerville, TX", urgency: "exploring", status: "replied", date: "3d ago", isNew: false,
-    email: "robert.park@gmail.com", phone: "(512) 555-0678", contactPreference: "email",
-    careRecipient: "Wife, 68", careRecipientName: "Soo-jin", careType: ["Companionship", "Respite care"],
-    careNeeds: ["Companionship", "Light housekeeping", "Meal preparation"],
-    livingSituation: "Lives with spouse", schedulePreference: "Weekends", careLocation: "Care recipient's home", languagePreference: "English, Korean",
-    insuranceType: "Medicare Advantage", benefits: [],
-    additionalNotes: "I\u2019m the primary caregiver for my wife and I just need someone to give me a break on weekends. She\u2019s mostly independent but enjoys company.",
-    activity: [
-      { label: "Lead received", date: "3d ago \u00b7 Via provider profile" },
-      { label: "You replied", date: "2d ago" },
-    ],
-  },
-  {
-    id: "6", name: "Maria Kowalski", initials: "MK", subtitle: "For her parents, both 80s",
-    location: "Cedar Park, TX", urgency: "exploring", status: "no_reply", date: "5d ago", isNew: false,
-    email: "maria.kowalski@hotmail.com", phone: "(512) 555-0845", contactPreference: "either",
-    careRecipient: "Parents, both 80s", careRecipientName: "her parents", careType: ["In-home care", "Companionship"],
-    careNeeds: ["Meal preparation", "Transportation", "Medication reminders"],
-    livingSituation: "Live together, own home", schedulePreference: "Flexible, part-time", careLocation: "Care recipients' home", languagePreference: "English, Polish",
-    insuranceType: "Medicare", benefits: ["Long-term care insurance", "VA benefits"],
-    additionalNotes: "Both parents need light help throughout the week. They\u2019re still fairly active but need reminders for medications and someone to drive them to appointments.",
-    activity: [
-      { label: "Lead received", date: "5d ago \u00b7 Via Olera search" },
-    ],
-  },
-  {
-    id: "7", name: "Tomoko Chen", initials: "TC", subtitle: "For her father, 89",
-    location: "Austin, TX", urgency: "within_1_month", status: "replied", date: "1w ago", isNew: false,
-    email: "tomoko.chen@gmail.com", phone: "(512) 555-0923", contactPreference: "phone",
-    careRecipient: "Father, 89", careRecipientName: "Wei", careType: ["In-home care", "Hospice support"],
-    careNeeds: ["End-of-life care", "Pain management support", "Companionship"],
-    livingSituation: "Lives with family", schedulePreference: "Full-time", careLocation: "Care recipient's home", languagePreference: "English, Mandarin",
-    insuranceType: "Medicare", benefits: ["Hospice benefit"],
-    additionalNotes: "Dad is in hospice and we want to make sure he\u2019s comfortable at home. Looking for someone compassionate who can be with him during the day while we work.",
-    activity: [
-      { label: "Lead received", date: "1w ago \u00b7 Via Olera search" },
-      { label: "You replied", date: "5d ago" },
-      { label: "Family responded", date: "4d ago" },
-      { label: "You sent a message", date: "3d ago" },
-      { label: "Lead archived", date: "2d ago" },
-    ],
-  },
-  {
-    id: "8", name: "Angela Johnson", initials: "AJ", subtitle: "For herself, 66",
-    location: "Georgetown, TX", urgency: "within_1_month", status: "no_reply", date: "1w ago", isNew: false,
-    email: "angela.johnson@aol.com", phone: "(512) 555-0101", contactPreference: "phone",
-    careRecipient: "Self, 66", careRecipientName: "Angela", careType: ["Companionship", "Personal care"],
-    careNeeds: ["Companionship", "Grocery shopping", "Light exercise assistance"],
-    livingSituation: "Lives alone", schedulePreference: "Weekdays, afternoons", careLocation: "Own home", languagePreference: "English",
-    insuranceType: "Private insurance", benefits: [],
-    additionalNotes: "I\u2019m looking for a companion who can help me stay active. I enjoy walks and would love someone to chat with and help with errands a few afternoons a week.",
-    activity: [
-      { label: "Lead received", date: "1w ago \u00b7 Via provider profile" },
-    ],
-  },
-];
 
 // ── Config ──
 
@@ -293,6 +139,7 @@ function LeadDetailDrawer({
   onDelete: (leadId: string) => void;
   onMessage: (leadId: string) => void;
 }) {
+  const router = useRouter();
   const [showComposer, setShowComposer] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
@@ -368,6 +215,10 @@ function LeadDetailDrawer({
 
   const handleSendMessage = () => {
     if (!lead) return;
+    // Persist the message to localStorage so the inbox can show it
+    if (messageText.trim()) {
+      persistMockMessage(lead.id, messageText, "provider");
+    }
     setMessageSent(true);
     onMessage(lead.id);
   };
@@ -533,7 +384,7 @@ function LeadDetailDrawer({
                     <div className="flex items-center gap-3 w-full mt-2">
                       <button
                         type="button"
-                        onClick={onClose}
+                        onClick={() => { onClose(); router.push(`/provider/inbox?id=mock-lead-${lead.id}`); }}
                         className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -1141,6 +992,7 @@ export default function ProviderLeadsPage() {
           {filteredLeads.map((lead, idx) => (
             <div
               key={lead.id}
+              onClick={() => openDrawer(lead)}
               className={[
                 "group grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 items-center px-8 py-4 transition-colors duration-100 hover:bg-vanilla-50/40 cursor-pointer",
                 idx < filteredLeads.length - 1 ? "border-b border-gray-100/80" : "",

@@ -10,6 +10,7 @@ interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
   activeProfile: Profile | null;
   onMessageSent: (connectionId: string, thread: ThreadMessage[]) => void;
+  onSendMessage?: (connectionId: string, text: string) => Promise<ThreadMessage[]>;
   onCareRequestUpdated?: (connectionId: string, message: string, metadata: Record<string, unknown>) => void;
   onBack?: () => void;
   detailOpen?: boolean;
@@ -273,6 +274,7 @@ export default function ConversationPanel({
   connection,
   activeProfile,
   onMessageSent,
+  onSendMessage,
   onCareRequestUpdated,
   onBack,
   detailOpen,
@@ -305,19 +307,26 @@ export default function ConversationPanel({
     if (!connection || !messageText.trim() || !activeProfile) return;
     setSending(true);
     try {
-      const res = await fetch("/api/connections/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          connectionId: connection.id,
-          text: messageText.trim(),
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to send");
-      const data = await res.json();
+      let thread: ThreadMessage[];
+      if (onSendMessage) {
+        // Mock-aware send — bypasses API
+        thread = await onSendMessage(connection.id, messageText.trim());
+      } else {
+        const res = await fetch("/api/connections/message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId: connection.id,
+            text: messageText.trim(),
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to send");
+        const data = await res.json();
+        thread = data.thread;
+      }
       setMessageText("");
       if (messageInputRef.current) messageInputRef.current.style.height = 'auto';
-      onMessageSent(connection.id, data.thread);
+      onMessageSent(connection.id, thread);
       requestAnimationFrame(() => {
         conversationRef.current?.scrollTo({
           top: conversationRef.current.scrollHeight,
@@ -329,7 +338,7 @@ export default function ConversationPanel({
     } finally {
       setSending(false);
     }
-  }, [connection, messageText, activeProfile, onMessageSent]);
+  }, [connection, messageText, activeProfile, onMessageSent, onSendMessage]);
 
   // ── Empty state ──
   if (!connection) {

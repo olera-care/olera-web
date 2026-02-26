@@ -5,9 +5,7 @@ import CardTopSection from "./CardTopSection";
 import CardBottomSection from "./CardBottomSection";
 import DefaultActions from "./DefaultActions";
 import IntentCapture from "./IntentCapture";
-import PendingState from "./PendingState";
-import RespondedState from "./RespondedState";
-import InactiveState from "./InactiveState";
+import ConnectedState from "./ConnectedState";
 import ReturningUserState from "./ReturningUserState";
 import type { ConnectionCardProps } from "./types";
 
@@ -34,7 +32,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
         oleraScore={oleraScore}
         reviewCount={reviewCount}
         responseTime={responseTime}
-        hideResponseTime={hook.cardState === "inactive"}
+        hideResponseTime={false}
       />
 
       {/* Divider */}
@@ -71,28 +69,11 @@ export default function ConnectionCard(props: ConnectionCardProps) {
           />
         )}
 
-        {hook.cardState === "pending" && (
-          <PendingState
-            providerName={providerName}
+        {hook.cardState === "connected" && (
+          <ConnectedState
             phone={phone}
             requestDate={hook.pendingRequestDate}
-          />
-        )}
-
-        {hook.cardState === "responded" && (
-          <RespondedState
-            providerName={providerName}
-            phone={phone}
-            requestDate={hook.pendingRequestDate}
-          />
-        )}
-
-        {hook.cardState === "inactive" && (
-          <InactiveState
-            providerName={providerName}
-            phone={phone}
-            saved={hook.saved}
-            onToggleSave={hook.toggleSave}
+            connectionId={hook.connectionId}
           />
         )}
 

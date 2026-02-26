@@ -69,7 +69,6 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerName,
     providerSlug,
     careTypes: providerCareTypes,
-    isActive,
     onConnectionCreated,
   } = props;
 
@@ -80,7 +79,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const connectionAuthTriggered = useRef(false);
 
   // ── State machine ──
-  const [cardState, setCardState] = useState<CardState>("loading");
+  const [cardState, setCardState] = useState<CardState>("default");
   const [intentStep, setIntentStep] = useState<IntentStep>(0);
   const [intentData, setIntentData] = useState<IntentData>(INITIAL_INTENT);
 
@@ -93,6 +92,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   );
   const [previousIntent, setPreviousIntent] = useState<IntentData | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
 
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
@@ -101,11 +101,6 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Resolve initial state — show optimistic UI immediately ──
   useEffect(() => {
     if (authLoading) return;
-
-    if (!isActive) {
-      setCardState("inactive");
-      return;
-    }
 
     // Anonymous user — show default immediately
     if (!user) {
@@ -129,12 +124,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
     // Logged-in but no profile data to pre-fill — show default instead of skeleton
     setCardState("default");
-  }, [authLoading, user, isActive, activeProfile]);
+  }, [authLoading, user, activeProfile]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
     if (!user || !profiles.length || !isSupabaseConfigured()) return;
-    if (!isActive) return; // Already set to inactive
 
     const checkExisting = async () => {
       const supabase = createClient();
@@ -192,19 +186,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
       if (connectionResult.data) {
         const data = connectionResult.data;
         setPendingRequestDate(data.created_at);
+        setConnectionId(data.id);
 
-        if (data.status === "accepted") {
-          setCardState("responded");
+        if (data.status === "accepted" || data.status === "pending") {
+          setCardState("connected");
           return;
         }
 
-        if (data.status === "pending") {
-          setCardState("pending");
-          return;
-        }
-
-        // Past/ended connection — show as returning
-        // Fall through to check for previous intent data
+        // Past/ended connection — fall through to check for previous intent data
       }
 
       // Restore previous intent data (from any connection)
@@ -246,7 +235,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     };
 
     checkExisting();
-  }, [user, profiles, providerId, isActive, activeProfile]);
+  }, [user, profiles, providerId, activeProfile]);
 
   // ── Handle deferred phone reveal after auth ──
   useEffect(() => {
@@ -305,8 +294,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
       if (data.created_at) {
         setPendingRequestDate(data.created_at);
       }
+      if (data.connectionId) {
+        setConnectionId(data.connectionId);
+      }
 
-      setCardState("pending");
+      setCardState("connected");
       setPendingRequestDate((prev) => prev || new Date().toISOString());
       setPhoneRevealed(true);
     } catch (err: unknown) {
@@ -356,7 +348,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
       // Fire API — submitRequest handles state transitions
       if (!onConnectionCreated) {
-        setCardState("pending");
+        setCardState("connected");
         setPendingRequestDate(new Date().toISOString());
         setPhoneRevealed(true);
       }
@@ -403,8 +395,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const connect = useCallback(() => {
     if (user) {
       if (!onConnectionCreated) {
-        // No redirect — show pending state immediately
-        setCardState("pending");
+        // No redirect — show connected state immediately
+        setCardState("connected");
         setPendingRequestDate(new Date().toISOString());
         setPhoneRevealed(true);
       }
@@ -474,6 +466,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     error,
     submitting,
     pendingRequestDate,
+    connectionId,
     availableCareTypes,
     notificationEmail,
 

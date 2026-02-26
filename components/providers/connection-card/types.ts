@@ -7,9 +7,7 @@ export type CardState =
   | "default" // State 1: Anonymous / no connection
   | "intent" // State 2: Intent capture (steps 1-3)
   | "returning" // State 3: Returning user (prior connection or past)
-  | "pending" // State 4: Request sent, awaiting reply
-  | "responded" // State 5: Provider accepted
-  | "inactive"; // State 6: Provider not accepting
+  | "connected"; // State 4: Existing connection (pending or accepted)
 
 export type IntentStep = 0 | 1 | 2;
 
@@ -43,7 +41,6 @@ export interface ConnectionCardProps {
   phone: string | null;
   acceptedPayments: string[];
   careTypes: string[];
-  isActive: boolean;
   responseTime: string | null; // null in v1
   /** Called after a new connection is successfully created (not on duplicates). */
   onConnectionCreated?: (connectionId: string) => void;

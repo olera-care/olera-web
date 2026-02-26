@@ -34,6 +34,7 @@ export interface Provider {
   contact_for_price: string | null; // "True" or "False"
   deleted: boolean;
   deleted_at: string | null;
+  hero_image_url: string | null;
 }
 
 /**
@@ -68,12 +69,16 @@ export function formatPriceRange(provider: Provider): string | null {
 }
 
 /**
- * Get primary image (logo or first gallery image)
+ * Get primary image for card hero display.
+ * Prefers classified hero, then facility photos, then logo as fallback.
+ * Priority: hero_image_url → provider_images[0] → provider_logo → null
  */
 export function getPrimaryImage(provider: Provider): string | null {
-  if (provider.provider_logo) return provider.provider_logo;
+  if (provider.hero_image_url) return provider.hero_image_url;
   const images = parseProviderImages(provider.provider_images);
-  return images[0] || null;
+  if (images[0]) return images[0];
+  if (provider.provider_logo) return provider.provider_logo;
+  return null;
 }
 
 /**
@@ -132,11 +137,14 @@ function getHighlightsForCategory(category: string): string[] {
 /**
  * Type for provider card display data
  */
+export type CardImageType = "photo" | "logo" | "placeholder";
+
 export interface ProviderCardData {
   id: string;
   slug: string;
   name: string;
   image: string;
+  imageType: CardImageType;
   images: string[];
   address: string;
   rating: number;
@@ -153,19 +161,149 @@ export interface ProviderCardData {
   lon?: number | null;
 }
 
+/** URL patterns that strongly suggest a logo rather than a facility photo */
+const LOGO_URL_PATTERNS = [
+  /\/logo/i, /logo[._-]/i, /_logo/i, /-logo/i,
+  /\/brand/i, /\/icon/i, /favicon/i,
+];
+
+/**
+ * Detect whether a URL is likely a logo image.
+ * Checks against provider_logo field and URL patterns.
+ */
+function isLikelyLogo(url: string, provider: Provider): boolean {
+  // Exact match with the provider_logo field
+  if (provider.provider_logo && url === provider.provider_logo) return true;
+  // URL pattern heuristics
+  return LOGO_URL_PATTERNS.some((p) => p.test(url));
+}
+
+/**
+ * Category → pool of curated fallback photos (3 per category).
+ * Matches the iOS app's fallback image set. Using multiple images per
+ * category avoids the "all identical cards" look on browse pages.
+ */
+const CATEGORY_FALLBACK_POOLS: Record<string, string[]> = {
+  "Home Care (Non-medical)": [
+    "/images/fallback/home-care-1.jpg",
+    "/images/fallback/home-care-2.jpg",
+    "/images/fallback/home-care-3.jpg",
+  ],
+  "Home Health Care": [
+    "/images/fallback/home-care-1.jpg",
+    "/images/fallback/home-care-2.jpg",
+    "/images/fallback/home-care-3.jpg",
+  ],
+  "Assisted Living": [
+    "/images/fallback/assisted-living-1.jpg",
+    "/images/fallback/assisted-living-2.jpg",
+    "/images/fallback/assisted-living-3.jpg",
+  ],
+  "Memory Care": [
+    "/images/fallback/memory-care-1.jpg",
+    "/images/fallback/memory-care-2.jpg",
+    "/images/fallback/memory-care-3.jpg",
+  ],
+  "Independent Living": [
+    "/images/fallback/independent-living-1.jpg",
+    "/images/fallback/independent-living-2.jpg",
+    "/images/fallback/independent-living-3.jpg",
+  ],
+  "Nursing Home": [
+    "/images/fallback/nursing-home-1.jpg",
+    "/images/fallback/nursing-home-2.jpg",
+    "/images/fallback/nursing-home-3.jpg",
+  ],
+  "Hospice": [
+    "/images/fallback/home-care-1.jpg",
+    "/images/fallback/home-care-2.jpg",
+    "/images/fallback/home-care-3.jpg",
+  ],
+  "Assisted Living | Independent Living": [
+    "/images/fallback/assisted-living-1.jpg",
+    "/images/fallback/assisted-living-2.jpg",
+    "/images/fallback/assisted-living-3.jpg",
+  ],
+  "Memory Care | Assisted Living": [
+    "/images/fallback/memory-care-1.jpg",
+    "/images/fallback/memory-care-2.jpg",
+    "/images/fallback/memory-care-3.jpg",
+  ],
+};
+
+const DEFAULT_FALLBACK_POOL = [
+  "/images/fallback/home-care-1.jpg",
+  "/images/fallback/home-care-2.jpg",
+  "/images/fallback/home-care-3.jpg",
+];
+
+/**
+ * Simple deterministic hash of a string → number.
+ * Used to pick a stable fallback image per provider so the same provider
+ * always shows the same stock photo (avoids hydration mismatches and
+ * layout shift), but different providers get different images.
+ */
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function getCategoryFallbackImage(category: string, providerId: string): string {
+  const pool = CATEGORY_FALLBACK_POOLS[category] || DEFAULT_FALLBACK_POOL;
+  const index = hashString(providerId) % pool.length;
+  return pool[index];
+}
+
+/**
+ * Determine the best card hero image.
+ *
+ * Strategy: filter out images we KNOW are logos (exact match with
+ * provider_logo field + URL pattern heuristics), use whatever remains.
+ * This works across all categories — Comfort Keepers' caregiver portrait
+ * passes through, while a home care agency whose only image is their
+ * logo gets stock instead.
+ *
+ * Priority:
+ *  1. hero_image_url (classified by script + vision AI) — always trust
+ *  2. First non-logo image from provider_images — real photo regardless
+ *     of category (facilities, home care, hospice all benefit)
+ *  3. No non-logo images — category stock fallback
+ */
+function resolveCardImage(provider: Provider): { image: string; imageType: CardImageType } {
+  if (provider.hero_image_url) {
+    return { image: provider.hero_image_url, imageType: "photo" };
+  }
+
+  // Filter out known logos, use the first real photo
+  const images = parseProviderImages(provider.provider_images);
+  const nonLogoImages = images.filter((url) => !isLikelyLogo(url, provider));
+  if (nonLogoImages.length > 0) {
+    return { image: nonLogoImages[0], imageType: "photo" };
+  }
+
+  return {
+    image: getCategoryFallbackImage(provider.provider_category, provider.provider_id),
+    imageType: "photo",
+  };
+}
+
 /**
  * Convert iOS Provider to the format expected by ProviderCard component
  */
 export function toCardFormat(provider: Provider): ProviderCardData {
   const images = parseProviderImages(provider.provider_images);
-  const primaryImage = getPrimaryImage(provider);
+  const { image: cardImage, imageType } = resolveCardImage(provider);
 
   return {
     id: provider.provider_id,
     slug: provider.provider_id,
     name: provider.provider_name,
-    image: primaryImage || "/placeholder-provider.jpg",
-    images: images.length > 0 ? images : (primaryImage ? [primaryImage] : []),
+    image: cardImage,
+    imageType,
+    images: images.length > 0 ? images : [],
     address: formatLocation(provider),
     rating: provider.google_rating || 0,
     reviewCount: undefined,
@@ -192,6 +330,7 @@ export function mockToCardFormat(p: any): ProviderCardData {
     slug: String(p.slug || p.id || ""),
     name: String(p.name || ""),
     image: String(p.image || "/placeholder-provider.jpg"),
+    imageType: (p.imageType as CardImageType) || "photo",
     images: Array.isArray(p.images) ? p.images : [],
     address: String(p.address || ""),
     rating: Number(p.rating) || 0,

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import type { CardImageType } from "@/lib/types/provider";
 
 export interface StaffMember {
   name: string;
@@ -16,6 +17,7 @@ export interface Provider {
   slug: string;
   name: string;
   image: string;
+  imageType?: CardImageType;
   images?: string[]; // Multiple images for carousel
   address: string;
   rating: number;
@@ -38,11 +40,7 @@ export interface Provider {
     rateType: string; // e.g., "per month"
   }[];
   // Staff screening & safety
-  staffScreening?: {
-    background_checked: boolean;
-    licensed: boolean;
-    insured: boolean;
-  };
+  staffScreening?: string[];
   // Reviews
   reviews?: {
     name: string;
@@ -113,23 +111,44 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
       className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-200"
     >
       {/* Image Container */}
-      <div className="relative h-64 bg-gray-200 group/image">
-        {/* Image Carousel */}
-        <div className="relative w-full h-full overflow-hidden">
-          <div
-            className="flex h-full transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
-          >
-            {images.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt={`${provider.name} - Image ${index + 1}`}
-                className="w-full h-full object-cover flex-shrink-0"
-              />
-            ))}
+      <div className={`relative h-64 group/image ${provider.imageType === "logo" || provider.imageType === "placeholder" ? "bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50" : "bg-gray-200"}`}>
+        {provider.imageType === "placeholder" ? (
+          /* No image — gradient + initials */
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+              <span className="text-2xl font-bold text-primary-400">
+                {provider.name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+              </span>
+            </div>
+            <span className="text-xs font-medium text-primary-300 mt-2">{provider.primaryCategory}</span>
           </div>
-        </div>
+        ) : provider.imageType === "logo" ? (
+          /* Logo — contained, not cropped */
+          <div className="w-full h-full flex items-center justify-center p-8">
+            <img
+              src={images[currentImageIndex]}
+              alt={provider.name}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        ) : (
+          /* Photo carousel */
+          <div className="relative w-full h-full overflow-hidden">
+            <div
+              className="flex h-full transition-transform duration-300 ease-out"
+              style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+            >
+              {images.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`${provider.name} - Image ${index + 1}`}
+                  className="w-full h-full object-cover flex-shrink-0"
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Staff Info Overlay - Shown when staff avatar is hovered */}
         {provider.staff && (
@@ -193,34 +212,8 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
 
         {/* Top badges row */}
         <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
-          {/* Dynamic Badge (Top Rated, New, Featured, etc.) */}
-          <div>
-            {provider.badge && (
-              <div className="relative group/badge">
-                <div className="bg-warm-500 text-white text-xs font-semibold px-3 rounded-full shadow-md h-9 flex items-center gap-1.5">
-                  {provider.badge}
-                  <svg
-                    className="w-4 h-4 opacity-80"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                {/* Tooltip */}
-                <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover/badge:opacity-100 group-hover/badge:visible transition-all duration-200 z-30">
-                  {provider.badge === "Top Rated" && "This provider is among the highest-rated in your area based on family reviews and care quality."}
-                  {provider.badge === "New" && "This provider recently joined Olera and is accepting new residents."}
-                  {provider.badge === "Featured" && "This provider is featured for exceptional service and care standards."}
-                  <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45" />
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Badge pills hidden for now */}
+          <div />
 
           {/* Heart/Save Button - Larger touch target with save state */}
           <button

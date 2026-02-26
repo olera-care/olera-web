@@ -55,23 +55,28 @@ export default function DiscoverCaregiversPage() {
 
   if (!isOrg) {
     return (
-      <EmptyState
-        title="Organization access required"
-        description="Switch to an organization profile to browse caregivers."
-      />
+      <div className="px-8 py-6">
+        <EmptyState
+          title="Organization access required"
+          description="Switch to an organization profile to browse caregivers."
+        />
+      </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="text-center py-16">
-        <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
-        <p className="mt-4 text-gray-500">Loading caregivers...</p>
+      <div className="px-8 py-6">
+        <div className="text-center py-16">
+          <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
+          <p className="mt-4 text-gray-500">Loading caregivers...</p>
+        </div>
       </div>
     );
   }
 
   return (
+    <div className="px-8 py-6">
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Browse Caregivers</h1>
@@ -109,6 +114,7 @@ export default function DiscoverCaregiversPage() {
           </div>
         </>
       )}
+    </div>
     </div>
   );
 }

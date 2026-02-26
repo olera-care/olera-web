@@ -12,7 +12,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { billingCycle } = body as { billingCycle: "monthly" | "annual" };
+    const { billingCycle, returnPath } = body as {
+      billingCycle: "monthly" | "annual";
+      returnPath?: string;
+    };
 
     // Validate billing cycle
     const priceId =
@@ -74,12 +77,17 @@ export async function POST(request: NextRequest) {
 
     // Create checkout session
     const origin = request.nextUrl.origin;
+    const successPath = returnPath
+      ? `${returnPath}?upgraded=true`
+      : "/portal/settings?upgraded=true";
+    const cancelPath = returnPath || "/portal/settings";
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/portal/settings?upgraded=true`,
-      cancel_url: `${origin}/portal/settings`,
+      success_url: `${origin}${successPath}`,
+      cancel_url: `${origin}${cancelPath}`,
       metadata: { account_id: account.id },
     });
 

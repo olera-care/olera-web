@@ -63,7 +63,7 @@ export default function MatchCard({
   return (
     <div className="w-full rounded-2xl overflow-hidden bg-white shadow-lg border border-gray-100">
       {/* Photo area */}
-      <div className="relative h-[280px] bg-gray-100">
+      <div className="relative h-[320px] bg-gray-100">
         {primaryImage ? (
           <Image
             src={primaryImage}

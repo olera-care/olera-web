@@ -10,12 +10,14 @@
     "generate-cities": "npx tsx scripts/generate-city-data.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.12",
     "maplibre-gl": "^5.18.0",
     "next": "^16.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "resend": "^6.9.2",
     "stripe": "^20.3.0"
   },
   "devDependencies": {

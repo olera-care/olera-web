@@ -69,7 +69,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerName,
     providerSlug,
     careTypes: providerCareTypes,
-    isActive,
+    onConnectionCreated,
   } = props;
 
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
@@ -79,7 +79,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const connectionAuthTriggered = useRef(false);
 
   // ── State machine ──
-  const [cardState, setCardState] = useState<CardState>("loading");
+  const [cardState, setCardState] = useState<CardState>("default");
   const [intentStep, setIntentStep] = useState<IntentStep>(0);
   const [intentData, setIntentData] = useState<IntentData>(INITIAL_INTENT);
 
@@ -91,6 +91,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
     null
   );
   const [previousIntent, setPreviousIntent] = useState<IntentData | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [connectionId, setConnectionId] = useState<string | null>(null);
 
   // ── Derived ──
   const availableCareTypes = mapProviderCareTypes();
@@ -99,11 +101,6 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Resolve initial state — show optimistic UI immediately ──
   useEffect(() => {
     if (authLoading) return;
-
-    if (!isActive) {
-      setCardState("inactive");
-      return;
-    }
 
     // Anonymous user — show default immediately
     if (!user) {
@@ -127,12 +124,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
     // Logged-in but no profile data to pre-fill — show default instead of skeleton
     setCardState("default");
-  }, [authLoading, user, isActive, activeProfile]);
+  }, [authLoading, user, activeProfile]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
     if (!user || !profiles.length || !isSupabaseConfigured()) return;
-    if (!isActive) return; // Already set to inactive
 
     const checkExisting = async () => {
       const supabase = createClient();
@@ -190,19 +186,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
       if (connectionResult.data) {
         const data = connectionResult.data;
         setPendingRequestDate(data.created_at);
+        setConnectionId(data.id);
 
-        if (data.status === "accepted") {
-          setCardState("responded");
+        if (data.status === "accepted" || data.status === "pending") {
+          setCardState("connected");
           return;
         }
 
-        if (data.status === "pending") {
-          setCardState("pending");
-          return;
-        }
-
-        // Past/ended connection — show as returning
-        // Fall through to check for previous intent data
+        // Past/ended connection — fall through to check for previous intent data
       }
 
       // Restore previous intent data (from any connection)
@@ -244,7 +235,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     };
 
     checkExisting();
-  }, [user, profiles, providerId, isActive, activeProfile]);
+  }, [user, profiles, providerId, activeProfile]);
 
   // ── Handle deferred phone reveal after auth ──
   useEffect(() => {
@@ -266,6 +257,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const submitRequest = useCallback(async (intentOverride?: IntentData) => {
     const intent = intentOverride || intentData;
     setError("");
+    setSubmitting(true);
 
     try {
       if (!user) {
@@ -289,13 +281,26 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
-      // Refresh auth data so active profile is up-to-date
+      // Redirect to post-connection success page if callback provided
+      // Do this BEFORE state transitions so the redirect is instant
+      if (data.connectionId && onConnectionCreated) {
+        onConnectionCreated(data.connectionId);
+        return; // Skip further state updates — we're navigating away
+      }
+
+      // No redirect callback — update local state as before
       await refreshAccountData();
 
-      // Update date if returned
       if (data.created_at) {
         setPendingRequestDate(data.created_at);
       }
+      if (data.connectionId) {
+        setConnectionId(data.connectionId);
+      }
+
+      setCardState("connected");
+      setPendingRequestDate((prev) => prev || new Date().toISOString());
+      setPhoneRevealed(true);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -303,6 +308,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
           : String(err);
       console.error("Connection request error:", msg);
       setError(msg || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   }, [
     user,
@@ -311,6 +318,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     providerSlug,
     intentData,
     refreshAccountData,
+    onConnectionCreated,
   ]);
 
   // ── Handle deferred connection request after auth ──
@@ -338,13 +346,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
         // sessionStorage may fail in private browsing
       }
 
-      // Go straight to pending, fire API in background
-      setCardState("pending");
-      setPendingRequestDate(new Date().toISOString());
-      setPhoneRevealed(true);
+      // Fire API — submitRequest handles state transitions
+      if (!onConnectionCreated) {
+        setCardState("connected");
+        setPendingRequestDate(new Date().toISOString());
+        setPhoneRevealed(true);
+      }
       submitRequest(restoredIntent || undefined);
     }
-  }, [user, account, providerId, submitRequest]);
+  }, [user, account, providerId, submitRequest, onConnectionCreated]);
 
   // ── Navigation helpers ──
   const startFlow = useCallback(() => {
@@ -384,10 +394,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
     if (user) {
-      // Go straight to pending, fire API in background
-      setCardState("pending");
-      setPendingRequestDate(new Date().toISOString());
-      setPhoneRevealed(true);
+      if (!onConnectionCreated) {
+        // No redirect — show connected state immediately
+        setCardState("connected");
+        setPendingRequestDate(new Date().toISOString());
+        setPhoneRevealed(true);
+      }
+      // When onConnectionCreated exists, stay on current screen with
+      // submitting=true on the button, then redirect instantly after API
       submitRequest();
     } else {
       // Save intent for OAuth resilience, then trigger auth
@@ -409,7 +423,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         },
       });
     }
-  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug]);
+  }, [user, intentData, submitRequest, openAuth, providerId, providerSlug, onConnectionCreated]);
 
   const editFromReturning = useCallback(() => {
     setIntentStep(0);
@@ -450,7 +464,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     phoneRevealed,
     saved,
     error,
+    submitting,
     pendingRequestDate,
+    connectionId,
     availableCareTypes,
     notificationEmail,
 

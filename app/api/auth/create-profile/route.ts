@@ -213,6 +213,37 @@ export async function POST(request: Request) {
           status: "free",
         });
       }
+
+      // Auto-create a baseline family profile so the Family Portal is always accessible.
+      // Every user gets a family profile regardless of which portal they signed up through.
+      const { data: existingFamilyProfile } = await db
+        .from("business_profiles")
+        .select("id")
+        .eq("account_id", accountId)
+        .eq("type", "family")
+        .limit(1)
+        .maybeSingle();
+
+      if (!existingFamilyProfile) {
+        const familySlug = generateSlug(displayName, city || "", state || "");
+        await db.from("business_profiles").insert({
+          account_id: accountId,
+          slug: familySlug,
+          type: "family",
+          display_name: displayName,
+          city: city || null,
+          state: state || null,
+          care_types: [],
+          claim_state: "claimed",
+          verification_state: "unverified",
+          source: "user_created",
+          is_active: true,
+          metadata: {
+            visible_to_families: false,
+            visible_to_providers: false,
+          },
+        });
+      }
     } else {
       // Create family profile
       const slug = generateSlug(displayName, city || "", state || "");

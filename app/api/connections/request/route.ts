@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { buildIntroMessage } from "@/lib/build-intro-message";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -183,12 +184,13 @@ export async function POST(request: Request) {
         let providerState: string | null = null;
         let providerPhone: string | null = null;
         let providerCategory: string | null = null;
+        let providerImageUrl: string | null = null;
         let providerCareTypes: string[] = [];
 
         const { data: iosProvider } = await db
           .from("olera-providers")
           .select(
-            "provider_name, provider_category, main_category, city, state, phone"
+            "provider_name, provider_category, main_category, city, state, phone, provider_logo, provider_images"
           )
           .eq("provider_id", providerId)
           .single();
@@ -198,6 +200,9 @@ export async function POST(request: Request) {
           providerState = iosProvider.state;
           providerPhone = iosProvider.phone;
           providerCategory = iosProvider.provider_category;
+          providerImageUrl = iosProvider.provider_logo
+            || (iosProvider.provider_images as string | null)?.split(" | ")?.[0]
+            || null;
           providerCareTypes = [iosProvider.provider_category];
           if (
             iosProvider.main_category &&
@@ -218,6 +223,7 @@ export async function POST(request: Request) {
             phone: providerPhone,
             city: providerCity,
             state: providerState,
+            image_url: providerImageUrl,
             care_types: providerCareTypes,
             claim_state: "unclaimed",
             verification_state: "unverified",
@@ -282,6 +288,7 @@ export async function POST(request: Request) {
     if (existingConnection) {
       return NextResponse.json({
         status: "duplicate",
+        connectionId: existingConnection.id,
         created_at: existingConnection.created_at,
       });
     }
@@ -304,14 +311,55 @@ export async function POST(request: Request) {
       seeker_last_name: lastName,
     });
 
-    // 6. Insert connection
-    const { error: insertError } = await db.from("connections").insert({
-      from_profile_id: fromProfileId,
-      to_profile_id: toProfileId,
-      type: "inquiry",
-      status: "pending",
-      message: messagePayload,
-    });
+    // 6. Build auto-intro message from profile + intent data
+    let autoIntro: string | null = null;
+    try {
+      const [{ data: familyProfile }, { data: providerProfile }] = await Promise.all([
+        db.from("business_profiles").select("care_types, metadata").eq("id", fromProfileId).single(),
+        db.from("business_profiles").select("care_types").eq("id", toProfileId).single(),
+      ]);
+
+      const familyMeta = (familyProfile?.metadata || {}) as Record<string, string | undefined>;
+      autoIntro = buildIntroMessage(
+        familyProfile?.care_types || [],
+        providerProfile?.care_types || [],
+        familyMeta.relationship_to_recipient,
+        familyMeta.timeline,
+        intentData?.careType,
+        intentData?.careRecipient,
+        intentData?.urgency,
+      );
+    } catch {
+      // Non-blocking — connection creation should not fail if intro generation fails
+    }
+
+    // 7. Build connection metadata with auto-intro and provider auto-reply
+    const connectionMetadata: Record<string, unknown> = {};
+    if (autoIntro) connectionMetadata.auto_intro = autoIntro;
+
+    // Seed an automatic reply from the provider so the seeker has an
+    // unread message in their inbox immediately after connecting.
+    connectionMetadata.thread = [
+      {
+        from_profile_id: toProfileId,
+        text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    // 8. Insert connection
+    const { data: newConnection, error: insertError } = await db
+      .from("connections")
+      .insert({
+        from_profile_id: fromProfileId,
+        to_profile_id: toProfileId,
+        type: "inquiry",
+        status: "pending",
+        message: messagePayload,
+        metadata: connectionMetadata,
+      })
+      .select("id")
+      .single();
 
     if (insertError) {
       console.error("Failed to insert connection:", insertError);
@@ -321,7 +369,73 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ status: "created" });
+    // 9. Sync intent data back to user's family profile
+    if (intentData) {
+      try {
+        const { data: currentProfile } = await db
+          .from("business_profiles")
+          .select("metadata, care_types")
+          .eq("id", fromProfileId)
+          .single();
+
+        if (currentProfile) {
+          const currentMeta = (currentProfile.metadata || {}) as Record<string, unknown>;
+          const currentCareTypes: string[] = currentProfile.care_types || [];
+          const updates: Record<string, unknown> = {};
+
+          // Map CTA recipient → profile relationship_to_recipient
+          const recipientMap: Record<string, string> = {
+            self: "Myself",
+            parent: "My parent",
+            spouse: "My spouse",
+            other: "Someone else",
+          };
+          if (intentData.careRecipient && recipientMap[intentData.careRecipient]) {
+            currentMeta.relationship_to_recipient = recipientMap[intentData.careRecipient];
+          }
+
+          // Map CTA urgency → profile timeline
+          const timelineMap: Record<string, string> = {
+            asap: "immediate",
+            within_month: "within_1_month",
+            few_months: "within_3_months",
+            researching: "exploring",
+          };
+          if (intentData.urgency && timelineMap[intentData.urgency]) {
+            currentMeta.timeline = timelineMap[intentData.urgency];
+          }
+
+          updates.metadata = currentMeta;
+
+          // Map CTA careType → profile care_types display name
+          const careTypeMap: Record<string, string> = {
+            home_care: "Home Care",
+            home_health: "Home Health Care",
+            assisted_living: "Assisted Living",
+            memory_care: "Memory Care",
+          };
+          if (intentData.careType && careTypeMap[intentData.careType]) {
+            const displayName = careTypeMap[intentData.careType];
+            if (!currentCareTypes.includes(displayName)) {
+              updates.care_types = [...currentCareTypes, displayName];
+            }
+          }
+
+          await db
+            .from("business_profiles")
+            .update(updates)
+            .eq("id", fromProfileId);
+        }
+      } catch (syncErr) {
+        // Non-blocking — connection was created, profile sync is best-effort
+        console.error("Failed to sync intent to profile:", syncErr);
+      }
+    }
+
+    return NextResponse.json({
+      status: "created",
+      connectionId: newConnection?.id ?? null,
+    });
   } catch (err) {
     console.error("Connection request error:", err);
     return NextResponse.json(

@@ -5,6 +5,16 @@ import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { type ProviderCardData, getCategoryDisplayName } from "@/lib/types/provider";
 
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
 interface BrowseCardProps {
   provider: ProviderCardData;
 }
@@ -13,6 +23,8 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
   const isSaved = checkSaved(provider.id);
   const [imgFailed, setImgFailed] = useState(false);
+  const showAsLogo = provider.imageType === "logo" || imgFailed;
+  const showPlaceholder = provider.imageType === "placeholder" || (imgFailed && !provider.image);
 
   const careTypeLabel = getCategoryDisplayName(provider.careTypes[0]) || provider.primaryCategory;
   const displayedHighlights = provider.highlights?.slice(0, 3) || [];
@@ -25,20 +37,33 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
       className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
     >
       {/* Image */}
-      <div className="relative w-full aspect-[16/10] bg-gray-100">
-        {!imgFailed ? (
+      <div className="relative w-full aspect-[16/10] bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
+        {showPlaceholder ? (
+          /* No image — gradient + initials */
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+              <span className="text-2xl font-bold text-primary-400">{getInitials(provider.name)}</span>
+            </div>
+            <span className="text-xs font-medium text-primary-300 mt-2">{provider.primaryCategory}</span>
+          </div>
+        ) : showAsLogo ? (
+          /* Logo — contained on gradient background, not cropped */
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <img
+              src={provider.image}
+              alt={provider.name}
+              className="max-w-full max-h-full object-contain"
+              onError={() => setImgFailed(true)}
+            />
+          </div>
+        ) : (
+          /* Real photo — full bleed cover */
           <img
             src={provider.image}
             alt={provider.name}
             className="absolute inset-0 w-full h-full object-cover"
             onError={() => setImgFailed(true)}
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </div>
         )}
 
         {/* Heart — top right */}

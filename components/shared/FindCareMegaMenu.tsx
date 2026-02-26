@@ -5,6 +5,15 @@ import Link from "next/link";
 import { CARE_CATEGORIES } from "./NavMenuData";
 import type { NavResource } from "./NavMenuData";
 
+const categoryToPowerPage: Record<string, string> = {
+  "home-health": "/home-health-care",
+  "home-care": "/home-care",
+  "assisted-living": "/assisted-living",
+  "memory-care": "/memory-care",
+  "nursing-homes": "/nursing-home",
+  "independent-living": "/independent-living",
+};
+
 function ResourceIcon({ icon }: { icon: NavResource["icon"] }) {
   switch (icon) {
     case "chat":
@@ -103,7 +112,7 @@ export default function FindCareMegaMenu({
                 {CARE_CATEGORIES.map((category) => (
                   <li key={category.id}>
                     <Link
-                      href={`/browse?type=${category.id}`}
+                      href={categoryToPowerPage[category.id] || `/browse?type=${category.id}`}
                       onClick={onClose}
                       onMouseEnter={() => setHoveredCategory(category.id)}
                       className={`text-[15px] font-medium transition-all text-left w-full py-2.5 pl-3 pr-4 rounded-lg block ${
@@ -122,7 +131,7 @@ export default function FindCareMegaMenu({
             {/* Center — Featured Card */}
             <div className="flex gap-8">
               <Link
-                href={`/browse?type=${activeCategory.id}`}
+                href={categoryToPowerPage[activeCategory.id] || `/browse?type=${activeCategory.id}`}
                 onClick={onClose}
                 className="w-[340px] shrink-0 block"
               >

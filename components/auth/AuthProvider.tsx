@@ -9,6 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
 import { setDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
@@ -76,8 +77,8 @@ interface AuthContextValue extends AuthState {
   /** Close the unified auth modal */
   closeUnifiedAuth: () => void;
   signOut: (onComplete?: () => void) => Promise<void>;
-  refreshAccountData: () => Promise<void>;
-  switchProfile: (profileId: string) => Promise<void>;
+  refreshAccountData: (overrideUserId?: string) => Promise<void>;
+  switchProfile: (profileId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -101,9 +102,9 @@ const EMPTY_STATE: AuthState = {
 };
 
 // ─── Query timeout ──────────────────────────────────────────────────────
-// Bounded wait: if Supabase doesn't respond in 15s, fail explicitly
+// Bounded wait: if Supabase doesn't respond in 5s, fail explicitly
 // so the user sees an error + retry instead of an infinite spinner.
-const QUERY_TIMEOUT_MS = 15_000;
+const QUERY_TIMEOUT_MS = 5_000;
 
 function withBoundedTimeout<T>(
   promise: PromiseLike<T>,
@@ -120,9 +121,9 @@ function withBoundedTimeout<T>(
 
 // ─── Persistent cache (localStorage) ────────────────────────────────────
 // Persists auth data across tabs, refreshes, and browser restarts.
-// 30-minute TTL ensures stale data is refreshed.
+// Background fetch on every page load keeps data fresh.
 const CACHE_KEY = "olera_auth_cache";
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours — background fetch refreshes on every page load
 
 interface CachedAuthData {
   userId: string;
@@ -178,6 +179,7 @@ interface AuthProviderProps {
 }
 
 export default function AuthProvider({ children }: AuthProviderProps) {
+  const router = useRouter();
   const [state, setState] = useState<AuthState>({
     ...EMPTY_STATE,
     isLoading: true,
@@ -292,33 +294,59 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       if (cancelled) return;
 
-      if (!session?.user) {
-        clearAuthCache();
-        setState({ ...EMPTY_STATE, isLoading: false });
-        // Allow the SIGNED_IN listener to handle sign-ups that happen after page load
-        initHandlingRef.current = false;
-        console.timeEnd("[olera] init");
-        return;
-      }
+      let userId: string;
+      let userEmail: string | undefined;
+      let emailConfirmedAt: string | undefined;
 
-      const userId = session.user.id;
+      if (session?.user) {
+        userId = session.user.id;
+        userEmail = session.user.email;
+        emailConfirmedAt = session.user.email_confirmed_at ?? undefined;
+      } else {
+        // getSession() reads cookies locally and can fail due to chunking,
+        // timing, or token refresh races (especially in new tabs).
+        // Fall back to getUser() which validates server-side.
+        const { data: { user: validatedUser } } = await supabase.auth.getUser();
+
+        if (cancelled) return;
+
+        if (!validatedUser) {
+          // No session found. Don't clear the cache here — the session
+          // might be in flight (OTP flow: setSession hasn't completed yet).
+          // Cache is cleared on explicit SIGNED_OUT instead, which is the
+          // only reliable signal that the user intentionally logged out.
+          setState({ ...EMPTY_STATE, isLoading: false });
+          initHandlingRef.current = false;
+          console.timeEnd("[olera] init");
+          return;
+        }
+
+        userId = validatedUser.id;
+        userEmail = validatedUser.email;
+        emailConfirmedAt = validatedUser.email_confirmed_at ?? undefined;
+      }
 
       // Restore cached data immediately — no loading screens, correct
       // initials, full portal rendered on first paint.
       const cached = getCachedAuthData(userId);
       const hasCachedData = !!cached?.account;
 
+      // Set user immediately so the avatar pill shows. If cache is warm,
+      // also set account/profiles for instant render. If cache is cold,
+      // keep isLoading true — the dropdown will show a brief loading state
+      // instead of an empty-then-full flash.
       setState({
-        user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
+        user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
         account: cached?.account ?? null,
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],
         membership: cached?.membership ?? null,
-        isLoading: false,
+        isLoading: !hasCachedData, // Only "done" if we have cached data
         fetchError: false,
       });
 
-      // Background refresh — keeps data current without blocking UI
+      // Fetch fresh data. When cache is cold this is the critical path —
+      // the UI stays in loading state until this completes.
       try {
         const data = await fetchAccountData(userId);
         if (cancelled) return;
@@ -331,22 +359,23 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             activeProfile: data.activeProfile,
             profiles: data.profiles,
             membership: data.membership,
+            isLoading: false,
             fetchError: false,
           }));
         } else if (!hasCachedData) {
-          // Fetch returned null (no account row yet) and we have no cache.
-          // Signal error so the UI can show a retry button.
-          setState((prev) => ({ ...prev, fetchError: true }));
+          setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+        } else {
+          // Had cache, fetch returned null (edge case) — stop loading
+          setState((prev) => ({ ...prev, isLoading: false }));
         }
       } catch (err) {
         console.error("[olera] init fetch failed:", err);
         if (cancelled) return;
-        if (!hasCachedData) {
-          // Timeout or network error with no cache — show error + retry
-          setState((prev) => ({ ...prev, fetchError: true }));
-        }
-        // If we have cache, silently keep it — user sees stale data
-        // which is much better than a spinner or error.
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          fetchError: !hasCachedData,
+        }));
       }
 
       // Allow the SIGNED_IN listener to fire on subsequent sign-ins
@@ -389,13 +418,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           fetchError: false,
         }));
 
-        // Fetch fresh data. For brand-new accounts the DB trigger may
-        // not have run yet, so retry once after a short delay.
+        // Fetch fresh data in the background. Don't block the user.
+        // Only retry (once) if the account row is missing (DB trigger delay),
+        // NOT on timeout — retrying a timeout just doubles the wait.
         const version = ++versionRef.current;
         try {
           let data = await fetchAccountData(userId);
 
-          if (!data?.account) {
+          // Retry once for missing account row (new signup, DB trigger delay).
+          // Skip retry if it was a timeout — no point waiting again.
+          if (!data?.account && !cancelled && versionRef.current === version) {
             await new Promise((r) => setTimeout(r, 1500));
             if (cancelled || versionRef.current !== version) return;
             data = await fetchAccountData(userId);
@@ -417,6 +449,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             setState((prev) => ({ ...prev, fetchError: true }));
           }
         } catch (err) {
+          // Timeout or network error — don't retry, just use cache
           console.error("[olera] SIGNED_IN fetch failed:", err);
           if (cancelled || versionRef.current !== version) return;
           if (!cached?.account) {
@@ -458,27 +491,48 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [configured, fetchAccountData]);
 
-  // Post-OAuth: detect returning users who need onboarding
+  // Detect authenticated users who haven't completed onboarding and auto-open
   useEffect(() => {
     if (state.isLoading || !state.user) return;
-    // If user is authenticated but hasn't completed onboarding, and we have
-    // a saved intent from a pre-OAuth redirect, auto-open post-auth onboarding
     if (state.account && !state.account.onboarding_completed && !isUnifiedAuthOpen) {
+      // Try to restore saved intent for context (OAuth redirects, CTA clicks)
+      let intent: AuthFlowIntent = null;
+      let providerType: AuthFlowProviderType = null;
       try {
         const saved = sessionStorage.getItem(AUTH_INTENT_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
           sessionStorage.removeItem(AUTH_INTENT_KEY);
-          setUnifiedAuthOptions({
-            intent: parsed.intent,
-            providerType: parsed.providerType,
-            startAtPostAuth: true,
-          });
-          setIsUnifiedAuthOpen(true);
+          intent = parsed.intent;
+          providerType = parsed.providerType;
         }
       } catch {
         // sessionStorage unavailable
       }
+
+      // If the user was in the middle of provider onboarding (intent saved from auth,
+      // or they already completed Step 1 and saved their provider type), redirect them
+      // to the wizard instead of re-opening the modal.
+      const hasStartedProviderOnboarding = (() => {
+        try {
+          return !!localStorage.getItem("olera_onboarding_provider_type");
+        } catch {
+          return false;
+        }
+      })();
+
+      if (intent === "provider" || hasStartedProviderOnboarding) {
+        router.push("/provider/onboarding");
+        return;
+      }
+
+      // Family or unknown intent — open the post-auth onboarding modal
+      setUnifiedAuthOptions({
+        intent,
+        providerType,
+        startAtPostAuth: true,
+      });
+      setIsUnifiedAuthOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isLoading, state.user, state.account]);
@@ -549,31 +603,43 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Let the auth listener handle state clearing.
-   * Only clear state manually if signOut fails.
+   * Sign out. Clears local state and navigates immediately,
+   * then fires the Supabase signOut in the background.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
       if (!configured) return;
       clearAuthCache();
-      const supabase = createClient();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Sign out error:", error.message);
-        versionRef.current++;
-        setState({ ...EMPTY_STATE });
+      // Clear onboarding session so a different user doesn't see stale data
+      try {
+        localStorage.removeItem("olera_onboarding_provider_type");
+        localStorage.removeItem("olera_provider_wizard_data");
+        localStorage.removeItem("olera_onboarding_step");
+        localStorage.removeItem("olera_onboarding_search");
+        localStorage.removeItem("olera_onboarding_claim");
+      } catch {
+        /* ignore */
       }
+      versionRef.current++;
+      setState({ ...EMPTY_STATE });
       onComplete?.();
+      // Fire-and-forget — session invalidation happens in the background
+      const supabase = createClient();
+      supabase.auth.signOut().catch((err) => {
+        console.error("Sign out error:", err);
+      });
     },
     [configured]
   );
 
   /**
    * Refresh account data from the database.
+   * Accepts an optional userId override for use immediately after
+   * authentication (before React state has updated the ref).
    * Updates cache on success. Clears fetchError on success.
    */
-  const refreshAccountData = useCallback(async () => {
-    const userId = userIdRef.current;
+  const refreshAccountData = useCallback(async (overrideUserId?: string) => {
+    const userId = overrideUserId || userIdRef.current;
     if (!userId) return;
 
     const version = ++versionRef.current;
@@ -600,26 +666,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, [fetchAccountData]);
 
   /**
-   * Switch the active profile. Uses refs to avoid stale closures.
+   * Switch the active profile. Optimistic-first: updates local state
+   * immediately so callers can navigate without waiting, then persists
+   * to DB and refreshes in the background.
    */
   const switchProfile = useCallback(
-    async (profileId: string) => {
+    (profileId: string) => {
       const userId = userIdRef.current;
       const accountId = accountIdRef.current;
       if (!userId || !accountId || !configured) return;
 
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("accounts")
-        .update({ active_profile_id: profileId })
-        .eq("id", accountId);
-
-      if (error) {
-        console.error("Failed to switch profile:", error.message);
-        return;
-      }
-
-      // Optimistic local update
+      // Optimistic local update — instant
       setState((prev) => {
         const newActive =
           prev.profiles.find((p) => p.id === profileId) || null;
@@ -632,7 +689,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         };
       });
 
-      await refreshAccountData();
+      // DB write + refresh in the background (fire-and-forget)
+      const supabase = createClient();
+      (async () => {
+        try {
+          const { error } = await supabase
+            .from("accounts")
+            .update({ active_profile_id: profileId })
+            .eq("id", accountId);
+          if (error) console.error("Failed to switch profile:", error.message);
+          await refreshAccountData();
+        } catch {
+          // Background sync failed — optimistic state still holds
+        }
+      })();
     },
     [configured, refreshAccountData]
   );

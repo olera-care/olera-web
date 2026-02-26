@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth, type OpenAuthOptions } from "@/components/auth/AuthProvider";
@@ -31,6 +32,7 @@ export default function UnifiedAuthModal({
   onClose,
   options = {},
 }: UnifiedAuthModalProps) {
+  const router = useRouter();
   const { user, account, refreshAccountData } = useAuth();
 
   // Determine initial step
@@ -76,7 +78,7 @@ export default function UnifiedAuthModal({
   }, [resendCooldown]);
 
   // ──────────────────────────────────────────────────────────
-  // Email-first flow: check if email exists
+  // Email-first flow: check if email exists, show password or sign-up
   // ──────────────────────────────────────────────────────────
 
   const handleEmailContinue = async (e: React.FormEvent) => {
@@ -189,7 +191,7 @@ export default function UnifiedAuthModal({
 
       // No email confirmation — proceed to post-auth
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("Sign up error:", err);
       setError("Something went wrong. Please try again.");
@@ -214,7 +216,7 @@ export default function UnifiedAuthModal({
       }
 
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -229,8 +231,24 @@ export default function UnifiedAuthModal({
         return;
       }
 
+      // Pre-warm the auth cache so the dropdown has data immediately.
+      // signInWithPassword triggers SIGNED_IN which starts a background
+      // fetch, but we await here to guarantee the cache is warm before
+      // the modal closes. 3s timeout as a safety net.
+      const userId = signInData?.user?.id;
+      if (userId) {
+        try {
+          await Promise.race([
+            refreshAccountData(userId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
+          ]);
+        } catch {
+          // Timeout or error — SIGNED_IN handler will continue in background
+        }
+      }
+
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("Sign in error:", err);
       setError("Something went wrong. Please try again.");
@@ -281,18 +299,40 @@ export default function UnifiedAuthModal({
         return;
       }
 
-      // Transfer session to the main SSR client (cookie-based) so
-      // middleware, server components, and AuthProvider all see it.
+      // Transfer session to SSR client BEFORE closing the modal.
+      // setSession is fast (~100ms) — it writes cookies locally and fires
+      // the SIGNED_IN event in AuthProvider.
       if (verifyData.session) {
-        const mainClient = createClient();
-        await mainClient.auth.setSession({
-          access_token: verifyData.session.access_token,
-          refresh_token: verifyData.session.refresh_token,
-        });
+        try {
+          await Promise.race([
+            createClient().auth.setSession({
+              access_token: verifyData.session.access_token,
+              refresh_token: verifyData.session.refresh_token,
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("setSession timeout")), 2000)),
+          ]);
+        } catch (err) {
+          console.error("[olera] setSession failed or timed out:", err);
+        }
+      }
+
+      // Pre-warm the auth cache so the dropdown has data immediately.
+      // The SIGNED_IN handler also fetches, but we await here to
+      // guarantee data is cached before the modal closes. 3s timeout.
+      const userId = verifyData.user?.id;
+      if (userId) {
+        try {
+          await Promise.race([
+            refreshAccountData(userId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("prefetch timeout")), 3000)),
+          ]);
+        } catch {
+          // Timeout — SIGNED_IN handler continues in background
+        }
       }
 
       setLoading(false);
-      await handleAuthComplete();
+      handleAuthComplete();
     } catch (err) {
       console.error("OTP verification error:", err);
       setError("Something went wrong. Please try again.");
@@ -398,32 +438,31 @@ export default function UnifiedAuthModal({
   // Post-auth routing
   // ──────────────────────────────────────────────────────────
 
-  const handleAuthComplete = async () => {
-    // Refresh auth context to pick up account data
-    await refreshAccountData();
+  const handleAuthComplete = () => {
+    // Zero network calls here. AuthProvider's SIGNED_IN listener handles
+    // data loading in the background, and its onboarding-detection useEffect
+    // will auto-open post-auth if onboarding is incomplete.
 
-    // Check if user has a completed profile
-    // Re-read from Supabase since refreshAccountData is async and state might not be updated yet
-    if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        const { data: acct } = await supabase
-          .from("accounts")
-          .select("onboarding_completed")
-          .eq("user_id", currentUser.id)
-          .single();
-
-        if (acct?.onboarding_completed) {
-          // Existing user with profile — close modal
-          onClose();
-          return;
-        }
+    // New signups always need onboarding
+    if (otpContext === "signup") {
+      if (options.intent === "provider") {
+        onClose();
+        router.push("/provider/onboarding");
+        return;
       }
+      setStep("post-auth");
+      return;
     }
 
-    // New user — show post-auth onboarding
-    setStep("post-auth");
+    // Provider intent — route to onboarding wizard
+    if (options.intent === "provider") {
+      onClose();
+      router.push("/provider/onboarding");
+      return;
+    }
+
+    // Returning user — close instantly. AuthProvider handles the rest.
+    onClose();
   };
 
   const handlePostAuthComplete = () => {
@@ -726,6 +765,18 @@ export default function UnifiedAuthModal({
                 </p>
               )}
             </div>
+
+            {otpContext === "signin" && (
+              <p className="text-center text-sm text-gray-400 mt-1">
+                <button
+                  type="button"
+                  onClick={() => { setStep("sign-in"); setOtpCode(""); setError(""); }}
+                  className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none"
+                >
+                  Use password instead
+                </button>
+              </p>
+            )}
           </form>
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -15,8 +15,20 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
+  );
+}
+
+function SettingsContent() {
   const router = useRouter();
-  const { user, account, activeProfile, membership, refreshAccountData } =
+  const { user, account, activeProfile, profiles, membership, refreshAccountData } =
     useAuth();
   const searchParams = useSearchParams();
   const justUpgraded = searchParams.get("upgraded") === "true";
@@ -44,6 +56,13 @@ export default function SettingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+  // Remove profile
+  const [showDeleteProfileModal, setShowDeleteProfileModal] = useState(false);
+  const [deletingProfile, setDeletingProfile] = useState(false);
+  const [deleteProfileError, setDeleteProfileError] = useState("");
+  const [deleteProfileConfirmText, setDeleteProfileConfirmText] = useState("");
 
   const isProvider =
     activeProfile?.type === "organization" ||
@@ -180,6 +199,45 @@ export default function SettingsPage() {
     }
   };
 
+  // ── Remove single profile ──
+  const handleDeleteProfile = async () => {
+    if (!activeProfile) return;
+    setDeletingProfile(true);
+    setDeleteProfileError("");
+
+    try {
+      const res = await fetch("/api/auth/delete-profile", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileId: activeProfile.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.isLastProfile) {
+          setDeleteProfileError(
+            "This is your only profile. To remove it, use \u2018Delete account\u2019 below."
+          );
+          return;
+        }
+        throw new Error(data.error || "Failed to remove profile");
+      }
+
+      await refreshAccountData();
+      setShowDeleteProfileModal(false);
+      setDeleteProfileConfirmText("");
+      router.push("/portal");
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Something went wrong";
+      setDeleteProfileError(msg);
+    } finally {
+      setDeletingProfile(false);
+    }
+  };
+
   // ── Stripe upgrade ──
   const handleUpgrade = async (billingCycle: "monthly" | "annual") => {
     setLoading(billingCycle);
@@ -207,22 +265,18 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-2xl">
       {justUpgraded && (
-        <div className="bg-primary-50 border border-primary-200 text-primary-800 px-4 py-3 rounded-xl text-base">
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-base mb-5">
           Your subscription is now active. You have full access to all features.
         </div>
       )}
 
+      <div className="rounded-2xl bg-white border border-gray-200/80 shadow-sm divide-y divide-gray-100">
       {/* ── Notifications ── */}
-      <section className="bg-white rounded-2xl border border-gray-200">
-        <div className="px-6 pt-6 pb-2">
-          <h3 className="text-lg font-bold text-gray-900">Notifications</h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Choose how you&apos;d like to be notified.
-          </p>
-        </div>
-        <div className="divide-y divide-gray-100">
+      <div className="p-6">
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Notifications</h3>
+        <div className="divide-y divide-gray-50">
           <NotificationRow
             title="Connection updates"
             description="When a provider responds or messages you"
@@ -260,16 +314,11 @@ export default function SettingsPage() {
             }
           />
         </div>
-      </section>
+      </div>
 
       {/* ── Account ── */}
-      <section className="bg-white rounded-2xl border border-gray-200">
-        <div className="px-6 pt-6 pb-2">
-          <h3 className="text-lg font-bold text-gray-900">Account</h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage your login credentials.
-          </p>
-        </div>
+      <div className="p-6">
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Account</h3>
         <div className="divide-y divide-gray-100">
           <AccountRow
             label="Email"
@@ -316,41 +365,18 @@ export default function SettingsPage() {
             isPassword
           />
         </div>
-      </section>
+      </div>
 
-      {/* ── Add Provider Profile (family only) ── */}
-      {isFamily && (
-        <section>
-          <button
-            type="button"
-            onClick={() => setShowProviderModal(true)}
-            className="w-full text-left flex items-center gap-4 bg-white rounded-2xl border border-gray-200 p-6 hover:border-primary-200 hover:bg-primary-50/20 transition-colors group"
-          >
-            <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0 group-hover:bg-primary-100 transition-colors">
-              <svg
-                className="w-6 h-6 text-primary-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-base font-semibold text-gray-900">
-                Add a provider profile
-              </p>
-              <p className="text-sm text-gray-500">
-                List your care services on Olera and connect with families.
-              </p>
-            </div>
+      {/* ── Add Provider Profile ── */}
+      <div className="p-6">
+        <button
+          type="button"
+          onClick={() => setShowProviderModal(true)}
+          className="w-full text-left flex items-center gap-4 rounded-lg p-4 hover:bg-gray-50 transition-colors group -mx-1"
+        >
+          <div className="w-12 h-12 rounded-xl bg-warm-100/60 flex items-center justify-center shrink-0 group-hover:bg-warm-100 transition-colors">
             <svg
-              className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-primary-400 transition-colors"
+              className="w-6 h-6 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -358,25 +384,48 @@ export default function SettingsPage() {
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
+                strokeWidth={1.5}
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
               />
             </svg>
-          </button>
-        </section>
-      )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-lg font-display font-bold text-gray-900">
+              {isProvider ? "Add another provider profile" : "Add a provider profile"}
+            </p>
+            <p className="text-xs text-gray-400">
+              {isProvider
+                ? "Create a listing for another location or service."
+                : "List your care services on Olera and connect with families."}
+            </p>
+          </div>
+          <svg
+            className="w-5 h-5 text-gray-300 shrink-0 group-hover:text-gray-500 transition-colors"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
 
       {/* Add Provider Profile Confirmation Modal */}
       <Modal
         isOpen={showProviderModal}
         onClose={() => setShowProviderModal(false)}
-        title="Add a Provider Profile"
+        title={isProvider ? "Add Another Profile" : "Add a Provider Profile"}
         size="sm"
       >
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-warm-100/60 flex items-center justify-center">
             <svg
-              className="w-6 h-6 text-primary-600"
+              className="w-6 h-6 text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -390,11 +439,14 @@ export default function SettingsPage() {
             </svg>
           </div>
           <p className="text-base text-gray-700 mb-2">
-            Want to list your care services?
+            {isProvider
+              ? "Create a new provider listing?"
+              : "Want to list your care services?"}
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            Setting up a provider profile lets families find and connect with you
-            on Olera. Your family profile will remain active.
+            {isProvider
+              ? "This will create a separate listing for another location or service. You can switch between profiles anytime."
+              : "Setting up a provider profile lets families find and connect with you on Olera. Your family profile will remain active."}
           </p>
           <div className="flex gap-3">
             <Button
@@ -408,7 +460,7 @@ export default function SettingsPage() {
               fullWidth
               onClick={() => {
                 setShowProviderModal(false);
-                router.push("/onboarding?intent=provider");
+                router.push(isProvider ? "/provider/onboarding?adding=true" : "/onboarding?intent=provider");
               }}
             >
               Continue to setup
@@ -419,8 +471,8 @@ export default function SettingsPage() {
 
       {/* ── Subscription (providers only) ── */}
       {isProvider && (
-        <section className="bg-white rounded-2xl border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">
+        <div className="p-6">
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-5">
             Subscription
           </h3>
 
@@ -498,7 +550,7 @@ export default function SettingsPage() {
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-primary-300 transition-colors">
+                <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
                   <p className="text-lg font-semibold text-gray-900">
                     Monthly
                   </p>
@@ -518,8 +570,8 @@ export default function SettingsPage() {
                     Subscribe Monthly
                   </Button>
                 </div>
-                <div className="border-2 border-primary-300 rounded-xl p-5 relative">
-                  <div className="absolute -top-3 right-4 bg-primary-600 text-white text-sm font-semibold px-3 py-1 rounded-full">
+                <div className="border-2 border-gray-900 rounded-xl p-5 relative">
+                  <div className="absolute -top-3 right-4 bg-gray-900 text-white text-sm font-semibold px-3 py-1 rounded-full">
                     Save 17%
                   </div>
                   <p className="text-lg font-semibold text-gray-900">
@@ -545,82 +597,227 @@ export default function SettingsPage() {
               </div>
             </div>
           )}
-        </section>
+        </div>
       )}
 
-      {/* ── Delete Account ── */}
-      <section className="bg-white rounded-2xl border border-gray-200 p-6">
+      {/* ── Remove this profile ── */}
+      <div className="p-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Remove this profile
+            </h3>
+            <p className="text-xs text-gray-400 mt-1">
+              Remove your{" "}
+              <span className="font-medium text-gray-500">
+                {activeProfile?.display_name}
+              </span>{" "}
+              profile. Your account and other profiles will not be affected.
+            </p>
+          </div>
+          {profiles.length > 1 ? (
+            <button
+              type="button"
+              onClick={() => setShowDeleteProfileModal(true)}
+              className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
+            >
+              Remove
+            </button>
+          ) : (
+            <span className="text-xs text-gray-400 shrink-0 ml-4 max-w-[140px] text-right leading-snug">
+              Only profile — use &ldquo;Delete account&rdquo; below
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Delete Account ── */}
+      <div className="p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-lg font-display font-bold text-gray-900">
               Delete account
             </h3>
-            <p className="text-sm text-gray-500 mt-1">
-              Permanently remove your profile and all connection history.
+            <p className="text-xs text-gray-400 mt-1">
+              Permanently delete your account, all profiles, and all connection
+              history.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors shrink-0 ml-4"
+            className="text-[14px] font-medium text-red-500 hover:text-red-600 transition-colors shrink-0 ml-4"
           >
             Delete
           </button>
         </div>
-      </section>
+      </div>
+      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete Account"
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeleteConfirmText("");
+          setDeleteError("");
+        }}
+        title="Delete account"
         size="sm"
       >
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-red-50 flex items-center justify-center">
-            <svg
-              className="w-6 h-6 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            This action is permanent and cannot be undone. Deleting your account will:
+          </p>
+          <ul className="space-y-2 mb-5">
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Remove all your profiles and personal information
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Delete all your connections and message history
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cancel any active subscriptions
+            </li>
+          </ul>
+
+          <div className="mb-5">
+            <label htmlFor="delete-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Type <span className="font-semibold text-gray-900">delete</span> to confirm
+            </label>
+            <input
+              id="delete-confirm"
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="delete"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
+              autoComplete="off"
+            />
           </div>
-          <p className="text-base text-gray-700 mb-2">
-            Are you sure you want to delete your account?
-          </p>
-          <p className="text-sm text-gray-500 mb-6">
-            This will permanently remove your profile, connections, and all
-            associated data. This action cannot be undone.
-          </p>
+
           {deleteError && (
-            <div className="mb-4 bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base">
+            <div className="mb-4 bg-red-50 text-red-700 px-3 py-2.5 rounded-lg text-sm">
               {deleteError}
             </div>
           )}
-          <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={() => setShowDeleteModal(false)}
+
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteConfirmText("");
+                setDeleteError("");
+              }}
               disabled={deleting}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 px-3 py-2"
             >
               Cancel
-            </Button>
-            <Button
-              variant="danger"
-              fullWidth
+            </button>
+            <button
+              type="button"
               onClick={handleDelete}
-              loading={deleting}
+              disabled={deleting || deleteConfirmText !== "delete"}
+              className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
             >
-              Delete Account
-            </Button>
+              {deleting ? "Deleting..." : "Delete my account"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Remove Profile Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteProfileModal}
+        onClose={() => {
+          setShowDeleteProfileModal(false);
+          setDeleteProfileConfirmText("");
+          setDeleteProfileError("");
+        }}
+        title="Remove profile"
+        size="sm"
+      >
+        <div>
+          <p className="text-sm text-gray-600 mb-4">
+            This will permanently remove your{" "}
+            <span className="font-semibold text-gray-900">
+              {activeProfile?.display_name}
+            </span>{" "}
+            profile. Your account and other profiles will not be affected.
+          </p>
+          <ul className="space-y-2 mb-5">
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Remove this profile and its information
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Delete all connections for this profile
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-gray-600">
+              <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              You can add a new profile later from the profile switcher
+            </li>
+          </ul>
+
+          <div className="mb-5">
+            <label htmlFor="delete-profile-confirm" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Type <span className="font-semibold text-gray-900">remove</span> to confirm
+            </label>
+            <input
+              id="delete-profile-confirm"
+              type="text"
+              value={deleteProfileConfirmText}
+              onChange={(e) => setDeleteProfileConfirmText(e.target.value)}
+              placeholder="remove"
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
+              autoComplete="off"
+            />
+          </div>
+
+          {deleteProfileError && (
+            <div className="mb-4 bg-red-50 text-red-700 px-3 py-2.5 rounded-lg text-sm">
+              {deleteProfileError}
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setShowDeleteProfileModal(false);
+                setDeleteProfileConfirmText("");
+                setDeleteProfileError("");
+              }}
+              disabled={deletingProfile}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 px-3 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteProfile}
+              disabled={deletingProfile || deleteProfileConfirmText !== "remove"}
+              className="text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-2"
+            >
+              {deletingProfile ? "Removing..." : "Remove this profile"}
+            </button>
           </div>
         </div>
       </Modal>
@@ -655,18 +852,18 @@ function NotificationRow({
   onToggle: (channel: "email" | "sms") => void;
 }) {
   return (
-    <div className="px-6 py-4 flex items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
       <div className="min-w-0">
-        <p className="text-base font-semibold text-gray-900">{title}</p>
-        <p className="text-sm text-gray-500 mt-0.5">{description}</p>
+        <p className="text-sm font-medium text-gray-900">{title}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{description}</p>
       </div>
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex items-center gap-5 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Email</span>
+          <span className="text-xs font-medium text-gray-400">Email</span>
           <Toggle on={emailOn} onToggle={() => onToggle("email")} />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">SMS</span>
+          <span className="text-xs font-medium text-gray-400">SMS</span>
           <Toggle on={smsOn} onToggle={() => onToggle("sms")} />
         </div>
       </div>
@@ -732,13 +929,13 @@ function AccountRow({
   isPassword?: boolean;
 }) {
   return (
-    <div className="px-6 py-4">
+    <div className="py-3.5 first:pt-0 last:pb-0">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-500">{label}</p>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
           {isEditing ? (
             isPassword ? (
-              <p className="text-base text-gray-600 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 We&apos;ll send a password reset link to your email.
               </p>
             ) : (
@@ -747,16 +944,16 @@ function AccountRow({
                 value={editValue}
                 onChange={(e) => onEditChange(e.target.value)}
                 placeholder={placeholder}
-                className="mt-1 w-full text-base text-gray-900 border border-gray-300 rounded-xl px-4 py-3 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="mt-1.5 w-full text-[15px] text-gray-900 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 autoFocus
               />
             )
           ) : (
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-base text-gray-900">{value}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-[15px] text-gray-900">{value}</p>
               {verified && (
-                <span className="inline-flex items-center gap-1 text-sm text-green-600 font-medium">
-                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <span className="inline-flex items-center gap-1 text-xs text-success-600 font-medium">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   Verified
@@ -769,7 +966,7 @@ function AccountRow({
           <button
             type="button"
             onClick={onStartEdit}
-            className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
+            className="text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
           >
             {isPassword ? "Change" : "Edit"}
           </button>

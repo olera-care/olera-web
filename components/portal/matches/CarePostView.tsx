@@ -11,6 +11,10 @@ interface CarePostViewProps {
   userEmail?: string;
   onPublish: () => Promise<void>;
   onDeactivate: () => Promise<void>;
+  /** Start directly in "review" mode (skip the empty state) */
+  initialStep?: "empty" | "review" | "active";
+  /** Called when user clicks "Back" from the review step */
+  onBack?: () => void;
 }
 
 function CheckIcon() {
@@ -50,6 +54,8 @@ export default function CarePostView({
   userEmail,
   onPublish,
   onDeactivate,
+  initialStep,
+  onBack,
 }: CarePostViewProps) {
   const meta = (activeProfile.metadata || {}) as FamilyMetadata;
   const carePost = meta.care_post;
@@ -57,7 +63,7 @@ export default function CarePostView({
 
   // Local UI step: empty → review → active
   const [step, setStep] = useState<"empty" | "review" | "active">(
-    isActive ? "active" : "empty"
+    initialStep || (isActive ? "active" : "empty")
   );
   const [publishing, setPublishing] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
@@ -143,21 +149,26 @@ export default function CarePostView({
   // ── EMPTY STATE ──
   if (step === "empty") {
     return (
-      <div className="max-w-[560px]">
+      <div>
         <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center text-3xl mx-auto mb-4">
+          <div
+            className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center text-3xl mx-auto mb-4"
+            style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+          >
             📣
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">
+          <style jsx>{`
+            @keyframes emptyFloat {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-6px); }
+            }
+          `}</style>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Let providers find you
           </h3>
-          <p className="text-sm text-gray-500 mb-2 leading-relaxed max-w-[380px] mx-auto">
-            Post your care need and qualified providers in your area can reach
-            out to you directly.
-          </p>
-          <p className="text-sm text-gray-400 mb-6 max-w-[380px] mx-auto">
-            Your existing profile details will be used — no extra forms to fill
-            out.
+          <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-[380px] mx-auto">
+            Post your care need so qualified providers in your area can reach
+            out to you directly. We&apos;ll use your existing profile details.
           </p>
           <Button size="sm" onClick={() => setStep("review")}>
             Create Care Post
@@ -179,12 +190,12 @@ export default function CarePostView({
       : "?";
 
     return (
-      <div className="max-w-[560px]">
+      <div>
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col h-[calc(100vh-250px)]">
           {/* Sticky header */}
           <div className="flex-shrink-0 px-6 pt-5 pb-4 border-b border-gray-100 bg-white">
             <button
-              onClick={() => setStep("empty")}
+              onClick={() => onBack ? onBack() : setStep("empty")}
               className="flex items-center gap-1.5 mb-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               <svg
@@ -200,7 +211,7 @@ export default function CarePostView({
               </svg>
               Back
             </button>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">
               Review your care post
             </h3>
             <p className="text-sm text-gray-500">
@@ -357,7 +368,7 @@ export default function CarePostView({
     : "Recently";
 
   return (
-    <div className="max-w-[560px]">
+    <div>
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col h-[calc(100vh-250px)]">
         {/* Sticky header */}
         <div className="flex-shrink-0 px-6 pt-5 pb-4 border-b border-gray-100 bg-white">
@@ -370,7 +381,7 @@ export default function CarePostView({
             </div>
             <span className="text-xs text-gray-400">Posted {publishedDate}</span>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">
             {careTypeDisplay || "Care"} for{" "}
             {relationshipDisplay?.toLowerCase() || "a loved one"}
           </h3>

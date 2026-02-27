@@ -49,7 +49,7 @@ export default function EasyToConnectSection() {
         </h2>
 
         {/* Tab pills */}
-        <div className="mt-8 flex items-center justify-center gap-2 flex-wrap">
+        <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
           {tabs.map((tab, i) => (
             <button
               key={tab.id}
@@ -67,7 +67,7 @@ export default function EasyToConnectSection() {
         </div>
 
         {/* Device mockup area */}
-        <div className="mt-10 relative">
+        <div className="mt-2 relative">
           <div className="mx-auto max-w-3xl relative aspect-[16/10]">
             {tabs.map((tab, i) => (
               <div
@@ -89,7 +89,7 @@ export default function EasyToConnectSection() {
           </div>
 
           {/* Caption */}
-          <h3 className="mt-6 text-text-lg font-semibold text-gray-900">
+          <h3 className="mt-4 text-text-lg font-semibold text-gray-900">
             {activeTab.title}
           </h3>
           <p className="mt-1 text-text-md text-gray-500">

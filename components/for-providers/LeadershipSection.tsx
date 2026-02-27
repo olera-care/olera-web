@@ -20,7 +20,7 @@ const leaders = [
 export default function LeadershipSection() {
   return (
     <section className="py-16 md:py-24 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="font-serif text-display-md font-bold text-gray-900 text-center mb-12">
           Our Leadership
         </h2>
@@ -32,7 +32,7 @@ export default function LeadershipSection() {
               className="flex gap-0 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden"
             >
               {/* Headshot */}
-              <div className="shrink-0 w-36 sm:w-44 self-stretch">
+              <div className="shrink-0 w-44 sm:w-52 self-stretch">
                 <Image
                   src={leader.image}
                   alt={leader.name}

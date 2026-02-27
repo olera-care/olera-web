@@ -18,6 +18,11 @@
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
   - Notion: P1 — "Senior Benefits Finder Improvements & Optimizations"
 
+- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
+  - 9-section marketing landing page at `/for-providers` to convert providers
+  - Plan: `plans/provider-home-page-plan.md`
+  - Notion: P2 — "Provider home page development"
+
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Port iOS deletion request/approve/deny/restore/purge flow to web
   - Plan: `plans/provider-deletion-request-plan.md`

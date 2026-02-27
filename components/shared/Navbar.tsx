@@ -125,7 +125,7 @@ export default function Navbar() {
     if (user) {
       router.push("/provider/onboarding");
     } else {
-      openAuth({ intent: "provider" });
+      router.push("/for-providers");
     }
   }, [user, profiles, openAuth, router]);
 

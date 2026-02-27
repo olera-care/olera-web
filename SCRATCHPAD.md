@@ -18,6 +18,11 @@
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
   - Notion: P1 — "Senior Benefits Finder Improvements & Optimizations"
 
+- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
+  - 9-section marketing landing page at `/for-providers` to convert providers
+  - Plan: `plans/provider-home-page-plan.md`
+  - Notion: P2 — "Provider home page development"
+
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Port iOS deletion request/approve/deny/restore/purge flow to web
   - Plan: `plans/provider-deletion-request-plan.md`
@@ -70,20 +75,8 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-02-20 | Category-inferred smart defaults for highlights, services, descriptions | Every provider page shows 4 highlights, 9+ services, and an About section — superseded by real data |
-| 2026-02-20 | Backfill descriptions from OleraClean CSV archive | 33,631 of 36,623 NULL descriptions filled; ~2,992 use category fallback |
-| 2026-02-20 | Browse page: single list+map layout (remove carousel/grid) | Matches TripAdvisor/Airbnb pattern — simpler, more focused UX |
-| 2026-02-20 | Category-inferred highlights on browse cards | 4 highlights per card from provider_category; superseded when provider claims page |
-| 2026-02-20 | Sticky filter bar with dynamic top (not -mt-16 hack) | Simpler CSS, no document flow issues |
-| 2026-02-20 | 2-column vertical card grid (Realtor.com style) | Better space efficiency, image-first like property listings |
-| 2026-02-20 | TripAdvisor score bubbles on map (not price pills) | Cleaner, more distinctive; Olera score is the differentiator |
-| 2026-02-20 | AbortController for Supabase fetch in useEffect | Prevents React effect cleanup from causing AbortError |
-| 2026-02-20 | Migrated map from Leaflet to MapLibre GL JS + MapTiler | Vector tiles, retina-sharp, smooth zoom, better performance. See ADR 001 |
-| 2026-02-20 | **CLAUDE.md: code > plan docs for design intent** | Post-mortem: stale plan regressed 2-col cards to horizontal. Added rule to ask before overwriting iterated designs |
 | 2026-02-21 | Server-side pagination for directory (not client-side) | 36K+ records — must use Supabase `.range()` with `count: "exact"` |
 | 2026-02-21 | Field allowlist for PATCH updates | Explicit `EDITABLE_FIELDS` set prevents injection of unexpected columns |
-| 2026-02-21 | Reuse existing images API for image actions | Detail page calls `/api/admin/images/[id]` — no code duplication |
-| 2026-02-21 | Lightweight admin check in Navbar | Single fetch to `/api/admin/auth`, silently fails for non-admins |
 | 2026-02-21 | `hero_image_url` column doesn't exist on `olera-providers` | Removed from SELECT; detail uses `SELECT *` which handles gracefully |
 | 2026-02-26 | Content regression checks needed beyond git merge-base | Revert→re-apply cycles make commit topology misleading; must compare actual file content for critical files |
 | 2026-02-26 | PR merge reports go to Notion | Automated reports in Product Development > PR Merge Reports for audit trail and team visibility |
@@ -219,6 +212,20 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 
 ## Session Log
 
+### 2026-02-27 (Session 21) — Provider Home Page Polish
+
+**Branch:** `shiny-maxwell`
+
+**What:** Continued iterating on `/for-providers` marketing landing page to match Figma mockups. Focused on leadership section and set-up-profile section polish.
+
+**Changes:**
+- `components/for-providers/LeadershipSection.tsx` — added `border border-gray-200` to cards, widened container from `max-w-4xl` → `max-w-6xl`, headshot column from `w-36/w-44` → `w-44/w-52`
+- `components/for-providers/SetUpProfileSection.tsx` — wrapped form + screenshot in unified `bg-gray-50 rounded-2xl` container (was separate bordered card on white)
+
+**Commits:** `b5ea4d6`, `029b146`, `b334769`
+
+---
+
 ### 2026-02-26 (Session 20) — Merge Access Lockdown
 
 **Branch:** `neat-morse`
@@ -297,177 +304,6 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 - `components/benefits/CareProfileSidebar.tsx` — replaced text link with App Store badge image
 
 **Status:** Merged to staging via PR #63.
-
----
-
-### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
-
-**Branch:** `swift-faraday` | **PR:** #53 targeting staging (merged)
-
-**Phase 1 — SEO Infrastructure:**
-- `app/robots.ts` — allows `/`, disallows `/admin/`, `/portal/`, `/api/`
-- `app/sitemap.ts` — dynamic sitemap: static pages, power pages, 39K+ provider profiles
-- `app/layout.tsx` — GA4 (`G-F2F7FG745B`), Organization JSON-LD, enhanced metadata
-- `app/provider/[slug]/page.tsx` — `generateMetadata()`, LocalBusiness JSON-LD
-- `next.config.ts` — 17 static 301 redirects (v1.0 → v2.0 URLs)
-- `middleware.ts` — pattern redirect: `/[category]/[state]/[city]/[slug]` → `/provider/[slug]`
-
-**Phase 2 — Power Pages:**
-- `lib/power-pages.ts` — shared utils: 7 categories, 51 states, slug mapping, data fetching
-- `app/[category]/page.tsx` — category landing (state grid + top providers)
-- `app/[category]/[state]/page.tsx` — state page (city links + provider listing)
-- `app/[category]/[state]/[city]/page.tsx` — city page (provider grid + cross-category links)
-- All with `generateMetadata()`, JSON-LD, ISR (1hr revalidation)
-
-**Phase 3 — Asked Questions:**
-- `supabase/migrations/005_provider_questions.sql` — `provider_questions` table + RLS policies
-- `app/api/questions/route.ts` — public GET + authenticated POST
-- `app/api/admin/questions/route.ts` — admin moderation GET + PATCH
-- `components/providers/QASectionV2.tsx` — wired up with live API
-- `app/admin/questions/page.tsx` — moderation UI with status tabs
-
-**Phase 4 — City Browse Experience:**
-- `components/browse/CityBrowseClient.tsx` — interactive browse merged into city power pages
-- Filters (location, care type, rating), sort, pagination, MapLibre sticky map
-- CSS grid + sticky map (Airbnb pattern) so footer renders full-width
-- Footer redesign with warm vanilla discovery zone + expandable cities (72 deep internal links)
-- Removed hospice from all customer-facing surfaces
-
-**Architecture Research:**
-- Deep research on Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com, Yelp
-- Key finding: ALL use single server-rendered page for SEO + interactive browse
-
----
-
-### 2026-02-24 (Session 17a) — Web QA Test Plan on Notion
-
-**Branch:** `hopeful-swartz` (no code changes)
-
-**What:** Created a comprehensive Web QA Test Plan database on Notion, modeled after the existing App Store QA Test Plan. Explored the full codebase to identify all major features, pages, and user flows.
-
-**Notion database:** https://www.notion.so/9f68deb000be474f919f215dee5f4605
-- Parent: Product Development
-- 85 test cases across 13 sections
-- Schema: Name (title), Browser (multi_select), Passed (checkbox), Section (select), Risk (P0/P1/P2), Notes (text)
-- Grouped by Section in table view (configured manually in Notion UI)
-
-**Sections:**
-- A. Smoke Tests (8) — homepage, browse, detail, nav, auth redirects
-- B. Auth & Sessions (10) — sign-up, sign-in, OAuth, OTP, session, profile switcher
-- C. Browse & Search (8) — city search, care type filter, sort, map, pagination
-- D. Provider Detail (10) — gallery, about, services, reviews, CTA, bookmarks
-- E. Family Portal (11) — inbox, messaging, connections, matches, saved
-- F. Provider Hub (9) — dashboard, completeness, connections, inbox, stats
-- G. Community & Resources (8) — forum, posts, resources, benefits finder
-- H. Admin Dashboard (9) — overview, provider mgmt, directory, images, team
-- I. Onboarding & Claims (7) — wizard, claim search, phone OTP, org creation
-- J. Payments & Pro (5) — Stripe checkout, Pro unlock, tier access
-- K. Responsive & Mobile (8) — mobile layouts, touch targets, map
-- L. SEO & Performance (6) — meta tags, OG, schema.org, lazy load, CLS
-- M. Error Handling (6) — 404, API errors, empty states, validation
-
-**Handed off to:** Esther for QA execution
-
----
-
-### 2026-02-21 (Session 16) — Admin Provider Directory Editor
-
-**Branch:** `stellar-hypatia` → merged to `staging` via PR #40
-
-**Image Classification & Stock Fallbacks (prior commits on this branch):**
-- Vision AI classification script (`scripts/classify-provider-images.mjs`)
-- Admin images page at `/admin/images` with review/override/hero actions
-- Category stock fallback photos (3 per category) for browse cards
-
-**Provider Directory Editor (3 commits):**
-- `ee98759` — Full CRUD directory: list page (search, filters, tabs, pagination), detail/edit page (7 sections), API routes with field allowlist + audit logging, sidebar restructure, admin links in navbar/portal, dashboard stat card
-- `53377dc` — Surface API errors in red banner for debugging
-- `6e3ac70` — Fix: `hero_image_url` column doesn't exist on `olera-providers` — removed from SELECT
-
-**Key files created:**
-- `app/admin/directory/page.tsx` — list page with 36K+ providers, server-side pagination
-- `app/admin/directory/[providerId]/page.tsx` — sectioned edit form (Basic Info, Contact, Location, Pricing, Scores, Images, Status)
-- `app/api/admin/directory/route.ts` — GET with search/filters/pagination via Supabase `.range()`
-- `app/api/admin/directory/[providerId]/route.ts` — GET full detail + PATCH with `EDITABLE_FIELDS` allowlist, audit diff
-
-**Key files modified:**
-- `components/admin/AdminSidebar.tsx` — "Providers"→"Claims", removed "Images", added "Directory"
-- `app/admin/page.tsx` — replaced Images card with Provider Directory stat card (36,689 total)
-- `components/shared/Navbar.tsx` — admin check + "Admin Dashboard" link in dropdown
-- `app/portal/layout.tsx` — admin check + "Admin Dashboard" link in sidebar
-- `lib/types.ts` — `DirectoryProvider`, `DirectoryListItem`, `PROVIDER_CATEGORIES`
-
-**Status:** Merged to staging. Everything working — list, detail, save, filters, pagination, dashboard card.
-
----
-
-### 2026-02-20 (Session 15b) — Browse Page Polish + Bug Fixes
-
-**Branch:** `staging`
-
-**Card & Map Redesign (continued):**
-- `27b24e8` — 2-column vertical card grid (Realtor.com style) + TripAdvisor score bubbles on map
-- `442e3d0` — CartoDB Positron tiles, refined zoom controls, polished popup cards
-
-**Bug Fixes:**
-- `f80be2b` — Filter dropdowns clipped by `overflow-x-auto` → changed to `flex-wrap`
-- `8fff2bf` — Dropdown z-index: heading `z-40` sat above dropdowns → lowered to `z-20`
-- `cec3594` — Replaced `.not('deleted','is',true)` with explicit `.or('deleted.is.null,deleted.eq.false')`
-- `1e9e96b` — AbortError: inlined fetch into useEffect with AbortController + cancelled flag
-
-**Status:** Supabase outage blocking verification. All code changes pushed and building clean.
-
-**Files modified:**
-- `components/browse/BrowseCard.tsx` — vertical card layout, image top, 3 highlights
-- `components/browse/BrowseClient.tsx` — 2-col grid, flex-wrap filters, z-index fixes, AbortController fetch
-- `components/browse/BrowseMap.tsx` — teal score bubbles, CartoDB tiles, refined controls
-
----
-
-### 2026-02-20 (Session 15) — Browse Page Redesign
-
-**Branch:** `staging`
-
-**Browse Page Overhaul (4 commits):**
-- `7929632` — Redesign browse page: remove carousel/grid/map views → single list+map layout
-  - Created `BrowseCard.tsx` (horizontal card), `docs/design-system.md`
-  - Refactored `BrowseClient.tsx` (~1100 LOC → ~820 LOC)
-- `50ea8fb` — Restore navbar: replaced `setForceHidden(true)` with `enableAutoHide()`
-- `a29092f` — Fix filter bar overlap: use dynamic `top` instead of `-mt-16` + `translateY` hack
-- `bdec4c5` — Match Figma: larger image, highlights (4 checkmarks), teal CTA button, bigger text
-
-**Files modified:**
-- `components/browse/BrowseCard.tsx` — new horizontal card component
-- `components/browse/BrowseClient.tsx` — major refactor to single layout
-- `lib/types/provider.ts` — added `CATEGORY_HIGHLIGHTS` mapping, `badge` field, longer description slice
-- `docs/design-system.md` — new design system reference doc
-
-**Key decisions:**
-- Highlights inferred from `provider_category` (4 per card) — real data supersedes when provider claims page
-- Fixed map uses `position: fixed` with animated `top`/`height` based on navbar visibility
-- Filter bar sticks at `top: 64px` (navbar visible) or `top: 0` (navbar hidden)
-
----
-
-### 2026-02-20 (Session 14) — Smart Defaults & Description Backfill
-
-**Branch:** `quiet-elion`
-
-**Smart Defaults (3 commits):**
-- `bdb746d` — `getCategoryHighlights()`: 4 factual highlights per category, padded after real screening/care_types data
-- `d115d61` — `getCategoryServices()`: 9 services per category, padded after real care_types; removed empty state
-- `f3b727b` — `getCategoryDescription()`: fallback About text from category+name+location when description is NULL
-
-**Description Backfill:**
-- CSV source: `~/Desktop/OleraClean/Current Database/Descriptions/Provider Database-Descriptions.csv` (42,546 RAG descriptions)
-- Script: `scripts/backfill-descriptions.mjs` — reads CSV, matches by `provider_id`, updates `provider_description` in Supabase
-- Result: 33,631 of 36,623 NULL descriptions filled (92% coverage)
-- Remaining ~2,992 covered by `getCategoryDescription()` fallback
-
-**Files modified:**
-- `lib/provider-utils.ts` — added `getCategoryHighlights()`, `getCategoryDescription()`, `getCategoryServices()`
-- `app/provider/[slug]/page.tsx` — highlights always render, services always render, About uses fallback
-- `scripts/backfill-descriptions.mjs` — one-time migration script (requires `SUPABASE_KEY` env var)
 
 ---
 

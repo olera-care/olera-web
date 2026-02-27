@@ -212,6 +212,20 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 
 ## Session Log
 
+### 2026-02-27 (Session 21) — Provider Home Page Polish
+
+**Branch:** `shiny-maxwell`
+
+**What:** Continued iterating on `/for-providers` marketing landing page to match Figma mockups. Focused on leadership section and set-up-profile section polish.
+
+**Changes:**
+- `components/for-providers/LeadershipSection.tsx` — added `border border-gray-200` to cards, widened container from `max-w-4xl` → `max-w-6xl`, headshot column from `w-36/w-44` → `w-44/w-52`
+- `components/for-providers/SetUpProfileSection.tsx` — wrapped form + screenshot in unified `bg-gray-50 rounded-2xl` container (was separate bordered card on white)
+
+**Commits:** `b5ea4d6`, `029b146`, `b334769`
+
+---
+
 ### 2026-02-26 (Session 20) — Merge Access Lockdown
 
 **Branch:** `neat-morse`

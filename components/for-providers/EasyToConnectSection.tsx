@@ -39,10 +39,6 @@ export default function EasyToConnectSection() {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeTab = tabs[activeIndex];
 
-  const goTo = (index: number) => {
-    setActiveIndex(Math.max(0, Math.min(tabs.length - 1, index)));
-  };
-
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -58,7 +54,7 @@ export default function EasyToConnectSection() {
             <button
               key={tab.id}
               type="button"
-              onClick={() => goTo(i)}
+              onClick={() => setActiveIndex(i)}
               className={`px-5 py-2 rounded-full text-text-sm font-medium transition-colors ${
                 i === activeIndex
                   ? "bg-primary-600 text-white"
@@ -72,19 +68,22 @@ export default function EasyToConnectSection() {
 
         {/* Device mockup area */}
         <div className="mt-10 relative">
-          <div className="mx-auto max-w-3xl relative aspect-[16/10]">
+          <div className="mx-auto max-w-3xl rounded-2xl overflow-hidden bg-gray-50 border border-gray-200">
             {tabs.map((tab, i) => (
               <div
                 key={tab.id}
-                className={`absolute inset-0 transition-opacity duration-300 ${
-                  i === activeIndex ? "opacity-100" : "opacity-0"
+                className={`transition-opacity duration-300 ${
+                  i === activeIndex
+                    ? "opacity-100"
+                    : "opacity-0 absolute inset-0"
                 }`}
               >
                 <Image
                   src={tab.image}
                   alt={`${tab.label} — ${tab.title}`}
-                  fill
-                  className="object-contain object-bottom"
+                  width={1200}
+                  height={750}
+                  className="w-full h-auto"
                   priority={i === 0}
                   sizes="(min-width: 768px) 768px, 100vw"
                 />
@@ -99,35 +98,6 @@ export default function EasyToConnectSection() {
           <p className="mt-1 text-text-md text-gray-500">
             {activeTab.description}
           </p>
-
-          {/* Carousel controls */}
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => goTo(activeIndex - 1)}
-              disabled={activeIndex === 0}
-              className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              aria-label="Previous"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <span className="text-text-sm text-gray-500 tabular-nums">
-              {activeIndex + 1}/{tabs.length}
-            </span>
-            <button
-              type="button"
-              onClick={() => goTo(activeIndex + 1)}
-              disabled={activeIndex === tabs.length - 1}
-              className="w-10 h-10 rounded-full bg-primary-600 text-white flex items-center justify-center hover:bg-primary-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              aria-label="Next"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
         </div>
       </div>
     </section>

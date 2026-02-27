@@ -15,7 +15,7 @@ const V1_CATEGORY_SLUGS = new Set([
   "financial-legal-other-services",
 ]);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // ── Tier 2: v1.0 provider canonical URLs ──
   // /[category]/[state]/[city]/[slug] → /provider/[slug]
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);

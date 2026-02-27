@@ -84,7 +84,7 @@ export default function EasyToConnectSection() {
                   src={tab.image}
                   alt={`${tab.label} — ${tab.title}`}
                   fill
-                  className="object-contain"
+                  className="object-cover object-top"
                   priority={i === 0}
                   sizes="(min-width: 768px) 768px, 100vw"
                 />

@@ -29,7 +29,7 @@ export default function LeadershipSection() {
           {leaders.map((leader) => (
             <div
               key={leader.name}
-              className="flex gap-0 rounded-xl bg-gray-50 overflow-hidden"
+              className="flex gap-0 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden"
             >
               {/* Headshot */}
               <div className="shrink-0 w-36 sm:w-44 self-stretch">

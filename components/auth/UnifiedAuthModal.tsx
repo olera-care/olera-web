@@ -52,6 +52,7 @@ export default function UnifiedAuthModal({
   const [checkingEmail, setCheckingEmail] = useState(false);
   // Tracks whether the OTP screen is for signup confirmation or sign-in magic link
   const [otpContext, setOtpContext] = useState<"signup" | "signin">("signup");
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function UnifiedAuthModal({
       setResendCooldown(0);
       setCheckingEmail(false);
       setOtpContext("signup");
+      setForgotPasswordSent(false);
     }
   }, [isOpen, getInitialStep]);
 
@@ -435,6 +437,46 @@ export default function UnifiedAuthModal({
   };
 
   // ──────────────────────────────────────────────────────────
+  // Forgot Password
+  // ──────────────────────────────────────────────────────────
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setError("Please enter your email address first.");
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      if (!isSupabaseConfigured()) {
+        setError("Authentication is not configured.");
+        setLoading(false);
+        return;
+      }
+
+      const supabase = createClient();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo: `${window.location.origin}/auth/callback` }
+      );
+
+      if (resetError) {
+        setError(resetError.message);
+        setLoading(false);
+        return;
+      }
+
+      setForgotPasswordSent(true);
+      setLoading(false);
+    } catch {
+      setError("Failed to send reset email. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────────────────
   // Post-auth routing
   // ──────────────────────────────────────────────────────────
 
@@ -692,12 +734,20 @@ export default function UnifiedAuthModal({
                 </button>
                 <button
                   type="button"
-                  className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none"
+                  onClick={handleForgotPassword}
+                  disabled={loading || !email.trim()}
+                  className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Forgot password?
                 </button>
               </div>
             </div>
+
+            {forgotPasswordSent && (
+              <div className="bg-green-50 text-green-700 px-4 py-3 rounded-xl text-sm" role="status">
+                Password reset email sent to <span className="font-medium">{email}</span>. Check your inbox.
+              </div>
+            )}
 
             <Button type="submit" loading={loading} fullWidth size="lg">
               Sign in

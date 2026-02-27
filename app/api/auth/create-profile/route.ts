@@ -245,41 +245,78 @@ export async function POST(request: Request) {
         });
       }
     } else {
-      // Create family profile
-      const slug = generateSlug(displayName, city || "", state || "");
-
-      const { data: newProfile, error: insertErr } = await db
+      // Family profile — check if a baseline one already exists (created by ensure-account)
+      const { data: existingFamilyProfile } = await db
         .from("business_profiles")
-        .insert({
-          account_id: accountId,
-          slug,
-          type: "family",
-          display_name: displayName,
-          city: city || null,
-          state: state || null,
-          zip: zip || null,
-          care_types: careNeeds || careTypes || [],
-          claim_state: "claimed",
-          verification_state: "unverified",
-          source: "user_created",
-          is_active: true,
-          metadata: {
-            visible_to_families: visibleToFamilies ?? true,
-            visible_to_providers: visibleToProviders ?? true,
-          },
-        })
         .select("id")
-        .single();
+        .eq("account_id", accountId)
+        .eq("type", "family")
+        .limit(1)
+        .maybeSingle();
 
-      if (insertErr) {
-        console.error("Create family profile error:", insertErr);
-        return NextResponse.json(
-          { error: `Failed to create profile: ${insertErr.message}` },
-          { status: 500 }
-        );
+      if (existingFamilyProfile) {
+        // Update the existing baseline family profile with the user's info
+        const { error: updateErr } = await db
+          .from("business_profiles")
+          .update({
+            display_name: displayName,
+            city: city || null,
+            state: state || null,
+            zip: zip || null,
+            care_types: careNeeds || careTypes || [],
+            metadata: {
+              visible_to_families: visibleToFamilies ?? true,
+              visible_to_providers: visibleToProviders ?? true,
+            },
+          })
+          .eq("id", existingFamilyProfile.id);
+
+        if (updateErr) {
+          console.error("Update family profile error:", updateErr);
+          return NextResponse.json(
+            { error: `Failed to update profile: ${updateErr.message}` },
+            { status: 500 }
+          );
+        }
+
+        profileId = existingFamilyProfile.id;
+      } else {
+        // No existing family profile — create one
+        const slug = generateSlug(displayName, city || "", state || "");
+
+        const { data: newProfile, error: insertErr } = await db
+          .from("business_profiles")
+          .insert({
+            account_id: accountId,
+            slug,
+            type: "family",
+            display_name: displayName,
+            city: city || null,
+            state: state || null,
+            zip: zip || null,
+            care_types: careNeeds || careTypes || [],
+            claim_state: "claimed",
+            verification_state: "unverified",
+            source: "user_created",
+            is_active: true,
+            metadata: {
+              visible_to_families: visibleToFamilies ?? true,
+              visible_to_providers: visibleToProviders ?? true,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (insertErr) {
+          console.error("Create family profile error:", insertErr);
+          return NextResponse.json(
+            { error: `Failed to create profile: ${insertErr.message}` },
+            { status: 500 }
+          );
+        }
+
+        profileId = newProfile.id;
       }
-
-      profileId = newProfile.id;
     }
 
     // Update account: mark onboarding complete + set active profile

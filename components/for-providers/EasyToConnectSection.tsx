@@ -72,7 +72,7 @@ export default function EasyToConnectSection() {
 
         {/* Device mockup area */}
         <div className="mt-10 relative">
-          <div className="mx-auto max-w-3xl relative rounded-2xl overflow-hidden bg-gray-50 border border-gray-200 aspect-[16/10]">
+          <div className="mx-auto max-w-3xl relative aspect-[16/10]">
             {tabs.map((tab, i) => (
               <div
                 key={tab.id}
@@ -84,7 +84,7 @@ export default function EasyToConnectSection() {
                   src={tab.image}
                   alt={`${tab.label} — ${tab.title}`}
                   fill
-                  className="object-cover object-top"
+                  className="object-contain object-bottom"
                   priority={i === 0}
                   sizes="(min-width: 768px) 768px, 100vw"
                 />

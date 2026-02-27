@@ -68,22 +68,19 @@ export default function EasyToConnectSection() {
 
         {/* Device mockup area */}
         <div className="mt-10 relative">
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-3xl relative aspect-[16/10]">
             {tabs.map((tab, i) => (
               <div
                 key={tab.id}
-                className={`transition-opacity duration-300 ${
-                  i === activeIndex
-                    ? "opacity-100"
-                    : "opacity-0 absolute inset-0"
+                className={`absolute inset-0 transition-opacity duration-300 ${
+                  i === activeIndex ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
                 <Image
                   src={tab.image}
                   alt={`${tab.label} — ${tab.title}`}
-                  width={1200}
-                  height={750}
-                  className="w-full h-auto"
+                  fill
+                  className="object-contain object-center"
                   priority={i === 0}
                   sizes="(min-width: 768px) 768px, 100vw"
                 />

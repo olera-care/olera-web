@@ -68,7 +68,7 @@ export default function EasyToConnectSection() {
 
         {/* Device mockup area */}
         <div className="mt-10 relative">
-          <div className="mx-auto max-w-3xl rounded-2xl overflow-hidden bg-gray-50 border border-gray-200">
+          <div className="mx-auto max-w-3xl">
             {tabs.map((tab, i) => (
               <div
                 key={tab.id}

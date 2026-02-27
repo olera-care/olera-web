@@ -27,7 +27,7 @@ export default function HeroSection() {
 
       {/* Content overlay */}
       <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 lg:pb-20">
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="max-w-[1312px] mx-auto w-full relative">
           <div className="max-w-xl">
             <h1 className="font-serif text-display-md sm:text-display-lg lg:text-display-xl font-bold text-white leading-tight">
               Reach more families
@@ -69,18 +69,18 @@ export default function HeroSection() {
               </button>
             </div>
           </div>
-        </div>
 
-        {/* NIH badge — bottom right */}
-        <div className="absolute bottom-12 right-4 sm:bottom-16 sm:right-6 lg:bottom-20 lg:right-8 hidden sm:flex items-center gap-2">
-          <div className="w-9 h-9 rounded bg-white/90 flex items-center justify-center text-text-xs font-bold text-gray-700">
-            NIH
-          </div>
-          <div className="text-text-xs text-white/90">
-            <span className="block text-white/60 text-[10px]">
-              Proudly supported by
-            </span>
-            <span className="font-medium">National Institute on Aging</span>
+          {/* NIH badge — aligned to right edge of container */}
+          <div className="absolute bottom-0 right-0 hidden sm:flex items-center gap-2">
+            <div className="w-9 h-9 rounded bg-white/90 flex items-center justify-center text-text-xs font-bold text-gray-700">
+              NIH
+            </div>
+            <div className="text-text-xs text-white/90">
+              <span className="block text-white/60 text-[10px]">
+                Proudly supported by
+              </span>
+              <span className="font-medium">National Institute on Aging</span>
+            </div>
           </div>
         </div>
       </div>

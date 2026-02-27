@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function HeroSection() {
@@ -61,11 +62,15 @@ export default function HeroSection() {
             {/* Teal gradient overlay — top-right corner */}
             <div className="absolute -top-12 -right-8 w-[480px] h-[480px] bg-gradient-to-bl from-primary-600/30 via-primary-500/10 to-transparent rounded-3xl -z-0" />
 
-            {/* Placeholder for hero photo */}
-            <div className="relative z-10 w-full aspect-[4/3] rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden">
-              <span className="text-gray-400 text-text-sm">
-                Hero image — caregiver with elderly woman
-              </span>
+            <div className="relative z-10 w-full aspect-[4/3] rounded-2xl overflow-hidden">
+              <Image
+                src="/images/for-providers/hero.jpg"
+                alt="Caregiver with elderly woman"
+                fill
+                className="object-cover"
+                priority
+                sizes="(min-width: 1024px) 50vw, 100vw"
+              />
             </div>
 
             {/* NIH badge */}
@@ -86,10 +91,15 @@ export default function HeroSection() {
 
       {/* Mobile hero image */}
       <div className="lg:hidden px-4 pb-8">
-        <div className="w-full aspect-[16/10] rounded-2xl bg-gray-100 flex items-center justify-center">
-          <span className="text-gray-400 text-text-sm">
-            Hero image — caregiver with elderly woman
-          </span>
+        <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden">
+          <Image
+            src="/images/for-providers/hero.jpg"
+            alt="Caregiver with elderly woman"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
         </div>
         {/* NIH badge — mobile */}
         <div className="mt-3 flex items-center justify-center gap-2">

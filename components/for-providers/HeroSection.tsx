@@ -11,24 +11,23 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="bg-white px-4 sm:px-6 lg:px-8 pt-4 pb-0">
-      {/* Full-bleed hero card with background image */}
-      <div className="relative max-w-[1312px] mx-auto rounded-3xl overflow-hidden min-h-[500px] sm:min-h-[600px] lg:min-h-[640px]">
-        {/* Background image */}
-        <Image
-          src="/images/for-providers/hero.jpg"
-          alt="Caregiver with elderly woman"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
+    <section className="relative w-full min-h-[500px] sm:min-h-[600px] lg:min-h-[680px]">
+      {/* Edge-to-edge background image */}
+      <Image
+        src="/images/for-providers/hero.jpg"
+        alt="Caregiver with elderly woman"
+        fill
+        className="object-cover"
+        priority
+        sizes="100vw"
+      />
 
-        {/* Dark gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent" />
+      {/* Dark gradient overlay for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-transparent" />
 
-        {/* Content overlay */}
-        <div className="relative z-10 flex flex-col justify-end h-full min-h-[500px] sm:min-h-[600px] lg:min-h-[640px] p-6 sm:p-10 lg:p-12">
+      {/* Content overlay */}
+      <div className="relative z-10 flex flex-col justify-end h-full min-h-[500px] sm:min-h-[600px] lg:min-h-[680px] px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 lg:pb-20">
+        <div className="max-w-7xl mx-auto w-full">
           <div className="max-w-xl">
             <h1 className="font-serif text-display-md sm:text-display-lg lg:text-display-xl font-bold text-white leading-tight">
               Reach more families
@@ -70,18 +69,18 @@ export default function HeroSection() {
               </button>
             </div>
           </div>
+        </div>
 
-          {/* NIH badge — bottom right */}
-          <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 lg:bottom-12 lg:right-12 hidden sm:flex items-center gap-2">
-            <div className="w-9 h-9 rounded bg-white/90 flex items-center justify-center text-text-xs font-bold text-gray-700">
-              NIH
-            </div>
-            <div className="text-text-xs text-white/90">
-              <span className="block text-white/60 text-[10px]">
-                Proudly supported by
-              </span>
-              <span className="font-medium">National Institute on Aging</span>
-            </div>
+        {/* NIH badge — bottom right */}
+        <div className="absolute bottom-12 right-4 sm:bottom-16 sm:right-6 lg:bottom-20 lg:right-8 hidden sm:flex items-center gap-2">
+          <div className="w-9 h-9 rounded bg-white/90 flex items-center justify-center text-text-xs font-bold text-gray-700">
+            NIH
+          </div>
+          <div className="text-text-xs text-white/90">
+            <span className="block text-white/60 text-[10px]">
+              Proudly supported by
+            </span>
+            <span className="font-medium">National Institute on Aging</span>
           </div>
         </div>
       </div>

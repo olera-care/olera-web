@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 export default function SetUpProfileSection() {
@@ -10,7 +11,7 @@ export default function SetUpProfileSection() {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-gray-50">
+    <section className="py-16 md:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="font-serif text-display-sm md:text-display-md font-bold text-gray-900 text-center mb-12">
           Set up your profile
@@ -66,11 +67,16 @@ export default function SetUpProfileSection() {
             </button>
           </div>
 
-          {/* Right — Screenshot placeholder */}
-          <div className="aspect-[4/3] rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center">
-            <span className="text-gray-400 text-text-sm">
-              Screenshot — provider profile page
-            </span>
+          {/* Right — Profile screenshot */}
+          <div className="flex items-center justify-center">
+            <Image
+              src="/images/for-providers/profile-screenshot.png"
+              alt="Provider profile page on Olera"
+              width={789}
+              height={700}
+              className="w-full h-auto"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+            />
           </div>
         </div>
       </div>

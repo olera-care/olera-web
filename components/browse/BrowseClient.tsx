@@ -347,10 +347,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       }));
   }, [filteredProviders, currentPage, topRatedIds]);
 
-  // Reset page when filters change
+  // Reset page when filters or location change
   useEffect(() => {
     setCurrentPage(1);
-  }, [careType, selectedRating, selectedPayment, sortBy]);
+  }, [careType, searchLocation, selectedRating, selectedPayment, sortBy]);
 
   // Check if any filters are active
   const hasActiveFilters =

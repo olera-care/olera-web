@@ -1,5 +1,20 @@
 import Image from "next/image";
 
+const partners = [
+  {
+    name: "HomeWell Care Services",
+    logo: "/images/for-providers/partners/homewell.png",
+  },
+  {
+    name: "SYNERGY HomeCare",
+    logo: "/images/for-providers/partners/synergy.png",
+  },
+  {
+    name: "Senior Helpers",
+    logo: "/images/for-providers/partners/senior-helpers.png",
+  },
+];
+
 export default function StatsSection() {
   return (
     <section className="px-4 sm:px-6 lg:px-8 py-4">
@@ -8,7 +23,7 @@ export default function StatsSection() {
         {/* Background image */}
         <Image
           src="/images/for-providers/stats-couple.jpg"
-          alt="Elderly couple smiling together"
+          alt="Elderly man and young woman laughing together"
           fill
           className="object-cover"
           sizes="100vw"
@@ -29,19 +44,27 @@ export default function StatsSection() {
               Join thousands of home care and senior living communities
             </p>
 
-            {/* Partner logos row */}
-            <div className="mt-8 flex items-center gap-3 flex-wrap">
-              {["HomeV", "Caring", "Yelp", "Google"].map((name) => (
-                <div
-                  key={name}
-                  className="h-8 px-3 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                >
-                  <span className="text-text-xs font-medium text-white">
-                    {name}
-                  </span>
-                </div>
-              ))}
-              <span className="text-text-sm text-white/70">& more</span>
+            {/* Partner logos — overlapping circles */}
+            <div className="mt-8 flex items-center">
+              <div className="flex -space-x-3">
+                {partners.map((partner) => (
+                  <div
+                    key={partner.name}
+                    className="w-12 h-12 rounded-full bg-white border-2 border-white overflow-hidden flex items-center justify-center shadow-sm"
+                  >
+                    <Image
+                      src={partner.logo}
+                      alt={partner.name}
+                      width={48}
+                      height={48}
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
+              <span className="ml-3 text-text-sm font-medium text-white/80">
+                & more
+              </span>
             </div>
           </div>
         </div>

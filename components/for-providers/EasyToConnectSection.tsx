@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 const tabs = [
   {
@@ -9,24 +10,28 @@ const tabs = [
     title: "Set up your profile",
     description:
       "Fill in key business information to show up in local searches.",
+    image: "/images/for-providers/tab-profile.png",
   },
   {
     id: "reviews",
     label: "Reviews",
     title: "Manage your reviews",
     description: "Respond to reviews and build your reputation.",
+    image: "/images/for-providers/tab-reviews.png",
   },
   {
     id: "inbox",
     label: "Inbox",
     title: "Your inbox",
     description: "Receive and respond to inquiries from families.",
+    image: "/images/for-providers/tab-inbox.png",
   },
   {
     id: "leads",
     label: "Leads",
     title: "Track your leads",
     description: "See who\u2019s interested and follow up.",
+    image: "/images/for-providers/tab-leads.png",
   },
 ];
 
@@ -67,21 +72,26 @@ export default function EasyToConnectSection() {
 
         {/* Device mockup area */}
         <div className="mt-10 relative">
-          {/* Laptop + phone placeholder */}
-          <div className="mx-auto max-w-3xl aspect-[16/10] rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center relative overflow-hidden">
-            {/* Laptop frame */}
-            <div className="w-[70%] aspect-[16/10] rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
-              <span className="text-gray-400 text-text-sm">
-                Laptop — {activeTab.label} view
-              </span>
-            </div>
-
-            {/* Phone frame — overlapping bottom-right */}
-            <div className="absolute bottom-4 right-[10%] w-[18%] aspect-[9/19] rounded-xl bg-gray-100 border-2 border-gray-300 shadow-lg flex items-center justify-center">
-              <span className="text-gray-400 text-[10px] text-center px-1">
-                Phone
-              </span>
-            </div>
+          <div className="mx-auto max-w-3xl relative rounded-2xl overflow-hidden bg-gray-50 border border-gray-200">
+            {tabs.map((tab, i) => (
+              <div
+                key={tab.id}
+                className={`transition-opacity duration-300 ${
+                  i === activeIndex
+                    ? "opacity-100"
+                    : "opacity-0 absolute inset-0"
+                }`}
+              >
+                <Image
+                  src={tab.image}
+                  alt={`${tab.label} — ${tab.title}`}
+                  width={1200}
+                  height={750}
+                  className="w-full h-auto"
+                  priority={i === 0}
+                />
+              </div>
+            ))}
           </div>
 
           {/* Caption */}

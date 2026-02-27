@@ -1,15 +1,19 @@
+import Image from "next/image";
+
 const leaders = [
   {
     name: "TJ Falohun, MS",
     role: "CEO",
     bio: "Before Olera, TJ worked at Pfizer as a biomedical engineer, designing auto-injectors.",
     linkedIn: "https://www.linkedin.com/in/tj-falohun/",
+    image: "/images/for-providers/team/tj.jpg",
   },
   {
     name: "Logan DuBose, MD, MBA",
     role: "COO",
     bio: "Logan combines his clinical and business expertise to transform senior care, driving Olera\u2019s mission to deliver compassionate, comprehensive solutions.",
     linkedIn: "https://www.linkedin.com/in/logan-dubose/",
+    image: "/images/for-providers/team/logan.jpg",
   },
 ];
 
@@ -27,11 +31,15 @@ export default function LeadershipSection() {
               key={leader.name}
               className="flex gap-5 p-6 rounded-xl border border-gray-200"
             >
-              {/* Headshot placeholder */}
-              <div className="shrink-0 w-28 h-36 rounded-lg bg-gray-100 flex items-center justify-center">
-                <span className="text-gray-400 text-text-xs text-center px-1">
-                  {leader.name.split(",")[0]}
-                </span>
+              {/* Headshot */}
+              <div className="shrink-0 w-28 h-36 rounded-lg overflow-hidden">
+                <Image
+                  src={leader.image}
+                  alt={leader.name}
+                  width={112}
+                  height={144}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               {/* Info */}

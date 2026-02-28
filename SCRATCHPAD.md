@@ -23,6 +23,11 @@
   - Plan: `plans/provider-home-page-plan.md`
   - Notion: P2 — "Provider home page development"
 
+- **Homepage Section-by-Section Refactor** (branch: TBD) — PLANNED
+  - Break 1,440-line monolith into composable sections, reorder flow, polish per section
+  - Plan: `plans/homepage-refactor-plan.md`
+  - Notion: P1 — "Claude Code Prompt: Section-by-Section Homepage Refactor"
+
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Port iOS deletion request/approve/deny/restore/purge flow to web
   - Plan: `plans/provider-deletion-request-plan.md`

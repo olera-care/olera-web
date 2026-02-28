@@ -6,7 +6,7 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import BrowseCard from "@/components/browse/BrowseCard";
+import ProviderCard from "@/components/providers/ProviderCard";
 import BrowseByCareTypeSection from "@/components/home/BrowseByCareTypeSection";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -661,10 +661,7 @@ export default function HomePage() {
           console.error("Error fetching featured providers:", error?.message);
           setFeaturedProviders([]);
         } else {
-          setFeaturedProviders((data as IOSProvider[]).map(toCardFormat).map(p => ({
-            ...p,
-            badge: p.rating >= 4.5 ? "Top Rated" : undefined,
-          })));
+          setFeaturedProviders((data as IOSProvider[]).map(toCardFormat));
         }
       } catch (err) {
         console.error("Error fetching providers:", err);
@@ -1038,12 +1035,12 @@ export default function HomePage() {
               {isLoadingProviders ? (
                 // Loading skeleton
                 Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[300px] h-[340px] bg-gray-100 rounded-xl animate-pulse" />
+                  <div key={i} className="flex-shrink-0 w-[370px] h-[512px] bg-gray-100 rounded-2xl animate-pulse" />
                 ))
               ) : (
                 featuredProviders.map((provider) => (
-                  <div key={provider.id} className="flex-shrink-0 w-[300px]">
-                    <BrowseCard provider={provider} />
+                  <div key={provider.id} className="flex-shrink-0 w-[370px] h-[512px]">
+                    <ProviderCard provider={provider} />
                   </div>
                 ))
               )}

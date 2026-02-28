@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -144,25 +145,9 @@ function ProviderOnboardingContent() {
   const cityPickerRef = useRef<HTMLDivElement>(null);
   const { results: cityPickerResults, preload: preloadCityPicker } = useCitySearch(cityQuery);
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        locationDropdownRef.current &&
-        !locationDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowLocationDropdown(false);
-      }
-      if (
-        cityPickerRef.current &&
-        !cityPickerRef.current.contains(e.target as Node)
-      ) {
-        setShowCityPicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Close dropdowns on outside click (blur-before-close prevents scroll-to-footer)
+  useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
+  useClickOutside(cityPickerRef, () => setShowCityPicker(false));
 
   // Persist step + search query so resume works properly
   useEffect(() => {

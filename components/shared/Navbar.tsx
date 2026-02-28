@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileSwitcher from "@/components/shared/ProfileSwitcher";
 import FindCareMegaMenu from "@/components/shared/FindCareMegaMenu";
@@ -148,26 +149,17 @@ export default function Navbar() {
     return () => document.removeEventListener("keydown", handler);
   }, [isFindCareOpen]);
 
-  // Close user/account menu on outside click or Escape
+  // Close user/account menu on outside click (blur-before-close prevents scroll-to-footer)
+  useClickOutside(userMenuRef, () => setIsUserMenuOpen(false), isUserMenuOpen);
+
+  // Close user menu on Escape
   useEffect(() => {
     if (!isUserMenuOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(e.target as Node)
-      ) {
-        setIsUserMenuOpen(false);
-      }
-    }
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") setIsUserMenuOpen(false);
     }
-    document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isUserMenuOpen]);
 
   // Close menus on route change

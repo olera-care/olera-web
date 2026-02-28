@@ -277,11 +277,15 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking outside (blur-before-close prevents scroll-to-footer)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest(".dropdown-container")) {
+        const active = document.activeElement;
+        if (active && active !== document.body) {
+          (active as HTMLElement).blur();
+        }
         setShowLocationDropdown(false);
         setLocationInput(searchLocation);
         setShowCareTypeDropdown(false);
@@ -290,8 +294,8 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         setShowSortDropdown(false);
       }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [searchLocation]);
 
   // Filter and sort providers

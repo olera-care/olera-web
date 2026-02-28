@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 
 interface BrowseFiltersProps {
   careTypes: string[];
@@ -44,16 +45,8 @@ export default function BrowseFilters({
     updateFilters({ q: searchInput });
   };
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowTypeDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Close dropdown when clicking outside (blur-before-close prevents scroll-to-footer)
+  useClickOutside(dropdownRef, () => setShowTypeDropdown(false));
 
   const selectedTypeLabel = currentType
     ? careTypes.find((ct) => ct.toLowerCase().replace(/\s+/g, "-") === currentType) || "All Types"

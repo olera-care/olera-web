@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import Pill from "@/components/providers/connection-card/Pill";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
@@ -72,19 +73,8 @@ export default function BenefitsIntakeForm() {
     setAgeInput(answers.age ? String(answers.age) : "");
   }, [step, locationDisplay, answers.stateCode, answers.age]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        locationDropdownRef.current &&
-        !locationDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowLocationDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Close dropdown when clicking outside (blur-before-close prevents scroll-to-footer)
+  useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
 
   // ─── Location helpers ───────────────────────────────────────────────────
 

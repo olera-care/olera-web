@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -637,25 +638,9 @@ export default function HomePage() {
   // City search with progressive loading (18K+ US cities, ZIP codes, states)
   const { results: cityResults, preload: preloadCities } = useCitySearch(location);
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        locationDropdownRef.current &&
-        !locationDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowLocationDropdown(false);
-      }
-      if (
-        careTypeDropdownRef.current &&
-        !careTypeDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowCareTypeDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Close dropdowns when clicking outside (blur-before-close prevents scroll-to-footer)
+  useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
+  useClickOutside(careTypeDropdownRef, () => setShowCareTypeDropdown(false));
 
   // Fetch featured providers from Supabase
   useEffect(() => {

@@ -139,9 +139,12 @@ export default function HeroSection() {
               Find the right care<br />
               <span className="text-primary-200">for your loved one</span>
             </h1>
+            <p className="mt-3 text-base sm:text-lg text-white/80 max-w-md leading-relaxed">
+              Compare trusted providers across home care, assisted living, memory care, and more.
+            </p>
 
             {/* Search Bar */}
-            <div className="mt-6 w-full">
+            <div className="mt-5 w-full">
               <form onSubmit={handleSearch}>
                 <div className="bg-white/95 backdrop-blur-sm shadow-2xl p-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl">
                   {/* Location Input with Dropdown */}
@@ -335,6 +338,17 @@ export default function HeroSection() {
                   </button>
                 </div>
               </form>
+
+              {/* Secondary path for unsure users */}
+              <div className="mt-3 flex items-center gap-3">
+                <span className="text-sm text-white/60">Not sure where to start?</span>
+                <a
+                  href="/benefits"
+                  className="text-sm font-medium text-primary-200 hover:text-white transition-colors underline underline-offset-2 decoration-primary-200/40 hover:decoration-white/60"
+                >
+                  Find benefits you qualify for
+                </a>
+              </div>
             </div>
           </div>
         </div>

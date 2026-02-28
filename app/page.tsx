@@ -753,29 +753,28 @@ export default function HomePage() {
   return (
     <div className="bg-gray-50">
       {/* Hero Section - Full Image Background */}
-      <section className="relative w-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] flex items-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-            {/* Background Image Container */}
+      <section className="relative w-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px]">
+            {/* Background Image */}
             <div className="absolute inset-0 overflow-hidden">
               <img
-                src="/hero.png"
-                alt=""
+                src="/images/hero-home.jpg"
+                alt="Family caring for loved one"
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              {/* Warm gradient overlay for readability */}
-              <div className="absolute inset-0 bg-gradient-to-r from-warm-950/85 via-warm-900/70 to-warm-900/40" />
-              <div className="absolute inset-0 bg-gradient-to-t from-warm-950/50 via-transparent to-warm-900/20" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
             </div>
 
-            {/* Content */}
-            <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col items-center text-center">
-              <h1 className="text-4xl md:text-5xl lg:text-[80px] font-bold leading-tight text-white">
-                Find the right care
-                <br />
-                <span className="text-primary-200">for your loved one</span>
-              </h1>
+            {/* Content — left-aligned, bottom-anchored */}
+            <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] px-4 sm:px-6 lg:px-8 pb-10 sm:pb-14 lg:pb-16">
+              <div className="max-w-[1312px] mx-auto w-full">
+                <div className="max-w-xl">
+                  <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">
+                    Find the right care<br />
+                    <span className="text-primary-200">for your loved one</span>
+                  </h1>
 
               {/* Search Bar */}
-              <div className="mt-8 w-full max-w-3xl">
+              <div className="mt-6 w-full">
                 <form onSubmit={handleSearch}>
                   <div className="bg-white/95 backdrop-blur-sm shadow-2xl p-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl">
                     {/* Location Input with Dropdown */}
@@ -969,6 +968,8 @@ export default function HomePage() {
                     </button>
                   </div>
                 </form>
+              </div>
+                </div>
               </div>
             </div>
       </section>

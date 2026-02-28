@@ -1,52 +1,135 @@
 import Link from "next/link";
 
-const communityStats = [
-  { label: "Caregivers in our community", value: "11,000+" },
-  { label: "Questions answered", value: "2,400+" },
-  { label: "Backed by NIH research", value: "NIH" },
-];
-
 export default function CommunitySection() {
   return (
     <section className="pt-8 md:pt-12 pb-8 md:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Community invitation */}
-        <div className="rounded-3xl bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 p-8 md:p-12 lg:p-16 relative overflow-hidden">
-          {/* Subtle decorative glow */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-primary-500/20 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-56 h-56 bg-warm-400/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4" />
+        {/* Section heading */}
+        <div className="mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+            Beyond the Search
+          </h2>
+          <p className="mt-1.5 text-base text-gray-500">
+            Resources, community, and stories from families like yours
+          </p>
+        </div>
 
-          <div className="relative z-10 max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
-              You&apos;re not alone in this
-            </h2>
-            <p className="mt-3 text-base md:text-lg text-primary-100/80 max-w-lg mx-auto">
-              Join thousands of families navigating senior care together. Ask questions, share experiences, and find support from people who understand.
-            </p>
+        {/* Aging in America — hero card */}
+        <div className="rounded-2xl bg-warm-50/80 border border-warm-100/60 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
+            {/* Text side */}
+            <div className="p-8 md:p-10 lg:p-12 flex flex-col justify-center">
+              <div className="flex items-center gap-2.5 mb-4">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-100/80 text-primary-700 text-xs font-semibold">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Chapter 1
+                </span>
+                <span className="text-sm font-medium text-warm-600">Documentary Series</span>
+              </div>
 
-            {/* Trust signals */}
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8">
-              {communityStats.map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-white">{stat.value}</div>
-                  <div className="text-xs text-primary-200/70 mt-0.5">{stat.label}</div>
-                </div>
-              ))}
+              <h3 className="font-serif text-3xl md:text-4xl font-bold text-gray-900 leading-tight">
+                Aging in America
+              </h3>
+              <p className="mt-3 text-base text-gray-600 max-w-md leading-relaxed">
+                Explore the realities of senior care in America and discover how families navigate finding the right care.
+              </p>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/browse"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white shadow-sm shadow-primary-600/20 hover:shadow-md transition-all"
+                >
+                  Start Your Search
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+                <a
+                  href="https://www.youtube.com/@OleraCare"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Watch more chapters
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
             </div>
 
-            {/* CTA */}
-            <div className="mt-8">
-              <Link
-                href="/community"
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-white hover:bg-gray-50 rounded-xl text-sm font-semibold text-primary-700 shadow-lg shadow-black/10 hover:shadow-xl transition-all"
-              >
-                Join the community
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
+            {/* Video side */}
+            <div className="relative aspect-video lg:aspect-auto">
+              <iframe
+                src="https://www.youtube.com/embed/TiVrqkrYhEc"
+                title="Aging in America — Chapter 1"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full min-h-[280px] lg:min-h-full"
+              />
             </div>
           </div>
+        </div>
+
+        {/* Community cards — Discord + Facebook */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {/* Discord — Young Caregivers */}
+          <a
+            href="https://discord.gg/olera"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative rounded-2xl overflow-hidden bg-[#5865F2]/5 border border-[#5865F2]/15 hover:border-[#5865F2]/30 hover:shadow-lg hover:shadow-[#5865F2]/10 transition-all duration-300"
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#5865F2] to-[#7289DA] rounded-l-2xl" />
+            <div className="p-5 pl-6 flex items-center gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#5865F2]/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                <svg className="w-6 h-6 text-[#5865F2]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-gray-900 leading-snug">
+                  Young Caregivers Discord
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">Connect with other young adults navigating caregiving.</p>
+              </div>
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[#5865F2]/10 flex items-center justify-center group-hover:bg-[#5865F2] transition-colors duration-300">
+                <svg className="w-4 h-4 text-[#5865F2] group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          {/* Facebook — Caregiver Community */}
+          <a
+            href="https://www.facebook.com/groups/oleracaregivers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative rounded-2xl overflow-hidden bg-[#1877F2]/5 border border-[#1877F2]/15 hover:border-[#1877F2]/30 hover:shadow-lg hover:shadow-[#1877F2]/10 transition-all duration-300"
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#1877F2] to-[#4599FF] rounded-l-2xl" />
+            <div className="p-5 pl-6 flex items-center gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#1877F2]/10 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                <svg className="w-6 h-6 text-[#1877F2]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-gray-900 leading-snug">
+                  Caregiver Community
+                </h3>
+                <p className="text-sm text-gray-500 mt-0.5">11,000+ caregivers sharing advice and support on Facebook.</p>
+              </div>
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[#1877F2]/10 flex items-center justify-center group-hover:bg-[#1877F2] transition-colors duration-300">
+                <svg className="w-4 h-4 text-[#1877F2] group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </a>
         </div>
 
         {/* Resource + Benefits Cards */}

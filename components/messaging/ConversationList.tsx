@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import Link from "next/link";
 import type { Connection, Profile } from "@/lib/types";
 
@@ -231,20 +232,9 @@ export default function ConversationList({
     }
   }, [searchOpen]);
 
-  // Close menu / dropdown on outside click
-  useEffect(() => {
-    if (!menuOpenId && !filterDropdownOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (menuOpenId && menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpenId(null);
-      }
-      if (filterDropdownOpen && filterDropdownRef.current && !filterDropdownRef.current.contains(e.target as Node)) {
-        setFilterDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpenId, filterDropdownOpen]);
+  // Close menu / dropdown on outside click (blur-before-close prevents scroll-to-footer)
+  useClickOutside(menuRef, () => setMenuOpenId(null), !!menuOpenId);
+  useClickOutside(filterDropdownRef, () => setFilterDropdownOpen(false), filterDropdownOpen);
 
   // Apply filters
   const filtered = (() => {

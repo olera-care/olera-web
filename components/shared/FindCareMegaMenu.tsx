@@ -89,10 +89,16 @@ export default function FindCareMegaMenu({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — blur active element before close to prevent scroll-to-footer */}
       <div
         className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
+        onMouseDown={() => {
+          const active = document.activeElement;
+          if (active && active !== document.body) {
+            (active as HTMLElement).blur();
+          }
+          onClose();
+        }}
       />
 
       {/* Mega-menu panel */}

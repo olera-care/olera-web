@@ -55,12 +55,25 @@ export default function Modal({
     setMounted(true);
   }, []);
 
+  // Blur active element before closing to prevent scroll-to-footer.
+  // When React removes the portal while an element inside has focus,
+  // the browser scrolls to the next focusable element (footer links).
+  // Blurring first means no focused element = no scroll.
+  // See: docs/POSTMORTEMS.md "2026-02-25: Modal close scrolls page to footer"
+  const handleClose = useCallback(() => {
+    const active = document.activeElement;
+    if (active && active !== document.body) {
+      (active as HTMLElement).blur();
+    }
+    onCloseRef.current();
+  }, []);
+
   // Close on Escape key — uses ref so effect doesn't depend on onClose identity
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
-      onCloseRef.current();
+      handleClose();
     }
-  }, []);
+  }, [handleClose]);
 
   // Keyboard listener + scroll lock — only re-runs when isOpen changes.
   // Compensates for scrollbar width to prevent layout shift.
@@ -114,7 +127,7 @@ export default function Modal({
         onMouseDown={(e) => {
           // Only close if the mousedown started on the backdrop itself
           if (e.target === e.currentTarget) {
-            onCloseRef.current();
+            handleClose();
           }
         }}
       />
@@ -152,7 +165,7 @@ export default function Modal({
 
           {/* Close button */}
           <button
-            onClick={() => onCloseRef.current()}
+            onClick={handleClose}
             className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
             aria-label="Close"
           >

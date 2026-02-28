@@ -26,7 +26,155 @@
 
 ---
 
+## Archived Reference Material
+
+### Architecture Research: Directory City Page Patterns (2026-02-24)
+
+> Critical findings from researching how top directories handle SEO + interactive browse.
+> This informs the unified browse/power page architecture for Olera v2.0.
+
+#### Key Finding: Every Top Directory Uses ONE Page
+
+Every major directory — Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com — uses a **single page** per city+category that serves BOTH as the SEO landing page AND the interactive search/browse page. Nobody maintains separate "SEO page" and "search page."
+
+The architecture is: **server-render the first load** (Google sees full HTML with listings, meta, JSON-LD), then **hydrate client-side** for filters/sort/map.
+
+#### Two-Tier URL Strategy (Universal Pattern)
+
+| Tier | URL Type | Example | Indexed? |
+|------|----------|---------|----------|
+| Tier 1 | Clean path (high-value combos) | `/assisted-living/texas/houston` | Yes |
+| Tier 2 | Query params (user-applied filters) | `?rating=4&sort=price` | Blocked in robots.txt |
+
+#### Site-Specific Findings
+
+**Zillow (Next.js SSR)**
+- Listings embedded in HTML as `__NEXT_DATA__` JSON. True SSR.
+- City page IS the search page. Filters hydrate client-side.
+- `robots.txt`: `Disallow: /*?searchQueryState=*` — filter params blocked
+- High-value combos get clean paths: `/austin-tx/2-bedrooms/`
+
+**A Place for Mom (Closest Competitor)**
+- Fully server-rendered: 25 facility cards in initial HTML
+- Extensive JSON-LD: `ItemList`, `LocalBusiness`, `FAQPage`, `BreadcrumbList`
+- Filters operate **client-side without changing URL**
+- `robots.txt`: blocks `*city=`, `*state=`, `/search-results`
+- **One page = SEO + search. No separate browse.**
+
+**Caring.com (Next.js SSR)**
+- `robots.txt`: `Disallow: /*?` — ALL query strings blocked (most aggressive)
+- Only clean-path pages allowed: `/senior-living/assisted-living/*/*`
+- 87 facilities in `ItemList` schema in initial HTML
+
+**Zocdoc (ASP.NET Razor SSR)**
+- Creates indexable pages for every `specialty + city` AND `specialty + city + insurance`
+- Insurance filter gets its own clean-path URL (high conversion value)
+- Dynamic filters (time, gender) operate client-side without URL changes
+
+**Apartments.com**
+- Most aggressive programmatic SEO: clean-path URLs for city+bedrooms, city+price, city+amenity
+- Each filtered variant has unique title tag with live listing count
+- All are server-rendered pages
+
+#### Implications for Olera
+
+1. Current architecture (separate `/browse` client page + `/[category]/[state]/[city]` server power page) is **wrong**
+2. Must merge into a single page that is server-rendered for SEO + client-hydrated for interactivity
+3. Filters should operate client-side without changing URL (or use query params blocked in robots.txt)
+4. The hero search CTA can stay pointing to `/browse` as a fallback for ZIP/geolocation searches
+5. All internal links (footer, nav, bento grid) should point to power page clean paths
+
+---
+
+### Phase 4 Plan: Unified Browse+Power Page
+
+> Merge the interactive browse experience into the power page architecture.
+> Single URL serves both SEO (server-rendered) and UX (client-hydrated).
+
+#### Architecture
+
+```
+/[category]/[state]/[city]/page.tsx (Server Component)
+  ├─ Server-fetches providers via fetchPowerPageData()
+  ├─ Generates metadata, JSON-LD, breadcrumbs
+  ├─ Renders SEO content (H1, description, stats)
+  └─ Passes providers as props to:
+      └─ <CityBrowseClient providers={serverProviders} /> (Client Component)
+          ├─ Hydrates with filter/sort/map interactivity
+          ├─ Filter changes update results client-side (no URL change)
+          ├─ Map renders with MapLibre GL (existing BrowseMap)
+          └─ Pagination client-side (24 per page)
+```
+
+#### Key Decisions Needed
+
+1. **Map on city pages**: Yes/No? (A Place for Mom has no map; Zillow does)
+2. **Which filters**: Rating, sort, payment? (Keep it simple initially)
+3. **What happens to `/browse`**: Keep as fallback for ZIP/geolocation, or redirect?
+4. **Provider limit**: Server fetches 48 currently; browse fetches 100. What limit for unified?
+
+#### Implementation Steps (Estimated)
+
+1. Create `CityBrowseClient` component — takes server-fetched providers, adds filter/sort/map
+2. Update city power page to use `CityBrowseClient` instead of static grid
+3. Preserve all existing SEO elements (metadata, JSON-LD, breadcrumbs, ISR)
+4. Port map component (already exists in `BrowseMap.tsx`)
+5. Port filter UI (rating, sort, payment) from `BrowseClient.tsx`
+6. Update robots.txt to block `/*?` query params on power pages
+7. Decide fate of `/browse` (keep as fallback or redirect)
+8. Test: verify server HTML contains full listings for Google, filters work client-side
+
+---
+
 ## Archived Sessions
+
+### 2026-02-26 (Session 19) — Staging Reconciliation + PR Merge Command
+
+**Branch:** `wonderful-euler` → `reconcile-staging` (PR #67, merged) + `pr-merge-improvements`
+
+**What:** Processed Esther's PRs #66 and #65 to staging, discovered they regressed TJ's SEO/auth/branding work, reconciled both workstreams, then built tooling to prevent it from happening again.
+
+**PR merge sequence:**
+- PR #66 (Provider Hub Redesign, 81 files) → merged to staging
+- PR #65 (Refinements, 20 files) → converted from draft, merged to staging
+- Discovered regression: footer discovery zone, homepage power page routing, auth OTP performance, GA4 analytics, v1.0 redirects, provider detail JSON-LD, teal bird branding all silently reverted
+- PR #67 (Reconciliation) → started from `fond-fermi`, merged staging in, restored TJ's 17 care-seeker/SEO/auth files while keeping Esther's provider hub files. Build passes.
+
+**New tooling created:**
+- `.claude/commands/pr-merge.md` — slash command for safe PR merges with analysis, content regression detection, and Notion reporting
+- Phase 2.5: Content Regression Check — compares actual file content (not just commit history) against a critical file watchlist
+- Phase 6: Notion Reporting — auto-creates merge reports in Product Development > PR Merge Reports
+- Notion folder: "PR Merge Reports" under Product Development
+
+**Post-mortem:**
+- Logged in `docs/POSTMORTEMS.md` — root cause was revert→re-apply cycle making git merge-base unreliable
+- Key lesson: git merge-base detects structural conflicts, not semantic regressions
+
+**Files created/modified:**
+- `.claude/commands/pr-merge.md` — new slash command (created), then upgraded with Phase 2.5 + Phase 6
+- `docs/POSTMORTEMS.md` — new post-mortem entry
+- `app/provider/[slug]/page.tsx` — removed `isActive` prop (type fix for Esther's refactored ConnectionCard)
+
+---
+
+### 2026-02-25 (Session 18) — Branding Update: Teal Bird Logo + App Store Badge
+
+**Branch:** `fond-fermi` | **PR:** #63 targeting staging (merged)
+
+**What:** Replaced all Olera branding with the teal bird logo and added App Store badge to benefits finder.
+
+**Changes:**
+- `public/images/olera-logo.png` — replaced with teal bird (was 3D heart briefly, then swapped to bird)
+- `app/icon.png` (32x32) + `app/apple-icon.png` (180x180) — new favicon/touch icon using bird
+- `components/shared/Navbar.tsx` — replaced hardcoded blue "O" div with `<img>` tag
+- `components/shared/Footer.tsx` — replaced hardcoded blue "O" div with `<img>` tag
+- `components/auth/UnifiedAuthModal.tsx` — already referenced `/images/olera-logo.png`, auto-updated
+- `public/images/app-store-badge.png` — official "Download on the App Store" badge
+- `components/benefits/CareProfileSidebar.tsx` — replaced text link with App Store badge image
+
+**Status:** Merged to staging via PR #63.
+
+---
 
 ### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
 

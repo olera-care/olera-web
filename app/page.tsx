@@ -753,11 +753,9 @@ export default function HomePage() {
   return (
     <div className="bg-gray-50">
       {/* Hero Section - Full Image Background */}
-      <section className="pt-4 pb-8">
-        <div className="mx-4 sm:mx-6 lg:mx-8">
-          <div className="relative rounded-[2rem] min-h-[75vh] flex items-center px-8 md:px-16 lg:px-20 py-16 md:py-20">
-            {/* Background Image Container - overflow hidden only for bg */}
-            <div className="absolute inset-0 rounded-[2rem] overflow-hidden">
+      <section className="relative w-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] flex items-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+            {/* Background Image Container */}
+            <div className="absolute inset-0 overflow-hidden">
               <img
                 src="/hero.png"
                 alt=""
@@ -983,8 +981,6 @@ export default function HomePage() {
                 </form>
               </div>
             </div>
-          </div>
-        </div>
       </section>
 
       {/* Top Providers Section */}

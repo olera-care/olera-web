@@ -10,8 +10,8 @@ export default function HomePage() {
     <div className="bg-gray-50">
       <HeroSection />
       <TopProvidersSection />
-      <ExploreCareSection />
       <SocialProofSection />
+      <ExploreCareSection />
       <CommunitySection />
       <CTASection />
     </div>

@@ -288,3 +288,72 @@ Documented actual table usage for team clarity:
 - Set up Claude GitHub App for olera-care organization
 - Created slash commands: `/resume`, `/explore`, `/plan`, `/commit`, `/save`, `/quicksave`, `/troubleshoot`, `/postmortem`, `/ui-critique`, `/compact`
 - Created SCRATCHPAD.md
+
+---
+
+### 2026-02-26 (Session 19) — Staging Reconciliation + PR Merge Command
+
+**Branch:** `wonderful-euler` → `reconcile-staging` (PR #67, merged) + `pr-merge-improvements`
+
+**What:** Processed Esther's PRs #66 and #65 to staging, discovered they regressed TJ's SEO/auth/branding work, reconciled both workstreams, then built tooling to prevent it from happening again.
+
+**PR merge sequence:**
+- PR #66 (Provider Hub Redesign, 81 files) → merged to staging
+- PR #65 (Refinements, 20 files) → converted from draft, merged to staging
+- Discovered regression: footer discovery zone, homepage power page routing, auth OTP performance, GA4 analytics, v1.0 redirects, provider detail JSON-LD, teal bird branding all silently reverted
+- PR #67 (Reconciliation) → started from `fond-fermi`, merged staging in, restored TJ's 17 care-seeker/SEO/auth files while keeping Esther's provider hub files. Build passes.
+
+**New tooling created:**
+- `.claude/commands/pr-merge.md` — slash command for safe PR merges with analysis, content regression detection, and Notion reporting
+
+---
+
+### 2026-02-25 (Session 18) — Branding Update: Teal Bird Logo + App Store Badge
+
+**Branch:** `fond-fermi` | **PR:** #63 targeting staging (merged)
+
+**What:** Replaced all Olera branding with the teal bird logo and added App Store badge to benefits finder.
+
+**Changes:**
+- `public/images/olera-logo.png` — replaced with teal bird
+- `app/icon.png` + `app/apple-icon.png` — new favicon/touch icon
+- Navbar + Footer — replaced hardcoded blue "O" div with `<img>` tag
+- `public/images/app-store-badge.png` — App Store badge added to benefits finder sidebar
+
+---
+
+## Architecture Research: Directory City Page Patterns (2026-02-24)
+
+> Archived from SCRATCHPAD.md. Critical findings for unified browse/power page architecture.
+
+### Key Finding: Every Top Directory Uses ONE Page
+
+Every major directory — Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com — uses a single page per city+category that serves BOTH as the SEO landing page AND the interactive search/browse page.
+
+Architecture: server-render the first load (Google sees full HTML), then hydrate client-side for filters/sort/map.
+
+### Two-Tier URL Strategy
+
+| Tier | URL Type | Example | Indexed? |
+|------|----------|---------|----------|
+| Tier 1 | Clean path | `/assisted-living/texas/houston` | Yes |
+| Tier 2 | Query params | `?rating=4&sort=price` | Blocked in robots.txt |
+
+### Implications for Olera
+
+1. Must merge `/browse` (client-only) + `/[category]/[state]/[city]` (server-only) into single page
+2. Server-rendered for SEO + client-hydrated for interactivity
+3. Filters operate client-side without changing URL
+
+## Phase 4 Plan: Unified Browse+Power Page (archived from SCRATCHPAD)
+
+```
+/[category]/[state]/[city]/page.tsx (Server Component)
+  ├─ Server-fetches providers via fetchPowerPageData()
+  ├─ Generates metadata, JSON-LD, breadcrumbs
+  └─ Passes providers as props to <CityBrowseClient /> (Client Component)
+      ├─ Hydrates with filter/sort/map interactivity
+      └─ Pagination client-side (24 per page)
+```
+
+Key decisions needed: map on city pages, which filters, fate of `/browse`, provider limit.

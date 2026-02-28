@@ -6,8 +6,8 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 
 const careTypeOptions = [
-  { value: "home-health", label: "Home Health" },
   { value: "home-care", label: "Home Care" },
+  { value: "home-health", label: "Home Health" },
   { value: "assisted-living", label: "Assisted Living" },
   { value: "nursing-home", label: "Nursing Home" },
   { value: "memory-care", label: "Memory Care" },
@@ -30,7 +30,7 @@ const stateAbbreviations: Record<string, string> = {
 
 export default function HeroSection() {
   const [location, setLocation] = useState("");
-  const [careType, setCareType] = useState("home-health");
+  const [careType, setCareType] = useState("home-care");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCareTypeDropdown, setShowCareTypeDropdown] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
@@ -140,7 +140,7 @@ export default function HeroSection() {
               <span className="text-primary-200">for your loved one</span>
             </h1>
             <p className="mt-3 text-base sm:text-lg text-white/80 max-w-md leading-relaxed">
-              Compare trusted providers across home care, assisted living, memory care, and more.
+              Home care, assisted living, memory care, and more.
             </p>
 
             {/* Search Bar */}

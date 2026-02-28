@@ -91,13 +91,18 @@ export default function TopProvidersSection() {
     <section className="pt-8 md:pt-12 pb-8 md:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header with title and View All button */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Top providers near you
-          </h2>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
+              Top-rated providers
+            </h2>
+            <p className="mt-1.5 text-base text-gray-500">
+              Highly reviewed care providers across the country
+            </p>
+          </div>
           <Link
             href="/browse"
-            className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white shadow-sm shadow-primary-600/20 hover:shadow-md hover:shadow-primary-600/30 transition-all"
+            className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 mt-1 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white shadow-sm shadow-primary-600/20 hover:shadow-md hover:shadow-primary-600/30 transition-all flex-shrink-0"
           >
             View all providers
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -141,20 +146,26 @@ export default function TopProvidersSection() {
           </button>
 
           {/* Scrollable Container */}
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-5 overflow-x-scroll pb-4 scrollbar-hide"
-          >
-            {isLoadingProviders ? (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-[310px] bg-gray-100 rounded-xl animate-pulse aspect-[3/4]" />
-              ))
-            ) : (
-              featuredProviders.map((provider) => (
-                <div key={provider.id} className="flex-shrink-0 w-[310px]">
-                  <BrowseCard provider={provider} />
-                </div>
-              ))
+          <div className="relative">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-5 overflow-x-scroll pb-4 scrollbar-hide"
+            >
+              {isLoadingProviders ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[310px] bg-gray-100 rounded-xl animate-pulse aspect-[3/4]" />
+                ))
+              ) : (
+                featuredProviders.map((provider) => (
+                  <div key={provider.id} className="flex-shrink-0 w-[310px]">
+                    <BrowseCard provider={provider} />
+                  </div>
+                ))
+              )}
+            </div>
+            {/* Scroll fade hint — right edge */}
+            {canScrollRight && (
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-gray-50 to-transparent md:hidden" />
             )}
           </div>
         </div>

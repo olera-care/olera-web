@@ -212,6 +212,27 @@ The architecture is: **server-render the first load** (Google sees full HTML wit
 
 ## Session Log
 
+### 2026-02-28 (Session 22) — Care Seeker Hero Redesign
+
+**Branch:** `lively-yalow`
+
+**What:** Redesigned the care seeker homepage hero banner to match the provider page's edge-to-edge style. Inspired by Zillow/Airbnb left-aligned layout patterns.
+
+**Changes:**
+- `app/page.tsx` — hero section: removed rounded container (`rounded-[2rem]`, `mx-4/6/8`), shortened height from `75vh` → fixed `400-520px`, removed "48,000+ care providers" pill, swapped to left-aligned bottom-anchored layout, single clean gradient overlay
+- `public/images/hero-home.jpg` — new hero image (B.jpg: father & son outdoor scene)
+- Cover images A-G stored in `files/cover images/` for future iteration
+
+**Design decisions:**
+- Left-aligned text + search bar (Zillow-style) instead of centered — creates clear hierarchy
+- Single `from-black/60` gradient (matching provider hero) instead of dual warm gradients
+- `font-serif` on heading for editorial feel matching provider page
+- Image B chosen for authentic warmth, good left-side space for text overlay
+
+**Commits:** `0ef1987`, `6c3bac0`, `f5daacc`, `155cc26`, `11944d6`
+
+---
+
 ### 2026-02-27 (Session 21) — Provider Home Page Polish
 
 **Branch:** `shiny-maxwell`

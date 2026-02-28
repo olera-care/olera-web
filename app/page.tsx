@@ -753,41 +753,28 @@ export default function HomePage() {
   return (
     <div className="bg-gray-50">
       {/* Hero Section - Full Image Background */}
-      <section className="pt-4 pb-8">
-        <div className="mx-4 sm:mx-6 lg:mx-8">
-          <div className="relative rounded-[2rem] min-h-[75vh] flex items-center px-8 md:px-16 lg:px-20 py-16 md:py-20">
-            {/* Background Image Container - overflow hidden only for bg */}
-            <div className="absolute inset-0 rounded-[2rem] overflow-hidden">
+      <section className="relative w-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px]">
+            {/* Background Image */}
+            <div className="absolute inset-0 overflow-hidden">
               <img
-                src="/hero.png"
-                alt=""
+                src="/images/hero-home.jpg"
+                alt="Family caring for loved one"
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              {/* Warm gradient overlay for readability */}
-              <div className="absolute inset-0 bg-gradient-to-r from-warm-950/85 via-warm-900/70 to-warm-900/40" />
-              <div className="absolute inset-0 bg-gradient-to-t from-warm-950/50 via-transparent to-warm-900/20" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
             </div>
 
-            {/* Content */}
-            <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col items-center text-center">
-              {/* Social Proof Pill */}
-              <div className="inline-flex items-center gap-2.5 bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-full text-sm font-medium text-white mb-6">
-                <span className="flex items-center justify-center w-5 h-5 bg-primary-500 rounded-full">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                <span>48,000+ care providers</span>
-              </div>
-
-              <h1 className="text-4xl md:text-5xl lg:text-[80px] font-bold leading-tight text-white">
-                Find the right care
-                <br />
-                <span className="text-primary-200">for your loved one</span>
-              </h1>
+            {/* Content — left-aligned, bottom-anchored */}
+            <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] px-4 sm:px-6 lg:px-8 pb-10 sm:pb-14 lg:pb-16">
+              <div className="max-w-[1312px] mx-auto w-full">
+                <div className="max-w-xl">
+                  <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">
+                    Find the right care<br />
+                    <span className="text-primary-200">for your loved one</span>
+                  </h1>
 
               {/* Search Bar */}
-              <div className="mt-8 w-full max-w-3xl">
+              <div className="mt-6 w-full">
                 <form onSubmit={handleSearch}>
                   <div className="bg-white/95 backdrop-blur-sm shadow-2xl p-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl">
                     {/* Location Input with Dropdown */}
@@ -982,9 +969,9 @@ export default function HomePage() {
                   </div>
                 </form>
               </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
       </section>
 
       {/* Top Providers Section */}

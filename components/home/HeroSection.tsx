@@ -346,7 +346,7 @@ export default function HeroSection() {
                   href="/benefits"
                   className="text-sm font-medium text-primary-200 hover:text-white transition-colors underline underline-offset-2 decoration-primary-200/40 hover:decoration-white/60"
                 >
-                  Find benefits you qualify for
+                  Find local help
                 </a>
               </div>
             </div>

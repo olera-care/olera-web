@@ -768,16 +768,6 @@ export default function HomePage() {
 
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col items-center text-center">
-              {/* Social Proof Pill */}
-              <div className="inline-flex items-center gap-2.5 bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-full text-sm font-medium text-white mb-6">
-                <span className="flex items-center justify-center w-5 h-5 bg-primary-500 rounded-full">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                <span>48,000+ care providers</span>
-              </div>
-
               <h1 className="text-4xl md:text-5xl lg:text-[80px] font-bold leading-tight text-white">
                 Find the right care
                 <br />

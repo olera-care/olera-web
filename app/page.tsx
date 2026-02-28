@@ -6,7 +6,7 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import ProviderCard from "@/components/providers/ProviderCard";
+import BrowseCard from "@/components/browse/BrowseCard";
 import BrowseByCareTypeSection from "@/components/home/BrowseByCareTypeSection";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -1035,12 +1035,12 @@ export default function HomePage() {
               {isLoadingProviders ? (
                 // Loading skeleton
                 Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[370px] h-[512px] bg-gray-100 rounded-2xl animate-pulse" />
+                  <div key={i} className="flex-shrink-0 w-[310px] bg-gray-100 rounded-xl animate-pulse aspect-[3/4]" />
                 ))
               ) : (
                 featuredProviders.map((provider) => (
-                  <div key={provider.id} className="flex-shrink-0 w-[370px] h-[512px]">
-                    <ProviderCard provider={provider} />
+                  <div key={provider.id} className="flex-shrink-0 w-[310px]">
+                    <BrowseCard provider={provider} />
                   </div>
                 ))
               )}

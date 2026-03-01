@@ -44,15 +44,15 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 | LocalBusiness schema | ✅ Yes | ✅ Yes | ✅ Yes~ | ✅ Yes~ | — |
 | BreadcrumbList schema | ✅ Yes* | ✅ Yes | ✅ Yes~ | ✅ Yes~ | — |
 | AggregateRating schema | ✅ Olera Score | ✅ Yes (in LocalBusiness) | ✅ Yes~ | ✅ Yes~ | — |
-| FAQPage schema (for Q&A section) | ❌ No* | ❌ **Missing** | ❌ **No** (no FAQ section) | ⚠️ Possible~ | **P1 — competitive advantage** |
-| Individual Review schema | ❌ No* | ❌ **Missing** | ⚠️ Possible~ | ✅ Yes~ | **P1** |
+| FAQPage schema (for Q&A section) | ❌ No* | ✅ Done (PR #81) | ❌ **No** (no FAQ section) | ⚠️ Possible~ | ~~P1~~ Done |
+| Individual Review schema | ❌ No* | ✅ Done (PR #82) | ⚠️ Possible~ | ✅ Yes~ | ~~P1~~ Done |
 | Organization / Publisher schema | ❌ No* | ✅ Global in layout.tsx | ✅ Yes~ | ✅ Yes~ | — |
-| PriceSpecification / Offer schema | ❌ No* | ❌ **Missing** | ⚠️ Unverified~ | ⚠️ Possible~ | **P1** |
+| PriceSpecification / Offer schema | ❌ No* | ✅ Done (PR #82) | ⚠️ Unverified~ | ⚠️ Possible~ | ~~P1~~ Done |
 | ImageObject schema | ❌ No* | ❌ Missing | ⚠️ Possible~ | ❌ No~ | P2 |
 | VideoObject schema | ❌ No | N/A (no videos) | ⚠️ Possible~ | ❌ No | P3 |
-| MedicalBusiness subtype | ❌ No* | ❌ Generic LocalBusiness | ⚠️ Unverified~ | ⚠️ Possible~ | **P1** |
+| MedicalBusiness subtype | ❌ No* | ❌ Deferred (low reward vs LocalBusiness) | ⚠️ Unverified~ | ⚠️ Possible~ | P3 (revisit) |
 | Person schema (staff/manager) | ❌ No* | ❌ **Missing** | ⚠️ Unverified~ | ❌ No~ | P2 |
-| GeoCoordinates | ❌ No* | ❌ **Missing** | ⚠️ Unverified~ | ⚠️ Likely~ | **P1** |
+| GeoCoordinates | ❌ No* | ✅ Done (PR #82) | ⚠️ Unverified~ | ⚠️ Likely~ | ~~P1~~ Done |
 
 ### HTML & Content Quality
 
@@ -96,11 +96,11 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 
 | Metric | Olera v1.0 | Olera v2 | APFM | Caring.com |
 |---|---|---|---|---|
-| **Confirmed Elements** | ~24 / 40 | 30 / 40 (+3 from P0 fixes) | ~28 / 40 confirmed | ~22 / 40 confirmed |
-| **Confirmed + Inferred** | ~24 / 40 | 30 / 40 | ~35 / 40 | ~33 / 40 |
-| **Score (confirmed only)** | **~60%** | **75%** | **~70%** | **~55%** |
-| **Score (with inferred)** | **~60%** | **75%** | **~88%** | **~82%** |
-| **Grade** | **D+** | **B-** (up from C+) | **B+ to A** | **B to B+** |
+| **Confirmed Elements** | ~24 / 40 | 34 / 40 (+4 from structured data) | ~28 / 40 confirmed | ~22 / 40 confirmed |
+| **Confirmed + Inferred** | ~24 / 40 | 34 / 40 | ~35 / 40 | ~33 / 40 |
+| **Score (confirmed only)** | **~60%** | **85%** | **~70%** | **~55%** |
+| **Score (with inferred)** | **~60%** | **85%** | **~88%** | **~82%** |
+| **Grade** | **D+** | **B+** (up from B-) | **B+ to A** | **B to B+** |
 
 > **Important:** Both APFM and Caring.com block automated crawling (HTTP 403). Their scores include many inferred elements based on SERP analysis, tech stack, and industry research. Actual implementation may differ. Only Olera v2 scores are fully verified from source code.
 

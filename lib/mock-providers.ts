@@ -677,6 +677,9 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
   const priceRange = formatIOSPriceRange(provider);
   const categoryDisplay = getCategoryDisplayName(provider.provider_category);
 
+  // Determine price unit based on category (matches HOURLY_CATEGORIES in lib/types/provider.ts)
+  const isHourly = provider.provider_category === "Home Care (Non-medical)" || provider.provider_category === "Home Health Care";
+
   // Build metadata with iOS-specific fields
   const metadata: OrganizationMetadata & {
     rating?: number;
@@ -687,9 +690,18 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     community_score?: number;
     value_score?: number;
     info_score?: number;
+    price_min?: number;
+    price_max?: number;
+    price_unit?: "HOUR" | "MONTH";
   } = {
     price_range: priceRange || undefined,
     amenities: [categoryDisplay],
+    // Raw price fields for structured data (JSON-LD PriceSpecification)
+    ...(provider.lower_price != null && { price_min: provider.lower_price }),
+    ...(provider.upper_price != null && { price_max: provider.upper_price }),
+    ...((provider.lower_price != null || provider.upper_price != null) && {
+      price_unit: isHourly ? "HOUR" as const : "MONTH" as const,
+    }),
     // iOS scores
     rating: provider.google_rating || undefined,
     review_count: undefined,

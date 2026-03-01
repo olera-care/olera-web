@@ -19,14 +19,15 @@
   - **Key discovery (2026-03-01 session 27):**
     - **olera.care is still running v1.0** — DNS cutover has NOT happened yet. v2.0 is on staging.
     - **provider_id is 7-char alphanumeric** (e.g., `r4HIF35`) — NOT human-readable. Added `slug` column with `{name}-{state}` format. SQL migration `007_provider_slugs.sql` ready to run.
-    - SEO score improved from 67% (C+) to **75% (B-)** after P0 fixes
+    - SEO score: 67% (C+) → 75% (B-) after P0 fixes → **85% (B+)** after structured data
   - **P0 fixes completed (2026-03-01):**
     - ✅ Fix 404 handling: `notFound()` replaces error HTML in provider page
     - ✅ State abbreviation redirects: middleware 301s `/fl` → `/florida` for all categories
     - ✅ Pagination suffix: middleware strips `/page/{n}` from v1.0 URLs
   - **FAQPage JSON-LD added (2026-03-01 session 28):** Server-side Q&A fetch + FAQPage schema emitted when answered questions exist
   - **Notion playbook updated (2026-03-01):** Status callout, Phase 1/4/5 items, Guardrails section corrected
-  - **Remaining P1 work:** Review/GeoCoordinates/MedicalBusiness schema, `next/image` migration, editorial content redirects, Tier 1 static redirects
+  - **Structured data done (2026-03-01 session 29):** GeoCoordinates, PriceSpecification, Review schemas (PR #82). MedicalBusiness deferred (P3).
+  - **Remaining P1 work:** `next/image` migration, editorial content redirects, Tier 1 static redirects
   - Architecture research archived to `archive/SCRATCHPAD-2026-02.md`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
@@ -62,6 +63,7 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-01 | Skip MedicalBusiness schema, revisit later | Low reward: Google doesn't render it differently than LocalBusiness. No concrete SERP benefit. Competitors don't use it either. |
 | 2026-02-28 | CTA: quiet nudge over teal gradient banner | Strip template blobs, one warm heading, one button — calm confidence over SaaS shouting |
 | 2026-02-28 | Community section in unified gray container | Docuseries + flat links felt unbounded; single bg-gray-100 rounded card groups them |
 | 2026-02-28 | NIH badge: actual logo, compact, bottom-right hero | Real logo image inverted to white; tight but not cramped spacing |
@@ -88,6 +90,33 @@
 ---
 
 ## Session Log
+
+### 2026-03-01 (Session 29) — Rich Structured Data (GeoCoordinates + PriceSpecification + Review)
+
+**Branch:** `seo/structured-data-p1`
+
+**What:** Added three structured data schemas to provider page LocalBusiness JSON-LD. Also ran slug migration, merged PR #81, and decided to defer MedicalBusiness.
+
+**Structured data added:**
+- **GeoCoordinates**: lat/lng in LocalBusiness for Google Maps and local pack
+- **UnitPriceSpecification**: min/max price with HOUR/MONTH unit — piped raw `lower_price`/`upper_price` through metadata (was dead code before)
+- **Review**: up to 5 individual reviews with star ratings for rich results
+
+**Bug fix:** `meta?.lower_price` and `meta?.upper_price` were dead code — those fields don't exist on `ExtendedMetadata`. Fixed by adding `price_min`, `price_max`, `price_unit` to metadata in `iosProviderToProfile()`.
+
+**Other actions this session:**
+- Ran `007_provider_slugs.sql` in Supabase SQL Editor (verified working)
+- Merged PR #81 (FAQPage + explain command) to staging via `/pr-merge`
+- Decided to skip MedicalBusiness schema (low reward, revisit as P3)
+- SEO score: 75% (B-) → **85% (B+)**
+
+**Files modified:** `app/provider/[slug]/page.tsx`, `lib/mock-providers.ts`, `docs/migration-playbook.md`, `SCRATCHPAD.md`
+
+**Commits:** `c510b95`, `ca6a5b8`
+
+**PR:** #82 targeting staging
+
+---
 
 ### 2026-03-01 (Session 28) — FAQPage JSON-LD + Notion Update + Corrections
 

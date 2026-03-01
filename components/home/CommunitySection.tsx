@@ -7,7 +7,7 @@ const links = [
     href: "https://discord.gg/olera",
     external: true,
     icon: (
-      <img src="/images/discord.png" alt="" className="w-5 h-5 object-contain opacity-60" />
+      <img src="/images/discord.png" alt="" className="w-5 h-5 object-contain opacity-40" />
     ),
   },
   {
@@ -27,7 +27,7 @@ const links = [
     href: "/resources",
     external: false,
     icon: (
-      <img src="/images/resources.png" alt="" className="w-5 h-5 object-contain opacity-60" />
+      <img src="/images/resources.png" alt="" className="w-5 h-5 object-contain opacity-40" />
     ),
   },
   {
@@ -36,7 +36,7 @@ const links = [
     href: "/benefits",
     external: false,
     icon: (
-      <img src="/images/finances.png" alt="" className="w-5 h-5 object-contain opacity-60" />
+      <img src="/images/finances.png" alt="" className="w-5 h-5 object-contain opacity-40" />
     ),
   },
 ];

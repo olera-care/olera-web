@@ -355,12 +355,12 @@ export default function HeroSection() {
       </div>
 
       {/* NIA badge — bottom right */}
-      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8 z-10 flex items-center gap-2.5 bg-black/40 backdrop-blur-md rounded-lg px-4 py-2.5 border border-white/10">
-        <span className="text-xs font-medium text-white/90 leading-tight">Supported by</span>
+      <div className="absolute bottom-5 right-5 sm:bottom-8 sm:right-8 lg:bottom-10 lg:right-10 z-10 text-right">
+        <p className="text-sm sm:text-base font-medium text-white/80 mb-2">Proudly supported by</p>
         <img
           src="/images/nia-logo.png"
           alt="National Institute on Aging"
-          className="h-8 w-auto brightness-0 invert"
+          className="h-10 sm:h-14 lg:h-16 w-auto ml-auto brightness-0 invert drop-shadow-lg"
         />
       </div>
     </section>

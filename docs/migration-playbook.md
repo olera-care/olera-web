@@ -111,9 +111,16 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 3. **FAQPage schema = competitive advantage** — APFM doesn't have it, Caring.com may not either. Adding it to Olera v2's Q&A section would be a differentiator
 4. **Structured data is the biggest gap** — v2 has 3 of 12 schema types; competitors likely have 6-8
 5. **Closing P0+P1 gaps brings v2 to ~85% (B+)** — on par with or exceeding competitors on verified elements
+6. **v1.0 title tag pattern is strong** — `{Provider Name}, {City} {State}: Pricing & Availability | Olera.care` (confirmed via Google SERP). v2 uses `{Name} | {Category} in {City}, {State} | Olera` — different format, should verify which performs better for CTR before cutover
+7. **v1.0 uses human-readable provider slugs** (`/provider/elara-caring-ct`) while v2 uses provider_id (`/provider/r4HIF35`). Old bookmarks/backlinks to human-readable slugs need redirect mapping
 
 ### P0 Fixes (Do Before DNS Cutover)
 
+0. **CRITICAL — Verify provider slug format compatibility**
+   - v1.0 uses human-readable slugs: `/provider/elara-caring-ct`, `/provider/the-oaks-at-lakewood` (confirmed via Google SERP)
+   - v2 looks up providers by `provider_id` from the `olera-providers` table (line 232 of page.tsx)
+   - **If `provider_id` values are short IDs like `r4HIF35`** (not human-readable), then ALL 39,000+ existing Google-indexed provider URLs will 404 in v2. This would be catastrophic for organic traffic.
+   - **ACTION:** Query the `olera-providers` table to check what `provider_id` values look like. If they don't match v1.0 slugs, we need a slug mapping table or fallback lookup (try provider_id first, then search by slug/name).
 1. **Fix 404 handling** — Replace error HTML with `notFound()` in provider page
 2. **Add state abbreviation redirects** — `/home-care/fl` → `/home-care/florida` for ~300+ state pages and ~10,000+ city pages
 

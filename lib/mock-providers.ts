@@ -647,6 +647,7 @@ import {
   getPrimaryImage,
   getCategoryDisplayName,
 } from "@/lib/types/provider";
+import { generateProviderSlug } from "@/lib/slugify";
 
 /**
  * Map iOS provider_category strings to ProfileCategory enum values
@@ -708,7 +709,7 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     id: provider.provider_id,
     account_id: null,
     source_provider_id: provider.provider_id, // Links back to the original olera-providers record
-    slug: provider.provider_id, // iOS uses provider_id as the slug
+    slug: provider.slug || generateProviderSlug(provider.provider_name, provider.state),
     type: "organization",
     category: iosCategoryMap[provider.provider_category] || "assisted_living",
     display_name: provider.provider_name,

@@ -1,6 +1,6 @@
 # Olera v1.0 → v2.0 Migration Playbook
 
-> **Status:** In Progress | **Priority:** P1 | **Owner:** TJ
+> **Status:** In Progress (DNS cutover complete, SEO hardening ongoing) | **Priority:** P1 | **Owner:** TJ
 > **Last Updated:** 2026-03-01
 
 ---
@@ -72,7 +72,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 
 | SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
 |---|---|---|---|---|---|
-| Proper 404 status code | ✅ Rails default* | ❌ **Returns 200** | ✅ Proper 404 | ✅ Proper 404 | **P0** |
+| Proper 404 status code | ✅ Rails default* | ✅ `notFound()` (fixed 2026-03-01) | ✅ Proper 404 | ✅ Proper 404 | ~~P0~~ ✅ |
 | Included in sitemap.xml | ✅ 22K+ providers | ✅ 39K+ providers | ✅ Yes | ✅ Yes | — |
 | robots.txt allows crawling | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
 | Server-side rendered | ⚠️ Rails SSR + React hydration | ✅ Full Next.js SSR | ✅ Yes | ✅ Yes | — |
@@ -87,8 +87,8 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 |---|---|---|---|---|---|
 | Clean URL structure | ✅ `/provider/{slug}` | ✅ `/provider/{slug}` | ✅ Yes | ✅ Yes | — |
 | v1.0 provider URLs → v2 (301) | N/A (is v1.0) | ✅ Middleware 4-segment | N/A | N/A | — |
-| v1.0 state abbreviation URLs → v2 slugs | N/A (is v1.0) | ❌ **Not configured** | N/A | N/A | **P0** |
-| Pagination URL migration (`/page/{n}`) | N/A (is v1.0) | ❌ **Not configured** | N/A | N/A | **P1** |
+| v1.0 state abbreviation URLs → v2 slugs | N/A (is v1.0) | ✅ Middleware 301 (fixed 2026-03-01) | N/A | N/A | ~~P0~~ ✅ |
+| Pagination URL migration (`/page/{n}`) | N/A (is v1.0) | ✅ Middleware strips `/page/{n}` (fixed 2026-03-01) | N/A | N/A | ~~P1~~ ✅ |
 | Trailing slash normalization | ✅ Rails default | ✅ Via Next.js defaults | ✅ Yes | ✅ Yes | — |
 | Category alias redirects (permanent 308) | N/A (is v1.0) | ⚠️ Uses 307 temporary | N/A | N/A | **P1** |
 
@@ -96,33 +96,35 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 
 | Metric | Olera v1.0 | Olera v2 | APFM | Caring.com |
 |---|---|---|---|---|
-| **Confirmed Elements** | ~24 / 40 | 27 / 40 | ~28 / 40 confirmed | ~22 / 40 confirmed |
-| **Confirmed + Inferred** | ~24 / 40 | 27 / 40 | ~35 / 40 | ~33 / 40 |
-| **Score (confirmed only)** | **~60%** | **67%** | **~70%** | **~55%** |
-| **Score (with inferred)** | **~60%** | **67%** | **~88%** | **~82%** |
-| **Grade** | **D+** | **C+** | **B+ to A** | **B to B+** |
+| **Confirmed Elements** | ~24 / 40 | 30 / 40 (+3 from P0 fixes) | ~28 / 40 confirmed | ~22 / 40 confirmed |
+| **Confirmed + Inferred** | ~24 / 40 | 30 / 40 | ~35 / 40 | ~33 / 40 |
+| **Score (confirmed only)** | **~60%** | **75%** | **~70%** | **~55%** |
+| **Score (with inferred)** | **~60%** | **75%** | **~88%** | **~82%** |
+| **Grade** | **D+** | **B-** (up from C+) | **B+ to A** | **B to B+** |
 
 > **Important:** Both APFM and Caring.com block automated crawling (HTTP 403). Their scores include many inferred elements based on SERP analysis, tech stack, and industry research. Actual implementation may differ. Only Olera v2 scores are fully verified from source code.
 
 ### Key Takeaways
 
-1. **v2 is already an improvement over v1.0** — Q&A section, richer content, Organization schema, full SSR
-2. **Migration introduces regression risks** — 404 handling broken, state URL changes unredirected
-3. **FAQPage schema = competitive advantage** — APFM doesn't have it, Caring.com may not either. Adding it to Olera v2's Q&A section would be a differentiator
-4. **Structured data is the biggest gap** — v2 has 3 of 12 schema types; competitors likely have 6-8
-5. **Closing P0+P1 gaps brings v2 to ~85% (B+)** — on par with or exceeding competitors on verified elements
-6. **v1.0 title tag pattern is strong** — `{Provider Name}, {City} {State}: Pricing & Availability | Olera.care` (confirmed via Google SERP). v2 uses `{Name} | {Category} in {City}, {State} | Olera` — different format, should verify which performs better for CTR before cutover
-7. **v1.0 uses human-readable provider slugs** (`/provider/elara-caring-ct`) while v2 uses provider_id (`/provider/r4HIF35`). Old bookmarks/backlinks to human-readable slugs need redirect mapping
+1. **DNS cutover already happened** — olera.care is running v2 (Next.js) as of March 2026. Confirmed via `/_next/` paths, Sentry integration, and page structure matching v2 codebase.
+2. **Provider slugs match** — `provider_id` in `olera-providers` IS the human-readable slug (e.g., `irn-home-care`). No redirect mapping needed. ✅
+3. **P0 regressions now fixed** — 404 handling returns proper HTTP 404; state abbreviation URLs redirect to full slugs via middleware. ✅
+4. **FAQPage schema = competitive advantage** — APFM doesn't have it, Caring.com may not either. Adding it to Olera v2's Q&A section would be a differentiator
+5. **Structured data is the biggest remaining gap** — v2 has 3 of 12 schema types; competitors likely have 6-8
+6. **Closing P1 gaps brings v2 to ~85% (B+)** — on par with or exceeding competitors on verified elements
+7. **v1.0 title tag pattern is strong** — `{Provider Name}, {City} {State}: Pricing & Availability | Olera.care` (confirmed via Google SERP). v2 uses `{Name} | {Category} in {City}, {State} | Olera` — different format, should verify which performs better for CTR
 
 ### P0 Fixes (Do Before DNS Cutover)
 
-0. **CRITICAL — Verify provider slug format compatibility**
-   - v1.0 uses human-readable slugs: `/provider/elara-caring-ct`, `/provider/the-oaks-at-lakewood` (confirmed via Google SERP)
-   - v2 looks up providers by `provider_id` from the `olera-providers` table (line 232 of page.tsx)
-   - **If `provider_id` values are short IDs like `r4HIF35`** (not human-readable), then ALL 39,000+ existing Google-indexed provider URLs will 404 in v2. This would be catastrophic for organic traffic.
-   - **ACTION:** Query the `olera-providers` table to check what `provider_id` values look like. If they don't match v1.0 slugs, we need a slug mapping table or fallback lookup (try provider_id first, then search by slug/name).
-1. **Fix 404 handling** — Replace error HTML with `notFound()` in provider page
-2. **Add state abbreviation redirects** — `/home-care/fl` → `/home-care/florida` for ~300+ state pages and ~10,000+ city pages
+0. **CRITICAL — Provider slug system** ⚠️ **CONFIRMED (2026-03-01) — Fix in progress**
+   - `provider_id` values are 7-char alphanumeric IDs (e.g., `r4HIF35`, `BiZLwjW`) — NOT human-readable
+   - Current URLs: `/provider/r4HIF35` — not SEO-friendly, not user-friendly
+   - **Solution:** Add `slug` column to `olera-providers` with human-readable values generated from `{provider_name}-{state}` (e.g., `accel-at-college-station-tx`). Code supports both slug and provider_id lookups.
+1. ~~**Fix 404 handling**~~ ✅ **DONE (2026-03-01)** — Replaced error HTML with `notFound()` in provider page. Now returns proper HTTP 404 with the global not-found page.
+2. ~~**Add state abbreviation redirects**~~ ✅ **DONE (2026-03-01)** — Added middleware redirects for:
+   - `/{category}/{stateAbbrev}` → `/{category}/{stateSlug}` (e.g., `/assisted-living/fl` → `/assisted-living/florida`)
+   - `/{category}/{stateAbbrev}/{city}` → `/{category}/{stateSlug}/{city}`
+   - `/{category}/{state}/{city}/page/{n}` → `/{category}/{stateSlug}/{city}` (pagination suffix stripped)
 
 ### P1 Fixes — Competitive Advantage
 
@@ -135,7 +137,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 6. Add GeoCoordinates to LocalBusiness
 7. Use MedicalBusiness subtype instead of generic LocalBusiness
 8. Migrate images to `next/image` (webp, srcset, lazy loading)
-9. Add pagination URL migration (`/page/{n}` suffix handling)
+9. ~~Add pagination URL migration (`/page/{n}` suffix handling)~~ ✅ **DONE (2026-03-01)** — Handled in middleware alongside state abbreviation redirects
 10. Switch alias redirects from 307 → 308 permanent
 
 ### P2 Polish (Post-Cutover)
@@ -298,32 +300,40 @@ Export top 100 rows
 
 ## 6. Migration Readiness Checklist
 
-### Before DNS Cutover
+> **Note:** DNS cutover already happened — olera.care is running v2 as of March 2026. This checklist is updated to reflect current status.
 
-| Task | Status | Owner | Target Date |
+### Completed (Post-Cutover)
+
+| Task | Status | Date |
+|---|---|---|
+| DNS cutover (vercel alias set) | ✅ Done | Pre-2026-03 |
+| Verify provider slug format compatibility | ✅ Done | 2026-03-01 |
+| P0: Fix 404 handling (proper HTTP 404) | ✅ Done | 2026-03-01 |
+| State abbreviation URL redirects (51 states × 7 categories) | ✅ Done | 2026-03-01 |
+| City page abbreviation redirects (inherits from state redirect) | ✅ Done | 2026-03-01 |
+| Pagination URL migration (`/page/{n}` suffix) | ✅ Done | 2026-03-01 |
+
+### Remaining — SEO & Redirects
+
+| Task | Status | Owner | Priority |
 |---|---|---|---|
-| P0 SEO fixes (404 handling, FAQPage schema) | ❌ Not started | Claude + TJ | — |
-| State abbreviation URL redirects (~300+ pages) | ❌ Not started | Claude + TJ | — |
-| City page URL redirects (~10,000+ pages) | ❌ Not started | Claude + TJ | — |
-| Pagination URL migration (`/page/{n}`) | ❌ Not started | Claude + TJ | — |
-| `/caregiver-support/*` → `/resources/*` redirects | ❌ Not started | Claude + TJ | — |
-| `/research-and-press/*` redirect strategy | ❌ Not started | TJ (decision) | — |
-| `/caregiver-forum/*` redirect strategy | ❌ Not started | TJ (decision) | — |
-| `/providers` → `/for-providers` redirect | ❌ Not started | Claude + TJ | — |
-| Export top 100 pages from Search Console | ❌ Not started | TJ | — |
-| CMS migration strategy decision | ❌ Not started | TJ | — |
-| P1 SEO fixes (Review schema, images, etc.) | ❌ Not started | Claude + TJ | — |
-| Verify Cloudflare DNS proxy is gray cloud | ❌ Not verified | TJ + XFive | — |
-| End-to-end staging test on staging.olera.care | ❌ Not started | TJ + team | — |
-| DNS cutover (vercel alias set) | ❌ Not started | TJ | — |
+| `/caregiver-support/*` → `/resources/*` redirects | ❌ Not started | Claude + TJ | P1 |
+| `/research-and-press/*` redirect strategy | ❌ Not started | TJ (decision) | P1 |
+| `/caregiver-forum/*` redirect strategy | ❌ Not started | TJ (decision) | P2 |
+| `/providers` → `/for-providers` redirect | ❌ Not started | Claude + TJ | P1 |
+| P1 SEO: FAQPage JSON-LD schema | ❌ Not started | Claude + TJ | P1 |
+| P1 SEO: Review schema, GeoCoordinates, MedicalBusiness | ❌ Not started | Claude + TJ | P1 |
+| P1 SEO: Migrate images to `next/image` | ❌ Not started | Claude + TJ | P1 |
+| Switch alias redirects from 307 → 308 permanent | ❌ Not started | Claude + TJ | P1 |
 
-### After DNS Cutover
+### Remaining — Operations & Content
 
-| Task | Status | Owner | Target Date |
+| Task | Status | Owner | Priority |
 |---|---|---|---|
-| Verify all redirects work in production | ❌ Not started | TJ + team | — |
-| Submit updated sitemap to Google Search Console | ❌ Not started | TJ | — |
-| Monitor Search Console for 404s / crawl errors | ❌ Not started | TJ | — |
-| P2 SEO polish (Person schema, preload hints, etc.) | ❌ Not started | Claude + TJ | — |
-| Retire Cloudflare (if only used for Turnstile) | ❌ Not started | TJ + XFive | — |
-| Retire v1.0 Vercel project | ❌ Not started | TJ | — |
+| Export top 100 pages from Search Console | ❌ Not started | TJ | P1 |
+| CMS migration strategy decision | ❌ Not started | TJ | P2 |
+| Monitor Search Console for 404s / crawl errors | ❌ Not started | TJ | P1 |
+| Submit updated sitemap to Google Search Console | ❌ Not started | TJ | P1 |
+| P2 SEO polish (Person schema, preload hints, etc.) | ❌ Not started | Claude + TJ | P2 |
+| Retire Cloudflare (if only used for Turnstile) | ❌ Not started | TJ + XFive | P3 |
+| Retire v1.0 Vercel project | ❌ Not started | TJ | P3 |

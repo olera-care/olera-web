@@ -7,6 +7,8 @@
  * Table: olera-providers (39,355+ records)
  */
 
+import { generateProviderSlug } from "@/lib/slugify";
+
 export interface Provider {
   provider_id: string;
   provider_name: string;
@@ -35,6 +37,7 @@ export interface Provider {
   deleted: boolean;
   deleted_at: string | null;
   hero_image_url: string | null;
+  slug: string | null; // Human-readable URL slug (populated via migration)
 }
 
 /**
@@ -299,7 +302,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
 
   return {
     id: provider.provider_id,
-    slug: provider.provider_id,
+    slug: provider.slug || generateProviderSlug(provider.provider_name, provider.state),
     name: provider.provider_name,
     image: cardImage,
     imageType,

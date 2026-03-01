@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
@@ -32,13 +33,24 @@ import {
 async function fetchProviderForMeta(slug: string) {
   try {
     const supabase = await createClient();
-    const { data: iosProvider } = await supabase
+
+    // Try slug column first (human-readable URL)
+    const { data: bySlug } = await supabase
+      .from("olera-providers")
+      .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
+      .eq("slug", slug)
+      .not("deleted", "is", true)
+      .single();
+    if (bySlug) return bySlug;
+
+    // Fall back to provider_id (legacy alphanumeric ID)
+    const { data: byId } = await supabase
       .from("olera-providers")
       .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
       .eq("provider_id", slug)
       .not("deleted", "is", true)
       .single();
-    if (iosProvider) return iosProvider;
+    if (byId) return byId;
   } catch { /* fall through */ }
 
   try {
@@ -223,18 +235,32 @@ export default async function ProviderPage({
   // --- Data fetching ---
   let profile: Profile | null = null;
 
-  // 1. Try iOS Supabase (olera-providers table) first
+  // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
   try {
     const supabase = await createClient();
-    const { data: iosProvider } = await supabase
+
+    // Try slug column (human-readable URL)
+    const { data: bySlug } = await supabase
       .from("olera-providers")
       .select("*")
-      .eq("provider_id", slug)
+      .eq("slug", slug)
       .not("deleted", "is", true)
       .single<IOSProvider>();
 
-    if (iosProvider) {
-      profile = iosProviderToProfile(iosProvider);
+    if (bySlug) {
+      profile = iosProviderToProfile(bySlug);
+    } else {
+      // Fall back to provider_id (legacy alphanumeric ID)
+      const { data: byId } = await supabase
+        .from("olera-providers")
+        .select("*")
+        .eq("provider_id", slug)
+        .not("deleted", "is", true)
+        .single<IOSProvider>();
+
+      if (byId) {
+        profile = iosProviderToProfile(byId);
+      }
     }
   } catch {
     // iOS Supabase not configured or provider not found
@@ -257,19 +283,7 @@ export default async function ProviderPage({
   }
 
   if (!profile) {
-    return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Provider not found</h1>
-          <p className="mt-2 text-gray-600">
-            The provider you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Link href="/" className="mt-4 inline-block text-primary-600 hover:text-primary-700 font-medium">
-            Back to home
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   // --- Data extraction ---
@@ -289,7 +303,7 @@ export default async function ProviderPage({
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
 
-  const similarProviders = await getSimilarProviders(profile.category, profile.slug, 3);
+  const similarProviders = await getSimilarProviders(profile.category, profile.source_provider_id || profile.id, 3);
 
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;

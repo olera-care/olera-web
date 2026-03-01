@@ -7,11 +7,9 @@
 
 ## Current Focus
 
-- **Homepage Section-by-Section Refactor** (branch: `glad-goodall`) — IN PROGRESS
-  - Phase 1-2 done: monolith → 5 sections, reordered, redundancy removed
-  - Phase 3 done: all sections polished — hero, top providers, explore care, community, CTA
-  - Phase 4: NIA "Proudly supported by" badge added to hero, within container bounds
-  - Social proof trust strip removed (no value). Bento grid → uniform card grid. Community → editorial + flat links
+- **Homepage Section-by-Section Refactor** (branch: `glad-goodall`) — READY FOR MERGE
+  - Phase 1-3 done + Phase 4 polish: NIH badge, community container, CTA redesign
+  - PR #79 targeting staging — ready to merge
   - Plan: `plans/homepage-refactor-plan.md`
   - Notion: P1 — "Section-by-Section Homepage Refactor"
 
@@ -50,7 +48,9 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-02-28 | NIA badge inside container, not viewport edge | Aligns with content bounds of lower sections; smooth bottom gradient for legibility |
+| 2026-02-28 | CTA: quiet nudge over teal gradient banner | Strip template blobs, one warm heading, one button — calm confidence over SaaS shouting |
+| 2026-02-28 | Community section in unified gray container | Docuseries + flat links felt unbounded; single bg-gray-100 rounded card groups them |
+| 2026-02-28 | NIH badge: actual logo, compact, bottom-right hero | Real logo image inverted to white; tight but not cramped spacing |
 | 2026-02-28 | Uniform grid over bento for Explore Care | Equal-weight cards feel less template-y; bento asymmetry was visual noise |
 | 2026-02-28 | Remove social proof trust strip | Fake numbers add no trust; section added no user value |
 | 2026-02-28 | Community as editorial + flat link rows | Perena-style flat rows over boxed cards; docuseries gets hero treatment, community links are quiet and scannable |
@@ -75,20 +75,20 @@
 
 ## Session Log
 
-### 2026-02-28 (Session 25) — NIA Badge on Hero
+### 2026-02-28 (Session 25) — Homepage Final Polish & PR
 
 **Branch:** `glad-goodall`
 
-**What:** Added "Proudly supported by National Institute on Aging" badge to hero section. Iterated through multiple rounds:
-- Started with small frosted-glass pill → too small/invisible
-- Switched to icon-only NIH logo + spelled-out text (matching v1.0 site)
-- Added smooth bottom gradient for legibility over bright photo areas
-- Moved badge inside `max-w-[1312px]` container so it aligns with section content bounds
-- Hidden on mobile (`hidden sm:block`) to avoid crowding search bar
+**What:** Final polish pass — NIH badge, community container, CTA redesign. PR #79 ready for merge.
 
-**Files:** `components/home/HeroSection.tsx`, `public/images/nia-logo.png`
+- NIH badge: added actual NIA logo to homepage hero, iterated on size/position/spacing — compact, bottom-right, not distracting
+- Community section: wrapped docuseries + flat links in unified `bg-gray-100` rounded container to fix unbounded feel
+- CTA section: full redesign — stripped teal gradient + blobs, replaced with white bg, warm human copy ("You don't have to figure this out alone"), single primary button
+- Removed `"use client"` from CTASection (no longer needed)
 
-**Commits:** `57e9550`, `bc20faf`, `7c0cb97`, `28035c5`, `f2374c2`, `c2042b9`
+**Files modified:** `components/home/HeroSection.tsx`, `components/home/CommunitySection.tsx`, `components/home/CTASection.tsx`
+
+**Commits:** `57e9550`→`d87e230` (multiple iterations on NIH badge + community + CTA)
 
 ---
 

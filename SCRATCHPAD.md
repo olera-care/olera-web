@@ -17,8 +17,8 @@
   - Code phases 1-4 merged (PR #53, branch `swift-faraday`). Playbook merged as PR #80.
   - **Playbook doc:** `docs/migration-playbook.md` — comprehensive SEO report card, route inventory, DNS plan
   - **Key discovery (2026-03-01 session 27):**
-    - **olera.care is already running v2** (Next.js) — DNS cutover already happened
-    - **provider_id IS the human-readable slug** — `irn-home-care`, `ross-court-group-home` etc. No migration mapping needed.
+    - **olera.care is still running v1.0** — DNS cutover has NOT happened yet. v2.0 is on staging.
+    - **provider_id is 7-char alphanumeric** (e.g., `r4HIF35`) — NOT human-readable. Added `slug` column with `{name}-{state}` format. SQL migration `007_provider_slugs.sql` ready to run.
     - SEO score improved from 67% (C+) to **75% (B-)** after P0 fixes
   - **P0 fixes completed (2026-03-01):**
     - ✅ Fix 404 handling: `notFound()` replaces error HTML in provider page

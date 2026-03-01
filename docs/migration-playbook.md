@@ -106,7 +106,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 
 ### Key Takeaways
 
-1. **DNS cutover already happened** — olera.care is running v2 (Next.js) as of March 2026. Confirmed via `/_next/` paths, Sentry integration, and page structure matching v2 codebase.
+1. **DNS cutover has NOT happened yet** — olera.care is still running v1.0. v2.0 is on staging at staging-olera2-web.vercel.app.
 2. **Provider slugs match** — `provider_id` in `olera-providers` IS the human-readable slug (e.g., `irn-home-care`). No redirect mapping needed. ✅
 3. **P0 regressions now fixed** — 404 handling returns proper HTTP 404; state abbreviation URLs redirect to full slugs via middleware. ✅
 4. **FAQPage schema = competitive advantage** — APFM doesn't have it, Caring.com may not either. Adding it to Olera v2's Q&A section would be a differentiator
@@ -300,13 +300,12 @@ Export top 100 rows
 
 ## 6. Migration Readiness Checklist
 
-> **Note:** DNS cutover already happened — olera.care is running v2 as of March 2026. This checklist is updated to reflect current status.
+> **Note:** DNS cutover has NOT happened yet. olera.care is still running v1.0. These are pre-cutover fixes ready on the `bold-gates` branch.
 
-### Completed (Post-Cutover)
+### Completed (Pre-Cutover — on `bold-gates` branch)
 
 | Task | Status | Date |
 |---|---|---|
-| DNS cutover (vercel alias set) | ✅ Done | Pre-2026-03 |
 | Verify provider slug format compatibility | ✅ Done | 2026-03-01 |
 | P0: Fix 404 handling (proper HTTP 404) | ✅ Done | 2026-03-01 |
 | State abbreviation URL redirects (51 states × 7 categories) | ✅ Done | 2026-03-01 |

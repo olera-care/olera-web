@@ -354,8 +354,8 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Bottom-right gradient for NIA badge legibility */}
-      <div className="absolute bottom-0 right-0 w-2/3 h-1/3 bg-gradient-to-tl from-black/50 via-black/20 to-transparent z-[1] pointer-events-none" />
+      {/* Bottom gradient for NIA badge legibility */}
+      <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent z-[1] pointer-events-none" />
 
       {/* NIA badge — bottom right */}
       <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8 z-10 text-right">

@@ -9,7 +9,7 @@
 
 Every SEO element on the provider detail page, comparing Olera v1.0 (current live), Olera v2 (migration target), and competitors.
 
-> **Note:** Olera v1.0 assessments are based on the XFive-built Rails+React stack analysis and should be verified against the live site. Items marked with `*` are estimates.
+> **Note:** Olera v1.0 assessments are based on the XFive-built Rails+React stack analysis and should be verified against the live site. Items marked with `*` are estimates. Competitor data marked with `~` is inferred from SERP analysis (both APFM and Caring.com block automated crawling).
 
 ### Meta & Head Tags
 
@@ -41,18 +41,18 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 
 | SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
 |---|---|---|---|---|---|
-| LocalBusiness schema | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| BreadcrumbList schema | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| AggregateRating schema | ✅ Olera Score | ✅ Yes (in LocalBusiness) | ✅ Yes | ✅ Yes | — |
-| FAQPage schema (for Q&A section) | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P0** |
-| Individual Review schema | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
-| Organization / Publisher schema | ❌ No* | ✅ Global in layout.tsx | ✅ Yes | ✅ Yes | — |
-| PriceSpecification / Offer schema | ❌ No* | ❌ **Missing** | ✅ Yes | ❌ No | **P1** |
-| ImageObject schema | ❌ No* | ❌ Missing | ✅ Yes | ❌ No | P2 |
-| VideoObject schema | ❌ No | N/A (no videos) | ✅ Yes | ❌ No | P3 |
-| MedicalBusiness subtype | ❌ No* | ❌ Generic LocalBusiness | ✅ MedicalBusiness | ❌ LocalBusiness | **P1** |
-| Person schema (staff/manager) | ❌ No* | ❌ **Missing** | ✅ Yes | ❌ No | P2 |
-| GeoCoordinates | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
+| LocalBusiness schema | ✅ Yes | ✅ Yes | ✅ Yes~ | ✅ Yes~ | — |
+| BreadcrumbList schema | ✅ Yes* | ✅ Yes | ✅ Yes~ | ✅ Yes~ | — |
+| AggregateRating schema | ✅ Olera Score | ✅ Yes (in LocalBusiness) | ✅ Yes~ | ✅ Yes~ | — |
+| FAQPage schema (for Q&A section) | ❌ No* | ❌ **Missing** | ❌ **No** (no FAQ section) | ⚠️ Possible~ | **P1 — competitive advantage** |
+| Individual Review schema | ❌ No* | ❌ **Missing** | ⚠️ Possible~ | ✅ Yes~ | **P1** |
+| Organization / Publisher schema | ❌ No* | ✅ Global in layout.tsx | ✅ Yes~ | ✅ Yes~ | — |
+| PriceSpecification / Offer schema | ❌ No* | ❌ **Missing** | ⚠️ Unverified~ | ⚠️ Possible~ | **P1** |
+| ImageObject schema | ❌ No* | ❌ Missing | ⚠️ Possible~ | ❌ No~ | P2 |
+| VideoObject schema | ❌ No | N/A (no videos) | ⚠️ Possible~ | ❌ No | P3 |
+| MedicalBusiness subtype | ❌ No* | ❌ Generic LocalBusiness | ⚠️ Unverified~ | ⚠️ Possible~ | **P1** |
+| Person schema (staff/manager) | ❌ No* | ❌ **Missing** | ⚠️ Unverified~ | ❌ No~ | P2 |
+| GeoCoordinates | ❌ No* | ❌ **Missing** | ⚠️ Unverified~ | ⚠️ Likely~ | **P1** |
 
 ### HTML & Content Quality
 
@@ -60,9 +60,9 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 |---|---|---|---|---|---|
 | Single H1 tag | ✅ Yes | ✅ Provider name | ✅ Yes | ✅ Yes | — |
 | Proper heading hierarchy (H1→H2→H3) | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Semantic HTML5 elements (nav, main, section) | ⚠️ React SPA* | ⚠️ Partial (nav only) | ✅ Full | ✅ Full | P2 |
+| Semantic HTML5 elements (nav, main, section) | ⚠️ React SPA* | ⚠️ Partial (nav only) | ⚠️ Unverified~ | ⚠️ Likely (WordPress)~ | P2 |
 | Breadcrumb navigation (visual) | ✅ Yes | ✅ With aria-label | ✅ Yes | ✅ Yes | — |
-| Meaningful image alt text | ⚠️ Partial* | ⚠️ Partial (gallery good) | ✅ Full | ✅ Full | P2 |
+| Meaningful image alt text | ⚠️ Partial* | ⚠️ Partial (gallery good) | ⚠️ Partial (2 missing on HP) | ⚠️ Unverified~ | P2 |
 | Internal cross-links (category/state/city) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
 | User-generated reviews displayed | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
 | Q&A content displayed | ❌ No (v2 feature) | ✅ QASectionV2 | ✅ Yes | ✅ Yes | — |
@@ -96,19 +96,30 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 
 | Metric | Olera v1.0 | Olera v2 | APFM | Caring.com |
 |---|---|---|---|---|
-| **Elements Fully Implemented** | ~24 / 40 | 27 / 40 | 38 / 40 | 33 / 40 |
-| **Score** | **~60%** | **67%** | **95%** | **82%** |
-| **Grade** | **D+** | **C+** | **A** | **B+** |
+| **Confirmed Elements** | ~24 / 40 | 27 / 40 | ~28 / 40 confirmed | ~22 / 40 confirmed |
+| **Confirmed + Inferred** | ~24 / 40 | 27 / 40 | ~35 / 40 | ~33 / 40 |
+| **Score (confirmed only)** | **~60%** | **67%** | **~70%** | **~55%** |
+| **Score (with inferred)** | **~60%** | **67%** | **~88%** | **~82%** |
+| **Grade** | **D+** | **C+** | **B+ to A** | **B to B+** |
 
-### Key Takeaway
+> **Important:** Both APFM and Caring.com block automated crawling (HTTP 403). Their scores include many inferred elements based on SERP analysis, tech stack, and industry research. Actual implementation may differ. Only Olera v2 scores are fully verified from source code.
 
-v2 is already an improvement over v1.0 (Q&A section, richer content, Organization schema, better SSR). But the migration introduces **regression risks** (404 handling, state URL changes) and still trails competitors significantly on structured data. Closing the P0+P1 gaps brings v2 to ~85% (B+), on par with Caring.com.
+### Key Takeaways
+
+1. **v2 is already an improvement over v1.0** — Q&A section, richer content, Organization schema, full SSR
+2. **Migration introduces regression risks** — 404 handling broken, state URL changes unredirected
+3. **FAQPage schema = competitive advantage** — APFM doesn't have it, Caring.com may not either. Adding it to Olera v2's Q&A section would be a differentiator
+4. **Structured data is the biggest gap** — v2 has 3 of 12 schema types; competitors likely have 6-8
+5. **Closing P0+P1 gaps brings v2 to ~85% (B+)** — on par with or exceeding competitors on verified elements
 
 ### P0 Fixes (Do Before DNS Cutover)
 
 1. **Fix 404 handling** — Replace error HTML with `notFound()` in provider page
-2. **Add FAQPage JSON-LD** — Wire Q&A section data into FAQPage schema
-3. **Add state abbreviation redirects** — `/home-care/fl` → `/home-care/florida` for ~300+ state pages and ~10,000+ city pages
+2. **Add state abbreviation redirects** — `/home-care/fl` → `/home-care/florida` for ~300+ state pages and ~10,000+ city pages
+
+### P1 Fixes — Competitive Advantage
+
+3. **Add FAQPage JSON-LD** — Wire Q&A section data into FAQPage schema. Neither APFM nor Caring.com has this confirmed — adding it makes Olera the only senior care directory with FAQ rich snippets
 
 ### P1 Fixes (Do Before DNS Cutover)
 

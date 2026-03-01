@@ -124,7 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     while (hasMore) {
       const { data: providers } = await supabase
         .from("olera-providers")
-        .select("provider_id")
+        .select("provider_id, slug")
         .or("deleted.is.null,deleted.eq.false")
         .range(offset, offset + BATCH_SIZE - 1);
 
@@ -135,7 +135,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       for (const provider of providers) {
         entries.push({
-          url: `${SITE_URL}/provider/${provider.provider_id}`,
+          url: `${SITE_URL}/provider/${provider.slug || provider.provider_id}`,
           lastModified: new Date(),
           changeFrequency: "weekly",
           priority: 0.7,

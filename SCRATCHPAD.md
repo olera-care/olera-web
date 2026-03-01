@@ -13,18 +13,20 @@
   - Plan: `plans/homepage-refactor-plan.md`
   - Notion: P1 — "Section-by-Section Homepage Refactor"
 
-- **v1.0 → v2.0 Migration Playbook** (branch: `claude/notion-action-items-1FXqC`) — IN PROGRESS
-  - Code phases 1-4 merged (PR #53, branch `swift-faraday`)
+- **v1.0 → v2.0 Migration Playbook** (branch: `bold-gates`, originally `claude/notion-action-items-1FXqC`) — IN PROGRESS
+  - Code phases 1-4 merged (PR #53, branch `swift-faraday`). Playbook merged as PR #80.
   - **Playbook doc:** `docs/migration-playbook.md` — comprehensive SEO report card, route inventory, DNS plan
-  - **TODO (next session with Notion MCP):** Paste the SEO report card tables from `docs/migration-playbook.md` into the Notion task "Olera v1.0 → v2.0 Migration Playbook (v2 — Abbreviated)". The tables are ready — just need Notion MCP access to write them.
-  - **Key findings from this session (2026-03-01):**
-    - Provider page SEO score: 67% (C+) vs APFM 95% (A), Caring.com 82% (B+)
-    - P0 gaps: 404 handling (returns 200), FAQPage schema missing, state abbrev redirects missing
-    - v1.0 uses 2-letter state abbreviations (`/fl`) — v2 uses full names (`/florida`). ~10,300 pages need redirects
-    - v1.0 has 49 route patterns (from XFive CSVs at `glad-goodall` branch: `redirects.csv`, `routes-clean.csv`)
-    - Sanity CMS has 66 editorial articles + 7 press articles needing migration
-    - DNS cutover: zero-downtime via `vercel alias set` (Cloudflare proxy must be gray cloud)
-    - XFive CSVs analyzed: `redirects.csv` (13 internal redirects), `routes-clean.csv` (49 routes)
+  - **Key discovery (2026-03-01 session 27):**
+    - **olera.care is still running v1.0** — DNS cutover has NOT happened yet. v2.0 is on staging.
+    - **provider_id is 7-char alphanumeric** (e.g., `r4HIF35`) — NOT human-readable. Added `slug` column with `{name}-{state}` format. SQL migration `007_provider_slugs.sql` ready to run.
+    - SEO score improved from 67% (C+) to **75% (B-)** after P0 fixes
+  - **P0 fixes completed (2026-03-01):**
+    - ✅ Fix 404 handling: `notFound()` replaces error HTML in provider page
+    - ✅ State abbreviation redirects: middleware 301s `/fl` → `/florida` for all categories
+    - ✅ Pagination suffix: middleware strips `/page/{n}` from v1.0 URLs
+  - **FAQPage JSON-LD added (2026-03-01 session 28):** Server-side Q&A fetch + FAQPage schema emitted when answered questions exist
+  - **Notion playbook updated (2026-03-01):** Status callout, Phase 1/4/5 items, Guardrails section corrected
+  - **Remaining P1 work:** Review/GeoCoordinates/MedicalBusiness schema, `next/image` migration, editorial content redirects, Tier 1 static redirects
   - Architecture research archived to `archive/SCRATCHPAD-2026-02.md`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
@@ -40,19 +42,9 @@
 
 ## Blocked / Needs Input
 
-- **CRITICAL — Migration Playbook → Notion (Multi-Session Guide):**
-  The Notion task "Olera v1.0 → v2.0 Migration Playbook (v2 — Abbreviated)" must be updated to serve as the **living multi-session guide** for TJ, the team, AND future Claude sessions. This is the single most important documentation task.
-  - **Source document:** `docs/migration-playbook.md` — contains ALL the content to put into Notion
-  - **What goes in Notion:** The FULL playbook (not just the SEO report card), including:
-    1. Provider Page SEO Report Card (4-column: v1.0 / v2 / APFM / Caring.com)
-    2. v1.0 Route Inventory (49 routes mapped to v2 status)
-    3. DNS Zero-Downtime Cutover Plan (9 steps)
-    4. CMS & Editorial Content Migration Strategy
-    5. Top Non-Provider Pages (needs Search Console export)
-    6. Migration Readiness Checklist (14 pre-cutover + 6 post-cutover tasks, with dates)
-  - **Action:** TJ will do this on local machine with Notion MCP access
-  - **Dates:** Fill in target dates for each checklist item once TJ decides timeline
+- ~~**Migration Playbook → Notion:**~~ ✅ Done (2026-03-01) — updated via Notion MCP
 - **Top 100 pages from Search Console:** TJ needs to export from Google Search Console (Performance → Pages → exclude `/provider/` → sort by clicks → top 100)
+- **Editorial content redirect decision:** `/caregiver-support/*`, `/research-and-press/*`, `/caregiver-forum/*` — TJ to decide redirect strategy (these v1.0 routes have no v2 equivalent yet)
 
 ---
 
@@ -96,6 +88,64 @@
 ---
 
 ## Session Log
+
+### 2026-03-01 (Session 28) — FAQPage JSON-LD + Notion Update + Corrections
+
+**Branch:** `bold-gates`
+
+**What:** Added FAQPage structured data to provider pages (P1 competitive differentiator), updated Notion migration playbook, corrected two false claims from session 27.
+
+**Corrections made:**
+- DNS cutover has NOT happened — olera.care is still running v1.0 (was falsely marked as done)
+- provider_id is 7-char alphanumeric, not human-readable (was falsely claimed as slugs)
+- Fixed in: `docs/migration-playbook.md`, `SCRATCHPAD.md`, Notion page (4 sections updated)
+
+**FAQPage JSON-LD implementation:**
+- Server-side fetch of answered questions from `provider_questions` table using service client
+- FAQPage schema only emitted when real Q&A pairs with non-empty answers exist
+- Questions passed to QASectionV2 as initial data (SSR-visible for crawlers)
+- Graceful degradation if service client unavailable
+
+**Notion playbook updates:**
+- Added status callout at top with all findings
+- Updated Phase 1 (slug parity), Phase 4 (redirects done), Phase 5 (DNS not done), Guardrails
+- Footer updated with edit date
+
+**Other:**
+- Created `/explain` slash command for plain-English technical guidance
+- SQL migration `007_provider_slugs.sql` still needs to be run manually in Supabase
+
+**Files modified:** `app/provider/[slug]/page.tsx`, `docs/migration-playbook.md`, `SCRATCHPAD.md`, `.claude/commands/explain.md`
+
+**Commits:** `c3462eb`, `b42611a`
+
+---
+
+### 2026-03-01 (Session 27) — Migration P0 Fixes
+
+**Branch:** `bold-gates`
+
+**What:** Investigated provider slug format compatibility (P0 #0), then implemented P0 SEO fixes for the v1.0 → v2.0 migration.
+
+**Key discoveries:**
+- **olera.care is still running v1.0** — DNS cutover has NOT happened yet (corrected in session 28)
+- **`provider_id` is 7-char alphanumeric** (e.g., `r4HIF35`) — NOT human-readable. Added `slug` column (corrected in session 28)
+- Provider page was rendering error HTML without `notFound()` — fixed
+
+**Code changes:**
+- `app/provider/[slug]/page.tsx`: Import `notFound()`, replace error HTML div with `notFound()` call
+- `middleware.ts`: Added state abbreviation → full slug redirects (301) for all 51 states × all category routes, plus pagination suffix stripping
+
+**Playbook updates:**
+- Marked P0 #0, #1, #2 as complete in `docs/migration-playbook.md`
+- Updated SEO report card rows for 404 handling, state abbreviations, pagination
+- Updated overall score: 67% (C+) → 75% (B-)
+- Updated readiness checklist to reflect DNS cutover already completed
+- Updated key takeaways with new findings
+
+**Files modified:** `app/provider/[slug]/page.tsx`, `middleware.ts`, `docs/migration-playbook.md`, `SCRATCHPAD.md`
+
+---
 
 ### 2026-03-01 (Session 26) — v1.0 → v2.0 Migration Playbook
 

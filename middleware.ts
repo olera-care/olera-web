@@ -15,14 +15,78 @@ const V1_CATEGORY_SLUGS = new Set([
   "financial-legal-other-services",
 ]);
 
+// v2 canonical category slugs (subset of V1 that have real power pages)
+const V2_CATEGORY_SLUGS = new Set([
+  "assisted-living",
+  "memory-care",
+  "nursing-home",
+  "home-care",
+  "home-health-care",
+  "independent-living",
+]);
+
+// State abbreviation → URL slug (e.g. "FL" → "florida", "NY" → "new-york")
+const STATE_ABBREV_TO_SLUG: Record<string, string> = {
+  AL: "alabama", AK: "alaska", AZ: "arizona", AR: "arkansas",
+  CA: "california", CO: "colorado", CT: "connecticut", DE: "delaware",
+  FL: "florida", GA: "georgia", HI: "hawaii", ID: "idaho",
+  IL: "illinois", IN: "indiana", IA: "iowa", KS: "kansas",
+  KY: "kentucky", LA: "louisiana", ME: "maine", MD: "maryland",
+  MA: "massachusetts", MI: "michigan", MN: "minnesota", MS: "mississippi",
+  MO: "missouri", MT: "montana", NE: "nebraska", NV: "nevada",
+  NH: "new-hampshire", NJ: "new-jersey", NM: "new-mexico", NY: "new-york",
+  NC: "north-carolina", ND: "north-dakota", OH: "ohio", OK: "oklahoma",
+  OR: "oregon", PA: "pennsylvania", RI: "rhode-island", SC: "south-carolina",
+  SD: "south-dakota", TN: "tennessee", TX: "texas", UT: "utah",
+  VT: "vermont", VA: "virginia", WA: "washington", WV: "west-virginia",
+  WI: "wisconsin", WY: "wyoming", DC: "district-of-columbia",
+};
+
+/** Check if a URL segment is a 2-letter state abbreviation (case-insensitive) */
+function resolveStateAbbrev(segment: string): string | null {
+  return STATE_ABBREV_TO_SLUG[segment.toUpperCase()] ?? null;
+}
+
 export async function middleware(request: NextRequest) {
-  // ── Tier 2: v1.0 provider canonical URLs ──
-  // /[category]/[state]/[city]/[slug] → /provider/[slug]
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
+
+  // ── v1.0 provider canonical URLs ──
+  // /[category]/[state]/[city]/[slug] → /provider/[slug]
   if (segments.length === 4 && V1_CATEGORY_SLUGS.has(segments[0])) {
     const providerSlug = segments[3];
     const url = request.nextUrl.clone();
     url.pathname = `/provider/${providerSlug}`;
+    return NextResponse.redirect(url, 301);
+  }
+
+  // ── v1.0 state abbreviation redirects ──
+  // /[category]/[stateAbbrev] → /[category]/[stateSlug]
+  // /[category]/[stateAbbrev]/[city] → /[category]/[stateSlug]/[city]
+  if (
+    (segments.length === 2 || segments.length === 3) &&
+    V2_CATEGORY_SLUGS.has(segments[0])
+  ) {
+    const stateSlug = resolveStateAbbrev(segments[1]);
+    if (stateSlug && segments[1] !== stateSlug) {
+      const url = request.nextUrl.clone();
+      url.pathname =
+        segments.length === 3
+          ? `/${segments[0]}/${stateSlug}/${segments[2]}`
+          : `/${segments[0]}/${stateSlug}`;
+      return NextResponse.redirect(url, 301);
+    }
+  }
+
+  // ── v1.0 pagination suffix ──
+  // /[category]/[state]/[city]/page/[n] → /[category]/[state]/[city]
+  if (
+    segments.length === 5 &&
+    V1_CATEGORY_SLUGS.has(segments[0]) &&
+    segments[3] === "page"
+  ) {
+    const stateSlug = resolveStateAbbrev(segments[1]) ?? segments[1];
+    const url = request.nextUrl.clone();
+    url.pathname = `/${segments[0]}/${stateSlug}/${segments[2]}`;
     return NextResponse.redirect(url, 301);
   }
 

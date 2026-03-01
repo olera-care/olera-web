@@ -40,7 +40,18 @@
 
 ## Blocked / Needs Input
 
-- **Migration Playbook → Notion:** SEO report card tables are ready in `docs/migration-playbook.md`. Need Notion MCP to write them to the task. TJ will resume this on local machine with MCP access.
+- **CRITICAL — Migration Playbook → Notion (Multi-Session Guide):**
+  The Notion task "Olera v1.0 → v2.0 Migration Playbook (v2 — Abbreviated)" must be updated to serve as the **living multi-session guide** for TJ, the team, AND future Claude sessions. This is the single most important documentation task.
+  - **Source document:** `docs/migration-playbook.md` — contains ALL the content to put into Notion
+  - **What goes in Notion:** The FULL playbook (not just the SEO report card), including:
+    1. Provider Page SEO Report Card (4-column: v1.0 / v2 / APFM / Caring.com)
+    2. v1.0 Route Inventory (49 routes mapped to v2 status)
+    3. DNS Zero-Downtime Cutover Plan (9 steps)
+    4. CMS & Editorial Content Migration Strategy
+    5. Top Non-Provider Pages (needs Search Console export)
+    6. Migration Readiness Checklist (14 pre-cutover + 6 post-cutover tasks, with dates)
+  - **Action:** TJ will do this on local machine with Notion MCP access
+  - **Dates:** Fill in target dates for each checklist item once TJ decides timeline
 - **Top 100 pages from Search Console:** TJ needs to export from Google Search Console (Performance → Pages → exclude `/provider/` → sort by clicks → top 100)
 
 ---

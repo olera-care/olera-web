@@ -10,6 +10,7 @@
 - **Homepage Section-by-Section Refactor** (branch: `glad-goodall`) — IN PROGRESS
   - Phase 1-2 done: monolith → 5 sections, reordered, redundancy removed
   - Phase 3 done: all sections polished — hero, top providers, explore care, community, CTA
+  - Phase 4: NIA "Proudly supported by" badge added to hero, within container bounds
   - Social proof trust strip removed (no value). Bento grid → uniform card grid. Community → editorial + flat links
   - Plan: `plans/homepage-refactor-plan.md`
   - Notion: P1 — "Section-by-Section Homepage Refactor"
@@ -49,6 +50,7 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-02-28 | NIA badge inside container, not viewport edge | Aligns with content bounds of lower sections; smooth bottom gradient for legibility |
 | 2026-02-28 | Uniform grid over bento for Explore Care | Equal-weight cards feel less template-y; bento asymmetry was visual noise |
 | 2026-02-28 | Remove social proof trust strip | Fake numbers add no trust; section added no user value |
 | 2026-02-28 | Community as editorial + flat link rows | Perena-style flat rows over boxed cards; docuseries gets hero treatment, community links are quiet and scannable |
@@ -72,6 +74,23 @@
 ---
 
 ## Session Log
+
+### 2026-02-28 (Session 25) — NIA Badge on Hero
+
+**Branch:** `glad-goodall`
+
+**What:** Added "Proudly supported by National Institute on Aging" badge to hero section. Iterated through multiple rounds:
+- Started with small frosted-glass pill → too small/invisible
+- Switched to icon-only NIH logo + spelled-out text (matching v1.0 site)
+- Added smooth bottom gradient for legibility over bright photo areas
+- Moved badge inside `max-w-[1312px]` container so it aligns with section content bounds
+- Hidden on mobile (`hidden sm:block`) to avoid crowding search bar
+
+**Files:** `components/home/HeroSection.tsx`, `public/images/nia-logo.png`
+
+**Commits:** `57e9550`, `bc20faf`, `7c0cb97`, `28035c5`, `f2374c2`, `c2042b9`
+
+---
 
 ### 2026-02-28 (Session 24) — Homepage Polish Continued
 

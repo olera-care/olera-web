@@ -7,96 +7,102 @@
 
 ## 1. Provider Page SEO Report Card
 
-Every SEO element on the provider detail page, with status and competitor comparison.
+Every SEO element on the provider detail page, comparing Olera v1.0 (current live), Olera v2 (migration target), and competitors.
+
+> **Note:** Olera v1.0 assessments are based on the XFive-built Rails+React stack analysis and should be verified against the live site. Items marked with `*` are estimates.
 
 ### Meta & Head Tags
 
-| SEO Element | Olera v2 | APFM | Caring.com | Priority |
-|---|---|---|---|---|
-| Dynamic title tag (unique per provider) | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Dynamic meta description (unique per provider) | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Canonical URL | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Robots meta tag (per-page) | ⚠️ Global only | ✅ Yes | ✅ Yes | P3 |
-| Viewport meta tag | ✅ Via Next.js | ✅ Yes | ✅ Yes | — |
-| Language / locale declaration | ✅ `lang="en"` | ✅ Yes | ✅ Yes | — |
+| SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
+|---|---|---|---|---|---|
+| Dynamic title tag (unique per provider) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| Dynamic meta description (unique per provider) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| Canonical URL | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| Robots meta tag (per-page) | ✅ Yes* | ⚠️ Global only | ✅ Yes | ✅ Yes | P3 |
+| Viewport meta tag | ✅ Yes | ✅ Via Next.js | ✅ Yes | ✅ Yes | — |
+| Language / locale declaration | ✅ Yes* | ✅ `lang="en"` | ✅ Yes | ✅ Yes | — |
 
 ### Open Graph & Social
 
-| SEO Element | Olera v2 | APFM | Caring.com | Priority |
-|---|---|---|---|---|
-| og:title | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| og:description | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| og:image (absolute URL) | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| og:url | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| og:type | ✅ "website" | ✅ "business.business" | ✅ "website" | — |
-| og:site_name | ✅ "Olera" | ✅ Yes | ✅ Yes | — |
-| twitter:card | ✅ summary_large_image | ✅ Yes | ✅ Yes | — |
-| twitter:title | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| twitter:description | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| twitter:image | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
+|---|---|---|---|---|---|
+| og:title | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| og:description | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| og:image (absolute URL) | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| og:url | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| og:type | ✅ Yes* | ✅ "website" | ✅ "business.business" | ✅ "website" | — |
+| og:site_name | ✅ Yes* | ✅ "Olera" | ✅ Yes | ✅ Yes | — |
+| twitter:card | ✅ Yes* | ✅ summary_large_image | ✅ Yes | ✅ Yes | — |
+| twitter:title | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| twitter:description | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| twitter:image | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
 
 ### Structured Data (JSON-LD)
 
-| SEO Element | Olera v2 | APFM | Caring.com | Priority |
-|---|---|---|---|---|
-| LocalBusiness schema | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| BreadcrumbList schema | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| AggregateRating schema | ✅ Yes (in LocalBusiness) | ✅ Yes | ✅ Yes | — |
-| FAQPage schema (for Q&A section) | ❌ **Missing** | ✅ Yes | ✅ Yes | **P0** |
-| Individual Review schema | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
-| Organization / Publisher schema | ✅ Global in layout.tsx | ✅ Yes | ✅ Yes | — |
-| PriceSpecification / Offer schema | ❌ **Missing** | ✅ Yes | ❌ No | **P1** |
-| ImageObject schema | ❌ Missing | ✅ Yes | ❌ No | P2 |
-| VideoObject schema | N/A (no videos) | ✅ Yes | ❌ No | P3 |
-| MedicalBusiness subtype | ❌ Uses generic LocalBusiness | ✅ MedicalBusiness | ❌ LocalBusiness | **P1** |
-| Person schema (staff/manager) | ❌ **Missing** | ✅ Yes | ❌ No | P2 |
-| GeoCoordinates | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
+| SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
+|---|---|---|---|---|---|
+| LocalBusiness schema | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| BreadcrumbList schema | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| AggregateRating schema | ✅ Olera Score | ✅ Yes (in LocalBusiness) | ✅ Yes | ✅ Yes | — |
+| FAQPage schema (for Q&A section) | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P0** |
+| Individual Review schema | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
+| Organization / Publisher schema | ❌ No* | ✅ Global in layout.tsx | ✅ Yes | ✅ Yes | — |
+| PriceSpecification / Offer schema | ❌ No* | ❌ **Missing** | ✅ Yes | ❌ No | **P1** |
+| ImageObject schema | ❌ No* | ❌ Missing | ✅ Yes | ❌ No | P2 |
+| VideoObject schema | ❌ No | N/A (no videos) | ✅ Yes | ❌ No | P3 |
+| MedicalBusiness subtype | ❌ No* | ❌ Generic LocalBusiness | ✅ MedicalBusiness | ❌ LocalBusiness | **P1** |
+| Person schema (staff/manager) | ❌ No* | ❌ **Missing** | ✅ Yes | ❌ No | P2 |
+| GeoCoordinates | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
 
 ### HTML & Content Quality
 
-| SEO Element | Olera v2 | APFM | Caring.com | Priority |
-|---|---|---|---|---|
-| Single H1 tag | ✅ Provider name | ✅ Yes | ✅ Yes | — |
-| Proper heading hierarchy (H1→H2→H3) | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Semantic HTML5 elements (nav, main, section) | ⚠️ Partial — has nav, lacks article/section | ✅ Full | ✅ Full | P2 |
-| Breadcrumb navigation (visual) | ✅ With aria-label | ✅ Yes | ✅ Yes | — |
-| Meaningful image alt text | ⚠️ Partial — gallery good, some icons missing | ✅ Full | ✅ Full | P2 |
-| Internal cross-links (category/state/city) | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| User-generated reviews displayed | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Q&A content displayed | ✅ QASectionV2 | ✅ Yes | ✅ Yes | — |
-| Unique content depth (~word count) | ✅ ~2,000–3,500 words | ✅ ~3,000+ | ✅ ~2,500+ | — |
+| SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
+|---|---|---|---|---|---|
+| Single H1 tag | ✅ Yes | ✅ Provider name | ✅ Yes | ✅ Yes | — |
+| Proper heading hierarchy (H1→H2→H3) | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| Semantic HTML5 elements (nav, main, section) | ⚠️ React SPA* | ⚠️ Partial (nav only) | ✅ Full | ✅ Full | P2 |
+| Breadcrumb navigation (visual) | ✅ Yes | ✅ With aria-label | ✅ Yes | ✅ Yes | — |
+| Meaningful image alt text | ⚠️ Partial* | ⚠️ Partial (gallery good) | ✅ Full | ✅ Full | P2 |
+| Internal cross-links (category/state/city) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| User-generated reviews displayed | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| Q&A content displayed | ❌ No (v2 feature) | ✅ QASectionV2 | ✅ Yes | ✅ Yes | — |
+| Unique content depth (~word count) | ⚠️ ~1,000–2,000* | ✅ ~2,000–3,500 | ✅ ~3,000+ | ✅ ~2,500+ | — |
 
 ### Technical SEO
 
-| SEO Element | Olera v2 | APFM | Caring.com | Priority |
-|---|---|---|---|---|
-| Proper 404 status code | ❌ **Returns 200 with error HTML** | ✅ Proper 404 | ✅ Proper 404 | **P0** |
-| Included in sitemap.xml | ✅ 39K+ providers, weekly | ✅ Yes | ✅ Yes | — |
-| robots.txt allows crawling | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Server-side rendered | ✅ Full SSR | ✅ Yes | ✅ Yes | — |
-| Image optimization (next/image, webp, srcset) | ❌ **Plain `<img>` tags** | ✅ Optimized | ✅ Optimized | **P1** |
-| Lazy loading below-fold images | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
-| Preconnect / preload hints | ❌ Missing | ✅ Yes | ✅ Yes | P2 |
-| Core Web Vitals optimized | ⚠️ Untested | ✅ Yes | ✅ Yes | P2 |
+| SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
+|---|---|---|---|---|---|
+| Proper 404 status code | ✅ Rails default* | ❌ **Returns 200** | ✅ Proper 404 | ✅ Proper 404 | **P0** |
+| Included in sitemap.xml | ✅ 22K+ providers | ✅ 39K+ providers | ✅ Yes | ✅ Yes | — |
+| robots.txt allows crawling | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
+| Server-side rendered | ⚠️ Rails SSR + React hydration | ✅ Full Next.js SSR | ✅ Yes | ✅ Yes | — |
+| Image optimization (webp, srcset) | ❌ Standard `<img>` | ❌ **Plain `<img>` tags** | ✅ Optimized | ✅ Optimized | **P1** |
+| Lazy loading below-fold images | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
+| Preconnect / preload hints | ❌ No* | ❌ Missing | ✅ Yes | ✅ Yes | P2 |
+| Core Web Vitals optimized | ⚠️ Unknown | ⚠️ Untested | ✅ Yes | ✅ Yes | P2 |
 
 ### URL & Redirect Infrastructure
 
-| SEO Element | Olera v2 | APFM | Caring.com | Priority |
-|---|---|---|---|---|
-| Clean URL structure | ✅ `/provider/{slug}` | ✅ Yes | ✅ Yes | — |
-| v1.0 provider URLs → v2 (301) | ✅ Middleware handles 4-segment | ✅ N/A | ✅ N/A | — |
-| v1.0 state abbreviation URLs → v2 slugs | ❌ **Not configured** | N/A | N/A | **P0** |
-| Pagination URL migration (`/page/{n}`) | ❌ **Not configured** | N/A | N/A | **P1** |
-| Trailing slash normalization | ✅ Via Next.js defaults | ✅ Yes | ✅ Yes | — |
-| Category alias redirects (permanent 308) | ⚠️ Uses 307 temporary | N/A | N/A | **P1** |
+| SEO Element | Olera v1.0 | Olera v2 | APFM | Caring.com | v2 Priority |
+|---|---|---|---|---|---|
+| Clean URL structure | ✅ `/provider/{slug}` | ✅ `/provider/{slug}` | ✅ Yes | ✅ Yes | — |
+| v1.0 provider URLs → v2 (301) | N/A (is v1.0) | ✅ Middleware 4-segment | N/A | N/A | — |
+| v1.0 state abbreviation URLs → v2 slugs | N/A (is v1.0) | ❌ **Not configured** | N/A | N/A | **P0** |
+| Pagination URL migration (`/page/{n}`) | N/A (is v1.0) | ❌ **Not configured** | N/A | N/A | **P1** |
+| Trailing slash normalization | ✅ Rails default | ✅ Via Next.js defaults | ✅ Yes | ✅ Yes | — |
+| Category alias redirects (permanent 308) | N/A (is v1.0) | ⚠️ Uses 307 temporary | N/A | N/A | **P1** |
 
 ### Overall Score
 
-| Metric | Olera v2 | APFM | Caring.com |
-|---|---|---|---|
-| **Elements Fully Implemented** | 27 / 40 | 38 / 40 | 33 / 40 |
-| **Score** | **67%** | **95%** | **82%** |
-| **Grade** | **C+** | **A** | **B+** |
+| Metric | Olera v1.0 | Olera v2 | APFM | Caring.com |
+|---|---|---|---|---|
+| **Elements Fully Implemented** | ~24 / 40 | 27 / 40 | 38 / 40 | 33 / 40 |
+| **Score** | **~60%** | **67%** | **95%** | **82%** |
+| **Grade** | **D+** | **C+** | **A** | **B+** |
+
+### Key Takeaway
+
+v2 is already an improvement over v1.0 (Q&A section, richer content, Organization schema, better SSR). But the migration introduces **regression risks** (404 handling, state URL changes) and still trails competitors significantly on structured data. Closing the P0+P1 gaps brings v2 to ~85% (B+), on par with Caring.com.
 
 ### P0 Fixes (Do Before DNS Cutover)
 

@@ -24,8 +24,9 @@
     - ✅ Fix 404 handling: `notFound()` replaces error HTML in provider page
     - ✅ State abbreviation redirects: middleware 301s `/fl` → `/florida` for all categories
     - ✅ Pagination suffix: middleware strips `/page/{n}` from v1.0 URLs
-  - **Remaining P1 work:** FAQPage JSON-LD, Review/GeoCoordinates/MedicalBusiness schema, `next/image` migration, editorial content redirects
-  - **TODO (Notion MCP):** Paste playbook into Notion task (TJ on local machine)
+  - **FAQPage JSON-LD added (2026-03-01 session 28):** Server-side Q&A fetch + FAQPage schema emitted when answered questions exist
+  - **Notion playbook updated (2026-03-01):** Status callout, Phase 1/4/5 items, Guardrails section corrected
+  - **Remaining P1 work:** Review/GeoCoordinates/MedicalBusiness schema, `next/image` migration, editorial content redirects, Tier 1 static redirects
   - Architecture research archived to `archive/SCRATCHPAD-2026-02.md`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
@@ -41,7 +42,7 @@
 
 ## Blocked / Needs Input
 
-- **Migration Playbook → Notion:** Paste updated `docs/migration-playbook.md` into Notion task (TJ on local machine with Notion MCP)
+- ~~**Migration Playbook → Notion:**~~ ✅ Done (2026-03-01) — updated via Notion MCP
 - **Top 100 pages from Search Console:** TJ needs to export from Google Search Console (Performance → Pages → exclude `/provider/` → sort by clicks → top 100)
 - **Editorial content redirect decision:** `/caregiver-support/*`, `/research-and-press/*`, `/caregiver-forum/*` — TJ to decide redirect strategy (these v1.0 routes have no v2 equivalent yet)
 
@@ -88,6 +89,38 @@
 
 ## Session Log
 
+### 2026-03-01 (Session 28) — FAQPage JSON-LD + Notion Update + Corrections
+
+**Branch:** `bold-gates`
+
+**What:** Added FAQPage structured data to provider pages (P1 competitive differentiator), updated Notion migration playbook, corrected two false claims from session 27.
+
+**Corrections made:**
+- DNS cutover has NOT happened — olera.care is still running v1.0 (was falsely marked as done)
+- provider_id is 7-char alphanumeric, not human-readable (was falsely claimed as slugs)
+- Fixed in: `docs/migration-playbook.md`, `SCRATCHPAD.md`, Notion page (4 sections updated)
+
+**FAQPage JSON-LD implementation:**
+- Server-side fetch of answered questions from `provider_questions` table using service client
+- FAQPage schema only emitted when real Q&A pairs with non-empty answers exist
+- Questions passed to QASectionV2 as initial data (SSR-visible for crawlers)
+- Graceful degradation if service client unavailable
+
+**Notion playbook updates:**
+- Added status callout at top with all findings
+- Updated Phase 1 (slug parity), Phase 4 (redirects done), Phase 5 (DNS not done), Guardrails
+- Footer updated with edit date
+
+**Other:**
+- Created `/explain` slash command for plain-English technical guidance
+- SQL migration `007_provider_slugs.sql` still needs to be run manually in Supabase
+
+**Files modified:** `app/provider/[slug]/page.tsx`, `docs/migration-playbook.md`, `SCRATCHPAD.md`, `.claude/commands/explain.md`
+
+**Commits:** `c3462eb`, `b42611a`
+
+---
+
 ### 2026-03-01 (Session 27) — Migration P0 Fixes
 
 **Branch:** `bold-gates`
@@ -95,9 +128,9 @@
 **What:** Investigated provider slug format compatibility (P0 #0), then implemented P0 SEO fixes for the v1.0 → v2.0 migration.
 
 **Key discoveries:**
-- **olera.care is already running v2** — confirmed via `/_next/` paths and Sentry integration
-- **`provider_id` IS the human-readable slug** — tested `irn-home-care`, `home-instead-ca-whittier`, `ross-court-group-home` on live site; all resolve. No slug mapping needed.
-- Live site already returns HTTP 404 for non-existent providers (but code was wrong — rendering error HTML without `notFound()`)
+- **olera.care is still running v1.0** — DNS cutover has NOT happened yet (corrected in session 28)
+- **`provider_id` is 7-char alphanumeric** (e.g., `r4HIF35`) — NOT human-readable. Added `slug` column (corrected in session 28)
+- Provider page was rendering error HTML without `notFound()` — fixed
 
 **Code changes:**
 - `app/provider/[slug]/page.tsx`: Import `notFound()`, replace error HTML div with `notFound()` call

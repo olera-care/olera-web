@@ -354,16 +354,19 @@ export default function HeroSection() {
         </div>
       </div>
 
+      {/* Bottom-right gradient for NIA badge legibility */}
+      <div className="absolute bottom-0 right-0 w-2/3 h-1/3 bg-gradient-to-tl from-black/50 via-black/20 to-transparent z-[1] pointer-events-none" />
+
       {/* NIA badge — bottom right */}
-      <div className="absolute bottom-5 right-5 sm:bottom-8 sm:right-8 lg:bottom-10 lg:right-10 z-10 text-right">
-        <p className="text-sm sm:text-base font-medium text-white/80 mb-2">Proudly supported by</p>
-        <div className="flex items-center gap-2 justify-end">
+      <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8 z-10 text-right">
+        <p className="text-xs sm:text-sm font-medium text-white/90 mb-1">Proudly supported by</p>
+        <div className="flex items-center gap-1.5 justify-end">
           <img
             src="/images/nia-logo.png"
             alt="NIH"
-            className="h-8 sm:h-10 w-auto brightness-0 invert drop-shadow-lg"
+            className="h-7 sm:h-8 w-auto brightness-0 invert"
           />
-          <span className="text-white font-semibold text-base sm:text-lg lg:text-xl drop-shadow-lg">
+          <span className="text-white font-semibold text-sm sm:text-base">
             National Institute on Aging
           </span>
         </div>

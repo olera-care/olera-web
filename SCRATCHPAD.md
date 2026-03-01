@@ -114,12 +114,18 @@
 **Key discoveries:**
 - v1.0 state URLs use abbreviations (`/fl`), v2 uses full names (`/florida`) — ~10,300 pages need redirect middleware
 - v1.0 has forum (8 routes), relief network (4 routes), editorial content (66 articles) with no v2 equivalents
-- Provider page is 67% SEO-complete vs APFM's 95% — main gaps are structured data schemas
+- Provider page is 67% SEO-complete — main gaps are structured data schemas
+- APFM does NOT have FAQPage schema — adding it to Olera v2 = competitive advantage
+- **CRITICAL:** v1.0 uses human-readable provider slugs (`/provider/elara-caring-ct`), v2 uses `provider_id`. If these don't match, 39K+ URLs will 404.
 - XFive CSV analysis: `routes-clean.csv` (49 routes), `redirects.csv` (13 internal redirects)
+- v1.0 CMS is Sanity with 66 articles + 7 press articles needing migration
 
-**Pending:** Paste SEO report card into Notion (needs MCP access — TJ will do on local machine)
+**Pending:**
+- Update Notion task with full playbook (TJ will do on local machine with MCP access)
+- Verify provider_id format matches v1.0 slugs (P0 #0)
+- Export top 100 pages from Search Console
 
-**Commits:** `25f85d3`
+**Commits:** `25f85d3`, `15c5608`, `d285004`, `1221a38`, `1fb0f72`, `07d31a4`
 
 ---
 

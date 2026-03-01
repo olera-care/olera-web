@@ -146,6 +146,9 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   community_score?: number;
   value_score?: number;
   info_score?: number;
+  price_min?: number;
+  price_max?: number;
+  price_unit?: "HOUR" | "MONTH";
 }
 
 // --- Inline SVG icon components ---
@@ -423,6 +426,14 @@ export default async function ProviderPage({
         streetAddress: profile.address,
         addressLocality: profile.city,
         addressRegion: profile.state,
+        ...(profile.zip && { postalCode: profile.zip }),
+      },
+    }),
+    ...(profile.lat != null && profile.lng != null && {
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: profile.lat,
+        longitude: profile.lng,
       },
     }),
     ...(profile.phone && { telephone: profile.phone }),
@@ -437,6 +448,29 @@ export default async function ProviderPage({
       },
     }),
     ...(priceRange && { priceRange }),
+    ...(meta?.price_min != null && meta?.price_max != null && {
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        priceCurrency: "USD",
+        minPrice: meta.price_min,
+        maxPrice: meta.price_max,
+        unitText: meta.price_unit || "MONTH",
+      },
+    }),
+    ...(reviews.length > 0 && {
+      review: reviews.slice(0, 5).map((r) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: r.name },
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: r.rating,
+          bestRating: 5,
+          worstRating: 1,
+        },
+        datePublished: r.date,
+        reviewBody: r.comment,
+      })),
+    }),
   };
 
   // FAQPage schema — only emitted when real answered Q&A pairs exist

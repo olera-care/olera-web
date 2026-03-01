@@ -1,0 +1,14 @@
+source,destination,permanent
+/senior-care-planner,/caregiver-relief-network,true
+/caregiver-tips/:slug*,/caregiver-support/:slug*,true
+/provider/sign-up,/provider-portal/provider/new/sign-up,true
+/provider/sign-in,/providers?auth=provider-sign-in,true
+/provider/forgot-password,/providers?auth=provider-recovery,true
+/provider/resend-activation-link,/providers?auth=provider-resend-activation-link,true
+/provider/claim,/provider-portal/claim,true
+/provider/new/edit-basics,/provider-portal/provider/new/sign-up,true
+/provider/:slug/preview,/provider-portal/provider/:slug,true
+/provider/:slug/edit-basics,/provider-portal/provider/:slug?edit=overview,true
+/provider/:slug/edit-images,/provider-portal/provider/:slug?edit=gallery,true
+/provider/:slug/edit-prices,/provider-portal/provider/:slug?edit=pricing,true
+/provider/:slug/status,/provider-portal/provider/:slug,true

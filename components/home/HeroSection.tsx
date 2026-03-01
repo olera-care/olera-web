@@ -353,10 +353,12 @@ export default function HeroSection() {
           </div>
 
           {/* NIH badge — bottom-right of hero */}
-          <div className="absolute -bottom-4 right-0 hidden sm:flex items-center gap-1.5">
-            <div className="w-8 h-8 rounded bg-white/90 flex items-center justify-center text-[10px] font-bold text-gray-700">
-              NIH
-            </div>
+          <div className="absolute -bottom-4 right-0 hidden sm:flex items-center gap-2">
+            <img
+              src="/images/nia-logo.png"
+              alt="NIH"
+              className="h-8 w-auto brightness-0 invert opacity-90"
+            />
             <div className="text-white/90 leading-[1.2]">
               <span className="block text-white/50 text-[10px]">Proudly supported by</span>
               <span className="text-[11px] font-medium">National Institute on Aging</span>

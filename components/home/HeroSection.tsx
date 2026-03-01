@@ -133,8 +133,7 @@ export default function HeroSection() {
 
       {/* Content — left-aligned, bottom-anchored */}
       <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] px-4 sm:px-6 lg:px-8 pb-10 sm:pb-14 lg:pb-16">
-        <div className="max-w-[1312px] mx-auto w-full">
-          <div className="flex items-end justify-between gap-8">
+        <div className="max-w-[1312px] mx-auto w-full relative">
           <div className="max-w-xl">
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-white">
               Find the right care<br />
@@ -353,26 +352,18 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* NIA badge — right-aligned within container */}
-          <div className="hidden sm:block text-right flex-shrink-0">
-            <p className="text-xs sm:text-sm font-medium text-white/90 mb-1">Proudly supported by</p>
-            <div className="flex items-center gap-1.5 justify-end">
-              <img
-                src="/images/nia-logo.png"
-                alt="NIH"
-                className="h-7 sm:h-8 w-auto brightness-0 invert"
-              />
-              <span className="text-white font-semibold text-sm sm:text-base whitespace-nowrap">
-                National Institute on Aging
-              </span>
+          {/* NIH badge — bottom-right of hero */}
+          <div className="absolute -bottom-6 right-0 hidden sm:flex items-center gap-1">
+            <div className="w-7 h-7 rounded bg-white/90 flex items-center justify-center text-[9px] font-bold text-gray-700">
+              NIH
             </div>
-          </div>
+            <div className="text-white/90 leading-[1.1]">
+              <span className="block text-white/50 text-[9px]">Proudly supported by</span>
+              <span className="text-[10px] font-medium">National Institute on Aging</span>
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Bottom gradient for NIA badge legibility */}
-      <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent z-[1] pointer-events-none" />
     </section>
   );
 }

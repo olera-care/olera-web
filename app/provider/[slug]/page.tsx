@@ -25,6 +25,7 @@ import {
   getCategoryServices,
   getSimilarProviders,
 } from "@/lib/provider-utils";
+import { getServiceClient } from "@/lib/admin";
 
 // ============================================================
 // Dynamic Metadata (SEO title, description, OG, canonical)
@@ -305,6 +306,26 @@ export default async function ProviderPage({
 
   const similarProviders = await getSimilarProviders(profile.category, profile.source_provider_id || profile.id, 3);
 
+  // Fetch answered Q&A pairs server-side (for FAQPage JSON-LD + initial render)
+  let answeredQuestions: { id: string; question: string; answer: string; asker_name: string; created_at: string }[] = [];
+  try {
+    const db = getServiceClient();
+    const { data: qaRows } = await db
+      .from("provider_questions")
+      .select("id, question, answer, asker_name, created_at")
+      .eq("provider_id", profile.slug)
+      .eq("is_public", true)
+      .in("status", ["approved", "answered"])
+      .not("answer", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (qaRows) {
+      answeredQuestions = qaRows.filter((q) => q.answer && q.answer.trim().length > 0);
+    }
+  } catch {
+    // Service client not available or table doesn't exist — degrade gracefully
+  }
+
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;
   const reviews = meta?.reviews || [];
@@ -418,6 +439,20 @@ export default async function ProviderPage({
     ...(priceRange && { priceRange }),
   };
 
+  // FAQPage schema — only emitted when real answered Q&A pairs exist
+  const faqJsonLd = answeredQuestions.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: answeredQuestions.map((q) => ({
+      "@type": "Question",
+      name: q.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: q.answer,
+      },
+    })),
+  } : null;
+
   return (
     <div className="min-h-screen">
       {/* Structured data */}
@@ -429,6 +464,12 @@ export default async function ProviderPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       {/* Section Navigation (appears on scroll) */}
       <SectionNav
@@ -677,6 +718,13 @@ export default async function ProviderPage({
                   providerId={profile.slug}
                   providerName={profile.display_name}
                   providerImage={images[0]}
+                  questions={answeredQuestions.map((q) => ({
+                    id: q.id,
+                    question: q.question,
+                    answer: q.answer,
+                    asker_name: q.asker_name,
+                    created_at: q.created_at,
+                  }))}
                 />
               </div>
 

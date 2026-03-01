@@ -13,8 +13,18 @@
   - Plan: `plans/homepage-refactor-plan.md`
   - Notion: P1 — "Section-by-Section Homepage Refactor"
 
-- **v1.0 → v2.0 Migration** (branch: `swift-faraday`) — IN PROGRESS
-  - Phase 1-3 complete. Phase 4: Unified browse+power page architecture
+- **v1.0 → v2.0 Migration Playbook** (branch: `claude/notion-action-items-1FXqC`) — IN PROGRESS
+  - Code phases 1-4 merged (PR #53, branch `swift-faraday`)
+  - **Playbook doc:** `docs/migration-playbook.md` — comprehensive SEO report card, route inventory, DNS plan
+  - **TODO (next session with Notion MCP):** Paste the SEO report card tables from `docs/migration-playbook.md` into the Notion task "Olera v1.0 → v2.0 Migration Playbook (v2 — Abbreviated)". The tables are ready — just need Notion MCP access to write them.
+  - **Key findings from this session (2026-03-01):**
+    - Provider page SEO score: 67% (C+) vs APFM 95% (A), Caring.com 82% (B+)
+    - P0 gaps: 404 handling (returns 200), FAQPage schema missing, state abbrev redirects missing
+    - v1.0 uses 2-letter state abbreviations (`/fl`) — v2 uses full names (`/florida`). ~10,300 pages need redirects
+    - v1.0 has 49 route patterns (from XFive CSVs at `glad-goodall` branch: `redirects.csv`, `routes-clean.csv`)
+    - Sanity CMS has 66 editorial articles + 7 press articles needing migration
+    - DNS cutover: zero-downtime via `vercel alias set` (Cloudflare proxy must be gray cloud)
+    - XFive CSVs analyzed: `redirects.csv` (13 internal redirects), `routes-clean.csv` (49 routes)
   - Architecture research archived to `archive/SCRATCHPAD-2026-02.md`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
@@ -30,7 +40,19 @@
 
 ## Blocked / Needs Input
 
-- (none)
+- **CRITICAL — Migration Playbook → Notion (Multi-Session Guide):**
+  The Notion task "Olera v1.0 → v2.0 Migration Playbook (v2 — Abbreviated)" must be updated to serve as the **living multi-session guide** for TJ, the team, AND future Claude sessions. This is the single most important documentation task.
+  - **Source document:** `docs/migration-playbook.md` — contains ALL the content to put into Notion
+  - **What goes in Notion:** The FULL playbook (not just the SEO report card), including:
+    1. Provider Page SEO Report Card (4-column: v1.0 / v2 / APFM / Caring.com)
+    2. v1.0 Route Inventory (49 routes mapped to v2 status)
+    3. DNS Zero-Downtime Cutover Plan (9 steps)
+    4. CMS & Editorial Content Migration Strategy
+    5. Top Non-Provider Pages (needs Search Console export)
+    6. Migration Readiness Checklist (14 pre-cutover + 6 post-cutover tasks, with dates)
+  - **Action:** TJ will do this on local machine with Notion MCP access
+  - **Dates:** Fill in target dates for each checklist item once TJ decides timeline
+- **Top 100 pages from Search Console:** TJ needs to export from Google Search Console (Performance → Pages → exclude `/provider/` → sort by clicks → top 100)
 
 ---
 
@@ -74,6 +96,38 @@
 ---
 
 ## Session Log
+
+### 2026-03-01 (Session 26) — v1.0 → v2.0 Migration Playbook
+
+**Branch:** `claude/notion-action-items-1FXqC`
+
+**What:** Deep exploration and documentation of the full migration from Olera v1.0 to v2.0. No code changes — pure research and planning.
+
+**Deliverables:**
+- `docs/migration-playbook.md` — 305-line comprehensive playbook with 6 sections
+- Provider page SEO report card: 40 elements audited vs APFM & Caring.com
+- Complete v1.0 route inventory (49 routes) mapped to v2 equivalents
+- DNS zero-downtime cutover plan (from XFive + Vercel docs)
+- CMS migration strategy outline (Sanity → TBD)
+- Pre/post-cutover readiness checklist (20 tasks)
+
+**Key discoveries:**
+- v1.0 state URLs use abbreviations (`/fl`), v2 uses full names (`/florida`) — ~10,300 pages need redirect middleware
+- v1.0 has forum (8 routes), relief network (4 routes), editorial content (66 articles) with no v2 equivalents
+- Provider page is 67% SEO-complete — main gaps are structured data schemas
+- APFM does NOT have FAQPage schema — adding it to Olera v2 = competitive advantage
+- **CRITICAL:** v1.0 uses human-readable provider slugs (`/provider/elara-caring-ct`), v2 uses `provider_id`. If these don't match, 39K+ URLs will 404.
+- XFive CSV analysis: `routes-clean.csv` (49 routes), `redirects.csv` (13 internal redirects)
+- v1.0 CMS is Sanity with 66 articles + 7 press articles needing migration
+
+**Pending:**
+- Update Notion task with full playbook (TJ will do on local machine with MCP access)
+- Verify provider_id format matches v1.0 slugs (P0 #0)
+- Export top 100 pages from Search Console
+
+**Commits:** `25f85d3`, `15c5608`, `d285004`, `1221a38`, `1fb0f72`, `07d31a4`
+
+---
 
 ### 2026-02-28 (Session 25) — Homepage Final Polish & PR
 

@@ -558,7 +558,7 @@ function SectionCard({
     <div className={`p-6 ${isEditing ? "bg-gray-50/50" : ""} transition-colors`}>
       {/* Header row */}
       <div className="flex items-center gap-2.5 mb-4">
-        <h3 className="text-[15px] font-display font-bold text-gray-900">{title}</h3>
+        <h3 className="text-lg font-display font-bold text-gray-900">{title}</h3>
         <SectionBadge status={status} />
         <button
           type="button"

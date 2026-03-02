@@ -638,7 +638,7 @@ function AccountRow({
     <div className="py-3.5 first:pt-0 last:pb-0">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
           {isEditing ? (
             isPassword ? (
               <p className="text-sm text-gray-500 mt-1">

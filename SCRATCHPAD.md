@@ -13,21 +13,11 @@
   - Plan: `plans/homepage-refactor-plan.md`
   - Notion: P1 — "Section-by-Section Homepage Refactor"
 
-- **v1.0 → v2.0 Migration Playbook** (branch: `bold-gates`, originally `claude/notion-action-items-1FXqC`) — IN PROGRESS
-  - Code phases 1-4 merged (PR #53, branch `swift-faraday`). Playbook merged as PR #80.
+- **v1.0 → v2.0 Migration Playbook** (branch: `seo/structured-data-p1`, originally `bold-gates`) — IN PROGRESS
   - **Playbook doc:** `docs/migration-playbook.md` — comprehensive SEO report card, route inventory, DNS plan
-  - **Key discovery (2026-03-01 session 27):**
-    - **olera.care is still running v1.0** — DNS cutover has NOT happened yet. v2.0 is on staging.
-    - **provider_id is 7-char alphanumeric** (e.g., `r4HIF35`) — NOT human-readable. Added `slug` column with `{name}-{state}` format. SQL migration `007_provider_slugs.sql` ready to run.
-    - SEO score: 67% (C+) → 75% (B-) after P0 fixes → **85% (B+)** after structured data
-  - **P0 fixes completed (2026-03-01):**
-    - ✅ Fix 404 handling: `notFound()` replaces error HTML in provider page
-    - ✅ State abbreviation redirects: middleware 301s `/fl` → `/florida` for all categories
-    - ✅ Pagination suffix: middleware strips `/page/{n}` from v1.0 URLs
-  - **FAQPage JSON-LD added (2026-03-01 session 28):** Server-side Q&A fetch + FAQPage schema emitted when answered questions exist
-  - **Notion playbook updated (2026-03-01):** Status callout, Phase 1/4/5 items, Guardrails section corrected
-  - **Structured data done (2026-03-01 session 29):** GeoCoordinates, PriceSpecification, Review schemas (PR #82). MedicalBusiness deferred (P3).
-  - **Remaining P1 work:** `next/image` migration, editorial content redirects, Tier 1 static redirects
+  - **SEO score: 67% (C+) → 75% (B-) → 85% (B+) → 90% (A-)**
+  - **All P1 SEO items done:** FAQPage (#81), Review/Geo/Price (#82), next/image, 308 aliases, redirects (#83)
+  - **Remaining:** `/research-and-press/*` redirect (TJ decision), `/caregiver-forum/*` (P2, TJ decision), auth redirects (`/account`, `/inbox`), MedicalBusiness (P3), P2 polish
   - Architecture research archived to `archive/SCRATCHPAD-2026-02.md`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
@@ -90,6 +80,30 @@
 ---
 
 ## Session Log
+
+### 2026-03-01 (Session 30) — P1 Redirect Fixes + Playbook Cleanup
+
+**Branch:** `seo/structured-data-p1`
+
+**What:** Implemented three P1 redirect fixes and cleaned up stale playbook entries. PR #83 opened targeting staging, merge analysis clean.
+
+**Redirect fixes:**
+- `/caregiver-support/*` → `/resources/*`: 3 rules (bare → hub, single-slug → passthrough, multi-segment → hub)
+- `/providers` → `/for-providers`: permanent 301
+- Category alias redirects: switched from `redirect()` (307) to `permanentRedirect()` (308) in all 3 category page levels
+
+**Playbook cleanup:**
+- Marked FAQPage (PR #81), Review/Geo/Price (PR #82) as done in P1 fixes list and readiness checklist
+- Updated takeaways: "structured data gap closed" (8 of 12 schemas), score 90% (A-)
+- Updated route inventory: caregiver-support and /providers rows now show ✅
+
+**Files modified:** `next.config.ts`, `app/[category]/page.tsx`, `app/[category]/[state]/page.tsx`, `app/[category]/[state]/[city]/page.tsx`, `docs/migration-playbook.md`, `SCRATCHPAD.md`
+
+**Commits:** `2455fbd`, `8fb3624`
+
+**PR:** #83 targeting staging — merge analysis clean, CI passing
+
+---
 
 ### 2026-03-01 (Session 29) — Rich Structured Data (GeoCoordinates + PriceSpecification + Review)
 

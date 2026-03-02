@@ -46,21 +46,9 @@ const CARE_NEED_OPTIONS = [
   "Personal Care", "Household Tasks", "Health Management",
   "Companionship", "Financial Help", "Memory Care", "Mobility Help",
 ];
-const LIVING_OPTIONS = [
-  "Lives alone", "Lives with family", "Lives with caregiver",
-  "Assisted living facility", "Other",
-];
 const SCHEDULE_OPTIONS = [
   "Mornings", "Afternoons", "Evenings", "Overnight", "Full-time", "Flexible",
 ];
-const LANGUAGE_OPTIONS = ["English", "Spanish", "French", "Mandarin", "Other"];
-
-function readLanguages(meta: FamilyMetadata): string[] {
-  const v = meta.language_preference;
-  if (Array.isArray(v)) return v;
-  if (typeof v === "string" && v) return [v];
-  return [];
-}
 
 // ── Main Component ──
 
@@ -94,10 +82,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
   const [timeline, setTimeline] = useState(meta.timeline || "");
   const [notes, setNotes] = useState(profile?.description || "");
   const [payments, setPayments] = useState<string[]>(meta.payment_methods || []);
-  const [living, setLiving] = useState(meta.living_situation || "");
   const [schedule, setSchedule] = useState(meta.schedule_preference || "");
   const [careLocation, setCareLocation] = useState(meta.care_location || "");
-  const [languages, setLanguages] = useState<string[]>(readLanguages(meta));
   const [about, setAbout] = useState(meta.about_situation || "");
 
   // Image upload
@@ -123,10 +109,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
     setTimeline(m.timeline || "");
     setNotes(profile.description || "");
     setPayments(m.payment_methods || []);
-    setLiving(m.living_situation || "");
     setSchedule(m.schedule_preference || "");
     setCareLocation(m.care_location || "");
-    setLanguages(readLanguages(m));
     setAbout(m.about_situation || "");
   }, [profile, userEmail]);
 
@@ -154,10 +138,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         timeline: timeline || undefined,
         payment_methods: payments.length > 0 ? payments : undefined,
         care_needs: careNeeds.length > 0 ? careNeeds : undefined,
-        living_situation: living || undefined,
         schedule_preference: schedule || undefined,
         care_location: careLocation || undefined,
-        language_preference: languages.length > 0 ? languages : undefined,
         about_situation: about || undefined,
       };
 
@@ -181,7 +163,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
     } finally {
       savingRef.current = false;
     }
-  }, [profile?.id, displayName, country, city, state, email, phone, contactPref, careRecipient, age, careTypes, careNeeds, timeline, notes, payments, living, schedule, careLocation, languages, about, refreshAccountData]);
+  }, [profile?.id, displayName, country, city, state, email, phone, contactPref, careRecipient, age, careTypes, careNeeds, timeline, notes, payments, schedule, careLocation, about, refreshAccountData]);
 
   saveToDbRef.current = saveToDb;
 
@@ -252,10 +234,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
       setTimeline(m.timeline || "");
       setNotes(profile.description || "");
       setPayments(m.payment_methods || []);
-      setLiving(m.living_situation || "");
       setSchedule(m.schedule_preference || "");
       setCareLocation(m.care_location || "");
-      setLanguages(readLanguages(m));
       setAbout(m.about_situation || "");
     }
     setEditingSection(null);
@@ -269,7 +249,7 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
   const timelineDisplay = meta.timeline ? TIMELINE_LABELS[meta.timeline] || meta.timeline : null;
 
   const combineSectionStatus = (): SectionStatus => {
-    const statuses = [sectionStatus[4], sectionStatus[5], sectionStatus[6]].filter(Boolean);
+    const statuses = [sectionStatus[5], sectionStatus[6]].filter(Boolean);
     if (statuses.length === 0) return "empty";
     if (statuses.every((s) => s === "complete")) return "complete";
     if (statuses.every((s) => s === "empty")) return "empty";
@@ -546,14 +526,6 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         editContent={
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Living situation</label>
-              <div className="flex flex-col gap-2">
-                {LIVING_OPTIONS.map((opt) => (
-                  <Pill key={opt} label={opt} selected={living === opt} onClick={() => { setLiving(opt); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <div>
               <label className="block text-sm font-medium text-gray-600 mb-2.5">What times of day?</label>
               <div className="grid grid-cols-2 gap-1.5">
                 {SCHEDULE_OPTIONS.map((opt) => (
@@ -563,14 +535,6 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             </div>
             <Input label="Care location / area" value={careLocation} onChange={(e) => setCareLocation((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. North Austin, near Anderson Mill" />
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2.5">Language preference</label>
-              <div className="flex flex-wrap gap-2">
-                {LANGUAGE_OPTIONS.map((opt) => (
-                  <Pill key={opt} label={opt} selected={languages.includes(opt)} onClick={() => { setLanguages((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
-                ))}
-              </div>
-            </div>
-            <div>
               <Input label="About the care situation" as="textarea" rows={4} value={about} onChange={(e) => setAbout((e.target as HTMLTextAreaElement).value)} onBlur={() => saveToDb()} placeholder="Tell providers more about daily life and what you're looking for..." maxLength={500} />
               <p className="text-sm text-gray-400 mt-1 text-right">{about.length}/500</p>
             </div>
@@ -578,10 +542,8 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
         }
       >
         <div className="divide-y divide-gray-50">
-          <ViewRow label="Living situation" value={meta.living_situation || null} />
           <ViewRow label="Schedule preference" value={meta.schedule_preference || null} />
           <ViewRow label="Care location" value={meta.care_location || null} />
-          <ViewRow label="Language preference" value={Array.isArray(meta.language_preference) ? meta.language_preference.join(", ") : meta.language_preference || null} />
           <ViewRow label="About the care situation" value={meta.about_situation ? (meta.about_situation.length > 80 ? meta.about_situation.slice(0, 80) + "..." : meta.about_situation) : null} />
         </div>
       </SectionCard>

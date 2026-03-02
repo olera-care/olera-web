@@ -31,17 +31,11 @@ const FIELD_CHECKS: {
   { weight: 3, step: 2, check: (p) => !!p.description },
   // Step 3: Payment
   { weight: 10, step: 3, check: (p) => ((p.metadata as FamilyMetadata)?.payment_methods?.length ?? 0) > 0 },
-  // Step 4: Living situation
-  { weight: 5, step: 4, check: (p) => !!(p.metadata as FamilyMetadata)?.living_situation },
   // Step 5: Schedule & location
   { weight: 5, step: 5, check: (p) => !!(p.metadata as FamilyMetadata)?.schedule_preference },
   { weight: 5, step: 5, check: (p) => !!(p.metadata as FamilyMetadata)?.care_location },
-  // Step 6: Language & about
-  { weight: 5, step: 6, check: (p) => {
-    const lang = (p.metadata as FamilyMetadata)?.language_preference;
-    return Array.isArray(lang) ? lang.length > 0 : !!lang;
-  }},
-  { weight: 5, step: 6, check: (p) => !!(p.metadata as FamilyMetadata)?.about_situation },
+  // Step 6: About situation
+  { weight: 15, step: 6, check: (p) => !!(p.metadata as FamilyMetadata)?.about_situation },
 ];
 
 function computeSectionStatus(

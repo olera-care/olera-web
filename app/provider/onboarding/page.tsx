@@ -460,7 +460,7 @@ function ProviderOnboardingContent() {
       let query = supabase
         .from("olera-providers")
         .select("*")
-        .eq("deleted", false);
+        .not("deleted", "is", true);
 
       // Detect "City, ST" format (e.g. "Houston, TX")
       const parts = q.split(",").map((s: string) => s.trim());

@@ -62,6 +62,7 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
         alt={`${providerName} — photo ${currentIndex + 1}`}
         fill
         sizes="(max-width: 768px) 100vw, 448px"
+        priority
         className="object-cover"
       />
       {images.length > 1 && (

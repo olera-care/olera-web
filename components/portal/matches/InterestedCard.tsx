@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import type { InterestedProvider } from "@/hooks/useInterestedProviders";
@@ -224,10 +225,12 @@ export default function InterestedCard({
           {/* Provider mini card */}
           <div className="inline-flex items-center gap-2.5 bg-white border border-gray-200/80 rounded-xl px-4 py-2.5 shadow-sm mb-5">
             {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={imageUrl}
                 alt={name}
+                width={36}
+                height={36}
+                sizes="36px"
                 className="w-9 h-9 rounded-lg object-cover shrink-0"
               />
             ) : (
@@ -288,10 +291,12 @@ export default function InterestedCard({
         {/* Header: avatar + type/name/location + new badge + time */}
         <div className="flex items-start gap-4">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt={name}
+              width={56}
+              height={56}
+              sizes="56px"
               className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-sm"
             />
           ) : (

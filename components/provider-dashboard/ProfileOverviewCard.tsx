@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import DashboardSectionCard from "./DashboardSectionCard";
@@ -61,10 +62,12 @@ export default function ProfileOverviewCard({
         <div className="flex items-center gap-4 mb-5">
           {/* Avatar / Logo */}
           {profile.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={profile.image_url}
               alt={profile.display_name}
+              width={80}
+              height={80}
+              sizes="80px"
               className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
             />
           ) : (

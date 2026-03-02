@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { type ProviderCardData, getCategoryDisplayName } from "@/lib/types/provider";
@@ -49,19 +50,23 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
         ) : showAsLogo ? (
           /* Logo — contained on gradient background, not cropped */
           <div className="absolute inset-0 flex items-center justify-center p-6">
-            <img
+            <Image
               src={provider.image}
               alt={provider.name}
-              className="max-w-full max-h-full object-contain"
+              fill
+              className="object-contain p-6"
+              sizes="(max-width: 640px) 100vw, 400px"
               onError={() => setImgFailed(true)}
             />
           </div>
         ) : (
           /* Real photo — full bleed cover */
-          <img
+          <Image
             src={provider.image}
             alt={provider.name}
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 400px"
             onError={() => setImgFailed(true)}
           />
         )}

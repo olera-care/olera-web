@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import ImageGallery from "./ImageGallery";
 
 interface ImageMosaicProps {
@@ -39,10 +40,12 @@ export default function ImageMosaic({
           className={`h-[400px] rounded-xl overflow-hidden cursor-pointer group ${className}`}
           onClick={() => setShowGallery(true)}
         >
-          <img
+          <Image
             src={images[0]}
             alt={alt}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
+            fill
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-700"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </div>
         {showGallery && (
@@ -65,12 +68,15 @@ export default function ImageMosaic({
           onClick={() => setShowGallery(true)}
         >
           {images.map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              alt={`${alt} ${i + 1}`}
-              className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700"
-            />
+            <div key={i} className="relative overflow-hidden">
+              <Image
+                src={img}
+                alt={`${alt} ${i + 1}`}
+                fill
+                className="object-cover hover:scale-[1.02] transition-transform duration-700"
+                sizes="50vw"
+              />
+            </div>
           ))}
         </div>
         {showGallery && (
@@ -93,20 +99,26 @@ export default function ImageMosaic({
         onClick={() => setShowGallery(true)}
       >
         {/* Hero image — left half, full height */}
-        <img
-          src={images[0]}
-          alt={alt}
-          className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700"
-        />
+        <div className="relative overflow-hidden">
+          <Image
+            src={images[0]}
+            alt={alt}
+            fill
+            className="object-cover hover:scale-[1.02] transition-transform duration-700"
+            sizes="50vw"
+          />
+        </div>
 
         {/* Right half */}
         <div className={`grid ${images.length >= 4 ? "grid-cols-2 grid-rows-2" : "grid-rows-2"} gap-1.5`}>
           {images.slice(1, images.length >= 4 ? 5 : 3).map((img, i) => (
             <div key={i} className="relative overflow-hidden">
-              <img
+              <Image
                 src={img}
                 alt={`${alt} ${i + 2}`}
-                className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-700"
+                fill
+                className="object-cover hover:scale-[1.02] transition-transform duration-700"
+                sizes="25vw"
               />
               {/* Show count overlay on last image if there are more */}
               {i === (images.length >= 4 ? 3 : 1) && images.length > (images.length >= 4 ? 5 : 3) && (

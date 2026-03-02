@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const links = [
@@ -7,7 +8,7 @@ const links = [
     href: "https://discord.gg/olera",
     external: true,
     icon: (
-      <img src="/images/discord.png" alt="" className="w-5 h-5 object-contain opacity-40" />
+      <Image src="/images/discord.png" alt="" width={20} height={20} className="object-contain opacity-40" />
     ),
   },
   {
@@ -27,7 +28,7 @@ const links = [
     href: "/resources",
     external: false,
     icon: (
-      <img src="/images/resources.png" alt="" className="w-5 h-5 object-contain opacity-40" />
+      <Image src="/images/resources.png" alt="" width={20} height={20} className="object-contain opacity-40" />
     ),
   },
   {
@@ -36,7 +37,7 @@ const links = [
     href: "/benefits",
     external: false,
     icon: (
-      <img src="/images/finances.png" alt="" className="w-5 h-5 object-contain opacity-40" />
+      <Image src="/images/finances.png" alt="" width={20} height={20} className="object-contain opacity-40" />
     ),
   },
 ];

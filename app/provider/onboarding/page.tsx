@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -1009,10 +1010,12 @@ function ProviderOnboardingContent() {
                             {/* Image */}
                             <div className="w-40 min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
                               {image ? (
-                                <img
+                                <Image
                                   src={image}
                                   alt={provider.provider_name}
-                                  className="absolute inset-0 w-full h-full object-cover"
+                                  fill
+                                  className="object-cover"
+                                  sizes="160px"
                                 />
                               ) : (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">

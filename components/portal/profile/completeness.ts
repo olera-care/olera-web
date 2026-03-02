@@ -14,28 +14,24 @@ const FIELD_CHECKS: {
   step: number;
   check: (p: BusinessProfile, email?: string) => boolean;
 }[] = [
-  // Step 0: Basic Info
-  { weight: 10, step: 0, check: (p) => !!p.image_url },
+  // Step 0: Basic Info (25)
+  { weight: 15, step: 0, check: (p) => !!p.image_url },
   { weight: 5, step: 0, check: (p) => !!p.display_name },
   { weight: 5, step: 0, check: (p) => !!p.city },
-  // Step 1: Contact
+  // Step 1: Contact (25)
   { weight: 10, step: 1, check: (_p, email) => !!email },
   { weight: 10, step: 1, check: (p) => !!p.phone },
   { weight: 5, step: 1, check: (p) => !!(p.metadata as FamilyMetadata)?.contact_preference },
-  // Step 2: Care preferences (6 fields, 20 total)
-  { weight: 4, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.relationship_to_recipient },
+  // Step 2: Care preferences (30)
+  { weight: 5, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.relationship_to_recipient },
   { weight: 3, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.age },
-  { weight: 4, step: 2, check: (p) => (p.care_types?.length ?? 0) > 0 },
-  { weight: 3, step: 2, check: (p) => ((p.metadata as FamilyMetadata)?.care_needs?.length ?? 0) > 0 },
-  { weight: 3, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.timeline },
-  { weight: 3, step: 2, check: (p) => !!p.description },
-  // Step 3: Payment
-  { weight: 10, step: 3, check: (p) => ((p.metadata as FamilyMetadata)?.payment_methods?.length ?? 0) > 0 },
-  // Step 5: Schedule & location
-  { weight: 5, step: 5, check: (p) => !!(p.metadata as FamilyMetadata)?.schedule_preference },
-  { weight: 5, step: 5, check: (p) => !!(p.metadata as FamilyMetadata)?.care_location },
-  // Step 6: About situation
-  { weight: 15, step: 6, check: (p) => !!(p.metadata as FamilyMetadata)?.about_situation },
+  { weight: 5, step: 2, check: (p) => (p.care_types?.length ?? 0) > 0 },
+  { weight: 4, step: 2, check: (p) => ((p.metadata as FamilyMetadata)?.care_needs?.length ?? 0) > 0 },
+  { weight: 4, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.timeline },
+  { weight: 4, step: 2, check: (p) => !!p.description },
+  { weight: 5, step: 2, check: (p) => !!(p.metadata as FamilyMetadata)?.schedule_preference },
+  // Step 3: Payment (20)
+  { weight: 20, step: 3, check: (p) => ((p.metadata as FamilyMetadata)?.payment_methods?.length ?? 0) > 0 },
 ];
 
 function computeSectionStatus(

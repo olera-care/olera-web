@@ -104,7 +104,7 @@ export default function EditCarePostModal({
   );
 
   // Step 4: Additional info
-  const [aboutSituation, setAboutSituation] = useState(meta.about_situation || profile.description || "");
+  const [aboutSituation, setAboutSituation] = useState(profile.description || "");
   const [phone, setPhone] = useState(profile.phone || "");
 
   function toggleCareType(ct: string) {
@@ -150,7 +150,6 @@ export default function EditCarePostModal({
           schedule_preference: schedule || undefined,
           timeline: timeline || undefined,
           payment_methods: paymentMethods.length > 0 ? paymentMethods : undefined,
-          about_situation: aboutSituation || undefined,
         },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });

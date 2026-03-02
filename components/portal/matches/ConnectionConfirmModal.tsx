@@ -103,7 +103,7 @@ export default function ConnectionConfirmModal({
     },
     {
       label: "Notes",
-      value: meta.about_situation || activeProfile?.description || null,
+      value: activeProfile?.description || null,
     },
     {
       label: "Phone",

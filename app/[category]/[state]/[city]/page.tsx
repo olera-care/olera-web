@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import {
   getCategoryBySlug,
   getResolvedCategorySlug,
@@ -52,7 +52,7 @@ export default async function CityPage({
   // Handle category aliases
   const resolved = getResolvedCategorySlug(catSlug);
   if (resolved && resolved !== catSlug) {
-    redirect(`/${resolved}/${stateSlug}/${citySlug}`);
+    permanentRedirect(`/${resolved}/${stateSlug}/${citySlug}`);
   }
 
   const config = getCategoryBySlug(catSlug);

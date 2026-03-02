@@ -3,15 +3,34 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export default function ProviderReviewsPage() {
   const { user } = useAuth();
+  const providerProfile = useProviderProfile();
   const [email, setEmail] = useState(user?.email || "");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleNotify(e: React.FormEvent) {
+  async function handleNotify(e: React.FormEvent) {
     e.preventDefault();
-    if (email.trim()) setSubmitted(true);
+    if (!email.trim()) return;
+    setSubmitting(true);
+    try {
+      if (isSupabaseConfigured()) {
+        const supabase = createClient();
+        await supabase.from("feature_waitlist").upsert(
+          { feature: "reviews", email: email.trim(), profile_id: providerProfile?.id || null },
+          { onConflict: "feature,email" },
+        );
+      }
+    } catch {
+      // Graceful — still show success
+    } finally {
+      setSubmitting(false);
+      setSubmitted(true);
+    }
   }
 
   return (
@@ -51,9 +70,10 @@ export default function ProviderReviewsPage() {
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 mr-1.5 bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
+                disabled={submitting}
+                className="px-5 py-2.5 mr-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
               >
-                Notify me
+                {submitting ? "..." : "Notify me"}
               </button>
             </div>
             <p className="text-xs text-gray-400 mt-2.5">

@@ -76,7 +76,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/reviews") ||
     pathname.startsWith("/provider/matches") ||
     pathname.startsWith("/provider/pro") ||
-    pathname.startsWith("/provider/statistics") ||
+    pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/verification") ||
     pathname.startsWith("/provider/account");
   const isCommunity = pathname.startsWith("/community");
@@ -252,16 +252,25 @@ export default function Navbar() {
               <>
                 {/* Provider Hub links */}
                 <Link
-                  href="/provider/statistics"
+                  href="/portal/profile"
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Account
+                </Link>
+                <Link
+                  href="/provider/pro"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
                   <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                   </svg>
-                  Statistics
+                  Olera Pro
                 </Link>
                 <Link
                   href="/provider/verification"
@@ -275,25 +284,16 @@ export default function Navbar() {
                   Identity Verification
                 </Link>
                 <Link
-                  href="/provider/pro"
+                  href="/provider/qna"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
                   <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
-                  Olera Pro
-                </Link>
-                <Link
-                  href="/portal/profile"
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  Account
+                  Questions & Answers
                 </Link>
               </>
             ) : (
@@ -999,16 +999,25 @@ export default function Navbar() {
                         {isProviderPortal ? (
                           <>
                             <Link
-                              href="/provider/statistics"
+                              href="/portal/profile"
+                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                              </svg>
+                              Account
+                            </Link>
+                            <Link
+                              href="/provider/pro"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <line x1="18" y1="20" x2="18" y2="10" />
-                                <line x1="12" y1="20" x2="12" y2="4" />
-                                <line x1="6" y1="20" x2="6" y2="14" />
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                               </svg>
-                              Statistics
+                              Olera Pro
                             </Link>
                             <Link
                               href="/provider/verification"
@@ -1022,25 +1031,16 @@ export default function Navbar() {
                               Identity Verification
                             </Link>
                             <Link
-                              href="/provider/pro"
+                              href="/provider/qna"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
                               </svg>
-                              Olera Pro
-                            </Link>
-                            <Link
-                              href="/portal/profile"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                              </svg>
-                              Account
+                              Questions & Answers
                             </Link>
                           </>
                         ) : (

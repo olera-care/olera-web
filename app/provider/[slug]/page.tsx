@@ -19,6 +19,7 @@ import ClaimBadge from "@/components/providers/ClaimBadge";
 import { ManagePageButton } from "@/components/providers/ManageListingModal";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
+import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
 import {
   getInitials,
   formatCategory,
@@ -721,9 +722,9 @@ export default async function ProviderPage({
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 font-serif">Prices at {profile.display_name}</h2>
                     </div>
-                    <button className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
+                    <ScrollToConnectionCard className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
                       Get a custom quote
-                    </button>
+                    </ScrollToConnectionCard>
                   </div>
                   <div className="space-y-2">
                     {pricingDetails.map((item) => (
@@ -762,9 +763,9 @@ export default async function ProviderPage({
                   </div>
                   <p className="mt-5 text-base text-gray-500">
                     For clarity and guidance,{" "}
-                    <button className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                    <ScrollToConnectionCard className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                       Book a consultation
-                    </button>
+                    </ScrollToConnectionCard>
                   </p>
                 </div>
               )}
@@ -837,9 +838,9 @@ export default async function ProviderPage({
                 <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-900 font-serif">Facility manager</h2>
-                    <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
+                    <ScrollToConnectionCard className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
                       Connect with us
-                    </button>
+                    </ScrollToConnectionCard>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start gap-6">
                     <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
@@ -891,7 +892,7 @@ export default async function ProviderPage({
 
           {/* ========== Right Column — Sticky Sidebar ========== */}
           <div className="lg:col-span-1 self-stretch">
-            <div className="sticky top-24">
+            <div id="connection-card" className="sticky top-24">
               <ConnectionCardWithRedirect
                 providerId={profile.id}
                 providerName={profile.display_name}

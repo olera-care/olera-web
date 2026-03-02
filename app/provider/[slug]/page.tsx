@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -17,7 +16,10 @@ import QASectionV2 from "@/components/providers/QASectionV2";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
+import { ManagePageButton } from "@/components/providers/ManageListingModal";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
+import ReviewsSection from "@/components/providers/ReviewsSection";
+import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
 import {
   getInitials,
   formatCategory,
@@ -291,6 +293,26 @@ export default async function ProviderPage({
     notFound();
   }
 
+  // --- Actual claim state (iOS data always says "unclaimed") ---
+  let actualClaimState = profile.claim_state;
+  let claimAccountId: string | null = profile.account_id;
+  if (profile.source_provider_id) {
+    try {
+      const supabase = await createClient();
+      const { data: bp } = await supabase
+        .from("business_profiles")
+        .select("claim_state, account_id")
+        .eq("source_provider_id", profile.source_provider_id)
+        .maybeSingle();
+      if (bp) {
+        actualClaimState = bp.claim_state;
+        claimAccountId = bp.account_id;
+      }
+    } catch {
+      // Best effort — use profile defaults
+    }
+  }
+
   // --- Data extraction ---
   const meta = profile.metadata as ExtendedMetadata;
   const priceRange =
@@ -343,7 +365,8 @@ export default async function ProviderPage({
   const hasStaff = staff != null;
   const hasReviews = reviews.length > 0;
   const hasOleraScore = oleraScore != null;
-  const hasStaffScreening = staffScreening != null;
+  const hasStaffScreening = staffScreening != null &&
+    (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
   // Build care services: real data first, then pad with category-inferred services
@@ -393,7 +416,7 @@ export default async function ProviderPage({
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasOleraScore || hasReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+  sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
   // Render
@@ -699,9 +722,9 @@ export default async function ProviderPage({
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 font-serif">Prices at {profile.display_name}</h2>
                     </div>
-                    <button className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
+                    <ScrollToConnectionCard className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
                       Get a custom quote
-                    </button>
+                    </ScrollToConnectionCard>
                   </div>
                   <div className="space-y-2">
                     {pricingDetails.map((item) => (
@@ -740,9 +763,9 @@ export default async function ProviderPage({
                   </div>
                   <p className="mt-5 text-base text-gray-500">
                     For clarity and guidance,{" "}
-                    <button className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                    <ScrollToConnectionCard className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                       Book a consultation
-                    </button>
+                    </ScrollToConnectionCard>
                   </p>
                 </div>
               )}
@@ -804,66 +827,21 @@ export default async function ProviderPage({
               )}
 
               {/* ── What families are saying ── */}
-              <div className="py-8 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">What families are saying</h2>
-                {hasReviews ? (
-                  <>
-                    <div className="flex items-center justify-end mb-4">
-                      <span className="text-sm text-gray-400">Sort by: <button className="text-gray-700 font-medium">Most Helpful</button></span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {reviews.map((review, index) => (
-                        <div key={index} className="border border-gray-100 rounded-xl p-5">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                                <span className="text-xs font-semibold text-gray-600">{review.name.split(" ").map(n => n[0]).join("")}</span>
-                              </div>
-                              <div>
-                                <p className="text-sm font-semibold text-gray-900">{review.name}</p>
-                                <p className="text-xs text-gray-400">{review.date}</p>
-                              </div>
-                            </div>
-                            <span className="text-sm font-semibold text-primary-600">{review.rating.toFixed(1)} / 5 <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" /></span>
-                          </div>
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            {review.comment.length > 180 ? review.comment.slice(0, 180).trimEnd() + "... " : review.comment + " "}
-                            {review.comment.length > 180 && (
-                              <button className="text-primary-600 font-medium">read more</button>
-                            )}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between mt-5">
-                      <button className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                        Show more
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
-                        Add review
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <SectionEmptyState
-                    icon="star"
-                    message="No reviews yet."
-                    subMessage="Be the first to share your experience with this provider."
-                  />
-                )}
-              </div>
+              <ReviewsSection
+                providerId={profile.slug}
+                providerSlug={profile.slug}
+                providerName={profile.display_name}
+                mockReviews={reviews}
+              />
 
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (
                 <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-900 font-serif">Facility manager</h2>
-                    <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
+                    <ScrollToConnectionCard className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
                       Connect with us
-                    </button>
+                    </ScrollToConnectionCard>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start gap-6">
                     <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
@@ -899,12 +877,14 @@ export default async function ProviderPage({
                 </p>
                 <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                   <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
-                  <Link
-                    href={`/for-providers/claim/${profile.slug}`}
-                    className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors flex-shrink-0"
-                  >
-                    Manage this page
-                  </Link>
+                  <ManagePageButton
+                    providerName={profile.display_name}
+                    providerSlug={profile.slug}
+                    providerId={profile.id}
+                    sourceProviderId={profile.source_provider_id}
+                    claimState={actualClaimState}
+                    claimAccountId={claimAccountId}
+                  />
                 </div>
               </div>
 
@@ -913,7 +893,7 @@ export default async function ProviderPage({
 
           {/* ========== Right Column — Sticky Sidebar ========== */}
           <div className="lg:col-span-1 self-stretch">
-            <div className="sticky top-24">
+            <div id="connection-card" className="sticky top-24">
               <ConnectionCardWithRedirect
                 providerId={profile.id}
                 providerName={profile.display_name}

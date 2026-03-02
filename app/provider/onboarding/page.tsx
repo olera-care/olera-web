@@ -206,7 +206,7 @@ function ProviderOnboardingContent() {
     }
 
     // If they already have a provider profile, redirect to hub
-    // (unless they're explicitly adding another profile via ?adding=true)
+    // (unless they're explicitly adding another profile, or claiming via ?claim=)
     const hasProviderProfile = (profiles || []).some(
       (p) => p.type === "organization" || p.type === "caregiver"
     );
@@ -247,18 +247,6 @@ function ProviderOnboardingContent() {
           if (savedSearch) setSearchQuery(savedSearch);
         } catch {
           // ignore
-        }
-        // Restore claimed provider so verify step can resume
-        try {
-          const savedClaim = localStorage.getItem(CLAIM_KEY);
-          if (savedClaim) {
-            const parsed = JSON.parse(savedClaim);
-            if (parsed?.provider_id && parsed?.provider_name) {
-              setClaimingProvider(parsed as Provider);
-            }
-          }
-        } catch {
-          // ignore corrupt data
         }
         setStep("resume");
       }
@@ -417,7 +405,6 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
       } catch {
         // localStorage unavailable
       }
@@ -1073,15 +1060,7 @@ function ProviderOnboardingContent() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      setClaimingProvider(provider);
-                                      try {
-                                        localStorage.setItem(CLAIM_KEY, JSON.stringify({
-                                          provider_id: provider.provider_id,
-                                          provider_name: provider.provider_name,
-                                        }));
-                                      } catch { /* localStorage unavailable */ }
-                                      setStep("verify");
-                                      handleSendVerificationCode(provider);
+                                      router.push(`/for-providers/claim/${provider.slug || provider.provider_id}?provider_id=${provider.provider_id}`);
                                     }}
                                     className="px-5 py-2.5 text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >

@@ -485,6 +485,14 @@ export default function UnifiedAuthModal({
     // data loading in the background, and its onboarding-detection useEffect
     // will auto-open post-auth if onboarding is incomplete.
 
+    // Deferred returnUrl — skip PostAuth entirely and redirect.
+    // Used by the claim page to return after auth (verification-first flow).
+    if (options.deferred?.returnUrl) {
+      onClose();
+      router.push(options.deferred.returnUrl);
+      return;
+    }
+
     // New signups always need onboarding
     if (otpContext === "signup") {
       if (options.intent === "provider") {

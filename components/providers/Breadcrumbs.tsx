@@ -9,6 +9,7 @@ const categoryToBrowseSlug: Partial<Record<ProfileCategory, string>> = {
   nursing_home: "skilled-nursing",
   independent_living: "independent-living",
   hospice_agency: "hospice",
+  inpatient_hospice: "hospice",
 };
 
 const categoryLabels: Partial<Record<ProfileCategory, string>> = {

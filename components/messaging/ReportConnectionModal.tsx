@@ -47,7 +47,7 @@ export default function ReportConnectionModal({
             <h2 className="text-lg font-bold text-gray-900">Report Conversation</h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
               aria-label="Close"
             >
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

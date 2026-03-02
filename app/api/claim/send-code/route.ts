@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -26,28 +27,22 @@ function generateCode(): string {
  * POST /api/claim/send-code
  *
  * Sends a 6-digit verification code to the provider's email on file.
+ * No authentication required — verification is tracked by claim_session UUID.
  *
- * Request body: { providerId: string }
+ * Request body: { providerId: string, claimSession: string }
  * Returns: { emailHint: string } or error
  */
 export async function POST(request: Request) {
   try {
-    // Authenticate
-    const supabase = await createServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { providerId } = body;
+    const { providerId, claimSession } = body;
 
     if (!providerId) {
       return NextResponse.json({ error: "Provider ID is required." }, { status: 400 });
+    }
+
+    if (!claimSession || !UUID_RE.test(claimSession)) {
+      return NextResponse.json({ error: "Valid claim session is required." }, { status: 400 });
     }
 
     const db = getAdminClient();
@@ -73,13 +68,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Rate limit: max 3 codes per provider+user per hour
+    // Rate limit: max 3 codes per provider per hour (regardless of user/session)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
     const { count } = await db
       .from("claim_verification_codes")
       .select("id", { count: "exact", head: true })
       .eq("provider_id", providerId)
-      .eq("user_id", user.id)
       .gte("created_at", oneHourAgo);
 
     if ((count ?? 0) >= 3) {
@@ -89,13 +83,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate code and store
+    // Generate code and store with claim_session
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
 
     const { error: insertErr } = await db.from("claim_verification_codes").insert({
       provider_id: providerId,
-      user_id: user.id,
+      claim_session: claimSession,
       code,
       expires_at: expiresAt,
     });

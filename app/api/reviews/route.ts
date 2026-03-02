@@ -61,17 +61,11 @@ export async function POST(request: NextRequest) {
     if (!rating || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
       return NextResponse.json({ error: "Rating must be an integer between 1 and 5" }, { status: 400 });
     }
-    if (!comment || comment.trim().length < 50) {
-      return NextResponse.json({ error: "Review must be at least 50 characters" }, { status: 400 });
-    }
-    if (comment.trim().length > 2000) {
-      return NextResponse.json({ error: "Review must be under 2000 characters" }, { status: 400 });
+    if (!comment || !comment.trim()) {
+      return NextResponse.json({ error: "Review text is required" }, { status: 400 });
     }
     if (!relationship) {
       return NextResponse.json({ error: "Relationship is required" }, { status: 400 });
-    }
-    if (title && title.trim().length > 100) {
-      return NextResponse.json({ error: "Title must be under 100 characters" }, { status: 400 });
     }
 
     const db = getServiceClient();

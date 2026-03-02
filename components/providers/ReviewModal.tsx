@@ -101,8 +101,8 @@ export default function ReviewModal({
   async function handleSubmit() {
     setError("");
 
-    if (comment.trim().length < 50) {
-      setError("Review must be at least 50 characters.");
+    if (!comment.trim()) {
+      setError("Please write a review.");
       return;
     }
 
@@ -176,7 +176,7 @@ export default function ReviewModal({
         fullWidth
         onClick={handleSubmit}
         loading={submitting}
-        disabled={comment.trim().length < 50}
+        disabled={!comment.trim()}
       >
         Submit review
       </Button>
@@ -294,7 +294,6 @@ export default function ReviewModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Summarize your experience"
-              maxLength={100}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
@@ -310,12 +309,8 @@ export default function ReviewModal({
               onChange={(e) => setComment(e.target.value)}
               placeholder="Share details about your experience with this provider..."
               rows={5}
-              maxLength={2000}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
             />
-            <p className={`text-xs mt-1.5 ${comment.trim().length >= 50 ? "text-green-500" : "text-gray-400"}`}>
-              {comment.trim().length}/50 minimum characters
-            </p>
           </div>
         </div>
       )}

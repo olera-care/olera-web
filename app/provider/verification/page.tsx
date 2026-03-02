@@ -672,46 +672,48 @@ export default function ProviderVerificationPage() {
               </div>
             );
           })}
-        </div>
 
-        {/* Error */}
-        {error && (
-          <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4 mb-6" role="alert">
-            <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            <p className="text-sm text-red-700 flex-1">{error}</p>
-            <button
-              type="button"
-              onClick={() => setError(null)}
-              className="text-red-300 hover:text-red-500 transition-colors shrink-0"
-              aria-label="Dismiss error"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          {/* Error */}
+          {error && (
+            <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4 mx-6 mb-5" role="alert">
+              <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
               </svg>
-            </button>
-          </div>
-        )}
+              <p className="text-sm text-red-700 flex-1">{error}</p>
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="text-red-300 hover:text-red-500 transition-colors shrink-0"
+                aria-label="Dismiss error"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
 
-        {/* Submit button */}
-        {!isReadOnly && (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
-          >
-            {submitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Submitting...
-              </span>
-            ) : (
-              "Submit for Verification"
-            )}
-          </button>
-        )}
+          {/* Submit button */}
+          {!isReadOnly && (
+            <div className="flex justify-end px-6 py-5 border-t border-warm-100/60">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                className="px-8 py-3 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Submitting...
+                  </span>
+                ) : (
+                  "Submit for Verification"
+                )}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
     </div>

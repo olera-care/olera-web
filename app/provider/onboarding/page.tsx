@@ -321,12 +321,8 @@ function ProviderOnboardingContent() {
         }
       }
     } else {
-      // Caregiver flow: go to saved step or default to step 2
-      if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
-        setStep(savedStep);
-      } else {
-        setStep(2);
-      }
+      // Caregiver flow is disabled — send to Coming Soon
+      setStep("caregiver-coming-soon");
     }
   };
 
@@ -619,12 +615,10 @@ function ProviderOnboardingContent() {
   const displayName =
     account?.display_name || user?.email?.split("@")[0] || "back";
 
-  // WizardNav step mapping — org: 6 steps, caregiver: 5 steps
+  // WizardNav step mapping — org flow: 6 steps
   const isOrg = providerType === "organization";
-  const wizardTotal = isOrg ? 6 : 5;
-  const wizardCurrentMap: Record<string, number> = isOrg
-    ? { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 }
-    : { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+  const wizardTotal = 6;
+  const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
   const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon";
 
@@ -1528,34 +1522,22 @@ function ProviderOnboardingContent() {
           <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
-                {providerType === "organization"
-                  ? "Tell us about your organization"
-                  : "What\u2019s your name?"}
+                Tell us about your organization
               </h1>
               <p className="text-gray-500 mt-3 text-base">
-                {providerType === "organization"
-                  ? "This is what families will see on your public profile."
-                  : "This is how families will find you on Olera."}
+                This is what families will see on your public profile.
               </p>
             </div>
 
             <div className="space-y-5">
               <Input
-                label={
-                  providerType === "organization"
-                    ? "Organization name"
-                    : "Your name"
-                }
+                label="Organization name"
                 value={data.displayName}
                 onChange={(e) =>
                   update("displayName", (e.target as HTMLInputElement).value)
                 }
                 required
-                placeholder={
-                  providerType === "organization"
-                    ? "e.g. Sunrise Senior Living"
-                    : "e.g. Maria Garcia"
-                }
+                placeholder="e.g. Sunrise Senior Living"
               />
 
               {providerType === "organization" && (
@@ -1791,14 +1773,9 @@ function ProviderOnboardingContent() {
               {/* Card content */}
               <div className="p-5">
                 {/* Category label */}
-                {providerType === "organization" && data.category && (
+                {data.category && (
                   <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
                     {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
-                  </p>
-                )}
-                {providerType === "caregiver" && (
-                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
-                    Private Caregiver
                   </p>
                 )}
 
@@ -1896,7 +1873,7 @@ function ProviderOnboardingContent() {
                   setNoAccessSuccess(false);
                 }
               : step === 2
-              ? () => setStep(isOrg ? "search" : 1)
+              ? () => setStep("search")
               : step === 3
               ? () => setStep(2)
               : step === 4

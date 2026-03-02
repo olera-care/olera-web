@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 
 function getAdminClient() {
@@ -22,6 +23,17 @@ function getAdminClient() {
  */
 export async function POST(request: Request) {
   try {
+    // Authenticate
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { provider_id, provider_name, claimant_name, claimant_role, reason } = body;
 
@@ -40,12 +52,28 @@ export async function POST(request: Request) {
       );
     }
 
+    // Rate limit: max 3 disputes per user per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await db
+      .from("disputes")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", oneHourAgo);
+
+    if (count !== null && count >= 3) {
+      return NextResponse.json(
+        { error: "Too many disputes submitted. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const { error: insertErr } = await db.from("disputes").insert({
       provider_id,
       provider_name,
       claimant_name: claimant_name.trim(),
       claimant_role: claimant_role.trim(),
       reason: reason.trim(),
+      user_id: user.id,
     });
 
     if (insertErr) {

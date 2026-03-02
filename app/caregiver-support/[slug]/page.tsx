@@ -26,20 +26,20 @@ export async function generateMetadata({
     const mock = getResourceBySlug(slug);
     if (!mock) return { title: "Article Not Found | Olera" };
     return {
-      title: `${mock.title} | Olera Resources`,
+      title: `${mock.title} | Olera Caregiver Support`,
       description: mock.excerpt,
     };
   }
 
   const title = article.meta_title || article.title;
-  const description = article.meta_description || article.excerpt || `${article.title} - Olera Resources`;
+  const description = article.meta_description || article.excerpt || `${article.title} - Olera Caregiver Support`;
   const ogTitle = article.og_title || title;
   const ogDescription = article.og_description || description;
   const ogImage = article.og_image_url || article.cover_image_url;
-  const canonical = article.canonical_url || `https://olera.care/resources/${slug}`;
+  const canonical = article.canonical_url || `https://olera.care/caregiver-support/${slug}`;
 
   return {
-    title: `${title} | Olera Resources`,
+    title: `${title} | Olera Caregiver Support`,
     description,
     alternates: { canonical },
     ...(article.noindex && {
@@ -152,7 +152,7 @@ export default async function ResourceArticlePage({
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://olera.care/resources/${slug}`,
+      "@id": `https://olera.care/caregiver-support/${slug}`,
     },
   } : null;
 
@@ -161,13 +161,13 @@ export default async function ResourceArticlePage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
-      { "@type": "ListItem", position: 2, name: "Resources", item: "https://olera.care/resources" },
+      { "@type": "ListItem", position: 2, name: "Caregiver Support", item: "https://olera.care/caregiver-support" },
       ...(primaryCareType && careTypeLabel
         ? [{
             "@type": "ListItem",
             position: 3,
             name: careTypeLabel,
-            item: `https://olera.care/resources?type=${primaryCareType}`,
+            item: `https://olera.care/caregiver-support?type=${primaryCareType}`,
           }]
         : []),
       { "@type": "ListItem", position: primaryCareType ? 4 : 3, name: title },
@@ -192,8 +192,8 @@ export default async function ResourceArticlePage({
       <header className="max-w-[1000px] mx-auto px-5 pt-6 md:pt-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm mb-4" aria-label="Breadcrumb">
-          <Link href="/resources" className="text-gray-500 hover:text-gray-700 transition-colors">
-            Resources
+          <Link href="/caregiver-support" className="text-gray-500 hover:text-gray-700 transition-colors">
+            Caregiver Support
           </Link>
           {primaryCareType && careTypeLabel && (
             <>
@@ -201,7 +201,7 @@ export default async function ResourceArticlePage({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
               </svg>
               <Link
-                href={`/resources?type=${primaryCareType}`}
+                href={`/caregiver-support?type=${primaryCareType}`}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 {careTypeLabel}
@@ -361,7 +361,7 @@ export default async function ResourceArticlePage({
             {careTypes.map((careType) => (
               <Link
                 key={careType}
-                href={`/resources?type=${careType}`}
+                href={`/caregiver-support?type=${careType}`}
                 className="px-3 py-1.5 bg-white text-gray-700 text-sm font-medium rounded-full border border-gray-200 hover:border-primary-300 hover:text-primary-600 transition-colors"
               >
                 {CARE_TYPE_CONFIG[careType]?.label ?? careType}
@@ -384,7 +384,7 @@ export default async function ResourceArticlePage({
             <h2 className="text-xl font-bold text-gray-900 mb-4">Related Articles</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {related.map((r) => (
-                <Link key={r.id} href={`/resources/${r.slug}`} className="group block">
+                <Link key={r.id} href={`/caregiver-support/${r.slug}`} className="group block">
                   {r.cover_image_url && (
                     <img
                       src={r.cover_image_url}

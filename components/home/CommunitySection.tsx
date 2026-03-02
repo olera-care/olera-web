@@ -25,7 +25,7 @@ const links = [
   {
     title: "Caregiving Guides & Articles",
     description: "Expert resources for every stage of the care journey",
-    href: "/resources",
+    href: "/caregiver-support",
     external: false,
     icon: (
       <Image src="/images/resources.png" alt="" width={20} height={20} className="object-contain opacity-40" />

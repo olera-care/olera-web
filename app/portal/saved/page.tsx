@@ -35,10 +35,11 @@ export default function PortalSavedPage() {
   const { savedProviders } = useSavedProviders();
 
   return (
-    <div className="px-8 py-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Saved Providers</h1>
-        <p className="text-lg text-gray-600 mt-1">
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-display font-bold text-gray-900">Saved Providers</h1>
+        <p className="text-[15px] text-gray-500 mt-1">
           {savedProviders.length > 0
             ? `${savedProviders.length} provider${savedProviders.length !== 1 ? "s" : ""} saved`
             : "Providers you save will appear here."}
@@ -47,7 +48,7 @@ export default function PortalSavedPage() {
 
       {/* Browse banner */}
       {savedProviders.length > 0 && (
-        <div className="mb-6 px-5 py-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between gap-4 flex-wrap shadow-sm">
+        <div className="mb-6 px-5 py-4 bg-white border border-gray-200/80 rounded-2xl flex items-center justify-between gap-4 flex-wrap shadow-sm">
           <div>
             <p className="text-sm font-medium text-gray-900">
               Looking for more options?
@@ -76,9 +77,9 @@ export default function PortalSavedPage() {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-20 px-4">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-5">
+          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-5">
             <svg
-              className="w-10 h-10 text-gray-300"
+              className="w-7 h-7 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -91,10 +92,10 @@ export default function PortalSavedPage() {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <p className="text-[15px] font-display font-medium text-gray-900 mb-1">
             No saved providers yet
-          </h2>
-          <p className="text-sm text-gray-500 mb-8 max-w-md text-center leading-relaxed">
+          </p>
+          <p className="text-sm text-gray-500 mb-6 max-w-md text-center leading-relaxed">
             When you find a provider you like, tap the heart icon to save them
             here for easy comparison later.
           </p>
@@ -106,6 +107,7 @@ export default function PortalSavedPage() {
           </Link>
         </div>
       )}
+    </div>
     </div>
   );
 }

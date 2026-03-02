@@ -584,7 +584,7 @@ function FamilyCareCard({
   const locationStr = [family.city, family.state].filter(Boolean).join(", ");
   const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
   const careNeeds = meta?.care_needs || family.care_types || [];
-  const aboutSituation = meta?.about_situation;
+  const aboutSituation = meta?.about_situation || family.description;
   const publishedAt = meta?.care_post?.published_at;
   const paymentMethods = meta?.payment_methods || [];
   const savedBenefits = meta?.saved_benefits || [];

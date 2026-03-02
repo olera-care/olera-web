@@ -461,7 +461,14 @@ export default async function ProviderPage({
       },
     }),
     ...(profile.phone && { telephone: profile.phone }),
-    ...(images.length > 0 && { image: images[0] }),
+    ...(images.length > 0 && {
+      image: images.map((url, i) => ({
+        "@type": "ImageObject" as const,
+        url,
+        name: `${profile.display_name} - Photo ${i + 1}`,
+        contentUrl: url,
+      })),
+    }),
     ...(oleraScore != null && {
       aggregateRating: {
         "@type": "AggregateRating",
@@ -494,6 +501,15 @@ export default async function ProviderPage({
         datePublished: r.date,
         reviewBody: r.comment,
       })),
+    }),
+    ...(hasStaff && {
+      employee: {
+        "@type": "Person",
+        name: staff!.name,
+        jobTitle: staff!.position,
+        ...(staff!.image && { image: staff!.image }),
+        ...(staff!.bio && { description: staff!.bio }),
+      },
     }),
   };
 
@@ -682,14 +698,14 @@ export default async function ProviderPage({
             <div>
 
               {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20">
+              <section id="services" className="py-8 scroll-mt-20">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={9} />
-              </div>
+              </section>
 
               {/* ── Staff Screening — hidden when no real data ── */}
               {hasStaffScreening && (
-                <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <section id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
                     {[
@@ -703,21 +719,21 @@ export default async function ProviderPage({
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
               {/* ── About ── */}
-              <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
+              <section id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
                 <ExpandableText
                   text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
                   maxLength={300}
                 />
-              </div>
+              </section>
 
               {/* ── Detailed Pricing ── */}
               {pricingDetails.length > 0 && (
-                <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <section id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <div className="flex items-start justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 font-display">Prices at {profile.display_name}</h2>
@@ -739,12 +755,12 @@ export default async function ProviderPage({
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
               )}
 
               {/* ── Payment & Insurance — hidden when no real data ── */}
               {hasAcceptedPayments && (
-                <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <section id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Acceptable Payment / Insurance Options</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {acceptedPayments.map((payment) => (
@@ -767,11 +783,11 @@ export default async function ProviderPage({
                       Book a consultation
                     </ScrollToConnectionCard>
                   </p>
-                </div>
+                </section>
               )}
 
               {/* ── Customer Questions & Answers ── */}
-              <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
+              <section id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <QASectionV2
                   providerId={profile.slug}
                   providerName={profile.display_name}
@@ -784,11 +800,11 @@ export default async function ProviderPage({
                     created_at: q.created_at,
                   }))}
                 />
-              </div>
+              </section>
 
               {/* ── Olera Score — hidden when no scores exist ── */}
               {hasOleraScore && (
-                <div id="reviews" className="py-12 scroll-mt-20 border-t border-gray-200">
+                <section id="reviews" className="py-12 scroll-mt-20 border-t border-gray-200">
                   {/* Centered score display */}
                   <div className="flex flex-col items-center text-center mb-10">
                     <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-700 mb-5">Olera Score</p>
@@ -823,7 +839,7 @@ export default async function ProviderPage({
                       ))}
                     </div>
                   )}
-                </div>
+                </section>
               )}
 
               {/* ── What families are saying ── */}
@@ -836,7 +852,7 @@ export default async function ProviderPage({
 
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (
-                <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
+                <section id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-900 font-display">Facility manager</h2>
                     <ScrollToConnectionCard className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
@@ -866,7 +882,7 @@ export default async function ProviderPage({
                     </svg>
                     To help protect your family, the Olera team vet facility managers for information accuracy.
                   </div>
-                </div>
+                </section>
               )}
 
               {/* ── Disclaimer ── */}
@@ -892,7 +908,7 @@ export default async function ProviderPage({
           </div>
 
           {/* ========== Right Column — Sticky Sidebar ========== */}
-          <div className="lg:col-span-1 self-stretch">
+          <aside className="lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
               <ConnectionCardWithRedirect
                 providerId={profile.id}
@@ -910,12 +926,12 @@ export default async function ProviderPage({
                 providerState={profile.state}
               />
             </div>
-          </div>
+          </aside>
         </div>
 
         {/* ===== Compare Providers ===== */}
         {similarProviders.length > 0 && (
-          <div className="border-t border-gray-200 pt-8 mt-4">
+          <section className="border-t border-gray-200 pt-8 mt-4">
             <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options
             </h2>
@@ -924,7 +940,7 @@ export default async function ProviderPage({
                 <CompactProviderCard key={provider.id} provider={provider} />
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         </div>

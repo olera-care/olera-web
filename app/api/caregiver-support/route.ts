@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * GET /api/resources
+ * GET /api/caregiver-support
  *
  * Public endpoint — returns published articles only.
  * Uses the anon client so RLS applies.

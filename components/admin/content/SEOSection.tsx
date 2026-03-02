@@ -21,7 +21,7 @@ export default function SEOSection({ formData, updateField, articleId }: SEOSect
   const previewTitle = metaTitle || ogTitle || (formData.title as string) || "Untitled";
   const previewDescription =
     metaDescription || ogDescription || (formData.excerpt as string) || "";
-  const previewUrl = canonicalUrl || `olera.care/resources/${formData.slug || "..."}`;
+  const previewUrl = canonicalUrl || `olera.care/caregiver-support/${formData.slug || "..."}`;
 
   return (
     <div className="space-y-6">
@@ -197,7 +197,7 @@ export default function SEOSection({ formData, updateField, articleId }: SEOSect
             onChange={(e) =>
               updateField("canonical_url", e.target.value || null)
             }
-            placeholder={`Defaults to: https://olera.care/resources/${formData.slug || "..."}`}
+            placeholder={`Defaults to: https://olera.care/caregiver-support/${formData.slug || "..."}`}
             className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
           />
         </div>

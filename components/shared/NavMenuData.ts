@@ -31,9 +31,9 @@ export const CARE_CATEGORIES: CareCategory[] = [
     image: "/images/home-health.webp",
     resources: [
       { title: "Community Forum", href: "/community?category=home-health", icon: "chat" },
-      { title: "Home Health Guide", href: "/resources?type=home-health", icon: "book" },
+      { title: "Home Health Guide", href: "/caregiver-support?type=home-health", icon: "book" },
       { title: "Paying for Home Health", href: "/benefits?type=home-health", icon: "dollar" },
-      { title: "Home Health vs Home Care", href: "/resources/home-health-vs-home-care", icon: "info" },
+      { title: "Home Health vs Home Care", href: "/caregiver-support/home-health-vs-home-care", icon: "info" },
     ],
   },
   {
@@ -44,9 +44,9 @@ export const CARE_CATEGORIES: CareCategory[] = [
     image: "/images/home-care.jpg",
     resources: [
       { title: "Community Forum", href: "/community?category=home-care", icon: "chat" },
-      { title: "Home Care Guide", href: "/resources?type=home-care", icon: "book" },
+      { title: "Home Care Guide", href: "/caregiver-support?type=home-care", icon: "book" },
       { title: "Paying for Home Care", href: "/benefits?type=home-care", icon: "dollar" },
-      { title: "When to Consider Home Care", href: "/resources/caregiver-burnout-prevention", icon: "info" },
+      { title: "When to Consider Home Care", href: "/caregiver-support/caregiver-burnout-prevention", icon: "info" },
     ],
   },
   {
@@ -57,9 +57,9 @@ export const CARE_CATEGORIES: CareCategory[] = [
     image: "/images/assisted-living.webp",
     resources: [
       { title: "Community Forum", href: "/community?category=assisted-living", icon: "chat" },
-      { title: "Assisted Living Guide", href: "/resources?type=assisted-living", icon: "book" },
+      { title: "Assisted Living Guide", href: "/caregiver-support?type=assisted-living", icon: "book" },
       { title: "Paying for Assisted Living", href: "/benefits?type=assisted-living", icon: "dollar" },
-      { title: "Assisted Living vs Nursing Home", href: "/resources/nursing-home-vs-assisted-living", icon: "info" },
+      { title: "Assisted Living vs Nursing Home", href: "/caregiver-support/nursing-home-vs-assisted-living", icon: "info" },
     ],
   },
   {
@@ -70,9 +70,9 @@ export const CARE_CATEGORIES: CareCategory[] = [
     image: "/images/memory-care.jpg",
     resources: [
       { title: "Community Forum", href: "/community?category=memory-care", icon: "chat" },
-      { title: "Memory Care Guide", href: "/resources?type=memory-care", icon: "book" },
+      { title: "Memory Care Guide", href: "/caregiver-support?type=memory-care", icon: "book" },
       { title: "Paying for Memory Care", href: "/benefits?type=memory-care", icon: "dollar" },
-      { title: "Signs It's Time for Memory Care", href: "/resources/when-its-time-for-memory-care", icon: "info" },
+      { title: "Signs It's Time for Memory Care", href: "/caregiver-support/when-its-time-for-memory-care", icon: "info" },
     ],
   },
   {
@@ -83,9 +83,9 @@ export const CARE_CATEGORIES: CareCategory[] = [
     image: "/images/nursing-homes.webp",
     resources: [
       { title: "Community Forum", href: "/community?category=nursing-homes", icon: "chat" },
-      { title: "Nursing Home Guide", href: "/resources?type=nursing-homes", icon: "book" },
+      { title: "Nursing Home Guide", href: "/caregiver-support?type=nursing-homes", icon: "book" },
       { title: "Paying for Nursing Home", href: "/benefits?type=nursing-homes", icon: "dollar" },
-      { title: "Medicare & Medicaid Coverage", href: "/resources/medicaid-nursing-home-coverage", icon: "info" },
+      { title: "Medicare & Medicaid Coverage", href: "/caregiver-support/medicaid-nursing-home-coverage", icon: "info" },
     ],
   },
   {
@@ -96,15 +96,15 @@ export const CARE_CATEGORIES: CareCategory[] = [
     image: "/images/independent-living.jpg",
     resources: [
       { title: "Community Forum", href: "/community?category=independent-living", icon: "chat" },
-      { title: "Independent Living Guide", href: "/resources?type=independent-living", icon: "book" },
+      { title: "Independent Living Guide", href: "/caregiver-support?type=independent-living", icon: "book" },
       { title: "Paying for Independent Living", href: "/benefits?type=independent-living", icon: "dollar" },
-      { title: "Is Independent Living Right?", href: "/resources/independent-living-guide", icon: "info" },
+      { title: "Is Independent Living Right?", href: "/caregiver-support/independent-living-guide", icon: "info" },
     ],
   },
 ];
 
 export const NAV_LINKS: NavLink[] = [
   { label: "Community", href: "/community" },
-  { label: "Resources", href: "/resources" },
+  { label: "Caregiver Support", href: "/caregiver-support" },
   { label: "Benefits Center", href: "/benefits" },
 ];

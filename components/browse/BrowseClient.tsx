@@ -447,6 +447,12 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         type="text"
                         value={locationInput}
                         onChange={(e) => setLocationInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && locationInput.trim()) {
+                            setSearchLocation(locationInput.trim());
+                            setShowLocationDropdown(false);
+                          }
+                        }}
                         onFocus={preloadCities}
                         placeholder="City or ZIP code"
                         className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"

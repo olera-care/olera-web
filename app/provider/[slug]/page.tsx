@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -17,6 +16,7 @@ import QASectionV2 from "@/components/providers/QASectionV2";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
+import { ManagePageButton } from "@/components/providers/ManageListingModal";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import {
   getInitials,
@@ -291,6 +291,26 @@ export default async function ProviderPage({
     notFound();
   }
 
+  // --- Actual claim state (iOS data always says "unclaimed") ---
+  let actualClaimState = profile.claim_state;
+  let claimAccountId: string | null = profile.account_id;
+  if (profile.source_provider_id) {
+    try {
+      const supabase = await createClient();
+      const { data: bp } = await supabase
+        .from("business_profiles")
+        .select("claim_state, account_id")
+        .eq("source_provider_id", profile.source_provider_id)
+        .maybeSingle();
+      if (bp) {
+        actualClaimState = bp.claim_state;
+        claimAccountId = bp.account_id;
+      }
+    } catch {
+      // Best effort — use profile defaults
+    }
+  }
+
   // --- Data extraction ---
   const meta = profile.metadata as ExtendedMetadata;
   const priceRange =
@@ -343,7 +363,8 @@ export default async function ProviderPage({
   const hasStaff = staff != null;
   const hasReviews = reviews.length > 0;
   const hasOleraScore = oleraScore != null;
-  const hasStaffScreening = staffScreening != null;
+  const hasStaffScreening = staffScreening != null &&
+    (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
   // Build care services: real data first, then pad with category-inferred services
@@ -899,12 +920,14 @@ export default async function ProviderPage({
                 </p>
                 <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                   <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
-                  <Link
-                    href={`/for-providers/claim/${profile.slug}`}
-                    className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors flex-shrink-0"
-                  >
-                    Manage this page
-                  </Link>
+                  <ManagePageButton
+                    providerName={profile.display_name}
+                    providerSlug={profile.slug}
+                    providerId={profile.id}
+                    sourceProviderId={profile.source_provider_id}
+                    claimState={actualClaimState}
+                    claimAccountId={claimAccountId}
+                  />
                 </div>
               </div>
 

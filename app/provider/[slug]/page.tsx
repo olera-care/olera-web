@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -625,7 +626,7 @@ export default async function ProviderPage({
               {hasStaff && (
                 <div className="flex items-center gap-2.5 mt-4">
                   {staff!.image ? (
-                    <img src={staff!.image} alt={staff!.name} className="w-7 h-7 rounded-full object-cover" />
+                    <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="rounded-full object-cover" />
                   ) : (
                     <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
                       <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
@@ -867,7 +868,7 @@ export default async function ProviderPage({
                   <div className="flex flex-col sm:flex-row items-start gap-6">
                     <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
                       {staff!.image ? (
-                        <img src={staff!.image} alt={staff!.name} className="w-20 h-20 rounded-full object-cover mx-auto mb-3" />
+                        <Image src={staff!.image} alt={staff!.name} width={80} height={80} className="rounded-full object-cover mx-auto mb-3" />
                       ) : (
                         <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                           <span className="text-2xl font-bold text-gray-500">{getInitials(staff!.name)}</span>

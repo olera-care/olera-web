@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
@@ -148,8 +149,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
     <div className={isInbound ? "flex items-end gap-2.5" : "flex justify-end"}>
       {isInbound && (
         imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+          <Image src={imageUrl} alt={otherName} width={28} height={28} className="rounded-full object-cover shrink-0" />
         ) : (
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -414,8 +414,7 @@ export default function ConversationPanel({
         {/* Avatar */}
         <Link href={profileHref} className="shrink-0">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={otherName} className="w-10 h-10 rounded-full object-cover" />
+            <Image src={imageUrl} alt={otherName} width={40} height={40} className="rounded-full object-cover" />
           ) : (
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
@@ -485,8 +484,7 @@ export default function ConversationPanel({
                 isInbound ? (
                   <div className="flex items-end gap-2.5 max-w-[70%]">
                     {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                      <Image src={imageUrl} alt={otherName} width={28} height={28} className="rounded-full object-cover shrink-0" />
                     ) : (
                       <div
                         className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -594,8 +592,7 @@ export default function ConversationPanel({
                     {!isOwn && (
                       isLastInGroup ? (
                         imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                          <Image src={imageUrl} alt={otherName} width={28} height={28} className="rounded-full object-cover shrink-0" />
                         ) : (
                           <div
                             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -669,8 +666,7 @@ export default function ConversationPanel({
                     {/* Avatar — only show on last message in group */}
                     {isLastInGroup ? (
                       imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                        <Image src={imageUrl} alt={otherName} width={28} height={28} className="rounded-full object-cover shrink-0" />
                       ) : (
                         <div
                           className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"

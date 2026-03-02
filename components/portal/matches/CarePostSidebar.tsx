@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import EditCarePostModal from "./EditCarePostModal";
 
@@ -226,10 +227,12 @@ export default function CarePostSidebar({
           {/* Profile row */}
           <div className="flex items-center gap-3 mb-4">
             {activeProfile.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={activeProfile.image_url}
                 alt=""
+                width={44}
+                height={44}
+                sizes="44px"
                 className="w-11 h-11 rounded-full object-cover border border-gray-100"
               />
             ) : (

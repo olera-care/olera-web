@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import type { InterestedProvider } from "@/hooks/useInterestedProviders";
 import type { OrganizationMetadata } from "@/lib/types";
@@ -176,10 +177,12 @@ export default function InterestedDetailContent({
           {/* Avatar */}
           <div className="shrink-0">
             {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={imageUrl}
                 alt={name}
+                width={56}
+                height={56}
+                sizes="56px"
                 className="w-14 h-14 rounded-xl object-cover"
               />
             ) : (

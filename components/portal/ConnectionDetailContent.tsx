@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
@@ -1062,10 +1063,12 @@ export default function ConnectionDetailContent({
               {/* Avatar */}
               <div className="shrink-0">
                 {imageUrl && !shouldBlur ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={imageUrl}
                     alt={otherName}
+                    width={56}
+                    height={56}
+                    sizes="56px"
                     className="w-14 h-14 rounded-xl object-cover"
                   />
                 ) : (

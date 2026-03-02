@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 
 interface ImageCarouselProps {
   images: string[];
@@ -61,10 +62,12 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
           className="w-full h-full cursor-pointer"
           aria-label="View all photos"
         >
-          <img
+          <Image
             src={images[current]}
             alt={`${alt} - Image ${current + 1}`}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         </button>
 
@@ -143,11 +146,13 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
           </div>
 
           {/* Main image */}
-          <div className="h-full flex items-center justify-center px-16 py-16">
-            <img
+          <div className="h-full relative px-16 py-16">
+            <Image
               src={images[lightboxIndex]}
               alt={`${alt} - Image ${lightboxIndex + 1}`}
-              className="max-w-full max-h-full object-contain rounded-lg"
+              fill
+              className="object-contain rounded-lg"
+              sizes="100vw"
             />
           </div>
 
@@ -189,10 +194,13 @@ export default function ImageCarousel({ images, alt, className }: ImageCarouselP
                         : "border-transparent opacity-50 hover:opacity-80"
                     }`}
                   >
-                    <img
+                    <Image
                       src={img}
                       alt={`Thumbnail ${i + 1}`}
+                      width={64}
+                      height={48}
                       className="w-full h-full object-cover"
+                      sizes="64px"
                     />
                   </button>
                 ))}

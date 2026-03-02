@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useClickOutside } from "@/hooks/use-click-outside";
+import Image from "next/image";
 import Link from "next/link";
 import type { Connection, Profile } from "@/lib/types";
 
@@ -282,10 +283,12 @@ export default function ConversationList({
             {/* Avatar with unread indicator */}
             <div className="relative shrink-0 mt-0.5">
               {otherProfile?.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={otherProfile.image_url}
                   alt={name}
+                  width={48}
+                  height={48}
+                  sizes="48px"
                   className="w-12 h-12 rounded-full object-cover border border-gray-200"
                 />
               ) : (

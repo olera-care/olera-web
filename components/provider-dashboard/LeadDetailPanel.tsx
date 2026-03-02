@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
@@ -215,8 +216,7 @@ export default function LeadDetailPanel({
           {/* Context — who are we passing on */}
           <div className="flex items-center gap-3 mb-6 pb-5 border-b border-gray-100">
             {imageUrl && !shouldBlur ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageUrl} alt={otherName} className="w-10 h-10 rounded-full object-cover" />
+              <Image src={imageUrl} alt={otherName} width={40} height={40} className="rounded-full object-cover" />
             ) : (
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
@@ -333,11 +333,12 @@ export default function LeadDetailPanel({
         {/* Profile header */}
         <div className="flex flex-col items-center text-center pt-1 pb-6">
           {imageUrl && !shouldBlur ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt={otherName}
-              className="w-[72px] h-[72px] rounded-2xl object-cover mb-4"
+              width={72}
+              height={72}
+              className="rounded-2xl object-cover mb-4"
             />
           ) : (
             <div

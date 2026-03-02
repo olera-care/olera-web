@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { Profile } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -93,12 +94,13 @@ export default function ProviderDetailPanel({
         {/* Image carousel */}
         {images.length > 0 && (
           <div className="relative px-[44px] pt-5">
-            <div className="relative rounded-2xl overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
+            <Image
               src={images[currentImage]}
               alt={profile.display_name}
-              className="w-full aspect-[4/3] object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 400px"
+              className="object-cover"
             />
             {images.length > 1 && (
               <>

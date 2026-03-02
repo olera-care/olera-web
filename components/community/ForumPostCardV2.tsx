@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ForumPost, CARE_TYPE_CONFIG } from "@/types/forum";
 
@@ -29,7 +30,7 @@ function AuthorAvatar({ author }: { author: ForumPost["author"] }) {
     );
   }
   if (author.avatar) {
-    return <img src={author.avatar} alt={author.displayName} className="w-8 h-8 rounded-full object-cover" />;
+    return <Image src={author.avatar} alt={author.displayName} width={32} height={32} className="rounded-full object-cover" />;
   }
   const initials = author.displayName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   return (

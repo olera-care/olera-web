@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ForumPost, CARE_TYPE_CONFIG } from "@/types/forum";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -46,7 +47,8 @@ function AuthorAvatar({ author, size = "md" }: { author: ForumPost["author"]; si
     );
   }
   if (author.avatar) {
-    return <img src={author.avatar} alt={author.displayName} className={`${sizeClasses} rounded-full object-cover flex-shrink-0`} />;
+    const dim = size === "sm" ? 24 : 36;
+    return <Image src={author.avatar} alt={author.displayName} width={dim} height={dim} className={`${sizeClasses} rounded-full object-cover flex-shrink-0`} />;
   }
   const initials = author.displayName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   return (

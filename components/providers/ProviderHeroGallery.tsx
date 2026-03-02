@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { ProfileCategory } from "@/lib/types";
 
 interface ProviderHeroGalleryProps {
@@ -56,10 +57,13 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
   // 1+ images — fixed aspect ratio with navigation
   return (
     <div className="relative w-full max-w-md aspect-[3/2] rounded-2xl overflow-hidden bg-gray-100">
-      <img
+      <Image
         src={images[currentIndex]}
         alt={`${providerName} — photo ${currentIndex + 1}`}
-        className="w-full h-full object-cover"
+        fill
+        priority
+        className="object-cover"
+        sizes="(max-width: 448px) 100vw, 448px"
       />
       {images.length > 1 && (
         <>

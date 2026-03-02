@@ -210,18 +210,18 @@ export default function ManageListingModal({
           {/* CASE 1: Claimed + Owner → Go to Dashboard */}
           {isOwner && (
             <>
-              <div className="w-full text-left rounded-2xl border-2 border-primary-100 bg-gradient-to-br from-primary-50/80 to-white p-6">
+              <div className="w-full text-left rounded-2xl shadow-md border border-primary-100 bg-gradient-to-br from-primary-50/30 to-white p-7">
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
                     <svg className="w-6 h-6 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
                       <path fillRule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    <h3 className="text-lg font-semibold text-gray-900 tracking-tight mb-1">
                       You manage this listing
                     </h3>
-                    <p className="text-gray-600 text-[15px] leading-relaxed mb-4">
+                    <p className="text-gray-600 text-base leading-relaxed mb-4">
                       This listing is linked to your account. Visit your dashboard to update information, respond to families, and manage your presence.
                     </p>
                     <Button onClick={() => { handleClose(); router.push("/provider"); }}>
@@ -236,18 +236,18 @@ export default function ManageListingModal({
           {/* CASE 2: Claimed + NOT Owner → Info + Dispute */}
           {isClaimed && !isOwner && (
             <>
-              <div className="rounded-2xl border-2 border-amber-100 bg-amber-50/50 p-6">
+              <div className="rounded-2xl shadow-md border border-amber-100 bg-amber-50/30 p-7">
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
                     <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    <h3 className="text-lg font-semibold text-gray-900 tracking-tight mb-1">
                       This listing has been claimed
                     </h3>
-                    <p className="text-gray-600 text-[15px] leading-relaxed mb-4">
+                    <p className="text-gray-600 text-base leading-relaxed mb-4">
                       Someone has already verified ownership of <strong>{providerName}</strong>. If you believe this is incorrect, you can dispute the claim.
                     </p>
                     <button
@@ -271,10 +271,10 @@ export default function ManageListingModal({
             <button
               type="button"
               onClick={handleClaimClick}
-              className="w-full text-left rounded-2xl border-2 border-primary-100 bg-gradient-to-br from-primary-50/80 to-white p-6 hover:border-primary-300 hover:shadow-md transition-all duration-200 group"
+              className="w-full text-left rounded-2xl shadow-sm border border-gray-100 bg-gradient-to-br from-primary-50/30 to-white p-7 hover:shadow-lg hover:border-primary-200 transition-all duration-200 group"
             >
               <div className="flex items-start gap-4">
-                <div className="w-11 h-11 bg-primary-100 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-primary-200 transition-colors">
+                <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-primary-200 transition-colors">
                   <svg
                     className="w-6 h-6 text-primary-600"
                     viewBox="0 0 24 24"
@@ -288,10 +288,10 @@ export default function ManageListingModal({
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  <h3 className="text-lg font-semibold text-gray-900 tracking-tight mb-1">
                     Claim this listing
                   </h3>
-                  <p className="text-gray-600 text-[15px] leading-relaxed mb-4">
+                  <p className="text-gray-600 text-base leading-relaxed mb-4">
                     Take control of your page to update information, respond to
                     families, and manage your online presence.
                   </p>
@@ -347,9 +347,9 @@ export default function ManageListingModal({
 
       {/* ── Removal Form ── */}
       {view === "removal-form" && (
-        <div className="space-y-5 pt-2">
+        <div className="space-y-6 pt-2 animate-step-in">
           {/* Full name */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label
               htmlFor="removal-full-name"
               className="block text-base font-medium text-gray-700"
@@ -368,7 +368,7 @@ export default function ManageListingModal({
 
           {/* Email + Phone row */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="removal-email"
                 className="block text-base font-medium text-gray-700"
@@ -384,7 +384,7 @@ export default function ManageListingModal({
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 transition-colors duration-200 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
               />
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="removal-phone"
                 className="block text-base font-medium text-gray-700"
@@ -404,7 +404,7 @@ export default function ManageListingModal({
 
           {/* Action + Reason row */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="removal-action"
                 className="block text-base font-medium text-gray-700"
@@ -429,7 +429,7 @@ export default function ManageListingModal({
                 ))}
               </select>
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="removal-reason"
                 className="block text-base font-medium text-gray-700"
@@ -457,7 +457,7 @@ export default function ManageListingModal({
           </div>
 
           {/* Additional details */}
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label
               htmlFor="removal-details"
               className="block text-base font-medium text-gray-700"
@@ -485,10 +485,10 @@ export default function ManageListingModal({
 
       {/* ── Confirmation ── */}
       {view === "removal-confirmation" && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="flex flex-col items-center justify-center py-12 text-center animate-wizard-in">
           {/* Envelope with checkmark */}
           <div className="relative mb-6">
-            <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center shadow-sm">
               <svg
                 className="w-8 h-8 text-primary-600"
                 fill="none"
@@ -503,7 +503,7 @@ export default function ManageListingModal({
                 />
               </svg>
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center ring-2 ring-white">
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center ring-2 ring-white animate-success-pop">
               <svg
                 className="w-3.5 h-3.5 text-white"
                 fill="none"

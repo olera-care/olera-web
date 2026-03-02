@@ -830,6 +830,7 @@ export default async function ProviderPage({
               <ReviewsSection
                 providerId={profile.slug}
                 providerSlug={profile.slug}
+                providerName={profile.display_name}
                 mockReviews={reviews}
               />
 

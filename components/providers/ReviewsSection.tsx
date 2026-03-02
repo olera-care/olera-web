@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
-import { setDeferredAction } from "@/lib/deferred-action";
 import type { Review } from "@/lib/types";
+import ReviewModal from "@/components/providers/ReviewModal";
 
 // ── Icons ──
 
@@ -66,19 +66,6 @@ const SORT_LABELS: Record<SortOption, string> = {
   lowest: "Lowest Rated",
 };
 
-const RELATIONSHIP_OPTIONS = [
-  "Family Member of Resident",
-  "Daughter of Resident",
-  "Son of Resident",
-  "Spouse of Resident",
-  "Grandchild of Resident",
-  "Friend of Resident",
-  "Resident",
-  "Family Member of Client",
-  "Client",
-  "Other",
-];
-
 const INITIAL_VISIBLE = 4;
 
 // ── Props ──
@@ -86,13 +73,14 @@ const INITIAL_VISIBLE = 4;
 interface ReviewsSectionProps {
   providerId: string;
   providerSlug: string;
+  providerName: string;
   mockReviews: MockReview[];
 }
 
 // ── Component ──
 
-export default function ReviewsSection({ providerId, providerSlug, mockReviews }: ReviewsSectionProps) {
-  const { user, openAuth } = useAuth();
+export default function ReviewsSection({ providerId, providerSlug, providerName, mockReviews }: ReviewsSectionProps) {
+  const { user } = useAuth();
 
   // Data
   const [realReviews, setRealReviews] = useState<Review[]>([]);
@@ -104,19 +92,10 @@ export default function ReviewsSection({ providerId, providerSlug, mockReviews }
   const [sortOpen, setSortOpen] = useState(false);
   const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
 
-  // Form state
-  const [showForm, setShowForm] = useState(false);
-  const [formRating, setFormRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [formTitle, setFormTitle] = useState("");
-  const [formComment, setFormComment] = useState("");
-  const [formRelationship, setFormRelationship] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  // Review modal
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   const sortRef = useRef<HTMLDivElement>(null);
-  const formRef = useRef<HTMLDivElement>(null);
 
   // ── Fetch real reviews ──
 
@@ -145,10 +124,7 @@ export default function ReviewsSection({ providerId, providerSlug, mockReviews }
     const deferred = getDeferredAction();
     if (deferred?.action === "review" && deferred?.targetProfileId === providerId) {
       clearDeferredAction();
-      setShowForm(true);
-      setTimeout(() => {
-        formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 100);
+      setReviewModalOpen(true);
     }
   }, [user, providerId]);
 
@@ -227,84 +203,11 @@ export default function ReviewsSection({ providerId, providerSlug, mockReviews }
     });
   }
 
-  // ── Submit review ──
-
-  async function handleSubmit() {
-    setSubmitError("");
-
-    if (!formRating) {
-      setSubmitError("Please select a star rating.");
-      return;
-    }
-    if (formComment.trim().length < 50) {
-      setSubmitError("Review must be at least 50 characters.");
-      return;
-    }
-    if (!formRelationship) {
-      setSubmitError("Please select your relationship.");
-      return;
-    }
-
-    // Auth-on-submit: if not signed in, save deferred action + prompt auth
-    if (!user) {
-      setDeferredAction({
-        action: "review",
-        targetProfileId: providerId,
-        returnUrl: `/provider/${providerSlug}`,
-      });
-      openAuth({
-        defaultMode: "sign-up",
-        intent: "family",
-      });
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/reviews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: providerId,
-          rating: formRating,
-          title: formTitle.trim() || undefined,
-          comment: formComment.trim(),
-          relationship: formRelationship,
-        }),
-      });
-
-      if (res.status === 409) {
-        setSubmitError("You have already reviewed this provider.");
-        return;
-      }
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        setSubmitError(data?.error || "Failed to submit review. Please try again.");
-        return;
-      }
-
-      const data = await res.json();
-      setRealReviews((prev) => [data.review, ...prev]);
-      setShowForm(false);
-      setFormRating(0);
-      setHoverRating(0);
-      setFormTitle("");
-      setFormComment("");
-      setFormRelationship("");
-      setSubmitSuccess(true);
-      setTimeout(() => setSubmitSuccess(false), 4000);
-    } catch {
-      setSubmitError("Failed to submit review. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
   // ── Render ──
 
   return (
     <div className="py-8 border-t border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">What families are saying</h2>
+      <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight mb-6">What families are saying</h2>
 
       {hasReviews ? (
         <>
@@ -314,13 +217,13 @@ export default function ReviewsSection({ providerId, providerSlug, mockReviews }
             <div className="relative" ref={sortRef}>
               <button
                 onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-1.5 text-sm text-gray-700 font-medium border border-gray-200 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-gray-700 font-medium border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-50 transition-colors"
               >
                 Sort by: {SORT_LABELS[sortBy]}
                 <ChevronDownIcon className="w-4 h-4" />
               </button>
               {sortOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[180px]">
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-10 min-w-[180px] animate-slide-down">
                   {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
                     <button
                       key={option}
@@ -349,7 +252,7 @@ export default function ReviewsSection({ providerId, providerSlug, mockReviews }
                 : review.comment;
 
               return (
-                <div key={review.id} className="border border-gray-100 rounded-xl p-5">
+                <div key={review.id} className="shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 bg-white">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -412,142 +315,37 @@ export default function ReviewsSection({ providerId, providerSlug, mockReviews }
               )}
             </div>
             <button
-              onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors"
+              onClick={() => setReviewModalOpen(true)}
+              className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
             >
-              {showForm ? "Cancel" : "Add review"}
+              Add review
             </button>
           </div>
         </>
       ) : (
         /* Empty state */
-        <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl">
+        <div className="text-center py-12 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
           <StarIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" filled={false} />
           <p className="text-gray-500 font-medium">No reviews yet.</p>
           <p className="text-sm text-gray-400 mt-1 mb-4">Be the first to share your experience with this provider.</p>
           <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors"
+            onClick={() => setReviewModalOpen(true)}
+            className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
           >
             Write a review
           </button>
         </div>
       )}
 
-      {/* Success toast */}
-      {submitSuccess && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 font-medium">
-          Your review has been published. Thank you for sharing your experience!
-        </div>
-      )}
-
-      {/* ── Inline Review Form ── */}
-      {showForm && (
-        <div ref={formRef} id="review-form" className="mt-6 border border-gray-200 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-5">Write a Review</h3>
-
-          {/* Star rating */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Rating *</label>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  onClick={() => setFormRating(star)}
-                  className="p-0.5 transition-transform hover:scale-110"
-                >
-                  <StarIcon
-                    className={`w-8 h-8 ${
-                      star <= (hoverRating || formRating)
-                        ? "text-yellow-400"
-                        : "text-gray-200"
-                    }`}
-                    filled={star <= (hoverRating || formRating)}
-                  />
-                </button>
-              ))}
-              {formRating > 0 && (
-                <span className="ml-2 text-sm text-gray-500 self-center">
-                  {formRating === 1 ? "Poor" : formRating === 2 ? "Fair" : formRating === 3 ? "Good" : formRating === 4 ? "Very Good" : "Excellent"}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Title (optional) */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title <span className="text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={formTitle}
-              onChange={(e) => setFormTitle(e.target.value)}
-              placeholder="Summarize your experience"
-              maxLength={100}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-
-          {/* Comment */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your review *</label>
-            <textarea
-              value={formComment}
-              onChange={(e) => setFormComment(e.target.value)}
-              placeholder="Share details about your experience with this provider..."
-              rows={4}
-              maxLength={2000}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-            />
-            <p className={`text-xs mt-1 ${formComment.trim().length < 50 ? "text-gray-400" : "text-green-500"}`}>
-              {formComment.trim().length}/50 minimum characters
-            </p>
-          </div>
-
-          {/* Relationship */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Your relationship *</label>
-            <select
-              value={formRelationship}
-              onChange={(e) => setFormRelationship(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-            >
-              <option value="">Select your relationship</option>
-              {RELATIONSHIP_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Error */}
-          {submitError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
-              {submitError}
-            </div>
-          )}
-
-          {/* Submit */}
-          <div className="flex items-center justify-end gap-3">
-            <button
-              onClick={() => { setShowForm(false); setSubmitError(""); }}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Submitting..." : "Submit Review"}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        providerId={providerId}
+        providerSlug={providerSlug}
+        providerName={providerName}
+        onReviewSubmitted={(review) => setRealReviews((prev) => [review, ...prev])}
+      />
     </div>
   );
 }

@@ -468,8 +468,8 @@ export default function ClaimPage() {
   // Error
   if (step === "error") {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center animate-step-in">
+        <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6 shadow-sm">
           <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
@@ -488,9 +488,9 @@ export default function ClaimPage() {
   // Success
   if (step === "success") {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-6">
-          <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center animate-wizard-in">
+        <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-6 shadow-sm">
+          <svg className="w-8 h-8 text-primary-600 animate-success-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -533,9 +533,9 @@ export default function ClaimPage() {
         </Link>
 
         {step === "dispute-success" ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-12 animate-wizard-in">
+            <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <svg className="w-8 h-8 text-primary-600 animate-success-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -550,7 +550,7 @@ export default function ClaimPage() {
             </Button>
           </div>
         ) : step === "dispute" ? (
-          <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 md:p-8">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Dispute this claim</h2>
             <p className="text-gray-500 mb-6">
               Tell us about your connection to <strong className="text-gray-700">{provider?.provider_name}</strong> and why you believe you should manage this listing.
@@ -614,7 +614,7 @@ export default function ClaimPage() {
                 <button
                   type="button"
                   onClick={() => { setStep("already-claimed"); setErrorMsg(""); }}
-                  className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
+                  className="text-base font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
                 >
                   Cancel
                 </button>
@@ -633,7 +633,7 @@ export default function ClaimPage() {
           <div>
             {/* Provider card */}
             {provider && (
-              <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden mb-8">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-8">
                 {getPrimaryImage(provider) && (
                   <div className="h-48 bg-gray-200">
                     <img
@@ -659,7 +659,7 @@ export default function ClaimPage() {
               </div>
             )}
 
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 md:p-8">
+            <div className="bg-amber-50/60 shadow-md border border-amber-100 rounded-2xl p-6 md:p-8 animate-step-in">
               <div className="flex gap-4">
                 <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -705,7 +705,7 @@ export default function ClaimPage() {
 
       {/* Provider card (both steps) */}
       {provider && step === "info" && (
-        <div className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden mb-8">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-8">
           {getPrimaryImage(provider) && (
             <div className="h-48 bg-gray-200">
               <img
@@ -737,7 +737,7 @@ export default function ClaimPage() {
 
       {/* Info step — CTA */}
       {step === "info" && (
-        <div className="bg-primary-50 rounded-2xl p-6 md:p-8">
+        <div className="bg-primary-50/60 shadow-sm rounded-2xl p-6 md:p-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
             Is this your organization?
           </h2>

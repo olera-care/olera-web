@@ -63,9 +63,9 @@ export default function ClaimVerifyForm({
 }: ClaimVerifyFormProps) {
   if (noAccessSuccess) {
     return (
-      <div className="text-center">
-        <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-8">
-          <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="text-center animate-wizard-in">
+        <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-8 shadow-sm">
+          <svg className="w-8 h-8 text-primary-600 animate-success-pop" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
@@ -84,7 +84,7 @@ export default function ClaimVerifyForm({
     <div>
       {/* Header — icon + title + subtitle */}
       <div className="text-center mb-10">
-        <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
+        <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6 shadow-sm">
           <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
@@ -132,7 +132,7 @@ export default function ClaimVerifyForm({
           {/* Resend */}
           <div className="text-center">
             {resendCooldown > 0 ? (
-              <p className="text-sm text-gray-500">Resend code in {resendCooldown}s</p>
+              <p className="text-sm text-gray-400">Resend code in {resendCooldown}s</p>
             ) : (
               <button
                 type="button"
@@ -169,7 +169,7 @@ export default function ClaimVerifyForm({
         <button
           type="button"
           onClick={() => onToggleNoAccess(true)}
-          className="w-full flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all text-left group"
+          className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gray-50 hover:bg-gray-100 shadow-sm transition-all text-left group"
         >
           <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center shrink-0 transition-colors">
             <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,9 +189,9 @@ export default function ClaimVerifyForm({
           </svg>
         </button>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-5 animate-step-in">
           <div className="mb-1">
-            <h2 className="text-lg font-semibold text-gray-900">Request manual review</h2>
+            <h2 className="text-lg font-semibold text-gray-900 tracking-tight">Request manual review</h2>
             <p className="text-base text-gray-500 mt-1">
               Tell us a bit about yourself so we can verify your access.
             </p>
@@ -205,7 +205,7 @@ export default function ClaimVerifyForm({
             required
           />
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <label htmlFor="no-access-role" className="block text-base font-medium text-gray-700">
               Your role
             </label>
@@ -253,7 +253,7 @@ export default function ClaimVerifyForm({
             <button
               type="button"
               onClick={() => onToggleNoAccess(false)}
-              className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
+              className="text-base font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
             >
               Cancel
             </button>

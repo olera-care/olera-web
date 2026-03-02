@@ -104,6 +104,7 @@ const URGENCY_ORDER: Record<string, number> = {
 };
 
 const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
+const PAGE_SIZE = 20;
 
 // ── Inline keyframes ──
 
@@ -958,8 +959,12 @@ export default function ProviderMatchesPage() {
   const { membership, refreshAccountData } = useAuth();
   const [families, setFamilies] = useState<Profile[]>([]);
   const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
+  const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
   const [reachOutCounts, setReachOutCounts] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
 
@@ -1092,18 +1097,22 @@ export default function ProviderMatchesPage() {
     [profileId, reachOutNote, saveAsDefault, membership, refreshAccountData],
   );
 
-  useEffect(() => {
-    if (!profileId || !isSupabaseConfigured()) {
-      setLoading(false);
-      return;
-    }
+  const fetchFamilies = useCallback(
+    async (offset: number) => {
+      if (!profileId || !isSupabaseConfigured()) {
+        setLoading(false);
+        return;
+      }
 
-    const fetchData = async () => {
+      if (offset === 0) setLoading(true);
+      else setLoadingMore(true);
+      setFetchError(null);
+
       try {
         const supabase = createClient();
 
-        // Round 1: families + provider's own connections
-        const [familiesRes, connectionsRes] = await Promise.all([
+        // Round 1: families + provider's own connections (+ responded)
+        const [familiesRes, connectionsRes, respondedRes] = await Promise.all([
           supabase
             .from("business_profiles")
             .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at")
@@ -1111,27 +1120,47 @@ export default function ProviderMatchesPage() {
             .eq("is_active", true)
             .filter("metadata->care_post->>status", "eq", "active")
             .order("created_at", { ascending: false })
-            .limit(50),
-          supabase
-            .from("connections")
-            .select("to_profile_id")
-            .eq("from_profile_id", profileId)
-            .eq("type", "request")
-            .in("status", ["pending", "accepted"]),
+            .range(offset, offset + PAGE_SIZE),
+          ...(offset === 0
+            ? [
+                supabase
+                  .from("connections")
+                  .select("to_profile_id")
+                  .eq("from_profile_id", profileId)
+                  .eq("type", "request")
+                  .in("status", ["pending", "accepted"]),
+                supabase
+                  .from("connections")
+                  .select("to_profile_id")
+                  .eq("from_profile_id", profileId)
+                  .eq("type", "request")
+                  .eq("status", "accepted"),
+              ]
+            : [Promise.resolve({ data: null, error: null }), Promise.resolve({ data: null, error: null })]),
         ]);
 
         if (familiesRes.error) {
-          console.error("[olera] matches fetch error:", familiesRes.error.message);
+          throw new Error(familiesRes.error.message);
         }
 
         const fetchedFamilies = (familiesRes.data as Profile[]) || [];
-        setFamilies(fetchedFamilies);
-        setContactedIds(
-          new Set(connectionsRes.data?.map((c) => c.to_profile_id) || [])
-        );
+        setHasMore(fetchedFamilies.length > PAGE_SIZE);
+        const trimmed = fetchedFamilies.slice(0, PAGE_SIZE);
 
-        // Round 2: reach-out counts per family
-        const familyIds = fetchedFamilies.map((f) => f.id);
+        if (offset === 0) {
+          setFamilies(trimmed);
+          setContactedIds(
+            new Set(connectionsRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+          );
+          setRespondedIds(
+            new Set(respondedRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+          );
+        } else {
+          setFamilies((prev) => [...prev, ...trimmed]);
+        }
+
+        // Reach-out counts per family
+        const familyIds = trimmed.map((f) => f.id);
         if (familyIds.length > 0) {
           const { data: reachOuts } = await supabase
             .from("connections")
@@ -1141,20 +1170,37 @@ export default function ProviderMatchesPage() {
             .in("status", ["pending", "accepted"]);
 
           const counts = new Map<string, number>();
-          (reachOuts || []).forEach((r) => {
+          (reachOuts || []).forEach((r: { to_profile_id: string }) => {
             counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
           });
-          setReachOutCounts(counts);
+          if (offset === 0) {
+            setReachOutCounts(counts);
+          } else {
+            setReachOutCounts((prev) => {
+              const merged = new Map(prev);
+              counts.forEach((v, k) => merged.set(k, v));
+              return merged;
+            });
+          }
         }
       } catch (err) {
         console.error("[olera] matches fetch failed:", err);
+        setFetchError(
+          err && typeof err === "object" && "message" in err
+            ? (err as { message: string }).message
+            : "Failed to load matches. Please try again.",
+        );
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
-    };
+    },
+    [profileId],
+  );
 
-    fetchData();
-  }, [profileId]);
+  useEffect(() => {
+    fetchFamilies(0);
+  }, [fetchFamilies]);
 
   // Filter + sort
   const filteredFamilies = useMemo(() => {
@@ -1208,6 +1254,36 @@ export default function ProviderMatchesPage() {
 
   if (!providerProfile || loading) {
     return <MatchesSkeleton />;
+  }
+
+  // Error state — show after loading completes with no data
+  if (fetchError && families.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col items-center justify-center text-center min-h-[50vh]">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-5">
+            <svg className="w-7 h-7 text-red-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+          </div>
+          <p className="text-[17px] font-display font-semibold text-gray-900 mb-1.5">
+            Couldn&apos;t load matches
+          </p>
+          <p className="text-sm text-gray-500 mb-6 max-w-xs">
+            {fetchError}
+          </p>
+          <button
+            type="button"
+            onClick={() => fetchFamilies(0)}
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+      </div>
+    );
   }
 
   return (
@@ -1339,6 +1415,41 @@ export default function ProviderMatchesPage() {
                 </div>
               </div>
             )}
+
+            {/* Load more */}
+            {hasMore && (
+              <div className="flex justify-center pt-4">
+                <button
+                  type="button"
+                  onClick={() => fetchFamilies(families.length)}
+                  disabled={loadingMore}
+                  className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMore ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                      Loading...
+                    </span>
+                  ) : (
+                    "Load more matches"
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Inline error for load-more failures */}
+            {fetchError && families.length > 0 && (
+              <div className="flex items-center justify-center gap-3 py-4">
+                <p className="text-sm text-red-500">Couldn&apos;t load more matches.</p>
+                <button
+                  type="button"
+                  onClick={() => fetchFamilies(families.length)}
+                  className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Sidebar — 1/3 */}
@@ -1348,7 +1459,7 @@ export default function ProviderMatchesPage() {
               totalFamilies={families.length}
               isFreeTier={isFreeTier}
               contactedCount={contactedIds.size}
-              respondedCount={families.filter((f) => contactedIds.has(f.id)).length}
+              respondedCount={respondedIds.size}
               newMatchesToday={families.filter((f) => {
                 const created = f.created_at ? new Date(f.created_at) : null;
                 if (!created) return false;

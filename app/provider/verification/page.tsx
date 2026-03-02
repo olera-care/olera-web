@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { saveProfile } from "@/components/provider-dashboard/edit-modals/save-profile";
@@ -125,11 +126,12 @@ function UploadArea({
     return (
       <div className="relative rounded-xl overflow-hidden bg-warm-50 border border-warm-100">
         <div className="flex items-center gap-4 p-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={existingUrl}
             alt="Uploaded"
-            className="w-16 h-16 rounded-lg object-cover shrink-0"
+            width={64}
+            height={64}
+            className="rounded-lg object-cover shrink-0"
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">Image uploaded</p>

@@ -76,8 +76,8 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 | Included in sitemap.xml | ✅ 22K+ providers | ✅ 39K+ providers | ✅ Yes | ✅ Yes | — |
 | robots.txt allows crawling | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
 | Server-side rendered | ⚠️ Rails SSR + React hydration | ✅ Full Next.js SSR | ✅ Yes | ✅ Yes | — |
-| Image optimization (webp, srcset) | ❌ Standard `<img>` | ❌ **Plain `<img>` tags** | ✅ Optimized | ✅ Optimized | **P1** |
-| Lazy loading below-fold images | ❌ No* | ❌ **Missing** | ✅ Yes | ✅ Yes | **P1** |
+| Image optimization (webp, srcset) | ❌ Standard `<img>` | ✅ **`next/image` across all pages** | ✅ Optimized | ✅ Optimized | ~~P1~~ Done |
+| Lazy loading below-fold images | ❌ No* | ✅ **Automatic via `next/image`** | ✅ Yes | ✅ Yes | ~~P1~~ Done |
 | Preconnect / preload hints | ❌ No* | ❌ Missing | ✅ Yes | ✅ Yes | P2 |
 | Core Web Vitals optimized | ⚠️ Unknown | ⚠️ Untested | ✅ Yes | ✅ Yes | P2 |
 
@@ -96,11 +96,11 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 
 | Metric | Olera v1.0 | Olera v2 | APFM | Caring.com |
 |---|---|---|---|---|
-| **Confirmed Elements** | ~24 / 40 | 34 / 40 (+4 from structured data) | ~28 / 40 confirmed | ~22 / 40 confirmed |
-| **Confirmed + Inferred** | ~24 / 40 | 34 / 40 | ~35 / 40 | ~33 / 40 |
-| **Score (confirmed only)** | **~60%** | **85%** | **~70%** | **~55%** |
-| **Score (with inferred)** | **~60%** | **85%** | **~88%** | **~82%** |
-| **Grade** | **D+** | **B+** (up from B-) | **B+ to A** | **B to B+** |
+| **Confirmed Elements** | ~24 / 40 | 36 / 40 (+4 structured data, +2 image opt) | ~28 / 40 confirmed | ~22 / 40 confirmed |
+| **Confirmed + Inferred** | ~24 / 40 | 36 / 40 | ~35 / 40 | ~33 / 40 |
+| **Score (confirmed only)** | **~60%** | **90%** | **~70%** | **~55%** |
+| **Score (with inferred)** | **~60%** | **90%** | **~88%** | **~82%** |
+| **Grade** | **D+** | **A-** (up from B+) | **B+ to A** | **B to B+** |
 
 > **Important:** Both APFM and Caring.com block automated crawling (HTTP 403). Their scores include many inferred elements based on SERP analysis, tech stack, and industry research. Actual implementation may differ. Only Olera v2 scores are fully verified from source code.
 
@@ -136,7 +136,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 5. Add PriceSpecification/Offer schema
 6. Add GeoCoordinates to LocalBusiness
 7. Use MedicalBusiness subtype instead of generic LocalBusiness
-8. Migrate images to `next/image` (webp, srcset, lazy loading)
+8. ~~Migrate images to `next/image` (webp, srcset, lazy loading)~~ ✅ **DONE** — All `<img>` tags migrated to `next/image` across 30+ files
 9. ~~Add pagination URL migration (`/page/{n}` suffix handling)~~ ✅ **DONE (2026-03-01)** — Handled in middleware alongside state abbreviation redirects
 10. Switch alias redirects from 307 → 308 permanent
 
@@ -322,7 +322,7 @@ Export top 100 rows
 | `/providers` → `/for-providers` redirect | ❌ Not started | Claude + TJ | P1 |
 | P1 SEO: FAQPage JSON-LD schema | ❌ Not started | Claude + TJ | P1 |
 | P1 SEO: Review schema, GeoCoordinates, MedicalBusiness | ❌ Not started | Claude + TJ | P1 |
-| P1 SEO: Migrate images to `next/image` | ❌ Not started | Claude + TJ | P1 |
+| P1 SEO: Migrate images to `next/image` | ✅ Done | Claude + TJ | ~~P1~~ Done |
 | Switch alias redirects from 307 → 308 permanent | ❌ Not started | Claude + TJ | P1 |
 
 ### Remaining — Operations & Content

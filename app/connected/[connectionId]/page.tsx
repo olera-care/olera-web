@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { PROVIDERS_TABLE } from "@/lib/types/provider";
@@ -198,8 +199,7 @@ function ConnectedPageContent() {
                 {/* Provider image or personalized initials */}
                 <div className="absolute inset-[6px] rounded-full overflow-hidden">
                   {provider.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={provider.imageUrl} alt={provider.name} className="w-full h-full object-cover" />
+                    <Image src={provider.imageUrl} alt={provider.name} fill className="object-cover" sizes="100px" />
                   ) : (
                     <div
                       className="w-full h-full flex items-center justify-center"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -663,10 +664,12 @@ function ConnectionGridCard({
         {/* Avatar */}
         <div className="relative shrink-0">
           {imageUrl && !shouldBlur ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt={otherName}
+              width={48}
+              height={48}
+              sizes="48px"
               className="w-12 h-12 rounded-full object-cover"
             />
           ) : (

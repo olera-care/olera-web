@@ -558,7 +558,7 @@ function NotificationRow({
   onToggle: (channel: "email" | "sms") => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
+    <div className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
       <div className="min-w-0">
         <p className="text-[15px] font-semibold text-gray-900">{title}</p>
         <p className="text-sm text-gray-500 mt-0.5">{description}</p>
@@ -635,10 +635,10 @@ function AccountRow({
   isPassword?: boolean;
 }) {
   return (
-    <div className="py-3.5 first:pt-0 last:pb-0">
+    <div className="py-4 first:pt-0 last:pb-0">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+          <p className="text-[13px] font-medium text-gray-500">{label}</p>
           {isEditing ? (
             isPassword ? (
               <p className="text-sm text-gray-500 mt-1">

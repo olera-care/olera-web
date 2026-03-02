@@ -491,11 +491,11 @@ export default function FamilyProfileView({ profile: profileProp }: FamilyProfil
             ))}
           </div>
         ) : (
-          <p className="text-[15px] text-gray-300 mb-4">&mdash;</p>
+          <p className="text-sm text-gray-400 italic mb-4">Not added</p>
         )}
         {meta.saved_benefits && meta.saved_benefits.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Saved Benefits</p>
+            <p className="text-[13px] font-medium text-gray-500 mb-2">Saved benefits</p>
             <div className="flex flex-wrap gap-2">
               {meta.saved_benefits.map((benefit) => (
                 <span key={benefit} className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-50 text-gray-600 border border-gray-200">
@@ -589,12 +589,12 @@ function SectionCard({
 
 function ViewRow({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className="py-3.5">
-      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
+    <div className="py-4">
+      <p className="text-[13px] font-medium text-gray-500">{label}</p>
       {value ? (
         <p className="text-[15px] text-gray-900 mt-1">{value}</p>
       ) : (
-        <p className="text-[15px] text-gray-300 mt-1">&mdash;</p>
+        <p className="text-sm text-gray-400 italic mt-1">Not added</p>
       )}
     </div>
   );

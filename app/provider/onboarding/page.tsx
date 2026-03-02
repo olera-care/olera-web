@@ -16,7 +16,7 @@ import OtpInput from "@/components/auth/OtpInput";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4 | 5;
+type Step = "resume" | 1 | "caregiver-coming-soon" | "search" | "verify" | 2 | 3 | 4 | 5;
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
@@ -126,6 +126,10 @@ function ProviderOnboardingContent() {
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Caregiver coming-soon notify state
+  const [caregiverEmail, setCaregiverEmail] = useState(user?.email || "");
+  const [caregiverNotified, setCaregiverNotified] = useState(false);
+  const [caregiverNotifying, setCaregiverNotifying] = useState(false);
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
@@ -622,7 +626,7 @@ function ProviderOnboardingContent() {
     ? { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 }
     : { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
-  const showWizardNav = step !== "resume";
+  const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon";
 
   if (isLoading) {
     return (
@@ -771,16 +775,10 @@ function ProviderOnboardingContent() {
               {/* Private Caregiver */}
               <button
                 type="button"
-                onClick={() => handleSelectType("caregiver")}
-                className={`group flex flex-col items-center text-center p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
-                  providerType === "caregiver"
-                    ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
-                    : "border-gray-200 hover:border-primary-400 hover:shadow-md"
-                }`}
+                onClick={() => setStep("caregiver-coming-soon")}
+                className="group flex flex-col items-center text-center p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
               >
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200 ${
-                  providerType === "caregiver" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
-                }`}>
+                <div className="w-20 h-20 rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-6 transition-colors duration-200">
                   <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -791,6 +789,97 @@ function ProviderOnboardingContent() {
                 </p>
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ── Caregiver Coming Soon ── */}
+        {step === "caregiver-coming-soon" && (
+          <div className="flex flex-col items-center justify-center text-center min-h-[60vh] w-full max-w-md mx-auto">
+            {/* Icon */}
+            <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-6">
+              <svg className="w-9 h-9 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+
+            {/* Badge */}
+            <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-primary-600 border border-primary-200 mb-5">
+              Coming Soon
+            </span>
+
+            {/* Heading */}
+            <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight mb-3">
+              Private Caregiver
+            </h1>
+
+            <p className="text-base text-gray-500 max-w-sm leading-relaxed mb-8">
+              Individual caregiver onboarding is coming soon. Get notified when it launches.
+            </p>
+
+            {/* Notify form */}
+            {!caregiverNotified ? (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!caregiverEmail.trim()) return;
+                  setCaregiverNotifying(true);
+                  try {
+                    if (isSupabaseConfigured()) {
+                      const supabase = createClient();
+                      await supabase.from("feature_waitlist").upsert(
+                        { feature: "caregiver_onboarding", email: caregiverEmail.trim(), profile_id: null },
+                        { onConflict: "feature,email" },
+                      );
+                    }
+                  } catch {
+                    // Graceful — still show success
+                  } finally {
+                    setCaregiverNotifying(false);
+                    setCaregiverNotified(true);
+                  }
+                }}
+                className="w-full max-w-sm mb-3"
+              >
+                <div className="flex items-center border border-gray-200 rounded-xl bg-white overflow-hidden">
+                  <input
+                    type="email"
+                    value={caregiverEmail}
+                    onChange={(e) => setCaregiverEmail(e.target.value)}
+                    placeholder="Your email"
+                    required
+                    className="flex-1 px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={caregiverNotifying}
+                    className="px-5 py-2.5 mr-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
+                  >
+                    {caregiverNotifying ? "..." : "Notify me"}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-2.5">
+                  We&apos;ll send one email when caregiver onboarding launches. No spam.
+                </p>
+              </form>
+            ) : (
+              <div className="mb-8">
+                <p className="text-sm text-primary-600 font-medium">
+                  You&apos;re on the list. We&apos;ll let you know!
+                </p>
+              </div>
+            )}
+
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-4"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Back
+            </button>
           </div>
         )}
 

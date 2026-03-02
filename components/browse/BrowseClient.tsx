@@ -34,15 +34,6 @@ const careTypes = [
   { id: "independent-living", label: "Independent Living" },
 ];
 
-const paymentTypeOptions = [
-  { value: "any", label: "Any Payment Type" },
-  { value: "Medicare", label: "Medicare" },
-  { value: "Medicaid", label: "Medicaid" },
-  { value: "Private Pay", label: "Private Pay" },
-  { value: "Long-term Insurance", label: "Long-term Care Insurance" },
-  { value: "Veterans Benefits", label: "VA Benefits" },
-];
-
 const ratingOptions = [
   { value: "any", label: "Any Rating" },
   { value: "4.5", label: "4.5+ Stars" },
@@ -107,7 +98,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [searchLocation, setSearchLocation] = useState(initialLocation);
   const [locationInput, setLocationInput] = useState(initialLocation);
   const [selectedRating, setSelectedRating] = useState("any");
-  const [selectedPayment, setSelectedPayment] = useState("any");
   const [sortBy, setSortBy] = useState("recommended");
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,7 +106,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCareTypeDropdown, setShowCareTypeDropdown] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
-  const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // Geolocation state
@@ -290,7 +279,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         setLocationInput(searchLocation);
         setShowCareTypeDropdown(false);
         setShowRatingDropdown(false);
-        setShowPaymentDropdown(false);
         setShowSortDropdown(false);
       }
     };
@@ -305,10 +293,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     if (selectedRating !== "any") {
       const minRating = parseFloat(selectedRating);
       result = result.filter((p) => p.rating >= minRating);
-    }
-
-    if (selectedPayment !== "any") {
-      result = result.filter((p) => p.acceptedPayments?.includes(selectedPayment));
     }
 
     switch (sortBy) {
@@ -329,7 +313,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     }
 
     return result;
-  }, [providers, selectedRating, selectedPayment, sortBy]);
+  }, [providers, selectedRating, sortBy]);
 
   // Pagination with badge assignment (top 3 highest-rated in full result set)
   const totalPages = Math.ceil(filteredProviders.length / PROVIDERS_PER_PAGE);
@@ -354,12 +338,11 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   // Reset page when filters or location change
   useEffect(() => {
     setCurrentPage(1);
-  }, [careType, searchLocation, selectedRating, selectedPayment, sortBy]);
+  }, [careType, searchLocation, selectedRating, sortBy]);
 
   // Check if any filters are active
   const hasActiveFilters =
     selectedRating !== "any" ||
-    selectedPayment !== "any" ||
     sortBy !== "recommended";
 
   // Clear all filters
@@ -367,7 +350,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     setSearchLocation(DEFAULT_LOCATION);
     setLocationInput(DEFAULT_LOCATION);
     setSelectedRating("any");
-    setSelectedPayment("any");
     setSortBy("recommended");
   };
 
@@ -376,7 +358,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     setShowLocationDropdown(false);
     setShowCareTypeDropdown(false);
     setShowRatingDropdown(false);
-    setShowPaymentDropdown(false);
     setShowSortDropdown(false);
   };
 
@@ -447,6 +428,20 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         type="text"
                         value={locationInput}
                         onChange={(e) => setLocationInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (cityResults.length > 0) {
+                              // Auto-select the first suggestion (Airbnb pattern)
+                              setSearchLocation(cityResults[0].full);
+                              setLocationInput(cityResults[0].full);
+                            } else if (locationInput.trim()) {
+                              // No matches but user typed something — keep current location
+                              setLocationInput(searchLocation);
+                            }
+                            setShowLocationDropdown(false);
+                          }
+                        }}
                         onFocus={preloadCities}
                         placeholder="City or ZIP code"
                         className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
@@ -490,7 +485,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                     </div>
                   )}
 
-                  {cityResults.map((loc) => (
+                  {cityResults.map((loc, index) => (
                     <button
                       key={loc.full}
                       type="button"
@@ -502,7 +497,9 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                       className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
                         searchLocation === loc.full
                           ? "bg-primary-50 text-primary-700"
-                          : "text-gray-900"
+                          : index === 0 && locationInput.trim()
+                            ? "bg-gray-50 text-gray-900"
+                            : "text-gray-900"
                       }`}
                     >
                       <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -510,11 +507,15 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span className="font-medium">{loc.full}</span>
+                      {index === 0 && locationInput.trim() && (
+                        <span className="ml-auto text-xs text-gray-400">Enter</span>
+                      )}
                     </button>
                   ))}
-                  {cityResults.length === 0 && (
-                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                      No locations found
+                  {cityResults.length === 0 && locationInput.trim() && (
+                    <div className="px-4 py-3 text-center">
+                      <p className="text-sm text-gray-500">No locations found</p>
+                      <p className="text-xs text-gray-400 mt-1">Try a city name, state, or ZIP code</p>
                     </div>
                   )}
                 </div>
@@ -617,59 +618,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                       }`}
                     >
                       {selectedRating === option.value ? (
-                        <svg className="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <span className="w-5" />
-                      )}
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Payment Dropdown */}
-            <div className="relative dropdown-container flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const opening = !showPaymentDropdown;
-                  closeAllDropdowns();
-                  setShowPaymentDropdown(opening);
-                }}
-                className={`flex items-center justify-between h-9 px-4 rounded-full text-sm font-medium transition-colors overflow-hidden ${
-                  selectedPayment !== "any"
-                    ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400"
-                }`}
-              >
-                <span className="truncate">{selectedPayment === "any" ? "Payments" : selectedPayment}</span>
-                <svg
-                  className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform ${showPaymentDropdown ? "rotate-180" : ""} ${selectedPayment !== "any" ? "text-gray-900" : "text-gray-400"}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showPaymentDropdown && (
-                <div className="absolute left-0 top-[calc(100%+6px)] w-72 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-[100]">
-                  {paymentTypeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setSelectedPayment(option.value);
-                        setShowPaymentDropdown(false);
-                      }}
-                      className={`flex items-center gap-2 w-full px-3 py-1 text-left text-base hover:bg-gray-50 transition-colors whitespace-nowrap ${
-                        selectedPayment === option.value ? "text-gray-900 font-medium" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedPayment === option.value ? (
                         <svg className="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>

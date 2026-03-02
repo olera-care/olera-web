@@ -48,10 +48,10 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 | Individual Review schema | ❌ No* | ✅ Done (PR #82) | ⚠️ Possible~ | ✅ Yes~ | ~~P1~~ Done |
 | Organization / Publisher schema | ❌ No* | ✅ Global in layout.tsx | ✅ Yes~ | ✅ Yes~ | — |
 | PriceSpecification / Offer schema | ❌ No* | ✅ Done (PR #82) | ⚠️ Unverified~ | ⚠️ Possible~ | ~~P1~~ Done |
-| ImageObject schema | ❌ No* | ❌ Missing | ⚠️ Possible~ | ❌ No~ | P2 |
+| ImageObject schema | ❌ No* | ✅ Done | ⚠️ Possible~ | ❌ No~ | ~~P2~~ Done |
 | VideoObject schema | ❌ No | N/A (no videos) | ⚠️ Possible~ | ❌ No | P3 |
 | MedicalBusiness subtype | ❌ No* | ❌ Deferred (low reward vs LocalBusiness) | ⚠️ Unverified~ | ⚠️ Possible~ | P3 (revisit) |
-| Person schema (staff/manager) | ❌ No* | ❌ **Missing** | ⚠️ Unverified~ | ❌ No~ | P2 |
+| Person schema (staff/manager) | ❌ No* | ✅ Done | ⚠️ Unverified~ | ❌ No~ | ~~P2~~ Done |
 | GeoCoordinates | ❌ No* | ✅ Done (PR #82) | ⚠️ Unverified~ | ⚠️ Likely~ | ~~P1~~ Done |
 
 ### HTML & Content Quality
@@ -60,7 +60,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 |---|---|---|---|---|---|
 | Single H1 tag | ✅ Yes | ✅ Provider name | ✅ Yes | ✅ Yes | — |
 | Proper heading hierarchy (H1→H2→H3) | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
-| Semantic HTML5 elements (nav, main, section) | ⚠️ React SPA* | ⚠️ Partial (nav only) | ⚠️ Unverified~ | ⚠️ Likely (WordPress)~ | P2 |
+| Semantic HTML5 elements (nav, main, section) | ⚠️ React SPA* | ✅ Done | ⚠️ Unverified~ | ⚠️ Likely (WordPress)~ | ~~P2~~ Done |
 | Breadcrumb navigation (visual) | ✅ Yes | ✅ With aria-label | ✅ Yes | ✅ Yes | — |
 | Meaningful image alt text | ⚠️ Partial* | ⚠️ Partial (gallery good) | ⚠️ Partial (2 missing on HP) | ⚠️ Unverified~ | P2 |
 | Internal cross-links (category/state/city) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
@@ -78,7 +78,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 | Server-side rendered | ⚠️ Rails SSR + React hydration | ✅ Full Next.js SSR | ✅ Yes | ✅ Yes | — |
 | Image optimization (webp, srcset) | ❌ Standard `<img>` | ✅ **`next/image` across all pages** | ✅ Optimized | ✅ Optimized | ~~P1~~ Done |
 | Lazy loading below-fold images | ❌ No* | ✅ **Automatic via `next/image`** | ✅ Yes | ✅ Yes | ~~P1~~ Done |
-| Preconnect / preload hints | ❌ No* | ❌ Missing | ✅ Yes | ✅ Yes | P2 |
+| Preconnect / preload hints | ❌ No* | ✅ Done | ✅ Yes | ✅ Yes | ~~P2~~ Done |
 | Core Web Vitals optimized | ⚠️ Unknown | ⚠️ Untested | ✅ Yes | ✅ Yes | P2 |
 
 ### URL & Redirect Infrastructure
@@ -160,9 +160,9 @@ Complete list of every route in Olera v1.0 and its v2 migration status.
 | v1.0 Route | Est. Pages | v2 Equivalent | Status |
 |---|---|---|---|
 | `/provider/{slug}` | ~39,000+ | `/provider/{slug}` | ✅ Done — same URL |
-| `/{category}/{state}` | ~300+ | `/{category}/{state-slug}` | ⚠️ **State format changed** (abbrev → full name) |
-| `/{category}/{state}/{city}` | ~10,000+ | `/{category}/{state-slug}/{city}` | ⚠️ **State format changed** |
-| `/{category}/{state}/{city}/page/{n}` | ~10,000+ | `/{category}/{state-slug}/{city}` | ❌ **Pagination suffix not handled** |
+| `/{category}/{state}` | ~300+ | `/{category}/{state-slug}` | ✅ Middleware 301 (abbrev → full name) |
+| `/{category}/{state}/{city}` | ~10,000+ | `/{category}/{state-slug}/{city}` | ✅ Middleware 301 (abbrev → full name) |
+| `/{category}/{state}/{city}/page/{n}` | ~10,000+ | `/{category}/{state-slug}/{city}` | ✅ Middleware strips `/page/{n}` suffix |
 | `/{category}` | 7 | `/{category}` | ✅ Done — aliases handled |
 
 ### Editorial Content (Medium Traffic)
@@ -174,28 +174,30 @@ Complete list of every route in Olera v1.0 and its v2 migration status.
 | `/caregiver-support/c/{categorySlug}` | ~6 | `/resources` | ✅ 301 redirect (multi-segment → hub) |
 | `/caregiver-support/curated` | 1 | `/resources` | ✅ 301 redirect |
 | `/caregiver-support/curated/{categorySlug}` | ~6 | `/resources` | ✅ 301 redirect (multi-segment → hub) |
-| `/research-and-press` | 1 | — | ❌ **No v2 page** |
-| `/research-and-press/{slug}` | ~7 | — | ❌ **No v2 page** |
-| `/research-and-press/c/{categorySlug}` | ~3 | — | ❌ **No v2 page** |
+| `/research-and-press` | 1 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
+| `/research-and-press/{slug}` | ~7 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
+| `/research-and-press/c/{categorySlug}` | ~3 | `/` (homepage) | ✅ 301 redirect (covered by `:slug*` pattern) |
 
 ### Community Features (Medium Traffic)
 
 | v1.0 Route | Est. Pages | v2 Equivalent | Status |
 |---|---|---|---|
-| `/caregiver-forum` | 1 | — | ❌ **No v2 equivalent** |
-| `/caregiver-forum/{topic}` | ~20+ | — | ❌ **No v2 equivalent** |
-| `/caregiver-forum/{topic}/{discussion}` | ~100+ | — | ❌ **No v2 equivalent** |
-| `/caregiver-forum/*/page/{n}` | many | — | ❌ **No v2 equivalent** |
-| `/caregiver-relief-network` | 1 | — | ❌ **No v2 equivalent** |
-| `/caregiver-relief-network/favorite-providers` | 1 | — | ❌ **No v2 equivalent** |
-| `/caregiver-relief-network/recommended/{slug}` | ~50+ | — | ❌ **No v2 equivalent** |
+| `/caregiver-forum` | 1 | `/community` | ✅ 301 redirect in next.config.ts |
+| `/caregiver-forum/{topic}` | ~20+ | `/community` | ✅ 301 redirect (covered by `:path*` pattern) |
+| `/caregiver-forum/{topic}/{discussion}` | ~100+ | `/community` | ✅ 301 redirect (covered by `:path*` pattern) |
+| `/caregiver-forum/*/page/{n}` | many | `/community` | ✅ 301 redirect (covered by `:path*` pattern) |
+| `/caregiver-relief-network` | 1 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
+| `/caregiver-relief-network/favorite-providers` | 1 | `/` (homepage) | ✅ 301 redirect (covered by `:path*` pattern) |
+| `/caregiver-relief-network/recommended/{slug}` | ~50+ | `/` (homepage) | ✅ 301 redirect (covered by `:path*` pattern) |
 
 ### Static & Company Pages
 
 | v1.0 Route | Est. Pages | v2 Equivalent | Status |
 |---|---|---|---|
-| `/company/{slug}` (about) | 1 | — | ❌ **No v2 page** |
-| `/pages/{slug}` (privacy, terms) | ~2 | `/terms-of-use`, `/privacy-policy` | ⚠️ Partial — terms redirected, privacy missing |
+| `/company/{slug}` (about) | 1 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
+| `/pages/privacy` | 1 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
+| `/pages/terms` | 1 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
+| `/terms-and-conditions` | 1 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
 | `/providers` (for providers landing) | 1 | `/for-providers` | ✅ 301 redirect |
 
 ### Auth & Portal (Low SEO Impact — Needs Functional Redirects)
@@ -203,12 +205,12 @@ Complete list of every route in Olera v1.0 and its v2 migration status.
 | v1.0 Route | v2 Equivalent | Status |
 |---|---|---|
 | `/provider-portal/*` | `/portal/*` | ✅ Redirected in next.config.ts |
-| `/account` | `/portal` | ❌ **Redirect not configured** |
-| `/inbox` | `/portal` | ❌ **Redirect not configured** |
-| `/confirm-email` | — | ❌ **No v2 equivalent** |
-| `/reset-password` | — | ❌ **No v2 equivalent** |
-| `/provider/{slug}/review/{uuid}` | — | ❌ **No v2 equivalent** |
-| `/provider/{slug}/request-review/{token}` | — | ❌ **No v2 equivalent** |
+| `/account` | `/portal` | ✅ 301 redirect in next.config.ts |
+| `/inbox` | `/portal` | ✅ 301 redirect in next.config.ts |
+| `/confirm-email` | `/` (homepage) | ✅ 301 redirect (auth handled via modal/Supabase) |
+| `/reset-password` | `/` (homepage) | ✅ 301 redirect (auth handled via modal/Supabase) |
+| `/provider/{slug}/review/{uuid}` | `/provider/{slug}` | ✅ 301 redirect to provider page |
+| `/provider/{slug}/request-review/{token}` | `/provider/{slug}` | ✅ 301 redirect to provider page |
 
 ---
 
@@ -312,18 +314,30 @@ Export top 100 rows
 | City page abbreviation redirects (inherits from state redirect) | ✅ Done | 2026-03-01 |
 | Pagination URL migration (`/page/{n}` suffix) | ✅ Done | 2026-03-01 |
 
-### Remaining — SEO & Redirects
+### Completed — SEO & Redirects
 
-| Task | Status | Owner | Priority |
-|---|---|---|---|
-| `/caregiver-support/*` → `/resources/*` redirects | ✅ Done | Claude + TJ | ~~P1~~ Done |
-| `/research-and-press/*` redirect strategy | ❌ Not started | TJ (decision) | P1 |
-| `/caregiver-forum/*` redirect strategy | ❌ Not started | TJ (decision) | P2 |
-| `/providers` → `/for-providers` redirect | ✅ Done | Claude + TJ | ~~P1~~ Done |
-| P1 SEO: FAQPage JSON-LD schema | ✅ Done (PR #81) | Claude + TJ | ~~P1~~ Done |
-| P1 SEO: Review, GeoCoordinates, PriceSpecification | ✅ Done (PR #82) | Claude + TJ | ~~P1~~ Done |
-| P1 SEO: Migrate images to `next/image` | ✅ Done | Claude + TJ | ~~P1~~ Done |
-| Switch alias redirects from 307 → 308 permanent | ✅ Done | Claude + TJ | ~~P1~~ Done |
+| Task | Status | Owner |
+|---|---|---|
+| `/caregiver-support/*` → `/resources/*` redirects | ✅ Done | Claude + TJ |
+| `/research-and-press/*` → `/` (homepage) redirect | ✅ Done | Claude + TJ |
+| `/caregiver-forum/*` → `/community` redirect | ✅ Done | Claude + TJ |
+| `/caregiver-relief-network/*` → `/` redirect | ✅ Done | Claude + TJ |
+| `/company/*` → `/` redirect | ✅ Done | Claude + TJ |
+| `/account` → `/portal` redirect | ✅ Done | Claude + TJ |
+| `/inbox` → `/portal` redirect | ✅ Done | Claude + TJ |
+| `/confirm-email` → `/` redirect | ✅ Done | Claude + TJ |
+| `/reset-password` → `/` redirect | ✅ Done | Claude + TJ |
+| `/provider/{slug}/review/{uuid}` → `/provider/{slug}` redirect | ✅ Done | Claude + TJ |
+| `/provider/{slug}/request-review/{token}` → `/provider/{slug}` redirect | ✅ Done | Claude + TJ |
+| `/pages/terms` + `/terms-and-conditions` → `/` redirect | ✅ Done | Claude + TJ |
+| `/pages/privacy` → `/` redirect | ✅ Done | Claude + TJ |
+| `/providers` → `/for-providers` redirect | ✅ Done | Claude + TJ |
+| P1 SEO: FAQPage JSON-LD schema | ✅ Done (PR #81) | Claude + TJ |
+| P1 SEO: Review, GeoCoordinates, PriceSpecification | ✅ Done (PR #82) | Claude + TJ |
+| P1 SEO: Migrate images to `next/image` | ✅ Done | Claude + TJ |
+| Switch alias redirects from 307 → 308 permanent | ✅ Done | Claude + TJ |
+
+> **All v1.0 routes now have redirects configured.** No known URL will 404 after DNS cutover.
 
 ### Remaining — Operations & Content
 

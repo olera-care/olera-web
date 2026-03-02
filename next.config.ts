@@ -51,7 +51,12 @@ const nextConfig: NextConfig = {
       // Tier 2: Deprecated content pages with slugs → homepage
       { source: "/education-material/:slug*", destination: "/", permanent: true },
       { source: "/research-and-press/:slug*", destination: "/", permanent: true },
-      { source: "/caregiver-support/:slug*", destination: "/", permanent: true },
+      { source: "/caregiver-support", destination: "/resources", permanent: true },
+      { source: "/caregiver-support/:slug", destination: "/resources/:slug", permanent: true },
+      { source: "/caregiver-support/:slug/:rest+", destination: "/resources", permanent: true },
+
+      // Tier 2: Provider landing page rename
+      { source: "/providers", destination: "/for-providers", permanent: true },
       { source: "/forum/:path*", destination: "/", permanent: true },
     ];
   },

@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Care Seeker Resources | Guides & Articles | Olera",
+  title: "Caregiver Support | Guides & Articles | Olera",
   description:
     "Guides, comparisons, and practical advice to help you navigate senior care options. From home health to assisted living, find the information you need.",
   alternates: {
-    canonical: "https://olera.care/resources",
+    canonical: "https://olera.care/caregiver-support",
   },
   openGraph: {
-    title: "Care Seeker Resources | Olera",
+    title: "Caregiver Support | Olera",
     description:
       "Guides, comparisons, and practical advice to help you navigate senior care options.",
-    url: "https://olera.care/resources",
+    url: "https://olera.care/caregiver-support",
     siteName: "Olera",
     type: "website",
   },

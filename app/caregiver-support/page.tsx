@@ -118,7 +118,7 @@ function ArticleCard({ resource }: { resource: Resource }) {
   const style = careType ? CATEGORY_STYLES[careType] : null;
 
   return (
-    <Link href={`/resources/${resource.slug}`} className="group block">
+    <Link href={`/caregiver-support/${resource.slug}`} className="group block">
       <article>
         <div className="aspect-[2/1] mb-4 rounded-xl overflow-hidden relative">
           <img
@@ -161,7 +161,7 @@ function ResourcesPageContent() {
     let cancelled = false;
     async function fetchFromApi() {
       try {
-        const res = await fetch("/api/resources?per_page=200");
+        const res = await fetch("/api/caregiver-support?per_page=200");
         if (res.ok) {
           const data = await res.json();
           if (!cancelled && data.articles && data.articles.length > 0) {

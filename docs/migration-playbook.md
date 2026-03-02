@@ -62,7 +62,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 | Proper heading hierarchy (H1→H2→H3) | ✅ Yes* | ✅ Yes | ✅ Yes | ✅ Yes | — |
 | Semantic HTML5 elements (nav, main, section) | ⚠️ React SPA* | ✅ Done | ⚠️ Unverified~ | ⚠️ Likely (WordPress)~ | ~~P2~~ Done |
 | Breadcrumb navigation (visual) | ✅ Yes | ✅ With aria-label | ✅ Yes | ✅ Yes | — |
-| Meaningful image alt text | ⚠️ Partial* | ⚠️ Partial (gallery good) | ⚠️ Partial (2 missing on HP) | ⚠️ Unverified~ | P2 |
+| Meaningful image alt text | ⚠️ Partial* | ✅ Done | ⚠️ Partial (2 missing on HP) | ⚠️ Unverified~ | ~~P2~~ Done |
 | Internal cross-links (category/state/city) | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
 | User-generated reviews displayed | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes | — |
 | Q&A content displayed | ❌ No (v2 feature) | ✅ QASectionV2 | ✅ Yes | ✅ Yes | — |
@@ -145,7 +145,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 11. Add Person schema for facility managers
 12. Add ImageObject schema for gallery images
 13. Improve semantic HTML (article, section tags)
-14. Complete image alt text coverage
+14. ~~Complete image alt text coverage~~ ✅ Done
 15. Add preconnect/preload resource hints
 16. Core Web Vitals audit + optimization
 
@@ -169,11 +169,11 @@ Complete list of every route in Olera v1.0 and its v2 migration status.
 
 | v1.0 Route | Est. Pages | v2 Equivalent | Status |
 |---|---|---|---|
-| `/caregiver-support` | 1 | `/resources` | ✅ 301 redirect |
-| `/caregiver-support/{slug}` | ~66 articles | `/resources/{slug}` | ✅ 301 redirect |
-| `/caregiver-support/c/{categorySlug}` | ~6 | `/resources` | ✅ 301 redirect (multi-segment → hub) |
-| `/caregiver-support/curated` | 1 | `/resources` | ✅ 301 redirect |
-| `/caregiver-support/curated/{categorySlug}` | ~6 | `/resources` | ✅ 301 redirect (multi-segment → hub) |
+| `/caregiver-support` | 1 | `/caregiver-support` | ✅ Done — same URL (restored from v1) |
+| `/caregiver-support/{slug}` | ~66 articles | `/caregiver-support/{slug}` | ✅ Done — same URL (restored from v1) |
+| `/caregiver-support/c/{categorySlug}` | ~6 | `/caregiver-support` | ✅ 301 redirect (multi-segment → hub) |
+| `/caregiver-support/curated` | 1 | `/caregiver-support` | ✅ 301 redirect |
+| `/caregiver-support/curated/{categorySlug}` | ~6 | `/caregiver-support` | ✅ 301 redirect (multi-segment → hub) |
 | `/research-and-press` | 1 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
 | `/research-and-press/{slug}` | ~7 | `/` (homepage) | ✅ 301 redirect in next.config.ts |
 | `/research-and-press/c/{categorySlug}` | ~3 | `/` (homepage) | ✅ 301 redirect (covered by `:slug*` pattern) |
@@ -262,8 +262,8 @@ Step 9: Trigger a production deployment to confirm auto-aliasing works
 ### Content Sections to Migrate
 | Section | Articles | CMS Source | v2 Destination |
 |---|---|---|---|
-| Caregiver Support | ~66 | Sanity | `/resources/{slug}` |
-| Research & Press | ~7 | Sanity | `/resources/{slug}` or new section |
+| Caregiver Support | ~66 | Sanity | `/caregiver-support/{slug}` |
+| Research & Press | ~7 | Sanity | `/caregiver-support/{slug}` or new section |
 | Category landing page content | 7 | Sanity | `/{category}` pages (already have SEO content) |
 | Company / About page | 1 | Sanity | New `/about` page needed |
 
@@ -318,7 +318,7 @@ Export top 100 rows
 
 | Task | Status | Owner |
 |---|---|---|
-| `/caregiver-support/*` → `/resources/*` redirects | ✅ Done | Claude + TJ |
+| `/resources/*` → `/caregiver-support/*` redirects (v1 URL restored) | ✅ Done | Claude + TJ |
 | `/research-and-press/*` → `/` (homepage) redirect | ✅ Done | Claude + TJ |
 | `/caregiver-forum/*` → `/community` redirect | ✅ Done | Claude + TJ |
 | `/caregiver-relief-network/*` → `/` redirect | ✅ Done | Claude + TJ |

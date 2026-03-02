@@ -415,7 +415,7 @@ export default function ManageListingModal({
                 id="removal-action"
                 value={action}
                 onChange={(e) => setAction(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border border-gray-300 text-base transition-colors duration-200 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px] bg-white ${
+                className={`w-full pl-4 pr-10 py-3 rounded-xl border border-gray-300 text-base transition-colors duration-200 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px] bg-white ${
                   !action ? "text-gray-400" : "text-gray-900"
                 }`}
               >
@@ -440,7 +440,7 @@ export default function ManageListingModal({
                 id="removal-reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border border-gray-300 text-base transition-colors duration-200 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px] bg-white ${
+                className={`w-full pl-4 pr-10 py-3 rounded-xl border border-gray-300 text-base transition-colors duration-200 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px] bg-white ${
                   !reason ? "text-gray-400" : "text-gray-900"
                 }`}
               >

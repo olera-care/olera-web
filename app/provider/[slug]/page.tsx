@@ -18,6 +18,7 @@ import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
 import { ManagePageButton } from "@/components/providers/ManageListingModal";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
+import ReviewsSection from "@/components/providers/ReviewsSection";
 import {
   getInitials,
   formatCategory,
@@ -414,7 +415,7 @@ export default async function ProviderPage({
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasOleraScore || hasReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+  sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
   // Render
@@ -825,57 +826,11 @@ export default async function ProviderPage({
               )}
 
               {/* ── What families are saying ── */}
-              <div className="py-8 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">What families are saying</h2>
-                {hasReviews ? (
-                  <>
-                    <div className="flex items-center justify-end mb-4">
-                      <span className="text-sm text-gray-400">Sort by: <button className="text-gray-700 font-medium">Most Helpful</button></span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {reviews.map((review, index) => (
-                        <div key={index} className="border border-gray-100 rounded-xl p-5">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                                <span className="text-xs font-semibold text-gray-600">{review.name.split(" ").map(n => n[0]).join("")}</span>
-                              </div>
-                              <div>
-                                <p className="text-sm font-semibold text-gray-900">{review.name}</p>
-                                <p className="text-xs text-gray-400">{review.date}</p>
-                              </div>
-                            </div>
-                            <span className="text-sm font-semibold text-primary-600">{review.rating.toFixed(1)} / 5 <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" /></span>
-                          </div>
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            {review.comment.length > 180 ? review.comment.slice(0, 180).trimEnd() + "... " : review.comment + " "}
-                            {review.comment.length > 180 && (
-                              <button className="text-primary-600 font-medium">read more</button>
-                            )}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between mt-5">
-                      <button className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                        Show more
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
-                        Add review
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <SectionEmptyState
-                    icon="star"
-                    message="No reviews yet."
-                    subMessage="Be the first to share your experience with this provider."
-                  />
-                )}
-              </div>
+              <ReviewsSection
+                providerId={profile.slug}
+                providerSlug={profile.slug}
+                mockReviews={reviews}
+              />
 
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (

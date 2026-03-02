@@ -185,6 +185,13 @@ export default function HeroSection() {
                           setLocation(e.target.value);
                           setShowLocationDropdown(true);
                         }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && cityResults.length > 0 && location.trim()) {
+                            // Auto-select the first suggestion before form submits
+                            setLocation(cityResults[0].full);
+                            setShowLocationDropdown(false);
+                          }
+                        }}
                         onFocus={() => {
                           setShowLocationDropdown(true);
                           preloadCities();
@@ -237,7 +244,7 @@ export default function HeroSection() {
                         )}
 
                         {cityResults.length > 0 ? (
-                          cityResults.map((loc) => (
+                          cityResults.map((loc, index) => (
                             <button
                               key={loc.full}
                               type="button"
@@ -246,7 +253,11 @@ export default function HeroSection() {
                                 setShowLocationDropdown(false);
                               }}
                               className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
-                                location === loc.full ? "bg-primary-50 text-primary-700" : "text-gray-900"
+                                location === loc.full
+                                  ? "bg-primary-50 text-primary-700"
+                                  : index === 0 && location.trim()
+                                    ? "bg-gray-50 text-gray-900"
+                                    : "text-gray-900"
                               }`}
                             >
                               <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,13 +265,17 @@ export default function HeroSection() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                               </svg>
                               <span className="font-medium">{loc.full}</span>
+                              {index === 0 && location.trim() && (
+                                <span className="ml-auto text-xs text-gray-400">Enter</span>
+                              )}
                             </button>
                           ))
-                        ) : (
-                          <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                            No locations found
+                        ) : location.trim() ? (
+                          <div className="px-4 py-3 text-center">
+                            <p className="text-sm text-gray-500">No locations found</p>
+                            <p className="text-xs text-gray-400 mt-1">Try a city name, state, or ZIP code</p>
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     )}
                   </div>

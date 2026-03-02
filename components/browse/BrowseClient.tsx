@@ -448,8 +448,16 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         value={locationInput}
                         onChange={(e) => setLocationInput(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" && locationInput.trim()) {
-                            setSearchLocation(locationInput.trim());
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (cityResults.length > 0) {
+                              // Auto-select the first suggestion (Airbnb pattern)
+                              setSearchLocation(cityResults[0].full);
+                              setLocationInput(cityResults[0].full);
+                            } else if (locationInput.trim()) {
+                              // No matches but user typed something — keep current location
+                              setLocationInput(searchLocation);
+                            }
                             setShowLocationDropdown(false);
                           }
                         }}
@@ -496,7 +504,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                     </div>
                   )}
 
-                  {cityResults.map((loc) => (
+                  {cityResults.map((loc, index) => (
                     <button
                       key={loc.full}
                       type="button"
@@ -508,7 +516,9 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                       className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
                         searchLocation === loc.full
                           ? "bg-primary-50 text-primary-700"
-                          : "text-gray-900"
+                          : index === 0 && locationInput.trim()
+                            ? "bg-gray-50 text-gray-900"
+                            : "text-gray-900"
                       }`}
                     >
                       <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -516,11 +526,15 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span className="font-medium">{loc.full}</span>
+                      {index === 0 && locationInput.trim() && (
+                        <span className="ml-auto text-xs text-gray-400">Enter</span>
+                      )}
                     </button>
                   ))}
-                  {cityResults.length === 0 && (
-                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                      No locations found
+                  {cityResults.length === 0 && locationInput.trim() && (
+                    <div className="px-4 py-3 text-center">
+                      <p className="text-sm text-gray-500">No locations found</p>
+                      <p className="text-xs text-gray-400 mt-1">Try a city name, state, or ZIP code</p>
                     </div>
                   )}
                 </div>

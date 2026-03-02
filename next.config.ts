@@ -51,8 +51,22 @@ const nextConfig: NextConfig = {
       // Tier 2: Deprecated content pages with slugs → homepage
       { source: "/education-material/:slug*", destination: "/", permanent: true },
       { source: "/research-and-press/:slug*", destination: "/", permanent: true },
-      { source: "/caregiver-support/:slug*", destination: "/", permanent: true },
+      { source: "/caregiver-support/:slug*", destination: "/resources", permanent: true },
       { source: "/forum/:path*", destination: "/", permanent: true },
+
+      // Tier 3: v1.0 pages with v2 equivalents
+      { source: "/caregiver-support", destination: "/resources", permanent: true },
+      { source: "/providers", destination: "/for-providers", permanent: true },
+      { source: "/account", destination: "/portal", permanent: true },
+      { source: "/inbox", destination: "/portal", permanent: true },
+      { source: "/caregiver-forum", destination: "/community", permanent: true },
+      { source: "/caregiver-forum/:path*", destination: "/community", permanent: true },
+      { source: "/pages/privacy", destination: "/", permanent: true },
+
+      // Tier 3: v1.0 pages with no v2 equivalent → homepage
+      { source: "/caregiver-relief-network", destination: "/", permanent: true },
+      { source: "/caregiver-relief-network/:path*", destination: "/", permanent: true },
+      { source: "/company/:slug", destination: "/", permanent: true },
     ];
   },
 };

@@ -90,7 +90,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 | v1.0 state abbreviation URLs → v2 slugs | N/A (is v1.0) | ✅ Middleware 301 (fixed 2026-03-01) | N/A | N/A | ~~P0~~ ✅ |
 | Pagination URL migration (`/page/{n}`) | N/A (is v1.0) | ✅ Middleware strips `/page/{n}` (fixed 2026-03-01) | N/A | N/A | ~~P1~~ ✅ |
 | Trailing slash normalization | ✅ Rails default | ✅ Via Next.js defaults | ✅ Yes | ✅ Yes | — |
-| Category alias redirects (permanent 308) | N/A (is v1.0) | ⚠️ Uses 307 temporary | N/A | N/A | **P1** |
+| Category alias redirects (permanent 308) | N/A (is v1.0) | ✅ `permanentRedirect()` (308) | N/A | N/A | ~~P1~~ Done |
 
 ### Overall Score
 
@@ -138,7 +138,7 @@ Every SEO element on the provider detail page, comparing Olera v1.0 (current liv
 7. Use MedicalBusiness subtype instead of generic LocalBusiness
 8. ~~Migrate images to `next/image` (webp, srcset, lazy loading)~~ ✅ **DONE** — All `<img>` tags migrated to `next/image` across 30+ files
 9. ~~Add pagination URL migration (`/page/{n}` suffix handling)~~ ✅ **DONE (2026-03-01)** — Handled in middleware alongside state abbreviation redirects
-10. Switch alias redirects from 307 → 308 permanent
+10. ~~Switch alias redirects from 307 → 308 permanent~~ ✅ **DONE** — All 3 category pages use `permanentRedirect()` (308)
 
 ### P2 Polish (Post-Cutover)
 
@@ -169,11 +169,11 @@ Complete list of every route in Olera v1.0 and its v2 migration status.
 
 | v1.0 Route | Est. Pages | v2 Equivalent | Status |
 |---|---|---|---|
-| `/caregiver-support` | 1 | `/resources` | ❌ **Redirect not configured** |
-| `/caregiver-support/{slug}` | ~66 articles | `/resources/{slug}` | ❌ **Redirect not configured** |
-| `/caregiver-support/c/{categorySlug}` | ~6 | `/resources` | ❌ **Redirect not configured** |
-| `/caregiver-support/curated` | 1 | `/resources` | ❌ **Redirect not configured** |
-| `/caregiver-support/curated/{categorySlug}` | ~6 | `/resources` | ❌ **Redirect not configured** |
+| `/caregiver-support` | 1 | `/resources` | ✅ 301 redirect |
+| `/caregiver-support/{slug}` | ~66 articles | `/resources/{slug}` | ✅ 301 redirect |
+| `/caregiver-support/c/{categorySlug}` | ~6 | `/resources` | ✅ 301 redirect (multi-segment → hub) |
+| `/caregiver-support/curated` | 1 | `/resources` | ✅ 301 redirect |
+| `/caregiver-support/curated/{categorySlug}` | ~6 | `/resources` | ✅ 301 redirect (multi-segment → hub) |
 | `/research-and-press` | 1 | — | ❌ **No v2 page** |
 | `/research-and-press/{slug}` | ~7 | — | ❌ **No v2 page** |
 | `/research-and-press/c/{categorySlug}` | ~3 | — | ❌ **No v2 page** |
@@ -196,7 +196,7 @@ Complete list of every route in Olera v1.0 and its v2 migration status.
 |---|---|---|---|
 | `/company/{slug}` (about) | 1 | — | ❌ **No v2 page** |
 | `/pages/{slug}` (privacy, terms) | ~2 | `/terms-of-use`, `/privacy-policy` | ⚠️ Partial — terms redirected, privacy missing |
-| `/providers` (for providers landing) | 1 | `/for-providers` | ❌ **Redirect not configured** |
+| `/providers` (for providers landing) | 1 | `/for-providers` | ✅ 301 redirect |
 
 ### Auth & Portal (Low SEO Impact — Needs Functional Redirects)
 
@@ -316,14 +316,14 @@ Export top 100 rows
 
 | Task | Status | Owner | Priority |
 |---|---|---|---|
-| `/caregiver-support/*` → `/resources/*` redirects | ❌ Not started | Claude + TJ | P1 |
+| `/caregiver-support/*` → `/resources/*` redirects | ✅ Done | Claude + TJ | ~~P1~~ Done |
 | `/research-and-press/*` redirect strategy | ❌ Not started | TJ (decision) | P1 |
 | `/caregiver-forum/*` redirect strategy | ❌ Not started | TJ (decision) | P2 |
-| `/providers` → `/for-providers` redirect | ❌ Not started | Claude + TJ | P1 |
+| `/providers` → `/for-providers` redirect | ✅ Done | Claude + TJ | ~~P1~~ Done |
 | P1 SEO: FAQPage JSON-LD schema | ❌ Not started | Claude + TJ | P1 |
 | P1 SEO: Review schema, GeoCoordinates, MedicalBusiness | ❌ Not started | Claude + TJ | P1 |
 | P1 SEO: Migrate images to `next/image` | ✅ Done | Claude + TJ | ~~P1~~ Done |
-| Switch alias redirects from 307 → 308 permanent | ❌ Not started | Claude + TJ | P1 |
+| Switch alias redirects from 307 → 308 permanent | ✅ Done | Claude + TJ | ~~P1~~ Done |
 
 ### Remaining — Operations & Content
 

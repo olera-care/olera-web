@@ -13,11 +13,12 @@
   - Plan: `plans/homepage-refactor-plan.md`
   - Notion: P1 — "Section-by-Section Homepage Refactor"
 
-- **v1.0 → v2.0 Migration Playbook** (branch: `seo/structured-data-p1`, originally `bold-gates`) — IN PROGRESS
+- **v1.0 → v2.0 Migration Playbook** (branch: `seo/structured-data-p1`, originally `bold-gates`) — REDIRECTS COMPLETE
   - **Playbook doc:** `docs/migration-playbook.md` — comprehensive SEO report card, route inventory, DNS plan
   - **SEO score: 67% (C+) → 75% (B-) → 85% (B+) → 90% (A-)**
   - **All P1 SEO items done:** FAQPage (#81), Review/Geo/Price (#82), next/image, 308 aliases, redirects (#83)
-  - **Remaining:** `/research-and-press/*` redirect (TJ decision), `/caregiver-forum/*` (P2, TJ decision), auth redirects (`/account`, `/inbox`), MedicalBusiness (P3), P2 polish
+  - **All v1.0 route redirects configured** — no known URL will 404 after DNS cutover
+  - **Remaining:** P2 SEO polish (Person schema, ImageObject, preconnect hints), CMS migration, DNS cutover ops
   - Architecture research archived to `archive/SCRATCHPAD-2026-02.md`
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
@@ -35,7 +36,7 @@
 
 - ~~**Migration Playbook → Notion:**~~ ✅ Done (2026-03-01) — updated via Notion MCP
 - **Top 100 pages from Search Console:** TJ needs to export from Google Search Console (Performance → Pages → exclude `/provider/` → sort by clicks → top 100)
-- **Editorial content redirect decision:** `/caregiver-support/*`, `/research-and-press/*`, `/caregiver-forum/*` — TJ to decide redirect strategy (these v1.0 routes have no v2 equivalent yet)
+- ~~**Editorial content redirect decision:**~~ ✅ Done — all v1.0 content routes now have redirects in `next.config.ts`: `/research-and-press/*` → homepage, `/caregiver-forum/*` → `/community`, `/caregiver-relief-network/*` → homepage, `/company/*` → homepage
 
 ---
 
@@ -80,6 +81,31 @@
 ---
 
 ## Session Log
+
+### 2026-03-02 (Session 31) — Sanity CMS → Supabase Content Migration
+
+**Branch:** `friendly-rosalind`
+
+**What:** Migrated all 103 articles from Sanity CMS (v1.0) into the Supabase `content_articles` table. Articles are now viewable and editable in the admin CMS dashboard.
+
+**Script:** `scripts/import-sanity.ts`
+- Fetches all `eduMaterial` (85) + `researchAndPress` (18) articles from Sanity's public GROQ HTTP API
+- Maps Sanity fields → `content_articles` schema (slug, title, excerpt, care_types, SEO fields, etc.)
+- Converts Sanity Portable Text → `content_html` (via `@portabletext/to-html`) and `content_json` (Tiptap/ProseMirror JSON)
+- Converts Sanity image refs to CDN URLs
+- Maps Sanity category IDs → v2 CareTypeIds (6 care types)
+- Upserts via `onConflict: 'slug'` — safe to re-run
+- Supports `--dry-run` flag
+
+**Also included (from prior work on this branch):**
+- Layout: preconnect/dns-prefetch hints for external domains (GA, Supabase, map tiles)
+- Navbar: reordered provider hub menu (Statistics first, Account last), replaced Q&A with Statistics, improved alt text on profile images
+
+**Dependency added:** `@portabletext/to-html`
+
+**Files modified:** `scripts/import-sanity.ts` (new), `package.json`, `package-lock.json`, `app/layout.tsx`, `components/shared/Navbar.tsx`, `SCRATCHPAD.md`
+
+---
 
 ### 2026-03-01 (Session 30) — P1 Redirect Fixes + Playbook Cleanup
 

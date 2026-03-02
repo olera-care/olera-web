@@ -76,7 +76,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/reviews") ||
     pathname.startsWith("/provider/matches") ||
     pathname.startsWith("/provider/pro") ||
-    pathname.startsWith("/provider/qna") ||
+    pathname.startsWith("/provider/statistics") ||
     pathname.startsWith("/provider/verification") ||
     pathname.startsWith("/provider/account");
   const isCommunity = pathname.startsWith("/community");
@@ -252,25 +252,16 @@ export default function Navbar() {
               <>
                 {/* Provider Hub links */}
                 <Link
-                  href="/portal/profile"
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  Account
-                </Link>
-                <Link
-                  href="/provider/pro"
+                  href="/provider/statistics"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
                   <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
                   </svg>
-                  Olera Pro
+                  Statistics
                 </Link>
                 <Link
                   href="/provider/verification"
@@ -284,16 +275,25 @@ export default function Navbar() {
                   Identity Verification
                 </Link>
                 <Link
-                  href="/provider/qna"
+                  href="/provider/pro"
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   onClick={() => setIsUserMenuOpen(false)}
                 >
                   <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                   </svg>
-                  Questions & Answers
+                  Olera Pro
+                </Link>
+                <Link
+                  href="/portal/profile"
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Account
                 </Link>
               </>
             ) : (
@@ -653,7 +653,7 @@ export default function Navbar() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                           </svg>
                           {activeProfile?.image_url ? (
-                            <Image src={activeProfile.image_url} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="rounded-full object-cover" />
                           ) : (
                             <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
                               {initials}
@@ -730,7 +730,7 @@ export default function Navbar() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                           </svg>
                           {activeProfile?.image_url ? (
-                            <Image src={activeProfile.image_url} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="rounded-full object-cover" />
                           ) : (
                             <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
                               {initials}
@@ -929,7 +929,7 @@ export default function Navbar() {
                     {/* Identity header */}
                     <div className="flex items-center gap-2 py-2">
                       {activeProfile?.image_url ? (
-                        <Image src={activeProfile.image_url} alt="" width={32} height={32} className="rounded-full object-cover shrink-0" />
+                        <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="rounded-full object-cover shrink-0" />
                       ) : (
                         <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
                           {initials}
@@ -999,25 +999,16 @@ export default function Navbar() {
                         {isProviderPortal ? (
                           <>
                             <Link
-                              href="/portal/profile"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                              </svg>
-                              Account
-                            </Link>
-                            <Link
-                              href="/provider/pro"
+                              href="/provider/statistics"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                <line x1="18" y1="20" x2="18" y2="10" />
+                                <line x1="12" y1="20" x2="12" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
                               </svg>
-                              Olera Pro
+                              Statistics
                             </Link>
                             <Link
                               href="/provider/verification"
@@ -1031,16 +1022,25 @@ export default function Navbar() {
                               Identity Verification
                             </Link>
                             <Link
-                              href="/provider/qna"
+                              href="/provider/pro"
                               className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
                               onClick={() => setIsMobileMenuOpen(false)}
                             >
                               <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                               </svg>
-                              Questions & Answers
+                              Olera Pro
+                            </Link>
+                            <Link
+                              href="/portal/profile"
+                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                              </svg>
+                              Account
                             </Link>
                           </>
                         ) : (

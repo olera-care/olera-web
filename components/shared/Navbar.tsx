@@ -1141,9 +1141,9 @@ export default function Navbar() {
                   )
                 ) : (
                   /* ── Logged-out ── */
-                  <>
+                  <div className="flex flex-col min-h-full">
                     {!isMinimalNav && (
-                      <>
+                      <div>
                         {[
                           { label: "Find Care", href: "/browse", icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg> },
                           { label: "Community", href: "/community", icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg> },
@@ -1161,11 +1161,14 @@ export default function Navbar() {
                             <span className="text-[15px] font-medium">{item.label}</span>
                           </Link>
                         ))}
-                      </>
+                      </div>
                     )}
 
+                    {/* Spacer — pushes auth card to bottom */}
+                    <div className="flex-1" />
+
                     {/* Auth card */}
-                    <div className="mx-4 mt-6 mb-2 rounded-2xl border border-gray-200 p-5">
+                    <div className="mx-4 mb-2 rounded-2xl border border-gray-200 p-5">
                       <p className="text-base font-semibold text-gray-900 mb-4 text-center">Log in to get the most of Olera</p>
                       <div className="flex gap-3">
                         <button
@@ -1186,16 +1189,16 @@ export default function Navbar() {
                     </div>
 
                     {/* Provider secondary links */}
-                    <div className="mt-4 pb-8 flex items-center justify-center gap-3 flex-wrap px-5 text-sm text-gray-400">
-                      <button type="button" onClick={() => { setIsMobileMenuOpen(false); openAuth({ intent: "provider", providerType: "organization" }); }} className="hover:text-gray-600 transition-colors">
+                    <div className="py-5 flex items-center justify-center gap-3 flex-wrap px-5 text-[14px] text-gray-500">
+                      <button type="button" onClick={() => { setIsMobileMenuOpen(false); openAuth({ intent: "provider", providerType: "organization" }); }} className="hover:text-gray-700 transition-colors">
                         List your organization
                       </button>
-                      <span>·</span>
-                      <button type="button" onClick={() => { setIsMobileMenuOpen(false); openAuth({ intent: "provider", providerType: "caregiver" }); }} className="hover:text-gray-600 transition-colors">
+                      <span className="text-gray-300">·</span>
+                      <button type="button" onClick={() => { setIsMobileMenuOpen(false); openAuth({ intent: "provider", providerType: "caregiver" }); }} className="hover:text-gray-700 transition-colors">
                         Join as a caregiver
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 

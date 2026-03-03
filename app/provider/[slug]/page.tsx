@@ -16,6 +16,10 @@ import QASectionV2 from "@/components/providers/QASectionV2";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
+import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
+import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
+import MobileClaimLink from "@/components/providers/MobileClaimLink";
+import PriceEstimate from "@/components/providers/PriceEstimate";
 import { ManagePageButton } from "@/components/providers/ManageListingModal";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
@@ -512,7 +516,7 @@ export default async function ProviderPage({
   } : null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 md:pb-0">
       {/* Structured data */}
       <script
         type="application/ld+json"
@@ -538,7 +542,7 @@ export default async function ProviderPage({
 
       {/* ===== Hero Zone — Vanilla Background ===== */}
       <div className="bg-vanilla-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-8">
 
           {/* Breadcrumbs */}
           <Breadcrumbs
@@ -551,14 +555,25 @@ export default async function ProviderPage({
           {/* ── Hero (full width, above the grid) ── */}
           <div className="flex flex-col md:flex-row gap-6">
             {/* Gallery */}
-            <div className="flex-shrink-0 relative w-full md:w-[448px]">
+            <div className="flex-shrink-0 relative w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] md:w-[448px] -mx-4 sm:-mx-6 md:mx-0">
               <ProviderHeroGallery
                 images={images}
                 providerName={profile.display_name}
                 category={profile.category}
               />
+              <MobileGalleryActionBar
+                provider={{
+                  providerId: profile.id,
+                  slug: profile.slug,
+                  name: profile.display_name,
+                  location: locationStr,
+                  careTypes: profile.care_types || [],
+                  image: images[0] || null,
+                  rating: rating || undefined,
+                }}
+              />
               {images.length > 0 && (
-                <div className="absolute top-4 left-4 z-20">
+                <div className="absolute top-4 left-4 z-20 hidden md:block">
                   <ClaimBadge
                     claimState={profile.claim_state}
                     providerName={profile.display_name}
@@ -575,74 +590,122 @@ export default async function ProviderPage({
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display">
                   {profile.display_name}
                 </h1>
-                <SaveButton
-                  provider={{
-                    providerId: profile.id,
-                    slug: profile.slug,
-                    name: profile.display_name,
-                    location: locationStr,
-                    careTypes: profile.care_types || [],
-                    image: images[0] || null,
-                    rating: rating || undefined,
-                  }}
-                  variant="pill"
+                <div className="hidden md:block">
+                  <SaveButton
+                    provider={{
+                      providerId: profile.id,
+                      slug: profile.slug,
+                      name: profile.display_name,
+                      location: locationStr,
+                      careTypes: profile.care_types || [],
+                      image: images[0] || null,
+                      rating: rating || undefined,
+                    }}
+                    variant="pill"
+                  />
+                </div>
+              </div>
+
+              {/* ── Mobile identity layout ── */}
+              <div className="md:hidden">
+                {/* Row 1: Category · Location · Address */}
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1.5 text-sm text-gray-500">
+                  {categoryLabel && (
+                    <>
+                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
+                      {locationStr && <span className="text-gray-300">·</span>}
+                    </>
+                  )}
+                  {locationStr && <span>{locationStr}</span>}
+                  {profile.address && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span className="truncate max-w-[180px]">{profile.address}</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Row 2: Price (left) — Rating (right) */}
+                <div className="flex items-center justify-between mt-3">
+                  <div>
+                    {hasPriceRange ? (
+                      <PriceEstimate priceRange={priceRange!} />
+                    ) : (
+                      <p className="text-sm text-gray-400">Contact for pricing</p>
+                    )}
+                  </div>
+                  {hasRating && (
+                    <span className="flex items-center gap-1.5">
+                      <StarIcon className="w-5 h-5 text-primary-500" />
+                      <span className="text-base font-bold text-gray-900">{rating!.toFixed(1)}</span>
+                      {reviewCount != null && <span className="text-sm text-gray-400">({reviewCount})</span>}
+                    </span>
+                  )}
+                </div>
+
+                {/* Row 3: Claim status */}
+                <MobileClaimLink
+                  claimState={profile.claim_state}
+                  providerName={profile.display_name}
+                  claimUrl={`/for-providers/claim/${profile.slug}`}
                 />
               </div>
 
-              {/* Context line: category · location · rating (if available) */}
-              <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
-                {categoryLabel && (
-                  <>
-                    <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                    {(locationStr || hasRating) && <span className="text-gray-300">·</span>}
-                  </>
+              {/* ── Desktop identity layout (unchanged) ── */}
+              <div className="hidden md:block">
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
+                  {categoryLabel && (
+                    <>
+                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
+                      {(locationStr || hasRating) && <span className="text-gray-300">·</span>}
+                    </>
+                  )}
+                  {locationStr && (
+                    <>
+                      <span>{locationStr}</span>
+                      {hasRating && <span className="text-gray-300">·</span>}
+                    </>
+                  )}
+                  {hasRating && (
+                    <span className="flex items-center gap-1">
+                      <StarIcon className="w-4 h-4 text-primary-500" />
+                      <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
+                      {reviewCount != null && <span>({reviewCount})</span>}
+                    </span>
+                  )}
+                </div>
+
+                {hasPriceRange ? (
+                  <PriceEstimate priceRange={priceRange!} />
+                ) : (
+                  <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
                 )}
-                {locationStr && (
-                  <>
-                    <span>{locationStr}</span>
-                    {hasRating && <span className="text-gray-300">·</span>}
-                  </>
-                )}
-                {hasRating && (
-                  <span className="flex items-center gap-1">
-                    <StarIcon className="w-4 h-4 text-primary-500" />
-                    <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
-                    {reviewCount != null && <span>({reviewCount})</span>}
-                  </span>
+
+                {profile.address && (
+                  <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
                 )}
               </div>
 
-              {/* Price estimate with tooltip, or contact-for-pricing */}
-              {hasPriceRange ? (
-                <div className="relative group/price inline-flex items-center gap-1.5 mt-1">
-                  <p className="text-lg font-semibold text-gray-900">{priceRange}</p>
-                  <span className="text-xs text-gray-400 font-normal self-center">est.</span>
-                  <svg className="w-3.5 h-3.5 text-gray-300 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="absolute left-0 top-full mt-1 z-30 hidden group-hover/price:block">
-                    <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
-                      Price is an estimate and may vary. Contact the provider for exact rates.
+              {/* Highlight badges */}
+              <div id="highlights" className="scroll-mt-20">
+                {/* Mobile: 2-col grid, Zillow-style filled cards */}
+                <div className="md:hidden grid grid-cols-2 gap-2.5 mt-4">
+                  {highlights.map((label) => (
+                    <div key={label} className="bg-gray-50 rounded-xl py-4 px-3.5 flex items-center gap-3">
+                      <HighlightIcon label={label} className="w-6 h-6 text-gray-700 flex-shrink-0" />
+                      <span className="text-[15px] font-semibold text-gray-800 leading-tight">{label}</span>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ) : (
-                <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-              )}
-
-              {/* Address */}
-              {profile.address && (
-                <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
-              )}
-
-              {/* Highlight badges — real data + category-inferred */}
-              <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
-                {highlights.map((label) => (
-                  <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
-                    <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">{label}</span>
-                  </div>
-                ))}
+                {/* Desktop: 2-column grid */}
+                <div className="hidden md:grid grid-cols-2 gap-2.5 mt-4">
+                  {highlights.map((label) => (
+                    <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
+                      <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-600">{label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Managed by — only show when staff data exists */}
@@ -891,8 +954,8 @@ export default async function ProviderPage({
             </div>
           </div>
 
-          {/* ========== Right Column — Sticky Sidebar ========== */}
-          <div className="lg:col-span-1 self-stretch">
+          {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
+          <div className="hidden md:block lg:col-span-1 self-stretch">
             <div id="connection-card" className="sticky top-24">
               <ConnectionCardWithRedirect
                 providerId={profile.id}
@@ -929,6 +992,22 @@ export default async function ProviderPage({
 
         </div>
       </div>
+
+      {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
+      <MobileStickyBottomCTA
+        providerName={profile.display_name}
+        priceRange={priceRange}
+        providerId={profile.id}
+        providerSlug={profile.slug}
+        oleraScore={oleraScore}
+        reviewCount={meta?.review_count}
+        phone={profile.phone}
+        acceptedPayments={acceptedPayments}
+        careTypes={profile.care_types}
+        providerCategory={profile.category}
+        providerCity={profile.city}
+        providerState={profile.state}
+      />
     </div>
   );
 }

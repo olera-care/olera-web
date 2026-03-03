@@ -235,7 +235,7 @@ export default function ReviewModal({
           {/* Relationship */}
           <div>
             <label htmlFor="review-relationship" className="block text-sm font-medium text-gray-700 mb-2">
-              How do you know this provider? *
+              How do you know this provider? <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <select
@@ -301,7 +301,7 @@ export default function ReviewModal({
           {/* Comment */}
           <div>
             <label htmlFor="review-comment" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Your review *
+              Your review <span className="text-red-500">*</span>
             </label>
             <textarea
               id="review-comment"

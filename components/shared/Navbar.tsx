@@ -170,6 +170,9 @@ export default function Navbar() {
     setIsFindCareOpen(false);
   }, [pathname]);
 
+  // Provider-facing flows (claim, removal request) use their own minimal top nav.
+  // All hooks are above this point so the early-return is safe.
+  if (pathname.startsWith("/for-providers")) return null;
 
   // Shared dropdown content (context-aware links, mode switcher, sign out)
   // User menu is always in the right column, so dropdown always aligns right

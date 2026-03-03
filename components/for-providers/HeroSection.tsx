@@ -1,13 +1,39 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 
+const PREFILL_KEY = "olera_provider_search_prefill";
+
 export default function HeroSection() {
-  const { openAuth } = useAuth();
+  const { user, openAuth } = useAuth();
+  const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
 
   const handleGetStarted = () => {
-    openAuth({ intent: "provider" });
+    const val = searchInput.trim();
+    if (val) {
+      const isZip = /^\d{5}$/.test(val);
+      try {
+        sessionStorage.setItem(
+          PREFILL_KEY,
+          JSON.stringify({
+            searchQuery: isZip ? "" : val,
+            locationQuery: isZip ? val : "",
+          }),
+        );
+      } catch {
+        /* sessionStorage unavailable */
+      }
+    }
+
+    if (user) {
+      router.push("/provider/onboarding");
+    } else {
+      openAuth({ intent: "provider" });
+    }
   };
 
   return (
@@ -55,9 +81,12 @@ export default function HeroSection() {
                 <input
                   type="text"
                   placeholder="Business name or zip code"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleGetStarted();
+                  }}
                   className="w-full pl-11 pr-4 py-3 rounded-lg bg-white text-text-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  onFocus={handleGetStarted}
-                  readOnly
                 />
               </div>
               <button

@@ -645,8 +645,7 @@ function ProviderOnboardingContent() {
     return null;
   }
 
-  const showResultsBg = step === "search" && hasSearched;
-  const isResultsGrid = showResultsBg && searchResults.length > 0;
+  const isResultsGrid = step === "search" && hasSearched && searchResults.length > 0;
   const totalPages = Math.ceil(searchResults.length / RESULTS_PER_PAGE);
   const paginatedResults = searchResults.slice(
     (currentPage - 1) * RESULTS_PER_PAGE,
@@ -654,7 +653,7 @@ function ProviderOnboardingContent() {
   );
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${showResultsBg ? "bg-vanilla-100" : "bg-white"}`}>
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-vanilla-50 via-white to-white">
       {/* Minimal nav — sticky */}
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -673,7 +672,7 @@ function ProviderOnboardingContent() {
         </div>
       </nav>
 
-      <div key={String(step)} className={`flex-1 animate-wizard-in ${isResultsGrid ? "" : showResultsBg ? "px-4 py-12" : "px-4 flex items-center justify-center py-16"}`}>
+      <div key={String(step)} className={`flex-1 animate-wizard-in ${isResultsGrid ? "" : "px-4 flex items-center justify-center py-16"}`}>
 
         {/* ── Resume screen ── */}
         {step === "resume" && (
@@ -1009,7 +1008,7 @@ function ProviderOnboardingContent() {
             {hasSearched && searchResults.length > 0 && (
               <div className="w-full pb-24">
                 {/* Sticky search bar */}
-                <div className="sticky top-[65px] z-40 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4">
+                <div className="sticky top-[65px] z-40 bg-white/90 backdrop-blur-sm border-b border-gray-200/60 px-4">
                   <div className="max-w-3xl mx-auto py-3">
                     <form onSubmit={handleSearch}>
                       <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-200/80 p-2.5 flex items-center gap-2.5">

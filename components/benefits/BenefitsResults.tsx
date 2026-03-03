@@ -8,8 +8,7 @@ import type {
   BenefitMatch,
 } from "@/lib/types/benefits";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { useSavedPrograms } from "@/hooks/use-saved-programs";
+import { useSavedBenefits } from "@/hooks/use-saved-benefits";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
 
@@ -58,16 +57,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   );
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
   const { reset, answers } = useCareProfile();
-  const { user, openAuth } = useAuth();
-  const { isSaved, toggle } = useSavedPrograms();
-
-  function handleToggleSave(programId: string) {
-    if (!user) {
-      openAuth({ defaultMode: "sign-up" });
-      return;
-    }
-    toggle(programId);
-  }
+  const { isSaved, toggleSave } = useSavedBenefits();
 
   const { matchedPrograms, localAAA } = result;
 
@@ -231,8 +221,8 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                 >
                   <ProgramCard
                     match={m}
-                    isSaved={isSaved(m.program.id)}
-                    onToggleSave={() => handleToggleSave(m.program.id)}
+                    isSaved={isSaved(m.program.name)}
+                    onToggleSave={() => toggleSave(m.program.name)}
                   />
                 </div>
               ))}

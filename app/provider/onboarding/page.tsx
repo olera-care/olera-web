@@ -462,13 +462,37 @@ function ProviderOnboardingContent() {
         .select("*")
         .not("deleted", "is", true);
 
-      // Detect "City, ST" format (e.g. "Houston, TX")
-      const parts = q.split(",").map((s: string) => s.trim());
-      if (parts.length >= 2 && parts[1].length <= 3) {
-        query = query.ilike("city", `%${parts[0]}%`);
-        query = query.ilike("state", `%${parts[1]}%`);
+      // Smart search: detect name + location patterns
+      // Pattern 1: "Name City, ST" (e.g. "Allied Home Health Houston, TX")
+      const nameCityState = q.match(/^(.+?)\s+([\w][\w\s]*),\s*([A-Za-z]{2})$/);
+      // Pattern 2: "City, ST" only (e.g. "Houston, TX")
+      const cityState = q.split(",").map((s: string) => s.trim());
+      const isCityState = cityState.length >= 2 && cityState[1].length <= 3;
+      // Pattern 3: "Name ST" (e.g. "Allied Home Health TX")
+      const nameState = q.match(/^(.+?)\s+([A-Za-z]{2})$/);
+
+      if (nameCityState) {
+        // "Allied Home Health Houston, TX" → name AND city AND state
+        query = query
+          .ilike("provider_name", `%${nameCityState[1].trim()}%`)
+          .ilike("city", `%${nameCityState[2].trim()}%`)
+          .ilike("state", `%${nameCityState[3].trim()}%`);
+      } else if (isCityState && !cityState[0].includes(" ")) {
+        // "Houston, TX" — single-word city, no provider name
+        query = query.ilike("city", `%${cityState[0]}%`);
+        query = query.ilike("state", `%${cityState[1]}%`);
+      } else if (isCityState && cityState[0].includes(" ")) {
+        // "Allied Home Health, TX" — multi-word + state
+        query = query
+          .ilike("provider_name", `%${cityState[0]}%`)
+          .ilike("state", `%${cityState[1]}%`);
+      } else if (nameState && nameState[1].includes(" ") && nameState[2].length === 2) {
+        // "Allied Home Health TX" — multi-word name + 2-letter state
+        query = query
+          .ilike("provider_name", `%${nameState[1].trim()}%`)
+          .ilike("state", `%${nameState[2].trim()}%`);
       } else {
-        // General search: match name, city, or state
+        // General fallback: match name, city, or state
         query = query.or(
           `provider_name.ilike.%${q}%,city.ilike.%${q}%,state.ilike.%${q}%`
         );
@@ -966,12 +990,12 @@ function ProviderOnboardingContent() {
                   )}
                 </form>
 
-                <p className="text-center mt-4 text-[15px] text-gray-400">
+                <p className="text-center mt-6 text-base text-gray-500">
                   or{" "}
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                    className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
                   >
                     create a new account
                   </button>

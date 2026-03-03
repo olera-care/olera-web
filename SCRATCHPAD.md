@@ -10,8 +10,9 @@
 - **Caregiver Support Editorial Redesign** (branch: `joyful-turing`) — IN PROGRESS
   - Plan: `plans/caregiver-support-editorial-redesign-plan.md`
   - Notion: P1 — "Redesign Olera Blog Master Page (Editorial Version)"
-  - Phase 1-3 largely done: hero header, featured section, category pills, article grid
-  - Admin content dashboard: added author/featured filters + date sorting
+  - Master page: hero header, featured section, category pills, article grid — DONE
+  - Individual article page: editorial typography, TOC, layout restructure — DONE
+  - Admin content dashboard: added author/featured filters + date sorting — DONE
   - PR targeting staging — ready for review
 
 - **Homepage Section-by-Section Refactor** (branch: `glad-goodall`) — READY FOR MERGE
@@ -89,6 +90,41 @@
 ---
 
 ## Session Log
+
+### 2026-03-02 (Session 33) — Individual Article Page Editorial Redesign
+
+**Branch:** `joyful-turing`
+
+**What:** Transformed `/caregiver-support/[slug]` from a generic CMS article dump into a composed editorial reading experience with strong typography hierarchy, sticky TOC, and elegant content blocks.
+
+**New files:**
+- `lib/article-html.ts`: Heading extraction + ID injection utility (regex-based, handles h2/h3, slugified IDs, duplicate handling)
+- `components/article/TableOfContents.tsx`: Client component — `DesktopTableOfContents` (sticky sidebar, IntersectionObserver scroll tracking) + `MobileTableOfContents` (collapsible panel)
+
+**CSS (`app/globals.css`):**
+- Added `.prose-editorial` class alongside `.prose-medium` (admin editor untouched)
+- Serif H2 headings, primary-600 blockquote borders + list markers, subtle link underlines, scroll-margin-top for sticky nav offset
+
+**Page restructure (`app/caregiver-support/[slug]/page.tsx`):**
+- Breadcrumb chain → simple "← Caregiver Support" back link
+- Category as subtle uppercase text (not pill)
+- H1: `font-display` serif, `text-display-sm md:text-display-md`
+- Metadata row: middot-separated author + date + reading time
+- Hero image: `aspect-[2/1]`, `rounded-2xl`, aligned to body text left edge
+- Body layout: unified container (`max-w-[1100px]`), header + image + body in same left column (`flex-1 max-w-[680px]`), TOC sidebar (`w-[220px]`) on desktop
+- TOC shows only when 2+ headings; no sidebar layout when 0 headings
+- Contextual CTA: quiet border card, no gradient/emoji
+- Author card: border-t separator (no bg-gray-50), hidden for "Olera Team"
+- Tags: simple text links, no pill borders
+- Related articles: "Recommended" title, category labels, reading time, `aspect-[3/2]` images
+- Bottom gradient CTA removed entirely
+- Mock data processed through same HTML pipeline
+
+**UI critique fix:** Aligned header, image, and body to shared left edge by unifying into one container. Added middot separators to metadata row.
+
+**Commits:** `1089551`, `bca54b1`
+
+---
 
 ### 2026-03-02 (Session 32) — Caregiver Support Editorial Redesign
 

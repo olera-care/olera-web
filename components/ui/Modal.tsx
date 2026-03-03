@@ -77,13 +77,20 @@ export default function Modal({
 
   // Keyboard listener + scroll lock — only re-runs when isOpen changes.
   // Compensates for scrollbar width to prevent layout shift.
+  // iOS Safari ignores overflow:hidden on <body>, so we also use position:fixed
+  // (the standard iOS scroll-lock technique). We store scrollY and restore it
+  // on close so the page doesn't jump to the top.
   useEffect(() => {
     if (!isOpen) return;
 
+    const scrollY = window.scrollY;
     const scrollbarWidth = getScrollbarWidth();
 
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
@@ -91,7 +98,13 @@ export default function Modal({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       document.body.style.paddingRight = "";
+      // Restore the scroll position that was active when the modal opened.
+      // position:fixed visually resets scroll to 0, so we must put it back.
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen, handleKeyDown]);
 
@@ -143,6 +156,9 @@ export default function Modal({
           "sm:rounded-2xl sm:min-h-[50vh] sm:max-h-[85vh] sm:animate-modal-pop",
           sizeClasses[size],
         ].join(" ")}
+        // Extend the white sheet into the iPhone safe-area zone so the
+        // home indicator doesn't create a transparent gap at the bottom.
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         {/* Drag handle — mobile only */}
         <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
@@ -184,7 +200,7 @@ export default function Modal({
         </div>
 
         {/* Scrollable body */}
-        <div className={`px-5 sm:px-7 pt-2 flex-1 min-h-0 overflow-y-auto ${footer ? "" : "pb-5 sm:pb-7"}`}>
+        <div className={`px-5 sm:px-7 pt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}>
           {children}
         </div>
 

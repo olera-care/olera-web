@@ -83,8 +83,15 @@ export default function MobileStickyBottomCTA({
   });
 
   // ── Scroll visibility for sticky bar ──
+  // Hysteresis: show at >100px, only hide again at <30px.
+  // Prevents the bar from flickering during iOS rubber-band scrolling where
+  // scrollY can momentarily dip to 0 even mid-page.
   const handleScroll = useCallback(() => {
-    setVisible(window.scrollY > 100);
+    setVisible((prev) => {
+      if (window.scrollY > 100) return true;
+      if (window.scrollY < 30) return false;
+      return prev; // Between 30–100: keep current visibility
+    });
   }, []);
 
   useEffect(() => {
@@ -248,6 +255,17 @@ export default function MobileStickyBottomCTA({
 
   return (
     <>
+      {/*
+       * Document-flow spacer — keeps page content from being permanently
+       * hidden behind the fixed sticky bar on mobile.
+       * Height = bar content (~76 px) + iPhone safe-area-inset-bottom.
+       */}
+      <div
+        className="md:hidden"
+        aria-hidden="true"
+        style={{ height: "calc(76px + env(safe-area-inset-bottom, 0px))" }}
+      />
+
       {/* ── Sticky bottom bar ── */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ${

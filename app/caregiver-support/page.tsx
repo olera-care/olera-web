@@ -349,7 +349,7 @@ function CaregiverSupportContent() {
   return (
     <main className="min-h-screen bg-white">
       {/* ---- Hero Header ---- */}
-      <header className="pt-20 pb-12 md:pt-28 md:pb-16">
+      <header className="pt-12 pb-8 md:pt-16 md:pb-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="font-display text-display-md md:text-display-lg text-gray-900 tracking-tight">
             Caregiver Support
@@ -451,7 +451,7 @@ function LoadingSkeleton() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero skeleton */}
-      <div className="pt-20 pb-12 md:pt-28 md:pb-16">
+      <div className="pt-12 pb-8 md:pt-16 md:pb-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-10 w-72 bg-gray-100 rounded-lg animate-pulse" />
           <div className="h-5 w-96 bg-gray-100 rounded mt-4 animate-pulse" />

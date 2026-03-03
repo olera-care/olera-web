@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { MOCK_RESOURCES } from "@/data/mock/resources";
 import { Resource } from "@/types/resource";
 import { CareTypeId, CARE_TYPE_CONFIG, ALL_CARE_TYPES } from "@/types/forum";
@@ -59,11 +60,13 @@ function FeaturedArticlePrimary({ resource }: { resource: Resource }) {
       className="group block"
     >
       <article className="h-full flex flex-col">
-        <div className="aspect-[4/3] mb-5 rounded-lg overflow-hidden">
-          <img
+        <div className="relative aspect-[4/3] mb-5 rounded-lg overflow-hidden">
+          <Image
             src={resource.coverImage}
             alt={resource.title}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+            fill
+            sizes="(max-width: 1024px) 100vw, 60vw"
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
           />
         </div>
         <div className="flex-1 flex flex-col">
@@ -96,11 +99,13 @@ function FeaturedArticleSecondary({ resource }: { resource: Resource }) {
       className="group block"
     >
       <article className="flex gap-5">
-        <div className="w-36 h-24 md:w-44 md:h-28 flex-shrink-0 rounded-lg overflow-hidden">
-          <img
+        <div className="relative w-36 h-24 md:w-44 md:h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <Image
             src={resource.coverImage}
             alt={resource.title}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+            fill
+            sizes="176px"
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
           />
         </div>
         <div className="flex-1 min-w-0 flex flex-col justify-center">
@@ -160,11 +165,14 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
           href={`/caregiver-support/${primary.slug}`}
           className="group lg:col-span-3 block"
         >
-          <div className="aspect-[16/9] rounded-lg overflow-hidden">
-            <img
+          <div className="relative aspect-[16/9] rounded-lg overflow-hidden">
+            <Image
               src={primary.coverImage}
               alt={primary.title}
-              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+              fill
+              sizes="(max-width: 1024px) 100vw, 60vw"
+              priority
+              className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
             />
           </div>
         </Link>
@@ -243,11 +251,13 @@ function ArticleCard({ resource }: { resource: Resource }) {
   return (
     <Link href={`/caregiver-support/${resource.slug}`} className="group block">
       <article>
-        <div className="aspect-[3/2] mb-4 rounded-lg overflow-hidden">
-          <img
+        <div className="relative aspect-[3/2] mb-4 rounded-lg overflow-hidden">
+          <Image
             src={resource.coverImage}
             alt={resource.title}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
           />
         </div>
         {careType && (

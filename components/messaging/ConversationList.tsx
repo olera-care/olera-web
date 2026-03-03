@@ -340,8 +340,8 @@ export default function ConversationList({
             </div>
           </button>
 
-          {/* Hover action menu */}
-          <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+          {/* Action menu — always visible on mobile, hover-reveal on desktop */}
+          <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100"} transition-opacity`}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();

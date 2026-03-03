@@ -27,6 +27,10 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")?.trim() || "";
     const status = searchParams.get("status") || "all";
     const category = searchParams.get("category") || "";
+    const author = searchParams.get("author") || "";
+    const featured = searchParams.get("featured") || "";
+    const sortBy = searchParams.get("sort_by") || "updated_at";
+    const sortDir = searchParams.get("sort_dir") === "asc" ? "asc" : "desc";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "20", 10)));
 
@@ -55,8 +59,22 @@ export async function GET(request: NextRequest) {
       query = query.eq("category", category);
     }
 
-    // Order by most recently updated
-    query = query.order("updated_at", { ascending: false });
+    // Author filter
+    if (author) {
+      query = query.eq("author_name", author);
+    }
+
+    // Featured filter
+    if (featured === "true") {
+      query = query.eq("featured", true);
+    } else if (featured === "false") {
+      query = query.eq("featured", false);
+    }
+
+    // Sorting
+    const allowedSortFields = ["updated_at", "published_at", "created_at", "title"];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "updated_at";
+    query = query.order(sortField, { ascending: sortDir === "asc" });
 
     // Pagination
     const from = (page - 1) * perPage;
@@ -93,7 +111,15 @@ export async function GET(request: NextRequest) {
       updated_at: row.updated_at,
     }));
 
-    return NextResponse.json({ articles, total, page, per_page: perPage, total_pages: totalPages });
+    // Distinct authors for filter dropdown
+    const { data: authorRows } = await db
+      .from("content_articles")
+      .select("author_name")
+      .not("author_name", "is", null)
+      .order("author_name");
+    const authors = [...new Set((authorRows ?? []).map((r: { author_name: string }) => r.author_name).filter(Boolean))];
+
+    return NextResponse.json({ articles, total, page, per_page: perPage, total_pages: totalPages, authors });
   } catch (err) {
     console.error("Content list error:", err);
     return NextResponse.json(

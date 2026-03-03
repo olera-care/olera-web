@@ -7,6 +7,13 @@
 
 ## Current Focus
 
+- **Caregiver Support Editorial Redesign** (branch: `joyful-turing`) — IN PROGRESS
+  - Plan: `plans/caregiver-support-editorial-redesign-plan.md`
+  - Notion: P1 — "Redesign Olera Blog Master Page (Editorial Version)"
+  - Phase 1-3 largely done: hero header, featured section, category pills, article grid
+  - Admin content dashboard: added author/featured filters + date sorting
+  - PR targeting staging — ready for review
+
 - **Homepage Section-by-Section Refactor** (branch: `glad-goodall`) — READY FOR MERGE
   - Phase 1-3 done + Phase 4 polish: NIH badge, community container, CTA redesign
   - PR #79 targeting staging — ready to merge
@@ -54,6 +61,7 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-02 | 16:9 primary featured image, 4 featured articles | 3:2 and 4:3 were too tall — pushed article grid below fold. 4 featured (1 large + 3 small) fills the right column without blank space |
 | 2026-03-01 | Skip MedicalBusiness schema, revisit later | Low reward: Google doesn't render it differently than LocalBusiness. No concrete SERP benefit. Competitors don't use it either. |
 | 2026-02-28 | CTA: quiet nudge over teal gradient banner | Strip template blobs, one warm heading, one button — calm confidence over SaaS shouting |
 | 2026-02-28 | Community section in unified gray container | Docuseries + flat links felt unbounded; single bg-gray-100 rounded card groups them |
@@ -81,6 +89,42 @@
 ---
 
 ## Session Log
+
+### 2026-03-02 (Session 32) — Caregiver Support Editorial Redesign
+
+**Branch:** `joyful-turing`
+
+**What:** Redesigned `/caregiver-support` from a generic CMS grid into a calm, editorial surface. Inspired by Fuse, Craft, Perplexity, and Notion blogs.
+
+**Page redesign (`app/caregiver-support/page.tsx`):**
+- Hero: serif title (`font-display`), subtle subtitle, white bg, tight spacing
+- Featured section: 1 dominant (16:9 image, left 3/5) + 3 secondary (right 2/5, stacked)
+  - Structural fix: image grid separated from text so secondary articles align with image height, not full column
+  - Featured articles pulled client-side from `featured: true` flag (already existed on ContentArticle)
+  - Graceful fallback: 0 featured → skip; 1 → full-width; 2 → side-by-side
+- Category filters: soft text pills, no counts/emojis, `rounded-full`, no container
+- Article grid: `aspect-[3/2]`, `rounded-lg`, 3-col desktop, larger images, reading time
+- Removed ProviderBanner CTA from grid
+- Page bg: `bg-white`, max width: `max-w-6xl`
+- Multiple spacing iterations to get featured + category pills above fold
+
+**API changes:**
+- `app/api/caregiver-support/route.ts`: added `?featured=true` param, raised per_page cap to 200
+- `app/api/admin/content/route.ts`: added `author`, `featured`, `sort_by`, `sort_dir` params + distinct authors list
+
+**Admin dashboard (`app/admin/content/page.tsx`):**
+- Author dropdown filter (populated from API)
+- Featured dropdown filter (All / Featured Only / Not Featured)
+- Sortable Title, Published, Updated columns
+
+**Key debugging:**
+- Featured article not showing: `.slice(0, 3)` cut off 4th featured article (3 from Sanity import + 1 new). Changed to `.slice(0, 4)`
+- Layout shift: added `FeaturedSkeleton` placeholder during loading
+- Secondary misalignment: restructured grid to separate image from text
+
+**Commits:** `0038270`→`9330325` (10 commits)
+
+---
 
 ### 2026-03-02 (Session 31) — Sanity CMS → Supabase Content Migration
 

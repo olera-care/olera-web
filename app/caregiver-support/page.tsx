@@ -152,7 +152,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
   const secondary = articles.slice(1, 4);
 
   return (
-    <section className="mb-16 md:mb-24">
+    <section className="mb-12 md:mb-16">
       {/* Grid: primary IMAGE aligned with secondary articles */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
         {/* Primary image — 3/5 width */}
@@ -160,7 +160,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
           href={`/caregiver-support/${primary.slug}`}
           className="group lg:col-span-3 block"
         >
-          <div className="aspect-[4/3] rounded-lg overflow-hidden">
+          <div className="aspect-[3/2] rounded-lg overflow-hidden">
             <img
               src={primary.coverImage}
               alt={primary.title}
@@ -206,10 +206,10 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
 function FeaturedSkeleton() {
   return (
     <>
-      <section className="mb-16 md:mb-24">
+      <section className="mb-12 md:mb-16">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
           <div className="lg:col-span-3">
-            <div className="aspect-[4/3] bg-gray-100 rounded-lg animate-pulse mb-5" />
+            <div className="aspect-[3/2] bg-gray-100 rounded-lg animate-pulse mb-5" />
             <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mb-3" />
             <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
@@ -462,7 +462,7 @@ function LoadingSkeleton() {
         {/* Featured skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14 mb-16 md:mb-24">
           <div className="lg:col-span-3">
-            <div className="aspect-[4/3] bg-gray-100 rounded-lg animate-pulse mb-5" />
+            <div className="aspect-[3/2] bg-gray-100 rounded-lg animate-pulse mb-5" />
             <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mb-3" />
             <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />

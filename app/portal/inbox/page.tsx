@@ -516,7 +516,7 @@ function InboxContent() {
   }, [manageConnection]);
 
   return (
-    <div className="h-[calc(100vh-64px)] bg-white">
+    <div className="h-[calc(100dvh-64px)] bg-white">
     <div className="h-full flex">
       {/* Left panel — conversation list */}
       <ConversationList

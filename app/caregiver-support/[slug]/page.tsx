@@ -209,78 +209,85 @@ export default async function ResourceArticlePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      {/* ─── Header ─────────────────────────────────────────── */}
-      <header className="max-w-[960px] mx-auto px-5 pt-8 md:pt-12">
-        {/* Back link */}
-        <Link
-          href="/caregiver-support"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
-          </svg>
-          Caregiver Support
-        </Link>
-
-        {/* Category */}
-        {careTypeLabel && (
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-3">
-            {careTypeLabel}
-          </p>
-        )}
-
-        {/* Title */}
-        <h1 className="font-display text-display-sm md:text-display-md text-gray-900 tracking-[-0.02em] mb-3">
-          {title}
-        </h1>
-
-        {/* Subtitle */}
-        {subtitle && (
-          <p className="text-lg text-gray-500 mb-4 max-w-[640px]">
-            {subtitle}
-          </p>
-        )}
-
-        {/* Metadata row */}
-        <div className="flex items-center gap-4 text-sm text-gray-400 mb-8">
-          {showAuthorCard && (
-            <div className="flex items-center gap-2">
-              {authorAvatar ? (
-                <img
-                  src={authorAvatar}
-                  alt={authorName}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
-                  <span className="text-white text-xs font-medium">
-                    {authorName.split(" ").map((n) => n[0]).join("")}
-                  </span>
-                </div>
-              )}
-              <span className="text-gray-600 font-medium">{authorName}</span>
-            </div>
-          )}
-          <span>{formatDate(publishedAt)}</span>
-          <span>{readingTime}</span>
-        </div>
-      </header>
-
-      {/* ─── Hero Image ─────────────────────────────────────── */}
-      {coverImage && (
-        <figure className="max-w-[960px] mx-auto px-5 mb-10">
-          <img
-            src={coverImage}
-            alt={title}
-            className="w-full aspect-[2/1] object-cover rounded-2xl"
-          />
-        </figure>
-      )}
-
-      {/* ─── Body + TOC Layout ──────────────────────────────── */}
+      {/* ─── Unified content container ───────────────────── */}
       <div className={`max-w-[1100px] mx-auto px-5 ${showToc ? "lg:flex lg:gap-16" : ""}`}>
-        {/* Article body */}
-        <article className={`${showToc ? "flex-1 max-w-[680px]" : "max-w-[680px] mx-auto"}`}>
+        {/* Left column: header + image + body */}
+        <div className={`${showToc ? "flex-1 max-w-[680px]" : "max-w-[680px] mx-auto"}`}>
+
+          {/* ─── Header ─────────────────────────────────────── */}
+          <header className="pt-8 md:pt-12">
+            {/* Back link */}
+            <Link
+              href="/caregiver-support"
+              className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+              </svg>
+              Caregiver Support
+            </Link>
+
+            {/* Category */}
+            {careTypeLabel && (
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-3">
+                {careTypeLabel}
+              </p>
+            )}
+
+            {/* Title */}
+            <h1 className="font-display text-display-sm md:text-display-md text-gray-900 tracking-[-0.02em] mb-3">
+              {title}
+            </h1>
+
+            {/* Subtitle */}
+            {subtitle && (
+              <p className="text-lg text-gray-500 mb-4">
+                {subtitle}
+              </p>
+            )}
+
+            {/* Metadata row */}
+            <div className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">
+              {showAuthorCard && (
+                <>
+                  <div className="flex items-center gap-2">
+                    {authorAvatar ? (
+                      <img
+                        src={authorAvatar}
+                        alt={authorName}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">
+                          {authorName.split(" ").map((n) => n[0]).join("")}
+                        </span>
+                      </div>
+                    )}
+                    <span className="text-gray-600 font-medium">{authorName}</span>
+                  </div>
+                  <span className="text-gray-300 mx-1.5">&middot;</span>
+                </>
+              )}
+              <span>{formatDate(publishedAt)}</span>
+              <span className="text-gray-300 mx-1.5">&middot;</span>
+              <span>{readingTime}</span>
+            </div>
+          </header>
+
+          {/* ─── Hero Image ─────────────────────────────────── */}
+          {coverImage && (
+            <figure className="mb-10">
+              <img
+                src={coverImage}
+                alt={title}
+                className="w-full aspect-[2/1] object-cover rounded-2xl"
+              />
+            </figure>
+          )}
+
+          {/* ─── Article body ───────────────────────────────── */}
+          <article>
           {/* Mobile TOC */}
           {showToc && <MobileTableOfContents headings={headings} />}
 
@@ -387,12 +394,13 @@ export default async function ResourceArticlePage({
               </div>
             </section>
           )}
-        </article>
+          </article>
+        </div>
 
         {/* Desktop TOC sidebar */}
         {showToc && (
           <aside className="hidden lg:block w-[220px] flex-shrink-0">
-            <div className="sticky top-[96px]">
+            <div className="sticky top-[96px] pt-4">
               <DesktopTableOfContents headings={headings} />
             </div>
           </aside>

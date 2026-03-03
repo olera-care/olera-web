@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { MOCK_RESOURCES } from "@/data/mock/resources";
 import { Resource } from "@/types/resource";
@@ -274,6 +274,8 @@ const ARTICLES_PER_PAGE = 12;
 
 function CaregiverSupportContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const typeParam = searchParams.get("type");
   const [activeCareType, setActiveCareType] = useState<CareTypeId | "all">(
     (typeParam as CareTypeId) || "all"
@@ -281,6 +283,16 @@ function CaregiverSupportContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [apiResources, setApiResources] = useState<Resource[] | null>(null);
   const [loadingApi, setLoadingApi] = useState(true);
+
+  // Sync filter with URL (handles browser back/forward)
+  useEffect(() => {
+    const urlType = searchParams.get("type");
+    const next = (urlType as CareTypeId) || "all";
+    if (next !== activeCareType) {
+      setActiveCareType(next);
+      setCurrentPage(1);
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch all articles from API
   useEffect(() => {
@@ -340,11 +352,23 @@ function CaregiverSupportContent() {
     return filteredResources.slice(start, start + ARTICLES_PER_PAGE);
   }, [filteredResources, currentPage]);
 
-  const handleCategoryChange = (category: CareTypeId | "all") => {
-    setActiveCareType(category);
-    setCurrentPage(1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const handleCategoryChange = useCallback(
+    (category: CareTypeId | "all") => {
+      setActiveCareType(category);
+      setCurrentPage(1);
+      // Persist filter in URL so deep-links & back-button work
+      const params = new URLSearchParams(searchParams.toString());
+      if (category === "all") {
+        params.delete("type");
+      } else {
+        params.set("type", category);
+      }
+      const qs = params.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [searchParams, router, pathname],
+  );
 
   return (
     <main className="min-h-screen bg-white">

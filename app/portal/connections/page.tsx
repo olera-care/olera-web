@@ -290,7 +290,7 @@ export default function ConnectionsPage() {
             {isProvider ? "Manage inquiries from families seeking care." : "Track your care provider requests and responses."}
           </p>
         </div>
-        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+        <div className="flex w-full gap-0.5 bg-gray-100 p-0.5 rounded-xl sm:max-w-md">
           {(isProvider ? ["Needs Attention", "Active", "Past"] : ["Active", "Connected", "Past"]).map((label) => (
             <div key={label} className="flex-1 flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-gray-400">
               {label}
@@ -374,7 +374,7 @@ export default function ConnectionsPage() {
 
   // Shared tab bar
   const tabBar = (
-    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+    <div className="flex w-full gap-0.5 bg-gray-100 p-0.5 rounded-xl sm:max-w-md">
       {tabs.map((tab) => (
         <button
           key={tab.id}

@@ -475,7 +475,7 @@ function LeadDetailDrawer({
           {/* 1. Contact Information — 2-column with copy buttons */}
           {(lead.email || lead.phone) ? (
             <CollapsibleSection title="Contact Information">
-              <div className="grid grid-cols-2 gap-x-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
                 {/* Email */}
                 <div>
                   <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Email</p>
@@ -569,7 +569,7 @@ function LeadDetailDrawer({
           {/* 3. Living Situation — 2-column grid */}
           <CollapsibleSection title="Living Situation">
             {(lead.livingSituation || lead.schedulePreference || lead.careLocation || lead.languagePreference) ? (
-              <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
                 <div>
                   <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Living situation</p>
                   <p className="text-[15px] text-gray-800">{lead.livingSituation || <span className="text-gray-400 italic">Not provided</span>}</p>

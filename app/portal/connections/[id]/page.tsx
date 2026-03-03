@@ -230,7 +230,7 @@ export default function ConnectionDetailPage() {
             <h3 className="text-base font-semibold text-primary-900 mb-3">
               Next Steps
             </h3>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               {/* Primary CTA: Propose a time */}
               {otherProfile.email && (
                 <a
@@ -352,7 +352,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
 
       {/* Family-specific info */}
       {profile.type === "family" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {meta?.timeline && (
             <div>
               <dt className="text-sm text-gray-500">Timeline</dt>
@@ -395,7 +395,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
 
       {/* Caregiver-specific info */}
       {profile.type === "caregiver" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {meta?.years_experience && (
             <div>
               <dt className="text-sm text-gray-500">Experience</dt>
@@ -437,7 +437,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
 
       {/* Organization-specific info */}
       {profile.type === "organization" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {meta?.year_founded && (
             <div>
               <dt className="text-sm text-gray-500">Year Founded</dt>

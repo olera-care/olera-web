@@ -100,3 +100,4 @@ When a page has been fixed and merged:
 | 2026-03-03 | #105 | Homepage, Browse, Provider detail — gallery, sticky CTA, iOS scroll lock on modals, removal request page, claim page nav, ReviewModal asterisks |
 | 2026-03-03 | #110 | Portal connections tab bar, connection detail grids, profile tab bar, settings notification rows, provider connections drawer grids, community composer padding |
 | 2026-03-03 | #111 | Discover page padding (px-8→px-4 sm:px-8), provider dashboard header stacks vertically on mobile |
+| 2026-03-03 | #112 | ConversationList three-dot menu always visible on mobile (was hover-only, unreachable on touch) |

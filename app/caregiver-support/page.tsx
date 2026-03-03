@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { MOCK_RESOURCES } from "@/data/mock/resources";
@@ -8,25 +8,9 @@ import { Resource } from "@/types/resource";
 import { CareTypeId, CARE_TYPE_CONFIG, ALL_CARE_TYPES } from "@/types/forum";
 import Pagination from "@/components/ui/Pagination";
 
-// Color-coded category styles (matching Community Forum)
-const CATEGORY_STYLES: Record<CareTypeId, { emoji: string; bg: string; text: string }> = {
-  "home-health": { emoji: "\u{1F3E5}", bg: "bg-rose-100", text: "text-rose-700" },
-  "home-care": { emoji: "\u{1F3E0}", bg: "bg-amber-100", text: "text-amber-700" },
-  "assisted-living": { emoji: "\u{1F91D}", bg: "bg-blue-100", text: "text-blue-700" },
-  "memory-care": { emoji: "\u{1F9E0}", bg: "bg-purple-100", text: "text-purple-700" },
-  "nursing-homes": { emoji: "\u{1F3E2}", bg: "bg-emerald-100", text: "text-emerald-700" },
-  "independent-living": { emoji: "\u2600\uFE0F", bg: "bg-orange-100", text: "text-orange-700" },
-};
-
-// Care type emojis for the CTA banner
-const CARE_TYPE_EMOJI: Record<CareTypeId, string> = {
-  "home-health": "\u{1F3E5}",
-  "home-care": "\u{1F3E0}",
-  "assisted-living": "\u{1F91D}",
-  "memory-care": "\u{1F9E0}",
-  "nursing-homes": "\u{1F3E2}",
-  "independent-living": "\u2600\uFE0F",
-};
+// ---------------------------------------------------------------------------
+// Types & helpers
+// ---------------------------------------------------------------------------
 
 interface ArticleFromAPI {
   id: string;
@@ -46,7 +30,6 @@ interface ArticleFromAPI {
   published_at: string | null;
 }
 
-/** Map a Supabase article to the Resource shape used by the UI */
 function apiToResource(a: ArticleFromAPI): Resource {
   return {
     id: a.id,
@@ -65,88 +48,168 @@ function apiToResource(a: ArticleFromAPI): Resource {
   };
 }
 
-// Contextual CTA Banner component
-function ProviderBanner({ careType }: { careType: CareTypeId }) {
-  const emoji = CARE_TYPE_EMOJI[careType];
-  const label = CARE_TYPE_CONFIG[careType].label;
+// ---------------------------------------------------------------------------
+// Featured Section
+// ---------------------------------------------------------------------------
 
+function FeaturedArticlePrimary({ resource }: { resource: Resource }) {
   return (
     <Link
-      href={`/browse?type=${careType}`}
-      className="group relative block col-span-full rounded-2xl overflow-hidden bg-gradient-to-br from-primary-50 via-primary-50/80 to-white border border-primary-100/60 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-100/40 transition-all duration-300"
+      href={`/caregiver-support/${resource.slug}`}
+      className="group block"
     >
-      {/* Left accent bar */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600" />
-
-      <div className="p-6 pl-7 flex items-center gap-5">
-        {/* Icon circle */}
-        <div className="flex-shrink-0 w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-          <span className="text-2xl">{emoji}</span>
+      <article className="h-full flex flex-col">
+        <div className="aspect-[4/3] mb-5 rounded-lg overflow-hidden">
+          <img
+            src={resource.coverImage}
+            alt={resource.title}
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+          />
         </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <h4 className="text-lg font-bold text-gray-900 leading-snug">
-            Looking for {label.toLowerCase()} providers?
-          </h4>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Browse verified providers in your area and compare options.
-          </p>
+        <div className="flex-1 flex flex-col">
+          {resource.careTypes[0] && (
+            <span className="text-text-sm font-medium text-gray-400 mb-2">
+              {CARE_TYPE_CONFIG[resource.careTypes[0]].label}
+            </span>
+          )}
+          <h3 className="font-display text-display-xs md:text-display-sm font-bold text-gray-900 leading-tight group-hover:text-gray-600 transition-colors duration-200 mb-3">
+            {resource.title}
+          </h3>
+          {resource.excerpt && (
+            <p className="text-text-md text-gray-500 leading-relaxed line-clamp-2 mb-4">
+              {resource.excerpt}
+            </p>
+          )}
+          <span className="mt-auto text-text-sm text-gray-400">
+            {resource.readingTime} read
+          </span>
         </div>
-
-        {/* Arrow circle */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center group-hover:bg-primary-600 transition-colors duration-300">
-          <svg className="w-5 h-5 text-primary-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
-      </div>
+      </article>
     </Link>
   );
 }
 
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+function FeaturedArticleSecondary({ resource }: { resource: Resource }) {
+  return (
+    <Link
+      href={`/caregiver-support/${resource.slug}`}
+      className="group block"
+    >
+      <article className="flex gap-5">
+        <div className="w-36 h-24 md:w-44 md:h-28 flex-shrink-0 rounded-lg overflow-hidden">
+          <img
+            src={resource.coverImage}
+            alt={resource.title}
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+          />
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          {resource.careTypes[0] && (
+            <span className="text-text-xs font-medium text-gray-400 mb-1">
+              {CARE_TYPE_CONFIG[resource.careTypes[0]].label}
+            </span>
+          )}
+          <h3 className="font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200 line-clamp-2">
+            {resource.title}
+          </h3>
+          <span className="mt-1.5 text-text-xs text-gray-400">
+            {resource.readingTime} read
+          </span>
+        </div>
+      </article>
+    </Link>
+  );
 }
+
+function FeaturedSection({ articles }: { articles: Resource[] }) {
+  if (articles.length === 0) return null;
+
+  // Single featured article — full width
+  if (articles.length === 1) {
+    return (
+      <section className="mb-16 md:mb-24">
+        <div className="max-w-2xl">
+          <FeaturedArticlePrimary resource={articles[0]} />
+        </div>
+      </section>
+    );
+  }
+
+  // 2 featured — side by side
+  if (articles.length === 2) {
+    return (
+      <section className="mb-16 md:mb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14">
+          <FeaturedArticlePrimary resource={articles[0]} />
+          <FeaturedArticlePrimary resource={articles[1]} />
+        </div>
+      </section>
+    );
+  }
+
+  // 3+ featured — dominant left + stacked right
+  const primary = articles[0];
+  const secondary = articles.slice(1, 3);
+
+  return (
+    <section className="mb-16 md:mb-24">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
+        {/* Dominant article — 3/5 width */}
+        <div className="lg:col-span-3">
+          <FeaturedArticlePrimary resource={primary} />
+        </div>
+
+        {/* Secondary articles — 2/5 width, stacked */}
+        <div className="lg:col-span-2 flex flex-col gap-8 lg:justify-center">
+          {secondary.map((resource) => (
+            <FeaturedArticleSecondary key={resource.id} resource={resource} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Article Grid Card
+// ---------------------------------------------------------------------------
 
 function ArticleCard({ resource }: { resource: Resource }) {
   const careType = resource.careTypes[0];
-  const style = careType ? CATEGORY_STYLES[careType] : null;
 
   return (
     <Link href={`/caregiver-support/${resource.slug}`} className="group block">
       <article>
-        <div className="aspect-[2/1] mb-4 rounded-xl overflow-hidden relative">
+        <div className="aspect-[3/2] mb-4 rounded-lg overflow-hidden">
           <img
             src={resource.coverImage}
             alt={resource.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
           />
-          {careType && style && (
-            <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg ${style.bg} ${style.text}`}>
-              <span>{style.emoji}</span>
-              {CARE_TYPE_CONFIG[careType].label}
-            </span>
-          )}
         </div>
-        <h3 className="text-xl font-bold text-gray-900 leading-tight group-hover:text-primary-600 transition-colors mb-1 line-clamp-2">
+        {careType && (
+          <span className="text-text-xs font-medium text-gray-400 tracking-wide uppercase">
+            {CARE_TYPE_CONFIG[careType].label}
+          </span>
+        )}
+        <h3 className="mt-1.5 text-lg font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200">
           {resource.title}
         </h3>
-        <span className="text-sm text-gray-400">
-          {formatDate(resource.publishedAt)}
+        <span className="mt-1.5 block text-text-sm text-gray-400">
+          {resource.readingTime} read
         </span>
       </article>
     </Link>
   );
 }
 
+// ---------------------------------------------------------------------------
+// Main Page Content
+// ---------------------------------------------------------------------------
+
 const ARTICLES_PER_PAGE = 12;
 
-function ResourcesPageContent() {
+function CaregiverSupportContent() {
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type");
   const [activeCareType, setActiveCareType] = useState<CareTypeId | "all">(
@@ -156,7 +219,7 @@ function ResourcesPageContent() {
   const [apiResources, setApiResources] = useState<Resource[] | null>(null);
   const [loadingApi, setLoadingApi] = useState(true);
 
-  // Try fetching from Supabase API
+  // Fetch all articles from API
   useEffect(() => {
     let cancelled = false;
     async function fetchFromApi() {
@@ -178,20 +241,16 @@ function ResourcesPageContent() {
     return () => { cancelled = true; };
   }, []);
 
-  // Use API data if available, otherwise fall back to mock data
   const allResources = apiResources ?? MOCK_RESOURCES;
 
-  // Calculate counts for each category
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: allResources.length };
-    ALL_CARE_TYPES.forEach((careType) => {
-      counts[careType] = allResources.filter((r) =>
-        r.careTypes.includes(careType)
-      ).length;
-    });
-    return counts;
-  }, [allResources]);
+  // Featured articles (only show on "All" view, page 1)
+  const featuredArticles = useMemo(
+    () => allResources.filter((r) => r.featured),
+    [allResources]
+  );
+  const showFeatured = activeCareType === "all" && currentPage === 1;
 
+  // Filtered & sorted articles (excluding featured when shown in hero)
   const filteredResources = useMemo(() => {
     let resources = allResources;
 
@@ -199,19 +258,25 @@ function ResourcesPageContent() {
       resources = resources.filter((r) => r.careTypes.includes(activeCareType));
     }
 
-    return [...resources].sort((a, b) =>
-      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    // When showing featured section, exclude those articles from the grid
+    if (showFeatured && featuredArticles.length > 0) {
+      const featuredIds = new Set(featuredArticles.slice(0, 3).map((r) => r.id));
+      resources = resources.filter((r) => !featuredIds.has(r.id));
+    }
+
+    return [...resources].sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
-  }, [activeCareType, allResources]);
+  }, [activeCareType, allResources, showFeatured, featuredArticles]);
 
   // Pagination
   const totalPages = Math.ceil(filteredResources.length / ARTICLES_PER_PAGE);
   const paginatedResources = useMemo(() => {
-    const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
-    return filteredResources.slice(startIndex, startIndex + ARTICLES_PER_PAGE);
+    const start = (currentPage - 1) * ARTICLES_PER_PAGE;
+    return filteredResources.slice(start, start + ARTICLES_PER_PAGE);
   }, [filteredResources, currentPage]);
 
-  // Reset to page 1 when category changes
   const handleCategoryChange = (category: CareTypeId | "all") => {
     setActiveCareType(category);
     setCurrentPage(1);
@@ -219,119 +284,156 @@ function ResourcesPageContent() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <header className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-1">
-            Care seeker resources
+    <main className="min-h-screen bg-white">
+      {/* ---- Hero Header ---- */}
+      <header className="pt-20 pb-12 md:pt-28 md:pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="font-display text-display-md md:text-display-lg text-gray-900 tracking-tight">
+            Caregiver Support
           </h1>
-          <p className="text-lg text-gray-500 max-w-lg mx-auto">
-            Guides and practical advice to help you navigate senior care.
+          <p className="mt-3 text-text-lg text-gray-400 max-w-xl">
+            Guides, insights, and practical advice for every stage of the care journey.
           </p>
-        </header>
+        </div>
+      </header>
 
-        {/* Category Pills */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex flex-wrap justify-center gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/60">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        {/* ---- Featured Section ---- */}
+        {showFeatured && !loadingApi && (
+          <FeaturedSection articles={featuredArticles.slice(0, 3)} />
+        )}
+
+        {/* ---- Divider between featured and grid ---- */}
+        {showFeatured && featuredArticles.length > 0 && !loadingApi && (
+          <div className="border-t border-gray-100 mb-12 md:mb-16" />
+        )}
+
+        {/* ---- Category Filters ---- */}
+        <nav className="mb-10 md:mb-14">
+          <div className="flex flex-wrap gap-1">
             <button
               onClick={() => handleCategoryChange("all")}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-full text-text-sm font-medium transition-colors duration-150 ${
                 activeCareType === "all"
-                  ? "bg-gray-900 text-white shadow-sm"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
             >
-              All ({categoryCounts.all})
+              All
             </button>
             {ALL_CARE_TYPES.map((careType) => (
               <button
                 key={careType}
                 onClick={() => handleCategoryChange(careType)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                className={`px-4 py-2 rounded-full text-text-sm font-medium transition-colors duration-150 ${
                   activeCareType === careType
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                 }`}
               >
-                {CARE_TYPE_CONFIG[careType].label} ({categoryCounts[careType]})
+                {CARE_TYPE_CONFIG[careType].label}
               </button>
             ))}
           </div>
-        </div>
+        </nav>
 
-        {/* Articles Grid with Contextual Banner */}
+        {/* ---- Article Grid ---- */}
         {paginatedResources.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* First 6 articles */}
-            {paginatedResources.slice(0, 6).map((resource) => (
-              <ArticleCard key={resource.id} resource={resource} />
-            ))}
-
-            {/* Contextual Provider Banner - only show if we have more than 3 articles */}
-            {paginatedResources.length > 3 && (
-              <ProviderBanner
-                careType={activeCareType === "all" ? "home-health" : activeCareType}
-              />
-            )}
-
-            {/* Remaining articles */}
-            {paginatedResources.slice(6).map((resource) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+            {paginatedResources.map((resource) => (
               <ArticleCard key={resource.id} resource={resource} />
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center">
+          <div className="py-24 text-center">
             <p className="text-gray-400 mb-4">No articles found</p>
             <button
               onClick={() => handleCategoryChange("all")}
-              className="text-sm text-gray-900 underline underline-offset-4"
+              className="text-text-sm text-gray-900 underline underline-offset-4 hover:text-gray-600 transition-colors"
             >
-              View all
+              View all articles
             </button>
           </div>
         )}
 
-        {/* Pagination */}
-        <div className="mt-12 flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredResources.length}
-            itemsPerPage={ARTICLES_PER_PAGE}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            itemLabel="articles"
-            showItemCount={false}
-          />
-        </div>
+        {/* ---- Pagination ---- */}
+        {totalPages > 1 && (
+          <div className="mt-16 flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredResources.length}
+              itemsPerPage={ARTICLES_PER_PAGE}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              itemLabel="articles"
+              showItemCount={false}
+            />
+          </div>
+        )}
       </div>
     </main>
   );
 }
 
+// ---------------------------------------------------------------------------
+// Loading Skeleton
+// ---------------------------------------------------------------------------
+
 function LoadingSkeleton() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <div className="h-12 w-72 bg-gray-200 rounded-lg mx-auto mb-4 animate-pulse" />
-          <div className="h-5 w-96 bg-gray-200 rounded mx-auto animate-pulse" />
+    <main className="min-h-screen bg-white">
+      {/* Hero skeleton */}
+      <div className="pt-20 pb-12 md:pt-28 md:pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-10 w-72 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-5 w-96 bg-gray-100 rounded mt-4 animate-pulse" />
         </div>
-        <div className="flex gap-2 mb-12">
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        {/* Featured skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14 mb-16 md:mb-24">
+          <div className="lg:col-span-3">
+            <div className="aspect-[4/3] bg-gray-100 rounded-lg animate-pulse mb-5" />
+            <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mb-3" />
+            <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
+            <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
+          </div>
+          <div className="lg:col-span-2 flex flex-col gap-8 justify-center">
+            {[1, 2].map((i) => (
+              <div key={i} className="flex gap-5">
+                <div className="w-44 h-28 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse" />
+                <div className="flex-1 flex flex-col justify-center gap-2">
+                  <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-5 w-full bg-gray-100 rounded animate-pulse" />
+                  <div className="h-3 w-12 bg-gray-100 rounded animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Divider skeleton */}
+        <div className="border-t border-gray-100 mb-12 md:mb-16" />
+
+        {/* Filter skeleton */}
+        <div className="flex gap-2 mb-10 md:mb-14">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-10 w-24 bg-gray-200 rounded-full animate-pulse" />
+            <div key={i} className="h-9 w-24 bg-gray-100 rounded-full animate-pulse" />
           ))}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+        {/* Grid skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i}>
-              <div className="aspect-[4/3] bg-gray-200 rounded-2xl mb-4 animate-pulse" />
-              <div className="h-4 w-20 bg-gray-200 rounded mb-2 animate-pulse" />
-              <div className="h-5 w-full bg-gray-200 rounded mb-2 animate-pulse" />
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="aspect-[3/2] bg-gray-100 rounded-lg mb-4 animate-pulse" />
+              <div className="h-3 w-20 bg-gray-100 rounded mb-2 animate-pulse" />
+              <div className="h-5 w-full bg-gray-100 rounded mb-2 animate-pulse" />
+              <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
             </div>
           ))}
         </div>
@@ -340,10 +442,14 @@ function LoadingSkeleton() {
   );
 }
 
-export default function ResourcesPage() {
+// ---------------------------------------------------------------------------
+// Page Export
+// ---------------------------------------------------------------------------
+
+export default function CaregiverSupportPage() {
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <ResourcesPageContent />
+      <CaregiverSupportContent />
     </Suspense>
   );
 }

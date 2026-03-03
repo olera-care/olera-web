@@ -53,6 +53,25 @@ function clearClaimStorage() {
   }
 }
 
+/** Minimal sticky top nav — replaces the full Navbar on /for-providers pages. */
+function MinimalTopNav({ href, label = "Back to listing" }: { href: string; label?: string }) {
+  return (
+    <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center">
+        <Link
+          href={href}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          {label}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function ClaimPage() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -521,16 +540,9 @@ export default function ClaimPage() {
   // Already claimed
   if (step === "already-claimed" || step === "dispute" || step === "dispute-success") {
     return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <Link
-          href={`/provider/${slug}`}
-          className="text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 mb-8"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to listing
-        </Link>
+      <>
+        <MinimalTopNav href={`/provider/${slug}`} />
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
 
         {step === "dispute-success" ? (
           <div className="text-center py-12 animate-wizard-in">
@@ -687,24 +699,16 @@ export default function ClaimPage() {
           </div>
         )}
       </div>
+      </>
     );
   }
 
   // Info + Verify steps
   return (
     <>
+      <MinimalTopNav href={`/provider/${slug}`} />
       {/* Page content — padded bottom for sticky button on info step */}
       <div className={`max-w-lg mx-auto px-4 sm:px-6 py-8 ${step === "info" ? "pb-36" : "pb-12"}`}>
-        <Link
-          href={`/provider/${slug}`}
-          className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1 mb-6"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to listing
-        </Link>
-
         {/* ── Info Step ── */}
         {step === "info" && provider && (
           <div className="animate-step-in">

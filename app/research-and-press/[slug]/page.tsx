@@ -231,7 +231,7 @@ export default async function ResearchAndPressArticlePage({
                       <img
                         src={authorAvatar}
                         alt={authorName}
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-8 h-8 aspect-square rounded-full object-cover shrink-0"
                       />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
@@ -284,7 +284,7 @@ export default async function ResearchAndPressArticlePage({
                     <img
                       src={authorAvatar}
                       alt={authorName}
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-10 h-10 aspect-square rounded-full object-cover shrink-0"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">

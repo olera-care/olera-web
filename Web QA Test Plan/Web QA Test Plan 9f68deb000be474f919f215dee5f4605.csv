@@ -1,0 +1,106 @@
+﻿Name,Browser,Section,Passed,Notes,Risk
+B.1.3 Google OAuth sign-up flow completes,All,B. Auth & Sessions,No,,P0
+"A.1.5 Top nav links all functional (Find Care, For Providers, Community)",All,A. Smoke Tests,No,,P0
+B.1.7 Session persists across page refresh,All,B. Auth & Sessions,No,,P1
+A.1.2 /browse page loads - provider cards display,All,A. Smoke Tests,No,,P0
+C.1.1 Search by city returns location-relevant results,All,C. Browse & Search,No,,P0
+B.1.9 Delete account flow works with confirmation,All,B. Auth & Sessions,No,,P1
+B.1.10 Post-auth onboarding creates family profile,All,B. Auth & Sessions,No,,P0
+"A.1.1 Homepage loads - hero, nav, footer render within 3s",All,A. Smoke Tests,No,,P0
+B.1.1 Email/password sign-up creates account,All,B. Auth & Sessions,No,,P0
+A.1.4 Auth modal opens - sign in/sign up toggle works,All,A. Smoke Tests,No,,P0
+A.1.3 Provider detail page loads via /provider/[slug],All,A. Smoke Tests,No,,P0
+B.1.4 Google OAuth sign-in flow completes,All,B. Auth & Sessions,No,,P0
+A.1.8 /admin redirects to home when unauthenticated,All,A. Smoke Tests,No,,P0
+B.1.5 Email OTP verification completes,All,B. Auth & Sessions,No,,P0
+B.1.2 Email/password sign-in works,All,B. Auth & Sessions,No,,P0
+B.1.8 Profile switcher shows all profiles (family/org/caregiver),All,B. Auth & Sessions,No,,P1
+A.1.6 Mobile hamburger menu opens and closes,"Mobile Chrome, Mobile Safari",A. Smoke Tests,No,,P0
+B.1.6 Sign out clears session and redirects,All,B. Auth & Sessions,No,,P0
+A.1.7 /portal redirects to home when unauthenticated,All,A. Smoke Tests,No,,P0
+C.1.2 Filter by care type narrows results correctly,All,C. Browse & Search,No,,P0
+"C.1.3 Sort options (relevance, rating, newest) change ordering",All,C. Browse & Search,No,,P1
+D.1.10 Invalid slug shows 404 page,All,D. Provider Detail,No,,P1
+C.1.5 Pagination (next/prev) navigates results,All,C. Browse & Search,No,,P0
+D.1.7 Staff screening badges display when present,All,D. Provider Detail,No,,P2
+"E.1.4 Connections list shows all status tabs (active, interested, responded, ended)",All,E. Family Portal,No,,P0
+D.1.1 Hero image gallery loads and carousel navigates,All,D. Provider Detail,No,,P0
+D.1.3 Care services list displays correctly,All,D. Provider Detail,No,,P1
+D.1.2 About section renders with expand/collapse,All,D. Provider Detail,No,,P1
+E.1.2 Send message in conversation thread,All,E. Family Portal,No,,P0
+C.1.8 Empty search state shows appropriate message,All,C. Browse & Search,No,,P2
+C.1.4 Map view loads with provider markers,All,C. Browse & Search,No,,P1
+D.1.8 Q&A section renders questions and answers,All,D. Provider Detail,No,,P2
+C.1.7 /browse/providers and /browse/caregivers filter correctly,All,C. Browse & Search,No,,P1
+C.1.6 Save provider from browse card (heart icon),All,C. Browse & Search,No,,P1
+D.1.6 Save/bookmark persists via localStorage,All,D. Provider Detail,No,,P1
+E.1.3 Unread count badge updates in nav,All,E. Family Portal,No,,P1
+D.1.4 Reviews and ratings display with correct scores,All,D. Provider Detail,No,,P1
+D.1.5 Contact card CTA (connect button) works,All,D. Provider Detail,No,,P0
+E.1.1 Inbox loads conversations sorted by last activity,All,E. Family Portal,No,,P0
+D.1.9 Breadcrumbs navigate correctly,All,D. Provider Detail,No,,P2
+"G.1.3 Forum sort options work (newest, oldest, most likes)",All,G. Community & Resources,No,,P2
+G.1.2 Post detail page loads with comment thread,All,G. Community & Resources,No,,P1
+E.1.8 Saved providers page displays bookmarked list,All,E. Family Portal,No,,P1
+F.1.1 Provider dashboard loads with profile completeness tracker,All,F. Provider Hub,No,,P0
+G.1.4 Resources page lists articles with care type filter,All,G. Community & Resources,No,,P1
+F.1.4 Reviews page displays provider feedback,All,F. Provider Hub,No,,P1
+F.1.9 Provider sidebar navigation links all work,All,F. Provider Hub,No,,P0
+F.1.7 Provider profile edit form saves changes,All,F. Provider Hub,No,,P0
+F.1.8 Verification page shows status,All,F. Provider Hub,No,,P2
+E.1.6 Matches - care post publish and deactivate,All,E. Family Portal,No,,P1
+"F.1.5 Statistics page renders metrics (views, inquiries)",All,F. Provider Hub,No,,P1
+E.1.9 Profile edit form saves changes to Supabase,All,E. Family Portal,No,,P0
+E.1.11 Report connection flow submits dispute,All,E. Family Portal,No,,P2
+F.1.3 Provider inbox shows conversation threads,All,F. Provider Hub,No,,P0
+F.1.6 Pro upgrade page shows pricing and benefits,All,F. Provider Hub,No,,P1
+E.1.10 Archive/hide conversation works,All,E. Family Portal,No,,P2
+F.1.2 Connections tab shows inbound family inquiries,All,F. Provider Hub,No,,P0
+E.1.5 Connection detail view loads provider info,All,E. Family Portal,No,,P0
+E.1.7 Interested providers tab renders card stack,All,E. Family Portal,No,,P1
+G.1.1 Community page lists posts by care type category,All,G. Community & Resources,No,,P1
+I.1.1 Provider onboarding wizard renders all steps,All,I. Onboarding & Claims,No,,P0
+H.1.8 Leads page shows all inquiries,"Chrome, Safari",H. Admin Dashboard,No,,P1
+H.1.9 Non-admin user gets access denied on /admin,All,H. Admin Dashboard,No,,P0
+H.1.4 Directory search and filters across 36K+ providers,"Chrome, Safari",H. Admin Dashboard,No,,P0
+G.1.7 Benefits results display matching programs,All,G. Community & Resources,No,,P0
+G.1.6 Benefits finder intake form validates and submits,All,G. Community & Resources,No,,P0
+I.1.4 Phone verification OTP sends and validates code,All,I. Onboarding & Claims,No,,P0
+"H.1.1 Admin overview loads with stat cards (pending, inquiries, team)","Chrome, Safari",H. Admin Dashboard,No,,P0
+I.1.2 Step navigation (next/back) preserves form state,All,I. Onboarding & Claims,No,,P0
+H.1.7 Team management - add and remove admins,"Chrome, Safari",H. Admin Dashboard,No,,P1
+H.1.2 Provider list with pending status filter,"Chrome, Safari",H. Admin Dashboard,No,,P0
+I.1.6 /for-providers/create redirects to onboarding,All,I. Onboarding & Claims,No,,P1
+G.1.5 Resource article page renders full content,All,G. Community & Resources,No,,P1
+I.1.5 /for-providers landing page loads with pricing CTA,All,I. Onboarding & Claims,No,,P1
+H.1.5 Edit provider in directory saves changes,"Chrome, Safari",H. Admin Dashboard,No,,P0
+H.1.3 Approve/reject pending provider works,"Chrome, Safari",H. Admin Dashboard,No,,P0
+I.1.7 New org creation via onboarding wizard completes,All,I. Onboarding & Claims,No,,P0
+I.1.3 Claim search finds existing provider listings,All,I. Onboarding & Claims,No,,P0
+H.1.6 Image review queue loads and classifies images,"Chrome, Safari",H. Admin Dashboard,No,,P1
+G.1.8 Benefits finder reset clears form state,All,G. Community & Resources,No,,P2
+L.1.5 First page load under 3s on fast connection,All,L. SEO & Performance,No,,P1
+L.1.1 Meta titles and descriptions set per page type,Chrome,L. SEO & Performance,No,,P1
+"K.1.2 Browse page: 1-col mobile, 2-col desktop card grid","Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P0
+L.1.4 Images lazy load below the fold,All,L. SEO & Performance,No,,P2
+"K.1.8 Map is usable on mobile (zoom, pan, tap markers)","Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P1
+J.1.1 Pro page displays $25/mo pricing and feature list,All,J. Payments & Pro,No,,P0
+K.1.7 Modals render full-height on mobile screens,"Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P1
+J.1.5 Trial period (30 days) tracking displays correctly,All,J. Payments & Pro,No,,P1
+K.1.3 Provider detail full-width images on mobile,"Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P1
+L.1.2 Open Graph tags render for social sharing,Chrome,L. SEO & Performance,No,,P1
+L.1.6 No CLS above 0.1 on key pages,All,L. SEO & Performance,No,,P2
+K.1.6 Forms stack vertically on mobile,"Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P1
+K.1.4 Portal split-view collapses to stacked on mobile,"Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P0
+J.1.2 Upgrade button redirects to Stripe Checkout,All,J. Payments & Pro,No,,P0
+L.1.3 Structured data (http://schema.org) present on provider pages,Chrome,L. SEO & Performance,No,,P2
+K.1.1 Homepage layout correct on mobile viewport,"Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P0
+J.1.3 Successful payment unlocks Pro features,All,J. Payments & Pro,No,,P0
+J.1.4 Free vs Pro tier access controls enforced (canEngage),All,J. Payments & Pro,No,,P0
+M.1.1 Unknown routes show custom 404 page,All,M. Error Handling,No,,P1
+K.1.5 Touch targets >= 44px on all interactive elements,"Mobile Chrome, Mobile Safari",K. Responsive & Mobile,No,,P1
+M.1.2 API failure shows user-friendly error message,All,M. Error Handling,No,,P1
+M.1.4 Invalid form input shows inline validation errors,All,M. Error Handling,No,,P1
+"M.1.3 Empty states render correctly (no results, no connections, no messages)",All,M. Error Handling,No,,P1
+M.1.6 Missing provider images fall back to stock category image,All,M. Error Handling,No,,P2
+M.1.5 Expired session redirects to home gracefully,All,M. Error Handling,No,,P0

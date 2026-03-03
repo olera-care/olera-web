@@ -216,7 +216,7 @@ export default function LeadDetailPanel({
           {/* Context — who are we passing on */}
           <div className="flex items-center gap-3 mb-6 pb-5 border-b border-gray-100">
             {imageUrl && !shouldBlur ? (
-              <Image src={imageUrl} alt={otherName} width={40} height={40} className="rounded-full object-cover" />
+              <Image src={imageUrl} alt={otherName} width={40} height={40} className="w-10 h-10 aspect-square rounded-full object-cover shrink-0" />
             ) : (
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"

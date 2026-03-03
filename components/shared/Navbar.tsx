@@ -659,7 +659,7 @@ export default function Navbar() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                           </svg>
                           {activeProfile?.image_url ? (
-                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="rounded-full object-cover" />
+                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 aspect-square rounded-full object-cover shrink-0" />
                           ) : (
                             <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
                               {initials}
@@ -736,7 +736,7 @@ export default function Navbar() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                           </svg>
                           {activeProfile?.image_url ? (
-                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="rounded-full object-cover" />
+                            <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="w-8 h-8 aspect-square rounded-full object-cover shrink-0" />
                           ) : (
                             <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold">
                               {initials}
@@ -824,7 +824,7 @@ export default function Navbar() {
                       <div className="px-5 py-5 bg-gradient-to-b from-primary-50/50 to-white border-b border-gray-100">
                         <div className="flex items-center gap-3">
                           {activeProfile?.image_url ? (
-                            <Image src={activeProfile.image_url} alt={displayName} width={48} height={48} className="rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm" />
+                            <Image src={activeProfile.image_url} alt={displayName} width={48} height={48} className="w-12 h-12 aspect-square rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm" />
                           ) : (
                             <div className="w-12 h-12 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-base font-semibold shrink-0 ring-2 ring-white shadow-sm">
                               {initials}
@@ -890,8 +890,8 @@ export default function Navbar() {
                         <>
                           <details className="group" open>
                             <summary className="flex items-center justify-between px-5 py-3 cursor-pointer list-none select-none">
-                              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">My Hub</span>
-                              <svg className="w-3.5 h-3.5 text-gray-300 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">My Hub</span>
+                              <svg className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                               </svg>
                             </summary>
@@ -973,7 +973,7 @@ export default function Navbar() {
                       <div className="px-5 py-5 bg-gradient-to-b from-primary-50/50 to-white border-b border-gray-100">
                         <div className="flex items-center gap-3">
                           {activeProfile?.image_url ? (
-                            <Image src={activeProfile.image_url} alt={displayName} width={48} height={48} className="rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm" />
+                            <Image src={activeProfile.image_url} alt={displayName} width={48} height={48} className="w-12 h-12 aspect-square rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm" />
                           ) : (
                             <div className="w-12 h-12 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-base font-semibold shrink-0 ring-2 ring-white shadow-sm">
                               {initials}
@@ -1037,10 +1037,10 @@ export default function Navbar() {
                       {/* Family nav — MY ACCOUNT accordion (open by default) */}
                       {isFullyLoaded ? (
                         <>
-                          <details className="group" open>
+                          <details className="group" name="nav-sections" open>
                             <summary className="flex items-center justify-between px-5 py-3 cursor-pointer list-none select-none">
-                              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">My Account</span>
-                              <svg className="w-3.5 h-3.5 text-gray-300 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">My Account</span>
+                              <svg className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                               </svg>
                             </summary>
@@ -1089,10 +1089,10 @@ export default function Navbar() {
 
                           {/* DISCOVER accordion (collapsed by default) */}
                           {!isMinimalNav && (
-                            <details className="group">
+                            <details className="group" name="nav-sections">
                               <summary className="flex items-center justify-between px-5 py-3 cursor-pointer list-none select-none border-b border-gray-100">
-                                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Discover</span>
-                                <svg className="w-3.5 h-3.5 text-gray-300 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Discover</span>
+                                <svg className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                 </svg>
                               </summary>
@@ -1108,6 +1108,18 @@ export default function Navbar() {
                                     <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>
                                   </span>
                                   <span className="text-[15px] font-medium">Community</span>
+                                </Link>
+                                <Link href="/caregiver-support" className={`flex items-center gap-3.5 px-5 py-3.5 hover:bg-gray-50/80 transition-colors rounded-lg mx-2 my-0.5 ${pathname.startsWith("/caregiver-support") ? "text-primary-600 bg-primary-50/50" : "text-gray-700"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                  <span className={pathname.startsWith("/caregiver-support") ? "text-primary-500" : "text-gray-400"}>
+                                    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>
+                                  </span>
+                                  <span className="text-[15px] font-medium">Caregiver Support</span>
+                                </Link>
+                                <Link href="/benefits" className={`flex items-center gap-3.5 px-5 py-3.5 hover:bg-gray-50/80 transition-colors rounded-lg mx-2 my-0.5 ${pathname.startsWith("/benefits") ? "text-primary-600 bg-primary-50/50" : "text-gray-700"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                  <span className={pathname.startsWith("/benefits") ? "text-primary-500" : "text-gray-400"}>
+                                    <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" /></svg>
+                                  </span>
+                                  <span className="text-[15px] font-medium">Benefits Center</span>
                                 </Link>
                               </div>
                             </details>

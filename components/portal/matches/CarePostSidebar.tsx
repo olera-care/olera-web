@@ -233,7 +233,7 @@ export default function CarePostSidebar({
                 width={44}
                 height={44}
                 sizes="44px"
-                className="w-11 h-11 rounded-full object-cover border border-gray-100"
+                className="w-11 h-11 aspect-square rounded-full object-cover shrink-0 border border-gray-100"
               />
             ) : (
               <div className="w-11 h-11 rounded-full bg-primary-100/60 flex items-center justify-center text-[13px] font-bold text-primary-700">

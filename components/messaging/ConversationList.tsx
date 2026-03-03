@@ -289,7 +289,7 @@ export default function ConversationList({
                   width={48}
                   height={48}
                   sizes="48px"
-                  className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                  className="w-12 h-12 aspect-square rounded-full object-cover shrink-0 border border-gray-200"
                 />
               ) : (
                 <div

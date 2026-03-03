@@ -33,7 +33,7 @@ function AuthorAvatar({ author }: { author: ForumCommentType["author"] }) {
     );
   }
   if (author.avatar) {
-    return <Image src={author.avatar} alt={author.displayName} width={36} height={36} className="rounded-full object-cover flex-shrink-0" />;
+    return <Image src={author.avatar} alt={author.displayName} width={36} height={36} className="w-9 h-9 aspect-square rounded-full object-cover flex-shrink-0" />;
   }
   const initials = author.displayName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   const colors = [

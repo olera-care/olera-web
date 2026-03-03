@@ -190,7 +190,7 @@ export default function QASectionV2({
                         <img
                           src={providerImage}
                           alt={providerName}
-                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                          className="w-8 h-8 aspect-square rounded-full object-cover flex-shrink-0"
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">

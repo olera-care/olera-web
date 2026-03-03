@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BENEFIT_CATEGORIES } from "@/lib/types/benefits";
 import type {
   BenefitsSearchResult,
@@ -8,7 +8,12 @@ import type {
   BenefitMatch,
 } from "@/lib/types/benefits";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedBenefits } from "@/hooks/use-saved-benefits";
+import { syncBenefitsToProfile } from "@/lib/benefits-profile-sync";
+import { setBenefitsIntakeCache } from "@/lib/benefits-intake-cache";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { FamilyMetadata } from "@/lib/types";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
 
@@ -56,8 +61,63 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
     "all"
   );
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
-  const { reset, answers } = useCareProfile();
+  const { reset, answers, locationDisplay, restoredFromDb } = useCareProfile();
+  const { user, activeProfile, refreshAccountData } = useAuth();
   const { isSaved, toggleSave } = useSavedBenefits();
+  const syncedRef = useRef(false);
+
+  // Persist results to DB + sync intake answers to profile fields
+  useEffect(() => {
+    if (syncedRef.current || restoredFromDb) return;
+
+    if (!user) {
+      // Anonymous: cache intake data for post-auth restore
+      setBenefitsIntakeCache(answers, locationDisplay, result);
+      syncedRef.current = true;
+      return;
+    }
+
+    if (!activeProfile) return; // wait for profile to load
+    syncedRef.current = true;
+
+    (async () => {
+      try {
+        if (!isSupabaseConfigured()) return;
+        const supabase = createClient();
+
+        // 1. Persist full results to metadata.benefits_results
+        const { data: current } = await supabase
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", activeProfile.id)
+          .single();
+
+        const meta = (current?.metadata || {}) as FamilyMetadata;
+        await supabase
+          .from("business_profiles")
+          .update({
+            metadata: {
+              ...meta,
+              benefits_results: {
+                answers: answers as unknown as Record<string, unknown>,
+                results: result as unknown as Record<string, unknown>,
+                location_display: locationDisplay,
+                completed_at: new Date().toISOString(),
+              },
+            },
+          })
+          .eq("id", activeProfile.id);
+
+        // 2. Sync intake answers to profile fields (reads fresh metadata)
+        await syncBenefitsToProfile(answers, locationDisplay, activeProfile.id);
+
+        // 3. Refresh auth context so profile reflects changes
+        await refreshAccountData();
+      } catch (err) {
+        console.error("[olera] Benefits persist/sync failed:", err);
+      }
+    })();
+  }, [user, activeProfile, answers, locationDisplay, result, restoredFromDb, refreshAccountData]);
 
   const { matchedPrograms, localAAA } = result;
 

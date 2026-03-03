@@ -1,11 +1,53 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import BenefitsIntakeForm from "@/components/benefits/BenefitsIntakeForm";
 import BenefitsResults from "@/components/benefits/BenefitsResults";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
+import { useAuth } from "@/components/auth/AuthProvider";
+import {
+  getBenefitsIntakeCache,
+  clearBenefitsIntakeCache,
+} from "@/lib/benefits-intake-cache";
+import type { BenefitsIntakeAnswers, BenefitsSearchResult } from "@/lib/types/benefits";
+import type { FamilyMetadata } from "@/lib/types";
 
 export default function BenefitsFinderPage() {
-  const { pageState, result, errorMsg, reset } = useCareProfile();
+  const { pageState, result, errorMsg, reset, restoreResults } = useCareProfile();
+  const { user, activeProfile } = useAuth();
+  const restoredRef = useRef(false);
+
+  // Restore saved results for returning logged-in users
+  useEffect(() => {
+    if (restoredRef.current || pageState !== "intake") return;
+    if (!activeProfile) return;
+
+    const meta = (activeProfile.metadata || {}) as FamilyMetadata;
+    if (meta.benefits_results?.results && meta.benefits_results?.answers) {
+      restoredRef.current = true;
+      restoreResults(
+        meta.benefits_results.results as unknown as BenefitsSearchResult,
+        meta.benefits_results.answers as unknown as BenefitsIntakeAnswers,
+        meta.benefits_results.location_display || "",
+        { fromDb: true }
+      );
+    }
+  }, [activeProfile, pageState, restoreResults]);
+
+  // Restore from intake cache after anonymous → auth flow
+  useEffect(() => {
+    if (restoredRef.current) return;
+    if (!user || !activeProfile) return;
+
+    const cached = getBenefitsIntakeCache();
+    if (!cached?.result) return;
+
+    restoredRef.current = true;
+    clearBenefitsIntakeCache();
+
+    // fromDb: false → BenefitsResults sync useEffect will persist + sync
+    restoreResults(cached.result, cached.answers, cached.locationDisplay);
+  }, [user, activeProfile, restoreResults]);
 
   // Results use full workspace width; intake is focused and centered
   if (pageState === "results" && result) {

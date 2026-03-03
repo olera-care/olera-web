@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
+import { sendSlackAlert, slackNewLead } from "@/lib/slack";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -414,6 +415,24 @@ export async function POST(request: Request) {
     } catch (emailErr) {
       // Non-blocking — connection was created, email is best-effort
       console.error("Failed to send connection request email:", emailErr);
+    }
+
+    // 9b. Slack alert for new lead (fire-and-forget)
+    try {
+      const careTypeMap2: Record<string, string> = {
+        home_care: "Home Care",
+        home_health: "Home Health Care",
+        assisted_living: "Assisted Living",
+        memory_care: "Memory Care",
+      };
+      const alert = slackNewLead({
+        familyName: account.display_name || "A family",
+        providerName: providerName,
+        careType: intentData?.careType ? (careTypeMap2[intentData.careType] || intentData.careType) : null,
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
     }
 
     // 10. Sync intent data back to user's family profile

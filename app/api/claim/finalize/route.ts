@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { generateProviderSlug } from "@/lib/slugify";
 import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
+import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -237,6 +238,24 @@ export async function POST(request: Request) {
       }
     } catch (emailErr) {
       console.error("[claim/finalize] admin notification failed:", emailErr);
+    }
+
+    // 6b. Slack alert (fire-and-forget)
+    try {
+      const { data: claimedBp } = await db
+        .from("business_profiles")
+        .select("display_name")
+        .eq("source_provider_id", providerId)
+        .single();
+
+      const alert = slackProviderClaimed({
+        providerName: claimedBp?.display_name || providerId,
+        claimedByEmail: user.email || "unknown",
+        providerSlug: profileSlug,
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ success: true, profileSlug });

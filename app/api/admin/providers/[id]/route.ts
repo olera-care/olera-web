@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import { sendSlackAlert, slackProviderAction } from "@/lib/slack";
 
 /**
  * PATCH /api/admin/providers/[id]
@@ -59,6 +60,18 @@ export async function PATCH(
         new_state: newState,
       },
     });
+
+    // Slack alert (fire-and-forget)
+    try {
+      const alert = slackProviderAction({
+        providerName: profile?.display_name || id,
+        action: action === "approve" ? "approved" : "rejected",
+        adminEmail: user.email || "admin",
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
+    }
 
     return NextResponse.json({ profile });
   } catch (err) {

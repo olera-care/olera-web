@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendSlackAlert, slackDispute } from "@/lib/slack";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -82,6 +83,18 @@ export async function POST(request: Request) {
         { error: `Failed to submit dispute: ${insertErr.message}` },
         { status: 500 }
       );
+    }
+
+    // Slack alert (fire-and-forget)
+    try {
+      const alert = slackDispute({
+        providerName: provider_name,
+        reportedBy: claimant_name.trim(),
+        reason: reason.trim(),
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ ok: true });

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import { useAuth } from "@/components/auth/AuthProvider";
 import ProfileSwitcher from "@/components/shared/ProfileSwitcher";
@@ -51,6 +52,8 @@ export default function Navbar() {
   }, []);
   const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => { setIsMounted(true); }, []);
 
   useEffect(() => {
     setHasAttemptedOnboarding(
@@ -790,8 +793,8 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* ── MOBILE MENU — full-screen overlay ── */}
-          {isMobileMenuOpen && (
+          {/* ── MOBILE MENU — rendered via portal to escape nav's transform stacking context ── */}
+          {isMounted && isMobileMenuOpen && createPortal(
             <div className="fixed inset-0 z-[9999] lg:hidden bg-white flex flex-col">
               {/* Fixed header: logo left, circular X right */}
               <div className="h-16 shrink-0 flex items-center justify-between px-5 border-b border-gray-100">
@@ -1213,7 +1216,8 @@ export default function Navbar() {
                   </button>
                 </div>
               )}
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </nav>

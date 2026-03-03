@@ -160,7 +160,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
         </div>
 
         {/* Secondary articles — 2/5 width, stacked */}
-        <div className="lg:col-span-2 flex flex-col gap-8 lg:justify-center">
+        <div className="lg:col-span-2 flex flex-col gap-8 lg:justify-between">
           {secondary.map((resource) => (
             <FeaturedArticleSecondary key={resource.id} resource={resource} />
           ))}
@@ -181,7 +181,7 @@ function FeaturedSkeleton() {
             <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
           </div>
-          <div className="lg:col-span-2 flex flex-col gap-8 justify-center">
+          <div className="lg:col-span-2 flex flex-col gap-8 justify-between">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex gap-5">
                 <div className="w-44 h-28 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse" />
@@ -434,7 +434,7 @@ function LoadingSkeleton() {
             <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
           </div>
-          <div className="lg:col-span-2 flex flex-col gap-8 justify-center">
+          <div className="lg:col-span-2 flex flex-col gap-8 justify-between">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex gap-5">
                 <div className="w-44 h-28 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse" />

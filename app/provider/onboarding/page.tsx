@@ -22,7 +22,6 @@ const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
 const STEP_KEY = "olera_onboarding_step";
 const SEARCH_KEY = "olera_onboarding_search";
-const CLAIM_KEY = "olera_onboarding_claim";
 const RESULTS_PER_PAGE = 6;
 
 const ORG_CATEGORIES: { value: string; label: string }[] = [
@@ -227,7 +226,7 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
+  
       } catch {
         // localStorage unavailable
       }
@@ -307,11 +306,9 @@ function ProviderOnboardingContent() {
       // For org flow: if they were on step 2-5, go there directly.
       if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
         setStep(savedStep);
-      } else if (savedStep === "verify" && claimingProvider) {
-        // Resume directly to verify — the claimed provider was restored from localStorage.
-        // OTP code is NOT persisted (time-sensitive), so user will need to request a new code.
-        setStep("verify");
       } else {
+        // "verify" step can't resume (claimingProvider not persisted, claimSession not available).
+        // Fall through to search — user can re-initiate claim from search results.
         // Default: go to search. If there's a saved query, auto-search.
         setStep("search");
         if (searchQuery.trim()) {
@@ -333,7 +330,7 @@ function ProviderOnboardingContent() {
       localStorage.removeItem(DATA_KEY);
       localStorage.removeItem(STEP_KEY);
       localStorage.removeItem(SEARCH_KEY);
-      localStorage.removeItem(CLAIM_KEY);
+
     } catch {
       // localStorage unavailable
     }
@@ -607,7 +604,7 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
+  
       } catch {
         // localStorage unavailable (SSR or private mode)
       }
@@ -829,16 +826,17 @@ function ProviderOnboardingContent() {
                   try {
                     if (isSupabaseConfigured()) {
                       const supabase = createClient();
-                      await supabase.from("feature_waitlist").upsert(
+                      const { error } = await supabase.from("feature_waitlist").upsert(
                         { feature: "caregiver_onboarding", email: caregiverEmail.trim(), profile_id: null },
                         { onConflict: "feature,email" },
                       );
+                      if (error) throw error;
                     }
+                    setCaregiverNotified(true);
                   } catch {
-                    // Graceful — still show success
+                    alert("Something went wrong. Please try again.");
                   } finally {
                     setCaregiverNotifying(false);
-                    setCaregiverNotified(true);
                   }
                 }}
                 className="w-full max-w-sm mb-3"
@@ -1777,7 +1775,7 @@ function ProviderOnboardingContent() {
                 Services offered
               </h1>
               <p className="text-gray-500 mt-3 text-base">
-                Select the care types you provide. You can always update these later.
+                Select at least one care type you provide. You can always update these later.
               </p>
             </div>
 
@@ -1970,13 +1968,13 @@ function ProviderOnboardingContent() {
               : step === "verify"
               ? verifyCode.length !== 6 || verifyChecking
               : step === 2
-              ? !data.displayName.trim()
+              ? !data.displayName.trim() || (providerType === "organization" && !data.category)
               : step === 3
               ? !data.city.trim()
               : step === 4
-              ? !data.phone.trim() || !data.email.trim()
+              ? !data.phone.trim() || data.phone.replace(/\D/g, "").length < 10 || !data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)
               : step === 5
-              ? !data.displayName.trim() || submitting
+              ? !data.displayName.trim() || data.careTypes.length === 0 || submitting
               : false
           }
           nextLoading={

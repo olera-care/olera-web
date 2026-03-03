@@ -170,6 +170,36 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
   );
 }
 
+function FeaturedSkeleton() {
+  return (
+    <>
+      <section className="mb-16 md:mb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
+          <div className="lg:col-span-3">
+            <div className="aspect-[4/3] bg-gray-100 rounded-lg animate-pulse mb-5" />
+            <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mb-3" />
+            <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
+            <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
+          </div>
+          <div className="lg:col-span-2 flex flex-col gap-8 justify-center">
+            {[1, 2].map((i) => (
+              <div key={i} className="flex gap-5">
+                <div className="w-44 h-28 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse" />
+                <div className="flex-1 flex flex-col justify-center gap-2">
+                  <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-5 w-full bg-gray-100 rounded animate-pulse" />
+                  <div className="h-3 w-12 bg-gray-100 rounded animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <div className="border-t border-gray-100 mb-12 md:mb-16" />
+    </>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Article Grid Card
 // ---------------------------------------------------------------------------
@@ -298,14 +328,16 @@ function CaregiverSupportContent() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
-        {/* ---- Featured Section ---- */}
-        {showFeatured && !loadingApi && (
-          <FeaturedSection articles={featuredArticles.slice(0, 3)} />
-        )}
-
-        {/* ---- Divider between featured and grid ---- */}
-        {showFeatured && featuredArticles.length > 0 && !loadingApi && (
-          <div className="border-t border-gray-100 mb-12 md:mb-16" />
+        {/* ---- Featured Section (with loading placeholder to prevent layout shift) ---- */}
+        {showFeatured && (
+          loadingApi ? (
+            <FeaturedSkeleton />
+          ) : featuredArticles.length > 0 ? (
+            <>
+              <FeaturedSection articles={featuredArticles.slice(0, 3)} />
+              <div className="border-t border-gray-100 mb-12 md:mb-16" />
+            </>
+          ) : null
         )}
 
         {/* ---- Category Filters ---- */}

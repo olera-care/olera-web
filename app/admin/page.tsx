@@ -26,9 +26,11 @@ export default function AdminOverviewPage() {
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
+      setError(null);
       try {
         const [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes] = await Promise.all([
           fetch("/api/admin/providers?status=pending&count_only=true"),
@@ -46,6 +48,11 @@ export default function AdminOverviewPage() {
         const imageStats = imageStatsRes.ok ? await imageStatsRes.json() : { needs_review: 0 };
         const directoryData = directoryRes.ok ? await directoryRes.json() : { total: 0 };
 
+        const anyFailed = [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes].some((r) => !r.ok);
+        if (anyFailed) {
+          setError("Some dashboard data failed to load. Numbers shown may be incomplete.");
+        }
+
         setStats({
           pendingProviders: pendingData.count ?? 0,
           totalInquiries: leadsData.count ?? 0,
@@ -56,6 +63,7 @@ export default function AdminOverviewPage() {
         setAuditLog(auditData.entries ?? []);
       } catch (err) {
         console.error("Failed to fetch admin overview:", err);
+        setError("Failed to load dashboard data. Please check your connection.");
       } finally {
         setLoading(false);
       }
@@ -80,6 +88,12 @@ export default function AdminOverviewPage() {
           Manage providers, view leads, and administer the team.
         </p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

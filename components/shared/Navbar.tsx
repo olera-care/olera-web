@@ -790,420 +790,452 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* ── MOBILE MENU ── */}
+          {/* ── MOBILE MENU — full-screen overlay ── */}
           {isMobileMenuOpen && (
-            <div className="lg:hidden py-4 border-t border-gray-100">
-              <div className="flex flex-col space-y-1">
-                {isProviderPortal ? (
-                  /* Provider mobile nav */
-                  <>
-                    {([
-                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount },
-                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
-                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
-                    ] as const).map((item) => {
-                      const active = item.match
-                        ? item.match === "/provider"
-                          ? pathname === "/provider"
-                          : pathname.startsWith(item.match)
-                        : false;
-                      return (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          className={`flex items-center gap-2 py-3 font-medium ${
-                            active
-                              ? "text-primary-600"
-                              : "text-gray-700 hover:text-primary-600"
-                          }`}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          {item.label}
-                          {item.badge > 0 && (
-                            <span className="min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                        setIsMobileMenuOpen(false);
-                        router.push("/");
-                      }}
-                      className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
-                    >
-                      Switch to family
-                    </button>
-                    <hr className="border-gray-100" />
-                  </>
-                ) : (
-                  /* Family / public mobile nav */
-                  <>
-                    {!isMinimalNav && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setIsMobileCareOpen((prev) => !prev)}
-                          className="flex items-center justify-between w-full py-3 text-gray-700 hover:text-primary-600 font-medium"
-                          aria-expanded={isMobileCareOpen}
-                        >
-                          Find Care
-                          <svg
-                            className={`w-4 h-4 transition-transform ${
-                              isMobileCareOpen ? "rotate-180" : ""
-                            }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </button>
-                        {isMobileCareOpen && (
-                          <div className="pl-4 pb-2 space-y-1">
-                            {CARE_CATEGORIES.map((cat) => (
-                              <Link
-                                key={cat.id}
-                                href={`/browse?type=${cat.id}`}
-                                className="block py-2 text-sm text-gray-600 hover:text-primary-600"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                              >
-                                <span className="font-medium">{cat.label}</span>
-                                <span className="block text-xs text-gray-400 mt-0.5">
-                                  {cat.description}
-                                </span>
-                              </Link>
-                            ))}
+            <div className="fixed inset-0 z-[9999] lg:hidden bg-white flex flex-col">
+              {/* Header: logo left, circular X right */}
+              <div className="h-16 shrink-0 flex items-center justify-between px-5 border-b border-gray-100">
+                <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
+                  <span className="text-xl font-bold text-gray-900">Olera</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+                  aria-label="Close menu"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Scrollable body */}
+              <div className="flex-1 overflow-y-auto">
+                {hasSession ? (
+                  isProviderPortal ? (
+                    /* ── Provider logged-in ── */
+                    <>
+                      {/* Profile header */}
+                      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+                        {activeProfile?.image_url ? (
+                          <Image src={activeProfile.image_url} alt={displayName} width={48} height={48} className="rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-base font-semibold shrink-0">
+                            {initials}
                           </div>
                         )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900 truncate">{displayName}</p>
+                            {profileTypeLabel && (
+                              <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
+                                {profileTypeLabel}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                        </div>
+                      </div>
 
-                        {NAV_LINKS.map((link) => (
-                          <Link
-                            key={link.label}
-                            href={link.href}
-                            className="block py-3 text-gray-700 hover:text-primary-600 font-medium"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            {link.label}
-                          </Link>
-                        ))}
-
-                        <Link
-                          href="/saved"
-                          className="flex items-center gap-2 py-3 text-gray-700 hover:text-primary-600 font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                          Saved
-                        </Link>
-
-                        <hr className="border-gray-100" />
-                      </>
-                    )}
-
-                    {/* For Providers */}
-                    <button
-                      onClick={() => { handleForProviders(); setIsMobileMenuOpen(false); }}
-                      className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
-                    >
-                      For Providers
-                    </button>
-
-                    <hr className="border-gray-100" />
-                  </>
-                )}
-
-                {/* Account section (shared) */}
-                {hasSession ? (
-                  <>
-                    {/* Identity header */}
-                    <div className="flex items-center gap-2 py-2">
-                      {activeProfile?.image_url ? (
-                        <Image src={activeProfile.image_url} alt={displayName} width={32} height={32} className="rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div className="w-8 h-8 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
-                          {initials}
+                      {/* Mode switcher */}
+                      {(showModeSwitcher || hasAttemptedOnboarding) && (
+                        <div className="px-5 py-3 border-b border-gray-100">
+                          <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                                setIsMobileMenuOpen(false);
+                                router.push("/");
+                              }}
+                              className={[
+                                "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                !isProviderPortal
+                                  ? "bg-white text-gray-900 shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700",
+                              ].join(" ")}
+                            >
+                              Family Portal
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (hasProviderProfile && providerProfileId) {
+                                  switchProfile(providerProfileId);
+                                  setIsMobileMenuOpen(false);
+                                  router.push("/provider");
+                                } else if (hasAttemptedOnboarding) {
+                                  setIsMobileMenuOpen(false);
+                                  router.push("/provider/onboarding");
+                                }
+                              }}
+                              className={[
+                                "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                isProviderPortal
+                                  ? "bg-white text-gray-900 shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700",
+                              ].join(" ")}
+                            >
+                              Provider Hub
+                            </button>
+                          </div>
                         </div>
                       )}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
-                          {profileTypeLabel && (
-                            <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
-                              {profileTypeLabel}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-                      </div>
-                    </div>
 
-                    {/* Mode switcher (mobile) — shown when both profiles exist OR user has started provider onboarding */}
-                    {(showModeSwitcher || hasAttemptedOnboarding) && (
-                      <div className="py-2">
-                        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                              setIsMobileMenuOpen(false);
-                              router.push("/");
-                            }}
-                            className={[
-                              "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                              !isProviderPortal
-                                ? "bg-white text-gray-900 shadow-sm"
-                                : "text-gray-500 hover:text-gray-700",
-                            ].join(" ")}
-                          >
-                            Family Portal
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (hasProviderProfile && providerProfileId) {
-                                switchProfile(providerProfileId);
-                                setIsMobileMenuOpen(false);
-                                router.push("/provider");
-                              } else if (hasAttemptedOnboarding) {
-                                setIsMobileMenuOpen(false);
-                                router.push("/provider/onboarding");
-                              }
-                            }}
-                            className={[
-                              "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
-                              isProviderPortal
-                                ? "bg-white text-gray-900 shadow-sm"
-                                : "text-gray-500 hover:text-gray-700",
-                            ].join(" ")}
-                          >
-                            Provider Hub
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {isFullyLoaded ? (
-                      <>
-                        {/* Tier 1 — Hub-specific links (mobile) */}
-                        {isProviderPortal ? (
-                          <>
-                            <Link
-                              href="/portal/profile"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                              </svg>
-                              Account
-                            </Link>
-                            <Link
-                              href="/provider/pro"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                              </svg>
-                              Olera Pro
-                            </Link>
-                            <Link
-                              href="/provider/verification"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                                <polyline points="9 12 11 14 15 10" />
-                              </svg>
-                              Identity Verification
-                            </Link>
-                            <Link
-                              href="/provider/qna"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-                                <line x1="12" y1="17" x2="12.01" y2="17" />
-                              </svg>
-                              Questions & Answers
-                            </Link>
-                          </>
-                        ) : (
-                          <>
-                            <Link
-                              href="/portal/inbox"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                <rect x="2" y="4" width="20" height="16" rx="2" />
-                                <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
-                              </svg>
-                              Inbox
-                              {unreadInboxCount > 0 && (
-                                <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                                  {unreadInboxCount}
-                                </span>
-                              )}
-                            </Link>
-                            <Link
-                              href="/portal/profile"
-                              className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                              </svg>
-                              Account
-                            </Link>
-                            {hasFamilyProfile && (
+                      {/* Provider nav items */}
+                      {isFullyLoaded ? (
+                        <>
+                          {[
+                            {
+                              label: "Dashboard", href: "/provider", match: "/provider", badge: 0,
+                              icon: <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>,
+                            },
+                            {
+                              label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount,
+                              icon: <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" /></svg>,
+                            },
+                            {
+                              label: "Connections", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount,
+                              icon: <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>,
+                            },
+                            {
+                              label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0,
+                              icon: <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
+                            },
+                            {
+                              label: "Account", href: "/portal/profile", match: "/portal/profile", badge: 0,
+                              icon: <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
+                            },
+                          ].map((item) => {
+                            const active = item.match === "/provider"
+                              ? pathname === "/provider"
+                              : pathname.startsWith(item.match);
+                            return (
                               <Link
-                                href="/portal/matches"
-                                className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium"
+                                key={item.label}
+                                href={item.href}
+                                className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 ${active ? "text-primary-600" : "text-gray-800"}`}
                                 onClick={() => setIsMobileMenuOpen(false)}
                               >
-                                <svg className="w-[18px] h-[18px] text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                                  <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
-                                </svg>
-                                Matches
-                                {matchesPendingCount > 0 && (
-                                  <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                                    {matchesPendingCount}
+                                {item.icon}
+                                <span className="text-base font-medium flex-1">{item.label}</span>
+                                {item.badge > 0 && (
+                                  <span className="min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                                    {item.badge}
                                   </span>
                                 )}
                               </Link>
-                            )}
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <div className="py-3 space-y-2.5">
-                        <div className="h-3.5 w-28 bg-gray-100 rounded animate-pulse" />
-                        <div className="h-3.5 w-36 bg-gray-100 rounded animate-pulse" />
-                        <div className="h-3.5 w-24 bg-gray-100 rounded animate-pulse" />
-                      </div>
-                    )}
+                            );
+                          })}
+                        </>
+                      ) : (
+                        <div className="px-5 py-4 space-y-3">
+                          <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 w-28 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                        </div>
+                      )}
 
-                    {/* Profile switcher */}
-                    {isFullyLoaded && (
-                      <div className="border-t border-gray-100 pt-2">
-                        <ProfileSwitcher
-                          onSwitch={() => setIsMobileMenuOpen(false)}
-                          variant="dropdown"
-                          allowedTypes={isProviderPortal ? ["organization", "caregiver"] : ["family"]}
-                          navigateTo={isProviderPortal ? "/provider" : "/"}
-                        />
-                      </div>
-                    )}
+                      {/* Profile switcher */}
+                      {isFullyLoaded && (
+                        <div className="border-t border-gray-100">
+                          <ProfileSwitcher
+                            onSwitch={() => setIsMobileMenuOpen(false)}
+                            variant="dropdown"
+                            allowedTypes={["organization", "caregiver"]}
+                            navigateTo="/provider"
+                          />
+                        </div>
+                      )}
 
-                    {isAdmin && (
-                      <>
-                        <hr className="border-gray-100" />
-                        <Link
-                          href="/admin"
-                          className="flex items-center gap-3 py-3 text-primary-600 hover:text-primary-700 font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                      {isAdmin && (
+                        <Link href="/admin" className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-primary-600" onClick={() => setIsMobileMenuOpen(false)}>
+                          <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                           </svg>
-                          Admin Dashboard
+                          <span className="text-base font-medium">Admin Dashboard</span>
+                        </Link>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => { setIsMobileMenuOpen(false); signOut(() => router.push("/")); }}
+                        className="flex items-center gap-4 w-full px-5 py-4 text-red-600 text-base font-medium border-t border-gray-100"
+                      >
+                        <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        Sign out
+                      </button>
+                    </>
+                  ) : (
+                    /* ── Family logged-in ── */
+                    <>
+                      {/* Profile header */}
+                      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+                        {activeProfile?.image_url ? (
+                          <Image src={activeProfile.image_url} alt={displayName} width={48} height={48} className="rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-base font-semibold shrink-0">
+                            {initials}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900 truncate">{displayName}</p>
+                            {profileTypeLabel && (
+                              <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
+                                {profileTypeLabel}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                        </div>
+                      </div>
+
+                      {/* Mode switcher */}
+                      {(showModeSwitcher || hasAttemptedOnboarding) && (
+                        <div className="px-5 py-3 border-b border-gray-100">
+                          <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                                setIsMobileMenuOpen(false);
+                                router.push("/");
+                              }}
+                              className={[
+                                "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                !isProviderPortal
+                                  ? "bg-white text-gray-900 shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700",
+                              ].join(" ")}
+                            >
+                              Family Portal
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (hasProviderProfile && providerProfileId) {
+                                  switchProfile(providerProfileId);
+                                  setIsMobileMenuOpen(false);
+                                  router.push("/provider");
+                                } else if (hasAttemptedOnboarding) {
+                                  setIsMobileMenuOpen(false);
+                                  router.push("/provider/onboarding");
+                                }
+                              }}
+                              className={[
+                                "flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
+                                isProviderPortal
+                                  ? "bg-white text-gray-900 shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700",
+                              ].join(" ")}
+                            >
+                              Provider Hub
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Family nav items */}
+                      {isFullyLoaded ? (
+                        <>
+                          <Link href="/portal/inbox" className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 ${pathname.startsWith("/portal/inbox") ? "text-primary-600" : "text-gray-800"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                            <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <rect x="2" y="4" width="20" height="16" rx="2" />
+                              <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
+                            </svg>
+                            <span className="text-base font-medium flex-1">Inbox</span>
+                            {unreadInboxCount > 0 && (
+                              <span className="min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                                {unreadInboxCount}
+                              </span>
+                            )}
+                          </Link>
+
+                          {hasFamilyProfile && (
+                            <Link href="/portal/matches" className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 ${pathname.startsWith("/portal/matches") ? "text-primary-600" : "text-gray-800"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                              <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                                <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                              </svg>
+                              <span className="text-base font-medium flex-1">Matches</span>
+                              {matchesPendingCount > 0 && (
+                                <span className="min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                                  {matchesPendingCount}
+                                </span>
+                              )}
+                            </Link>
+                          )}
+
+                          <Link href="/saved" className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 ${pathname === "/saved" ? "text-primary-600" : "text-gray-800"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                            <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+                            </svg>
+                            <span className="text-base font-medium">Saved</span>
+                          </Link>
+
+                          <Link href="/portal/profile" className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 ${pathname.startsWith("/portal/profile") ? "text-primary-600" : "text-gray-800"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                            <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            <span className="text-base font-medium">Account</span>
+                          </Link>
+
+                          {!isMinimalNav && (
+                            <>
+                              <Link href="/browse" className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-800"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                  <circle cx="11" cy="11" r="8" />
+                                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                </svg>
+                                <span className="text-base font-medium">Find Care</span>
+                              </Link>
+                              <Link href="/community" className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 ${pathname.startsWith("/community") ? "text-primary-600" : "text-gray-800"}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                  <circle cx="9" cy="7" r="4" />
+                                  <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                                  <path d="M16 3.13a4 4 0 010 7.75" />
+                                </svg>
+                                <span className="text-base font-medium">Community</span>
+                              </Link>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <div className="px-5 py-4 space-y-3">
+                          <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 w-28 bg-gray-100 rounded animate-pulse" />
+                          <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                        </div>
+                      )}
+
+                      {/* Profile switcher */}
+                      {isFullyLoaded && (
+                        <div className="border-t border-gray-100">
+                          <ProfileSwitcher
+                            onSwitch={() => setIsMobileMenuOpen(false)}
+                            variant="dropdown"
+                            allowedTypes={["family"]}
+                            navigateTo="/"
+                          />
+                        </div>
+                      )}
+
+                      {isAdmin && (
+                        <Link href="/admin" className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-primary-600" onClick={() => setIsMobileMenuOpen(false)}>
+                          <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                          <span className="text-base font-medium">Admin Dashboard</span>
+                        </Link>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => { setIsMobileMenuOpen(false); signOut(() => router.push("/")); }}
+                        className="flex items-center gap-4 w-full px-5 py-4 text-red-600 text-base font-medium border-t border-gray-100"
+                      >
+                        <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        Sign out
+                      </button>
+                    </>
+                  )
+                ) : (
+                  /* ── Logged-out ── */
+                  <>
+                    {!isMinimalNav && (
+                      <>
+                        <Link href="/browse" className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+                          <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                          </svg>
+                          <span className="text-base font-medium">Find Care</span>
+                        </Link>
+                        <Link href="/community" className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+                          <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                            <path d="M16 3.13a4 4 0 010 7.75" />
+                          </svg>
+                          <span className="text-base font-medium">Community</span>
+                        </Link>
+                        <Link href="/caregiver-support" className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+                          <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                          </svg>
+                          <span className="text-base font-medium">Caregiver Support</span>
+                        </Link>
+                        <Link href="/benefits" className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+                          <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <polyline points="20 12 20 22 4 22 4 12" />
+                            <rect x="2" y="7" width="20" height="5" />
+                            <line x1="12" y1="22" x2="12" y2="7" />
+                            <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z" />
+                            <path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
+                          </svg>
+                          <span className="text-base font-medium">Benefits Center</span>
+                        </Link>
+                        <Link href="/saved" className="flex items-center gap-4 px-5 py-4 border-b border-gray-100 text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+                          <svg className="w-6 h-6 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+                          </svg>
+                          <span className="text-base font-medium">Saved</span>
                         </Link>
                       </>
                     )}
 
-                    <hr className="border-gray-100" />
+                    {/* Auth card */}
+                    <div className="mx-4 mt-6 mb-2 rounded-2xl border border-gray-200 p-5">
+                      <p className="text-base font-semibold text-gray-900 mb-4 text-center">Log in to get the most of Olera</p>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => { setIsMobileMenuOpen(false); openAuth({ defaultMode: "sign-in" }); }}
+                          className="flex-1 py-3 rounded-xl border border-gray-300 text-sm font-semibold text-gray-800"
+                        >
+                          Log in
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setIsMobileMenuOpen(false); openAuth({}); }}
+                          className="flex-1 py-3 rounded-xl bg-primary-600 text-sm font-semibold text-white"
+                        >
+                          Sign up
+                        </button>
+                      </div>
+                    </div>
 
-                    {/* Sign out */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        signOut(() => router.push("/"));
-                      }}
-                      className="flex items-center gap-3 text-left py-3 text-red-600 hover:text-red-700 font-medium"
-                    >
-                      <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                        <polyline points="16 17 21 12 16 7" />
-                        <line x1="21" y1="12" x2="9" y2="12" />
-                      </svg>
-                      Sign out
-                    </button>
-                  </>
-                ) : (
-                  /* ── Mobile unauthenticated ── */
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        openAuth({ defaultMode: "sign-in" });
-                      }}
-                      className="text-left py-3 text-gray-900 font-semibold"
-                    >
-                      Log in
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        openAuth({});
-                      }}
-                      className="text-left py-3 text-gray-600 font-medium"
-                    >
-                      Create account
-                    </button>
-                    <hr className="border-gray-100 my-1" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        router.push("/browse");
-                      }}
-                      className="text-left py-3 text-gray-600 hover:text-primary-600 font-medium"
-                    >
-                      Find care
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        openAuth({ intent: "provider", providerType: "organization" });
-                      }}
-                      className="text-left py-3 text-gray-600 hover:text-primary-600 font-medium"
-                    >
-                      List your organization
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        openAuth({ intent: "provider", providerType: "caregiver" });
-                      }}
-                      className="text-left py-3 text-gray-600 hover:text-primary-600 font-medium"
-                    >
-                      Join as a caregiver
-                    </button>
+                    {/* Provider secondary links */}
+                    <div className="mt-4 pb-8 flex items-center justify-center gap-3 flex-wrap px-5 text-sm text-gray-400">
+                      <button
+                        type="button"
+                        onClick={() => { setIsMobileMenuOpen(false); openAuth({ intent: "provider", providerType: "organization" }); }}
+                        className="hover:text-gray-600"
+                      >
+                        List your organization
+                      </button>
+                      <span>·</span>
+                      <button
+                        type="button"
+                        onClick={() => { setIsMobileMenuOpen(false); openAuth({ intent: "provider", providerType: "caregiver" }); }}
+                        className="hover:text-gray-600"
+                      >
+                        Join as a caregiver
+                      </button>
+                    </div>
                   </>
                 )}
               </div>

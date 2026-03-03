@@ -21,7 +21,7 @@ const faqItems = [
   {
     question: "Are there any costs to joining?",
     answer:
-      "Getting started on Olera is free. You can claim or create your profile, add your services and photos, and start appearing in search results at no cost. For providers who want to respond to inquiries and access full lead details, we offer a Pro plan with a 30-day free trial.",
+      "Getting started on Olera is free. You can claim or create your profile, add your services and photos, and start appearing in search results at no cost. For providers who want to respond to inquiries and access full lead details, we offer a Pro plan with a 14-day free trial.",
   },
   {
     question: "How many new clients should I expect?",

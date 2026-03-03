@@ -61,7 +61,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
     "all"
   );
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
-  const { reset, answers, locationDisplay, restoredFromDb } = useCareProfile();
+  const { reset, answers, locationDisplay, restoredFromDb, publishCarePost } = useCareProfile();
   const { user, activeProfile, refreshAccountData } = useAuth();
   const { isSaved, toggleSave } = useSavedBenefits();
   const syncedRef = useRef(false);
@@ -113,11 +113,37 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
 
         // 3. Refresh auth context so profile reflects changes
         await refreshAccountData();
+
+        // 4. Auto-publish care post if user opted in
+        if (publishCarePost) {
+          // Ensure timeline is set (required for care post publishing)
+          const { data: fresh } = await supabase
+            .from("business_profiles")
+            .select("metadata")
+            .eq("id", activeProfile.id)
+            .single();
+
+          const freshMeta = (fresh?.metadata || {}) as FamilyMetadata;
+          if (!freshMeta.timeline) {
+            await supabase
+              .from("business_profiles")
+              .update({ metadata: { ...freshMeta, timeline: "exploring" } })
+              .eq("id", activeProfile.id);
+          }
+
+          await fetch("/api/care-post/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "publish" }),
+          });
+
+          await refreshAccountData();
+        }
       } catch (err) {
         console.error("[olera] Benefits persist/sync failed:", err);
       }
     })();
-  }, [user, activeProfile, answers, locationDisplay, result, restoredFromDb, refreshAccountData]);
+  }, [user, activeProfile, answers, locationDisplay, result, restoredFromDb, publishCarePost, refreshAccountData]);
 
   const { matchedPrograms, localAAA } = result;
 

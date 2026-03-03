@@ -24,6 +24,8 @@ export interface BenefitsState {
   previewCount: number | null;
   /** True when results were restored from DB (skip re-persist/sync) */
   restoredFromDb: boolean;
+  /** Whether to auto-publish care post after benefits search */
+  publishCarePost: boolean;
 }
 
 export interface BenefitsActions {
@@ -32,6 +34,7 @@ export interface BenefitsActions {
   goToStep: (step: IntakeStep) => void;
   submit: () => Promise<void>;
   reset: () => void;
+  setPublishCarePost: (value: boolean) => void;
   /** Hydrate state from external data (DB or session cache). */
   restoreResults: (
     result: BenefitsSearchResult,
@@ -104,6 +107,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
   const [locationDisplay, setLocationDisplay] = useState("");
   const [previewCount, setPreviewCount] = useState<number | null>(null);
   const [restoredFromDb, setRestoredFromDb] = useState(false);
+  const [publishCarePost, setPublishCarePost] = useState(false);
   const initialized = useRef(false);
   const previewAbort = useRef<AbortController | null>(null);
 
@@ -215,6 +219,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     setErrorMsg(null);
     setPreviewCount(null);
     setRestoredFromDb(false);
+    setPublishCarePost(false);
     setPageState("intake");
     clearDraft();
   }, []);
@@ -246,6 +251,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     locationDisplay,
     previewCount,
     restoredFromDb,
+    publishCarePost,
     // Actions
     updateAnswers,
     setLocationDisplay,
@@ -253,5 +259,6 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     submit,
     reset,
     restoreResults,
+    setPublishCarePost,
   };
 }

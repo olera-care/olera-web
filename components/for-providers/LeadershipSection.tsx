@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const leaders = [
   {
@@ -71,6 +72,18 @@ export default function LeadershipSection() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/team"
+            className="inline-flex items-center gap-1.5 text-text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            Learn more about our team
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
         </div>
       </div>
     </section>

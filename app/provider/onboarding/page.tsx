@@ -889,7 +889,7 @@ function ProviderOnboardingContent() {
           <>
             {/* ── State A: Initial search form ── */}
             {!hasSearched && (
-              <div className="w-full max-w-xl mx-auto pb-24">
+              <div className="w-full max-w-2xl mx-auto pb-24">
                 <div className="text-center mb-14">
                   <h1 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight">
                     Find your organization
@@ -899,24 +899,9 @@ function ProviderOnboardingContent() {
                   </p>
                 </div>
 
-                {/* Two-field search: Name + Location */}
+                {/* Two-field search: Location + Name */}
                 <form onSubmit={handleSearch}>
                   <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                    {/* Name input */}
-                    <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                      <input
-                        type="text"
-                        aria-label="Organization name"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Organization name"
-                        className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                      />
-                    </div>
-
-                    {/* Divider */}
-                    <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
-
                     {/* Location input with dropdown */}
                     <div ref={locationDropdownRef} className="relative flex-1">
                       <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
@@ -972,6 +957,21 @@ function ProviderOnboardingContent() {
                       )}
                     </div>
 
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
+
+                    {/* Name input */}
+                    <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                      <input
+                        type="text"
+                        aria-label="Organization name"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Organization name"
+                        className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                      />
+                    </div>
+
                     {/* Search button */}
                     <button
                       type="submit"
@@ -1010,24 +1010,9 @@ function ProviderOnboardingContent() {
               <div className="w-full pb-24">
                 {/* Sticky search bar */}
                 <div className="sticky top-[65px] z-40 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4">
-                  <div className="max-w-2xl mx-auto py-3">
+                  <div className="max-w-3xl mx-auto py-3">
                     <form onSubmit={handleSearch}>
                       <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-200/80 p-2.5 flex items-center gap-2.5">
-                        {/* Name input */}
-                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
-                          <input
-                            type="text"
-                            aria-label="Organization name"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Organization name"
-                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
-                          />
-                        </div>
-
-                        {/* Divider */}
-                        <div className="w-px h-7 bg-gray-200 shrink-0" />
-
                         {/* Location input with dropdown */}
                         <div ref={locationDropdownRef} className="relative flex-1 min-w-0">
                           <div className={`flex items-center px-3.5 py-2.5 bg-gray-50 rounded-lg border transition-colors ${
@@ -1083,6 +1068,21 @@ function ProviderOnboardingContent() {
                           )}
                         </div>
 
+                        {/* Divider */}
+                        <div className="w-px h-7 bg-gray-200 shrink-0" />
+
+                        {/* Name input */}
+                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
+                          <input
+                            type="text"
+                            aria-label="Organization name"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Organization name"
+                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+                          />
+                        </div>
+
                         {/* Search button */}
                         <button
                           type="submit"
@@ -1106,7 +1106,7 @@ function ProviderOnboardingContent() {
                 </div>
 
                 {/* Results grid */}
-                <div className="max-w-2xl mx-auto px-4 pt-8 pb-12">
+                <div className="max-w-3xl mx-auto px-4 pt-8 pb-12">
                   <div className="space-y-4">
                     {paginatedResults.map((provider) => {
                       const image = getProviderImage(provider);

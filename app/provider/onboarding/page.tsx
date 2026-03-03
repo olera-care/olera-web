@@ -1324,27 +1324,36 @@ function ProviderOnboardingContent() {
 
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (
-              <div className="w-full max-w-xl mx-auto text-center pb-24">
-                <div className="w-16 h-16 rounded-full bg-vanilla-100 ring-1 ring-gray-200 flex items-center justify-center mx-auto mb-8">
-                  <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="w-full max-w-md mx-auto text-center pb-24">
+                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
 
-                <h2 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight mb-4">
+                <h2 className="text-2xl font-display font-semibold text-gray-900 mb-2">
                   No matches found
                 </h2>
-                <p className="text-gray-500 text-lg leading-relaxed mb-6">
-                  We couldn&apos;t find any listings for &ldquo;{searchQuery}&rdquo;
+                <p className="text-gray-500 text-base leading-relaxed mb-8">
+                  We couldn&apos;t find any listings{(searchQuery.trim() || locationQuery.trim()) ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() => setHasSearched(false)}
-                  className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
-                >
-                  Try a different search
-                </button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setHasSearched(false)}
+                    className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                  >
+                    Try a different search
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors"
+                  >
+                    Create new listing
+                  </button>
+                </div>
               </div>
             )}
           </>

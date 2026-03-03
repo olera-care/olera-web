@@ -75,6 +75,7 @@ const getCareTypeColor = (type: string) => {
 
 export default function ProviderCard({ provider }: ProviderCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imgFailed, setImgFailed] = useState(false);
   const [showPricingInfo, setShowPricingInfo] = useState(false);
   const [showStaffInfo, setShowStaffInfo] = useState(false);
   const { isSaved: checkSaved, toggleSave } = useSavedProviders();
@@ -111,8 +112,8 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
       className="group flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all duration-200"
     >
       {/* Image Container */}
-      <div className={`relative h-64 group/image ${provider.imageType === "logo" || provider.imageType === "placeholder" ? "bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50" : "bg-gray-200"}`}>
-        {provider.imageType === "placeholder" ? (
+      <div className={`relative h-64 group/image ${provider.imageType === "logo" || provider.imageType === "placeholder" || imgFailed ? "bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50" : "bg-gray-200"}`}>
+        {provider.imageType === "placeholder" || imgFailed ? (
           /* No image — gradient + initials */
           <div className="w-full h-full flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
@@ -144,6 +145,7 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
                   src={img}
                   alt={`${provider.name} - Image ${index + 1}`}
                   className="w-full h-full object-cover flex-shrink-0"
+                  onError={() => setImgFailed(true)}
                 />
               ))}
             </div>

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Provider } from "./ProviderCard";
 import { getInitials } from "@/lib/provider-utils";
+import { FallbackImage } from "./FallbackImage";
 
 interface CompactProviderCardProps {
   provider: Provider;
@@ -18,21 +18,26 @@ export default function CompactProviderCard({ provider }: CompactProviderCardPro
       {/* Image */}
       <div className="relative h-40 bg-gray-100">
         {provider.image ? (
-          <Image
+          <FallbackImage
             src={provider.image}
             alt={provider.name}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            fallback={
+              <div className="w-full h-full bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex flex-col items-center justify-center">
+                <span className="text-3xl font-bold text-primary-300">
+                  {getInitials(provider.name)}
+                </span>
+                <span className="text-xs font-medium text-primary-300 mt-1">{provider.primaryCategory}</span>
+              </div>
+            }
           />
         ) : (
-          <div className="w-full h-full bg-primary-50 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex flex-col items-center justify-center">
             <span className="text-3xl font-bold text-primary-300">
               {getInitials(provider.name)}
             </span>
+            <span className="text-xs font-medium text-primary-300 mt-1">{provider.primaryCategory}</span>
           </div>
         )}
-        {/* Badge pills hidden for now */}
       </div>
 
       {/* Content */}

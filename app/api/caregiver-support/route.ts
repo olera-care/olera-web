@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category") || "";
     const featured = searchParams.get("featured");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const perPage = Math.min(50, Math.max(1, parseInt(searchParams.get("per_page") || "20", 10)));
+    const perPage = Math.min(200, Math.max(1, parseInt(searchParams.get("per_page") || "20", 10)));
 
     const supabase = await createClient();
 

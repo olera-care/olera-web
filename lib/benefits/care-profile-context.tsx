@@ -31,6 +31,8 @@ export function CareProfileProvider({ children }: { children: React.ReactNode })
       state.errorMsg,
       state.locationDisplay,
       state.previewCount,
+      state.restoredFromDb,
+      state.publishCarePost,
     ]
   );
 

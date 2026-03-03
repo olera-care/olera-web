@@ -73,7 +73,7 @@ export default function PostDetailPage() {
             <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
             </svg>
-            <Link href={`/community/${post.careType}`} className="hover:text-gray-700 transition-colors">
+            <Link href={`/community?category=${post.careType}`} className="hover:text-gray-700 transition-colors">
               {careTypeConfig.label}
             </Link>
           </nav>

@@ -33,9 +33,13 @@ const categoryLabels: Partial<Record<ProfileCategory, string>> = {
 export default function ProviderHeroGallery({ images, providerName, category }: ProviderHeroGalleryProps) {
   const categoryLabel = category ? categoryLabels[category] ?? null : null;
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [failedImages, setFailedImages] = useState<Set<number>>(new Set());
 
-  // 0 images — gradient placeholder with avatar circle + hint
-  if (images.length === 0) {
+  // Filter out images that failed to load
+  const validImages = images.filter((_, i) => !failedImages.has(i));
+
+  // 0 valid images — gradient placeholder with avatar circle + hint
+  if (validImages.length === 0) {
     return (
       <div className="w-full max-w-md aspect-[3/2] rounded-2xl bg-gradient-to-br from-primary-100 via-primary-50 to-warm-50 flex flex-col items-center justify-center">
         <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-3 shadow-sm">
@@ -51,24 +55,30 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
     );
   }
 
-  const goNext = () => setCurrentIndex((i) => (i + 1) % images.length);
-  const goPrev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length);
+  const safeIndex = Math.min(currentIndex, validImages.length - 1);
+  const goNext = () => setCurrentIndex((i) => (i + 1) % validImages.length);
+  const goPrev = () => setCurrentIndex((i) => (i - 1 + validImages.length) % validImages.length);
 
   // 1+ images — fixed aspect ratio with navigation
   return (
     <div className="relative w-full max-w-md aspect-[3/2] rounded-2xl overflow-hidden bg-gray-100">
       <Image
-        src={images[currentIndex]}
-        alt={`${providerName} — photo ${currentIndex + 1}`}
+        key={validImages[safeIndex]}
+        src={validImages[safeIndex]}
+        alt={`${providerName} — photo ${safeIndex + 1}`}
         fill
         sizes="(max-width: 768px) 100vw, 448px"
         priority
         className="object-cover"
+        onError={() => {
+          const origIndex = images.indexOf(validImages[safeIndex]);
+          setFailedImages((prev) => new Set(prev).add(origIndex));
+        }}
       />
-      {images.length > 1 && (
+      {validImages.length > 1 && (
         <>
           {/* Left arrow */}
-          {currentIndex > 0 && (
+          {safeIndex > 0 && (
             <button
               onClick={goPrev}
               className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
@@ -80,7 +90,7 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
             </button>
           )}
           {/* Right arrow */}
-          {currentIndex < images.length - 1 && (
+          {safeIndex < validImages.length - 1 && (
             <button
               onClick={goNext}
               className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow-md flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
@@ -93,7 +103,7 @@ export default function ProviderHeroGallery({ images, providerName, category }: 
           )}
           {/* Photo count */}
           <span className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1 rounded-full">
-            {currentIndex + 1}/{images.length}
+            {safeIndex + 1}/{validImages.length}
           </span>
         </>
       )}

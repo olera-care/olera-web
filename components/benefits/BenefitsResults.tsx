@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BENEFIT_CATEGORIES } from "@/lib/types/benefits";
 import type {
   BenefitsSearchResult,
@@ -9,7 +9,11 @@ import type {
 } from "@/lib/types/benefits";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useSavedPrograms } from "@/hooks/use-saved-programs";
+import { useSavedBenefits } from "@/hooks/use-saved-benefits";
+import { syncBenefitsToProfile } from "@/lib/benefits-profile-sync";
+import { setBenefitsIntakeCache } from "@/lib/benefits-intake-cache";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { FamilyMetadata } from "@/lib/types";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
 
@@ -57,17 +61,89 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
     "all"
   );
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
-  const { reset, answers } = useCareProfile();
-  const { user, openAuth } = useAuth();
-  const { isSaved, toggle } = useSavedPrograms();
+  const { reset, answers, locationDisplay, restoredFromDb, publishCarePost } = useCareProfile();
+  const { user, activeProfile, refreshAccountData } = useAuth();
+  const { isSaved, toggleSave } = useSavedBenefits();
+  const syncedRef = useRef(false);
 
-  function handleToggleSave(programId: string) {
+  // Persist results to DB + sync intake answers to profile fields
+  useEffect(() => {
+    if (syncedRef.current || restoredFromDb) return;
+
     if (!user) {
-      openAuth({ defaultMode: "sign-up" });
+      // Anonymous: cache intake data for post-auth restore
+      setBenefitsIntakeCache(answers, locationDisplay, result);
+      syncedRef.current = true;
       return;
     }
-    toggle(programId);
-  }
+
+    if (!activeProfile) return; // wait for profile to load
+    syncedRef.current = true;
+
+    (async () => {
+      try {
+        if (!isSupabaseConfigured()) return;
+        const supabase = createClient();
+
+        // 1. Persist full results to metadata.benefits_results
+        const { data: current } = await supabase
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", activeProfile.id)
+          .single();
+
+        const meta = (current?.metadata || {}) as FamilyMetadata;
+        await supabase
+          .from("business_profiles")
+          .update({
+            metadata: {
+              ...meta,
+              benefits_results: {
+                answers: answers as unknown as Record<string, unknown>,
+                results: result as unknown as Record<string, unknown>,
+                location_display: locationDisplay,
+                completed_at: new Date().toISOString(),
+              },
+            },
+          })
+          .eq("id", activeProfile.id);
+
+        // 2. Sync intake answers to profile fields (reads fresh metadata)
+        await syncBenefitsToProfile(answers, locationDisplay, activeProfile.id);
+
+        // 3. Refresh auth context so profile reflects changes
+        await refreshAccountData();
+
+        // 4. Auto-publish care post if user opted in
+        if (publishCarePost) {
+          // Ensure timeline is set (required for care post publishing)
+          const { data: fresh } = await supabase
+            .from("business_profiles")
+            .select("metadata")
+            .eq("id", activeProfile.id)
+            .single();
+
+          const freshMeta = (fresh?.metadata || {}) as FamilyMetadata;
+          if (!freshMeta.timeline) {
+            await supabase
+              .from("business_profiles")
+              .update({ metadata: { ...freshMeta, timeline: "exploring" } })
+              .eq("id", activeProfile.id);
+          }
+
+          await fetch("/api/care-post/publish", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "publish" }),
+          });
+
+          await refreshAccountData();
+        }
+      } catch (err) {
+        console.error("[olera] Benefits persist/sync failed:", err);
+      }
+    })();
+  }, [user, activeProfile, answers, locationDisplay, result, restoredFromDb, publishCarePost, refreshAccountData]);
 
   const { matchedPrograms, localAAA } = result;
 
@@ -231,8 +307,8 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                 >
                   <ProgramCard
                     match={m}
-                    isSaved={isSaved(m.program.id)}
-                    onToggleSave={() => handleToggleSave(m.program.id)}
+                    isSaved={isSaved(m.program.name)}
+                    onToggleSave={() => toggleSave(m.program.name)}
                   />
                 </div>
               ))}

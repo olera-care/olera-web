@@ -759,7 +759,7 @@ export default function OleraProPage() {
                 )}
               </button>
               <p className="text-sm text-gray-400 mt-4">
-                $25/mo &middot; Instant reactivation
+                {billingCycle === "monthly" ? "$25/mo" : "$249/yr"} &middot; Instant reactivation
               </p>
             </div>
           </div>

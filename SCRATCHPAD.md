@@ -37,6 +37,12 @@
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Plan: `plans/provider-deletion-request-plan.md`
 
+- **Backend Integration Roadmap** (branch: `magical-keller`) — PLANNED
+  - Plan: `plans/backend-integration-roadmap-plan.md`
+  - Analysis: `docs/backend-integration-analysis.md`
+  - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
+  - Phases: Email notifications → Sentry + Slack → Twilio SMS → Vercel Cron → Marketing (deferred)
+
 ---
 
 ## Blocked / Needs Input

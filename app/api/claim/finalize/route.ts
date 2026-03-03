@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateProviderSlug } from "@/lib/slugify";
+import { sendEmail } from "@/lib/email";
+import { claimNotificationEmail } from "@/lib/email-templates";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -212,6 +214,30 @@ export async function POST(request: Request) {
       .delete()
       .eq("provider_id", providerId)
       .eq("claim_session", claimSession);
+
+    // 6. Notify admin team about the claim (fire-and-forget)
+    try {
+      const { data: claimedProfile } = await db
+        .from("business_profiles")
+        .select("display_name")
+        .eq("source_provider_id", providerId)
+        .single();
+
+      const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+      if (adminEmail) {
+        await sendEmail({
+          to: adminEmail,
+          subject: `Provider claimed: ${claimedProfile?.display_name || providerId}`,
+          html: claimNotificationEmail({
+            providerName: claimedProfile?.display_name || providerId,
+            providerSlug: profileSlug,
+            claimedByEmail: user.email || "unknown",
+          }),
+        });
+      }
+    } catch (emailErr) {
+      console.error("[claim/finalize] admin notification failed:", emailErr);
+    }
 
     return NextResponse.json({ success: true, profileSlug });
   } catch (err) {

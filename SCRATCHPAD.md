@@ -7,32 +7,26 @@
 
 ## Current Focus
 
-- **Research & Press Blog Section** (branch: `fine-wright`) — PLANNED
-  - Plan: `plans/research-and-press-plan.md`
-  - Notion: P1 — "Create separate Research and Press Blog Section"
-  - New `/research-and-press` section with polished design, `section` column on `content_articles`, admin CMS updates, footer link
+- **Leadership Team Page** (branch: `joyful-goodall`) — DONE ✅
+  - PR #106 merged to staging
+  - New `/team` page with editorial design, scroll animations, expanded bios
+  - Crosslink from `/for-providers` LeadershipSection, footer link, sitemap entry
 
-- **Caregiver Support Editorial Redesign** (branch: `joyful-turing`) — IN PROGRESS
-  - Plan: `plans/caregiver-support-editorial-redesign-plan.md`
-  - Notion: P1 — "Redesign Olera Blog Master Page (Editorial Version)"
-  - Master page: hero header, featured section, category pills, article grid — DONE
-  - Individual article page: editorial typography, TOC, layout restructure — DONE
-  - Admin content dashboard: added author/featured filters + date sorting — DONE
-  - PR targeting staging — ready for review
+- **Admin Silent Failures Fix** (branch: `joyful-goodall`) — DONE ✅
+  - PR #108 merged to staging
+  - Error banners on 5 admin pages: overview, images, leads, providers, team
+  - Replaced `alert()` with inline banners on team page
 
-- **Homepage Section-by-Section Refactor** (branch: `glad-goodall`) — READY FOR MERGE
-  - Phase 1-3 done + Phase 4 polish: NIH badge, community container, CTA redesign
-  - PR #79 targeting staging — ready to merge
-  - Plan: `plans/homepage-refactor-plan.md`
-  - Notion: P1 — "Section-by-Section Homepage Refactor"
+- **Raw `<img>` Tags Fix** (branch: `joyful-goodall`) — DONE ✅
+  - PR #107 merged to staging
+  - Swapped 4 raw `<img>` → `next/image` in caregiver-support page
 
-- **v1.0 → v2.0 Migration Playbook** (branch: `seo/structured-data-p1`, originally `bold-gates`) — REDIRECTS COMPLETE
-  - **Playbook doc:** `docs/migration-playbook.md` — comprehensive SEO report card, route inventory, DNS plan
-  - **SEO score: 67% (C+) → 75% (B-) → 85% (B+) → 90% (A-)**
-  - **All P1 SEO items done:** FAQPage (#81), Review/Geo/Price (#82), next/image, 308 aliases, redirects (#83)
-  - **All v1.0 route redirects configured** — no known URL will 404 after DNS cutover
-  - **Remaining:** P2 SEO polish (Person schema, ImageObject, preconnect hints), CMS migration, DNS cutover ops
-  - Architecture research archived to `archive/SCRATCHPAD-2026-02.md`
+- **Research & Press Blog Section** (branch: `fine-wright`) — DONE ✅
+
+- **Caregiver Support Editorial Redesign** (branch: `joyful-turing`) — DONE ✅
+
+- **v1.0 → v2.0 Migration Playbook** (branch: `seo/structured-data-p1`) — REDIRECTS COMPLETE
+  - **Remaining:** P2 SEO polish, CMS migration, DNS cutover ops
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -95,6 +89,36 @@
 ---
 
 ## Session Log
+
+### 2026-03-03 (Session 34) — Leadership Team Page + Admin Fixes + img Cleanup
+
+**Branch:** `joyful-goodall`
+
+**What:** Completed 3 Notion roadmap tasks in one session: P1 Leadership Team page, P2 raw img tag fix, P2 admin silent failures fix.
+
+**Task 1: Leadership Team Page** (PR #106)
+- New `/team` route: `app/team/page.tsx` (server component with metadata)
+- `components/team/HeroSection.tsx`: serif display heading, fade-in animation via `useInView`
+- `components/team/TeamSection.tsx`: two large portrait cards, staggered scroll animations, expanded bios, LinkedIn links
+- Updated `Footer.tsx` (added "Our Team" link), `sitemap.ts` (added /team), `LeadershipSection.tsx` (crosslink)
+- Adjusted from `aspect-[3/4]` to `aspect-square` after checking actual headshot dimensions (500x500, 415x415)
+
+**Task 2: Raw `<img>` Tags** (PR #107)
+- Replaced 4 raw `<img>` tags in `app/caregiver-support/page.tsx` with `next/image` using `fill` mode
+- Added `sizes` prop and `priority` flag for above-fold images
+
+**Task 3: Admin Silent Failures** (PR #108)
+- Added error state + red error banners to 5 admin pages:
+  - `app/admin/page.tsx`: partial-load warning when individual API calls fail
+  - `app/admin/images/page.tsx`: list error + detail error + action error
+  - `app/admin/leads/page.tsx`: list fetch error
+  - `app/admin/providers/page.tsx`: list error + approve/reject action error
+  - `app/admin/team/page.tsx`: list error + replaced `alert()` with inline banners
+- Pattern: `bg-red-50 border border-red-200` matching existing `content/page.tsx`
+
+**All 3 PRs merged to staging. All 3 Notion tasks marked Done.**
+
+---
 
 ### 2026-03-02 (Session 33) — Individual Article Page Editorial Redesign
 

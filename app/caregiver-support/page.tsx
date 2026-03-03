@@ -153,19 +153,52 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
 
   return (
     <section className="mb-16 md:mb-24">
+      {/* Grid: primary IMAGE aligned with secondary articles */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
-        {/* Dominant article — 3/5 width */}
-        <div className="lg:col-span-3">
-          <FeaturedArticlePrimary resource={primary} />
-        </div>
+        {/* Primary image — 3/5 width */}
+        <Link
+          href={`/caregiver-support/${primary.slug}`}
+          className="group lg:col-span-3 block"
+        >
+          <div className="aspect-[4/3] rounded-lg overflow-hidden">
+            <img
+              src={primary.coverImage}
+              alt={primary.title}
+              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
+            />
+          </div>
+        </Link>
 
-        {/* Secondary articles — 2/5 width, stacked */}
-        <div className="lg:col-span-2 flex flex-col gap-8 lg:justify-between">
+        {/* Secondary articles — 2/5 width, distributed across image height */}
+        <div className="lg:col-span-2 flex flex-col justify-between gap-6">
           {secondary.map((resource) => (
             <FeaturedArticleSecondary key={resource.id} resource={resource} />
           ))}
         </div>
       </div>
+
+      {/* Primary text — below grid, scoped to 3/5 width */}
+      <Link
+        href={`/caregiver-support/${primary.slug}`}
+        className="group block mt-5 lg:max-w-[58%]"
+      >
+        {primary.careTypes[0] && (
+          <span className="text-text-sm font-medium text-gray-400 mb-2 block">
+            {CARE_TYPE_CONFIG[primary.careTypes[0]].label}
+          </span>
+        )}
+        <h3 className="font-display text-display-xs md:text-display-sm font-bold text-gray-900 leading-tight group-hover:text-gray-600 transition-colors duration-200 mb-3">
+          {primary.title}
+        </h3>
+        {primary.excerpt && (
+          <p className="text-text-md text-gray-500 leading-relaxed line-clamp-2 mb-3">
+            {primary.excerpt}
+          </p>
+        )}
+        <span className="text-text-sm text-gray-400">
+          {primary.readingTime} read
+        </span>
+      </Link>
     </section>
   );
 }

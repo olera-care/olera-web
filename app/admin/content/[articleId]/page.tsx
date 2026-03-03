@@ -287,7 +287,18 @@ export default function AdminContentEditorPage() {
 
         {/* Settings */}
         <Section title="Settings">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Section</label>
+              <select
+                value={(formData.section as string) || "caregiver-support"}
+                onChange={(e) => updateField("section", e.target.value)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              >
+                <option value="caregiver-support">Caregiver Support</option>
+                <option value="research-and-press">Research &amp; Press</option>
+              </select>
+            </div>
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">Status</label>
               <select

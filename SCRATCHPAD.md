@@ -7,6 +7,11 @@
 
 ## Current Focus
 
+- **Research & Press Blog Section** (branch: `fine-wright`) — PLANNED
+  - Plan: `plans/research-and-press-plan.md`
+  - Notion: P1 — "Create separate Research and Press Blog Section"
+  - New `/research-and-press` section with polished design, `section` column on `content_articles`, admin CMS updates, footer link
+
 - **Caregiver Support Editorial Redesign** (branch: `joyful-turing`) — IN PROGRESS
   - Plan: `plans/caregiver-support-editorial-redesign-plan.md`
   - Notion: P1 — "Redesign Olera Blog Master Page (Editorial Version)"

@@ -7,6 +7,7 @@ import type { ContentArticle } from "@/types/content";
  */
 export async function getPublishedArticles(opts?: {
   careType?: string;
+  section?: string;
   limit?: number;
   offset?: number;
 }): Promise<{ articles: ContentArticle[]; total: number }> {
@@ -19,6 +20,10 @@ export async function getPublishedArticles(opts?: {
     .select("*", { count: "exact" })
     .eq("status", "published")
     .not("published_at", "is", null);
+
+  if (opts?.section) {
+    query = query.eq("section", opts.section);
+  }
 
   if (opts?.careType) {
     query = query.contains("care_types", [opts.careType]);
@@ -63,13 +68,14 @@ export async function getArticleBySlug(slug: string): Promise<ContentArticle | n
 export async function getRelatedArticles(
   articleId: string,
   careTypes: string[],
-  limit = 3
+  limit = 3,
+  section?: string
 ): Promise<ContentArticle[]> {
   if (careTypes.length === 0) return [];
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("content_articles")
     .select("*")
     .eq("status", "published")
@@ -78,6 +84,12 @@ export async function getRelatedArticles(
     .contains("care_types", [careTypes[0]])
     .order("published_at", { ascending: false })
     .limit(limit);
+
+  if (section) {
+    query = query.eq("section", section);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("getRelatedArticles error:", error);

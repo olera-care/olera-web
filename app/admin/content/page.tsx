@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import Pagination from "@/components/ui/Pagination";
 import { ALL_RESOURCE_CATEGORIES, RESOURCE_CATEGORY_CONFIG } from "@/types/resource";
-import type { ContentArticleListItem, ContentStatus } from "@/types/content";
+import type { ContentArticleListItem, ContentStatus, ContentSection } from "@/types/content";
 
 type TabFilter = "all" | ContentStatus;
 
@@ -34,6 +34,7 @@ export default function AdminContentPage() {
   const [category, setCategory] = useState("");
   const [author, setAuthor] = useState("");
   const [featured, setFeatured] = useState("");
+  const [section, setSection] = useState("");
   const [sortBy, setSortBy] = useState("updated_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [tab, setTab] = useState<TabFilter>("all");
@@ -65,6 +66,7 @@ export default function AdminContentPage() {
       if (category) params.set("category", category);
       if (author) params.set("author", author);
       if (featured) params.set("featured", featured);
+      if (section) params.set("section", section);
 
       const res = await fetch(`/api/admin/content?${params}`);
       if (res.ok) {
@@ -85,7 +87,7 @@ export default function AdminContentPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, category, author, featured, sortBy, sortDir, tab]);
+  }, [page, debouncedSearch, category, author, featured, section, sortBy, sortDir, tab]);
 
   useEffect(() => {
     fetchArticles();
@@ -101,6 +103,10 @@ export default function AdminContentPage() {
   }
   function handleFeaturedChange(val: string) {
     setFeatured(val);
+    setPage(1);
+  }
+  function handleSectionChange(val: string) {
+    setSection(val);
     setPage(1);
   }
   function handleTabChange(val: TabFilter) {
@@ -183,6 +189,16 @@ export default function AdminContentPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
+        <select
+          value={section}
+          onChange={(e) => handleSectionChange(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+        >
+          <option value="">All Sections</option>
+          <option value="caregiver-support">Caregiver Support</option>
+          <option value="research-and-press">Research &amp; Press</option>
+        </select>
+
         <select
           value={category}
           onChange={(e) => handleCategoryChange(e.target.value)}
@@ -293,9 +309,14 @@ export default function AdminContentPage() {
                               &#9733;
                             </span>
                           )}
-                          <p className="text-sm font-medium text-gray-900 truncate max-w-[300px]">
-                            {article.title}
-                          </p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate max-w-[300px]">
+                              {article.title}
+                            </p>
+                            {article.section === "research-and-press" && (
+                              <span className="text-xs text-blue-600 font-medium">R&amp;P</span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">

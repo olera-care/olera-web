@@ -165,7 +165,7 @@ export default function Footer() {
       {/* ── Main Footer ── */}
       <div className="bg-gray-50 border-t border-gray-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-8">
             {/* Brand */}
             <div className="col-span-1 md:col-span-2">
               <Link href="/" className="flex items-center space-x-2.5 mb-4">
@@ -176,6 +176,25 @@ export default function Footer() {
                 Helping families find the right senior care. Compare trusted
                 providers and connect with confidence.
               </p>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h3 className="text-gray-900 font-semibold text-xs uppercase tracking-wider mb-4">
+                Company
+              </h3>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link href="/research-and-press" className="text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Research &amp; Press
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/caregiver-support" className="text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Caregiver Support
+                  </Link>
+                </li>
+              </ul>
             </div>
 
             {/* For Families */}

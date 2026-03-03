@@ -299,7 +299,7 @@ function CaregiverSupportContent() {
     let cancelled = false;
     async function fetchFromApi() {
       try {
-        const res = await fetch("/api/caregiver-support?per_page=200");
+        const res = await fetch("/api/caregiver-support?section=caregiver-support&per_page=200");
         if (res.ok) {
           const data = await res.json();
           if (!cancelled && data.articles && data.articles.length > 0) {

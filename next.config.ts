@@ -45,13 +45,13 @@ const nextConfig: NextConfig = {
 
       // Tier 1: Deprecated v1.0 pages → homepage
       { source: "/education-material", destination: "/", permanent: true },
-      { source: "/research-and-press", destination: "/", permanent: true },
+      // /research-and-press — now a live page (removed redirect)
       { source: "/forum", destination: "/", permanent: true },
       { source: "/care-assessment", destination: "/", permanent: true },
 
       // Tier 2: Deprecated content pages with slugs → homepage
       { source: "/education-material/:slug*", destination: "/", permanent: true },
-      { source: "/research-and-press/:slug*", destination: "/", permanent: true },
+      // /research-and-press/:slug — now a live page (removed redirect)
       { source: "/resources", destination: "/caregiver-support", permanent: true },
       { source: "/resources/:slug", destination: "/caregiver-support/:slug", permanent: true },
       { source: "/caregiver-support/:slug/:rest+", destination: "/caregiver-support", permanent: true },

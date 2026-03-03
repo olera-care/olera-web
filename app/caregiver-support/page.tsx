@@ -149,7 +149,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
 
   // 3+ featured — dominant left + stacked right
   const primary = articles[0];
-  const secondary = articles.slice(1, 3);
+  const secondary = articles.slice(1, 4);
 
   return (
     <section className="mb-16 md:mb-24">
@@ -182,7 +182,7 @@ function FeaturedSkeleton() {
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
           </div>
           <div className="lg:col-span-2 flex flex-col gap-8 justify-center">
-            {[1, 2].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="flex gap-5">
                 <div className="w-44 h-28 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse" />
                 <div className="flex-1 flex flex-col justify-center gap-2">
@@ -290,7 +290,7 @@ function CaregiverSupportContent() {
 
     // When showing featured section, exclude those articles from the grid
     if (showFeatured && featuredArticles.length > 0) {
-      const featuredIds = new Set(featuredArticles.slice(0, 3).map((r) => r.id));
+      const featuredIds = new Set(featuredArticles.slice(0, 4).map((r) => r.id));
       resources = resources.filter((r) => !featuredIds.has(r.id));
     }
 
@@ -334,7 +334,7 @@ function CaregiverSupportContent() {
             <FeaturedSkeleton />
           ) : featuredArticles.length > 0 ? (
             <>
-              <FeaturedSection articles={featuredArticles.slice(0, 3)} />
+              <FeaturedSection articles={featuredArticles.slice(0, 4)} />
               <div className="border-t border-gray-100 mb-12 md:mb-16" />
             </>
           ) : null
@@ -435,7 +435,7 @@ function LoadingSkeleton() {
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
           </div>
           <div className="lg:col-span-2 flex flex-col gap-8 justify-center">
-            {[1, 2].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="flex gap-5">
                 <div className="w-44 h-28 flex-shrink-0 bg-gray-100 rounded-lg animate-pulse" />
                 <div className="flex-1 flex flex-col justify-center gap-2">

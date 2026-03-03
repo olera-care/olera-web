@@ -282,6 +282,115 @@
   padding: 0;
 }
 
+/* Editorial prose typography — article reading experience */
+.prose-editorial {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #344054;
+}
+.prose-editorial p {
+  margin-bottom: 1.5em;
+}
+.prose-editorial h2 {
+  font-family: "New York", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #101828;
+  margin-top: 2.5em;
+  margin-bottom: 0.75em;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.prose-editorial h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #101828;
+  margin-top: 2em;
+  margin-bottom: 0.5em;
+  line-height: 1.4;
+}
+.prose-editorial h2[id],
+.prose-editorial h3[id] {
+  scroll-margin-top: 96px;
+}
+.prose-editorial blockquote {
+  font-family: "New York", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.6;
+  color: #475467;
+  border-left: 3px solid #0891b2;
+  padding-left: 1.25em;
+  margin: 2em 0;
+}
+.prose-editorial ul,
+.prose-editorial ol {
+  margin: 1.5em 0;
+  padding-left: 1.5em;
+}
+.prose-editorial li {
+  margin-bottom: 0.5em;
+}
+.prose-editorial li::marker {
+  color: #0891b2;
+}
+.prose-editorial a {
+  color: #0C7792;
+  text-decoration: none;
+  border-bottom: 1px solid #a5f3fc;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.prose-editorial a:hover {
+  color: #065666;
+  border-bottom-color: #0891b2;
+}
+.prose-editorial img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 2em 0;
+}
+.prose-editorial pre {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 1em;
+  overflow-x: auto;
+  margin: 1.5em 0;
+  font-size: 14px;
+}
+.prose-editorial code {
+  font-size: 0.9em;
+  background: #F3F4F6;
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+.prose-editorial pre code {
+  background: none;
+  padding: 0;
+}
+.prose-editorial hr {
+  border: none;
+  border-top: 1px solid #E5E7EB;
+  margin: 2.5em 0;
+}
+.prose-editorial table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 16px;
+}
+.prose-editorial th,
+.prose-editorial td {
+  text-align: left;
+  padding: 0.75em 1em;
+  border-bottom: 1px solid #E5E7EB;
+}
+.prose-editorial th {
+  font-weight: 600;
+  color: #101828;
+}
+
 /* Tiptap editor placeholder */
 .tiptap p.is-editor-empty:first-child::before {
   color: #9CA3AF;

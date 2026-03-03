@@ -5,6 +5,11 @@ import { getArticleBySlug, getRelatedArticles } from "@/lib/content";
 import { getResourceBySlug } from "@/data/mock/resources";
 import { renderContentToHTML } from "@/lib/render-content";
 import { CareTypeId, CARE_TYPE_CONFIG } from "@/types/forum";
+import { processArticleHtml } from "@/lib/article-html";
+import {
+  DesktopTableOfContents,
+  MobileTableOfContents,
+} from "@/components/article/TableOfContents";
 
 // ISR: revalidate every 60 seconds
 export const revalidate = 60;
@@ -72,15 +77,25 @@ export async function generateMetadata({
 // Page Component (Server Component)
 // ============================================================
 
-// Care type emojis for the CTA banner
-const CARE_TYPE_EMOJI: Record<CareTypeId, string> = {
-  "home-health": "\u{1F3E5}",
-  "home-care": "\u{1F3E0}",
-  "assisted-living": "\u{1F91D}",
-  "memory-care": "\u{1F9E0}",
-  "nursing-homes": "\u{1F3E2}",
-  "independent-living": "\u2600\uFE0F",
-};
+/** Mock article HTML for fallback rendering */
+const MOCK_ARTICLE_HTML = `
+<p>When it comes to finding the right care for your loved one, there are many factors to consider. Understanding your options is the first step toward making an informed decision that balances quality of care with practical considerations like location and cost.</p>
+<p>The journey of finding care can feel overwhelming, but breaking it down into manageable steps makes the process much more approachable. This guide will walk you through everything you need to know.</p>
+<h2>Understanding Your Options</h2>
+<p>The senior care landscape offers various levels of support, from minimal assistance to round-the-clock medical care. Each type of care serves different needs, and choosing the right one depends on your loved one's health condition, preferences, and financial situation.</p>
+<blockquote>The most important thing is finding care that respects your loved one's dignity and independence while providing the support they need.</blockquote>
+<p>Many families find that their needs change over time. What starts as occasional help with household tasks may eventually evolve into a need for more comprehensive care. Planning for this progression can help ease transitions.</p>
+<h2>Key Considerations</h2>
+<p>Before making any decisions, take time to assess the current and anticipated needs. Consider factors like mobility, cognitive function, medical requirements, and social preferences.</p>
+<ul>
+  <li>Assess current health status and anticipated future needs</li>
+  <li>Consider your loved one's preferences and lifestyle</li>
+  <li>Evaluate financial resources and insurance coverage</li>
+  <li>Research quality ratings and reviews from other families</li>
+  <li>Visit facilities and meet with staff when possible</li>
+</ul>
+<p>Taking the time to thoroughly evaluate these factors will help ensure you find the right fit for your family's unique situation.</p>
+`;
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
@@ -118,6 +133,7 @@ export default async function ResourceArticlePage({
   const tags = article?.tags ?? mockResource!.tags ?? [];
   const primaryCareType = careTypes[0] as CareTypeId | undefined;
   const careTypeLabel = primaryCareType ? CARE_TYPE_CONFIG[primaryCareType]?.label : null;
+  const showAuthorCard = authorName !== "Olera Team";
 
   // Render content
   let contentHtml = article?.content_html || "";
@@ -125,6 +141,11 @@ export default async function ResourceArticlePage({
     contentHtml = renderContentToHTML(article.content_json);
   }
   const hasRealContent = !!contentHtml;
+
+  // Process HTML for heading IDs + TOC
+  const rawHtml = hasRealContent ? contentHtml : MOCK_ARTICLE_HTML;
+  const { html: processedHtml, headings } = processArticleHtml(rawHtml);
+  const showToc = headings.length >= 2;
 
   // Related articles
   const related = article
@@ -188,260 +209,198 @@ export default async function ResourceArticlePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      {/* Article Header */}
-      <header className="max-w-[1000px] mx-auto px-5 pt-6 md:pt-8">
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm mb-4" aria-label="Breadcrumb">
-          <Link href="/caregiver-support" className="text-gray-500 hover:text-gray-700 transition-colors">
-            Caregiver Support
-          </Link>
-          {primaryCareType && careTypeLabel && (
-            <>
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
-              </svg>
-              <Link
-                href={`/caregiver-support?type=${primaryCareType}`}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                {careTypeLabel}
-              </Link>
-            </>
-          )}
-          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+      {/* ─── Header ─────────────────────────────────────────── */}
+      <header className="max-w-[960px] mx-auto px-5 pt-8 md:pt-12">
+        {/* Back link */}
+        <Link
+          href="/caregiver-support"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-6"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-gray-900 font-medium truncate max-w-[300px]">
-            {title}
-          </span>
-        </nav>
+          Caregiver Support
+        </Link>
+
+        {/* Category */}
+        {careTypeLabel && (
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-3">
+            {careTypeLabel}
+          </p>
+        )}
 
         {/* Title */}
-        <h1 className="text-[28px] md:text-[36px] font-bold text-gray-900 leading-[1.2] tracking-[-0.02em] mb-4">
+        <h1 className="font-display text-display-sm md:text-display-md text-gray-900 tracking-[-0.02em] mb-3">
           {title}
         </h1>
 
-        {/* Author row */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            {authorAvatar ? (
-              <img
-                src={authorAvatar}
-                alt={authorName}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {authorName.split(" ").map((n) => n[0]).join("")}
-                </span>
-              </div>
-            )}
-            <div>
-              <span className="font-medium text-gray-900 block">{authorName}</span>
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <span>{readingTime}</span>
-                <span>&middot;</span>
-                <span>{formatDate(publishedAt)}</span>
-              </div>
+        {/* Subtitle */}
+        {subtitle && (
+          <p className="text-lg text-gray-500 mb-4 max-w-[640px]">
+            {subtitle}
+          </p>
+        )}
+
+        {/* Metadata row */}
+        <div className="flex items-center gap-4 text-sm text-gray-400 mb-8">
+          {showAuthorCard && (
+            <div className="flex items-center gap-2">
+              {authorAvatar ? (
+                <img
+                  src={authorAvatar}
+                  alt={authorName}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
+                  <span className="text-white text-xs font-medium">
+                    {authorName.split(" ").map((n) => n[0]).join("")}
+                  </span>
+                </div>
+              )}
+              <span className="text-gray-600 font-medium">{authorName}</span>
             </div>
-          </div>
+          )}
+          <span>{formatDate(publishedAt)}</span>
+          <span>{readingTime}</span>
         </div>
       </header>
 
-      {/* Cover Image */}
+      {/* ─── Hero Image ─────────────────────────────────────── */}
       {coverImage && (
-        <figure className="max-w-[1000px] mx-auto px-5 mb-8">
+        <figure className="max-w-[960px] mx-auto px-5 mb-10">
           <img
             src={coverImage}
             alt={title}
-            className="w-full max-h-[400px] object-cover rounded-lg"
+            className="w-full aspect-[2/1] object-cover rounded-2xl"
           />
         </figure>
       )}
 
-      {/* Article Content */}
-      <article className="max-w-[680px] mx-auto px-5">
-        {hasRealContent ? (
+      {/* ─── Body + TOC Layout ──────────────────────────────── */}
+      <div className={`max-w-[1100px] mx-auto px-5 ${showToc ? "lg:flex lg:gap-16" : ""}`}>
+        {/* Article body */}
+        <article className={`${showToc ? "flex-1 max-w-[680px]" : "max-w-[680px] mx-auto"}`}>
+          {/* Mobile TOC */}
+          {showToc && <MobileTableOfContents headings={headings} />}
+
+          {/* Content */}
           <div
-            className="prose-medium"
-            dangerouslySetInnerHTML={{ __html: contentHtml }}
+            className="prose-editorial"
+            dangerouslySetInnerHTML={{ __html: processedHtml }}
           />
-        ) : (
-          /* Fallback: hardcoded body for mock articles */
-          <div className="prose-medium">
-            <p>
-              When it comes to finding the right care for your loved one, there are many factors to consider. Understanding your options is the first step toward making an informed decision that balances quality of care with practical considerations like location and cost.
-            </p>
-            <p>
-              The journey of finding care can feel overwhelming, but breaking it down into manageable steps makes the process much more approachable. This guide will walk you through everything you need to know.
-            </p>
-            <h2>Understanding Your Options</h2>
-            <p>
-              The senior care landscape offers various levels of support, from minimal assistance to round-the-clock medical care. Each type of care serves different needs, and choosing the right one depends on your loved one&apos;s health condition, preferences, and financial situation.
-            </p>
-            <blockquote>
-              The most important thing is finding care that respects your loved one&apos;s dignity and independence while providing the support they need.
-            </blockquote>
-            <p>
-              Many families find that their needs change over time. What starts as occasional help with household tasks may eventually evolve into a need for more comprehensive care. Planning for this progression can help ease transitions.
-            </p>
-            <h2>Key Considerations</h2>
-            <p>
-              Before making any decisions, take time to assess the current and anticipated needs. Consider factors like mobility, cognitive function, medical requirements, and social preferences.
-            </p>
-            <ul>
-              <li>Assess current health status and anticipated future needs</li>
-              <li>Consider your loved one&apos;s preferences and lifestyle</li>
-              <li>Evaluate financial resources and insurance coverage</li>
-              <li>Research quality ratings and reviews from other families</li>
-              <li>Visit facilities and meet with staff when possible</li>
-            </ul>
-            <p>
-              Taking the time to thoroughly evaluate these factors will help ensure you find the right fit for your family&apos;s unique situation.
-            </p>
-          </div>
-        )}
 
-        {/* Contextual CTA Banner */}
-        {primaryCareType && (
-          <Link
-            href={`/browse?type=${primaryCareType}`}
-            className="group relative block my-10 rounded-2xl overflow-hidden bg-gradient-to-br from-primary-50 via-primary-50/80 to-white border border-primary-100/60 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-100/40 transition-all duration-300"
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
-            <div className="p-5 pl-6 flex items-center gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                <span className="text-xl">{CARE_TYPE_EMOJI[primaryCareType]}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-base font-bold text-gray-900 leading-snug">
-                  Looking for {CARE_TYPE_CONFIG[primaryCareType].label.toLowerCase()} providers?
-                </h4>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  Browse verified providers in your area and compare options.
-                </p>
-              </div>
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center group-hover:bg-primary-600 transition-colors duration-300">
-                <svg className="w-4 h-4 text-primary-600 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          {/* Contextual CTA */}
+          {primaryCareType && (
+            <Link
+              href={`/browse?type=${primaryCareType}`}
+              className="group block my-12 p-5 rounded-xl border border-gray-200 hover:border-primary-200 hover:bg-primary-50/30 transition-all duration-200"
+            >
+              <p className="text-base font-semibold text-gray-900 mb-1">
+                Looking for {CARE_TYPE_CONFIG[primaryCareType].label.toLowerCase()} providers?
+              </p>
+              <p className="text-sm text-gray-500 flex items-center gap-1">
+                Browse verified options in your area
+                <svg className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </div>
-            </div>
-          </Link>
-        )}
+              </p>
+            </Link>
+          )}
 
-        {/* Author Card */}
-        <div className="mt-12 p-6 bg-gray-50 rounded-2xl">
-          <div className="flex items-start gap-4">
-            {authorAvatar ? (
-              <img
-                src={authorAvatar}
-                alt={authorName}
-                className="w-16 h-16 rounded-full object-cover ring-2 ring-white shadow-sm"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center flex-shrink-0 ring-2 ring-white shadow-sm">
-                <span className="text-white text-lg font-semibold">
-                  {authorName.split(" ").map((n) => n[0]).join("")}
-                </span>
+          {/* Author + Tags */}
+          <div className="mt-12 pt-8 border-t border-gray-200">
+            {showAuthorCard && (
+              <div className="flex items-center gap-3 mb-6">
+                {authorAvatar ? (
+                  <img
+                    src={authorAvatar}
+                    alt={authorName}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white text-sm font-medium">
+                      {authorName.split(" ").map((n) => n[0]).join("")}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{authorName}</p>
+                  {authorRole && (
+                    <p className="text-sm text-gray-500">{authorRole}</p>
+                  )}
+                </div>
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Written by</p>
-              <h3 className="text-lg font-bold text-gray-900">{authorName}</h3>
-              {authorRole && (
-                <p className="text-gray-600 text-sm">{authorRole}</p>
-              )}
-            </div>
-          </div>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-gray-200">
-            {careTypes.map((careType) => (
-              <Link
-                key={careType}
-                href={`/caregiver-support?type=${careType}`}
-                className="px-3 py-1.5 bg-white text-gray-700 text-sm font-medium rounded-full border border-gray-200 hover:border-primary-300 hover:text-primary-600 transition-colors"
-              >
-                {CARE_TYPE_CONFIG[careType]?.label ?? careType}
-              </Link>
-            ))}
-            {tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1.5 bg-white text-gray-500 text-sm rounded-full border border-gray-200"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Related Articles */}
-        {related.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Related Articles</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {related.map((r) => (
-                <Link key={r.id} href={`/caregiver-support/${r.slug}`} className="group block">
-                  {r.cover_image_url && (
-                    <img
-                      src={r.cover_image_url}
-                      alt={r.title}
-                      className="w-full aspect-[2/1] object-cover rounded-lg mb-2 group-hover:opacity-90 transition-opacity"
-                    />
-                  )}
-                  <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2">
-                    {r.title}
-                  </h3>
+            {/* Tags as text links */}
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {careTypes.map((careType) => (
+                <Link
+                  key={careType}
+                  href={`/caregiver-support?type=${careType}`}
+                  className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
+                >
+                  {CARE_TYPE_CONFIG[careType]?.label ?? careType}
                 </Link>
+              ))}
+              {tags.slice(0, 3).map((tag) => (
+                <span key={tag} className="text-sm text-gray-400">
+                  {tag}
+                </span>
               ))}
             </div>
           </div>
-        )}
-      </article>
 
-      {/* Bottom CTA */}
-      <section className="max-w-[1000px] mx-auto px-5 mt-16 pb-16">
-        <Link
-          href={primaryCareType ? `/browse?type=${primaryCareType}` : "/browse"}
-          className="group block relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-700"
-        >
-          <div className="absolute inset-0 opacity-10">
-            <svg className="absolute right-0 top-0 w-80 h-80 -mr-16 -mt-16" viewBox="0 0 200 200" fill="none">
-              <circle cx="100" cy="100" r="80" stroke="white" strokeWidth="40"/>
-            </svg>
-            <svg className="absolute left-0 bottom-0 w-64 h-64 -ml-16 -mb-16" viewBox="0 0 200 200" fill="none">
-              <circle cx="100" cy="100" r="60" stroke="white" strokeWidth="30"/>
-            </svg>
-          </div>
-          <div className="relative px-8 py-10 md:px-12 md:py-14 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                {primaryCareType
-                  ? `Ready to find ${CARE_TYPE_CONFIG[primaryCareType].label.toLowerCase()}?`
-                  : "Ready to find the right care?"
-                }
-              </h2>
-              <p className="text-primary-100 text-lg">
-                {primaryCareType
-                  ? `Browse verified ${CARE_TYPE_CONFIG[primaryCareType].label.toLowerCase()} providers in your area.`
-                  : "Join thousands of families who have found trusted care through Olera."
-                }
-              </p>
+          {/* Related Articles */}
+          {related.length > 0 && (
+            <section className="mt-14 mb-16">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Recommended</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                {related.map((r) => {
+                  const relatedCareType = r.care_types?.[0] as CareTypeId | undefined;
+                  const relatedLabel = relatedCareType ? CARE_TYPE_CONFIG[relatedCareType]?.label : null;
+                  return (
+                    <Link key={r.id} href={`/caregiver-support/${r.slug}`} className="group block">
+                      {r.cover_image_url && (
+                        <img
+                          src={r.cover_image_url}
+                          alt={r.title}
+                          className="w-full aspect-[3/2] object-cover rounded-xl mb-3 group-hover:opacity-90 transition-opacity"
+                        />
+                      )}
+                      {relatedLabel && (
+                        <p className="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-1">
+                          {relatedLabel}
+                        </p>
+                      )}
+                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-primary-600 transition-colors line-clamp-2 mb-1">
+                        {r.title}
+                      </h3>
+                      {r.reading_time && (
+                        <p className="text-xs text-gray-400">{r.reading_time}</p>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </article>
+
+        {/* Desktop TOC sidebar */}
+        {showToc && (
+          <aside className="hidden lg:block w-[220px] flex-shrink-0">
+            <div className="sticky top-[96px]">
+              <DesktopTableOfContents headings={headings} />
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <span className="inline-flex items-center gap-2 px-6 py-3.5 bg-white text-primary-700 font-semibold rounded-full group-hover:bg-primary-50 transition-colors shadow-lg shadow-primary-900/20">
-                Browse Care Options
-                <svg className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-            </div>
-          </div>
-        </Link>
-      </section>
+          </aside>
+        )}
+      </div>
+
+      {/* Bottom spacing when no related articles */}
+      {related.length === 0 && <div className="pb-16" />}
     </main>
   );
 }

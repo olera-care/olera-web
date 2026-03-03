@@ -79,6 +79,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/verification") ||
     pathname.startsWith("/provider/account");
+  const isOnForProvidersPage = pathname === "/for-providers" || pathname.startsWith("/for-providers/");
   const isCommunity = pathname.startsWith("/community");
   const isMinimalNav = pathname.startsWith("/portal/inbox");
 
@@ -691,12 +692,12 @@ export default function Navbar() {
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
-                    {/* For Providers link */}
+                    {/* For Providers / Switch to Family link */}
                     <button
-                      onClick={handleForProviders}
+                      onClick={isOnForProvidersPage ? () => router.push("/") : handleForProviders}
                       className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
                     >
-                      For Providers
+                      {isOnForProvidersPage ? "Switch to Family" : "For Providers"}
                     </button>
 
                     {/* Saved providers heart */}
@@ -911,12 +912,19 @@ export default function Navbar() {
                       </>
                     )}
 
-                    {/* For Providers */}
+                    {/* For Providers / Switch to Family */}
                     <button
-                      onClick={() => { handleForProviders(); setIsMobileMenuOpen(false); }}
+                      onClick={() => {
+                        if (isOnForProvidersPage) {
+                          router.push("/");
+                        } else {
+                          handleForProviders();
+                        }
+                        setIsMobileMenuOpen(false);
+                      }}
                       className="py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
                     >
-                      For Providers
+                      {isOnForProvidersPage ? "Switch to Family" : "For Providers"}
                     </button>
 
                     <hr className="border-gray-100" />

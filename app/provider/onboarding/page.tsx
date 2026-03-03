@@ -130,6 +130,7 @@ function ProviderOnboardingContent() {
   const [caregiverNotified, setCaregiverNotified] = useState(false);
   const [caregiverNotifying, setCaregiverNotifying] = useState(false);
   // Search state
+  const [prefillAutoSearch, setPrefillAutoSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
   const [claimedIds, setClaimedIds] = useState<Set<string>>(new Set());
@@ -233,9 +234,11 @@ function ProviderOnboardingContent() {
     }
 
     // Check for a previously started session
+    let hasResumed = false;
     try {
       const savedType = localStorage.getItem(TYPE_KEY) as ProviderType | null;
       if (savedType === "organization" || savedType === "caregiver") {
+        hasResumed = true;
         setProviderType(savedType);
         const savedData = localStorage.getItem(DATA_KEY);
         if (savedData) {
@@ -256,6 +259,29 @@ function ProviderOnboardingContent() {
       }
     } catch {
       // localStorage unavailable
+    }
+
+    // Check for search prefill from the /for-providers landing page
+    if (!hasResumed) {
+      try {
+        const prefill = sessionStorage.getItem("olera_provider_search_prefill");
+        if (prefill) {
+          sessionStorage.removeItem("olera_provider_search_prefill");
+          const parsed = JSON.parse(prefill);
+          const prefillSearch = parsed.searchQuery || "";
+          const prefillLocation = parsed.locationQuery || "";
+          if (prefillSearch || prefillLocation) {
+            if (prefillSearch) setSearchQuery(prefillSearch);
+            if (prefillLocation) setLocationQuery(prefillLocation);
+            setProviderType("organization");
+            try { localStorage.setItem(TYPE_KEY, "organization"); } catch { /* noop */ }
+            setStep("search");
+            setPrefillAutoSearch(true);
+          }
+        }
+      } catch {
+        // sessionStorage unavailable or parse error
+      }
     }
   }, [user, profiles, isLoading, isAdding, router]);
 
@@ -517,6 +543,17 @@ function ProviderOnboardingContent() {
       setSearching(false);
     }
   };
+
+  // Auto-trigger search when prefilled from the /for-providers landing page.
+  // Waits for React to render with the updated searchQuery/locationQuery state
+  // before calling handleSearch so it reads the correct values.
+  useEffect(() => {
+    if (!prefillAutoSearch || step !== "search") return;
+    if (!searchQuery.trim() && !locationQuery.trim()) return;
+    setPrefillAutoSearch(false);
+    handleSearch({ preventDefault: () => {} } as React.FormEvent);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefillAutoSearch, step, searchQuery, locationQuery]);
 
   const handleDisputeSubmit = async (provider: Provider) => {
     if (!disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()) return;

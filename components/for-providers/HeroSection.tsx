@@ -52,8 +52,8 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-transparent" />
 
       {/* Content overlay */}
-      <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 lg:pb-20">
-        <div className="max-w-[1312px] mx-auto w-full relative">
+      <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] pb-12 sm:pb-16 lg:pb-20">
+        <div className="max-w-7xl mx-auto w-full relative px-4 sm:px-6 lg:px-8">
           <div className="max-w-xl">
             <h1 className="font-serif text-display-md sm:text-display-lg lg:text-display-xl font-bold text-white leading-tight">
               Reach more families

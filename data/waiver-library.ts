@@ -1590,6 +1590,7 @@ const missouriPrograms: WaiverProgram[] = [
     name: "Missouri HCBS Aged and Disabled (AD) Waiver",
     shortName: "MO AD Waiver",
     tagline: "Medicaid home services for Missouri seniors and adults with disabilities",
+    savingsRange: "$6,000 – $18,000/year",
     description: "Missouri's AD Waiver provides home and community-based services to aged and disabled individuals who need nursing facility level of care. Services include personal care, home health aide, adult day, and respite care.",
     eligibilityHighlights: [
       "Age 63+ or adults with a qualifying disability",
@@ -1610,6 +1611,7 @@ const missouriPrograms: WaiverProgram[] = [
     name: "Missouri MyWay Self-Directed Services",
     shortName: "MyWay",
     tagline: "Self-directed Medicaid services for Missouri adults who want to manage their own care",
+    savingsRange: "$8,000 – $20,000/year",
     description: "MyWay is Missouri's self-directed option within its Medicaid waiver programs, allowing eligible individuals to hire and manage their own personal care workers. Participants control their care decisions with support from a fiscal intermediary.",
     eligibilityHighlights: [
       "Enrolled in a qualifying Missouri Medicaid waiver",
@@ -1635,6 +1637,7 @@ const montanaPrograms: WaiverProgram[] = [
     name: "Montana HCBS for Elderly and People with Physical Disabilities (EPPD) Waiver",
     shortName: "MT EPPD Waiver",
     tagline: "Home-based Medicaid services for Montana seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Montana's EPPD Waiver provides home and community-based services to elderly and physically disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and respite care.",
     eligibilityHighlights: [
       "Age 65+ or adults 18–64 with a physical disability",
@@ -1655,6 +1658,7 @@ const montanaPrograms: WaiverProgram[] = [
     name: "Montana Developmental Disabilities (DD) Waiver",
     shortName: "MT DD Waiver",
     tagline: "Medicaid community supports for Montanans with developmental disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "The Montana DD Waiver provides home and community-based services to individuals with developmental disabilities who need ICF/IID level of care. Services include supported living, day habilitation, and supported employment.",
     eligibilityHighlights: [
       "Have an intellectual disability or developmental disability",
@@ -1680,6 +1684,7 @@ const nebraskaPrograms: WaiverProgram[] = [
     name: "Nebraska Aged and Disabled (AD) Waiver",
     shortName: "NE AD Waiver",
     tagline: "Medicaid home-based services for Nebraska seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Nebraska's AD Waiver provides home and community-based services to aged and disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day health, and home modifications.",
     eligibilityHighlights: [
       "Age 65+ or adults with a physical disability",
@@ -1700,6 +1705,7 @@ const nebraskaPrograms: WaiverProgram[] = [
     name: "PACE Nebraska",
     shortName: "PACE NE",
     tagline: "Comprehensive care for nursing-home-eligible Nebraska seniors",
+    savingsRange: "$15,000 – $35,000/year",
     description: "PACE Nebraska provides integrated medical, social, and long-term care for individuals 55 and older who qualify for nursing home level of care. An interdisciplinary care team coordinates all services through a local PACE center.",
     eligibilityHighlights: [
       "Age 55 or older",
@@ -1725,6 +1731,7 @@ const nevadaPrograms: WaiverProgram[] = [
     name: "Nevada HCBS Frail Elderly (FE) Waiver",
     shortName: "NV FE Waiver",
     tagline: "Medicaid home-based services for Nevada seniors at risk of nursing home placement",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Nevada's FE Waiver provides home and community-based services to frail elderly individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, respite, and care management.",
     eligibilityHighlights: [
       "Age 65 or older",
@@ -1745,6 +1752,7 @@ const nevadaPrograms: WaiverProgram[] = [
     name: "Nevada HCBS Physical Disability (PD) Waiver",
     shortName: "NV PD Waiver",
     tagline: "Medicaid supports for Nevada adults with physical disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Nevada's PD Waiver provides home and community-based services to adults with physical disabilities who need nursing facility level of care. Services include personal care, supported employment, community integration, and assistive technology.",
     eligibilityHighlights: [
       "Age 18–64 with a physical disability",
@@ -1770,6 +1778,7 @@ const newHampshirePrograms: WaiverProgram[] = [
     name: "New Hampshire Choices for Independence Waiver",
     shortName: "NH Choices",
     tagline: "Medicaid waiver helping New Hampshire seniors live independently",
+    savingsRange: "$10,000 – $22,000/year",
     description: "New Hampshire's Choices for Independence Waiver provides home and community-based services to elderly and disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and home health.",
     eligibilityHighlights: [
       "Age 18+ with a disability or age 65+",
@@ -1790,6 +1799,7 @@ const newHampshirePrograms: WaiverProgram[] = [
     name: "New Hampshire In-Home Support Waiver",
     shortName: "NH In-Home Support",
     tagline: "Medicaid services for New Hampshire adults with developmental disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "NH's In-Home Support Waiver provides home and community-based services to adults with developmental disabilities who need ICF/IID level of care. Services include supported employment, community participation, and in-home habilitation.",
     eligibilityHighlights: [
       "Have an intellectual disability or related condition",
@@ -1815,6 +1825,7 @@ const newJerseyPrograms: WaiverProgram[] = [
     name: "New Jersey Managed Long-Term Services and Supports (MLTSS)",
     shortName: "NJ MLTSS",
     tagline: "Integrated Medicaid managed care with long-term services for New Jersey residents",
+    savingsRange: "$15,000 – $35,000/year",
     description: "NJ MLTSS integrates long-term services and supports into Medicaid managed care plans for individuals who need nursing facility level of care. Managed care organizations coordinate home care, personal care, adult day, and other HCBS.",
     eligibilityHighlights: [
       "Age 21 or older",
@@ -1835,6 +1846,7 @@ const newJerseyPrograms: WaiverProgram[] = [
     name: "New Jersey Global Options Waiver",
     shortName: "NJ Global Options",
     tagline: "Community-based Medicaid services for New Jersey adults who prefer to stay at home",
+    savingsRange: "$10,000 – $22,000/year",
     description: "The Global Options Waiver provides home and community-based services to adults who need nursing facility level of care. Services include personal care, homemaker, adult day, assisted living, and care management.",
     eligibilityHighlights: [
       "Age 18 or older",
@@ -1860,6 +1872,7 @@ const newMexicoPrograms: WaiverProgram[] = [
     name: "New Mexico Mi Via Self-Directed Waiver",
     shortName: "Mi Via",
     tagline: "Self-directed Medicaid waiver for New Mexico adults with disabilities",
+    savingsRange: "$8,000 – $20,000/year",
     description: "Mi Via is a self-directed Medicaid waiver allowing individuals with developmental disabilities, physical disabilities, or brain injuries to direct their own services and manage their own support workers. Participants control their budgets with a fiscal management agency.",
     eligibilityHighlights: [
       "Have a developmental disability, physical disability, or brain injury",
@@ -1880,6 +1893,7 @@ const newMexicoPrograms: WaiverProgram[] = [
     name: "New Mexico Medically Fragile Waiver",
     shortName: "NM Medically Fragile",
     tagline: "Medicaid supports for medically complex New Mexico adults living at home",
+    savingsRange: "$18,000 – $40,000/year",
     description: "New Mexico's Medically Fragile Waiver provides home and community-based services to individuals with complex medical needs who require nursing facility level of care. Services include skilled nursing, personal care, and respite.",
     eligibilityHighlights: [
       "Have complex medical needs requiring nursing facility level of care",
@@ -1905,6 +1919,7 @@ const newYorkPrograms: WaiverProgram[] = [
     name: "New York Managed Long-Term Care (MLTC)",
     shortName: "NY MLTC",
     tagline: "Medicaid managed care for long-term services and supports in New York",
+    savingsRange: "$15,000 – $35,000/year",
     description: "New York's MLTC program integrates long-term services and supports into Medicaid managed care for individuals who need nursing home level of care. Plans coordinate home care, personal care, adult day, and other community services.",
     eligibilityHighlights: [
       "Age 21 or older (or 18+ for certain plans)",
@@ -1925,6 +1940,7 @@ const newYorkPrograms: WaiverProgram[] = [
     name: "Consumer Directed Personal Assistance Program (CDPAP)",
     shortName: "CDPAP",
     tagline: "Hire and direct your own personal care assistant through New York Medicaid",
+    savingsRange: "$8,000 – $20,000/year",
     description: "CDPAP allows Medicaid-eligible New Yorkers who need personal care to hire, train, and supervise their own personal assistants — including family members. The program maximizes consumer autonomy and is available statewide.",
     eligibilityHighlights: [
       "New York Medicaid eligible",
@@ -1950,6 +1966,7 @@ const northCarolinaPrograms: WaiverProgram[] = [
     name: "Community Alternatives Program for Disabled Adults (CAP/DA)",
     shortName: "CAP/DA",
     tagline: "Medicaid waiver providing in-home services for North Carolina adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "NC's CAP/DA waiver provides home and community-based services to adults with physical disabilities who would otherwise require nursing facility care. Services include personal care, home health, home modifications, and case management.",
     eligibilityHighlights: [
       "Age 18 or older with a physical disability",
@@ -1970,6 +1987,7 @@ const northCarolinaPrograms: WaiverProgram[] = [
     name: "NC Innovations Waiver",
     shortName: "NC Innovations",
     tagline: "Medicaid waiver for North Carolinians with intellectual and developmental disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "The NC Innovations Waiver provides home and community-based services to individuals with intellectual and developmental disabilities who need ICF/IID level of care. Services include supported living, community networking, and day supports.",
     eligibilityHighlights: [
       "Have an intellectual disability or related developmental disability",
@@ -1995,6 +2013,7 @@ const northDakotaPrograms: WaiverProgram[] = [
     name: "North Dakota HCBS Aged and Disabled Waiver",
     shortName: "ND A&D Waiver",
     tagline: "Medicaid home care for North Dakota seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "North Dakota's A&D Waiver provides home and community-based services to aged and disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and respite.",
     eligibilityHighlights: [
       "Age 65+ or adults with a physical disability",
@@ -2015,6 +2034,7 @@ const northDakotaPrograms: WaiverProgram[] = [
     name: "North Dakota Traumatic Brain Injury (TBI) Waiver",
     shortName: "ND TBI Waiver",
     tagline: "Medicaid supports for North Dakotans with traumatic brain injuries",
+    savingsRange: "$10,000 – $25,000/year",
     description: "ND's TBI Waiver provides home and community-based services to individuals with traumatic brain injuries who need nursing facility level of care. Services include supported living, behavioral support, and community transition.",
     eligibilityHighlights: [
       "Have a traumatic brain injury",
@@ -2040,6 +2060,7 @@ const ohioPrograms: WaiverProgram[] = [
     name: "Ohio PASSPORT Program",
     shortName: "PASSPORT",
     tagline: "Ohio's flagship Medicaid waiver for home and community-based care",
+    savingsRange: "$10,000 – $22,000/year",
     description: "PASSPORT is Ohio's HCBS Medicaid waiver providing home and community-based services to elderly individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, home-delivered meals, and respite.",
     eligibilityHighlights: [
       "Age 60 or older",
@@ -2060,6 +2081,7 @@ const ohioPrograms: WaiverProgram[] = [
     name: "Ohio Assisted Living Waiver",
     shortName: "OH Assisted Living",
     tagline: "Medicaid support for Ohio seniors in assisted living as an alternative to nursing homes",
+    savingsRange: "$12,000 – $28,000/year",
     description: "Ohio's Assisted Living Waiver provides Medicaid funding for services in certified assisted living facilities for individuals who need nursing facility level of care but prefer an assisted living setting.",
     eligibilityHighlights: [
       "Age 21 or older",
@@ -2086,6 +2108,7 @@ const oklahomaPrograms: WaiverProgram[] = [
     name: "Oklahoma ADvantage Waiver",
     shortName: "ADvantage",
     tagline: "Oklahoma's primary Medicaid waiver for home-based care for seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "The ADvantage Waiver provides home and community-based services to elderly and physically disabled Oklahomans who need nursing facility level of care. Services include personal care, homemaker, adult day, home modification, and case management.",
     eligibilityHighlights: [
       "Age 21+ with a physical disability, or age 65+",
@@ -2106,6 +2129,7 @@ const oklahomaPrograms: WaiverProgram[] = [
     name: "Oklahoma Community Waiver",
     shortName: "OK Community Waiver",
     tagline: "Medicaid home supports for Oklahoma adults with intellectual disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "The Oklahoma Community Waiver provides home and community-based services to individuals with intellectual disabilities and related conditions who need ICF/IID level of care. Services include supported living, day habilitation, and behavioral support.",
     eligibilityHighlights: [
       "Have an intellectual disability or related condition",
@@ -2131,6 +2155,7 @@ const oregonPrograms: WaiverProgram[] = [
     name: "Oregon K Plan (1115 HCBS Waiver)",
     shortName: "OR K Plan",
     tagline: "Oregon's comprehensive Medicaid waiver for home and community-based long-term care",
+    savingsRange: "$15,000 – $35,000/year",
     description: "Oregon's K Plan provides home and community-based services through Coordinated Care Organizations (CCOs) to individuals who need nursing facility level of care. Services include personal care, adult foster care, residential care, and case management.",
     eligibilityHighlights: [
       "Oregon Medicaid (OHP) eligible",
@@ -2151,6 +2176,7 @@ const oregonPrograms: WaiverProgram[] = [
     name: "Oregon Aged and People with Physical Disabilities (APD) Program",
     shortName: "OR APD",
     tagline: "In-home and community care services for Oregon seniors and adults with physical disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Oregon's APD program provides a range of home and community-based services to seniors and adults with physical disabilities. Services include in-home care, adult foster care, residential care, and assisted living through Oregon Medicaid.",
     eligibilityHighlights: [
       "Age 65+ or adults with a physical disability",
@@ -2176,6 +2202,7 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
     name: "Pennsylvania LIFE (Living Independence for the Elderly) Program",
     shortName: "PA LIFE",
     tagline: "PACE-model comprehensive care for Pennsylvania seniors",
+    savingsRange: "$15,000 – $35,000/year",
     description: "PA LIFE is Pennsylvania's version of PACE, providing comprehensive medical, social, and long-term care services to individuals 55 and older who qualify for nursing home level of care. Care is coordinated through local LIFE centers.",
     eligibilityHighlights: [
       "Age 55 or older",
@@ -2196,6 +2223,7 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
     name: "Pennsylvania Aging Waiver",
     shortName: "PA Aging Waiver",
     tagline: "Medicaid waiver providing home and community-based services for Pennsylvania seniors",
+    savingsRange: "$10,000 – $22,000/year",
     description: "The Pennsylvania Aging Waiver provides home and community-based services to individuals 60 and older who need nursing facility level of care. Services include personal care, homemaker, adult day, and care management coordinated through Area Agencies on Aging.",
     eligibilityHighlights: [
       "Age 60 or older",
@@ -2221,6 +2249,7 @@ const rhodeIslandPrograms: WaiverProgram[] = [
     name: "Rhode Island Global Consumer Choice Compact Waiver",
     shortName: "RI Global Waiver",
     tagline: "Rhode Island's comprehensive Medicaid waiver integrating home and community-based care",
+    savingsRange: "$15,000 – $35,000/year",
     description: "The RI Global Compact Waiver provides home and community-based services to Medicaid-eligible individuals who need nursing facility level of care. It integrates HCBS and institutional care under a single waiver with consumer choice.",
     eligibilityHighlights: [
       "Rhode Island Medicaid eligible",
@@ -2241,6 +2270,7 @@ const rhodeIslandPrograms: WaiverProgram[] = [
     name: "Rhode Island Personal Choice Program",
     shortName: "RI Personal Choice",
     tagline: "Self-directed Medicaid personal care for Rhode Island adults",
+    savingsRange: "$8,000 – $20,000/year",
     description: "Rhode Island's Personal Choice Program allows Medicaid-eligible individuals who need personal care to self-direct their services, hiring and managing their own caregivers — including family members — with fiscal intermediary support.",
     eligibilityHighlights: [
       "Rhode Island Medicaid eligible",
@@ -2266,6 +2296,7 @@ const southCarolinaPrograms: WaiverProgram[] = [
     name: "South Carolina Community Long-Term Care (CLTC)",
     shortName: "SC CLTC",
     tagline: "Medicaid home and community-based services for South Carolina seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "SC CLTC provides home and community-based services to Medicaid-eligible individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and case management coordinated through CLTC offices.",
     eligibilityHighlights: [
       "Age 65+ or adults with a physical disability",
@@ -2286,6 +2317,7 @@ const southCarolinaPrograms: WaiverProgram[] = [
     name: "South Carolina Community Choices Waiver",
     shortName: "SC Community Choices",
     tagline: "Medicaid waiver expanding home-based care options for South Carolinians",
+    savingsRange: "$10,000 – $22,000/year",
     description: "The SC Community Choices Waiver provides home and community-based services to elderly and disabled individuals who prefer community living to nursing home placement. Services include personal care, residential support, and care coordination.",
     eligibilityHighlights: [
       "Age 18 or older with a qualifying disability or age 65+",
@@ -2311,6 +2343,7 @@ const southDakotaPrograms: WaiverProgram[] = [
     name: "South Dakota HCBS Waiver for the Elderly and Disabled",
     shortName: "SD E&D Waiver",
     tagline: "Medicaid home-based services for South Dakota seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "South Dakota's E&D Waiver provides home and community-based services to elderly and disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and respite.",
     eligibilityHighlights: [
       "Age 65+ or adults with a physical disability",
@@ -2331,6 +2364,7 @@ const southDakotaPrograms: WaiverProgram[] = [
     name: "South Dakota Developmental Disabilities Waiver",
     shortName: "SD DD Waiver",
     tagline: "Medicaid supports for South Dakotans with developmental disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "SD's DD Waiver provides home and community-based services to individuals with developmental disabilities who need ICF/IID level of care. Services include supported employment, day habilitation, and community integration.",
     eligibilityHighlights: [
       "Have an intellectual disability, autism, or related developmental disability",
@@ -2356,6 +2390,7 @@ const tennesseePrograms: WaiverProgram[] = [
     name: "TennCare CHOICES in Long-Term Services and Supports",
     shortName: "CHOICES",
     tagline: "Tennessee's Medicaid managed care program for home and community-based long-term care",
+    savingsRange: "$15,000 – $35,000/year",
     description: "CHOICES provides home and community-based services to elderly and adults with physical disabilities through TennCare managed care organizations. It supports nursing home residents transitioning to the community and those at risk of nursing home placement.",
     eligibilityHighlights: [
       "Age 65+ or adults 21–64 with a physical disability",
@@ -2376,6 +2411,7 @@ const tennesseePrograms: WaiverProgram[] = [
     name: "Tennessee ECF CHOICES",
     shortName: "ECF CHOICES",
     tagline: "TennCare managed HCBS for Tennesseans with intellectual and developmental disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "ECF CHOICES provides home and community-based employment and community first services to individuals with intellectual and developmental disabilities through TennCare managed care. It supports community integration and competitive employment.",
     eligibilityHighlights: [
       "Have an intellectual disability or developmental disability",
@@ -2401,6 +2437,7 @@ const utahPrograms: WaiverProgram[] = [
     name: "Utah New Choices Waiver",
     shortName: "New Choices",
     tagline: "Medicaid waiver helping Utah nursing home residents transition to the community",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Utah's New Choices Waiver helps individuals who are in a nursing facility transition back to community living. Services include assisted living, residential support, personal care, and care management.",
     eligibilityHighlights: [
       "Currently in a nursing facility or risk of placement",
@@ -2421,6 +2458,7 @@ const utahPrograms: WaiverProgram[] = [
     name: "Utah HCBS Waiver for Individuals with Physical Disabilities",
     shortName: "UT PD Waiver",
     tagline: "Medicaid home supports for Utahns with physical disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Utah's PD Waiver provides home and community-based services to adults with physical disabilities who need nursing facility level of care. Services include personal care, supported employment, home modifications, and case management.",
     eligibilityHighlights: [
       "Age 18–64 with a physical disability",
@@ -2446,6 +2484,7 @@ const vermontPrograms: WaiverProgram[] = [
     name: "Vermont Choices for Care Waiver",
     shortName: "Choices for Care",
     tagline: "Vermont's primary Medicaid waiver for long-term care in home and community settings",
+    savingsRange: "$15,000 – $35,000/year",
     description: "Vermont's Choices for Care Waiver provides home and community-based services to individuals who are eligible for nursing home level of care. The program prioritizes consumer choice and includes personal care, home health, and adult day services.",
     eligibilityHighlights: [
       "Age 18 or older",
@@ -2466,6 +2505,7 @@ const vermontPrograms: WaiverProgram[] = [
     name: "Vermont Enhanced Residential Care Waiver",
     shortName: "VT Enhanced Residential",
     tagline: "Medicaid support for Vermont seniors in enhanced residential and assisted living settings",
+    savingsRange: "$12,000 – $28,000/year",
     description: "Vermont's Enhanced Residential Care Waiver provides Medicaid-funded services to individuals who need nursing home level of care but prefer to live in a residential care home or enhanced residential care facility.",
     eligibilityHighlights: [
       "Vermont Medicaid eligible",
@@ -2491,6 +2531,7 @@ const virginiaPrograms: WaiverProgram[] = [
     name: "Virginia Commonwealth Coordinated Care Plus (CCC+)",
     shortName: "CCC+",
     tagline: "Virginia's integrated Medicaid managed care program for long-term services and supports",
+    savingsRange: "$15,000 – $35,000/year",
     description: "CCC+ is Virginia's Medicaid managed care program integrating acute care and long-term services and supports for individuals who need nursing home level of care. Managed care plans coordinate home care, personal care, and community services.",
     eligibilityHighlights: [
       "Age 21 or older (or children in certain categories)",
@@ -2511,6 +2552,7 @@ const virginiaPrograms: WaiverProgram[] = [
     name: "Virginia Elderly or Disabled with Consumer Direction (EDCD) Waiver",
     shortName: "EDCD Waiver",
     tagline: "Self-directed Medicaid personal care for Virginia seniors and adults with disabilities",
+    savingsRange: "$8,000 – $20,000/year",
     description: "The EDCD Waiver provides personal care and respite services to elderly and disabled individuals who need nursing facility level of care. Participants can self-direct their services and hire their own caregivers, including family members.",
     eligibilityHighlights: [
       "Age 18 or older",
@@ -2536,6 +2578,7 @@ const washingtonPrograms: WaiverProgram[] = [
     name: "Washington COPES (Community Options Program Entry System)",
     shortName: "COPES",
     tagline: "Washington's long-standing Medicaid waiver for home and community-based care",
+    savingsRange: "$10,000 – $22,000/year",
     description: "COPES provides home and community-based services to adults who need nursing facility level of care. Services include personal care, adult family home, assisted living, and case management coordinated through DSHS.",
     eligibilityHighlights: [
       "Age 18 or older",
@@ -2556,6 +2599,7 @@ const washingtonPrograms: WaiverProgram[] = [
     name: "Washington Community First Choice (CFC)",
     shortName: "WA CFC",
     tagline: "Personal care and support services for Washington Medicaid members",
+    savingsRange: "$8,000 – $20,000/year",
     description: "Community First Choice provides personal care, support services, and skills training to Medicaid-eligible individuals who need assistance with daily living activities. CFC supports independence at home as an alternative to institutional care.",
     eligibilityHighlights: [
       "Washington Apple Health (Medicaid) eligible",
@@ -2581,6 +2625,7 @@ const westVirginiaPrograms: WaiverProgram[] = [
     name: "West Virginia Aged and Disabled Waiver",
     shortName: "WV A&D Waiver",
     tagline: "Medicaid home-based services for West Virginia seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "West Virginia's A&D Waiver provides home and community-based services to elderly and disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and respite care.",
     eligibilityHighlights: [
       "Age 65+ or adults with a physical disability",
@@ -2601,6 +2646,7 @@ const westVirginiaPrograms: WaiverProgram[] = [
     name: "West Virginia Intellectual/Developmental Disabilities Waiver (IIMM)",
     shortName: "WV IIMM",
     tagline: "Medicaid community supports for West Virginians with intellectual disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "The WV IIMM Waiver provides home and community-based services to individuals with intellectual and developmental disabilities who need ICF/IID level of care. Services include supported employment, day habilitation, and residential support.",
     eligibilityHighlights: [
       "Have an intellectual or developmental disability",
@@ -2626,6 +2672,7 @@ const wisconsinPrograms: WaiverProgram[] = [
     name: "Wisconsin Family Care",
     shortName: "Family Care",
     tagline: "Wisconsin's Medicaid managed long-term care program for frail elders and adults with disabilities",
+    savingsRange: "$15,000 – $35,000/year",
     description: "Wisconsin Family Care provides home and community-based services through managed care organizations to frail elderly and adults with physical or intellectual disabilities who need nursing home level of care. Services include personal care, adult day, residential care, and care management.",
     eligibilityHighlights: [
       "Age 18 or older with a qualifying disability, or age 65+",
@@ -2646,6 +2693,7 @@ const wisconsinPrograms: WaiverProgram[] = [
     name: "Wisconsin PACE Program",
     shortName: "PACE WI",
     tagline: "Comprehensive integrated care for nursing-home-eligible Wisconsin seniors",
+    savingsRange: "$15,000 – $35,000/year",
     description: "Wisconsin's PACE program provides comprehensive medical, social, and long-term care services to individuals 55 and older who qualify for nursing home level of care. PACE organizations coordinate all care through a local PACE center.",
     eligibilityHighlights: [
       "Age 55 or older",
@@ -2671,6 +2719,7 @@ const wyomingPrograms: WaiverProgram[] = [
     name: "Wyoming HCBS Waiver (Elderly and Disabled)",
     shortName: "WY HCBS Waiver",
     tagline: "Medicaid home and community-based services for Wyoming seniors and adults with disabilities",
+    savingsRange: "$10,000 – $22,000/year",
     description: "Wyoming's HCBS Waiver provides home and community-based services to elderly and disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and respite care.",
     eligibilityHighlights: [
       "Age 65+ or adults with a physical disability",
@@ -2691,6 +2740,7 @@ const wyomingPrograms: WaiverProgram[] = [
     name: "Wyoming Intellectual and Developmental Disabilities Waiver",
     shortName: "WY IDD Waiver",
     tagline: "Medicaid community supports for Wyomingites with intellectual and developmental disabilities",
+    savingsRange: "$12,000 – $30,000/year",
     description: "Wyoming's IDD Waiver provides home and community-based services to individuals with intellectual and developmental disabilities who need ICF/IID level of care. Services include supported living, day habilitation, and community integration.",
     eligibilityHighlights: [
       "Have an intellectual disability or developmental disability",

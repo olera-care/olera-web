@@ -309,25 +309,27 @@ export default function OleraProPage() {
 
   // Preview mode: cycle through views before Stripe is connected
   // Remove this block once Stripe integration is live
-  const [previewStatus, setPreviewStatus] = useState<"free" | "active" | "canceled">("free");
+  const [previewStatus, setPreviewStatus] = useState<"free" | "trialing" | "active" | "canceled">("free");
 
   // Membership state (preview overrides real status)
   const status = membership?.status;
-  const isSubscribed = previewStatus === "active" || (!previewStatus && status === "active");
-  const isTrial = previewStatus === "free" ? false : status === "trialing";
+  const isTrial = previewStatus === "trialing" || (!previewStatus && status === "trialing");
+  const isSubscribed = previewStatus === "active" || isTrial || (!previewStatus && status === "active");
   const isCanceled = previewStatus === "canceled" || (!previewStatus && status === "canceled");
   const isPastDue = previewStatus ? false : status === "past_due";
 
-  // Trial days remaining
-  const trialDaysLeft = membership?.trial_ends_at
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(membership.trial_ends_at).getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
+  // Trial days remaining (use real data or mock 10 days for preview)
+  const trialDaysLeft = previewStatus === "trialing"
+    ? 10
+    : membership?.trial_ends_at
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(membership.trial_ends_at).getTime() - Date.now()) /
+              (1000 * 60 * 60 * 24)
+          )
         )
-      )
-    : null;
+      : null;
 
   // Next billing date
   const nextBillingDate = membership?.current_period_ends_at
@@ -367,7 +369,7 @@ export default function OleraProPage() {
   // Preview toggle — remove once Stripe integration is live
   const previewToggle = (
     <div className="fixed bottom-4 right-4 z-50 flex items-center gap-1 bg-white/90 backdrop-blur border border-gray-200 rounded-full px-1 py-1 shadow-lg">
-      {(["free", "active", "canceled"] as const).map((s) => (
+      {(["free", "trialing", "active", "canceled"] as const).map((s) => (
         <button
           key={s}
           type="button"
@@ -378,7 +380,7 @@ export default function OleraProPage() {
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          {s === "free" ? "Free" : s === "active" ? "Pro" : "Canceled"}
+          {s === "free" ? "Free" : s === "trialing" ? "Trial" : s === "active" ? "Pro" : "Canceled"}
         </button>
       ))}
     </div>

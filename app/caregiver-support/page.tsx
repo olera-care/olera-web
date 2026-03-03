@@ -152,7 +152,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
   const secondary = articles.slice(1, 4);
 
   return (
-    <section className="mb-12 md:mb-16">
+    <section className="mb-8 md:mb-10">
       {/* Grid: primary IMAGE aligned with secondary articles */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
         {/* Primary image — 3/5 width */}
@@ -160,7 +160,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
           href={`/caregiver-support/${primary.slug}`}
           className="group lg:col-span-3 block"
         >
-          <div className="aspect-[3/2] rounded-lg overflow-hidden">
+          <div className="aspect-[16/9] rounded-lg overflow-hidden">
             <img
               src={primary.coverImage}
               alt={primary.title}
@@ -206,10 +206,10 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
 function FeaturedSkeleton() {
   return (
     <>
-      <section className="mb-12 md:mb-16">
+      <section className="mb-8 md:mb-10">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
           <div className="lg:col-span-3">
-            <div className="aspect-[3/2] bg-gray-100 rounded-lg animate-pulse mb-5" />
+            <div className="aspect-[16/9] bg-gray-100 rounded-lg animate-pulse mb-5" />
             <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mb-3" />
             <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
@@ -228,7 +228,7 @@ function FeaturedSkeleton() {
           </div>
         </div>
       </section>
-      <div className="border-t border-gray-100 mb-12 md:mb-16" />
+      <div className="border-t border-gray-100 mb-8 md:mb-10" />
     </>
   );
 }
@@ -349,12 +349,12 @@ function CaregiverSupportContent() {
   return (
     <main className="min-h-screen bg-white">
       {/* ---- Hero Header ---- */}
-      <header className="pt-12 pb-8 md:pt-16 md:pb-10">
+      <header className="pt-12 pb-4 md:pt-16 md:pb-5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="font-display text-display-md md:text-display-lg text-gray-900 tracking-tight">
             Caregiver Support
           </h1>
-          <p className="mt-3 text-text-lg text-gray-400 max-w-xl">
+          <p className="mt-2 text-text-lg text-gray-400 max-w-xl">
             Guides, insights, and practical advice for every stage of the care journey.
           </p>
         </div>
@@ -368,7 +368,7 @@ function CaregiverSupportContent() {
           ) : featuredArticles.length > 0 ? (
             <>
               <FeaturedSection articles={featuredArticles.slice(0, 4)} />
-              <div className="border-t border-gray-100 mb-12 md:mb-16" />
+              <div className="border-t border-gray-100 mb-8 md:mb-10" />
             </>
           ) : null
         )}
@@ -451,18 +451,18 @@ function LoadingSkeleton() {
   return (
     <main className="min-h-screen bg-white">
       {/* Hero skeleton */}
-      <div className="pt-12 pb-8 md:pt-16 md:pb-10">
+      <div className="pt-12 pb-4 md:pt-16 md:pb-5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="h-10 w-72 bg-gray-100 rounded-lg animate-pulse" />
-          <div className="h-5 w-96 bg-gray-100 rounded mt-4 animate-pulse" />
+          <div className="h-5 w-96 bg-gray-100 rounded mt-2 animate-pulse" />
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         {/* Featured skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14 mb-16 md:mb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14 mb-8 md:mb-10">
           <div className="lg:col-span-3">
-            <div className="aspect-[3/2] bg-gray-100 rounded-lg animate-pulse mb-5" />
+            <div className="aspect-[16/9] bg-gray-100 rounded-lg animate-pulse mb-5" />
             <div className="h-3 w-20 bg-gray-100 rounded animate-pulse mb-3" />
             <div className="h-7 w-4/5 bg-gray-100 rounded animate-pulse mb-2" />
             <div className="h-7 w-3/5 bg-gray-100 rounded animate-pulse" />
@@ -482,7 +482,7 @@ function LoadingSkeleton() {
         </div>
 
         {/* Divider skeleton */}
-        <div className="border-t border-gray-100 mb-12 md:mb-16" />
+        <div className="border-t border-gray-100 mb-8 md:mb-10" />
 
         {/* Filter skeleton */}
         <div className="flex gap-2 mb-10 md:mb-14">

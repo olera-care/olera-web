@@ -509,7 +509,7 @@ export default function Navbar() {
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
         }}
       >
-        <div className={isMinimalNav ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"}>
+        <div className={isMinimalNav ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"}>
           {/*
            * 3-column layout: Left | Center Nav | Right
            *
@@ -918,8 +918,8 @@ export default function Navbar() {
                                   icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
                                 },
                                 {
-                                  label: "Account", href: "/portal/profile", badge: 0,
-                                  active: pathname.startsWith("/portal/profile"),
+                                  label: "Account", href: "/provider/profile", badge: 0,
+                                  active: pathname.startsWith("/provider/profile"),
                                   icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
                                 },
                               ].map((item) => (

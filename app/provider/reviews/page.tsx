@@ -12,24 +12,27 @@ export default function ProviderReviewsPage() {
   const [email, setEmail] = useState(user?.email || "");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleNotify(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
     setSubmitting(true);
+    setError("");
     try {
       if (isSupabaseConfigured()) {
         const supabase = createClient();
-        await supabase.from("feature_waitlist").upsert(
+        const { error: dbError } = await supabase.from("feature_waitlist").upsert(
           { feature: "reviews", email: email.trim(), profile_id: providerProfile?.id || null },
           { onConflict: "feature,email" },
         );
+        if (dbError) throw dbError;
       }
+      setSubmitted(true);
     } catch {
-      // Graceful — still show success
+      setError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
-      setSubmitted(true);
     }
   }
 
@@ -79,6 +82,7 @@ export default function ProviderReviewsPage() {
             <p className="text-xs text-gray-400 mt-2.5">
               We&apos;ll send one email when reviews launches. No spam.
             </p>
+            {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
           </form>
         ) : (
           <div className="mb-8">

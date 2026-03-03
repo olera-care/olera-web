@@ -22,7 +22,6 @@ const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
 const STEP_KEY = "olera_onboarding_step";
 const SEARCH_KEY = "olera_onboarding_search";
-const CLAIM_KEY = "olera_onboarding_claim";
 const RESULTS_PER_PAGE = 6;
 
 const ORG_CATEGORIES: { value: string; label: string }[] = [
@@ -139,10 +138,11 @@ function ProviderOnboardingContent() {
   const [searchError, setSearchError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Location dropdown state (single input drives both name + city search)
+  // Location input state (separate from name search)
+  const [locationQuery, setLocationQuery] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const locationDropdownRef = useRef<HTMLDivElement>(null);
-  const { results: cityResults, preload: preloadCities } = useCitySearch(searchQuery);
+  const { results: cityResults, preload: preloadCities } = useCitySearch(locationQuery);
 
   // Step 3 city picker state
   const [cityQuery, setCityQuery] = useState("");
@@ -226,7 +226,7 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
+  
       } catch {
         // localStorage unavailable
       }
@@ -306,11 +306,9 @@ function ProviderOnboardingContent() {
       // For org flow: if they were on step 2-5, go there directly.
       if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
         setStep(savedStep);
-      } else if (savedStep === "verify" && claimingProvider) {
-        // Resume directly to verify — the claimed provider was restored from localStorage.
-        // OTP code is NOT persisted (time-sensitive), so user will need to request a new code.
-        setStep("verify");
       } else {
+        // "verify" step can't resume (claimingProvider not persisted, claimSession not available).
+        // Fall through to search — user can re-initiate claim from search results.
         // Default: go to search. If there's a saved query, auto-search.
         setStep("search");
         if (searchQuery.trim()) {
@@ -332,7 +330,7 @@ function ProviderOnboardingContent() {
       localStorage.removeItem(DATA_KEY);
       localStorage.removeItem(STEP_KEY);
       localStorage.removeItem(SEARCH_KEY);
-      localStorage.removeItem(CLAIM_KEY);
+
     } catch {
       // localStorage unavailable
     }
@@ -447,8 +445,10 @@ function ProviderOnboardingContent() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const q = searchQuery.trim();
-    if (!q || !isSupabaseConfigured()) return;
+    const name = searchQuery.trim();
+    const loc = locationQuery.trim();
+    if (!name && !loc) return;
+    if (!isSupabaseConfigured()) return;
     setSearching(true);
     setSearchError("");
     setShowLocationDropdown(false);
@@ -462,40 +462,22 @@ function ProviderOnboardingContent() {
         .select("*")
         .not("deleted", "is", true);
 
-      // Smart search: detect name + location patterns
-      // Pattern 1: "Name City, ST" (e.g. "Allied Home Health Houston, TX")
-      const nameCityState = q.match(/^(.+?)\s+([\w][\w\s]*),\s*([A-Za-z]{2})$/);
-      // Pattern 2: "City, ST" only (e.g. "Houston, TX")
-      const cityState = q.split(",").map((s: string) => s.trim());
-      const isCityState = cityState.length >= 2 && cityState[1].length <= 3;
-      // Pattern 3: "Name ST" (e.g. "Allied Home Health TX")
-      const nameState = q.match(/^(.+?)\s+([A-Za-z]{2})$/);
+      // Apply name filter if provided
+      if (name) {
+        query = query.ilike("provider_name", `%${name}%`);
+      }
 
-      if (nameCityState) {
-        // "Allied Home Health Houston, TX" → name AND city AND state
-        query = query
-          .ilike("provider_name", `%${nameCityState[1].trim()}%`)
-          .ilike("city", `%${nameCityState[2].trim()}%`)
-          .ilike("state", `%${nameCityState[3].trim()}%`);
-      } else if (isCityState && !cityState[0].includes(" ")) {
-        // "Houston, TX" — single-word city, no provider name
-        query = query.ilike("city", `%${cityState[0]}%`);
-        query = query.ilike("state", `%${cityState[1]}%`);
-      } else if (isCityState && cityState[0].includes(" ")) {
-        // "Allied Home Health, TX" — multi-word + state
-        query = query
-          .ilike("provider_name", `%${cityState[0]}%`)
-          .ilike("state", `%${cityState[1]}%`);
-      } else if (nameState && nameState[1].includes(" ") && nameState[2].length === 2) {
-        // "Allied Home Health TX" — multi-word name + 2-letter state
-        query = query
-          .ilike("provider_name", `%${nameState[1].trim()}%`)
-          .ilike("state", `%${nameState[2].trim()}%`);
-      } else {
-        // General fallback: match name, city, or state
-        query = query.or(
-          `provider_name.ilike.%${q}%,city.ilike.%${q}%,state.ilike.%${q}%`
-        );
+      // Apply location filter if provided
+      if (loc) {
+        const parts = loc.split(",").map((s: string) => s.trim());
+        if (parts.length >= 2 && parts[1].length <= 3) {
+          // "Houston, TX" format → city AND state
+          query = query.ilike("city", `%${parts[0]}%`);
+          query = query.ilike("state", `%${parts[1]}%`);
+        } else {
+          // Single term → match city or state
+          query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+        }
       }
 
       const { data: providers, error: providerErr } = await query.limit(20);
@@ -622,7 +604,7 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
+  
       } catch {
         // localStorage unavailable (SSR or private mode)
       }
@@ -844,16 +826,17 @@ function ProviderOnboardingContent() {
                   try {
                     if (isSupabaseConfigured()) {
                       const supabase = createClient();
-                      await supabase.from("feature_waitlist").upsert(
+                      const { error } = await supabase.from("feature_waitlist").upsert(
                         { feature: "caregiver_onboarding", email: caregiverEmail.trim(), profile_id: null },
                         { onConflict: "feature,email" },
                       );
+                      if (error) throw error;
                     }
+                    setCaregiverNotified(true);
                   } catch {
-                    // Graceful — still show success
+                    alert("Something went wrong. Please try again.");
                   } finally {
                     setCaregiverNotifying(false);
-                    setCaregiverNotified(true);
                   }
                 }}
                 className="w-full max-w-sm mb-3"
@@ -916,73 +899,91 @@ function ProviderOnboardingContent() {
                   </p>
                 </div>
 
-                {/* Single search bar with location dropdown on focus */}
+                {/* Two-field search: Name + Location */}
                 <form onSubmit={handleSearch}>
-                  <div ref={locationDropdownRef} className="relative">
-                    <div className="flex items-center rounded-2xl shadow-sm ring-1 ring-gray-200 bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:shadow-md transition-all">
-                      <div className="pl-5 flex items-center pointer-events-none shrink-0">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                      </div>
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                    {/* Name input */}
+                    <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
                       <input
                         type="text"
-                        aria-label="Search by name or location"
+                        aria-label="Organization name"
                         value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setShowLocationDropdown(true);
-                        }}
-                        onFocus={() => {
-                          preloadCities();
-                          setShowLocationDropdown(true);
-                        }}
-                        placeholder="Search by name or location…"
-                        className="w-full px-4 text-lg bg-transparent border-none outline-none placeholder-gray-400"
-                        style={{ paddingTop: '20px', paddingBottom: '20px' }}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Organization name"
+                        className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
                       />
-                      <div className="pr-3 shrink-0">
-                        <button
-                          type="submit"
-                          disabled={searching || !searchQuery.trim()}
-                          className="px-7 py-3.5 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                        >
-                          {searching ? (
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            "Search"
-                          )}
-                        </button>
-                      </div>
                     </div>
 
-                    {/* Location suggestions dropdown */}
-                    {showLocationDropdown && cityResults.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                        {!searchQuery.trim() && (
-                          <div className="px-4 pt-1 pb-2">
-                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                          </div>
-                        )}
-                        {cityResults.map((loc) => (
-                          <button
-                            key={loc.full}
-                            type="button"
-                            onClick={() => {
-                              setSearchQuery(loc.full);
-                              setShowLocationDropdown(false);
-                            }}
-                            className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
-                          >
-                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span className="font-medium text-gray-700">{loc.full}</span>
-                          </button>
-                        ))}
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
+
+                    {/* Location input with dropdown */}
+                    <div ref={locationDropdownRef} className="relative flex-1">
+                      <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
+                        showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                      }`}>
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <input
+                          type="text"
+                          aria-label="City or state"
+                          value={locationQuery}
+                          onChange={(e) => {
+                            setLocationQuery(e.target.value);
+                            setShowLocationDropdown(true);
+                          }}
+                          onFocus={() => {
+                            preloadCities();
+                            setShowLocationDropdown(true);
+                          }}
+                          placeholder="City or state"
+                          className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                        />
                       </div>
-                    )}
+
+                      {/* Location suggestions dropdown */}
+                      {showLocationDropdown && cityResults.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                          {!locationQuery.trim() && (
+                            <div className="px-4 pt-1 pb-2">
+                              <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                            </div>
+                          )}
+                          {cityResults.map((loc) => (
+                            <button
+                              key={loc.full}
+                              type="button"
+                              onClick={() => {
+                                setLocationQuery(loc.full);
+                                setShowLocationDropdown(false);
+                              }}
+                              className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                            >
+                              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="font-medium text-gray-700">{loc.full}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Search button */}
+                    <button
+                      type="submit"
+                      disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
+                      className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all sm:shrink-0"
+                    >
+                      {searching ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                      ) : (
+                        "Search"
+                      )}
+                    </button>
                   </div>
 
                   {searchError && (
@@ -1009,76 +1010,96 @@ function ProviderOnboardingContent() {
               <div className="w-full pb-24">
                 {/* Sticky search bar */}
                 <div className="sticky top-[65px] z-40 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4">
-                  <div className="max-w-2xl mx-auto py-4">
+                  <div className="max-w-2xl mx-auto py-3">
                     <form onSubmit={handleSearch}>
-                      <div ref={locationDropdownRef} className="relative">
-                        <div className="flex items-center rounded-xl bg-white ring-1 ring-gray-200 focus-within:ring-2 focus-within:ring-primary-500 transition-all shadow-sm">
-                          <div className="pl-4 flex items-center pointer-events-none shrink-0">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                          </div>
+                      <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-200/80 p-2.5 flex items-center gap-2.5">
+                        {/* Name input */}
+                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
                           <input
                             type="text"
-                            aria-label="Search by name or location"
+                            aria-label="Organization name"
                             value={searchQuery}
-                            onChange={(e) => {
-                              setSearchQuery(e.target.value);
-                              setShowLocationDropdown(true);
-                            }}
-                            onFocus={() => {
-                              preloadCities();
-                              setShowLocationDropdown(true);
-                            }}
-                            placeholder="Search by name or location…"
-                            className="flex-1 px-3 py-3 text-base bg-transparent border-none outline-none placeholder-gray-400"
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Organization name"
+                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
                           />
-                          <div className="pr-1.5 shrink-0">
-                            <button
-                              type="submit"
-                              disabled={searching || !searchQuery.trim()}
-                              className="px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                            >
-                              {searching ? (
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                "Search"
-                              )}
-                            </button>
-                          </div>
                         </div>
-                        {/* Location suggestions dropdown */}
-                        {showLocationDropdown && cityResults.length > 0 && (
-                          <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                            {!searchQuery.trim() && (
-                              <div className="px-4 pt-1 pb-2">
-                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                              </div>
-                            )}
-                            {cityResults.map((loc) => (
-                              <button
-                                key={loc.full}
-                                type="button"
-                                onClick={() => {
-                                  setSearchQuery(loc.full);
-                                  setShowLocationDropdown(false);
-                                }}
-                                className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-base hover:bg-gray-50 transition-colors"
-                              >
-                                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span className="font-medium text-gray-700">{loc.full}</span>
-                              </button>
-                            ))}
+
+                        {/* Divider */}
+                        <div className="w-px h-7 bg-gray-200 shrink-0" />
+
+                        {/* Location input with dropdown */}
+                        <div ref={locationDropdownRef} className="relative flex-1 min-w-0">
+                          <div className={`flex items-center px-3.5 py-2.5 bg-gray-50 rounded-lg border transition-colors ${
+                            showLocationDropdown ? "border-primary-400 ring-1 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                          }`}>
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <input
+                              type="text"
+                              aria-label="City or state"
+                              value={locationQuery}
+                              onChange={(e) => {
+                                setLocationQuery(e.target.value);
+                                setShowLocationDropdown(true);
+                              }}
+                              onFocus={() => {
+                                preloadCities();
+                                setShowLocationDropdown(true);
+                              }}
+                              placeholder="City or state"
+                              className="w-full ml-2.5 bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+                            />
                           </div>
-                        )}
+
+                          {/* Location suggestions dropdown */}
+                          {showLocationDropdown && cityResults.length > 0 && (
+                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                              {!locationQuery.trim() && (
+                                <div className="px-4 pt-1 pb-2">
+                                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                                </div>
+                              )}
+                              {cityResults.map((loc) => (
+                                <button
+                                  key={loc.full}
+                                  type="button"
+                                  onClick={() => {
+                                    setLocationQuery(loc.full);
+                                    setShowLocationDropdown(false);
+                                  }}
+                                  className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
+                                >
+                                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  <span className="font-medium text-gray-700">{loc.full}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Search button */}
+                        <button
+                          type="submit"
+                          disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
+                          className="px-5 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                        >
+                          {searching ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            "Search"
+                          )}
+                        </button>
                       </div>
                     </form>
-                    <div className="mt-3">
+                    <div className="mt-2.5">
                       <p className="text-sm text-gray-500">
-                        {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
+                        {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}{searchQuery.trim() || locationQuery.trim() ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
                       </p>
                     </div>
                   </div>
@@ -1301,27 +1322,36 @@ function ProviderOnboardingContent() {
 
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (
-              <div className="w-full max-w-xl mx-auto text-center pb-24">
-                <div className="w-16 h-16 rounded-full bg-vanilla-100 ring-1 ring-gray-200 flex items-center justify-center mx-auto mb-8">
-                  <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="w-full max-w-md mx-auto text-center pb-24">
+                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
 
-                <h2 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight mb-4">
+                <h2 className="text-2xl font-display font-semibold text-gray-900 mb-2">
                   No matches found
                 </h2>
-                <p className="text-gray-500 text-lg leading-relaxed mb-6">
-                  We couldn&apos;t find any listings for &ldquo;{searchQuery}&rdquo;
+                <p className="text-gray-500 text-base leading-relaxed mb-8">
+                  We couldn&apos;t find any listings{(searchQuery.trim() || locationQuery.trim()) ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() => setHasSearched(false)}
-                  className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
-                >
-                  Try a different search
-                </button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setHasSearched(false)}
+                    className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                  >
+                    Try a different search
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors"
+                  >
+                    Create new listing
+                  </button>
+                </div>
               </div>
             )}
           </>
@@ -1745,7 +1775,7 @@ function ProviderOnboardingContent() {
                 Services offered
               </h1>
               <p className="text-gray-500 mt-3 text-base">
-                Select the care types you provide. You can always update these later.
+                Select at least one care type you provide. You can always update these later.
               </p>
             </div>
 
@@ -1938,13 +1968,13 @@ function ProviderOnboardingContent() {
               : step === "verify"
               ? verifyCode.length !== 6 || verifyChecking
               : step === 2
-              ? !data.displayName.trim()
+              ? !data.displayName.trim() || (providerType === "organization" && !data.category)
               : step === 3
               ? !data.city.trim()
               : step === 4
-              ? !data.phone.trim() || !data.email.trim()
+              ? !data.phone.trim() || data.phone.replace(/\D/g, "").length < 10 || !data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)
               : step === 5
-              ? !data.displayName.trim() || submitting
+              ? !data.displayName.trim() || data.careTypes.length === 0 || submitting
               : false
           }
           nextLoading={

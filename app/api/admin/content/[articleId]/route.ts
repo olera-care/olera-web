@@ -11,6 +11,7 @@ const EDITABLE_FIELDS = new Set([
   "cover_image_url",
   "care_types",
   "category",
+  "section",
   "author_name",
   "author_role",
   "author_avatar",

@@ -3,10 +3,12 @@
  * Maps to the `content_articles` Supabase table.
  */
 
-import { CareTypeId } from "./forum";
-import { ResourceCategory } from "./resource";
+import type { CareTypeId } from "./forum";
+import type { ResourceCategory } from "./resource";
 
 export type ContentStatus = "draft" | "published" | "archived";
+
+export type ContentSection = "caregiver-support" | "research-and-press";
 
 /**
  * Full article row from `content_articles`.
@@ -22,6 +24,7 @@ export interface ContentArticle {
   cover_image_url: string | null;
   care_types: CareTypeId[];
   category: ResourceCategory;
+  section: ContentSection;
   author_name: string;
   author_role: string;
   author_avatar: string | null;
@@ -59,6 +62,7 @@ export interface ContentArticleListItem {
   cover_image_url: string | null;
   care_types: CareTypeId[];
   category: ResourceCategory;
+  section: ContentSection;
   author_name: string;
   status: ContentStatus;
   featured: boolean;

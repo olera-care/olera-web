@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const careType = searchParams.get("care_type") || "";
     const category = searchParams.get("category") || "";
     const featured = searchParams.get("featured");
+    const section = searchParams.get("section") || "caregiver-support";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const perPage = Math.min(200, Math.max(1, parseInt(searchParams.get("per_page") || "20", 10)));
 
@@ -21,10 +22,11 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("content_articles")
       .select(
-        "id, slug, title, subtitle, excerpt, cover_image_url, care_types, category, author_name, author_role, author_avatar, featured, reading_time, tags, published_at",
+        "id, slug, title, subtitle, excerpt, cover_image_url, care_types, category, section, author_name, author_role, author_avatar, featured, reading_time, tags, published_at",
         { count: "exact" }
       )
       .eq("status", "published")
+      .eq("section", section)
       .not("published_at", "is", null);
 
     if (careType) {

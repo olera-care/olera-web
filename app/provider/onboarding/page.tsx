@@ -259,6 +259,23 @@ function ProviderOnboardingContent() {
     }
   }, [user, profiles, isLoading, isAdding, router]);
 
+  // Read landing-page prefill from sessionStorage (set by /for-providers CTA buttons)
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    try {
+      const raw = sessionStorage.getItem("olera_provider_search_prefill");
+      if (!raw) return;
+      sessionStorage.removeItem("olera_provider_search_prefill");
+      prefillApplied.current = true;
+      const { searchQuery: sq, locationQuery: lq } = JSON.parse(raw);
+      if (sq) setSearchQuery(sq);
+      if (lq) setLocationQuery(lq);
+    } catch {
+      // sessionStorage unavailable or corrupt
+    }
+  }, []);
+
   const update = (key: keyof WizardData, value: string | string[]) => {
     setData((prev) => {
       const next = { ...prev, [key]: value };
@@ -289,7 +306,17 @@ function ProviderOnboardingContent() {
 
   const handleStep1Next = () => {
     if (!providerType) return;
-    setStep(providerType === "organization" ? "search" : 2);
+    if (providerType === "organization") {
+      setStep("search");
+      // Auto-search if prefilled values exist
+      if (searchQuery.trim() || locationQuery.trim()) {
+        setTimeout(() => {
+          handleSearch({ preventDefault: () => {} } as React.FormEvent);
+        }, 0);
+      }
+    } else {
+      setStep(2);
+    }
   };
 
   const handleResume = () => {

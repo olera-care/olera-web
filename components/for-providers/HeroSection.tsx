@@ -1,13 +1,39 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 
+const PREFILL_KEY = "olera_provider_search_prefill";
+
 export default function HeroSection() {
-  const { openAuth } = useAuth();
+  const { user, openAuth } = useAuth();
+  const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
 
   const handleGetStarted = () => {
-    openAuth({ intent: "provider" });
+    const val = searchInput.trim();
+    if (val) {
+      const isZip = /^\d{5}$/.test(val);
+      try {
+        sessionStorage.setItem(
+          PREFILL_KEY,
+          JSON.stringify({
+            searchQuery: isZip ? "" : val,
+            locationQuery: isZip ? val : "",
+          }),
+        );
+      } catch {
+        /* sessionStorage unavailable */
+      }
+    }
+
+    if (user) {
+      router.push("/provider/onboarding");
+    } else {
+      openAuth({ intent: "provider" });
+    }
   };
 
   return (
@@ -26,8 +52,8 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-transparent" />
 
       {/* Content overlay */}
-      <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 lg:pb-20">
-        <div className="max-w-[1312px] mx-auto w-full relative">
+      <div className="relative z-10 flex flex-col justify-end h-full min-h-[400px] sm:min-h-[460px] lg:min-h-[520px] pb-12 sm:pb-16 lg:pb-20">
+        <div className="max-w-7xl mx-auto w-full relative px-4 sm:px-6 lg:px-8">
           <div className="max-w-xl">
             <h1 className="font-serif text-display-md sm:text-display-lg lg:text-display-xl font-bold text-white leading-tight">
               Reach more families
@@ -55,9 +81,12 @@ export default function HeroSection() {
                 <input
                   type="text"
                   placeholder="Business name or zip code"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleGetStarted();
+                  }}
                   className="w-full pl-11 pr-4 py-3 rounded-lg bg-white text-text-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  onFocus={handleGetStarted}
-                  readOnly
                 />
               </div>
               <button

@@ -1,13 +1,40 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 
+const PREFILL_KEY = "olera_provider_search_prefill";
+
 export default function SetUpProfileSection() {
-  const { openAuth } = useAuth();
+  const { user, openAuth } = useAuth();
+  const router = useRouter();
+  const [businessName, setBusinessName] = useState("");
+  const [zipCode, setZipCode] = useState("");
 
   const handleGetStarted = () => {
-    openAuth({ intent: "provider" });
+    const name = businessName.trim();
+    const zip = zipCode.trim();
+    if (name || zip) {
+      try {
+        sessionStorage.setItem(
+          PREFILL_KEY,
+          JSON.stringify({
+            searchQuery: name,
+            locationQuery: zip,
+          }),
+        );
+      } catch {
+        /* sessionStorage unavailable */
+      }
+    }
+
+    if (user) {
+      router.push("/provider/onboarding");
+    } else {
+      openAuth({ intent: "provider" });
+    }
   };
 
   return (
@@ -36,9 +63,12 @@ export default function SetUpProfileSection() {
                   <input
                     id="business-name"
                     type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleGetStarted();
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-text-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    onFocus={handleGetStarted}
-                    readOnly
                   />
                 </div>
 
@@ -52,9 +82,12 @@ export default function SetUpProfileSection() {
                   <input
                     id="zip-code"
                     type="text"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleGetStarted();
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-text-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    onFocus={handleGetStarted}
-                    readOnly
                   />
                 </div>
               </div>

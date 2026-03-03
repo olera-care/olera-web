@@ -35,7 +35,7 @@ export default function UpgradePrompt({
       </p>
       <div className="space-y-2">
         <Link
-          href="/portal/settings"
+          href="/provider/pro"
           className="block w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors text-center min-h-[44px]"
         >
           Upgrade — $25/month

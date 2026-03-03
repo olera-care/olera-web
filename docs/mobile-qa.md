@@ -29,37 +29,37 @@ When you open a page on your phone, look for these same things every time:
 | 2 | Browse | `/browse` | ✅ Done | Cards, pagination |
 | 3 | Provider detail | `/provider/[slug]` | ✅ Done | Gallery, sticky CTA, bottom sheets |
 | 4 | Hamburger menu + Auth modal | — | ⬜ | Sign in, sign up, profile switcher |
-| 5 | Browse — Providers | `/browse/providers` | ⬜ | Filter chips, map view, pagination |
-| 6 | Browse — Caregivers | `/browse/caregivers` | ⬜ | Same checks as above |
-| 7 | Community | `/community` | ⬜ | Category tabs, post cards |
-| 8 | Community post | `/community/post/[slug]` | ⬜ | Article body, comment thread, reply input |
-| 9 | Caregiver support article | `/caregiver-support/[slug]` | ⬜ | Article text, images, content width |
-| 10 | Benefits finder | `/benefits/finder` | ⬜ | Multi-step form, step nav buttons |
-| 11 | For Providers landing | `/for-providers` | ⬜ | Hero, pricing cards, feature list |
-| 12 | Provider onboarding wizard | `/for-providers/create` | ⬜ | Wizard steps, form inputs, progress bar |
-| 13 | Claim listing | `/for-providers/claim/[slug]` | ⬜ | Minimal nav, each step renders |
-| 14 | Removal request | `/for-providers/removal-request/[slug]` | ⬜ | No main nav, form fields, sticky submit |
-| 15 | Family portal — Dashboard | `/portal` | ⬜ | No split-view, tabs/sidebar collapse |
-| 16 | Family portal — Inbox | `/portal/inbox` | ⬜ | Conversation list, thread, keyboard |
-| 17 | Family portal — Connections | `/portal/connections` | ⬜ | Status tabs, list single column |
-| 18 | Family portal — Connection detail | `/portal/connections/[id]` | ⬜ | Stacks correctly, action buttons |
-| 19 | Family portal — Matches | `/portal/matches` | ⬜ | Cards, action buttons |
-| 20 | Family portal — Discover | `/portal/discover/providers` | ⬜ | Cards, filters |
-| 21 | Family portal — Saved | `/portal/saved` | ⬜ | Saved cards, empty state |
-| 22 | Family portal — Profile | `/portal/profile` | ⬜ | Edit form, photo upload, save button |
-| 23 | Family portal — Settings | `/portal/settings` | ⬜ | List items, delete account |
-| 24 | Provider hub — Dashboard | `/provider` | ⬜ | Stats stack, sidebar collapses |
-| 25 | Provider hub — Inbox | `/provider/inbox` | ⬜ | Thread view, keyboard-safe input |
-| 26 | Provider hub — Connections | `/provider/connections` | ⬜ | Inquiry list, detail view |
-| 27 | Provider hub — Profile | `/provider/profile` | ⬜ | Edit form stacks, photo upload |
-| 28 | Provider hub — Reviews | `/provider/reviews` | ⬜ | Review cards, star ratings |
-| 29 | Provider hub — Pro | `/provider/pro` | ⬜ | Pricing card, upgrade button full-width |
-| 30 | Provider hub — Verification | `/provider/verification` | ⬜ | Status, steps readable |
-| 31 | Provider hub — Q&A | `/provider/qna` | ⬜ | List readable, add question input |
-| 32 | Team page | `/team` | ⬜ | Team member cards stack |
-| 33 | Research & Press article | `/research-and-press/[slug]` | ⬜ | Article content readable |
-| 34 | Connected confirmation | `/connected/[connectionId]` | ⬜ | Confirmation page fits screen |
-| 35 | Public saved | `/saved` | ⬜ | Cards single column |
+| 5 | Browse — Providers | `/browse/providers` | ✅ Done | Filters, map view, pagination — passed |
+| 6 | Browse — Caregivers | `/browse/caregivers` | ✅ Done | Filters, map view, pagination — passed |
+| 7 | Community | `/community` | ✅ Done | Composer padding fixed — PR #110 |
+| 8 | Community post | `/community/post/[slug]` | ✅ Done | max-w-3xl container, comment form stacks cleanly |
+| 9 | Caregiver support article | `/caregiver-support/[slug]` | ✅ Done | px-5 container, TOC hidden on mobile, prose readable |
+| 10 | Benefits finder | `/benefits/finder` | ✅ Done | max-w-lg centered form, full-width inputs |
+| 11 | For Providers landing | `/for-providers` | ✅ Done | Hero search bar stacks, all sections responsive |
+| 12 | Provider onboarding wizard | `/for-providers/create` | ⏭ Skip | Redirects to /onboarding |
+| 13 | Claim listing | `/for-providers/claim/[slug]` | ✅ Done | Minimal nav — PR #105 |
+| 14 | Removal request | `/for-providers/removal-request/[slug]` | ✅ Done | Dedicated page, sticky submit — PR #105 |
+| 15 | Family portal — Dashboard | `/portal` | ⏭ Skip | Redirects to /portal/inbox |
+| 16 | Family portal — Inbox | `/portal/inbox` | ✅ Done | Split view collapses: list hides when thread selected, back btn |
+| 17 | Family portal — Connections | `/portal/connections` | ✅ Done | Tab bar full-width on mobile — PR #110 |
+| 18 | Family portal — Connection detail | `/portal/connections/[id]` | ✅ Done | Grids collapse, buttons stack — PR #110 |
+| 19 | Family portal — Matches | `/portal/matches` | ✅ Done | grid-cols-1 lg:grid-cols-3 — sidebar below content on mobile |
+| 20 | Family portal — Discover | `/portal/discover/providers` | ✅ Done | Padding fixed px-8→px-4 sm:px-8 — PR #111 |
+| 21 | Family portal — Saved | `/portal/saved` | ✅ Done | grid-cols-1 sm:grid-cols-2, banner flex-wrap |
+| 22 | Family portal — Profile | `/portal/profile` | ✅ Done | Tab bar full-width on mobile — PR #110 |
+| 23 | Family portal — Settings | `/portal/settings` | ✅ Done | Notification rows stack on mobile — PR #110 |
+| 24 | Provider hub — Dashboard | `/provider` | ✅ Done | Header stacks on mobile, grid-cols-1 lg:grid-cols-3, sidebar below — PR #111 |
+| 25 | Provider hub — Inbox | `/provider/inbox` | ✅ Done | Split view collapses: list hides when thread selected |
+| 26 | Provider hub — Connections | `/provider/connections` | ✅ Done | Drawer grids collapse on mobile — PR #110 |
+| 27 | Provider hub — Profile | `/provider/profile` | ⏭ Skip | Redirects to /provider |
+| 28 | Provider hub — Reviews | `/provider/reviews` | ✅ Done | Coming soon — centered column, full-width form |
+| 29 | Provider hub — Pro | `/provider/pro` | ✅ Done | grid-cols-1 sm:grid-cols-3, comparison table fixed cols, centered |
+| 30 | Provider hub — Verification | `/provider/verification` | ✅ Done | Accordion single column, full-width inputs, w-full selects |
+| 31 | Provider hub — Q&A | `/provider/qna` | ✅ Done | Coming soon — centered column, full-width form |
+| 32 | Team page | `/team` | ✅ Done | grid-cols-1 md:grid-cols-2 — stacks to single on mobile |
+| 33 | Research & Press article | `/research-and-press/[slug]` | ✅ Done | px-5 container, desktop TOC hidden on mobile |
+| 34 | Connected confirmation | `/connected/[connectionId]` | ✅ Done | Centered card max-w-lg, pill tags flex-wrap |
+| 35 | Public saved | `/saved` | ✅ Done | grid-cols-1 sm:grid-cols-2 lg:grid-cols-3, banner flex-wrap |
 
 ---
 
@@ -98,3 +98,5 @@ When a page has been fixed and merged:
 | Date | PR | What was fixed |
 |------|----|---------------|
 | 2026-03-03 | #105 | Homepage, Browse, Provider detail — gallery, sticky CTA, iOS scroll lock on modals, removal request page, claim page nav, ReviewModal asterisks |
+| 2026-03-03 | #110 | Portal connections tab bar, connection detail grids, profile tab bar, settings notification rows, provider connections drawer grids, community composer padding |
+| 2026-03-03 | #111 | Discover page padding (px-8→px-4 sm:px-8), provider dashboard header stacks vertically on mobile |

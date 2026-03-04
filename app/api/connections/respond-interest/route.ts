@@ -3,6 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { connectionResponseEmail } from "@/lib/email-templates";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * POST /api/connections/respond-interest
@@ -196,6 +197,26 @@ export async function POST(request: Request) {
         }
       } catch (emailErr) {
         console.error("[respond-interest] email failed:", emailErr);
+      }
+
+      // Loops: connection accepted (fire-and-forget)
+      try {
+        const { data: provBp } = await admin
+          .from("business_profiles")
+          .select("display_name")
+          .eq("id", connection.from_profile_id)
+          .single();
+
+        sendLoopsEvent({
+          email: user.email || "",
+          eventName: "connection_accepted",
+          audience: "seeker",
+          eventProperties: {
+            providerName: provBp?.display_name || "",
+          },
+        });
+      } catch {
+        // Non-blocking
       }
 
       return NextResponse.json({ success: true, connectionId });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -338,6 +339,26 @@ export async function POST(request: Request) {
     if (updateErr) {
       console.error("Update account error:", updateErr);
       // Profile was created — don't fail the whole request
+    }
+
+    // Loops: onboarding completed
+    try {
+      const profileType = intent === "provider"
+        ? (providerType === "caregiver" ? "caregiver" : "organization")
+        : "family";
+      sendLoopsEvent({
+        email: user.email || "",
+        eventName: "onboarding_completed",
+        audience: intent === "provider" ? "provider" : "seeker",
+        eventProperties: {
+          intent,
+          profileType,
+          city: city || "",
+          state: state || "",
+        },
+      });
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ profileId });

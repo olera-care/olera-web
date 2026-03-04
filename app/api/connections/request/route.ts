@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { sendLoopsEvent } from "@/lib/loops";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -466,6 +467,22 @@ export async function POST(request: Request) {
         careType: intentData?.careType ? (careTypeMap2[intentData.careType] || intentData.careType) : null,
       });
       await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
+    }
+
+    // 9d. Loops: new lead event (fire-and-forget)
+    try {
+      sendLoopsEvent({
+        email: user.email || "",
+        eventName: "new_lead",
+        audience: "seeker",
+        eventProperties: {
+          providerName,
+          careType: intentData?.careType || "",
+          urgency: intentData?.urgency || "",
+        },
+      });
     } catch {
       // Non-blocking
     }

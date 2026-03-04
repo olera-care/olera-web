@@ -5,6 +5,7 @@ import { generateProviderSlug } from "@/lib/slugify";
 import { sendEmail } from "@/lib/email";
 import { claimNotificationEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackProviderClaimed } from "@/lib/slack";
+import { sendLoopsEvent } from "@/lib/loops";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -254,6 +255,29 @@ export async function POST(request: Request) {
         providerSlug: profileSlug,
       });
       await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
+    }
+
+    // 6c. Loops: provider claimed (fire-and-forget)
+    try {
+      const { data: loopsBp } = await db
+        .from("business_profiles")
+        .select("display_name")
+        .eq("source_provider_id", providerId)
+        .single();
+
+      sendLoopsEvent({
+        email: user.email || "",
+        eventName: "provider_claimed",
+        audience: "provider",
+        eventProperties: {
+          providerName: loopsBp?.display_name || providerId,
+        },
+        contactProperties: {
+          userType: "provider",
+        },
+      });
     } catch {
       // Non-blocking
     }

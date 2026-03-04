@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * GET /auth/callback
@@ -77,6 +78,24 @@ export async function GET(request: NextRequest) {
             "",
           onboarding_completed: false,
         });
+
+        // Loops: new account created
+        try {
+          const fullName = data.user.user_metadata?.full_name || data.user.user_metadata?.name || "";
+          const nameParts = fullName.trim().split(/\s+/);
+          sendLoopsEvent({
+            email: data.user.email || "",
+            eventName: "user_signup",
+            audience: "seeker",
+            eventProperties: { source: "web_v2" },
+            contactProperties: {
+              firstName: nameParts[0] || "",
+              lastName: nameParts.slice(1).join(" ") || "",
+            },
+          });
+        } catch {
+          // Non-blocking
+        }
       }
     }
 

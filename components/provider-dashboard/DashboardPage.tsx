@@ -313,14 +313,14 @@ function DashboardHeader({ slug }: { slug: string | null }) {
   };
 
   return (
-    <div className="flex items-end justify-between mb-8">
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 font-display">Dashboard</h1>
         <p className="text-[15px] text-gray-500 mt-1">Manage your listing and track your profile</p>
       </div>
 
       {slug && (
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-3">
           <Link
             href={`/provider/${slug}`}
             target="_blank"

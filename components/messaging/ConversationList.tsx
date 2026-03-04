@@ -266,7 +266,7 @@ export default function ConversationList({
     const isReported = !!(conn.metadata as Record<string, unknown> | undefined)?.reported;
 
     return (
-      <div key={conn.id} className="pl-[28px] pr-3 py-0.5">
+      <div key={conn.id} className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5">
         <div
           className={`group relative rounded-xl transition-colors ${
             isMenuOpen ? "z-20" : ""
@@ -340,8 +340,8 @@ export default function ConversationList({
             </div>
           </button>
 
-          {/* Hover action menu */}
-          <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+          {/* Action menu — always visible on mobile, hover-reveal on desktop */}
+          <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100"} transition-opacity`}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -435,12 +435,12 @@ export default function ConversationList({
   if (loading) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-5">
+        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="pl-[28px] pr-3 py-0.5">
+            <div key={i} className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5">
               <div className="flex items-start gap-3.5 px-4 py-4 animate-pulse">
                 <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
                 <div className="flex-1 space-y-2.5 pt-1">
@@ -460,7 +460,7 @@ export default function ConversationList({
   if (connections.length === 0) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-5">
+        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
@@ -499,7 +499,7 @@ export default function ConversationList({
         <div className="relative">
           {/* Default mode — title + search icon */}
           <div
-            className={`pl-[44px] pr-5 py-5 flex items-center justify-between transition-all duration-200 ease-out ${
+            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5 flex items-center justify-between transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-0 -translate-y-1 pointer-events-none absolute inset-x-0 top-0"
                 : "opacity-100 translate-y-0"
@@ -519,7 +519,7 @@ export default function ConversationList({
 
           {/* Search mode */}
           <div
-            className={`pl-[44px] pr-5 py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
+            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-1 pointer-events-none absolute inset-x-0 top-0"
@@ -563,7 +563,7 @@ export default function ConversationList({
             searchOpen ? "max-h-0 opacity-0" : "max-h-14 opacity-100"
           }`}
         >
-          <div className="pl-[44px] pr-5 pb-4 flex items-center gap-2.5">
+          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 flex items-center gap-2.5">
             {/* "All" dropdown pill */}
             <div className="relative" ref={filterDropdownRef}>
               <button
@@ -669,7 +669,7 @@ export default function ConversationList({
                   return !p;
                 });
               }}
-              className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
+              className="w-full flex items-center justify-between pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
             >
               <span className="text-sm font-semibold text-gray-500">
                 Archived ({pastConnections.length || archivedCount})

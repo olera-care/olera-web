@@ -316,7 +316,7 @@ function CommunityPageContent() {
         </div>
 
         {/* Composer */}
-        <div className={`px-8 ${showComposer ? "py-6" : "py-6"} transition-all duration-200 ${showComposer ? "relative z-20" : ""}`}>
+        <div className={`px-4 sm:px-8 ${showComposer ? "py-6" : "py-6"} transition-all duration-200 ${showComposer ? "relative z-20" : ""}`}>
           {!showComposer ? (
             <div className="space-y-3">
               <div className="flex items-end justify-between">

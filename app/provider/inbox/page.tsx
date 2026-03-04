@@ -499,7 +499,7 @@ function ProviderInboxContent() {
   const activeProfileId = providerProfile?.id || activeProfile?.id || "";
 
   return (
-    <div className="h-[calc(100vh-64px)] bg-white">
+    <div className="h-[calc(100dvh-64px)] bg-white">
       <div className="h-full flex">
         <ConversationList
           connections={connections}
@@ -559,7 +559,7 @@ export default function ProviderInboxPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-[calc(100vh-64px)] flex items-center justify-center">
+        <div className="h-[calc(100dvh-64px)] flex items-center justify-center">
           <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
         </div>
       }

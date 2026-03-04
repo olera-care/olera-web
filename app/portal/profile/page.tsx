@@ -65,7 +65,7 @@ export default function PortalProfilePage() {
       </div>
 
       {/* Pill tabs */}
-      <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-fit mb-6">
+      <div className="flex w-full gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl sm:w-fit mb-6">
         <button
           onClick={() => setActiveTab("profile")}
           className={`px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150 ${

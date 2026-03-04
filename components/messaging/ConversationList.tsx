@@ -494,7 +494,7 @@ export default function ConversationList({
   return (
     <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
       {/* Header */}
-      <div className={`shrink-0 transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
+      <div className={`shrink-0 relative z-10 bg-white transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
         {/* Header — crossfade between default and search modes */}
         <div className="relative">
           {/* Default mode — title + search icon */}

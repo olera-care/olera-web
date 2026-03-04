@@ -37,12 +37,12 @@
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Plan: `plans/provider-deletion-request-plan.md`
 
-- **Backend Integration Roadmap** — PHASES 1-4 COMPLETE ✅
+- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅
   - Plan: `plans/backend-integration-roadmap-plan.md`
   - Analysis: `docs/backend-integration-analysis.md`
   - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
-  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron)
-  - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → Sentry (P4 backlog) → Marketing (deferred)
+  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing)
+  - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → ~~Marketing (Loops)~~ ✅ → Sentry (P4 backlog)
 
 ---
 
@@ -123,6 +123,58 @@
 
 **Vercel env vars (10 total now):**
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, `SLACK_WEBHOOK_URL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `CRON_SECRET`
+
+---
+
+### 2026-03-04 (Session 37) — Loops Marketing Automation Integration (Phase 5)
+
+**Branches:** `magical-keller` → `loops-ensure-account` → `loops-event-properties` → `loops-await-fix`
+
+**What:** Connected Loops marketing automation to 8 route touchpoints. Dual-account routing (olera.care for seekers, oleracare.com for providers). Discovered and fixed 3 bugs during live testing.
+
+**New file:**
+- `lib/loops.ts`: Dual-account Loops utility — `sendLoopsEvent()` routes by `audience: "seeker" | "provider"`, `sendLoopsEventBoth()` for suppression. No SDK, single POST, 490-char string truncation, Bearer auth.
+
+**8 routes wired:**
+- `app/auth/callback/route.ts`: `user_signup` (OAuth path, seeker)
+- `app/api/auth/ensure-account/route.ts`: `user_signup` (email OTP path, seeker) — PR #124
+- `app/api/auth/create-profile/route.ts`: `onboarding_completed` (seeker or provider)
+- `app/api/connections/request/route.ts`: `new_lead` (seeker)
+- `app/api/connections/message/route.ts`: `new_message` (seeker)
+- `app/api/connections/respond-interest/route.ts`: `connection_accepted` (seeker)
+- `app/api/connections/end/route.ts`: `connection_ended` (seeker)
+- `app/api/claim/finalize/route.ts`: `provider_claimed` (provider)
+- `app/api/auth/delete-account/route.ts`: `account_deleted` (both accounts)
+
+**Bugs found & fixed:**
+1. **`user_signup` never firing** (PR #124): Email OTP signups go through `/api/auth/ensure-account`, not `/auth/callback` (OAuth only). Added sendLoopsEvent to ensure-account.
+2. **Loops "unsupported event property tags"** (PR #126): v1 email templates reference `provider_name`, `profile_link`, `care_type`. Added these to `onboarding_completed` event properties.
+3. **Intermittent event delivery** (PR #129): All `sendLoopsEvent` calls were NOT awaited. On Vercel serverless, functions freeze after response, killing in-flight HTTP requests. Added `await` to all 9 calls.
+
+**PRs merged:** #123 (core integration), #124 (ensure-account fix), #126 (event properties), #129 (await fix)
+
+**Env vars added to Vercel:**
+- `LOOPS_API_KEY_SEEKER` (olera.care account — seeker nurture emails)
+- `LOOPS_API_KEY_PROVIDER` (oleracare.com account — provider outreach, protects primary domain)
+
+**Vercel env vars (12 total now):**
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, `SLACK_WEBHOOK_URL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `CRON_SECRET`, `LOOPS_API_KEY_SEEKER`, `LOOPS_API_KEY_PROVIDER`
+
+**Key lesson:** On Vercel serverless, ALWAYS `await` external API calls before returning the response. "Fire-and-forget" pattern only works if the promise completes before the function freezes.
+
+**Loops workflow configuration (oleracare.com — provider side):**
+- `trial_emails` Loop cloned from v1, trigger changed to `onboarding_completed`
+- Had to manually register event properties (`provider_name`, `profile_link`, `city`, `care_type`) on the Loop trigger — Loops doesn't auto-register from received events
+- Fixed `care type` → `care_type` tag mismatch in email template (space vs underscore)
+- Simplified to single welcome email + loop completed (removed multi-day drip for now)
+- Loop is now **Active** and processing
+
+**Loops workflow configuration (olera.care — seeker side):**
+- Welcome email Loop active (configured in earlier part of session)
+
+**Await fix verified:** `onboarding_completed` firing reliably after PR #129 (3 events in event log, latest at 12:41 PM)
+
+**Pending:** Configure remaining Loops workflows — `new_lead`, `new_message`, `connection_accepted`, `connection_ended`, `provider_claimed`, `account_deleted`
 
 ---
 

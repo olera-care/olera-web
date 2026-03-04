@@ -261,7 +261,7 @@ export default function InterestedCard({
           <button
             type="button"
             onClick={() => onDismiss?.(item.id)}
-            className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
+            className="min-h-[44px] px-3 text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
           >
             or keep reviewing providers
           </button>
@@ -500,7 +500,7 @@ export default function InterestedCard({
                   <Link
                     href={`/provider/${profileSlug}`}
                     target="_blank"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary-600 hover:text-primary-700 transition-colors mb-6"
+                    className="inline-flex items-center gap-1.5 min-h-[44px] px-2 -mx-2 text-[14px] font-semibold text-primary-600 hover:text-primary-700 transition-colors mb-6"
                   >
                     View full profile
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -578,7 +578,7 @@ export default function InterestedCard({
               type="button"
               onClick={() => onDecline?.(item.id)}
               disabled={isDeclining || isAccepting}
-              className="inline-flex items-center px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
+              className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
             >
               {isDeclining ? (
                 <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
@@ -590,7 +590,7 @@ export default function InterestedCard({
               type="button"
               onClick={() => onAccept?.(item.id)}
               disabled={isAccepting || isDeclining}
-              className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
+              className="group inline-flex items-center justify-center gap-2 min-h-[44px] pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
             >
               {isAccepting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -608,7 +608,7 @@ export default function InterestedCard({
           <button
             type="button"
             onClick={() => onReconsider(item.id)}
-            className="text-[13px] font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-4 py-2 transition-colors"
+            className="text-[14px] font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-5 py-2.5 min-h-[44px] transition-colors"
           >
             Reconsider
           </button>
@@ -683,7 +683,7 @@ function DeclineFeedbackCard({
                 type="button"
                 onClick={() => toggleReason(reason)}
                 className={[
-                  "text-[14px] font-medium px-4 py-2 rounded-full border transition-all duration-150",
+                  "text-[14px] font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150",
                   isSelected
                     ? "border-gray-300 bg-gray-100 text-gray-800"
                     : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50",
@@ -701,7 +701,7 @@ function DeclineFeedbackCard({
         <button
           type="button"
           onClick={() => onUndo?.(item.id)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200"
+          className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
@@ -711,7 +711,7 @@ function DeclineFeedbackCard({
         <button
           type="button"
           onClick={() => onDone?.(item.id, selectedReasons)}
-          className="px-5 py-2.5 rounded-xl text-[14px] font-semibold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.97] transition-all duration-200"
+          className="min-h-[44px] px-6 py-2.5 rounded-xl text-[14px] font-semibold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.97] transition-all duration-200"
         >
           Done
         </button>

@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+- **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
+  - Approved business_profiles now appear in all 4 public discovery surfaces
+  - Parallel queries with deduplication via source_provider_id
+
 - **Leadership Team Page** (branch: `joyful-goodall`) — DONE ✅
   - PR #106 merged to staging
   - New `/team` page with editorial design, scroll animations, expanded bios
@@ -96,6 +100,30 @@
 ---
 
 ## Session Log
+
+### 2026-03-04 (Session 37) — Surface Approved Providers in Public Search
+
+**Branch:** `vibrant-keller`
+
+**What:** Made approved business_profiles visible in all public search/browse surfaces. Previously, only the seeded `olera-providers` table (39K+ records) was queried — new providers created through onboarding were invisible even after admin approval.
+
+**New utilities (`lib/types/provider.ts`):**
+- `businessProfileToCardFormat()`: Converts `BusinessProfile` → `ProviderCardData` (category display mapping, fallback images, verified badge for claimed)
+- `SUPABASE_CAT_TO_PROFILE_CATEGORY`: Maps olera-providers categories → ProfileCategory enum
+- `CARE_TYPE_SLUG_TO_PROFILE_CATEGORY`: Maps browse slugs → ProfileCategory enum
+- `mergeProviderCards()`: Merges seeded + BP cards, deduplicates by `source_provider_id`
+
+**Modified files:**
+- `lib/power-pages.ts`: Parallel BP query in `fetchPowerPageData()` (SSR city/state pages)
+- `components/browse/BrowseClient.tsx`: Parallel BP query in client-side fetch
+- `app/browse/BrowsePageClient.tsx`: Parallel BP query in client-side fetch
+- `components/browse/CityBrowseClient.tsx`: Parallel BP query in client-side refetch
+
+**Visibility filter:** `claim_state = 'claimed' AND is_active = true AND type = 'organization'`
+
+**Commit:** `d4ffa24`
+
+---
 
 ### 2026-03-03 (Session 36) — Backend Integration Phase 3-4: Twilio SMS + Vercel Cron
 

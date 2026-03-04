@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
+import { sendEmail } from "@/lib/email";
+import { connectionResponseEmail } from "@/lib/email-templates";
 
 /**
  * POST /api/connections/respond-interest
@@ -164,6 +166,36 @@ export async function POST(request: Request) {
       if (acceptError) {
         console.error("[respond-interest] accept update failed:", acceptError);
         return NextResponse.json({ error: acceptError.message }, { status: 500 });
+      }
+
+      // Email the provider that the care seeker accepted (fire-and-forget)
+      try {
+        const { data: providerBp } = await admin
+          .from("business_profiles")
+          .select("email, display_name")
+          .eq("id", connection.from_profile_id)
+          .single();
+
+        const { data: seekerBp } = await admin
+          .from("business_profiles")
+          .select("display_name")
+          .eq("id", connection.to_profile_id)
+          .single();
+
+        if (providerBp?.email) {
+          await sendEmail({
+            to: providerBp.email,
+            subject: `${seekerBp?.display_name || "A family"} accepted your connection on Olera`,
+            html: connectionResponseEmail({
+              familyName: seekerBp?.display_name || "A family",
+              providerName: providerBp.display_name || "Provider",
+              accepted: true,
+              viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+            }),
+          });
+        }
+      } catch (emailErr) {
+        console.error("[respond-interest] email failed:", emailErr);
       }
 
       return NextResponse.json({ success: true, connectionId });

@@ -37,6 +37,13 @@
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Plan: `plans/provider-deletion-request-plan.md`
 
+- **Backend Integration Roadmap** (branch: `magical-keller`) — PHASE 1-2 DONE
+  - Plan: `plans/backend-integration-roadmap-plan.md`
+  - Analysis: `docs/backend-integration-analysis.md`
+  - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
+  - PR: #111 (Phase 1-2: Email + Slack)
+  - Phases: ~~Email notifications~~ ✅ → ~~Slack alerts~~ ✅ → Sentry (deprioritized P4) → Twilio SMS → Vercel Cron → Marketing (deferred)
+
 ---
 
 ## Blocked / Needs Input
@@ -89,6 +96,51 @@
 ---
 
 ## Session Log
+
+### 2026-03-03 (Session 35) — Backend Integration Phase 1-2: Email + Slack
+
+**Branch:** `magical-keller`
+
+**What:** Built out the email notification system and Slack admin alerts from the Backend Integration Roadmap. Also explored legacy `olera-backend` repo, created gap analysis, and detailed 5-phase plan.
+
+**New files:**
+- `lib/email.ts`: Resend singleton + `sendEmail()` helper (fire-and-forget safe)
+- `lib/email-templates.tsx`: 5 branded HTML templates (verification code, connection request, connection response, new message, claim notification)
+- `lib/slack.ts`: Slack webhook helper + 4 pre-built alert functions (new lead, provider claimed, dispute, approve/reject)
+- `docs/backend-integration-analysis.md`: Full gap analysis — legacy Rails vs v2.0 Next.js
+- `plans/backend-integration-roadmap-plan.md`: 5-phase, 17-task implementation plan
+
+**Modified routes:**
+- `app/api/claim/send-code/route.ts`: Refactored inline Resend → shared email util
+- `app/api/claim/finalize/route.ts`: Added admin email + Slack on claim
+- `app/api/connections/request/route.ts`: Added provider email + Slack lead alert
+- `app/api/connections/respond-interest/route.ts`: Added email on accept
+- `app/api/connections/message/route.ts`: Added email with 5-min debounce
+- `app/api/disputes/route.ts`: Added Slack alert
+- `app/api/admin/providers/[id]/route.ts`: Added Slack alert on approve/reject
+
+**Env vars configured in Vercel:**
+- `RESEND_API_KEY` (new olera-web-v2 key, sending access)
+- `ADMIN_NOTIFICATION_EMAIL` (automations@olera.care)
+- `SLACK_WEBHOOK_URL` (new webhook → #notifications channel)
+
+**Also done:**
+- `olera.care` domain added + verified in Resend (auto-configured via Cloudflare)
+- Sentry deprioritized from P2 to P4 (Vercel logs sufficient for now)
+- 14 Notion roadmap tasks created in Web App Action Items/Roadmap database
+- Provider email coverage: 26% in olera-providers (9,541/36,667), ~0% in business_profiles
+
+**Decisions:**
+- All notifications fire-and-forget (try/catch, never block main flow)
+- Message emails debounced — skip if recipient active in last 5 min
+- Keep old "Olera SMTP" Resend key alive — Supabase Auth OTPs depend on it
+- Use `noreply@olera.care` for all notification emails
+
+**PR:** #111 targeting staging
+
+**Commits:** `dc3cec0` (Phase 1: Email), `7641dd7` (Phase 2: Slack)
+
+---
 
 ### 2026-03-03 (Session 34) — Leadership Team Page + Admin Fixes + img Cleanup
 

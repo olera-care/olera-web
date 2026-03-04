@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email";
+import { newMessageEmail } from "@/lib/email-templates";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -109,6 +111,57 @@ export async function POST(request: Request) {
         { error: "Failed to send message" },
         { status: 500 }
       );
+    }
+
+    // Email notification to the other party (fire-and-forget, debounced)
+    try {
+      const recipientProfileId =
+        profileId === connection.from_profile_id
+          ? connection.to_profile_id
+          : connection.from_profile_id;
+
+      // Debounce: skip if recipient sent a message in the last 5 minutes
+      // (they're likely active in the conversation)
+      const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+      const recentRecipientMsg = updatedThread
+        .filter((m) => m.from_profile_id === recipientProfileId)
+        .some((m) => new Date(m.created_at).getTime() > fiveMinAgo);
+
+      if (!recentRecipientMsg) {
+        const [{ data: senderProfile }, { data: recipientProfile }] =
+          await Promise.all([
+            supabase
+              .from("business_profiles")
+              .select("display_name")
+              .eq("id", profileId)
+              .single(),
+            supabase
+              .from("business_profiles")
+              .select("display_name, email")
+              .eq("id", recipientProfileId)
+              .single(),
+          ]);
+
+        if (recipientProfile?.email) {
+          const preview =
+            text.trim().length > 200
+              ? text.trim().slice(0, 200) + "..."
+              : text.trim();
+
+          await sendEmail({
+            to: recipientProfile.email,
+            subject: `New message from ${senderProfile?.display_name || "someone"} on Olera`,
+            html: newMessageEmail({
+              recipientName: recipientProfile.display_name || "there",
+              senderName: senderProfile?.display_name || "Someone",
+              messagePreview: preview,
+              viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+            }),
+          });
+        }
+      }
+    } catch (emailErr) {
+      console.error("[message] email notification failed:", emailErr);
     }
 
     return NextResponse.json({ thread: updatedThread });

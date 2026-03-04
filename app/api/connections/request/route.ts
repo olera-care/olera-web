@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
+import { sendEmail } from "@/lib/email";
+import { connectionRequestEmail } from "@/lib/email-templates";
+import { sendSlackAlert, slackNewLead } from "@/lib/slack";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -369,7 +372,70 @@ export async function POST(request: Request) {
       );
     }
 
-    // 9. Sync intent data back to user's family profile
+    // 9. Email notification to provider (fire-and-forget)
+    try {
+      // Look up provider email from business_profiles or olera-providers
+      const { data: providerProfile } = await db
+        .from("business_profiles")
+        .select("email, display_name")
+        .eq("id", toProfileId)
+        .single();
+
+      let providerEmail = providerProfile?.email;
+      if (!providerEmail) {
+        // Fall back to olera-providers table
+        const { data: iosProvider } = await db
+          .from("olera-providers")
+          .select("email")
+          .eq("provider_id", providerId)
+          .single();
+        providerEmail = iosProvider?.email;
+      }
+
+      if (providerEmail) {
+        const careTypeMap: Record<string, string> = {
+          home_care: "Home Care",
+          home_health: "Home Health Care",
+          assisted_living: "Assisted Living",
+          memory_care: "Memory Care",
+        };
+
+        await sendEmail({
+          to: providerEmail,
+          subject: `New care inquiry from ${firstName || "a family"} on Olera`,
+          html: connectionRequestEmail({
+            providerName: providerProfile?.display_name || providerName,
+            familyName: account.display_name || "A family",
+            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
+            message: intentData?.additionalNotes || null,
+            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+          }),
+        });
+      }
+    } catch (emailErr) {
+      // Non-blocking — connection was created, email is best-effort
+      console.error("Failed to send connection request email:", emailErr);
+    }
+
+    // 9b. Slack alert for new lead (fire-and-forget)
+    try {
+      const careTypeMap2: Record<string, string> = {
+        home_care: "Home Care",
+        home_health: "Home Health Care",
+        assisted_living: "Assisted Living",
+        memory_care: "Memory Care",
+      };
+      const alert = slackNewLead({
+        familyName: account.display_name || "A family",
+        providerName: providerName,
+        careType: intentData?.careType ? (careTypeMap2[intentData.careType] || intentData.careType) : null,
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
+    }
+
+    // 10. Sync intent data back to user's family profile
     if (intentData) {
       try {
         const { data: currentProfile } = await db

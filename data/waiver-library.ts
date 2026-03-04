@@ -205,6 +205,27 @@ const californiaPrograms: WaiverProgram[] = [
       },
     ],
   },
+  {
+    id: "ca-alw",
+    name: "California Assisted Living Waiver (ALW)",
+    shortName: "CA ALW",
+    tagline: "Medi-Cal pays for assisted living care at participating facilities",
+    savingsRange: "$15,000 – $35,000/year",
+    description: "The Assisted Living Waiver allows Medi-Cal to pay for assisted living care at participating Residential Care Facilities for the Elderly (RCFEs). This helps seniors who need more support than in-home care but want to avoid nursing home placement.",
+    eligibilityHighlights: [
+      "Medi-Cal eligible (income under $1,801/mo)",
+      "Need nursing facility level of care",
+      "Choosing to live in a participating RCFE",
+    ],
+    applicationSteps: [
+      { step: 1, title: "Apply for Medi-Cal", description: "Ensure you have active Medi-Cal coverage through your county social services office." },
+      { step: 2, title: "Find a participating facility", description: "Locate a Medi-Cal-certified ALW participating Residential Care Facility for the Elderly." },
+      { step: 3, title: "Request ALW enrollment", description: "Contact your local Medi-Cal office or managed care plan to request ALW placement." },
+    ],
+    forms: [
+      { id: "ca-alw-info", name: "California ALW Program Information", description: "Contact California DHCS for ALW program details", url: "https://www.dhcs.ca.gov/services/ltc/Pages/AssistedLivingWaiver.aspx" },
+    ],
+  },
 ];
 
 // ─── Florida ───────────────────────────────────────────────────────────────────
@@ -545,6 +566,27 @@ const texasPrograms: WaiverProgram[] = [
       },
     ],
   },
+  {
+    id: "tx-phc",
+    name: "Primary Home Care (Community Care)",
+    shortName: "TX PHC",
+    tagline: "Personal attendant services for Texas Medicaid recipients",
+    savingsRange: "$8,000 – $18,000/year",
+    description: "Personal attendant services for Medicaid recipients who need help with daily activities like bathing, dressing, meal preparation, and housework. Services are provided in the home to help recipients remain in the community.",
+    eligibilityHighlights: [
+      "Texas Medicaid eligible",
+      "Need help with activities of daily living",
+      "Assessed by HHSC as needing attendant services",
+    ],
+    applicationSteps: [
+      { step: 1, title: "Apply for Texas Medicaid", description: "Apply through Your Texas Benefits (YourTexasBenefits.com) if not already enrolled." },
+      { step: 2, title: "Request Community Care services", description: "Contact HHSC to request Primary Home Care assessment." },
+      { step: 3, title: "Functional assessment", description: "HHSC conducts a functional needs assessment to determine service hours." },
+    ],
+    forms: [
+      { id: "tx-phc-info", name: "Texas Primary Home Care Information", description: "Contact HHSC to request Community Care services", url: "https://hhs.texas.gov/services/aging/long-term-care/community-care-services" },
+    ],
+  },
 ];
 
 // ─── Alabama ───────────────────────────────────────────────────────────────────
@@ -598,12 +640,12 @@ const alabamaPrograms: WaiverProgram[] = [
 
 const alaskaPrograms: WaiverProgram[] = [
   {
-    id: "sdaw",
-    name: "Senior and Disabilities Access Waiver (SDAW)",
-    shortName: "SDAW",
-    tagline: "Community-based supports for Alaska seniors and adults with disabilities",
+    id: "ali",
+    name: "Alaskans Living Independently Waiver (ALI)",
+    shortName: "ALI",
+    tagline: "Medicaid HCBS waiver for Alaska seniors to remain safely at home",
     savingsRange: "$10,000 – $22,000/year",
-    description: "Alaska's SDAW provides home and community-based services to individuals who need a nursing facility level of care. Services include personal care, adult day services, supported employment, and environmental modifications.",
+    description: "Alaska's ALI Waiver provides home and community-based services to seniors 65+ and adults with disabilities who need a nursing facility level of care. Services include personal care, adult day services, supported employment, and environmental modifications.",
     eligibilityHighlights: [
       "Age 65+ or adult with a physical disability",
       "Alaska Medicaid eligible",
@@ -1633,12 +1675,12 @@ const missouriPrograms: WaiverProgram[] = [
 
 const montanaPrograms: WaiverProgram[] = [
   {
-    id: "eppd-waiver",
-    name: "Montana HCBS for Elderly and People with Physical Disabilities (EPPD) Waiver",
-    shortName: "MT EPPD Waiver",
-    tagline: "Home-based Medicaid services for Montana seniors and adults with disabilities",
+    id: "big-sky-waiver",
+    name: "Big Sky Waiver Program",
+    shortName: "Big Sky Waiver",
+    tagline: "Montana's 1915(c) HCBS Medicaid waiver for seniors and disabled residents",
     savingsRange: "$10,000 – $22,000/year",
-    description: "Montana's EPPD Waiver provides home and community-based services to elderly and physically disabled individuals who need nursing facility level of care. Services include personal care, homemaker, adult day, and respite care.",
+    description: "Montana's Big Sky Waiver Program (1915(c) HCBS waiver) provides home and community-based services to elderly (65+) and physically disabled individuals at risk of nursing facility placement. Services include personal care, homemaker, adult day, and respite care.",
     eligibilityHighlights: [
       "Age 65+ or adults 18–64 with a physical disability",
       "Montana Medicaid eligible",
@@ -1915,6 +1957,71 @@ const newMexicoPrograms: WaiverProgram[] = [
 
 const newYorkPrograms: WaiverProgram[] = [
   {
+    id: "ny-hcbs-waiver",
+    name: "Home and Community-Based Services (HCBS) Waiver",
+    shortName: "NY HCBS Waiver",
+    tagline: "Medicaid waiver for home care and personal assistance in New York",
+    savingsRange: "$15,000 – $35,000/year",
+    description: "Medicaid waiver program providing home care, personal care assistance, adult day care, and other community-based services to help seniors and disabled adults remain safely at home instead of entering a nursing facility.",
+    eligibilityHighlights: [
+      "Age 65+ or adult with a disability",
+      "New York Medicaid eligible (income under $2,433/mo)",
+      "Need nursing facility level of care",
+    ],
+    applicationSteps: [
+      { step: 1, title: "Apply for NY Medicaid", description: "Apply through NY State of Health marketplace or your local DSS/HRA office." },
+      { step: 2, title: "Request HCBS waiver services", description: "Contact your local DSS or managed long-term care plan to request HCBS waiver services." },
+      { step: 3, title: "Assessment and care plan", description: "A UAS-NY assessment determines your care needs and a service plan is developed." },
+    ],
+    forms: [
+      { id: "ny-medicaid-hcbs", name: "New York Medicaid Application", description: "Apply for NY Medicaid through NY State of Health", url: "https://nystateofhealth.ny.gov/" },
+    ],
+  },
+  {
+    id: "ny-epic",
+    name: "Elderly Pharmaceutical Insurance Coverage (EPIC)",
+    shortName: "EPIC",
+    tagline: "New York's prescription drug assistance program for seniors",
+    savingsRange: "$2,000 – $5,000/year",
+    description: "New York's State Pharmaceutical Assistance Program providing prescription drug coverage assistance to seniors 65+. EPIC supplements Medicare Part D by covering deductibles, copays, and gaps in drug coverage.",
+    eligibilityHighlights: [
+      "Age 65 or older",
+      "New York resident",
+      "Income under $1,800/mo (single)",
+      "Enrolled in or eligible for Medicare Part D",
+    ],
+    applicationSteps: [
+      { step: 1, title: "Check eligibility", description: "Verify you meet the age and income requirements for EPIC." },
+      { step: 2, title: "Apply for EPIC", description: "Apply online, by phone (1-800-332-3742), or by mail to the EPIC program." },
+      { step: 3, title: "Enroll in Medicare Part D", description: "You must be enrolled in a Medicare Part D plan to receive EPIC benefits." },
+    ],
+    forms: [
+      { id: "ny-epic-app", name: "EPIC Application", description: "Apply for New York's EPIC prescription drug program", url: "https://www.health.ny.gov/health_care/epic/" },
+    ],
+  },
+  {
+    id: "pace-new-york",
+    name: "Program of All-Inclusive Care for the Elderly (PACE)",
+    shortName: "PACE NY",
+    tagline: "Comprehensive care program for frail seniors in New York",
+    savingsRange: "$15,000 – $35,000/year",
+    description: "Comprehensive care program for frail seniors 55+ that combines medical services, social services, and long-term care. All care is coordinated through PACE centers, enabling participants to remain in the community.",
+    eligibilityHighlights: [
+      "Age 55 or older",
+      "New York Medicaid eligible",
+      "Need nursing home level of care",
+      "Live in a PACE service area",
+    ],
+    applicationSteps: [
+      { step: 1, title: "Find a PACE organization", description: "Locate a PACE organization in your area of New York." },
+      { step: 2, title: "Eligibility assessment", description: "The PACE team assesses your medical and functional needs." },
+      { step: 3, title: "Enroll in PACE", description: "Sign the enrollment agreement; your Medicare and Medicaid transfer to the PACE program." },
+    ],
+    forms: [
+      { id: "ny-pace", name: "New York PACE Program Information", description: "Contact NY Medicaid for PACE enrollment", url: "https://www.health.ny.gov/health_care/medicaid/program/longterm/pace.htm" },
+    ],
+  },
+  {
     id: "mltc",
     name: "New York Managed Long-Term Care (MLTC)",
     shortName: "NY MLTC",
@@ -2098,6 +2205,28 @@ const ohioPrograms: WaiverProgram[] = [
       { id: "oh-al", name: "Ohio Assisted Living Waiver Information", description: "Contact Ohio Medicaid for Assisted Living Waiver details", url: "https://medicaid.ohio.gov/for-ohioans/programs/assisted-living" },
     ],
   },
+  {
+    id: "mycare-ohio-pace",
+    name: "MyCare Ohio PACE",
+    shortName: "MyCare PACE",
+    tagline: "All-inclusive care for Ohio seniors through the PACE model",
+    savingsRange: "$15,000 – $35,000/year",
+    description: "Program of All-Inclusive Care for the Elderly providing comprehensive medical and long-term care services to seniors 55+ who qualify for nursing home level of care. Integrates Medicare and Medicaid benefits through PACE centers.",
+    eligibilityHighlights: [
+      "Age 55 or older",
+      "Ohio Medicaid eligible (income under $2,500/mo)",
+      "Need nursing home level of care",
+      "Live in a PACE service area",
+    ],
+    applicationSteps: [
+      { step: 1, title: "Find a PACE site", description: "Contact Ohio Medicaid or the PACE Association to find a PACE organization near you." },
+      { step: 2, title: "Assessment", description: "The PACE interdisciplinary team evaluates your medical and functional needs." },
+      { step: 3, title: "Enroll in PACE", description: "Sign the enrollment agreement; Medicare and Medicaid benefits transfer to the PACE program." },
+    ],
+    forms: [
+      { id: "oh-pace", name: "MyCare Ohio PACE Information", description: "Contact Ohio Medicaid for PACE enrollment details", url: "https://medicaid.ohio.gov/for-ohioans/programs/mycare-ohio" },
+    ],
+  },
 ];
 
 // ─── Oklahoma ──────────────────────────────────────────────────────────────────
@@ -2197,6 +2326,27 @@ const oregonPrograms: WaiverProgram[] = [
 // ─── Pennsylvania ──────────────────────────────────────────────────────────────
 
 const pennsylvaniaPrograms: WaiverProgram[] = [
+  {
+    id: "pa-chc",
+    name: "Community HealthChoices",
+    shortName: "PA CHC",
+    tagline: "Medicaid managed care waiver for home and community-based services",
+    savingsRange: "$15,000 – $35,000/year",
+    description: "Medicaid managed care waiver program offering home and community-based services for seniors 65+ and adults with physical disabilities. Managed care organizations coordinate personal care, home modifications, adult day, and other support services.",
+    eligibilityHighlights: [
+      "Age 65+ or adult with a physical disability",
+      "Pennsylvania Medicaid eligible (income under $988/mo)",
+      "Need nursing facility level of care",
+    ],
+    applicationSteps: [
+      { step: 1, title: "Apply for PA Medicaid", description: "Apply through COMPASS (compass.state.pa.us) or your county Assistance Office." },
+      { step: 2, title: "Choose a CHC managed care plan", description: "Select from available Community HealthChoices managed care organizations in your area." },
+      { step: 3, title: "Assessment and service plan", description: "Your CHC plan conducts a needs assessment and develops a person-centered service plan." },
+    ],
+    forms: [
+      { id: "pa-chc-info", name: "Community HealthChoices Information", description: "Learn about PA CHC managed care plans", url: "https://www.healthchoices.pa.gov/" },
+    ],
+  },
   {
     id: "pa-life",
     name: "Pennsylvania LIFE (Living Independence for the Elderly) Program",

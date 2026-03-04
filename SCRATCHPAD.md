@@ -162,7 +162,19 @@
 
 **Key lesson:** On Vercel serverless, ALWAYS `await` external API calls before returning the response. "Fire-and-forget" pattern only works if the promise completes before the function freezes.
 
-**Pending:** Test await fix with fresh provider signup on staging. Continue configuring Loops email workflows for remaining events.
+**Loops workflow configuration (oleracare.com — provider side):**
+- `trial_emails` Loop cloned from v1, trigger changed to `onboarding_completed`
+- Had to manually register event properties (`provider_name`, `profile_link`, `city`, `care_type`) on the Loop trigger — Loops doesn't auto-register from received events
+- Fixed `care type` → `care_type` tag mismatch in email template (space vs underscore)
+- Simplified to single welcome email + loop completed (removed multi-day drip for now)
+- Loop is now **Active** and processing
+
+**Loops workflow configuration (olera.care — seeker side):**
+- Welcome email Loop active (configured in earlier part of session)
+
+**Await fix verified:** `onboarding_completed` firing reliably after PR #129 (3 events in event log, latest at 12:41 PM)
+
+**Pending:** Configure remaining Loops workflows — `new_lead`, `new_message`, `connection_accepted`, `connection_ended`, `provider_claimed`, `account_deleted`
 
 ---
 

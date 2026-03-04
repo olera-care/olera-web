@@ -153,7 +153,7 @@ function BillingToggle({
       <button
         type="button"
         onClick={() => onChange("monthly")}
-        className={`px-4 py-2 text-sm font-medium rounded-[10px] transition-all duration-200 ${
+        className={`px-4 py-2.5 text-sm font-medium rounded-[10px] transition-all duration-200 min-h-[44px] flex items-center ${
           cycle === "monthly"
             ? "bg-white text-gray-900 shadow-sm"
             : "text-gray-500 hover:text-gray-700"
@@ -164,7 +164,7 @@ function BillingToggle({
       <button
         type="button"
         onClick={() => onChange("annual")}
-        className={`px-4 py-2 text-sm font-medium rounded-[10px] transition-all duration-200 flex items-center gap-1.5 ${
+        className={`px-4 py-2.5 text-sm font-medium rounded-[10px] transition-all duration-200 min-h-[44px] flex items-center gap-1.5 ${
           cycle === "annual"
             ? "bg-white text-gray-900 shadow-sm"
             : "text-gray-500 hover:text-gray-700"

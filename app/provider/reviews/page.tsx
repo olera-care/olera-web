@@ -69,12 +69,12 @@ export default function ProviderReviewsPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email"
                 required
-                className="flex-1 px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                className="flex-1 px-4 py-3.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-5 py-2.5 mr-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
+                className="px-5 py-3 mr-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors shrink-0 min-h-[44px]"
               >
                 {submitting ? "..." : "Notify me"}
               </button>
@@ -95,7 +95,7 @@ export default function ProviderReviewsPage() {
         {/* Back link */}
         <Link
           href="/provider"
-          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-4"
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-4 py-2 px-3 -mx-3 rounded-lg hover:bg-gray-50"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />

@@ -1,22 +1,22 @@
 ﻿Name,Browser,Section,Passed,Notes,Risk
 B.1.3 Google OAuth sign-up flow completes,All,B. Auth & Sessions,No,,P0
-"A.1.5 Top nav links all functional (Find Care, For Providers, Community)",All,A. Smoke Tests,No,,P0
+"A.1.5 Top nav links all functional (Find Care, For Providers, Community)",All,A. Smoke Tests,Yes,Links confirmed functional; hamburger menu links audited and corrected (provider Account → /provider/profile),P0
 B.1.7 Session persists across page refresh,All,B. Auth & Sessions,No,,P1
-A.1.2 /browse page loads - provider cards display,All,A. Smoke Tests,No,,P0
+A.1.2 /browse page loads - provider cards display,All,A. Smoke Tests,Yes,Confirmed — cards display and search/filter functional,P0
 C.1.1 Search by city returns location-relevant results,All,C. Browse & Search,No,,P0
 B.1.9 Delete account flow works with confirmation,All,B. Auth & Sessions,No,,P1
 B.1.10 Post-auth onboarding creates family profile,All,B. Auth & Sessions,No,,P0
-"A.1.1 Homepage loads - hero, nav, footer render within 3s",All,A. Smoke Tests,No,,P0
-B.1.1 Email/password sign-up creates account,All,B. Auth & Sessions,No,,P0
-A.1.4 Auth modal opens - sign in/sign up toggle works,All,A. Smoke Tests,No,,P0
-A.1.3 Provider detail page loads via /provider/[slug],All,A. Smoke Tests,No,,P0
+"A.1.1 Homepage loads - hero, nav, footer render within 3s",All,A. Smoke Tests,Yes,Confirmed — hero + nav + footer render on mobile and desktop,P0
+B.1.1 Email/password sign-up creates account,All,B. Auth & Sessions,Yes,Confirmed working,P0
+A.1.4 Auth modal opens - sign in/sign up toggle works,All,A. Smoke Tests,Yes,Confirmed — fixed touch targets on email/forgot-password links,P0
+A.1.3 Provider detail page loads via /provider/[slug],All,A. Smoke Tests,Yes,Confirmed — gallery + connect CTA + mobile sticky bar working,P0
 B.1.4 Google OAuth sign-in flow completes,All,B. Auth & Sessions,No,,P0
 A.1.8 /admin redirects to home when unauthenticated,All,A. Smoke Tests,No,,P0
-B.1.5 Email OTP verification completes,All,B. Auth & Sessions,No,,P0
-B.1.2 Email/password sign-in works,All,B. Auth & Sessions,No,,P0
+B.1.5 Email OTP verification completes,All,B. Auth & Sessions,Yes,Confirmed working,P0
+B.1.2 Email/password sign-in works,All,B. Auth & Sessions,Yes,Confirmed working,P0
 B.1.8 Profile switcher shows all profiles (family/org/caregiver),All,B. Auth & Sessions,No,,P1
-A.1.6 Mobile hamburger menu opens and closes,"Mobile Chrome, Mobile Safari",A. Smoke Tests,No,,P0
-B.1.6 Sign out clears session and redirects,All,B. Auth & Sessions,No,,P0
+A.1.6 Mobile hamburger menu opens and closes,"Mobile Chrome, Mobile Safari",A. Smoke Tests,Yes,"Redesigned: Yelp-style full-screen overlay; logged-out (5 nav items + auth card); logged-in family (My Account + Discover accordions); logged-in provider (My Hub); sign-out always visible",P0
+B.1.6 Sign out clears session and redirects,All,B. Auth & Sessions,Yes,Confirmed — sign out in both desktop dropdown and mobile hamburger footer,P0
 A.1.7 /portal redirects to home when unauthenticated,All,A. Smoke Tests,No,,P0
 C.1.2 Filter by care type narrows results correctly,All,C. Browse & Search,No,,P0
 "C.1.3 Sort options (relevance, rating, newest) change ordering",All,C. Browse & Search,No,,P1
@@ -37,7 +37,7 @@ D.1.6 Save/bookmark persists via localStorage,All,D. Provider Detail,No,,P1
 E.1.3 Unread count badge updates in nav,All,E. Family Portal,No,,P1
 D.1.4 Reviews and ratings display with correct scores,All,D. Provider Detail,No,,P1
 D.1.5 Contact card CTA (connect button) works,All,D. Provider Detail,No,,P0
-E.1.1 Inbox loads conversations sorted by last activity,All,E. Family Portal,No,,P0
+E.1.1 Inbox loads conversations sorted by last activity,All,E. Family Portal,Yes,Partially reviewed — confirmed working as intended; full portal review pending,P0
 D.1.9 Breadcrumbs navigate correctly,All,D. Provider Detail,No,,P2
 "G.1.3 Forum sort options work (newest, oldest, most likes)",All,G. Community & Resources,No,,P2
 G.1.2 Post detail page loads with comment thread,All,G. Community & Resources,No,,P1

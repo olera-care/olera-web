@@ -145,7 +145,7 @@ export async function POST(request: Request) {
     try {
       const fullName = displayName || user.user_metadata?.full_name || user.user_metadata?.name || "";
       const nameParts = fullName.trim().split(/\s+/);
-      sendLoopsEvent({
+      await sendLoopsEvent({
         email: user.email || "",
         eventName: "user_signup",
         audience: "seeker",

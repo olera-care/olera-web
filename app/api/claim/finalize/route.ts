@@ -267,7 +267,7 @@ export async function POST(request: Request) {
         .eq("source_provider_id", providerId)
         .single();
 
-      sendLoopsEvent({
+      await sendLoopsEvent({
         email: user.email || "",
         eventName: "provider_claimed",
         audience: "provider",

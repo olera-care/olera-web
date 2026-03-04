@@ -350,7 +350,7 @@ export async function POST(request: Request) {
         ? (orgName || displayName)
         : displayName;
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-      sendLoopsEvent({
+      await sendLoopsEvent({
         email: user.email || "",
         eventName: "onboarding_completed",
         audience: intent === "provider" ? "provider" : "seeker",

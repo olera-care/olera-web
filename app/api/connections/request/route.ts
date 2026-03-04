@@ -473,7 +473,7 @@ export async function POST(request: Request) {
 
     // 9d. Loops: new lead event (fire-and-forget)
     try {
-      sendLoopsEvent({
+      await sendLoopsEvent({
         email: user.email || "",
         eventName: "new_lead",
         audience: "seeker",

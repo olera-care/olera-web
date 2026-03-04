@@ -167,7 +167,7 @@ export async function POST(request: Request) {
 
     // Loops: new message event (fire-and-forget)
     try {
-      sendLoopsEvent({
+      await sendLoopsEvent({
         email: user.email || "",
         eventName: "new_message",
         audience: "seeker",

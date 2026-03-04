@@ -143,32 +143,26 @@ export default function SavedProvidersPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               No saved providers yet
             </h2>
-            <p className="text-sm text-gray-500 mb-8 max-w-md text-center leading-relaxed">
-              When you find a provider you like, tap the heart icon to save them
-              here for easy comparison later.
+            <p className="text-sm text-gray-500 mb-8 max-w-xs text-center leading-relaxed">
+              Tap the heart icon on any provider to save them here.
             </p>
-            {!user && (
-              <p className="text-sm text-gray-500 mb-6 max-w-md text-center leading-relaxed">
-                Create a free account to save providers and access them anytime.
-              </p>
-            )}
             <div className="flex items-center gap-3">
               <Link
                 href="/browse"
-                className={`inline-flex items-center px-6 py-3 text-sm font-semibold rounded-xl transition-colors shadow-sm ${
+                className={`inline-flex items-center justify-center min-h-[48px] px-5 py-3 text-sm font-semibold rounded-xl transition-colors shadow-sm whitespace-nowrap ${
                   user
                     ? "bg-primary-600 hover:bg-primary-500 text-white"
                     : "border border-gray-300 text-gray-700 hover:bg-gray-50"
                 }`}
               >
-                Browse providers
+                Browse
               </Link>
               {!user && (
                 <button
                   onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
-                  className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+                  className="inline-flex items-center justify-center min-h-[48px] px-5 py-3 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm whitespace-nowrap"
                 >
-                  Create account
+                  Sign up
                 </button>
               )}
             </div>

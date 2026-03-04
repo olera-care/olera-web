@@ -48,7 +48,7 @@ export default function SetUpProfileSection() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 items-center">
             {/* Left — Form */}
             <div className="p-8 lg:p-10">
-              <h3 className="text-text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-gray-900">
                 Add your business detail
               </h3>
 
@@ -56,7 +56,7 @@ export default function SetUpProfileSection() {
                 <div>
                   <label
                     htmlFor="business-name"
-                    className="block text-text-sm font-medium text-gray-700 mb-1.5"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
                   >
                     Business name
                   </label>
@@ -68,14 +68,14 @@ export default function SetUpProfileSection() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleGetStarted();
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-text-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="zip-code"
-                    className="block text-text-sm font-medium text-gray-700 mb-1.5"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
                   >
                     Zip code
                   </label>
@@ -87,7 +87,7 @@ export default function SetUpProfileSection() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleGetStarted();
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-text-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   />
                 </div>
               </div>

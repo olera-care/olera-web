@@ -79,7 +79,7 @@ export default function CommentThread({ comments }: CommentThreadProps) {
                 onChange={(e) => setCommentText(e.target.value)}
                 onFocus={() => setIsFocused(true)}
                 placeholder="What are your thoughts?"
-                className="w-full px-4 py-3 text-sm text-gray-700 placeholder-gray-400 bg-transparent resize-none focus:outline-none"
+                className="w-full px-4 py-3 text-base text-gray-700 placeholder-gray-400 bg-transparent resize-none focus:outline-none"
                 rows={isFocused ? 4 : 2}
               />
 

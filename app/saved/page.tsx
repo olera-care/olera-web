@@ -54,7 +54,7 @@ export default function SavedProvidersPage() {
             <h1 className="font-display text-display-sm sm:text-display-md font-semibold text-gray-900 tracking-tight">
               Saved
             </h1>
-            <p className="text-text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               {savedProviders.length > 0
                 ? `${savedProviders.length} provider${savedProviders.length !== 1 ? "s" : ""}`
                 : "Providers you save will appear here"}

@@ -152,12 +152,12 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
         <div className="flex items-center gap-2.5">
           <AuthorAvatar author={post.author} />
           <div>
-            <span className="text-gray-900 font-medium text-text-sm block leading-tight">{post.author.displayName}</span>
-            <span className="text-gray-400 text-text-xs">{formatTimeAgo(post.createdAt)}</span>
+            <span className="text-gray-900 font-medium text-sm block leading-tight">{post.author.displayName}</span>
+            <span className="text-gray-400 text-xs">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className={`text-text-xs font-medium px-2.5 py-1 rounded-lg ${careTypeConfig.bgColor} ${careTypeConfig.color}`}>
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-lg ${careTypeConfig.bgColor} ${careTypeConfig.color}`}>
             {careTypeConfig.label}
           </span>
           {/* Menu button */}
@@ -192,17 +192,17 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
       </div>
 
       {/* Title */}
-      <h3 className="font-display text-text-md font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-2 line-clamp-2 leading-snug">
+      <h3 className="font-display text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-2 line-clamp-2 leading-snug">
         {post.title}
       </h3>
 
       {/* Excerpt */}
-      <p className="text-text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">
+      <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">
         {post.excerpt}
       </p>
 
       {/* Footer: Engagement metrics */}
-      <div className="flex items-center gap-3 text-text-sm text-gray-400">
+      <div className="flex items-center gap-3 text-sm text-gray-400">
         {post.commentCount > 0 ? (
           <span className="flex items-center gap-1.5 font-medium text-gray-600">
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

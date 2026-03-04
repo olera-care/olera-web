@@ -55,7 +55,7 @@ export default function EasyToConnectSection() {
               key={tab.id}
               type="button"
               onClick={() => setActiveIndex(i)}
-              className={`px-5 py-2 rounded-full text-text-sm font-medium transition-colors ${
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
                 i === activeIndex
                   ? "bg-primary-600 text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -89,10 +89,10 @@ export default function EasyToConnectSection() {
           </div>
 
           {/* Caption */}
-          <h3 className="mt-4 text-text-lg font-semibold text-gray-900">
+          <h3 className="mt-4 text-lg font-semibold text-gray-900">
             {activeTab.title}
           </h3>
-          <p className="mt-1 text-text-md text-gray-500">
+          <p className="mt-1 text-base text-gray-500">
             {activeTab.description}
           </p>
         </div>

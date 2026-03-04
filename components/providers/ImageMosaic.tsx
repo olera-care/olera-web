@@ -123,7 +123,7 @@ export default function ImageMosaic({
               {/* Show count overlay on last image if there are more */}
               {i === (images.length >= 4 ? 3 : 1) && images.length > (images.length >= 4 ? 5 : 3) && (
                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center hover:bg-black/40 transition-colors">
-                  <span className="text-text-sm font-semibold text-white">
+                  <span className="text-sm font-semibold text-white">
                     +{images.length - (images.length >= 4 ? 5 : 3)} more
                   </span>
                 </div>

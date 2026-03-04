@@ -40,7 +40,7 @@ export default function StatsSection() {
               <br />
               on Olera
             </h2>
-            <p className="mt-4 text-text-lg text-white/85">
+            <p className="mt-4 text-lg text-white/85">
               Join thousands of home care and senior living communities
             </p>
 
@@ -62,7 +62,7 @@ export default function StatsSection() {
                   </div>
                 ))}
               </div>
-              <span className="ml-3 text-text-sm font-medium text-white/80">
+              <span className="ml-3 text-sm font-medium text-white/80">
                 & more
               </span>
             </div>

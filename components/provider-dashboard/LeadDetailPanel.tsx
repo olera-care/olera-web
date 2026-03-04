@@ -280,7 +280,7 @@ export default function LeadDetailPanel({
             onChange={(e) => setPassNote(e.target.value)}
             placeholder="Add a note (optional)"
             rows={3}
-            className="w-full text-sm border border-gray-200 rounded-xl px-3.5 py-3 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 resize-none mb-6"
+            className="w-full text-base border border-gray-200 rounded-xl px-3.5 py-3 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 resize-none mb-6"
           />
 
           {/* Actions */}

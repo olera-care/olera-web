@@ -58,7 +58,7 @@ export default function HeroSection() {
             <h1 className="font-serif text-display-md sm:text-display-lg lg:text-display-xl font-bold text-white leading-tight">
               Reach more families
             </h1>
-            <p className="mt-3 text-text-lg text-white/85">
+            <p className="mt-3 text-lg text-white/85">
               Join a network of senior care providers families trust
             </p>
 
@@ -86,7 +86,7 @@ export default function HeroSection() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleGetStarted();
                   }}
-                  className="w-full pl-11 pr-4 py-3 rounded-lg bg-white text-text-md text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full pl-11 pr-4 py-3 rounded-lg bg-white text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
               <button
@@ -101,10 +101,10 @@ export default function HeroSection() {
 
           {/* NIH badge — aligned to right edge of container */}
           <div className="absolute bottom-0 right-0 hidden sm:flex items-center gap-2">
-            <div className="w-9 h-9 rounded bg-white/90 flex items-center justify-center text-text-xs font-bold text-gray-700">
+            <div className="w-9 h-9 rounded bg-white/90 flex items-center justify-center text-xs font-bold text-gray-700">
               NIH
             </div>
-            <div className="text-text-xs text-white/90">
+            <div className="text-xs text-white/90">
               <span className="block text-white/60 text-[10px]">
                 Proudly supported by
               </span>

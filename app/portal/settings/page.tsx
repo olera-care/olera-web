@@ -417,7 +417,7 @@ export default function SettingsPage() {
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
               placeholder="delete"
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
+              className="w-full text-base border border-gray-200 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
               autoComplete="off"
             />
           </div>
@@ -503,7 +503,7 @@ export default function SettingsPage() {
               value={deleteProfileConfirmText}
               onChange={(e) => setDeleteProfileConfirmText(e.target.value)}
               placeholder="remove"
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
+              className="w-full text-base border border-gray-200 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent placeholder:text-gray-300"
               autoComplete="off"
             />
           </div>
@@ -650,7 +650,7 @@ function AccountRow({
                 value={editValue}
                 onChange={(e) => onEditChange(e.target.value)}
                 placeholder={placeholder}
-                className="mt-1.5 w-full text-[15px] text-gray-900 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="mt-1.5 w-full text-base text-gray-900 border border-gray-200 rounded-lg px-3 py-2 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 autoFocus
               />
             )

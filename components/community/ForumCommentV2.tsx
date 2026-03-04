@@ -277,14 +277,14 @@ export default function ForumCommentV2({ comment, isReply = false }: ForumCommen
                   setShowReportModal(false);
                   setSelectedReason(null);
                 }}
-                className="flex-1 px-4 py-3 min-h-[48px] text-text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                className="flex-1 px-4 py-3 min-h-[48px] text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitReport}
                 disabled={!selectedReason}
-                className={`flex-1 px-4 py-3 min-h-[48px] text-text-sm font-medium rounded-xl transition-colors ${
+                className={`flex-1 px-4 py-3 min-h-[48px] text-sm font-medium rounded-xl transition-colors ${
                   selectedReason
                     ? "bg-primary-600 text-white hover:bg-primary-700"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -304,17 +304,17 @@ export default function ForumCommentV2({ comment, isReply = false }: ForumCommen
               </svg>
             </div>
             <h3 className="font-display text-display-xs font-medium text-gray-900 mb-2">Report Submitted</h3>
-            <p className="text-text-sm text-gray-500">Thank you for helping keep our community safe.</p>
+            <p className="text-sm text-gray-500">Thank you for helping keep our community safe.</p>
           </div>
         ) : (
           <>
-            <p className="text-text-sm text-gray-500 mb-4">Why are you reporting this comment?</p>
+            <p className="text-sm text-gray-500 mb-4">Why are you reporting this comment?</p>
             <div className="space-y-2">
               {REPORT_REASONS.map((reason) => (
                 <button
                   key={reason.id}
                   onClick={() => setSelectedReason(reason.id)}
-                  className={`w-full px-4 py-3.5 min-h-[48px] text-left text-text-sm rounded-xl border-2 transition-colors ${
+                  className={`w-full px-4 py-3.5 min-h-[48px] text-left text-sm rounded-xl border-2 transition-colors ${
                     selectedReason === reason.id
                       ? "border-primary-500 bg-primary-50 text-primary-700 font-medium"
                       : "border-gray-200 text-gray-700 hover:bg-gray-50"

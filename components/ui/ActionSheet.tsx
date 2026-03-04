@@ -110,7 +110,7 @@ export default function ActionSheet({
           {/* Title */}
           {title && (
             <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-text-xs text-gray-400 text-center font-medium">
+              <p className="text-xs text-gray-400 text-center font-medium">
                 {title}
               </p>
             </div>

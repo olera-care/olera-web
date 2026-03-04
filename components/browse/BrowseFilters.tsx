@@ -114,7 +114,7 @@ export default function BrowseFilters({
         <button
           type="button"
           onClick={() => setShowTypeDropdown(true)}
-          className={`flex items-center justify-between w-full sm:w-48 px-4 py-3 min-h-[48px] border rounded-xl text-text-sm font-medium transition-colors ${
+          className={`flex items-center justify-between w-full sm:w-48 px-4 py-3 min-h-[48px] border rounded-xl text-sm font-medium transition-colors ${
             currentType
               ? "border-primary-500 bg-primary-50 text-primary-700"
               : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
@@ -139,7 +139,7 @@ export default function BrowseFilters({
                 updateFilters({ type: "" });
                 setShowTypeDropdown(false);
               }}
-              className={`w-full px-4 py-3 min-h-[44px] text-left text-text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${
+              className={`w-full px-4 py-3 min-h-[44px] text-left text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${
                 !currentType ? "text-primary-600 font-medium" : "text-gray-700"
               }`}
             >
@@ -160,7 +160,7 @@ export default function BrowseFilters({
                     updateFilters({ type: typeSlug });
                     setShowTypeDropdown(false);
                   }}
-                  className={`w-full px-4 py-3 min-h-[44px] text-left text-text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${
+                  className={`w-full px-4 py-3 min-h-[44px] text-left text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${
                     isActive ? "text-primary-600 font-medium" : "text-gray-700"
                   }`}
                 >

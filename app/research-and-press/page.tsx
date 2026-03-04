@@ -58,7 +58,7 @@ function ArticleCard({ article }: { article: ArticleFromAPI }) {
             {article.title}
           </h3>
           {article.excerpt && (
-            <p className="text-text-md text-gray-500 leading-relaxed line-clamp-3 mb-4">
+            <p className="text-base text-gray-500 leading-relaxed line-clamp-3 mb-4">
               {article.excerpt}
             </p>
           )}
@@ -177,7 +177,7 @@ function ResearchAndPressContent() {
             <h1 className="font-display text-display-md md:text-display-lg text-gray-900 tracking-tight">
               Research & Press
             </h1>
-            <p className="mt-2 text-text-lg text-gray-400 max-w-2xl">
+            <p className="mt-2 text-lg text-gray-400 max-w-2xl">
               The latest in senior care research, industry news, and Olera
               announcements.
             </p>
@@ -200,7 +200,7 @@ function ResearchAndPressContent() {
           <h1 className="font-display text-display-md md:text-display-lg text-gray-900 tracking-tight">
             Research & Press
           </h1>
-          <p className="mt-2 text-text-lg text-gray-400 max-w-2xl">
+          <p className="mt-2 text-lg text-gray-400 max-w-2xl">
             The latest in senior care research, industry news, and Olera
             announcements.
           </p>

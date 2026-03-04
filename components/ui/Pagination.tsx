@@ -66,7 +66,7 @@ export default function Pagination({
     <div className={`flex flex-col items-center gap-4 sm:flex-row sm:justify-between ${className}`}>
       {/* Item count */}
       {showItemCount && (
-        <span className="text-text-sm text-gray-500">
+        <span className="text-sm text-gray-500">
           Showing {startItem}–{endItem} of {totalItems} {itemLabel}
         </span>
       )}
@@ -94,7 +94,7 @@ export default function Pagination({
           page === "ellipsis" ? (
             <span
               key={`ellipsis-${index}`}
-              className="w-11 h-11 flex items-center justify-center text-gray-400 text-text-sm"
+              className="w-11 h-11 flex items-center justify-center text-gray-400 text-sm"
             >
               ···
             </span>
@@ -102,7 +102,7 @@ export default function Pagination({
             <button
               key={page}
               onClick={() => onPageChange(page)}
-              className={`w-11 h-11 flex items-center justify-center rounded-full text-text-sm font-medium transition-colors ${
+              className={`w-11 h-11 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
                 currentPage === page
                   ? "bg-gray-900 text-white"
                   : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"

@@ -71,7 +71,7 @@ function FeaturedArticlePrimary({ resource }: { resource: Resource }) {
         </div>
         <div className="flex-1 flex flex-col">
           {resource.careTypes[0] && (
-            <span className="text-text-sm font-medium text-gray-400 mb-2">
+            <span className="text-sm font-medium text-gray-400 mb-2">
               {CARE_TYPE_CONFIG[resource.careTypes[0]].label}
             </span>
           )}
@@ -79,11 +79,11 @@ function FeaturedArticlePrimary({ resource }: { resource: Resource }) {
             {resource.title}
           </h3>
           {resource.excerpt && (
-            <p className="text-text-md text-gray-500 leading-relaxed line-clamp-2 mb-4">
+            <p className="text-base text-gray-500 leading-relaxed line-clamp-2 mb-4">
               {resource.excerpt}
             </p>
           )}
-          <span className="mt-auto text-text-sm text-gray-400">
+          <span className="mt-auto text-sm text-gray-400">
             {resource.readingTime} read
           </span>
         </div>
@@ -110,14 +110,14 @@ function FeaturedArticleSecondary({ resource }: { resource: Resource }) {
         </div>
         <div className="flex-1 min-w-0 flex flex-col justify-center">
           {resource.careTypes[0] && (
-            <span className="text-text-xs font-medium text-gray-400 mb-1">
+            <span className="text-xs font-medium text-gray-400 mb-1">
               {CARE_TYPE_CONFIG[resource.careTypes[0]].label}
             </span>
           )}
           <h3 className="font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200 line-clamp-2">
             {resource.title}
           </h3>
-          <span className="mt-1.5 text-text-xs text-gray-400">
+          <span className="mt-1.5 text-xs text-gray-400">
             {resource.readingTime} read
           </span>
         </div>
@@ -191,7 +191,7 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
         className="group block mt-5 lg:max-w-[58%]"
       >
         {primary.careTypes[0] && (
-          <span className="text-text-sm font-medium text-gray-400 mb-2 block">
+          <span className="text-sm font-medium text-gray-400 mb-2 block">
             {CARE_TYPE_CONFIG[primary.careTypes[0]].label}
           </span>
         )}
@@ -199,11 +199,11 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
           {primary.title}
         </h3>
         {primary.excerpt && (
-          <p className="text-text-md text-gray-500 leading-relaxed line-clamp-2 mb-3">
+          <p className="text-base text-gray-500 leading-relaxed line-clamp-2 mb-3">
             {primary.excerpt}
           </p>
         )}
-        <span className="text-text-sm text-gray-400">
+        <span className="text-sm text-gray-400">
           {primary.readingTime} read
         </span>
       </Link>
@@ -261,14 +261,14 @@ function ArticleCard({ resource }: { resource: Resource }) {
           />
         </div>
         {careType && (
-          <span className="text-text-xs font-medium text-gray-400 tracking-wide uppercase">
+          <span className="text-xs font-medium text-gray-400 tracking-wide uppercase">
             {CARE_TYPE_CONFIG[careType].label}
           </span>
         )}
-        <h3 className="mt-2 font-display text-text-lg font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200 line-clamp-2">
+        <h3 className="mt-2 font-display text-lg font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200 line-clamp-2">
           {resource.title}
         </h3>
-        <span className="mt-2 block text-text-sm text-gray-400">
+        <span className="mt-2 block text-sm text-gray-400">
           {resource.readingTime} read
         </span>
       </article>
@@ -388,7 +388,7 @@ function CaregiverSupportContent() {
           <h1 className="font-display text-display-sm md:text-display-lg font-semibold text-gray-900 tracking-tight">
             Caregiver Support
           </h1>
-          <p className="mt-2 text-text-md md:text-text-lg text-gray-500 max-w-xl leading-relaxed">
+          <p className="mt-2 text-base md:text-lg text-gray-500 max-w-xl leading-relaxed">
             Guides, insights, and practical advice for every stage of the care journey.
           </p>
         </div>
@@ -413,7 +413,7 @@ function CaregiverSupportContent() {
             <div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap pb-2 sm:pb-0">
               <button
                 onClick={() => handleCategoryChange("all")}
-                className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
+                className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
                   activeCareType === "all"
                     ? "bg-gray-900 text-white"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
@@ -425,7 +425,7 @@ function CaregiverSupportContent() {
                 <button
                   key={careType}
                   onClick={() => handleCategoryChange(careType)}
-                  className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
+                  className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
                     activeCareType === careType
                       ? "bg-gray-900 text-white"
                       : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
@@ -447,10 +447,10 @@ function CaregiverSupportContent() {
           </div>
         ) : (
           <div className="py-20 text-center">
-            <p className="text-text-md text-gray-400 mb-4">No articles found</p>
+            <p className="text-base text-gray-400 mb-4">No articles found</p>
             <button
               onClick={() => handleCategoryChange("all")}
-              className="min-h-[44px] px-4 text-text-sm text-gray-900 underline underline-offset-4 hover:text-gray-600 transition-colors"
+              className="min-h-[44px] px-4 text-sm text-gray-900 underline underline-offset-4 hover:text-gray-600 transition-colors"
             >
               View all articles
             </button>

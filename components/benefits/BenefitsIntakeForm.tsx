@@ -245,7 +245,7 @@ export default function BenefitsIntakeForm() {
     <div className="w-full">
       {/* Step content — keyed to animate on step change */}
       <div key={step} className="animate-step-in">
-      <p className="text-text-xs text-gray-400 mb-3 tabular-nums">
+      <p className="text-xs text-gray-400 mb-3 tabular-nums">
         {step + 1} / {TOTAL_INTAKE_STEPS}
       </p>
       <h2 className="font-display text-display-sm font-medium text-gray-900 mb-8 leading-snug tracking-tight">
@@ -423,7 +423,7 @@ export default function BenefitsIntakeForm() {
       {/* Step 3: Primary needs (multi-select) */}
       {step === 3 && (
         <>
-          <p className="text-text-xs text-gray-400 mb-3">Select all that apply</p>
+          <p className="text-xs text-gray-400 mb-3">Select all that apply</p>
           <div className="flex flex-wrap gap-2.5 mb-4">
             {(Object.entries(PRIMARY_NEEDS) as [PrimaryNeed, { displayTitle: string; icon: string }][]).map(
               ([key, val]) => (

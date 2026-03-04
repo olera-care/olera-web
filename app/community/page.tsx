@@ -309,13 +309,13 @@ function CommunityPageContent() {
             <div className="space-y-4">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-text-sm text-gray-500">{getGreeting()}</p>
+                  <p className="text-sm text-gray-500">{getGreeting()}</p>
                   <h2 className="font-display text-display-xs font-semibold text-gray-900 leading-snug">What&apos;s on your mind?</h2>
                 </div>
                 <div className="relative shrink-0" ref={sortMenuRef}>
                   <button
                     onClick={() => setShowSortMenu(!showSortMenu)}
-                    className="flex items-center gap-1.5 min-h-[44px] px-3 -mr-3 text-text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                    className="flex items-center gap-1.5 min-h-[44px] px-3 -mr-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     Sort: {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,7 +328,7 @@ function CommunityPageContent() {
                         <button
                           key={option.value}
                           onClick={() => { setSortBy(option.value); setShowSortMenu(false); }}
-                          className={`w-full px-4 py-2 min-h-[44px] text-left text-text-sm transition-colors ${
+                          className={`w-full px-4 py-2 min-h-[44px] text-left text-sm transition-colors ${
                             sortBy === option.value ? "bg-gray-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-50"
                           }`}
                         >
@@ -344,10 +344,10 @@ function CommunityPageContent() {
                 className="flex items-center gap-3 pl-4 pr-2 py-2 min-h-[56px] bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors cursor-pointer shadow-sm"
               >
                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-600 font-medium text-text-sm">JD</span>
+                  <span className="text-primary-600 font-medium text-sm">JD</span>
                 </div>
-                <span className="flex-1 text-left text-gray-400 text-text-sm">Start a discussion...</span>
-                <button className="px-5 py-2.5 min-h-[44px] bg-primary-600 text-white text-text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">Post</button>
+                <span className="flex-1 text-left text-gray-400 text-sm">Start a discussion...</span>
+                <button className="px-5 py-2.5 min-h-[44px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">Post</button>
               </div>
             </div>
           ) : (
@@ -401,10 +401,10 @@ function CommunityPageContent() {
         <div>
           {/* Section heading */}
           <div className="flex items-baseline gap-2.5 mb-5">
-            <h3 className="text-text-md font-semibold text-gray-900">
+            <h3 className="text-base font-semibold text-gray-900">
               {activeCategory === "all" ? "All Discussions" : CARE_TYPE_CONFIG[activeCategory].label}
             </h3>
-            <span className="text-text-sm text-gray-400 font-medium tabular-nums">{posts.length}</span>
+            <span className="text-sm text-gray-400 font-medium tabular-nums">{posts.length}</span>
           </div>
 
           <div className="space-y-4">
@@ -424,8 +424,8 @@ function CommunityPageContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="font-display text-text-lg font-semibold text-gray-900 mb-2">No discussions found</h3>
-                <p className="text-text-sm text-gray-500 max-w-xs mx-auto">{searchQuery ? "Try different keywords or browse all topics." : "Be the first to start a discussion!"}</p>
+                <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">No discussions found</h3>
+                <p className="text-sm text-gray-500 max-w-xs mx-auto">{searchQuery ? "Try different keywords or browse all topics." : "Be the first to start a discussion!"}</p>
               </div>
             )}
           </div>

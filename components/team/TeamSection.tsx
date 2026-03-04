@@ -57,13 +57,13 @@ function TeamCard({
 
       {/* Info */}
       <div className="mt-6">
-        <p className="text-text-xs font-medium text-primary-600 uppercase tracking-wider">
+        <p className="text-xs font-medium text-primary-600 uppercase tracking-wider">
           {leader.role}
         </p>
         <h3 className="font-serif text-display-xs font-bold text-gray-900 mt-1">
           {leader.name}
         </h3>
-        <p className="text-text-md text-gray-600 leading-relaxed mt-3">
+        <p className="text-base text-gray-600 leading-relaxed mt-3">
           {leader.bio}
         </p>
 
@@ -76,7 +76,7 @@ function TeamCard({
           aria-label={`${leader.name} on LinkedIn`}
         >
           <LinkedInIcon className="w-5 h-5" />
-          <span className="text-text-sm font-medium">LinkedIn</span>
+          <span className="text-sm font-medium">LinkedIn</span>
         </a>
       </div>
     </div>

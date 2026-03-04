@@ -46,7 +46,7 @@ export default function PriceEstimate({ priceRange }: PriceEstimateProps) {
       {/* Tooltip - positioned for both mobile and desktop */}
       {showTooltip && (
         <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-30 w-[min(18rem,calc(100vw-2.5rem))]">
-          <div className="bg-gray-900 text-white text-text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+          <div className="bg-gray-900 text-white text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
             <p>Price is an estimate and may vary.</p>
             <p className="text-gray-400 mt-1">Contact the provider for exact rates.</p>
           </div>

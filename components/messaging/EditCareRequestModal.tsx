@@ -192,7 +192,7 @@ export default function EditCareRequestModal({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any details you'd like to share..."
               rows={3}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400/20 resize-none transition-all"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-base text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400/20 resize-none transition-all"
             />
           </div>
 

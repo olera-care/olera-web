@@ -67,7 +67,7 @@ export default function BottomCTASection() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleGetStarted();
                 }}
-                className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-text-md text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
             <button

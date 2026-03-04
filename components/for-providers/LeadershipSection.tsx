@@ -46,13 +46,13 @@ export default function LeadershipSection() {
               {/* Info */}
               <div className="flex flex-col justify-between min-w-0 p-4 sm:p-5 flex-1">
                 <div>
-                  <span className="text-text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     {leader.role}
                   </span>
-                  <h3 className="text-text-base sm:text-text-lg font-bold text-gray-900 mt-0.5">
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-0.5">
                     {leader.name}
                   </h3>
-                  <p className="text-text-sm text-gray-600 mt-2 leading-relaxed line-clamp-4 sm:line-clamp-none">
+                  <p className="text-sm text-gray-600 mt-2 leading-relaxed line-clamp-4 sm:line-clamp-none">
                     {leader.bio}
                   </p>
                 </div>
@@ -77,7 +77,7 @@ export default function LeadershipSection() {
         <div className="mt-10 text-center">
           <Link
             href="/team"
-            className="inline-flex items-center gap-1.5 text-text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
           >
             Learn more about our team
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

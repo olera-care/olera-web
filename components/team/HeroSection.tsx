@@ -18,7 +18,7 @@ export default function HeroSection() {
           Built by people who understand care
         </h1>
         <p
-          className={`mt-5 text-text-lg text-gray-500 leading-relaxed max-w-2xl mx-auto transition-all duration-700 ease-out delay-150 ${
+          className={`mt-5 text-lg text-gray-500 leading-relaxed max-w-2xl mx-auto transition-all duration-700 ease-out delay-150 ${
             isInView
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-4"

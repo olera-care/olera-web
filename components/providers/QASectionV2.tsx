@@ -135,7 +135,7 @@ export default function QASectionV2({
           placeholder="Type your question..."
           rows={3}
           maxLength={1000}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all"
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all"
         />
         <div className="flex items-center justify-between mt-3">
           <div className="text-sm">

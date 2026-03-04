@@ -97,10 +97,10 @@ export default function BenefitsSection() {
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary-100 text-primary-600 mb-3">
                 {benefit.icon}
               </div>
-              <h3 className="text-text-md font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-gray-900">
                 {benefit.title}
               </h3>
-              <p className="text-text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 {benefit.description}
               </p>
             </div>

@@ -13,7 +13,11 @@ import {
   PROVIDERS_TABLE,
   toCardFormat,
   type ProviderCardData,
+  businessProfileToCardFormat,
+  mergeProviderCards,
+  CARE_TYPE_SLUG_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
+import type { BusinessProfile } from "@/lib/types";
 
 const BrowseMap = dynamic(() => import("@/components/browse/BrowseMap"), {
   ssr: false,
@@ -167,19 +171,59 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           }
         }
 
-        // Order by rating and limit
-        const { data, error } = await query
-          .order("google_rating", { ascending: false })
-          .limit(100)
-          .abortSignal(controller.signal);
+        // Build parallel business_profiles query
+        let bpQuery = supabase
+          .from("business_profiles")
+          .select("*")
+          .eq("claim_state", "claimed")
+          .eq("is_active", true)
+          .eq("type", "organization");
+
+        if (careType && careType !== "all") {
+          const profileCat = CARE_TYPE_SLUG_TO_PROFILE_CATEGORY[careType];
+          if (profileCat) {
+            bpQuery = bpQuery.eq("category", profileCat);
+          }
+        }
+
+        if (searchLocation) {
+          const trimmed = searchLocation.trim();
+          const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
+          if (cityStateMatch) {
+            const city = cityStateMatch[1].trim();
+            const state = cityStateMatch[2].toUpperCase();
+            bpQuery = bpQuery.ilike("city", `%${city}%`).eq("state", state);
+          } else if (/^[A-Z]{2}$/i.test(trimmed)) {
+            bpQuery = bpQuery.eq("state", trimmed.toUpperCase());
+          } else {
+            bpQuery = bpQuery.or(`city.ilike.%${trimmed}%,display_name.ilike.%${trimmed}%`);
+          }
+        }
+
+        bpQuery = bpQuery.order("created_at", { ascending: false }).limit(50);
+
+        // Run both queries in parallel
+        const [seededResult, bpResult] = await Promise.all([
+          query
+            .order("google_rating", { ascending: false })
+            .limit(100)
+            .abortSignal(controller.signal),
+          bpQuery.abortSignal(controller.signal),
+        ]);
 
         if (cancelled) return;
 
-        if (error) {
-          console.error("Browse fetch error:", error.message);
+        if (seededResult.error) {
+          console.error("Browse fetch error:", seededResult.error.message);
           setProviders([]);
         } else {
-          setProviders((data as SupabaseProvider[]).map(toCardFormat));
+          const seededCards = (seededResult.data as SupabaseProvider[]).map(toCardFormat);
+          const bpData = (bpResult.data as BusinessProfile[] | null) ?? [];
+          const bpCards = bpData.map(businessProfileToCardFormat);
+          const dedupeIds = new Set(
+            bpData.map((bp) => bp.source_provider_id).filter((id): id is string => id != null)
+          );
+          setProviders(mergeProviderCards(seededCards, bpCards, dedupeIds));
         }
       } catch (err: unknown) {
         if (cancelled || (err instanceof DOMException && err.name === "AbortError")) return;

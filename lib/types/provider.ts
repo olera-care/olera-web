@@ -8,6 +8,7 @@
  */
 
 import { generateProviderSlug } from "@/lib/slugify";
+import type { BusinessProfile, ProfileCategory } from "@/lib/types";
 
 export interface Provider {
   provider_id: string;
@@ -320,6 +321,119 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     lat: provider.lat,
     lon: provider.lon,
   };
+}
+
+// ============================================================
+// BusinessProfile → ProviderCardData conversion
+// ============================================================
+
+/**
+ * Map ProfileCategory enum → display name used in ProviderCardData.primaryCategory
+ */
+const PROFILE_CATEGORY_DISPLAY: Record<ProfileCategory, string> = {
+  home_care_agency: "Home Care",
+  home_health_agency: "Home Health",
+  hospice_agency: "Hospice",
+  independent_living: "Independent Living",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+  inpatient_hospice: "Hospice",
+  rehab_facility: "Rehabilitation",
+  adult_day_care: "Adult Day Care",
+  wellness_center: "Wellness Center",
+  private_caregiver: "Private Caregiver",
+};
+
+/**
+ * Map Supabase provider_category (olera-providers) → ProfileCategory (business_profiles).
+ * Used in power-pages.ts to query business_profiles with the same category filter.
+ */
+export const SUPABASE_CAT_TO_PROFILE_CATEGORY: Record<string, ProfileCategory> = {
+  "Home Care (Non-medical)": "home_care_agency",
+  "Home Health Care": "home_health_agency",
+  "Assisted Living": "assisted_living",
+  "Memory Care": "memory_care",
+  "Nursing Home": "nursing_home",
+  "Independent Living": "independent_living",
+  "Hospice": "hospice_agency",
+};
+
+/**
+ * Map browse page care-type slugs → ProfileCategory.
+ * Used in BrowseClient / CityBrowseClient for client-side business_profiles queries.
+ */
+export const CARE_TYPE_SLUG_TO_PROFILE_CATEGORY: Record<string, ProfileCategory> = {
+  "home-care": "home_care_agency",
+  "home-health": "home_health_agency",
+  "assisted-living": "assisted_living",
+  "memory-care": "memory_care",
+  "nursing-homes": "nursing_home",
+  "independent-living": "independent_living",
+};
+
+/**
+ * Map ProfileCategory → Supabase provider_category display for highlights lookup.
+ */
+const PROFILE_CAT_TO_SUPABASE_CAT: Record<string, string> = {
+  home_care_agency: "Home Care (Non-medical)",
+  home_health_agency: "Home Health Care",
+  hospice_agency: "Hospice",
+  independent_living: "Independent Living",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+};
+
+/**
+ * Convert a BusinessProfile → ProviderCardData for display in search results.
+ */
+export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardData {
+  const displayCategory = bp.category
+    ? PROFILE_CATEGORY_DISPLAY[bp.category]
+    : "Senior Care";
+
+  const supabaseCat = bp.category
+    ? PROFILE_CAT_TO_SUPABASE_CAT[bp.category] || ""
+    : "";
+
+  const image = bp.image_url || getCategoryFallbackImage(supabaseCat, bp.id);
+
+  return {
+    id: bp.id,
+    slug: bp.slug,
+    name: bp.display_name,
+    image,
+    imageType: bp.image_url ? "photo" : "placeholder",
+    images: bp.image_url ? [bp.image_url] : [],
+    address: [bp.city, bp.state].filter(Boolean).join(", "),
+    rating: 0,
+    reviewCount: undefined,
+    priceRange: "Contact for pricing",
+    primaryCategory: displayCategory,
+    careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),
+    highlights: getHighlightsForCategory(supabaseCat),
+    acceptedPayments: [],
+    verified: bp.claim_state === "claimed",
+    description: bp.description?.slice(0, 200) || undefined,
+    lat: bp.lat,
+    lon: bp.lng,
+  };
+}
+
+/**
+ * Merge seeded provider cards with business_profile cards.
+ * If a BP has a source_provider_id matching a seeded card, the BP version wins.
+ */
+export function mergeProviderCards(
+  seededCards: ProviderCardData[],
+  bpCards: ProviderCardData[],
+  dedupeSourceIds: Set<string>,
+): ProviderCardData[] {
+  const filtered = dedupeSourceIds.size > 0
+    ? seededCards.filter((c) => !dedupeSourceIds.has(c.id))
+    : seededCards;
+  return [...filtered, ...bpCards];
 }
 
 /**

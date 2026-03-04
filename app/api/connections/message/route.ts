@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
+import { sendLoopsEvent } from "@/lib/loops";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -162,6 +163,20 @@ export async function POST(request: Request) {
       }
     } catch (emailErr) {
       console.error("[message] email notification failed:", emailErr);
+    }
+
+    // Loops: new message event (fire-and-forget)
+    try {
+      sendLoopsEvent({
+        email: user.email || "",
+        eventName: "new_message",
+        audience: "seeker",
+        eventProperties: {
+          messagePreview: text.trim().slice(0, 100),
+        },
+      });
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ thread: updatedThread });

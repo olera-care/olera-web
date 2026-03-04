@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { sendLoopsEvent } from "@/lib/loops";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -119,6 +120,17 @@ export async function POST(request: Request) {
         { error: "Failed to end connection" },
         { status: 500 }
       );
+    }
+
+    // Loops: connection ended (fire-and-forget)
+    try {
+      sendLoopsEvent({
+        email: user.email || "",
+        eventName: "connection_ended",
+        audience: "seeker",
+      });
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ status: "ended" });

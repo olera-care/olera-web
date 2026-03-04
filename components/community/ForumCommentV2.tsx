@@ -36,7 +36,7 @@ function AuthorAvatar({ author }: { author: ForumCommentType["author"] }) {
     );
   }
   if (author.avatar) {
-    return <Image src={author.avatar} alt={author.displayName} width={36} height={36} className="rounded-full object-cover flex-shrink-0" />;
+    return <Image src={author.avatar} alt={author.displayName} width={36} height={36} className="rounded-full object-cover flex-shrink-0 aspect-square" />;
   }
   const initials = author.displayName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   const colors = [

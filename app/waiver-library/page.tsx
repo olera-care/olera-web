@@ -31,7 +31,7 @@ export default function WaiverLibraryPage() {
                   href="/benefits/finder"
                   className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-primary-700 font-semibold rounded-xl hover:bg-primary-50 transition-colors"
                 >
-                  Check Eligibility
+                  Check My Benefits
                 </Link>
                 <a
                   href="#states"

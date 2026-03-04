@@ -208,6 +208,9 @@ function DashboardContent({
         </div>
       )}
 
+      {/* Mobile progress banner - hidden on desktop */}
+      <MobileProgressBanner completeness={completeness} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Main content — staggered entrance */}
         <div className="lg:col-span-2 space-y-6">
@@ -268,8 +271,8 @@ function DashboardContent({
           ))}
         </div>
 
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
+        {/* Sidebar - hidden on mobile */}
+        <div className="hidden lg:block lg:col-span-1">
           <div
             className="sticky top-24"
             style={{
@@ -355,6 +358,67 @@ function DashboardHeader({ slug }: { slug: string | null }) {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Mobile progress banner (visible only on mobile) ──
+
+function MobileProgressBanner({
+  completeness,
+}: {
+  completeness: ReturnType<typeof calculateProfileCompleteness>;
+}) {
+  const completedCount = completeness.sections.filter(
+    (s) => s.percent >= 100
+  ).length;
+  const totalSections = completeness.sections.length;
+
+  return (
+    <div
+      className="lg:hidden mb-6 bg-gradient-to-r from-primary-50/80 to-vanilla-50 rounded-2xl border border-primary-100/60 p-4"
+      style={{ animation: "card-enter 0.25s ease-out both" }}
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[15px] font-semibold text-gray-900">
+              Profile completeness
+            </span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              completeness.overall >= 100
+                ? "bg-success-100 text-success-700"
+                : "bg-primary-100 text-primary-700"
+            }`}>
+              {completeness.overall}%
+            </span>
+          </div>
+          {/* Progress bar */}
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                completeness.overall >= 100 ? "bg-success-500" : "bg-primary-500"
+              }`}
+              style={{ width: `${completeness.overall}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-1.5">
+            {completedCount} of {totalSections} sections complete
+          </p>
+        </div>
+        {/* Section dots indicator */}
+        <div className="flex flex-wrap gap-1 max-w-[80px] justify-end shrink-0">
+          {completeness.sections.map((section) => (
+            <div
+              key={section.id}
+              className={`w-2.5 h-2.5 rounded-full ${
+                section.percent >= 100 ? "bg-primary-500" : "bg-gray-200"
+              }`}
+              title={section.label}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

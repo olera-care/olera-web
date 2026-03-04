@@ -78,12 +78,14 @@ export async function PATCH(
 
     // Email + Loops notification to provider (fire-and-forget)
     try {
+      console.log("[admin] Email block: account_id =", profile?.account_id);
       if (profile?.account_id) {
-        const { data: authUser } = await db.auth.admin.getUserById(profile.account_id);
+        const { data: authUser, error: authError } = await db.auth.admin.getUserById(profile.account_id);
+        console.log("[admin] getUserById result:", { email: authUser?.user?.email, error: authError?.message });
         const providerEmail = authUser?.user?.email;
         if (providerEmail) {
           const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/${profile.slug || id}`;
-          await sendEmail({
+          const emailResult = await sendEmail({
             to: providerEmail,
             subject: action === "approve"
               ? "Your Olera listing is live!"
@@ -94,7 +96,8 @@ export async function PATCH(
               listingUrl,
             }),
           });
-          await sendLoopsEvent({
+          console.log("[admin] Email send result:", emailResult);
+          const loopsResult = await sendLoopsEvent({
             email: providerEmail,
             eventName: action === "approve" ? "provider_approved" : "provider_rejected",
             audience: "provider",
@@ -102,10 +105,15 @@ export async function PATCH(
               providerName: profile.display_name || "",
             },
           });
+          console.log("[admin] Loops send result:", loopsResult);
+        } else {
+          console.warn("[admin] No email found for account_id:", profile.account_id);
         }
+      } else {
+        console.warn("[admin] No account_id on profile");
       }
-    } catch {
-      // Non-blocking
+    } catch (emailErr) {
+      console.error("[admin] Email/Loops block error:", emailErr);
     }
 
     return NextResponse.json({ profile });

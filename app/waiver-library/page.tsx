@@ -16,8 +16,8 @@ export default function WaiverLibraryPage() {
     <div className="bg-vanilla-100 min-h-screen">
       {/* Hero */}
       <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-secondary-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-          <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                 Find Your Senior Care Benefits
@@ -26,7 +26,7 @@ export default function WaiverLibraryPage() {
                 Find out what benefits you&apos;re eligible for in just 2 minutes. Many families
                 save up to $10,000 a year. It&apos;s free, simple, and personalized to you.
               </p>
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <Link
                   href="/benefits/finder"
                   className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-primary-700 font-semibold rounded-xl hover:bg-primary-50 transition-colors"
@@ -56,7 +56,7 @@ export default function WaiverLibraryPage() {
       </section>
 
       {/* Intro */}
-      <section className="py-12 bg-white">
+      <section className="py-8 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -97,9 +97,9 @@ export default function WaiverLibraryPage() {
       </section>
 
       {/* State grid */}
-      <section id="states" className="py-16 md:py-20">
+      <section id="states" className="py-10 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-10">
+          <div className="mb-6">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
               Browse by State
             </h2>

@@ -142,14 +142,6 @@ function searchConnections(connections: ConnectionWithProfile[], query: string, 
   });
 }
 
-type FilterOption = "all" | "pending" | "connected";
-
-const FILTER_LABELS: Record<FilterOption, string> = {
-  all: "All",
-  pending: "Pending",
-  connected: "Connected",
-};
-
 /** Read-tracking key for localStorage */
 const READ_KEY = "olera_inbox_read";
 
@@ -190,14 +182,11 @@ export default function ConversationList({
   const [archiveOpen, setPastOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-  const [filterOption, setFilterOption] = useState<FilterOption>("all");
-  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const filterDropdownRef = useRef<HTMLDivElement>(null);
 
   // Load read tracking from localStorage
   useEffect(() => {
@@ -233,16 +222,13 @@ export default function ConversationList({
     }
   }, [searchOpen]);
 
-  // Close menu / dropdown on outside click (blur-before-close prevents scroll-to-footer)
+  // Close menu on outside click
   useClickOutside(menuRef, () => setMenuOpenId(null), !!menuOpenId);
-  useClickOutside(filterDropdownRef, () => setFilterDropdownOpen(false), filterDropdownOpen);
 
   // Apply filters
   const filtered = (() => {
     if (searchOpen) return searchConnections(getActiveConnections(connections), searchQuery, activeProfileId);
     let list = getActiveConnections(connections);
-    if (filterOption === "pending") list = list.filter((c) => c.status === "pending");
-    if (filterOption === "connected") list = list.filter((c) => c.status === "accepted");
     if (unreadOnly) list = list.filter((c) => !readIds.has(c.id));
     return list;
   })();
@@ -355,11 +341,11 @@ export default function ConversationList({
                 </svg>
               </button>
 
-              {/* Dropdown */}
+              {/* Dropdown - opens upward to avoid scroll clipping */}
               {isMenuOpen && (
                 <div
                   ref={menuRef}
-                  className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10"
+                  className="absolute right-0 bottom-full mb-1 w-40 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50"
                 >
                   {/* Active items: Archive + Report */}
                   {!isPast && onArchiveConnection && (
@@ -494,7 +480,7 @@ export default function ConversationList({
   return (
     <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
       {/* Header */}
-      <div className={`shrink-0 transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
+      <div className={`shrink-0 relative z-10 bg-white transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
         {/* Header — crossfade between default and search modes */}
         <div className="relative">
           {/* Default mode — title + search icon */}
@@ -564,57 +550,21 @@ export default function ConversationList({
           }`}
         >
           <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 flex items-center gap-2.5">
-            {/* "All" dropdown pill */}
-            <div className="relative" ref={filterDropdownRef}>
-              <button
-                onClick={() => setFilterDropdownOpen((p) => !p)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                  filterOption !== "all" || unreadOnly
-                    ? "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-                    : "bg-gray-900 text-white"
-                }`}
-              >
-                {FILTER_LABELS[filterOption]}
-                <svg className={`w-3 h-3 transition-transform ${filterDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {filterDropdownOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
-                  {(Object.keys(FILTER_LABELS) as FilterOption[]).map((key) => (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        setFilterOption(key);
-                        setUnreadOnly(false);
-                        setFilterDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                        filterOption === key
-                          ? "text-gray-900 font-semibold bg-gray-50"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {FILTER_LABELS[key]}
-                      {filterOption === key && (
-                        <svg className="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* "All" toggle pill */}
+            <button
+              onClick={() => setUnreadOnly(false)}
+              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                !unreadOnly
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              All
+            </button>
 
             {/* "Unread" toggle pill */}
             <button
-              onClick={() => {
-                setUnreadOnly((p) => {
-                  if (!p) setFilterOption("all");
-                  return !p;
-                });
-              }}
+              onClick={() => setUnreadOnly(true)}
               className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
                 unreadOnly
                   ? "bg-gray-900 text-white"

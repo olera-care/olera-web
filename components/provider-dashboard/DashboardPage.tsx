@@ -189,7 +189,7 @@ function DashboardContent({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={guided.dismiss}
-              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2 min-h-[44px] flex items-center"
             >
               Dismiss
             </button>
@@ -200,7 +200,7 @@ function DashboardContent({
                   setEditingSection(guided.firstIncompleteSection);
                 }
               }}
-              className="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
+              className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors min-h-[44px] flex items-center"
             >
               Get Started
             </button>
@@ -325,7 +325,7 @@ function DashboardHeader({ slug }: { slug: string | null }) {
             href={`/provider/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-4 py-2 shadow-xs hover:bg-gray-50 transition-all duration-200"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-4 py-2.5 shadow-xs hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -335,7 +335,7 @@ function DashboardHeader({ slug }: { slug: string | null }) {
           </Link>
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2 shadow-sm transition-all duration-200"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200 min-h-[44px]"
           >
             {copied ? (
               <>

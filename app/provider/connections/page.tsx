@@ -275,26 +275,37 @@ function LeadDetailDrawer({
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[640px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        className={`fixed top-16 right-0 z-40 h-[calc(100dvh-64px)] w-full sm:w-[640px] sm:max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* ── Fixed header ── */}
         <div className="shrink-0 border-b border-gray-100">
           {/* Lead identity + close button */}
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-start gap-4">
-              {/* Close button — top right */}
+          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
+            <div className="flex items-start gap-3 sm:gap-4">
+              {/* Back button — mobile only */}
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
+                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150 shrink-0 min-h-[44px]"
+                aria-label="Go back"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+              {/* Close button — desktop only, top right */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="hidden sm:flex absolute right-6 top-6 w-8 h-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className={`w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
                 <span className="text-sm font-bold text-gray-500">{lead.initials}</span>
               </div>
               <div className="min-w-0 flex-1">
@@ -430,7 +441,7 @@ function LeadDetailDrawer({
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
                         rows={8}
-                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-[15px] text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
                       />
                     </div>
 
@@ -786,7 +797,7 @@ function LeadDetailDrawer({
                     onChange={(e) => setArchiveOtherText(e.target.value)}
                     placeholder="Tell us more (optional)"
                     rows={2}
-                    className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                    className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
                   />
                 )}
                 {archiveReason && (
@@ -935,23 +946,25 @@ export default function ProviderLeadsPage() {
       </div>
 
       {/* ── Filter tabs + Sort ── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
-        <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveFilter(tab.id)}
-              className={[
-                "px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150",
-                activeFilter === tab.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max sm:w-auto">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveFilter(tab.id)}
+                className={[
+                  "px-4 sm:px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[44px] flex items-center",
+                  activeFilter === tab.id
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                ].join(" ")}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="relative shrink-0 flex items-center">
@@ -976,11 +989,11 @@ export default function ProviderLeadsPage() {
         </div>
       </div>
 
-      {/* ── Leads table ── */}
+      {/* ── Leads list ── */}
       {filteredLeads.length > 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          {/* Table header */}
-          <div className="grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 px-8 py-4 border-b border-gray-100">
+          {/* Table header - desktop only */}
+          <div className="hidden lg:grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 px-8 py-4 border-b border-gray-100">
             <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Name</span>
             <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Location</span>
             <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Urgency</span>
@@ -989,54 +1002,92 @@ export default function ProviderLeadsPage() {
             <span />
           </div>
 
-          {/* Table rows */}
+          {/* Lead rows */}
           {filteredLeads.map((lead, idx) => (
             <div
               key={lead.id}
               onClick={() => openDrawer(lead)}
               className={[
-                "group grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 items-center px-8 py-4 transition-colors duration-100 hover:bg-vanilla-50/40 cursor-pointer",
+                "group transition-colors duration-100 hover:bg-vanilla-50/40 cursor-pointer",
                 idx < filteredLeads.length - 1 ? "border-b border-gray-100/80" : "",
               ].join(" ")}
             >
-              {/* Name */}
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
-                  <span className="text-xs font-bold text-gray-500">{lead.initials}</span>
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2.5">
-                    <p className="text-base font-semibold text-gray-900 truncate">{lead.name}</p>
-                    {lead.isNew && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
-                        New
-                      </span>
-                    )}
+              {/* Mobile card layout */}
+              <div className="lg:hidden px-4 py-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-gray-500">{lead.initials}</span>
                   </div>
-                  <p className="text-sm text-gray-500 truncate mt-0.5">{lead.subtitle}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-[15px] font-semibold text-gray-900">{lead.name}</p>
+                      {lead.isNew && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{lead.subtitle}</p>
+                    <div className="flex items-center gap-3 mt-2 text-[13px] text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          lead.urgency === "immediate" ? "bg-red-400" : lead.urgency === "within_1_month" ? "bg-amber-400" : "bg-blue-400"
+                        }`} />
+                        {URGENCY_LABELS[lead.urgency]}
+                      </span>
+                      <span>·</span>
+                      <span>{lead.location}</span>
+                      <span>·</span>
+                      <span>{lead.date}</span>
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-300 shrink-0 mt-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
                 </div>
               </div>
 
-              {/* Location */}
-              <span className="text-[14px] font-medium text-gray-500">{lead.location}</span>
+              {/* Desktop table layout */}
+              <div className="hidden lg:grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 items-center px-8 py-4">
+                {/* Name */}
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-gray-500">{lead.initials}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <p className="text-base font-semibold text-gray-900 truncate">{lead.name}</p>
+                      {lead.isNew && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 truncate mt-0.5">{lead.subtitle}</p>
+                  </div>
+                </div>
 
-              {/* Urgency */}
-              <span className="text-[14px] font-medium text-gray-500">{URGENCY_LABELS[lead.urgency]}</span>
+                {/* Location */}
+                <span className="text-[14px] font-medium text-gray-500">{lead.location}</span>
 
-              {/* Status */}
-              <span className="text-[14px] font-medium text-gray-500">{STATUS_LABELS[lead.status]}</span>
+                {/* Urgency */}
+                <span className="text-[14px] font-medium text-gray-500">{URGENCY_LABELS[lead.urgency]}</span>
 
-              {/* Date */}
-              <span className="text-[14px] font-medium text-gray-500">{lead.date}</span>
+                {/* Status */}
+                <span className="text-[14px] font-medium text-gray-500">{STATUS_LABELS[lead.status]}</span>
 
-              {/* Action */}
-              <button
-                type="button"
-                onClick={() => openDrawer(lead)}
-                className="text-sm font-semibold text-primary-600 border border-primary-200 rounded-lg px-4 py-2.5 hover:bg-primary-50 hover:border-primary-300 hover:shadow-sm transition-all duration-150 active:scale-[0.97]"
-              >
-                View
-              </button>
+                {/* Date */}
+                <span className="text-[14px] font-medium text-gray-500">{lead.date}</span>
+
+                {/* Action */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); openDrawer(lead); }}
+                  className="text-sm font-semibold text-primary-600 border border-primary-200 rounded-lg px-4 py-2.5 hover:bg-primary-50 hover:border-primary-300 hover:shadow-sm transition-all duration-150 active:scale-[0.97] min-h-[44px]"
+                >
+                  View
+                </button>
+              </div>
             </div>
           ))}
         </div>

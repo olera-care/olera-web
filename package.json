@@ -22,13 +22,16 @@
     "@tiptap/pm": "^3.20.0",
     "@tiptap/react": "^3.20.0",
     "@tiptap/starter-kit": "^3.20.0",
+    "happy-dom": "^20.8.3",
     "maplibre-gl": "^5.18.0",
     "next": "^16.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-simple-maps": "^3.0.0",
     "resend": "^6.9.2",
     "stripe": "^20.3.0",
-    "twilio": "^5.12.2"
+    "twilio": "^5.12.2",
+    "us-atlas": "^3.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",

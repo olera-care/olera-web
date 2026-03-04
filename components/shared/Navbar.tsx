@@ -938,7 +938,7 @@ export default function Navbar() {
                                 <Link
                                   key={item.label}
                                   href={item.href}
-                                  className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                  className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
                                   onClick={() => {
                                     // Switch to provider profile if not already active
                                     if (hasProviderProfile && providerProfileId) switchProfile(providerProfileId);
@@ -987,7 +987,7 @@ export default function Navbar() {
                                 <Link
                                   key={item.label}
                                   href={item.href}
-                                  className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                  className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
                                   onClick={() => {
                                     if (hasProviderProfile && providerProfileId) switchProfile(providerProfileId);
                                     setIsMobileMenuOpen(false);
@@ -1054,7 +1054,7 @@ export default function Navbar() {
                                 <Link
                                   key={item.label}
                                   href={item.href}
-                                  className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                  className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
                                   onClick={() => {
                                     // Switch to family profile if not already active
                                     if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
@@ -1094,7 +1094,7 @@ export default function Navbar() {
                           <div className="mt-1 space-y-0.5">
                             <Link
                               href="/browse"
-                              className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${pathname.startsWith("/browse") ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                              className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-colors ${pathname.startsWith("/browse") ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
                               onClick={() => {
                                 if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                                 setIsMobileMenuOpen(false);
@@ -1111,7 +1111,7 @@ export default function Navbar() {
                                 <Link
                                   key={link.label}
                                   href={link.href}
-                                  className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                  className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
                                   onClick={() => {
                                     if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
                                     setIsMobileMenuOpen(false);

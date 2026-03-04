@@ -188,7 +188,7 @@ export default async function FormsPage({ params }: Props) {
                 href="/benefits/finder"
                 className="inline-flex items-center justify-center px-8 py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-500 transition-colors"
               >
-                Check Eligibility
+                Check My Benefits
               </Link>
             </div>
           </div>

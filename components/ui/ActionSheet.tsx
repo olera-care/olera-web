@@ -69,11 +69,18 @@ export default function ActionSheet({
     document.body.style.width = "100%";
 
     return () => {
+      // Read the stored scroll position from the top style before clearing
+      const storedScrollY = parseInt(document.body.style.top || "0", 10) * -1;
+
       document.body.style.overflow = "";
       document.body.style.position = "";
       document.body.style.top = "";
       document.body.style.width = "";
-      window.scrollTo(0, scrollY);
+
+      // Restore scroll position immediately without animation
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: storedScrollY, behavior: "instant" });
+      });
     };
   }, [isOpen]);
 

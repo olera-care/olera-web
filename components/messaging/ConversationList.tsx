@@ -341,16 +341,16 @@ export default function ConversationList({
           </button>
 
           {/* Action menu — always visible on mobile, hover-reveal on desktop */}
-          <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100"} transition-opacity`}>
+          <div className={`absolute right-2 top-2 ${isMenuOpen ? "opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100"} transition-opacity`}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setMenuOpenId(isMenuOpen ? null : conn.id);
                 }}
-                className="p-1.5 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
                 aria-label="More actions"
               >
-                <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                 </svg>
               </button>
@@ -508,10 +508,10 @@ export default function ConversationList({
             <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="w-11 h-11 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
               aria-label="Search messages"
             >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
@@ -540,9 +540,9 @@ export default function ConversationList({
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="p-0.5 rounded-full hover:bg-gray-200 transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -550,7 +550,7 @@ export default function ConversationList({
             </div>
             <button
               onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
-              className="text-sm font-medium text-gray-900 shrink-0"
+              className="min-h-[44px] px-3 text-sm font-medium text-gray-900 shrink-0"
             >
               Cancel
             </button>

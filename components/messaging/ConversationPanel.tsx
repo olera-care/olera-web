@@ -173,10 +173,10 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
               {editable && (
                 <button
                   onClick={() => setEditOpen(true)}
-                  className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-white/15 transition-colors"
+                  className="ml-auto flex items-center gap-1.5 min-h-[44px] px-3 -mr-2 rounded-lg hover:bg-white/15 transition-colors"
                   aria-label="Edit care request"
                 >
-                  <svg className="w-3 h-3 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                   <span className="text-xs font-medium text-white/80">Edit</span>
@@ -402,7 +402,7 @@ export default function ConversationPanel({
         {onBack && (
           <button
             onClick={onBack}
-            className="lg:hidden -ml-1 mr-1 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            className="lg:hidden -ml-2 mr-1 w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Back to conversations"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -744,13 +744,13 @@ export default function ConversationPanel({
                   type="button"
                   onClick={handleSendMessage}
                   disabled={sending || !messageText.trim()}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
                     messageText.trim()
                       ? "bg-primary-600 text-white hover:bg-primary-700"
                       : "bg-gray-200 text-gray-400"
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-7 7m7-7l7 7" />
                   </svg>
                 </button>

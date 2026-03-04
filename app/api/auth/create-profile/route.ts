@@ -346,6 +346,10 @@ export async function POST(request: Request) {
       const profileType = intent === "provider"
         ? (providerType === "caregiver" ? "caregiver" : "organization")
         : "family";
+      const providerName = intent === "provider"
+        ? (orgName || displayName)
+        : displayName;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
       sendLoopsEvent({
         email: user.email || "",
         eventName: "onboarding_completed",
@@ -353,8 +357,11 @@ export async function POST(request: Request) {
         eventProperties: {
           intent,
           profileType,
+          provider_name: providerName,
+          profile_link: `${siteUrl}/portal/profile`,
           city: city || "",
           state: state || "",
+          care_type: careTypes?.[0] || "",
         },
       });
     } catch {

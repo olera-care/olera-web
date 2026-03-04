@@ -731,13 +731,13 @@ export default function UnifiedAuthModal({
                 autoComplete="current-password"
                 className={inputClass}
               />
-              {/* Links with proper touch targets (min 44px) and spacing from button */}
-              <div className="flex justify-between mt-3 -mx-2">
+              {/* Links grouped with input, proper touch targets, space before button */}
+              <div className="flex justify-between mt-1.5 -mx-2">
                 <button
                   type="button"
                   onClick={handleSendOtpForSignIn}
                   disabled={loading || !email.trim()}
-                  className="min-h-[44px] px-2 flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-h-[44px] px-2 flex items-center text-[15px] text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Email me a code instead
                 </button>
@@ -745,7 +745,7 @@ export default function UnifiedAuthModal({
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={loading || !email.trim()}
-                  className="min-h-[44px] px-2 flex items-center text-sm text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-h-[44px] px-2 flex items-center text-[15px] text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Forgot password?
                 </button>
@@ -758,9 +758,11 @@ export default function UnifiedAuthModal({
               </div>
             )}
 
-            <Button type="submit" loading={loading} fullWidth size="lg">
-              Sign in
-            </Button>
+            <div className="pt-2">
+              <Button type="submit" loading={loading} fullWidth size="lg">
+                Sign in
+              </Button>
+            </div>
           </form>
 
           <p className="text-center text-sm text-gray-400 mt-5">

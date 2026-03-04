@@ -37,26 +37,29 @@ export default function MobileGalleryActionBar({ provider }: MobileGalleryAction
   };
 
   const btnClass =
-    "w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center active:bg-black/60";
+    "w-11 h-11 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center active:bg-black/70 transition-colors shadow-lg";
 
   return (
-    <div className="absolute top-3 left-3 right-3 z-40 flex items-center justify-between pointer-events-none md:hidden">
+    <div
+      className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none md:hidden"
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+    >
       {/* Back */}
       <button onClick={handleBack} className={`${btnClass} pointer-events-auto`} aria-label="Go back">
         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
 
       {/* Save + Share */}
-      <div className="flex items-center gap-2 pointer-events-auto">
+      <div className="flex items-center gap-3 pointer-events-auto">
         <button
           onClick={() => toggleSave(provider)}
           className={btnClass}
           aria-label={saved ? "Unsave" : "Save"}
         >
           <svg
-            className={`w-5 h-5 ${saved ? "text-red-400" : "text-white"}`}
+            className={`w-5 h-5 ${saved ? "text-primary-400" : "text-white"}`}
             fill={saved ? "currentColor" : "none"}
             stroke="currentColor"
             viewBox="0 0 24 24"

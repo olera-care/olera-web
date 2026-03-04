@@ -12,7 +12,7 @@ export default function Pill({ label, selected, onClick, small }: PillProps) {
     <button
       onClick={onClick}
       className={`
-        ${small ? "px-3.5 py-2 text-sm rounded-full" : "px-4 py-3 text-[15px] rounded-xl"}
+        ${small ? "px-3.5 py-2 min-h-[44px] text-sm rounded-full" : "px-4 py-3 min-h-[44px] text-[15px] rounded-xl"}
         whitespace-nowrap border-[1.5px] font-normal text-center cursor-pointer transition-all duration-150
         ${
           selected

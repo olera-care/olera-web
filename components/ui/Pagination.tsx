@@ -63,28 +63,28 @@ export default function Pagination({
   };
 
   return (
-    <div className={`flex flex-col items-center gap-3 sm:flex-row sm:justify-between ${className}`}>
+    <div className={`flex flex-col items-center gap-4 sm:flex-row sm:justify-between ${className}`}>
       {/* Item count */}
       {showItemCount && (
-        <span className="text-sm text-gray-500">
-          Showing {startItem}-{endItem} of {totalItems} {itemLabel}
+        <span className="text-text-sm text-gray-500">
+          Showing {startItem}–{endItem} of {totalItems} {itemLabel}
         </span>
       )}
 
       {/* Pagination controls - Airbnb style with wider spacing */}
-      <div className={`flex items-center gap-2 ${!showItemCount ? "w-full justify-center" : ""}`}>
+      <div className={`flex items-center gap-1 ${!showItemCount ? "w-full justify-center" : ""}`}>
         {/* Previous button */}
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+          className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${
             currentPage === 1
               ? "text-gray-300 cursor-not-allowed"
-              : "text-gray-800 hover:bg-gray-100"
+              : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
           }`}
           aria-label="Previous page"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -94,18 +94,18 @@ export default function Pagination({
           page === "ellipsis" ? (
             <span
               key={`ellipsis-${index}`}
-              className="w-10 h-10 flex items-center justify-center text-gray-500 text-sm tracking-wider"
+              className="w-11 h-11 flex items-center justify-center text-gray-400 text-text-sm"
             >
-              ...
+              ···
             </span>
           ) : (
             <button
               key={page}
               onClick={() => onPageChange(page)}
-              className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
+              className={`w-11 h-11 flex items-center justify-center rounded-full text-text-sm font-medium transition-colors ${
                 currentPage === page
                   ? "bg-gray-900 text-white"
-                  : "text-gray-800 hover:bg-gray-100"
+                  : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
               }`}
             >
               {page}
@@ -117,14 +117,14 @@ export default function Pagination({
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+          className={`w-11 h-11 flex items-center justify-center rounded-full transition-colors ${
             currentPage === totalPages
               ? "text-gray-300 cursor-not-allowed"
-              : "text-gray-800 hover:bg-gray-100"
+              : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
           }`}
           aria-label="Next page"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>

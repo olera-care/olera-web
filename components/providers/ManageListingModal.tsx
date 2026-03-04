@@ -87,21 +87,19 @@ export default function ManageListingModal({
   }
 
   function handleClaimClick() {
-    // Navigate to the claim verification page — no auth modal
+    // Navigate directly — page change will unmount modal, no need to close first
     const claimId = sourceProviderId || providerId;
-    handleClose();
     router.push(`/for-providers/claim/${providerSlug}?provider_id=${claimId}`);
   }
 
   function handleDisputeClick() {
     const claimId = sourceProviderId || providerId;
-    handleClose();
     router.push(`/for-providers/claim/${providerSlug}?provider_id=${claimId}`);
   }
 
   // Navigate to the dedicated removal request page
   function handleRemovalClick() {
-    handleClose();
+    // Navigate directly — no handleClose() to avoid scroll restoration before navigation
     const params = new URLSearchParams({
       provider_name: providerName,
       provider_id: sourceProviderId || providerId,
@@ -140,7 +138,7 @@ export default function ManageListingModal({
               </div>
               <button
                 type="button"
-                onClick={() => { handleClose(); router.push("/provider"); }}
+                onClick={() => router.push("/provider")}
                 className="w-full py-3 bg-primary-700 hover:bg-primary-800 active:bg-primary-900 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5"
               >
                 Go to Dashboard

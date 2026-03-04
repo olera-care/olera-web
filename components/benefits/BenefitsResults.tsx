@@ -202,7 +202,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
         </p>
         <button
           onClick={reset}
-          className="px-6 py-2.5 bg-gray-900 text-white rounded-full text-text-sm font-medium border-none cursor-pointer hover:bg-gray-800 transition-colors"
+          className="px-6 py-2.5 min-h-[44px] bg-gray-900 text-white rounded-full text-text-sm font-medium border-none cursor-pointer hover:bg-gray-800 transition-colors"
         >
           Try different answers
         </button>
@@ -220,7 +220,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
           </h2>
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 text-text-sm font-medium text-gray-400 hover:text-gray-900 bg-transparent border-none cursor-pointer transition-colors shrink-0"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-text-sm font-medium text-gray-400 hover:text-gray-900 bg-transparent border-none cursor-pointer transition-colors shrink-0"
             aria-label="Share results"
           >
             <svg
@@ -259,7 +259,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
           <button
             onClick={() => setActiveFilter("all")}
             aria-pressed={activeFilter === "all"}
-            className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
+            className={`px-3 py-2.5 min-h-[44px] text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
               activeFilter === "all"
                 ? "text-gray-900 border-b-2 border-b-gray-900"
                 : "text-gray-400 hover:text-gray-600"
@@ -276,7 +276,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                 key={cat}
                 onClick={() => setActiveFilter(cat)}
                 aria-pressed={isActive}
-                className={`px-3 py-2.5 text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
+                className={`px-3 py-2.5 min-h-[44px] text-text-sm font-medium border-none cursor-pointer transition-colors bg-transparent -mb-px ${
                   isActive
                     ? "text-gray-900"
                     : "text-gray-400 hover:text-gray-600"

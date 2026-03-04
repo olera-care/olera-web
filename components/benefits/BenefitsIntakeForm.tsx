@@ -50,7 +50,7 @@ export default function BenefitsIntakeForm() {
     publishCarePost,
     setPublishCarePost,
   } = useCareProfile();
-  const { user, activeProfile } = useAuth();
+  const { user, activeProfile, openAuth } = useAuth();
 
   // ─── Local UI state (not shared via context) ────────────────────────────
   const [locationInput, setLocationInputLocal] = useState(locationDisplay);
@@ -199,7 +199,14 @@ export default function BenefitsIntakeForm() {
     if (step < 5) {
       goToStep((step + 1) as IntakeStep);
     } else {
-      // Final step — submit with all answers flushed
+      // Final step — auth gate before submitting
+      if (!user) {
+        // Prompt sign-in, preserving wizard state in React context
+        openAuth({ defaultMode: "sign-up", intent: "family" });
+        return;
+      }
+
+      // Submit with all answers flushed
       updateAnswers({
         stateCode: selectedStateCode,
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,
@@ -305,7 +312,7 @@ export default function BenefitsIntakeForm() {
                   type="button"
                   onClick={detectLocation}
                   disabled={isGeolocating}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg text-primary-700 font-medium transition-colors disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 min-h-[44px] bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg text-primary-700 font-medium transition-colors disabled:opacity-60"
                 >
                   {isGeolocating ? (
                     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -344,7 +351,7 @@ export default function BenefitsIntakeForm() {
                     key={loc.full}
                     type="button"
                     onClick={() => selectLocation(loc.full, loc.state)}
-                    className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                    className={`flex items-center gap-3 w-full px-4 py-2.5 min-h-[44px] text-left hover:bg-gray-50 transition-colors ${
                       locationInput === loc.full
                         ? "bg-primary-50 text-primary-700"
                         : "text-gray-900"
@@ -464,25 +471,24 @@ export default function BenefitsIntakeForm() {
           )}
         </div>
 
-        {/* Let providers find me — only for logged-in users */}
-        {user && activeProfile && (
-          <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={publishCarePost}
-              onChange={(e) => setPublishCarePost(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 shrink-0 accent-gray-900"
-            />
-            <div className="min-w-0">
-              <span className="text-sm font-medium text-gray-700 leading-tight block">
-                Let providers find me
-              </span>
-              <span className="text-xs text-gray-400 leading-relaxed block mt-0.5">
-                Share your care profile so providers in your area can reach out.
-              </span>
-            </div>
-          </label>
-        )}
+        {/* Let providers find me — shown to everyone, auth required at submit */}
+        <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={publishCarePost}
+            onChange={(e) => setPublishCarePost(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 shrink-0 accent-gray-900"
+          />
+          <div className="min-w-0">
+            <span className="text-sm font-medium text-gray-700 leading-tight block">
+              Let providers find me
+            </span>
+            <span className="text-xs text-gray-400 leading-relaxed block mt-0.5">
+              Share your care profile so providers in your area can reach out.
+              {!user && " (requires sign-in)"}
+            </span>
+          </div>
+        </label>
         </>
       )}
       </div>{/* end animate-step-in wrapper */}

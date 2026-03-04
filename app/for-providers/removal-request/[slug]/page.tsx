@@ -197,19 +197,24 @@ export default function RemovalRequestPage() {
           <label htmlFor="removal-action" className="block text-base font-medium text-gray-700">
             Hide or delete page <span className="text-red-500">*</span>
           </label>
-          <select
-            id="removal-action"
-            value={action}
-            onChange={(e) => setAction(e.target.value)}
-            className={`w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] bg-white ${
-              !action ? "text-gray-400" : "text-gray-900"
-            }`}
-          >
-            <option value="" disabled>Select</option>
-            {ACTION_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="removal-action"
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+              className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] bg-white appearance-none ${
+                !action ? "text-gray-400" : "text-gray-900"
+              }`}
+            >
+              <option value="" disabled>Select</option>
+              {ACTION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
 
         {/* Reason */}
@@ -217,19 +222,24 @@ export default function RemovalRequestPage() {
           <label htmlFor="removal-reason" className="block text-base font-medium text-gray-700">
             Reason <span className="text-red-500">*</span>
           </label>
-          <select
-            id="removal-reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className={`w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] bg-white ${
-              !reason ? "text-gray-400" : "text-gray-900"
-            }`}
-          >
-            <option value="" disabled>Select</option>
-            {REASON_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="removal-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] bg-white appearance-none ${
+                !reason ? "text-gray-400" : "text-gray-900"
+              }`}
+            >
+              <option value="" disabled>Select</option>
+              {REASON_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
 
         {/* Additional details */}
@@ -267,9 +277,9 @@ export default function RemovalRequestPage() {
           >
             Submit request
           </Button>
-          <p className="text-xs text-gray-400 text-center mt-3">
-            By submitting this form, you agree to our{" "}
-            <span className="text-primary-600 font-medium">Takedown Request Policy</span>.
+          <p className="text-sm text-gray-500 text-center mt-3">
+            By submitting, you agree to our{" "}
+            <span className="text-primary-600 font-medium underline underline-offset-2">Takedown Policy</span>.
           </p>
         </div>
       </div>

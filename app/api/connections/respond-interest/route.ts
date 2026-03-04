@@ -207,7 +207,7 @@ export async function POST(request: Request) {
           .eq("id", connection.from_profile_id)
           .single();
 
-        sendLoopsEvent({
+        await sendLoopsEvent({
           email: user.email || "",
           eventName: "connection_accepted",
           audience: "seeker",

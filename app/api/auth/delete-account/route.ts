@@ -81,7 +81,7 @@ export async function DELETE() {
 
     // Loops: account deleted for suppression/cleanup (fire-and-forget)
     try {
-      sendLoopsEventBoth({
+      await sendLoopsEventBoth({
         email: user.email || "",
         eventName: "account_deleted",
       });

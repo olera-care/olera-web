@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         try {
           const fullName = data.user.user_metadata?.full_name || data.user.user_metadata?.name || "";
           const nameParts = fullName.trim().split(/\s+/);
-          sendLoopsEvent({
+          await sendLoopsEvent({
             email: data.user.email || "",
             eventName: "user_signup",
             audience: "seeker",

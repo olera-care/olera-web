@@ -124,7 +124,7 @@ export async function POST(request: Request) {
 
     // Loops: connection ended (fire-and-forget)
     try {
-      sendLoopsEvent({
+      await sendLoopsEvent({
         email: user.email || "",
         eventName: "connection_ended",
         audience: "seeker",

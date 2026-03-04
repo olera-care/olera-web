@@ -85,7 +85,7 @@ function CollapsibleSection({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150"
+        className="w-full flex items-center justify-between px-4 lg:px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150 min-h-[48px]"
       >
         <span className="text-[15px] font-semibold text-gray-900">{title}</span>
         <svg
@@ -106,7 +106,7 @@ function CollapsibleSection({
       >
         <div className="overflow-hidden">
           <div
-            className={`px-6 pb-5 transition-[opacity,transform] ${
+            className={`px-4 lg:px-6 pb-5 transition-[opacity,transform] ${
               isOpen
                 ? "duration-300 delay-100 opacity-100 translate-y-0"
                 : "duration-200 opacity-0 translate-y-1"
@@ -267,74 +267,91 @@ function LeadDetailDrawer({
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 top-16 z-30 bg-black/50 transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        className={`fixed inset-0 z-30 bg-black/50 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
 
-      {/* Drawer panel */}
+      {/* Bottom sheet on mobile, side drawer on desktop */}
       <div
-        className={`fixed top-16 right-0 z-40 h-[calc(100dvh-64px)] w-full sm:w-[640px] sm:max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed z-40 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
+          /* Mobile: bottom sheet */
+          inset-x-0 bottom-0 max-h-[90vh] rounded-t-3xl
+          /* Desktop: side drawer */
+          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none
+          ${isOpen
+            ? "translate-y-0 lg:translate-x-0"
+            : "translate-y-full lg:translate-y-0 lg:translate-x-full"
+          }`}
       >
+        {/* Mobile drag handle */}
+        <div className="lg:hidden pt-3 pb-2 flex justify-center shrink-0">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
         {/* ── Fixed header ── */}
         <div className="shrink-0 border-b border-gray-100">
           {/* Lead identity + close button */}
-          <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4">
-            <div className="flex items-start gap-3 sm:gap-4">
-              {/* Back button — mobile only */}
-              <button
-                type="button"
-                onClick={onClose}
-                className="sm:hidden w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150 shrink-0 min-h-[44px]"
-                aria-label="Go back"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-              </button>
+          <div className="px-4 lg:px-6 pt-2 lg:pt-6 pb-4">
+            <div className="flex items-start gap-3 lg:gap-4">
               {/* Close button — desktop only, top right */}
               <button
                 type="button"
                 onClick={onClose}
-                className="hidden sm:flex absolute right-6 top-6 w-8 h-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
+                className="hidden lg:flex absolute right-6 top-6 w-8 h-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <span className="text-sm font-bold text-gray-500">{lead.initials}</span>
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
+                <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2.5">
-                  <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight truncate">
+                  <h2 className="text-lg lg:text-xl font-display font-bold text-gray-900 tracking-tight truncate">
                     {lead.name}
                   </h2>
                   {lead.isNew && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
-                      New
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-primary-500 text-white shrink-0">
+                      NEW
                     </span>
                   )}
                 </div>
-                <p className="text-[15px] text-gray-500 mt-0.5">{lead.subtitle}</p>
+                <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5">{lead.subtitle}</p>
               </div>
+              {/* Mobile close button - top right */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            {/* Context pills */}
-            <div className="flex flex-wrap items-center gap-2 mt-4">
+            {/* Context pills - horizontal scroll on mobile */}
+            <div className="flex items-center gap-2 mt-3 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide">
               {/* Urgency or Archived badge */}
               {lead.status === "archived" ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-500 whitespace-nowrap shrink-0">
                   <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
                   </svg>
                   Archived
                 </span>
               ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 ${
+                lead.urgency === "immediate"
+                  ? "bg-red-50 text-red-700 border border-red-100"
+                  : lead.urgency === "within_1_month"
+                  ? "bg-amber-50 text-amber-700 border border-amber-100"
+                  : "bg-blue-50 text-blue-700 border border-blue-100"
+              }`}>
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   lead.urgency === "immediate" ? "bg-red-400" : lead.urgency === "within_1_month" ? "bg-amber-400" : "bg-blue-400"
                 }`} />
@@ -342,7 +359,7 @@ function LeadDetailDrawer({
               </span>
               )}
               {/* Location */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
                 <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
@@ -350,7 +367,7 @@ function LeadDetailDrawer({
                 {lead.location}
               </span>
               {/* Date */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
                 <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
@@ -358,7 +375,7 @@ function LeadDetailDrawer({
               </span>
               {/* Contact preference */}
               {lead.contactPreference && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
                   <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     {lead.contactPreference === "phone" ? (
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
@@ -378,7 +395,7 @@ function LeadDetailDrawer({
 
           {/* ── Inline message composer / persistent sent state ── */}
           {(showComposer || lead.messagedAt) && (
-            <div className="px-6 pt-5 pb-2">
+            <div className="px-4 lg:px-6 pt-5 pb-2">
               <div className={`rounded-2xl overflow-hidden ${(messageSent || lead.messagedAt) ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white shadow-sm"}`}>
                 {(messageSent || lead.messagedAt) ? (
                   /* ── Persistent confirmation state with actions ── */
@@ -466,7 +483,7 @@ function LeadDetailDrawer({
 
           {/* ── Archived banner ── */}
           {lead.status === "archived" && lead.archivedDate && (
-            <div className="px-6 pt-5 pb-2">
+            <div className="px-4 lg:px-6 pt-5 pb-2">
               <div className="flex items-start gap-3.5 rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
                 <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -671,9 +688,9 @@ function LeadDetailDrawer({
         {/* ── Fixed footer ── */}
         {lead.status === "archived" ? (
           /* Archived lead footer — Delete + Restore */
-          <div className="shrink-0 border-t border-gray-100">
+          <div className="shrink-0 border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
             {restored ? (
-              <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
+              <div className="px-4 lg:px-6 py-6 lg:py-8 flex flex-col items-center justify-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
@@ -683,7 +700,7 @@ function LeadDetailDrawer({
                 <p className="text-[13px] text-gray-500">Moved back to active leads</p>
               </div>
             ) : showDeleteConfirm ? (
-              <div className="px-6 py-5">
+              <div className="px-4 lg:px-6 py-4 lg:py-5">
                 <div className="rounded-2xl border border-red-200 bg-red-50/50 px-5 py-5">
                   <div className="flex items-start gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
@@ -715,11 +732,11 @@ function LeadDetailDrawer({
                 </div>
               </div>
             ) : (
-              <div className="px-6 py-4 flex items-center gap-3">
+              <div className="px-4 lg:px-6 py-4 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+                  className="inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl border border-gray-200 text-sm lg:text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
@@ -729,21 +746,21 @@ function LeadDetailDrawer({
                 <button
                   type="button"
                   onClick={handleRestore}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
                   </svg>
-                  Restore Lead
+                  Restore
                 </button>
               </div>
             )}
           </div>
         ) : (showComposer || (lead.messagedAt && !showArchive)) ? null : showArchive ? (
           /* Archive reason selector */
-          <div className="shrink-0 border-t border-gray-100">
+          <div className="shrink-0 border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
             {archived ? (
-              <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
+              <div className="px-4 lg:px-6 py-6 lg:py-8 flex flex-col items-center justify-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
@@ -752,7 +769,7 @@ function LeadDetailDrawer({
                 <p className="text-[15px] font-semibold text-gray-900">Lead archived</p>
               </div>
             ) : (
-              <div className="px-6 py-5">
+              <div className="px-4 lg:px-6 py-4 lg:py-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
                   <button
@@ -814,11 +831,11 @@ function LeadDetailDrawer({
           </div>
         ) : (
           /* Default footer buttons — active leads */
-          <div className="shrink-0 border-t border-gray-100 px-6 py-4 flex items-center gap-3">
+          <div className="shrink-0 border-t border-gray-100 px-4 lg:px-6 py-4 flex items-center gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={() => setShowArchive(true)}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl border border-gray-200 text-sm lg:text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
@@ -828,12 +845,12 @@ function LeadDetailDrawer({
             <button
               type="button"
               onClick={() => { setShowComposer(true); scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
               </svg>
-              Send Message
+              Message
             </button>
           </div>
         )}
@@ -1012,36 +1029,59 @@ export default function ProviderLeadsPage() {
                 idx < filteredLeads.length - 1 ? "border-b border-gray-100/80" : "",
               ].join(" ")}
             >
-              {/* Mobile card layout */}
-              <div className="lg:hidden px-4 py-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-bold text-gray-500">{lead.initials}</span>
+              {/* Mobile card layout - redesigned for clarity */}
+              <div className="lg:hidden px-4 py-4 active:bg-vanilla-50/60">
+                <div className="flex items-start gap-3.5">
+                  {/* Avatar with urgency indicator */}
+                  <div className="relative shrink-0">
+                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center ring-2 ring-white shadow-sm`}>
+                      <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
+                    </div>
+                    {/* Urgency dot */}
+                    <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${
+                      lead.urgency === "immediate" ? "bg-red-400" : lead.urgency === "within_1_month" ? "bg-amber-400" : "bg-blue-400"
+                    }`} />
                   </div>
+
+                  {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-[15px] font-semibold text-gray-900">{lead.name}</p>
+                    {/* Name row */}
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="text-[15px] font-semibold text-gray-900 truncate">{lead.name}</h3>
                       {lead.isNew && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50">
-                          New
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-primary-500 text-white shrink-0">
+                          NEW
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">{lead.subtitle}</p>
-                    <div className="flex items-center gap-3 mt-2 text-[13px] text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          lead.urgency === "immediate" ? "bg-red-400" : lead.urgency === "within_1_month" ? "bg-amber-400" : "bg-blue-400"
-                        }`} />
+
+                    {/* Subtitle */}
+                    <p className="text-sm text-gray-500 mb-2">{lead.subtitle}</p>
+
+                    {/* Meta row - pills */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                        lead.urgency === "immediate"
+                          ? "bg-red-50 text-red-700"
+                          : lead.urgency === "within_1_month"
+                          ? "bg-amber-50 text-amber-700"
+                          : "bg-blue-50 text-blue-700"
+                      }`}>
                         {URGENCY_LABELS[lead.urgency]}
                       </span>
-                      <span>·</span>
-                      <span>{lead.location}</span>
-                      <span>·</span>
-                      <span>{lead.date}</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-xs font-medium text-gray-600">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        {lead.location}
+                      </span>
+                      <span className="text-xs text-gray-400">{lead.date}</span>
                     </div>
                   </div>
-                  <svg className="w-5 h-5 text-gray-300 shrink-0 mt-1" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+
+                  {/* Chevron */}
+                  <svg className="w-5 h-5 text-gray-300 shrink-0 mt-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                   </svg>
                 </div>

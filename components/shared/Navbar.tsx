@@ -869,16 +869,23 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {/* Mode switcher — navigates AND closes menu (matches desktop behavior) */}
+                  {/* Mode switcher — if user has BOTH profiles, just switch menu; otherwise navigate */}
                   {(showModeSwitcher || hasAttemptedOnboarding) && (
                     <div className="py-2 mb-2">
                       <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                         <button
                           type="button"
                           onClick={() => {
-                            if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                            setIsMobileMenuOpen(false);
-                            router.push("/");
+                            if (showModeSwitcher && familyProfileId) {
+                              // Has both profiles — just switch menu view
+                              switchProfile(familyProfileId);
+                              setMobileMenuMode("family");
+                            } else {
+                              // Only one profile — navigate to landing
+                              if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                              setIsMobileMenuOpen(false);
+                              router.push("/");
+                            }
                           }}
                           className={[
                             "flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold transition-all min-h-[44px]",
@@ -890,11 +897,17 @@ export default function Navbar() {
                         <button
                           type="button"
                           onClick={() => {
-                            if (hasProviderProfile && providerProfileId) {
+                            if (showModeSwitcher && providerProfileId) {
+                              // Has both profiles — just switch menu view
+                              switchProfile(providerProfileId);
+                              setMobileMenuMode("provider");
+                            } else if (hasProviderProfile && providerProfileId) {
+                              // Only provider profile — navigate to provider home
                               switchProfile(providerProfileId);
                               setIsMobileMenuOpen(false);
                               router.push("/provider");
                             } else if (hasAttemptedOnboarding) {
+                              // Onboarding in progress — navigate to onboarding
                               setIsMobileMenuOpen(false);
                               router.push("/provider/onboarding");
                             }
@@ -1014,9 +1027,16 @@ export default function Navbar() {
                           <button
                             type="button"
                             onClick={() => {
-                              if (familyProfileId) switchProfile(familyProfileId);
-                              setIsMobileMenuOpen(false);
-                              router.push("/");
+                              if (showModeSwitcher && familyProfileId) {
+                                // Has both profiles — just switch menu view
+                                switchProfile(familyProfileId);
+                                setMobileMenuMode("family");
+                              } else {
+                                // Only one profile — navigate to landing
+                                if (familyProfileId) switchProfile(familyProfileId);
+                                setIsMobileMenuOpen(false);
+                                router.push("/");
+                              }
                             }}
                             className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full"
                           >
@@ -1154,11 +1174,17 @@ export default function Navbar() {
                         <button
                           type="button"
                           onClick={() => {
-                            if (hasProviderProfile && providerProfileId) {
+                            if (showModeSwitcher && providerProfileId) {
+                              // Has both profiles — just switch menu view
+                              switchProfile(providerProfileId);
+                              setMobileMenuMode("provider");
+                            } else if (hasProviderProfile && providerProfileId) {
+                              // Only provider profile — navigate to provider home
                               switchProfile(providerProfileId);
                               setIsMobileMenuOpen(false);
                               router.push("/provider");
                             } else if (hasAttemptedOnboarding) {
+                              // Onboarding in progress — navigate to onboarding
                               setIsMobileMenuOpen(false);
                               router.push("/provider/onboarding");
                             }

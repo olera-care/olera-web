@@ -87,20 +87,20 @@ export default function CommentThread({ comments }: CommentThreadProps) {
               {isFocused && (
                 <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
                   <div className="flex items-center gap-1">
-                    <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                    <button className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
                       <span className="font-bold text-sm">B</span>
                     </button>
-                    <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                    <button className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
                       <span className="italic text-sm">i</span>
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none mr-2">
+                    <label className="flex items-center gap-2 min-h-[44px] px-2 text-xs text-gray-500 cursor-pointer select-none mr-2">
                       <input
                         type="checkbox"
                         checked={isAnonymous}
                         onChange={(e) => setIsAnonymous(e.target.checked)}
-                        className="w-3.5 h-3.5 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                        className="w-4 h-4 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
                       />
                       Anonymous
                     </label>
@@ -109,14 +109,14 @@ export default function CommentThread({ comments }: CommentThreadProps) {
                         setIsFocused(false);
                         setCommentText("");
                       }}
-                      className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                      className="px-3 py-1.5 min-h-[44px] text-sm text-gray-500 hover:text-gray-700 transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSubmit}
                       disabled={!commentText.trim() || isSubmitting}
-                      className="px-4 py-1.5 bg-primary-600 text-white text-sm font-medium rounded-full hover:bg-primary-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="px-4 py-1.5 min-h-[44px] bg-primary-600 text-white text-sm font-medium rounded-full hover:bg-primary-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? "..." : "Respond"}
                     </button>
@@ -133,7 +133,7 @@ export default function CommentThread({ comments }: CommentThreadProps) {
         <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-100">
           <button
             onClick={() => setSortBy(sortBy === "relevant" ? "recent" : "relevant")}
-            className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 min-h-[44px] px-2 -mx-2 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700 transition-colors"
           >
             {sortBy === "relevant" ? "Most Relevant" : "Most Recent"}
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

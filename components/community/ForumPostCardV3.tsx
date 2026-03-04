@@ -142,22 +142,22 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
 
   // Full card content
   const cardContent = (
-    <article className={`group bg-white rounded-2xl border p-5 transition-all duration-300 ${
+    <article className={`group bg-white rounded-2xl border p-4 sm:p-5 transition-all duration-300 ${
       isSelected
         ? "border-primary-200 shadow-lg ring-1 ring-primary-100"
-        : "border-gray-200 shadow-sm hover:shadow-xl hover:border-gray-300 hover:-translate-y-1"
+        : "border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300"
     }`}>
       {/* Header: Author + Care Type + Menu */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
           <AuthorAvatar author={post.author} />
           <div>
-            <span className="text-gray-900 font-medium text-sm block leading-tight">{post.author.displayName}</span>
-            <span className="text-gray-400 text-xs">{formatTimeAgo(post.createdAt)}</span>
+            <span className="text-gray-900 font-medium text-text-sm block leading-tight">{post.author.displayName}</span>
+            <span className="text-gray-400 text-text-xs">{formatTimeAgo(post.createdAt)}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-xs font-medium px-2.5 py-1 rounded-lg ${careTypeConfig.bgColor} ${careTypeConfig.color}`}>
+        <div className="flex items-center gap-1.5">
+          <span className={`text-text-xs font-medium px-2.5 py-1 rounded-lg ${careTypeConfig.bgColor} ${careTypeConfig.color}`}>
             {careTypeConfig.label}
           </span>
           {/* Menu button */}
@@ -168,9 +168,9 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
                 e.preventDefault();
                 setShowMenu(!showMenu);
               }}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+              className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors md:opacity-0 md:group-hover:opacity-100"
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
               </svg>
             </button>
@@ -178,7 +178,7 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
               <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                 <button
                   onClick={handleReport}
-                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 min-h-[44px] text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                 >
                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
@@ -192,17 +192,17 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
       </div>
 
       {/* Title */}
-      <h3 className="text-[17px] font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-2 line-clamp-2 leading-snug">
+      <h3 className="font-display text-text-md font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-2 line-clamp-2 leading-snug">
         {post.title}
       </h3>
 
       {/* Excerpt */}
-      <p className="text-[15px] text-gray-500 leading-relaxed line-clamp-2 mb-4">
+      <p className="text-text-sm text-gray-500 leading-relaxed line-clamp-2 mb-4">
         {post.excerpt}
       </p>
 
       {/* Footer: Engagement metrics */}
-      <div className="flex items-center gap-4 text-sm text-gray-400">
+      <div className="flex items-center gap-3 text-text-sm text-gray-400">
         {post.commentCount > 0 ? (
           <span className="flex items-center gap-1.5 font-medium text-gray-600">
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,7 +220,7 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
         )}
         <button
           onClick={handleLike}
-          className={`flex items-center gap-1.5 transition-colors ${
+          className={`flex items-center gap-1.5 min-h-[44px] px-2 -mx-2 transition-colors ${
             isLiked ? "text-red-500" : "text-gray-400 hover:text-red-400"
           }`}
         >
@@ -291,14 +291,14 @@ export default function ForumPostCardV3({ post, onClick, isSelected, compact }: 
                   setShowReportModal(false);
                   setSelectedReason(null);
                 }}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 min-h-[44px] text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmitReport}
                 disabled={!selectedReason}
-                className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`flex-1 px-4 py-2 min-h-[44px] text-sm font-medium rounded-lg transition-colors ${
                   selectedReason
                     ? "bg-primary-600 text-white hover:bg-primary-700"
                     : "bg-gray-100 text-gray-400 cursor-not-allowed"

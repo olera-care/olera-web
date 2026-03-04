@@ -33,7 +33,7 @@ export default function AAACard({ agency }: AAACardProps) {
         <a
           href={`tel:${agency.phone}`}
           aria-label={`Call ${agency.name} at ${agency.phone}`}
-          className="inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-full text-text-sm font-medium no-underline hover:bg-gray-800 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-2.5 min-h-[44px] bg-gray-900 text-white rounded-full text-text-sm font-medium no-underline hover:bg-gray-800 transition-colors"
         >
           Call {agency.phone}
         </a>
@@ -43,7 +43,7 @@ export default function AAACard({ agency }: AAACardProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Visit ${agency.name} website (opens in new tab)`}
-            className="text-text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
+            className="inline-flex items-center min-h-[44px] px-2 text-text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
           >
             Visit website &rarr;
           </a>

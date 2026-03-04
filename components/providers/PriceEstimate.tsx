@@ -29,20 +29,26 @@ export default function PriceEstimate({ priceRange }: PriceEstimateProps) {
     <div className="relative inline-flex items-center gap-1.5" ref={ref}>
       <p className="text-lg font-semibold text-gray-900">{priceRange}</p>
       <span className="text-xs text-gray-400 font-normal self-center">est.</span>
+
+      {/* Info button with proper 44px touch target (visually small icon) */}
       <button
         type="button"
         onClick={() => setShowTooltip((prev) => !prev)}
-        className="text-gray-300 hover:text-gray-400 transition-colors"
+        className="w-11 h-11 -m-3 flex items-center justify-center text-gray-300 hover:text-gray-400 active:text-gray-500 transition-colors"
         aria-label="Price estimate info"
+        aria-expanded={showTooltip}
       >
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </button>
+
+      {/* Tooltip - positioned for both mobile and desktop */}
       {showTooltip && (
-        <div className="absolute left-0 top-full mt-1.5 z-30 max-w-[min(18rem,calc(100vw-2rem))]">
-          <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2.5 shadow-lg leading-relaxed">
-            Price is an estimate and may vary. Contact the provider for exact rates.
+        <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 z-30 w-[min(18rem,calc(100vw-2.5rem))]">
+          <div className="bg-gray-900 text-white text-text-sm rounded-xl px-4 py-3 shadow-xl leading-relaxed">
+            <p>Price is an estimate and may vary.</p>
+            <p className="text-gray-400 mt-1">Contact the provider for exact rates.</p>
           </div>
         </div>
       )}

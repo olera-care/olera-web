@@ -251,7 +251,7 @@ function ArticleCard({ resource }: { resource: Resource }) {
   return (
     <Link href={`/caregiver-support/${resource.slug}`} className="group block">
       <article>
-        <div className="relative aspect-[3/2] mb-4 rounded-lg overflow-hidden">
+        <div className="relative aspect-[3/2] mb-4 rounded-xl overflow-hidden shadow-sm">
           <Image
             src={resource.coverImage}
             alt={resource.title}
@@ -265,10 +265,10 @@ function ArticleCard({ resource }: { resource: Resource }) {
             {CARE_TYPE_CONFIG[careType].label}
           </span>
         )}
-        <h3 className="mt-1.5 text-lg font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200">
+        <h3 className="mt-2 font-display text-text-lg font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200 line-clamp-2">
           {resource.title}
         </h3>
-        <span className="mt-1.5 block text-text-sm text-gray-400">
+        <span className="mt-2 block text-text-sm text-gray-400">
           {resource.readingTime} read
         </span>
       </article>
@@ -383,18 +383,18 @@ function CaregiverSupportContent() {
   return (
     <main className="min-h-screen bg-white">
       {/* ---- Hero Header ---- */}
-      <header className="pt-12 pb-4 md:pt-16 md:pb-5">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-display text-display-md md:text-display-lg text-gray-900 tracking-tight">
+      <header className="pt-10 pb-4 md:pt-16 md:pb-5">
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+          <h1 className="font-display text-display-sm md:text-display-lg font-semibold text-gray-900 tracking-tight">
             Caregiver Support
           </h1>
-          <p className="mt-2 text-text-lg text-gray-400 max-w-xl">
+          <p className="mt-2 text-text-md md:text-text-lg text-gray-500 max-w-xl leading-relaxed">
             Guides, insights, and practical advice for every stage of the care journey.
           </p>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+      <div className="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 pb-24">
         {/* ---- Featured Section (with loading placeholder to prevent layout shift) ---- */}
         {showFeatured && (
           loadingApi ? (
@@ -408,11 +408,11 @@ function CaregiverSupportContent() {
         )}
 
         {/* ---- Category Filters ---- */}
-        <nav className="mb-10 md:mb-14">
-          <div className="flex flex-wrap gap-1">
+        <nav className="mb-8 md:mb-14">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => handleCategoryChange("all")}
-              className={`px-4 py-2 rounded-full text-text-sm font-medium transition-colors duration-150 ${
+              className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium transition-colors duration-150 ${
                 activeCareType === "all"
                   ? "bg-gray-900 text-white"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
@@ -424,7 +424,7 @@ function CaregiverSupportContent() {
               <button
                 key={careType}
                 onClick={() => handleCategoryChange(careType)}
-                className={`px-4 py-2 rounded-full text-text-sm font-medium transition-colors duration-150 ${
+                className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium transition-colors duration-150 ${
                   activeCareType === careType
                     ? "bg-gray-900 text-white"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
@@ -438,17 +438,17 @@ function CaregiverSupportContent() {
 
         {/* ---- Article Grid ---- */}
         {paginatedResources.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 sm:gap-x-8 gap-y-10 sm:gap-y-12">
             {paginatedResources.map((resource) => (
               <ArticleCard key={resource.id} resource={resource} />
             ))}
           </div>
         ) : (
-          <div className="py-24 text-center">
-            <p className="text-gray-400 mb-4">No articles found</p>
+          <div className="py-20 text-center">
+            <p className="text-text-md text-gray-400 mb-4">No articles found</p>
             <button
               onClick={() => handleCategoryChange("all")}
-              className="text-text-sm text-gray-900 underline underline-offset-4 hover:text-gray-600 transition-colors"
+              className="min-h-[44px] px-4 text-text-sm text-gray-900 underline underline-offset-4 hover:text-gray-600 transition-colors"
             >
               View all articles
             </button>

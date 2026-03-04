@@ -76,7 +76,7 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
             onClick={handleBookmarkClick}
             aria-label={isSaved ? "Remove bookmark" : "Bookmark program"}
             aria-pressed={isSaved}
-            className="p-2 bg-transparent border-none cursor-pointer rounded-lg hover:bg-vanilla-100 transition-colors"
+            className="w-11 h-11 flex items-center justify-center bg-transparent border-none cursor-pointer rounded-lg hover:bg-vanilla-100 transition-colors"
           >
             <svg
               ref={bookmarkRef}
@@ -100,7 +100,7 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
           <button
             onClick={() => setExpanded(!expanded)}
             aria-label={expanded ? "Collapse details" : "Expand details"}
-            className="p-1.5 bg-transparent border-none cursor-pointer"
+            className="w-11 h-11 flex items-center justify-center bg-transparent border-none cursor-pointer"
           >
             <svg
               className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 hover:text-gray-600 ${
@@ -180,7 +180,7 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
                 <a
                   href={`tel:${program.phone}`}
                   aria-label={`Call ${program.short_name || program.name}`}
-                  className="inline-flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-full text-text-sm font-medium no-underline hover:bg-gray-800 transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-2 min-h-[44px] bg-gray-900 text-white rounded-full text-text-sm font-medium no-underline hover:bg-gray-800 transition-colors"
                 >
                   Call {program.phone}
                 </a>
@@ -191,7 +191,7 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Visit ${program.short_name || program.name} website`}
-                  className="text-text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
+                  className="inline-flex items-center min-h-[44px] px-2 text-text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
                 >
                   Website &rarr;
                 </a>
@@ -202,7 +202,7 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Apply online for ${program.short_name || program.name}`}
-                  className="text-text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
+                  className="inline-flex items-center min-h-[44px] px-2 text-text-sm font-medium text-gray-500 hover:text-gray-900 no-underline transition-colors"
                 >
                   Apply online &rarr;
                 </a>

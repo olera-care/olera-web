@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { verificationCodeEmail } from "@/lib/email-templates";
+import { sendSMS, normalizeUSPhone, maskPhone } from "@/lib/twilio";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -27,16 +28,16 @@ function generateCode(): string {
 /**
  * POST /api/claim/send-code
  *
- * Sends a 6-digit verification code to the provider's email on file.
+ * Sends a 6-digit verification code via email or SMS.
  * No authentication required — verification is tracked by claim_session UUID.
  *
- * Request body: { providerId: string, claimSession: string }
- * Returns: { emailHint: string } or error
+ * Request body: { providerId: string, claimSession: string, method?: "email" | "sms" }
+ * Returns: { emailHint: string } or { phoneHint: string } or error
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { providerId, claimSession } = body;
+    const { providerId, claimSession, method = "email" } = body;
 
     if (!providerId) {
       return NextResponse.json({ error: "Provider ID is required." }, { status: 400 });
@@ -51,10 +52,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
     }
 
-    // Look up provider email
+    // Look up provider contact info
     const { data: provider, error: providerErr } = await db
       .from("olera-providers")
-      .select("email, provider_name")
+      .select("email, phone, provider_name")
       .eq("provider_id", providerId)
       .single();
 
@@ -62,11 +63,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Provider not found." }, { status: 404 });
     }
 
-    if (!provider.email) {
-      return NextResponse.json(
-        { error: "No email on file for this provider. Please use the 'No access to email' option." },
-        { status: 422 }
-      );
+    // Validate delivery method has a target
+    if (method === "sms") {
+      const normalized = provider.phone ? normalizeUSPhone(provider.phone) : null;
+      if (!normalized) {
+        return NextResponse.json(
+          { error: "No phone number on file for this provider. Please use email verification." },
+          { status: 422 }
+        );
+      }
+    } else {
+      if (!provider.email) {
+        return NextResponse.json(
+          { error: "No email on file for this provider. Please use the 'No access to email' option." },
+          { status: 422 }
+        );
+      }
     }
 
     // Rate limit: max 3 codes per provider per hour (regardless of user/session)
@@ -100,9 +112,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to generate code." }, { status: 500 });
     }
 
-    // Send email via shared utility
+    // Send via chosen method
+    if (method === "sms") {
+      const phone = normalizeUSPhone(provider.phone!)!;
+      const { success, error: smsErr } = await sendSMS({
+        to: phone,
+        body: `Your Olera verification code is: ${code}. It expires in 10 minutes.`,
+      });
+
+      if (!success) {
+        console.error("SMS send error:", smsErr);
+        return NextResponse.json({ error: "Failed to send SMS." }, { status: 500 });
+      }
+
+      return NextResponse.json({ phoneHint: maskPhone(phone) });
+    }
+
+    // Default: email
     const { success: emailSent, error: emailErrMsg } = await sendEmail({
-      to: provider.email,
+      to: provider.email!,
       subject: "Your Olera verification code",
       html: verificationCodeEmail(provider.provider_name, code),
     });
@@ -112,7 +140,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to send email." }, { status: 500 });
     }
 
-    return NextResponse.json({ emailHint: maskEmail(provider.email) });
+    return NextResponse.json({ emailHint: maskEmail(provider.email!) });
   } catch (err) {
     console.error("Send code error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

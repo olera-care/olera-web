@@ -125,6 +125,8 @@ function ProviderOnboardingContent() {
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Track if we're still checking for landing page prefill (to avoid flashing step 1)
+  const [checkingPrefill, setCheckingPrefill] = useState(true);
   // Caregiver coming-soon notify state
   const [caregiverEmail, setCaregiverEmail] = useState(user?.email || "");
   const [caregiverNotified, setCaregiverNotified] = useState(false);
@@ -226,13 +228,25 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-  
+
       } catch {
         // localStorage unavailable
       }
     }
 
-    // Check for a previously started session
+    // Check if coming from landing page with search prefill
+    // If so, skip resume detection — the prefill useEffect will handle routing
+    try {
+      const hasPrefill = sessionStorage.getItem("olera_provider_search_prefill");
+      if (hasPrefill) {
+        // Don't show resume screen — let prefill handler take over
+        return;
+      }
+    } catch {
+      // sessionStorage unavailable
+    }
+
+    // Check for a previously started session (only if no prefill)
     try {
       const savedType = localStorage.getItem(TYPE_KEY) as ProviderType | null;
       if (savedType === "organization" || savedType === "caregiver") {
@@ -260,21 +274,117 @@ function ProviderOnboardingContent() {
   }, [user, profiles, isLoading, isAdding, router]);
 
   // Read landing-page prefill from sessionStorage (set by /for-providers CTA buttons)
+  // If prefill exists, auto-select organization and skip directly to search step
   const prefillApplied = useRef(false);
   useEffect(() => {
     if (prefillApplied.current) return;
+    if (isLoading || !user) return; // Wait for auth to settle
+
     try {
       const raw = sessionStorage.getItem("olera_provider_search_prefill");
-      if (!raw) return;
+      if (!raw) {
+        // No prefill — done checking, show normal flow
+        setCheckingPrefill(false);
+        return;
+      }
       sessionStorage.removeItem("olera_provider_search_prefill");
       prefillApplied.current = true;
+
       const { searchQuery: sq, locationQuery: lq } = JSON.parse(raw);
       if (sq) setSearchQuery(sq);
       if (lq) setLocationQuery(lq);
+
+      // Auto-select organization and skip to search step if we have prefill
+      if (sq || lq) {
+        setProviderType("organization");
+        try {
+          localStorage.setItem(TYPE_KEY, "organization");
+        } catch {
+          // localStorage unavailable
+        }
+        setStep("search");
+        setCheckingPrefill(false); // Done checking, now on search step
+
+        // Auto-execute search after a tick so state settles
+        setTimeout(() => {
+          setSearching(true);
+          setSearchError("");
+          setCurrentPage(1);
+
+          // Trigger the search programmatically
+          const doSearch = async () => {
+            const name = sq || "";
+            const loc = lq || "";
+
+            try {
+              const supabase = (await import("@/lib/supabase/client")).createClient();
+
+              let query = supabase
+                .from("olera-providers")
+                .select("*")
+                .not("deleted", "is", true);
+
+              if (name) {
+                query = query.ilike("provider_name", `%${name}%`);
+              }
+
+              if (loc) {
+                const parts = loc.split(",").map((s: string) => s.trim());
+                if (parts.length >= 2 && parts[1].length <= 3) {
+                  query = query.ilike("city", `%${parts[0]}%`);
+                  query = query.ilike("state", `%${parts[1]}%`);
+                } else {
+                  query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+                }
+              }
+
+              const { data: providers, error: providerErr } = await query.limit(20);
+
+              if (providerErr) {
+                setSearchError(`Search failed: ${providerErr.message}`);
+                setSearchResults([]);
+              } else {
+                const results = (providers as Provider[]) || [];
+                setSearchResults(results);
+
+                if (results.length > 0) {
+                  const ids = results.map((p) => p.provider_id);
+                  const { data: claimed } = await supabase
+                    .from("business_profiles")
+                    .select("source_provider_id")
+                    .in("source_provider_id", ids)
+                    .in("claim_state", ["claimed", "pending"]);
+
+                  const claimedSet = new Set<string>(
+                    (claimed || [])
+                      .map((r: { source_provider_id: string | null }) => r.source_provider_id)
+                      .filter((id): id is string => !!id)
+                  );
+                  setClaimedIds(claimedSet);
+                } else {
+                  setClaimedIds(new Set());
+                }
+              }
+            } catch {
+              setSearchError("Search failed. Please try again.");
+              setSearchResults([]);
+            } finally {
+              setHasSearched(true);
+              setSearching(false);
+            }
+          };
+
+          doSearch();
+        }, 0);
+      } else {
+        // Prefill existed but was empty — done checking
+        setCheckingPrefill(false);
+      }
     } catch {
       // sessionStorage unavailable or corrupt
+      setCheckingPrefill(false);
     }
-  }, []);
+  }, [isLoading, user]);
 
   const update = (key: keyof WizardData, value: string | string[]) => {
     setData((prev) => {
@@ -655,7 +765,8 @@ function ProviderOnboardingContent() {
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
   const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon";
 
-  if (isLoading) {
+  // Show loading while auth is loading or while checking for landing page prefill
+  if (isLoading || checkingPrefill) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
@@ -705,8 +816,8 @@ function ProviderOnboardingContent() {
         {/* ── Resume screen ── */}
         {step === "resume" && (
           <div className="w-full max-w-lg">
-            <div className="text-center mb-10">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-8 lg:mb-10">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Welcome back, {displayName}
               </h1>
               <p className="text-gray-500 mt-3 text-base">
@@ -769,32 +880,32 @@ function ProviderOnboardingContent() {
         {/* ── Step 1: Choose provider type ── */}
         {step === 1 && (
           <div className="w-full max-w-2xl pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 How would you describe yourself?
               </h1>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 gap-3 lg:gap-5">
               {/* Organization */}
               <button
                 type="button"
                 onClick={() => handleSelectType("organization")}
-                className={`group flex flex-col items-center text-center p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
+                className={`group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
                   providerType === "organization"
                     ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
                     : "border-gray-200 hover:border-primary-400 hover:shadow-md"
                 }`}
               >
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200 ${
+                <div className={`w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200 ${
                   providerType === "organization" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
                 }`}>
-                  <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-7 h-7 lg:w-10 lg:h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Organization</h2>
-                <p className="text-base text-gray-500 leading-relaxed">
+                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Organization</h2>
+                <p className="text-xs lg:text-base text-gray-500 leading-relaxed">
                   Assisted living, home care agency, memory care facility, and more
                 </p>
               </button>
@@ -803,16 +914,16 @@ function ProviderOnboardingContent() {
               <button
                 type="button"
                 onClick={() => setStep("caregiver-coming-soon")}
-                className="group flex flex-col items-center text-center p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
+                className="group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
               >
-                <div className="w-20 h-20 rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-6 transition-colors duration-200">
-                  <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200">
+                  <svg className="w-7 h-7 lg:w-10 lg:h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Private Caregiver</h2>
-                <p className="text-base text-gray-500 leading-relaxed">
-                  Individual caregiver offering personal care services to families
+                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Private Caregiver</h2>
+                <p className="text-xs lg:text-base text-gray-500 leading-relaxed">
+                  Individual caregiver offering personal care services
                 </p>
               </button>
             </div>
@@ -821,25 +932,25 @@ function ProviderOnboardingContent() {
 
         {/* ── Caregiver Coming Soon ── */}
         {step === "caregiver-coming-soon" && (
-          <div className="flex flex-col items-center justify-center text-center min-h-[60vh] w-full max-w-md mx-auto">
+          <div className="flex flex-col items-center justify-center text-center min-h-[60vh] w-full max-w-md mx-auto px-4">
             {/* Icon */}
-            <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-6">
-              <svg className="w-9 h-9 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-5 lg:mb-6">
+              <svg className="w-8 h-8 lg:w-9 lg:h-9 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
 
             {/* Badge */}
-            <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-primary-600 border border-primary-200 mb-5">
+            <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-primary-600 border border-primary-200 mb-4 lg:mb-5">
               Coming Soon
             </span>
 
             {/* Heading */}
-            <h1 className="text-3xl font-display font-bold text-gray-900 tracking-tight mb-3">
+            <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight mb-2 lg:mb-3">
               Private Caregiver
             </h1>
 
-            <p className="text-base text-gray-500 max-w-sm leading-relaxed mb-8">
+            <p className="text-sm lg:text-base text-gray-500 max-w-sm leading-relaxed mb-6 lg:mb-8">
               Individual caregiver onboarding is coming soon. Get notified when it launches.
             </p>
 
@@ -917,34 +1028,19 @@ function ProviderOnboardingContent() {
             {/* ── State A: Initial search form ── */}
             {!hasSearched && (
               <div className="w-full max-w-xl mx-auto pb-24">
-                <div className="text-center mb-14">
-                  <h1 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight">
+                <div className="text-center mb-8 lg:mb-14">
+                  <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                     Find your organization
                   </h1>
-                  <p className="text-gray-500 mt-6 text-xl leading-relaxed">
+                  <p className="text-gray-500 mt-4 lg:mt-6 text-base lg:text-xl leading-relaxed">
                     Let&apos;s check if we already have a listing for you.
                   </p>
                 </div>
 
-                {/* Two-field search: Name + Location */}
+                {/* Two-field search: Location + Name */}
                 <form onSubmit={handleSearch}>
                   <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                    {/* Name input */}
-                    <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
-                      <input
-                        type="text"
-                        aria-label="Organization name"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Organization name"
-                        className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
-                      />
-                    </div>
-
-                    {/* Divider */}
-                    <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
-
-                    {/* Location input with dropdown */}
+                    {/* Location input with dropdown — first on mobile */}
                     <div ref={locationDropdownRef} className="relative flex-1">
                       <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
                         showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
@@ -999,6 +1095,21 @@ function ProviderOnboardingContent() {
                       )}
                     </div>
 
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
+
+                    {/* Name input */}
+                    <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                      <input
+                        type="text"
+                        aria-label="Organization name"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Organization name"
+                        className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                      />
+                    </div>
+
                     {/* Search button */}
                     <button
                       type="submit"
@@ -1040,22 +1151,7 @@ function ProviderOnboardingContent() {
                   <div className="max-w-2xl mx-auto py-3">
                     <form onSubmit={handleSearch}>
                       <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-200/80 p-2.5 flex items-center gap-2.5">
-                        {/* Name input */}
-                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
-                          <input
-                            type="text"
-                            aria-label="Organization name"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Organization name"
-                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
-                          />
-                        </div>
-
-                        {/* Divider */}
-                        <div className="w-px h-7 bg-gray-200 shrink-0" />
-
-                        {/* Location input with dropdown */}
+                        {/* Location input with dropdown — first */}
                         <div ref={locationDropdownRef} className="relative flex-1 min-w-0">
                           <div className={`flex items-center px-3.5 py-2.5 bg-gray-50 rounded-lg border transition-colors ${
                             showLocationDropdown ? "border-primary-400 ring-1 ring-primary-100" : "border-gray-200 hover:border-gray-300"
@@ -1110,16 +1206,34 @@ function ProviderOnboardingContent() {
                           )}
                         </div>
 
-                        {/* Search button */}
+                        {/* Divider */}
+                        <div className="w-px h-7 bg-gray-200 shrink-0" />
+
+                        {/* Name input */}
+                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
+                          <input
+                            type="text"
+                            aria-label="Organization name"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Organization name"
+                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+                          />
+                        </div>
+
+                        {/* Search button — icon only to save space */}
                         <button
                           type="submit"
                           disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
-                          className="px-5 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                          className="w-11 h-11 flex items-center justify-center text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                          aria-label="Search"
                         >
                           {searching ? (
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           ) : (
-                            "Search"
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                           )}
                         </button>
                       </div>
@@ -1215,11 +1329,27 @@ function ProviderOnboardingContent() {
                                   <button
                                     type="button"
                                     onClick={() => {
+                                      // Cache provider data for instant UI on claim page
+                                      try {
+                                        sessionStorage.setItem(
+                                          "olera_claim_provider_cache",
+                                          JSON.stringify({
+                                            provider_id: provider.provider_id,
+                                            provider_name: provider.provider_name,
+                                            provider_images: provider.provider_images,
+                                            address: provider.address,
+                                            city: provider.city,
+                                            state: provider.state,
+                                            slug: provider.slug,
+                                          })
+                                        );
+                                      } catch {}
                                       router.push(`/for-providers/claim/${provider.slug || provider.provider_id}?provider_id=${provider.provider_id}`);
                                     }}
-                                    className="px-5 py-2.5 text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                                    className="px-4 sm:px-5 py-2.5 text-sm sm:text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
-                                    Claim this page &rarr;
+                                    <span className="sm:hidden">Claim &rarr;</span>
+                                    <span className="hidden sm:inline">Claim this page &rarr;</span>
                                   </button>
                                 </div>
                               )}
@@ -1395,10 +1525,10 @@ function ProviderOnboardingContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight mb-4">
+                <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight mb-4">
                   Request submitted
                 </h1>
-                <p className="text-gray-500 text-lg leading-relaxed max-w-sm mx-auto">
+                <p className="text-gray-500 text-base lg:text-lg leading-relaxed max-w-sm mx-auto">
                   We&apos;ve received your request to claim <strong className="text-gray-700">{claimingProvider.provider_name}</strong>.
                   Our team will review it and get back to you within 2–3 business days.
                 </p>
@@ -1407,29 +1537,29 @@ function ProviderOnboardingContent() {
               /* ── Verification form ── */
               <div>
                 {/* Header — icon + title + subtitle */}
-                <div className="text-center mb-10">
-                  <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center mb-8 lg:mb-10">
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-5 lg:mb-6">
+                    <svg className="w-7 h-7 lg:w-8 lg:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+                  <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                     Verify your organization
                   </h1>
                   {verifySending ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">Sending verification code…</p>
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">Sending verification code…</p>
                   ) : verifyNoEmail ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">
                       We don&apos;t have an email on file for <strong className="text-gray-600">{claimingProvider.provider_name}</strong>.
                       <br />Please submit a request below.
                     </p>
                   ) : verifyEmailHint ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">
                       We sent a 6-digit code to <strong className="text-gray-600">{verifyEmailHint}</strong>.
                       <br />Enter it below to verify you represent {claimingProvider.provider_name}.
                     </p>
                   ) : verifyError ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">
                       There was an issue sending the code. Please try again.
                     </p>
                   ) : null}
@@ -1601,11 +1731,11 @@ function ProviderOnboardingContent() {
         {/* ── Step 2: About ── */}
         {step === 2 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Tell us about your organization
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 This is what families will see on your public profile.
               </p>
             </div>
@@ -1654,11 +1784,11 @@ function ProviderOnboardingContent() {
         {/* ── Step 3: Location ── */}
         {step === 3 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Where are you located?
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 Families search by location — this helps them find you.
               </p>
             </div>
@@ -1749,11 +1879,11 @@ function ProviderOnboardingContent() {
         {/* ── Step 4: Contact ── */}
         {step === 4 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 How can families reach you?
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 Give families a way to connect with you.
               </p>
             </div>
@@ -1797,11 +1927,11 @@ function ProviderOnboardingContent() {
         {/* ── Step 5: Services + Review + Submit ── */}
         {step === 5 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Services offered
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 Select at least one care type you provide. You can always update these later.
               </p>
             </div>

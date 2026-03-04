@@ -17,6 +17,8 @@ const SK_VERIFIED = "olera_claim_verified";
 const SK_PROVIDER_ID = "olera_claim_provider_id";
 // No-access form data (preserved across OAuth redirect)
 const SK_NO_ACCESS = "olera_claim_no_access";
+// Cached provider data for instant UI (set by onboarding page)
+const SK_PROVIDER_CACHE = "olera_claim_provider_cache";
 
 type ClaimStep =
   | "loading"
@@ -54,12 +56,30 @@ function clearClaimStorage() {
 }
 
 /** Minimal sticky top nav — replaces the full Navbar on /for-providers pages. */
-function MinimalTopNav({ href, label = "Back to listing" }: { href: string; label?: string }) {
+function MinimalTopNav({
+  href,
+  label = "Back to listing",
+  useBack = false,
+}: {
+  href: string;
+  label?: string;
+  useBack?: boolean;
+}) {
+  const router = useRouter();
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (useBack && typeof window !== "undefined" && window.history.length > 1) {
+      e.preventDefault();
+      router.back();
+    }
+  };
+
   return (
     <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center">
         <Link
           href={href}
+          onClick={handleClick}
           className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,7 +146,21 @@ export default function ClaimPage() {
     (async () => {
       const supabase = createClient();
       let foundProvider: Provider | null = null;
-      const lookupId = providerIdParam || slug;
+
+      // Check for cached provider data (from onboarding page) for instant UI
+      let cachedProvider: Partial<Provider> | null = null;
+      try {
+        const cached = sessionStorage.getItem(SK_PROVIDER_CACHE);
+        if (cached) {
+          cachedProvider = JSON.parse(cached);
+          sessionStorage.removeItem(SK_PROVIDER_CACHE);
+          // Show cached data immediately for instant UI
+          if (cachedProvider && cachedProvider.provider_id === providerIdParam) {
+            setProvider(cachedProvider as Provider);
+            setStep("info");
+          }
+        }
+      } catch {}
 
       // Strategy 1: Look up in olera-providers by provider_id (if param provided)
       if (providerIdParam) {
@@ -167,6 +201,7 @@ export default function ClaimPage() {
         return;
       }
 
+      // Update with full provider data (may have more fields than cache)
       setProvider(foundProvider);
 
       // Save provider_id for OAuth return
@@ -541,7 +576,7 @@ export default function ClaimPage() {
   if (step === "already-claimed" || step === "dispute" || step === "dispute-success") {
     return (
       <>
-        <MinimalTopNav href={`/provider/${slug}`} />
+        <MinimalTopNav href={`/provider/${slug}`} useBack={true} />
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
 
         {step === "dispute-success" ? (
@@ -706,7 +741,7 @@ export default function ClaimPage() {
   // Info + Verify steps
   return (
     <>
-      <MinimalTopNav href={`/provider/${slug}`} />
+      <MinimalTopNav href={`/provider/${slug}`} useBack={true} />
       {/* Page content — padded bottom for sticky button on info step */}
       <div className={`max-w-lg mx-auto px-4 sm:px-6 py-8 ${step === "info" ? "pb-36" : "pb-12"}`}>
         {/* ── Info Step ── */}

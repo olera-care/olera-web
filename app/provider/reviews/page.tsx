@@ -69,7 +69,7 @@ export default function ProviderReviewsPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email"
                 required
-                className="flex-1 px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                className="flex-1 px-4 py-3.5 text-base text-gray-900 placeholder:text-gray-400 focus:outline-none"
               />
               <button
                 type="submit"

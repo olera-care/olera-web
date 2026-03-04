@@ -885,10 +885,11 @@ export default function Navbar() {
                         </div>
                       )}
 
-                      {/* Provider nav — grouped with accordion */}
+                      {/* Provider nav — grouped with accordions */}
                       {isFullyLoaded ? (
                         <>
-                          <details className="group" open>
+                          {/* MY HUB — main work items */}
+                          <details className="group" name="provider-sections" open>
                             <summary className="flex items-center justify-between px-5 py-3 cursor-pointer list-none select-none">
                               <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">My Hub</span>
                               <svg className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -908,19 +909,19 @@ export default function Navbar() {
                                   icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" /></svg>,
                                 },
                                 {
-                                  label: "Connections", href: "/provider/connections", badge: newLeadsCount,
+                                  label: "Leads", href: "/provider/connections", badge: newLeadsCount,
                                   active: pathname.startsWith("/provider/connections"),
                                   icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>,
+                                },
+                                {
+                                  label: "Matches", href: "/provider/matches", badge: 0,
+                                  active: pathname.startsWith("/provider/matches"),
+                                  icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" /></svg>,
                                 },
                                 {
                                   label: "Reviews", href: "/provider/reviews", badge: 0,
                                   active: pathname.startsWith("/provider/reviews"),
                                   icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>,
-                                },
-                                {
-                                  label: "Account", href: "/provider/profile", badge: 0,
-                                  active: pathname.startsWith("/provider/profile"),
-                                  icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
                                 },
                               ].map((item) => (
                                 <Link
@@ -936,6 +937,50 @@ export default function Navbar() {
                                       {item.badge}
                                     </span>
                                   )}
+                                </Link>
+                              ))}
+                            </div>
+                          </details>
+
+                          {/* ACCOUNT — profile/settings items */}
+                          <details className="group" name="provider-sections">
+                            <summary className="flex items-center justify-between px-5 py-3 cursor-pointer list-none select-none border-b border-gray-100">
+                              <span className="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">Account</span>
+                              <svg className="w-3.5 h-3.5 text-gray-400 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </summary>
+                            <div className="border-b border-gray-100 pb-1">
+                              {[
+                                {
+                                  label: "Profile", href: "/provider/profile", badge: 0,
+                                  active: pathname.startsWith("/provider/profile"),
+                                  icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
+                                },
+                                {
+                                  label: "Q&A", href: "/provider/qna", badge: 0,
+                                  active: pathname.startsWith("/provider/qna"),
+                                  icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
+                                },
+                                {
+                                  label: "Identity Verification", href: "/provider/verification", badge: 0,
+                                  active: pathname.startsWith("/provider/verification"),
+                                  icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" /></svg>,
+                                },
+                                {
+                                  label: "Olera Pro", href: "/provider/pro", badge: 0,
+                                  active: pathname.startsWith("/provider/pro"),
+                                  icon: <svg className="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
+                                },
+                              ].map((item) => (
+                                <Link
+                                  key={item.label}
+                                  href={item.href}
+                                  className={`flex items-center gap-3.5 px-5 py-3.5 hover:bg-gray-50/80 transition-colors rounded-lg mx-2 my-0.5 ${item.active ? "text-primary-600 bg-primary-50/50" : "text-gray-700"}`}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                  <span className={item.active ? "text-primary-500" : "text-gray-400"}>{item.icon}</span>
+                                  <span className="text-[15px] font-medium flex-1">{item.label}</span>
                                 </Link>
                               ))}
                             </div>

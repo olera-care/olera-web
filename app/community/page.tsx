@@ -272,20 +272,8 @@ function CommunityPageContent() {
     <div>
       {/* ── Sticky composer header — flush, no side/top padding ── */}
       <div className={`sticky top-0 z-20 bg-white border-b border-gray-200 ${showComposer ? "shadow-md" : ""}`}>
-        {/* Mobile: Search + Category pills */}
-        <div className="lg:hidden px-5 pt-4 space-y-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search discussions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 min-h-[48px] rounded-xl border border-gray-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
+        {/* Mobile: Category pills only (search hidden on mobile) */}
+        <div className="lg:hidden px-5 pt-4">
           <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
             <div className="flex gap-2 min-w-max pb-2">
               <button

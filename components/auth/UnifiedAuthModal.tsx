@@ -731,12 +731,13 @@ export default function UnifiedAuthModal({
                 autoComplete="current-password"
                 className={inputClass}
               />
-              <div className="flex justify-between mt-2">
+              {/* Links with proper touch targets (min 44px) and spacing from button */}
+              <div className="flex justify-between mt-3 -mx-2">
                 <button
                   type="button"
                   onClick={handleSendOtpForSignIn}
                   disabled={loading || !email.trim()}
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-h-[44px] px-2 flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Email me a code instead
                 </button>
@@ -744,7 +745,7 @@ export default function UnifiedAuthModal({
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={loading || !email.trim()}
-                  className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-h-[44px] px-2 flex items-center text-sm text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Forgot password?
                 </button>

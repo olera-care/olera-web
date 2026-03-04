@@ -867,6 +867,7 @@ export default function ProviderLeadsPage() {
   const [leads, setLeads] = useState<LeadDetail[]>(MOCK_LEADS);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [sortSheetOpen, setSortSheetOpen] = useState(false);
 
   // Broadcast new-leads count to Navbar badge and persist to localStorage
   const newLeadsCount = useMemo(() => leads.filter((l) => l.isNew).length, [leads]);
@@ -953,26 +954,27 @@ export default function ProviderLeadsPage() {
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ── Page header ── */}
-      <div className="mb-8">
-        <h1 className="text-[28px] font-display font-bold text-gray-900 tracking-tight">
+      <div className="mb-5 lg:mb-8">
+        <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
           Leads
         </h1>
-        <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
+        <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
           Families who found you and connected.
         </p>
       </div>
 
       {/* ── Filter tabs + Sort ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max sm:w-auto">
+      <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
+        {/* Filter tabs - horizontal scroll on mobile */}
+        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 flex-1 scrollbar-hide">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
             {FILTER_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveFilter(tab.id)}
                 className={[
-                  "px-4 sm:px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[44px] flex items-center",
+                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center",
                   activeFilter === tab.id
                     ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-500 hover:text-gray-700",
@@ -984,7 +986,20 @@ export default function ProviderLeadsPage() {
           </div>
         </div>
 
-        <div className="relative shrink-0 flex items-center">
+        {/* Mobile sort button - opens sheet */}
+        <button
+          type="button"
+          onClick={() => setSortSheetOpen(true)}
+          className="lg:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors min-h-[40px] shrink-0"
+        >
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+          </svg>
+          {SORT_OPTIONS.find((o) => o.id === sortBy)?.label || "Sort"}
+        </button>
+
+        {/* Desktop sort dropdown */}
+        <div className="hidden lg:flex items-center shrink-0">
           <span className="text-sm text-gray-400 mr-2">Sort by:</span>
           <div className="relative">
             <select
@@ -1181,6 +1196,54 @@ export default function ProviderLeadsPage() {
         onDelete={handleDeleteLead}
         onMessage={handleMessageLead}
       />
+
+      {/* ── Mobile Sort Bottom Sheet ── */}
+      {sortSheetOpen && (
+        <>
+          <div
+            className="lg:hidden fixed inset-0 bg-black/40 z-40"
+            onClick={() => setSortSheetOpen(false)}
+          />
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 pb-[env(safe-area-inset-bottom)]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-display font-bold text-gray-900">Sort by</h3>
+              <button
+                type="button"
+                onClick={() => setSortSheetOpen(false)}
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-2">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    setSortBy(opt.id);
+                    setSortSheetOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-4 rounded-xl text-left transition-colors ${
+                    sortBy === opt.id ? "bg-primary-50" : "hover:bg-gray-50 active:bg-gray-100"
+                  }`}
+                >
+                  <span className={`text-[15px] font-medium ${sortBy === opt.id ? "text-primary-700" : "text-gray-700"}`}>
+                    {opt.label}
+                  </span>
+                  {sortBy === opt.id && (
+                    <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

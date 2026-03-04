@@ -355,11 +355,11 @@ export default function ConversationList({
                 </svg>
               </button>
 
-              {/* Dropdown */}
+              {/* Dropdown - opens upward to avoid scroll clipping */}
               {isMenuOpen && (
                 <div
                   ref={menuRef}
-                  className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10"
+                  className="absolute right-0 bottom-full mb-1 w-40 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50"
                 >
                   {/* Active items: Archive + Report */}
                   {!isPast && onArchiveConnection && (

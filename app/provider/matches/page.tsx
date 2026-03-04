@@ -568,7 +568,7 @@ function FamilyCareCard({
   freeRemaining: number | null;
   contacted?: boolean;
   isExpanded?: boolean;
-  onExpand?: () => void;
+  onExpand?: (family: Profile) => void;
   onCollapse?: () => void;
   providerProfile?: Profile | null;
   reachOutNote?: string;
@@ -1000,7 +1000,7 @@ function FamilyCareCard({
               </div>
               <button
                 type="button"
-                onClick={onExpand}
+                onClick={() => onExpand?.(family)}
                 className="w-full lg:w-auto group inline-flex items-center justify-center gap-2 px-5 lg:pl-5 lg:pr-6 py-3 lg:py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-sm lg:text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.98] transition-all duration-200 min-h-[48px] lg:min-h-0"
               >
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -1041,6 +1041,10 @@ export default function ProviderMatchesPage() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
+  // Mobile bottom sheet states
+  const [sortSheetOpen, setSortSheetOpen] = useState(false);
+  const [reachOutSheetFamily, setReachOutSheetFamily] = useState<Profile | null>(null);
+
   const hasFullAccess = canEngage(
     providerProfile?.type,
     membership,
@@ -1055,10 +1059,10 @@ export default function ProviderMatchesPage() {
 
   // ── Expansion handlers ──
 
+  // Mobile: open bottom sheet; Desktop: expand inline
   const handleExpand = useCallback(
-    (familyId: string) => {
+    (familyId: string, family?: Profile) => {
       if (!isProfileShareable(providerProfile)) return;
-      setExpandedCardId(familyId);
       setSendError(null);
       try {
         const saved = localStorage.getItem(DEFAULT_NOTE_KEY);
@@ -1073,9 +1077,22 @@ export default function ProviderMatchesPage() {
         setReachOutNote("");
         setSaveAsDefault(false);
       }
+      // Mobile: use bottom sheet
+      if (window.innerWidth < 1024 && family) {
+        setReachOutSheetFamily(family);
+      } else {
+        setExpandedCardId(familyId);
+      }
     },
     [providerProfile],
   );
+
+  const handleCloseReachOutSheet = useCallback(() => {
+    if (!sending) {
+      setReachOutSheetFamily(null);
+      setSendError(null);
+    }
+  }, [sending]);
 
   const handleCollapse = useCallback(() => {
     if (!sending) {
@@ -1357,26 +1374,27 @@ export default function ProviderMatchesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
       {/* ── Page header ── */}
-      <div className="mb-8">
-        <h1 className="text-[28px] font-display font-bold text-gray-900 tracking-tight">
+      <div className="mb-5 lg:mb-8">
+        <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
           Matches
         </h1>
-        <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
+        <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
           Matched to your services and location. Reach out to start a conversation.
         </p>
       </div>
 
-      {/* ── Filter tabs + Sort — horizontal scroll on mobile ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max sm:w-auto">
+      {/* ── Filter tabs + Sort ── */}
+      <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
+        {/* Filter tabs - horizontal scroll on mobile */}
+        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 flex-1 scrollbar-hide">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
             {FILTER_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveFilter(tab.id)}
                 className={[
-                  "px-4 sm:px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[44px] flex items-center",
+                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center",
                   activeFilter === tab.id
                     ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-500 hover:text-gray-700",
@@ -1388,7 +1406,20 @@ export default function ProviderMatchesPage() {
           </div>
         </div>
 
-        <div className="relative shrink-0 flex items-center">
+        {/* Mobile sort button - opens sheet */}
+        <button
+          type="button"
+          onClick={() => setSortSheetOpen(true)}
+          className="lg:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors min-h-[40px] shrink-0"
+        >
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+          </svg>
+          {SORT_OPTIONS.find((o) => o.id === sortBy)?.label || "Sort"}
+        </button>
+
+        {/* Desktop sort dropdown */}
+        <div className="hidden lg:flex items-center shrink-0">
           <span className="text-sm text-gray-400 mr-2">Sort by:</span>
           <div className="relative">
             <select
@@ -1443,7 +1474,7 @@ export default function ProviderMatchesPage() {
                     providerCareTypes={providerCareTypes}
                     freeRemaining={freeRemaining}
                     isExpanded={expandedCardId === family.id}
-                    onExpand={() => handleExpand(family.id)}
+                    onExpand={(f) => handleExpand(f.id, f)}
                     onCollapse={handleCollapse}
                     providerProfile={providerProfile}
                     reachOutNote={reachOutNote}
@@ -1537,6 +1568,165 @@ export default function ProviderMatchesPage() {
             />
           </div>
         </div>
+      )}
+
+      {/* ── Mobile Sort Bottom Sheet ── */}
+      {sortSheetOpen && (
+        <>
+          <div
+            className="lg:hidden fixed inset-0 bg-black/40 z-40"
+            onClick={() => setSortSheetOpen(false)}
+          />
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 pb-[env(safe-area-inset-bottom)]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-display font-bold text-gray-900">Sort by</h3>
+              <button
+                type="button"
+                onClick={() => setSortSheetOpen(false)}
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-2">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    setSortBy(opt.id);
+                    setSortSheetOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-4 rounded-xl text-left transition-colors ${
+                    sortBy === opt.id ? "bg-primary-50" : "hover:bg-gray-50 active:bg-gray-100"
+                  }`}
+                >
+                  <span className={`text-[15px] font-medium ${sortBy === opt.id ? "text-primary-700" : "text-gray-700"}`}>
+                    {opt.label}
+                  </span>
+                  {sortBy === opt.id && (
+                    <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Mobile Reach Out Bottom Sheet ── */}
+      {reachOutSheetFamily && (
+        <>
+          <div
+            className="lg:hidden fixed inset-0 bg-black/40 z-40"
+            onClick={handleCloseReachOutSheet}
+          />
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white"
+                  style={{ background: hasFullAccess ? avatarGradient(reachOutSheetFamily.display_name || "Family") : "#9ca3af" }}
+                >
+                  {hasFullAccess ? getInitials(reachOutSheetFamily.display_name || "Family") : "?"}
+                </div>
+                <div>
+                  <h3 className="text-base font-display font-bold text-gray-900">
+                    Reach out to {hasFullAccess ? (reachOutSheetFamily.display_name?.split(/\s+/)[0] || "this family") : "this family"}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseReachOutSheet}
+                disabled={sending}
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 active:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="px-5 py-5">
+              <p className="text-[15px] text-gray-600 mb-4">
+                Tell them why you&apos;re a great fit for their care needs.
+              </p>
+
+              <textarea
+                value={reachOutNote}
+                onChange={(e) => setReachOutNote(e.target.value)}
+                placeholder={`Share what makes your care approach a great match...`}
+                rows={4}
+                className="w-full px-4 py-3.5 text-[15px] leading-relaxed text-gray-700 bg-white border border-warm-200/80 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none placeholder:text-gray-400"
+              />
+
+              <div className="flex items-center justify-between mt-3 mb-4">
+                <p className="text-xs text-gray-400">
+                  Personal notes get <span className="font-medium">3× more responses</span>
+                </p>
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={saveAsDefault}
+                    onChange={(e) => setSaveAsDefault(e.target.checked)}
+                    className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-500">Save as default</span>
+                </label>
+              </div>
+
+              {/* Profile sharing notice */}
+              <div className="flex items-center gap-2.5 text-xs text-gray-400 mb-4">
+                <EyeIcon className="w-4 h-4 shrink-0" />
+                <p>Your full profile will be shared with this family.</p>
+              </div>
+
+              {/* Error */}
+              {sendError && (
+                <div className="mb-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-600">
+                  {sendError}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-5 py-4 flex items-center gap-3">
+              {freeRemaining !== null && (
+                <p className="text-xs text-gray-400 flex-1">
+                  Uses 1 of {freeRemaining} reach-outs
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={handleCloseReachOutSheet}
+                disabled={sending}
+                className="px-5 py-3 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSend(reachOutSheetFamily.id)}
+                disabled={sending}
+                className="flex-1 max-w-[160px] group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-sm font-semibold shadow-lg shadow-primary-500/20 hover:from-primary-600 hover:to-primary-700 active:scale-[0.98] disabled:opacity-70 transition-all"
+              >
+                {sending ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <SendIcon className="w-4 h-4" />
+                )}
+                {sending ? "Sending…" : "Send"}
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
     </div>

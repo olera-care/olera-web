@@ -79,12 +79,20 @@ export default function SavedProvidersPage() {
             <p className="text-sm text-primary-800">
               <span className="font-medium">Sign up</span> to sync across devices
             </p>
-            <button
-              onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
-              className="px-4 py-2 min-h-[40px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap shrink-0"
-            >
-              Sign up
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/browse"
+                className="px-4 py-2 min-h-[40px] text-sm font-medium text-primary-700 hover:bg-primary-100 rounded-lg transition-colors whitespace-nowrap flex items-center"
+              >
+                Browse
+              </Link>
+              <button
+                onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+                className="px-4 py-2 min-h-[40px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+              >
+                Sign up
+              </button>
+            </div>
           </div>
         )}
 

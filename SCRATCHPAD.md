@@ -37,12 +37,12 @@
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Plan: `plans/provider-deletion-request-plan.md`
 
-- **Backend Integration Roadmap** (branch: `magical-keller`) — PHASE 1-2 DONE
+- **Backend Integration Roadmap** — PHASES 1-4 COMPLETE ✅
   - Plan: `plans/backend-integration-roadmap-plan.md`
   - Analysis: `docs/backend-integration-analysis.md`
   - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
-  - PR: #111 (Phase 1-2: Email + Slack)
-  - Phases: ~~Email notifications~~ ✅ → ~~Slack alerts~~ ✅ → Sentry (deprioritized P4) → Twilio SMS → Vercel Cron → Marketing (deferred)
+  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron)
+  - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → Sentry (P4 backlog) → Marketing (deferred)
 
 ---
 
@@ -96,6 +96,35 @@
 ---
 
 ## Session Log
+
+### 2026-03-03 (Session 36) — Backend Integration Phase 3-4: Twilio SMS + Vercel Cron
+
+**Branches:** `twilio-sms-integration`, `vercel-cron-jobs`
+
+**What:** Completed remaining backend integration phases — Twilio SMS (Phase 3) and Vercel Cron jobs (Phase 4). All env vars configured end-to-end in Vercel.
+
+**Phase 3: Twilio SMS (PR #112)**
+- `lib/twilio.ts`: Twilio singleton, `sendSMS()`, `normalizeUSPhone()`, `maskPhone()`
+- `app/api/claim/send-code/route.ts`: Now accepts `method: "sms"` for SMS verification codes
+- `app/api/connections/request/route.ts`: SMS notification to provider on new inquiry
+- Env vars: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` (+12137722970)
+
+**Phase 4: Vercel Cron (PR #113)**
+- `vercel.json`: 3 cron schedules
+- `app/api/cron/daily-digest/route.ts`: 8 AM CT — email + Slack summary of leads, claims, disputes
+- `app/api/cron/unread-reminders/route.ts`: every 6h — nudge for unread messages >24h, with dedup
+- `app/api/cron/cleanup/route.ts`: 4 AM UTC — purge expired verification codes + stale connections (30d)
+- Env var: `CRON_SECRET`
+
+**Also:**
+- PR #111 (Phase 1-2) merged to staging via `/pr-merge` with full regression analysis
+- Backlog task added to Notion: "Add SMS toggle to ClaimVerifyForm UI"
+- PR merge report published to Notion
+
+**Vercel env vars (10 total now):**
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, `SLACK_WEBHOOK_URL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `CRON_SECRET`
+
+---
 
 ### 2026-03-03 (Session 35) — Backend Integration Phase 1-2: Email + Slack
 

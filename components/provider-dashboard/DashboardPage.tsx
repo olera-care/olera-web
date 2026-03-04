@@ -320,12 +320,12 @@ function DashboardHeader({ slug }: { slug: string | null }) {
       </div>
 
       {slug && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Link
             href={`/provider/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-4 py-2.5 shadow-xs hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl px-4 py-2.5 shadow-xs hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -335,7 +335,7 @@ function DashboardHeader({ slug }: { slug: string | null }) {
           </Link>
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2.5 shadow-sm transition-all duration-200 min-h-[44px]"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl px-4 py-2.5 shadow-sm transition-all duration-200 min-h-[44px]"
           >
             {copied ? (
               <>

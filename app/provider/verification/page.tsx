@@ -709,12 +709,12 @@ export default function ProviderVerificationPage() {
 
           {/* Submit button */}
           {!isReadOnly && (
-            <div className="flex justify-end px-6 py-5 border-t border-warm-100/60">
+            <div className="px-6 py-5 border-t border-warm-100/60">
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="px-8 py-3 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
+                className="w-full sm:w-auto sm:ml-auto sm:block px-8 py-3 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm min-h-[48px]"
               >
                 {submitting ? (
                   <span className="flex items-center justify-center gap-2">

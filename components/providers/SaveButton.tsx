@@ -18,7 +18,7 @@ export default function SaveButton({ provider, variant = "default" }: SaveButton
         className="w-9 h-9 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center"
       >
         <svg
-          className={`w-5 h-5 ${saved ? "text-red-500" : "text-gray-400 hover:text-gray-600"}`}
+          className={`w-5 h-5 ${saved ? "text-primary-600" : "text-gray-400 hover:text-gray-600"}`}
           fill={saved ? "currentColor" : "none"}
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -40,7 +40,7 @@ export default function SaveButton({ provider, variant = "default" }: SaveButton
         onClick={() => toggleSave(provider)}
         className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
           saved
-            ? "text-red-500 border-red-300 bg-red-50 hover:bg-red-100"
+            ? "text-primary-600 border-primary-300 bg-primary-50 hover:bg-primary-100"
             : "text-primary-700 border-primary-200 hover:bg-primary-50"
         }`}
       >
@@ -67,7 +67,7 @@ export default function SaveButton({ provider, variant = "default" }: SaveButton
       onClick={() => toggleSave(provider)}
       className={`flex items-center justify-center gap-1.5 text-sm font-medium border rounded-lg w-24 py-2 transition-colors ${
         saved
-          ? "text-red-500 border-red-300 bg-red-50 hover:bg-red-100"
+          ? "text-primary-600 border-primary-300 bg-primary-50 hover:bg-primary-100"
           : "text-gray-700 border-gray-300 hover:bg-gray-50"
       }`}
     >

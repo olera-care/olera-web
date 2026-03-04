@@ -236,7 +236,7 @@ export default function ProviderCard({ provider }: ProviderCardProps) {
             aria-label={isSaved ? "Remove from saved" : "Save provider"}
           >
             <svg
-              className={`w-6 h-6 transition-all duration-200 ${isSaved ? 'text-red-500 fill-red-500 scale-110' : 'text-gray-400 hover:text-red-500'}`}
+              className={`w-6 h-6 transition-all duration-200 ${isSaved ? 'text-primary-600 fill-primary-600 scale-110' : 'text-gray-400 hover:text-primary-600'}`}
               fill={isSaved ? "currentColor" : "none"}
               stroke="currentColor"
               strokeWidth={2}

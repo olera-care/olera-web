@@ -5,6 +5,7 @@ import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail } from "@/lib/email";
 import { connectionRequestEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead } from "@/lib/slack";
+import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -417,7 +418,41 @@ export async function POST(request: Request) {
       console.error("Failed to send connection request email:", emailErr);
     }
 
-    // 9b. Slack alert for new lead (fire-and-forget)
+    // 9b. SMS notification to provider (fire-and-forget)
+    try {
+      // Use provider phone from business_profiles or olera-providers
+      let providerPhone: string | null = null;
+      const { data: bpPhone } = await db
+        .from("business_profiles")
+        .select("phone")
+        .eq("id", toProfileId)
+        .single();
+      providerPhone = bpPhone?.phone || null;
+
+      if (!providerPhone) {
+        const { data: iosPhone } = await db
+          .from("olera-providers")
+          .select("phone")
+          .eq("provider_id", providerId)
+          .single();
+        providerPhone = iosPhone?.phone || null;
+      }
+
+      if (providerPhone) {
+        const normalized = normalizeUSPhone(providerPhone);
+        if (normalized) {
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          await sendSMS({
+            to: normalized,
+            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/portal/connections`,
+          });
+        }
+      }
+    } catch {
+      // Non-blocking
+    }
+
+    // 9c. Slack alert for new lead (fire-and-forget)
     try {
       const careTypeMap2: Record<string, string> = {
         home_care: "Home Care",

@@ -47,69 +47,44 @@ export default function SavedProvidersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-10">
         {/* Header */}
-        <div className="flex items-end justify-between mb-3">
+        <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-              Saved providers
+            <h1 className="font-display text-display-sm sm:text-display-md font-semibold text-gray-900 tracking-tight">
+              Saved
             </h1>
-            <p className="text-base text-gray-500 mt-1">
+            <p className="text-text-sm text-gray-500 mt-1">
               {savedProviders.length > 0
-                ? `${savedProviders.length} provider${savedProviders.length !== 1 ? "s" : ""} saved`
+                ? `${savedProviders.length} provider${savedProviders.length !== 1 ? "s" : ""}`
                 : "Providers you save will appear here"}
             </p>
           </div>
           {savedProviders.length > 0 && (
             <button
               onClick={handleShare}
-              className="flex items-center justify-center gap-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors"
+              className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+              aria-label="Share"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
-              Share
             </button>
           )}
         </div>
 
-        {/* Banner — auth-aware */}
-        {savedProviders.length > 0 && (
-          <div className="mb-6 px-5 py-4 bg-white border border-gray-200 rounded-xl flex items-center justify-between gap-4 flex-wrap shadow-sm">
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                {user
-                  ? "Looking for more options?"
-                  : "Keep your saves across sessions"}
-              </p>
-              <p className="text-sm text-gray-500 mt-0.5">
-                {user
-                  ? "Discover more providers that match your care needs."
-                  : "Create a free account to save more than 3 providers and access them anytime."}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/browse"
-                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                  user
-                    ? "bg-primary-600 hover:bg-primary-500 text-white"
-                    : "border border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
-              >
-                Browse more
-              </Link>
-              {!user && (
-                <button
-                  onClick={() =>
-                    openAuth({ defaultMode: "sign-up", intent: "family" })
-                  }
-                  className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
-                >
-                  Create account
-                </button>
-              )}
-            </div>
+        {/* Banner — compact for logged-out users */}
+        {savedProviders.length > 0 && !user && (
+          <div className="mb-6 px-4 py-3 bg-primary-50 border border-primary-100 rounded-xl flex items-center justify-between gap-3">
+            <p className="text-sm text-primary-800">
+              <span className="font-medium">Sign up</span> to sync across devices
+            </p>
+            <button
+              onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+              className="px-4 py-2 min-h-[40px] bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap shrink-0"
+            >
+              Sign up
+            </button>
           </div>
         )}
 
@@ -140,7 +115,7 @@ export default function SavedProvidersPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            <h2 className="font-display text-display-xs font-semibold text-gray-900 mb-2">
               No saved providers yet
             </h2>
             <p className="text-sm text-gray-500 mb-8 max-w-xs text-center leading-relaxed">

@@ -328,29 +328,30 @@ function DashboardHeader({ slug }: { slug: string | null }) {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 lg:gap-4 mb-4 lg:mb-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 font-display">Dashboard</h1>
-        <p className="text-[15px] text-gray-500 mt-1">Manage your listing and track your profile</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Dashboard</h1>
+        <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5 lg:mt-1">Manage your listing and track your profile</p>
       </div>
 
       {slug && (
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
           <Link
             href={`/provider/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl px-4 py-2.5 shadow-xs hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl px-3 lg:px-4 py-2.5 shadow-xs hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            Public view
+            <span className="hidden sm:inline">Public view</span>
+            <span className="sm:hidden">View</span>
           </Link>
           <button
             onClick={handleShare}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl px-4 py-2.5 shadow-sm transition-all duration-200 min-h-[44px]"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl px-3 lg:px-4 py-2.5 shadow-sm transition-all duration-200 min-h-[44px]"
           >
             {copied ? (
               <>
@@ -364,7 +365,8 @@ function DashboardHeader({ slug }: { slug: string | null }) {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                Share profile
+                <span className="hidden sm:inline">Share profile</span>
+                <span className="sm:hidden">Share</span>
               </>
             )}
           </button>
@@ -392,38 +394,33 @@ function MobileProgressBanner({
     <button
       type="button"
       onClick={onTap}
-      className="lg:hidden w-full mb-6 bg-gradient-to-r from-primary-50/80 to-vanilla-50 rounded-2xl border border-primary-100/60 p-4 text-left active:scale-[0.99] transition-transform"
-      style={{ animation: "card-enter 0.25s ease-out both" }}
+      className="lg:hidden w-full mb-5 bg-white rounded-xl border border-gray-200 px-4 py-3 text-left active:bg-gray-50 transition-colors"
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[15px] font-semibold text-gray-900">
-              Profile completeness
-            </span>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-              completeness.overall >= 100
-                ? "bg-success-100 text-success-700"
-                : "bg-primary-100 text-primary-700"
-            }`}>
-              {completeness.overall}%
-            </span>
-          </div>
-          {/* Progress bar */}
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                completeness.overall >= 100 ? "bg-success-500" : "bg-primary-500"
-              }`}
-              style={{ width: `${completeness.overall}%` }}
+      <div className="flex items-center gap-3">
+        {/* Progress ring */}
+        <div className="relative w-10 h-10 shrink-0">
+          <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
+            <circle
+              cx="20" cy="20" r="16" fill="none"
+              stroke={completeness.overall >= 100 ? "#22c55e" : "#199087"}
+              strokeWidth="3" strokeLinecap="round"
+              strokeDasharray={`${completeness.overall * 1.005} 100.5`}
             />
-          </div>
-          <p className="text-xs text-gray-500 mt-1.5">
-            {completedCount} of {totalSections} sections complete
-          </p>
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
+            {completeness.overall}%
+          </span>
         </div>
-        {/* Chevron indicator */}
-        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900">Profile completeness</p>
+          <p className="text-xs text-gray-500">{completedCount} of {totalSections} sections</p>
+        </div>
+
+        {/* Chevron */}
+        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </div>

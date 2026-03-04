@@ -99,6 +99,8 @@ export interface Membership {
   free_responses_reset_at: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  has_payment_method: boolean;
+  trial_extended: boolean;
   created_at: string;
   updated_at: string;
 }

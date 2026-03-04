@@ -50,7 +50,7 @@ export default function BenefitsIntakeForm() {
     publishCarePost,
     setPublishCarePost,
   } = useCareProfile();
-  const { user, activeProfile } = useAuth();
+  const { user, activeProfile, openAuth } = useAuth();
 
   // ─── Local UI state (not shared via context) ────────────────────────────
   const [locationInput, setLocationInputLocal] = useState(locationDisplay);
@@ -199,7 +199,14 @@ export default function BenefitsIntakeForm() {
     if (step < 5) {
       goToStep((step + 1) as IntakeStep);
     } else {
-      // Final step — submit with all answers flushed
+      // Final step — auth gate before submitting
+      if (!user) {
+        // Prompt sign-in, preserving wizard state in React context
+        openAuth({ defaultMode: "sign-up", intent: "family" });
+        return;
+      }
+
+      // Submit with all answers flushed
       updateAnswers({
         stateCode: selectedStateCode,
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,
@@ -464,25 +471,24 @@ export default function BenefitsIntakeForm() {
           )}
         </div>
 
-        {/* Let providers find me — only for logged-in users */}
-        {user && activeProfile && (
-          <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={publishCarePost}
-              onChange={(e) => setPublishCarePost(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 shrink-0 accent-gray-900"
-            />
-            <div className="min-w-0">
-              <span className="text-sm font-medium text-gray-700 leading-tight block">
-                Let providers find me
-              </span>
-              <span className="text-xs text-gray-400 leading-relaxed block mt-0.5">
-                Share your care profile so providers in your area can reach out.
-              </span>
-            </div>
-          </label>
-        )}
+        {/* Let providers find me — shown to everyone, auth required at submit */}
+        <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={publishCarePost}
+            onChange={(e) => setPublishCarePost(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 shrink-0 accent-gray-900"
+          />
+          <div className="min-w-0">
+            <span className="text-sm font-medium text-gray-700 leading-tight block">
+              Let providers find me
+            </span>
+            <span className="text-xs text-gray-400 leading-relaxed block mt-0.5">
+              Share your care profile so providers in your area can reach out.
+              {!user && " (requires sign-in)"}
+            </span>
+          </div>
+        </label>
         </>
       )}
       </div>{/* end animate-step-in wrapper */}

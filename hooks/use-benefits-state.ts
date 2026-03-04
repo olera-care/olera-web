@@ -107,7 +107,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
   const [locationDisplay, setLocationDisplay] = useState("");
   const [previewCount, setPreviewCount] = useState<number | null>(null);
   const [restoredFromDb, setRestoredFromDb] = useState(false);
-  const [publishCarePost, setPublishCarePost] = useState(false);
+  const [publishCarePost, setPublishCarePost] = useState(true); // Default checked to encourage profile sharing
   const initialized = useRef(false);
   const previewAbort = useRef<AbortController | null>(null);
 

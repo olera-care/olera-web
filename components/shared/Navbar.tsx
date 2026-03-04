@@ -24,6 +24,8 @@ export default function Navbar() {
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
   // Mobile accordion states — only one open at a time
   const [mobileAccordion, setMobileAccordion] = useState<"account" | "discover" | "hub" | "settings" | null>(null);
+  // Mobile menu mode — tracks which portal view is shown (separate from actual URL context)
+  const [mobileMenuMode, setMobileMenuMode] = useState<"family" | "provider">("family");
   const { user, account, activeProfile, profiles, openAuth, signOut, fetchError, isLoading: authLoading, switchProfile } =
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -179,11 +181,14 @@ export default function Navbar() {
     setIsFindCareOpen(false);
   }, [pathname]);
 
-  // Reset mobile accordion to default when menu opens
+  // Reset mobile menu state when menu opens
   useEffect(() => {
     if (isMobileMenuOpen && hasSession) {
-      // Provider Hub: My Hub open by default. Family Portal: My Account open by default.
-      setMobileAccordion(isProviderPortal ? "hub" : "account");
+      // Set mode based on current URL context
+      const mode = isProviderPortal ? "provider" : "family";
+      setMobileMenuMode(mode);
+      // Set default accordion based on mode
+      setMobileAccordion(mode === "provider" ? "hub" : "account");
     } else if (!isMobileMenuOpen) {
       setMobileAccordion(null);
       setIsMobileCareOpen(false);
@@ -865,20 +870,19 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  {/* Mode switcher */}
+                  {/* Mode switcher — toggles menu view without navigating */}
                   {(showModeSwitcher || hasAttemptedOnboarding) && (
                     <div className="py-2 mb-2">
                       <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                         <button
                           type="button"
                           onClick={() => {
-                            if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                            setIsMobileMenuOpen(false);
-                            router.push("/");
+                            setMobileMenuMode("family");
+                            setMobileAccordion("account");
                           }}
                           className={[
                             "flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold transition-all",
-                            !isProviderPortal ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
+                            mobileMenuMode === "family" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
                           ].join(" ")}
                         >
                           Family Portal
@@ -886,18 +890,14 @@ export default function Navbar() {
                         <button
                           type="button"
                           onClick={() => {
-                            if (hasProviderProfile && providerProfileId) {
-                              switchProfile(providerProfileId);
-                              setIsMobileMenuOpen(false);
-                              router.push("/provider");
-                            } else if (hasAttemptedOnboarding) {
-                              setIsMobileMenuOpen(false);
-                              router.push("/provider/onboarding");
-                            }
+                            setMobileMenuMode("provider");
+                            setMobileAccordion("hub");
                           }}
+                          disabled={!hasProviderProfile && !hasAttemptedOnboarding}
                           className={[
                             "flex-1 text-center px-3 py-2 rounded-lg text-sm font-semibold transition-all",
-                            isProviderPortal ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
+                            mobileMenuMode === "provider" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700",
+                            !hasProviderProfile && !hasAttemptedOnboarding ? "opacity-50 cursor-not-allowed" : "",
                           ].join(" ")}
                         >
                           Provider Hub
@@ -908,7 +908,7 @@ export default function Navbar() {
 
                   <hr className="border-gray-100 mb-2" />
 
-                  {isProviderPortal ? (
+                  {mobileMenuMode === "provider" ? (
                     /* ─── PROVIDER LOGGED-IN ─── */
                     <div className="space-y-1">
                       {/* My Hub accordion (open by default) */}
@@ -939,7 +939,11 @@ export default function Navbar() {
                                   key={item.label}
                                   href={item.href}
                                   className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
-                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  onClick={() => {
+                                    // Switch to provider profile if not already active
+                                    if (hasProviderProfile && providerProfileId) switchProfile(providerProfileId);
+                                    setIsMobileMenuOpen(false);
+                                  }}
                                 >
                                   <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
@@ -984,7 +988,10 @@ export default function Navbar() {
                                   key={item.label}
                                   href={item.href}
                                   className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
-                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  onClick={() => {
+                                    if (hasProviderProfile && providerProfileId) switchProfile(providerProfileId);
+                                    setIsMobileMenuOpen(false);
+                                  }}
                                 >
                                   <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
@@ -1048,7 +1055,11 @@ export default function Navbar() {
                                   key={item.label}
                                   href={item.href}
                                   className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
-                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  onClick={() => {
+                                    // Switch to family profile if not already active
+                                    if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                                    setIsMobileMenuOpen(false);
+                                  }}
                                 >
                                   <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
@@ -1084,7 +1095,10 @@ export default function Navbar() {
                             <Link
                               href="/browse"
                               className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${pathname.startsWith("/browse") ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
-                              onClick={() => setIsMobileMenuOpen(false)}
+                              onClick={() => {
+                                if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                                setIsMobileMenuOpen(false);
+                              }}
                             >
                               <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -1098,7 +1112,10 @@ export default function Navbar() {
                                   key={link.label}
                                   href={link.href}
                                   className={`flex items-center gap-3 py-2.5 px-3 ml-3 rounded-lg transition-colors ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
-                                  onClick={() => setIsMobileMenuOpen(false)}
+                                  onClick={() => {
+                                    if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
+                                    setIsMobileMenuOpen(false);
+                                  }}
                                 >
                                   <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d={

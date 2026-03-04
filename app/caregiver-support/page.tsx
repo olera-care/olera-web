@@ -408,31 +408,33 @@ function CaregiverSupportContent() {
         )}
 
         {/* ---- Category Filters ---- */}
-        <nav className="mb-8 md:mb-14">
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => handleCategoryChange("all")}
-              className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium transition-colors duration-150 ${
-                activeCareType === "all"
-                  ? "bg-gray-900 text-white"
-                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-              }`}
-            >
-              All
-            </button>
-            {ALL_CARE_TYPES.map((careType) => (
+        <nav className="mb-8 md:mb-14 -mx-5 sm:mx-0">
+          <div className="overflow-x-auto scrollbar-hide px-5 sm:px-0">
+            <div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap pb-2 sm:pb-0">
               <button
-                key={careType}
-                onClick={() => handleCategoryChange(careType)}
-                className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium transition-colors duration-150 ${
-                  activeCareType === careType
+                onClick={() => handleCategoryChange("all")}
+                className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
+                  activeCareType === "all"
                     ? "bg-gray-900 text-white"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                 }`}
               >
-                {CARE_TYPE_CONFIG[careType].label}
+                All
               </button>
-            ))}
+              {ALL_CARE_TYPES.map((careType) => (
+                <button
+                  key={careType}
+                  onClick={() => handleCategoryChange(careType)}
+                  className={`px-4 py-2 min-h-[44px] rounded-full text-text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
+                    activeCareType === careType
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
+                >
+                  {CARE_TYPE_CONFIG[careType].label}
+                </button>
+              ))}
+            </div>
           </div>
         </nav>
 

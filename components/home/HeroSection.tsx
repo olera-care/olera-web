@@ -195,11 +195,13 @@ export default function HeroSection() {
                         onFocus={(e) => {
                           setShowLocationDropdown(true);
                           preloadCities();
-                          // On mobile, scroll the form to the top of the viewport
-                          // so the dropdown isn't hidden behind the keyboard
-                          setTimeout(() => {
-                            e.target.closest("form")?.scrollIntoView({ block: "start", behavior: "smooth" });
-                          }, 300);
+                          // On mobile, scroll the form into view so the
+                          // dropdown isn't hidden behind the keyboard
+                          if (window.innerWidth < 640) {
+                            setTimeout(() => {
+                              e.target.closest("form")?.scrollIntoView({ block: "start", behavior: "smooth" });
+                            }, 300);
+                          }
                         }}
                         placeholder="City or ZIP code"
                         className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"

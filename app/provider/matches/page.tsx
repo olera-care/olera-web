@@ -631,9 +631,51 @@ function FamilyCareCard({
       ].join(" ")}
     >
       {/* ── Card body ── */}
-      <div className="p-7">
-        {/* Header: avatar + name/location + timeline + time */}
-        <div className="flex items-start gap-4 mb-5">
+      <div className="p-4 lg:p-7">
+        {/* Mobile header layout */}
+        <div className="lg:hidden mb-4">
+          <div className="flex items-start gap-3 mb-3">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold text-white shadow-sm"
+              style={{ background: hasFullAccess ? avatarGradient(displayName) : "#9ca3af" }}
+            >
+              {hasFullAccess ? initials : "?"}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[15px] font-display font-bold text-gray-900 leading-tight">
+                {hasFullAccess ? displayName : blurName(displayName)}
+              </h3>
+              {locationStr && (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <LocationIcon className="w-3 h-3 text-gray-400" />
+                  <span className="text-xs text-gray-500">
+                    {hasFullAccess ? locationStr : "***"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Badges row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {timeline && (
+              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`}
+                  style={{ animation: `${timeline.glow} 2s ease-in-out infinite` }}
+                />
+                {timeline.label}
+              </span>
+            )}
+            {publishedAt && (
+              <span className="text-xs text-gray-400 tabular-nums">
+                {timeAgo(publishedAt)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop header layout */}
+        <div className="hidden lg:flex items-start gap-4 mb-5">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-[15px] font-bold text-white shadow-sm"
             style={{ background: hasFullAccess ? avatarGradient(displayName) : "#9ca3af" }}
@@ -671,9 +713,35 @@ function FamilyCareCard({
           </div>
         </div>
 
-        {/* ── Stats bar ── */}
-        <div className="grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
-          {/* Services match */}
+        {/* ── Stats bar — mobile: 2 columns, desktop: 3 columns ── */}
+        {/* Mobile stats */}
+        <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
+          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
+            <CheckCircleIcon className="w-4 h-4 text-primary-500 shrink-0" />
+            <p className="text-xs text-gray-600">
+              <span className="font-bold">{matchCount}</span> service match
+            </p>
+          </div>
+          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
+            <LocationIcon className="w-4 h-4 text-primary-500 shrink-0" />
+            <p className="text-xs text-gray-600">
+              {driveTime ? (
+                <><span className="font-bold">{driveTime}</span> away</>
+              ) : (
+                <span className="font-bold">{locationStr || "—"}</span>
+              )}
+            </p>
+          </div>
+          {reachOuts === 0 && (
+            <div className="col-span-2 flex items-center justify-center gap-2 py-2 px-3 bg-primary-50/60 rounded-lg border border-primary-100/50">
+              <PeopleIcon className="w-4 h-4 text-primary-600 shrink-0" />
+              <p className="text-xs font-semibold text-primary-700">Be first to connect!</p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop stats */}
+        <div className="hidden lg:grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
             <CheckCircleIcon className="w-4 h-4 text-primary-500" />
             <p className="text-[13px] text-gray-500">
@@ -681,7 +749,6 @@ function FamilyCareCard({
               match
             </p>
           </div>
-          {/* Distance / location */}
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30 border-x border-warm-100/80">
             <LocationIcon className="w-4 h-4 text-primary-500" />
             <p className="text-[13px] text-gray-500">
@@ -692,7 +759,6 @@ function FamilyCareCard({
               )}
             </p>
           </div>
-          {/* Providers reached out */}
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
             <PeopleIcon className="w-4 h-4 text-primary-500" />
             <p className="text-[13px] text-gray-500">
@@ -706,21 +772,21 @@ function FamilyCareCard({
         </div>
 
         {/* ── About situation — full text when expanded ── */}
-        <div className="border-l-2 border-warm-200 pl-4 mb-5 min-h-[3.25rem]">
+        <div className="border-l-2 border-warm-200 pl-3 lg:pl-4 mb-4 lg:mb-5">
           {aboutSituation && hasFullAccess ? (
-            <p className={`text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
+            <p className={`text-sm lg:text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
               {aboutSituation}
             </p>
           ) : (
-            <p className="text-[15px] text-gray-400 italic leading-relaxed">
+            <p className="text-sm lg:text-[15px] text-gray-400 italic leading-relaxed">
               No description provided
             </p>
           )}
         </div>
 
-        {/* ── Care need tags ── */}
+        {/* ── Care need tags — horizontal scroll on mobile ── */}
         {careNeeds.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide pb-1">
             {careNeeds.slice(0, 5).map((need) => {
               const isMatch = providerCareTypes.some(
                 (s) => s.toLowerCase() === need.toLowerCase(),
@@ -728,14 +794,14 @@ function FamilyCareCard({
               return (
                 <span
                   key={need}
-                  className={`inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border ${
+                  className={`inline-flex items-center gap-1.5 text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border whitespace-nowrap shrink-0 ${
                     isMatch
                       ? "border-[#F5F4F1] text-gray-700 bg-[#F5F4F1]"
                       : "border-warm-100 text-gray-500 bg-white"
                   }`}
                 >
                   {isMatch && (
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                     </svg>
                   )}
@@ -744,7 +810,7 @@ function FamilyCareCard({
               );
             })}
             {careNeeds.length > 5 && (
-              <span className="text-[13px] text-gray-400 self-center pl-1">
+              <span className="text-xs lg:text-[13px] text-gray-400 self-center pl-1 shrink-0">
                 +{careNeeds.length - 5}
               </span>
             )}
@@ -752,21 +818,21 @@ function FamilyCareCard({
         )}
 
         {/* ── Payment & benefits ── */}
-        <div className="flex flex-wrap items-center gap-2 mt-4">
-          <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mr-1">
+        <div className="flex items-center gap-2 mt-4 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide pb-1">
+          <span className="text-[10px] lg:text-[11px] font-semibold text-gray-400 uppercase tracking-wider mr-0.5 shrink-0">
             Payment
           </span>
           {primaryPayment ? (
             <>
-              <span className="inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border border-primary-100 text-primary-700 bg-primary-50/40">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <span className="inline-flex items-center gap-1.5 text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-primary-100 text-primary-700 bg-primary-50/40 whitespace-nowrap shrink-0">
+                <svg className="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
                 </svg>
                 {primaryPayment}
               </span>
               {paymentExpanded ? (
                 allBenefits.map((b) => (
-                  <span key={b} className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-500 bg-white">
+                  <span key={b} className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-500 bg-white whitespace-nowrap shrink-0">
                     {b}
                   </span>
                 ))
@@ -775,15 +841,15 @@ function FamilyCareCard({
                   <button
                     type="button"
                     onClick={() => setPaymentExpanded(true)}
-                    className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors"
+                    className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors whitespace-nowrap shrink-0"
                   >
-                    +{allBenefits.length} benefit{allBenefits.length !== 1 ? "s" : ""}
+                    +{allBenefits.length} more
                   </button>
                 )
               )}
             </>
           ) : (
-            <span className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-dashed border-warm-200 text-gray-400 bg-white">
+            <span className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full bg-gray-50 text-gray-400 whitespace-nowrap shrink-0">
               Not specified
             </span>
           )}
@@ -896,26 +962,26 @@ function FamilyCareCard({
         <>
           {contacted ? (
             /* Already reached out */
-            <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-center">
+            <div className="bg-warm-50/40 border-t border-warm-100/60 px-4 lg:px-7 py-3 lg:py-4 flex items-center justify-center">
               <div className="flex items-center gap-2">
                 <CheckCircleIcon className="w-4 h-4 text-gray-400" />
-                <p className="text-[13px] text-gray-500 font-medium">Reached out</p>
+                <p className="text-xs lg:text-[13px] text-gray-500 font-medium">Reached out</p>
               </div>
             </div>
           ) : freeRemaining !== null && freeRemaining <= 0 ? (
-            /* Exhausted state — dashed border + upgrade CTA */
-            <div className="border-t border-dashed border-warm-200/60 px-7 py-4 flex items-center justify-between">
+            /* Exhausted state — upgrade CTA */
+            <div className="border-t border-warm-100/60 px-4 lg:px-7 py-3 lg:py-4 flex flex-col lg:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                 </svg>
-                <p className="text-[13px] text-gray-400">
-                  You&apos;ve used all {FREE_CONNECTION_LIMIT} free reach-outs this month
+                <p className="text-xs lg:text-[13px] text-gray-400">
+                  {FREE_CONNECTION_LIMIT} free reach-outs used
                 </p>
               </div>
               <Link
                 href="/provider/pro"
-                className="inline-flex items-center gap-2 pl-4 pr-5 py-2.5 rounded-full bg-gray-900 text-white text-[13px] font-semibold hover:bg-gray-800 transition-colors"
+                className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-4 lg:pl-4 lg:pr-5 py-2.5 rounded-xl lg:rounded-full bg-gray-900 text-white text-xs lg:text-[13px] font-semibold hover:bg-gray-800 transition-colors min-h-[44px]"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
@@ -925,8 +991,8 @@ function FamilyCareCard({
             </div>
           ) : (
             /* Normal — reach out button */
-            <div className="bg-warm-50/40 border-t border-warm-100/60 px-7 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
+            <div className="bg-warm-50/40 border-t border-warm-100/60 px-4 lg:px-7 py-3 lg:py-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+              <div className="hidden lg:flex items-center gap-1.5">
                 <InfoIcon className="w-4 h-4 text-gray-400" />
                 <p className="text-[13px] text-gray-400">
                   Your profile will be shared with this family
@@ -935,7 +1001,7 @@ function FamilyCareCard({
               <button
                 type="button"
                 onClick={onExpand}
-                className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
+                className="w-full lg:w-auto group inline-flex items-center justify-center gap-2 px-5 lg:pl-5 lg:pr-6 py-3 lg:py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-sm lg:text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.98] transition-all duration-200 min-h-[48px] lg:min-h-0"
               >
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 1 0-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 0 1 3.15 0v1.5m-3.15 0 .075 5.925m3.075-5.925v2.1a1.575 1.575 0 0 1 3.15 0v1.425M13.2 8.1v-1.5a1.575 1.575 0 0 1 3.15 0v3.075M13.2 8.1l.075 3.525M6.9 7.575a1.575 1.575 0 0 1 3.15 0v1.5m-3.15-1.5v4.65c0 2.733 1.566 5.1 3.853 6.25.484.243 1.01.427 1.553.546a7.462 7.462 0 0 0 5.956-1.553A7.466 7.466 0 0 0 21 12.376V9.75a1.575 1.575 0 0 0-3.15 0v1.875" />
@@ -1300,24 +1366,26 @@ export default function ProviderMatchesPage() {
         </p>
       </div>
 
-      {/* ── Filter tabs + Sort — full width to align with sidebar ── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
-        <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveFilter(tab.id)}
-              className={[
-                "px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150",
-                activeFilter === tab.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
+      {/* ── Filter tabs + Sort — horizontal scroll on mobile ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max sm:w-auto">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveFilter(tab.id)}
+                className={[
+                  "px-4 sm:px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[44px] flex items-center",
+                  activeFilter === tab.id
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                ].join(" ")}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="relative shrink-0 flex items-center">
@@ -1452,8 +1520,8 @@ export default function ProviderMatchesPage() {
             )}
           </div>
 
-          {/* Sidebar — 1/3 */}
-          <div className="lg:col-span-1">
+          {/* Sidebar — hidden on mobile */}
+          <div className="hidden lg:block lg:col-span-1">
             <MatchesSidebar
               remaining={freeRemaining}
               totalFamilies={families.length}

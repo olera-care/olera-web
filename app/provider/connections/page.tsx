@@ -309,13 +309,13 @@ function LeadDetailDrawer({
                 <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <h2 className="text-lg lg:text-xl font-display font-bold text-gray-900 tracking-tight truncate">
                     {lead.name}
                   </h2>
                   {lead.isNew && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-primary-500 text-white shrink-0">
-                      NEW
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
+                      New
                     </span>
                   )}
                 </div>
@@ -1049,8 +1049,8 @@ export default function ProviderLeadsPage() {
                     <div className="flex items-center gap-2 mb-0.5">
                       <h3 className="text-[15px] font-semibold text-gray-900 truncate">{lead.name}</h3>
                       {lead.isNew && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide bg-primary-500 text-white shrink-0">
-                          NEW
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
+                          New
                         </span>
                       )}
                     </div>

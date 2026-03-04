@@ -156,3 +156,30 @@ export function claimNotificationEmail(opts: {
     <div>${button("View listing", `${BASE_URL}/provider/${opts.providerSlug}`)}</div>
   `);
 }
+
+/** Email to provider when their claim is approved or rejected */
+export function claimDecisionEmail(opts: {
+  providerName: string;
+  approved: boolean;
+  listingUrl: string;
+}): string {
+  if (opts.approved) {
+    return layout(`
+      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your listing is live!</h1>
+      <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Congratulations — <strong>${opts.providerName}</strong> has been verified and is now live on Olera.
+        Families in your area can find you and reach out directly.
+      </p>
+      <div>${button("View your listing", opts.listingUrl)}</div>
+    `);
+  }
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your claim needs attention</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      We were unable to verify the claim for <strong>${opts.providerName}</strong>.
+      This is usually due to missing or mismatched information. Please reach out so we can help resolve it.
+    </p>
+    <div>${button("Contact support", "mailto:support@olera.care")}</div>
+  `);
+}

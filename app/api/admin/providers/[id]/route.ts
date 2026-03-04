@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendSlackAlert, slackProviderAction } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { claimDecisionEmail } from "@/lib/email-templates";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * PATCH /api/admin/providers/[id]
@@ -41,7 +44,7 @@ export async function PATCH(
       .from("business_profiles")
       .update({ claim_state: newState, updated_at: new Date().toISOString() })
       .eq("id", id)
-      .select("id, display_name, claim_state")
+      .select("id, display_name, claim_state, account_id, slug")
       .single();
 
     if (updateError) {
@@ -69,6 +72,38 @@ export async function PATCH(
         adminEmail: user.email || "admin",
       });
       await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
+    }
+
+    // Email + Loops notification to provider (fire-and-forget)
+    try {
+      if (profile?.account_id) {
+        const { data: authUser } = await db.auth.admin.getUserById(profile.account_id);
+        const providerEmail = authUser?.user?.email;
+        if (providerEmail) {
+          const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/${profile.slug || id}`;
+          await sendEmail({
+            to: providerEmail,
+            subject: action === "approve"
+              ? "Your Olera listing is live!"
+              : "Your Olera claim needs attention",
+            html: claimDecisionEmail({
+              providerName: profile.display_name || "Your organization",
+              approved: action === "approve",
+              listingUrl,
+            }),
+          });
+          await sendLoopsEvent({
+            email: providerEmail,
+            eventName: action === "approve" ? "provider_approved" : "provider_rejected",
+            audience: "provider",
+            eventProperties: {
+              providerName: profile.display_name || "",
+            },
+          });
+        }
+      }
     } catch {
       // Non-blocking
     }

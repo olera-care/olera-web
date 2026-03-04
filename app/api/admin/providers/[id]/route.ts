@@ -78,42 +78,42 @@ export async function PATCH(
 
     // Email + Loops notification to provider (fire-and-forget)
     try {
-      console.log("[admin] Email block: account_id =", profile?.account_id);
       if (profile?.account_id) {
-        const { data: authUser, error: authError } = await db.auth.admin.getUserById(profile.account_id);
-        console.log("[admin] getUserById result:", { email: authUser?.user?.email, error: authError?.message });
-        const providerEmail = authUser?.user?.email;
-        if (providerEmail) {
-          const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/${profile.slug || id}`;
-          const emailResult = await sendEmail({
-            to: providerEmail,
-            subject: action === "approve"
-              ? "Your Olera listing is live!"
-              : "Your Olera claim needs attention",
-            html: claimDecisionEmail({
-              providerName: profile.display_name || "Your organization",
-              approved: action === "approve",
-              listingUrl,
-            }),
-          });
-          console.log("[admin] Email send result:", emailResult);
-          const loopsResult = await sendLoopsEvent({
-            email: providerEmail,
-            eventName: action === "approve" ? "provider_approved" : "provider_rejected",
-            audience: "provider",
-            eventProperties: {
-              providerName: profile.display_name || "",
-            },
-          });
-          console.log("[admin] Loops send result:", loopsResult);
-        } else {
-          console.warn("[admin] No email found for account_id:", profile.account_id);
+        // account_id references accounts table, not auth.users directly
+        const { data: account } = await db
+          .from("accounts")
+          .select("user_id")
+          .eq("id", profile.account_id)
+          .single();
+        if (account?.user_id) {
+          const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
+          const providerEmail = authUser?.user?.email;
+          if (providerEmail) {
+            const listingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/${profile.slug || id}`;
+            await sendEmail({
+              to: providerEmail,
+              subject: action === "approve"
+                ? "Your Olera listing is live!"
+                : "Your Olera claim needs attention",
+              html: claimDecisionEmail({
+                providerName: profile.display_name || "Your organization",
+                approved: action === "approve",
+                listingUrl,
+              }),
+            });
+            await sendLoopsEvent({
+              email: providerEmail,
+              eventName: action === "approve" ? "provider_approved" : "provider_rejected",
+              audience: "provider",
+              eventProperties: {
+                providerName: profile.display_name || "",
+              },
+            });
+          }
         }
-      } else {
-        console.warn("[admin] No account_id on profile");
       }
-    } catch (emailErr) {
-      console.error("[admin] Email/Loops block error:", emailErr);
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ profile });

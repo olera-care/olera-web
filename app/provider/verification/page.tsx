@@ -138,18 +138,18 @@ function UploadArea({
             <p className="text-xs text-gray-500 mt-0.5">JPEG, PNG, or WebP</p>
           </div>
           {!disabled && (
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-colors px-3 py-2 rounded-lg min-h-[44px] flex items-center"
               >
                 Replace
               </button>
               <button
                 type="button"
                 onClick={onRemove}
-                className="text-sm font-medium text-gray-400 hover:text-red-500 transition-colors"
+                className="text-sm font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors px-3 py-2 rounded-lg min-h-[44px] flex items-center"
               >
                 Remove
               </button>

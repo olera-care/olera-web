@@ -22,6 +22,8 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFindCareOpen, setIsFindCareOpen] = useState(false);
   const [isMobileCareOpen, setIsMobileCareOpen] = useState(false);
+  // Mobile accordion states — only one open at a time
+  const [mobileAccordion, setMobileAccordion] = useState<"account" | "discover" | "hub" | "settings" | null>(null);
   const { user, account, activeProfile, profiles, openAuth, signOut, fetchError, isLoading: authLoading, switchProfile } =
     useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -176,6 +178,17 @@ export default function Navbar() {
     setIsUserMenuOpen(false);
     setIsFindCareOpen(false);
   }, [pathname]);
+
+  // Reset mobile accordion to default when menu opens
+  useEffect(() => {
+    if (isMobileMenuOpen && hasSession) {
+      // Provider Hub: My Hub open by default. Family Portal: My Account open by default.
+      setMobileAccordion(isProviderPortal ? "hub" : "account");
+    } else if (!isMobileMenuOpen) {
+      setMobileAccordion(null);
+      setIsMobileCareOpen(false);
+    }
+  }, [isMobileMenuOpen, hasSession, isProviderPortal]);
 
   // Provider-facing flows (claim, removal request) use their own minimal top nav.
   // All hooks are above this point so the early-return is safe.
@@ -826,166 +839,22 @@ export default function Navbar() {
 
           {/* Scrollable body */}
           <div className="flex-1 overflow-y-auto px-5 py-4">
-            <div className="flex flex-col space-y-1">
-              {isProviderPortal ? (
-                /* Provider mobile nav */
+            <div className="flex flex-col">
+              {hasSession ? (
+                /* ═══ LOGGED-IN MENU ═══ */
                 <>
-                  {([
-                    { label: "Dashboard", href: "/provider", match: "/provider", badge: 0, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
-                    { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount, icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
-                    { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
-                    { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0, icon: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" },
-                    { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0, icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
-                  ] as const).map((item) => {
-                    const active = item.match
-                      ? item.match === "/provider"
-                        ? pathname === "/provider"
-                        : pathname.startsWith(item.match)
-                      : false;
-                    return (
-                      <Link
-                        key={item.label}
-                        href={item.href}
-                        className={`flex items-center gap-3 py-3 font-medium ${
-                          active
-                            ? "text-primary-600"
-                            : "text-gray-700 hover:text-primary-600"
-                        }`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
-                        </svg>
-                        {item.label}
-                        {item.badge > 0 && (
-                          <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
-                            {item.badge}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                  <hr className="border-gray-100 my-2" />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (hasFamilyProfile && familyProfileId) switchProfile(familyProfileId);
-                      setIsMobileMenuOpen(false);
-                      router.push("/");
-                    }}
-                    className="flex items-center gap-3 py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
-                  >
-                    <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-                    </svg>
-                    Switch to Family
-                  </button>
-                </>
-              ) : (
-                /* Family / public mobile nav */
-                <>
-                  {!isMinimalNav && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setIsMobileCareOpen((prev) => !prev)}
-                        className="flex items-center justify-between w-full py-3 text-gray-700 hover:text-primary-600 font-medium"
-                        aria-expanded={isMobileCareOpen}
-                      >
-                        <span className="flex items-center gap-3">
-                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                          </svg>
-                          Find Care
-                        </span>
-                        <svg
-                          className={`w-4 h-4 transition-transform ${isMobileCareOpen ? "rotate-180" : ""}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      {isMobileCareOpen && (
-                        <div className="pl-8 pb-2 space-y-1">
-                          {CARE_CATEGORIES.map((cat) => (
-                            <Link
-                              key={cat.id}
-                              href={`/browse?type=${cat.id}`}
-                              className="block py-2 text-sm text-gray-600 hover:text-primary-600"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <span className="font-medium">{cat.label}</span>
-                              <span className="block text-xs text-gray-400 mt-0.5">{cat.description}</span>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      {NAV_LINKS.map((link) => (
-                        <Link
-                          key={link.label}
-                          href={link.href}
-                          className="flex items-center gap-3 py-3 text-gray-700 hover:text-primary-600 font-medium"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d={
-                              link.label === "Community" ? "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" :
-                              link.label === "Caregiver Support" ? "M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" :
-                              "M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
-                            } />
-                          </svg>
-                          {link.label}
-                        </Link>
-                      ))}
-
-                      <Link
-                        href="/saved"
-                        className="flex items-center gap-3 py-3 text-gray-700 hover:text-primary-600 font-medium"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                        </svg>
-                        Saved
-                      </Link>
-
-                      <hr className="border-gray-100 my-2" />
-                    </>
-                  )}
-
-                  {/* For Providers */}
-                  <button
-                    onClick={() => { handleForProviders(); setIsMobileMenuOpen(false); }}
-                    className="flex items-center gap-3 py-3 text-gray-700 hover:text-primary-600 font-medium text-left"
-                  >
-                    <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-                    </svg>
-                    For Providers
-                  </button>
-                </>
-              )}
-
-              {/* Account section (signed-in only, not in footer) */}
-              {hasSession && (
-                <>
-                  <hr className="border-gray-100 my-2" />
-
                   {/* Identity header */}
-                  <div className="flex items-center gap-3 py-3">
+                  <div className="flex items-center gap-3 py-3 mb-2">
                     {activeProfile?.image_url ? (
-                      <Image src={activeProfile.image_url} alt={displayName} width={40} height={40} className="rounded-full object-cover shrink-0" />
+                      <Image src={activeProfile.image_url} alt={displayName} width={44} height={44} className="rounded-full object-cover shrink-0 aspect-square" />
                     ) : (
-                      <div className="w-10 h-10 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
+                      <div className="w-11 h-11 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-semibold shrink-0">
                         {initials}
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+                        <p className="text-[15px] font-semibold text-gray-900 truncate">{displayName}</p>
                         {profileTypeLabel && (
                           <span className="shrink-0 text-[10px] font-semibold text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
                             {profileTypeLabel}
@@ -998,7 +867,7 @@ export default function Navbar() {
 
                   {/* Mode switcher */}
                   {(showModeSwitcher || hasAttemptedOnboarding) && (
-                    <div className="py-2">
+                    <div className="py-2 mb-2">
                       <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl">
                         <button
                           type="button"
@@ -1037,58 +906,240 @@ export default function Navbar() {
                     </div>
                   )}
 
-                  {isFullyLoaded && (
+                  <hr className="border-gray-100 mb-2" />
+
+                  {isProviderPortal ? (
+                    /* ─── PROVIDER LOGGED-IN ─── */
                     <>
-                      {/* Hub-specific links */}
-                      {isProviderPortal ? (
-                        <>
-                          <Link href="/portal/profile" className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                            Account
-                          </Link>
-                          <Link href="/provider/pro" className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
-                            Olera Pro
-                          </Link>
-                          <Link href="/provider/verification" className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" /></svg>
-                            Identity Verification
-                          </Link>
-                          <Link href="/provider/qna" className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
-                            Questions & Answers
-                          </Link>
-                        </>
-                      ) : (
-                        <>
-                          <Link href="/portal/inbox" className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                            Inbox
-                            {unreadInboxCount > 0 && <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">{unreadInboxCount}</span>}
-                          </Link>
-                          <Link href="/portal/profile" className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                            <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-                            Account
-                          </Link>
-                          {hasFamilyProfile && (
-                            <Link href="/portal/matches" className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                              <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>
-                              Matches
-                              {matchesPendingCount > 0 && <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">{matchesPendingCount}</span>}
-                            </Link>
-                          )}
-                        </>
+                      {/* My Hub accordion (open by default) */}
+                      <button
+                        type="button"
+                        onClick={() => setMobileAccordion(mobileAccordion === "hub" ? null : "hub")}
+                        className="flex items-center justify-between w-full py-3 text-gray-900 font-semibold"
+                        aria-expanded={mobileAccordion === "hub"}
+                      >
+                        <span>My Hub</span>
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${mobileAccordion === "hub" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {mobileAccordion === "hub" && (
+                        <div className="pb-2 space-y-1">
+                          {([
+                            { label: "Dashboard", href: "/provider", match: "/provider", badge: 0, icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" },
+                            { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
+                            { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
+                            { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
+                            { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0, icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" },
+                          ] as const).map((item) => {
+                            const active = item.match === "/provider" ? pathname === "/provider" : pathname.startsWith(item.match);
+                            return (
+                              <Link
+                                key={item.label}
+                                href={item.href}
+                                className={`flex items-center gap-3 py-2.5 pl-4 rounded-lg ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                                </svg>
+                                <span className="font-medium">{item.label}</span>
+                                {item.badge > 0 && (
+                                  <span className="ml-auto mr-2 min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
                       )}
 
+                      {/* Account accordion (collapsed by default) */}
+                      <button
+                        type="button"
+                        onClick={() => setMobileAccordion(mobileAccordion === "settings" ? null : "settings")}
+                        className="flex items-center justify-between w-full py-3 text-gray-900 font-semibold"
+                        aria-expanded={mobileAccordion === "settings"}
+                      >
+                        <span>Account</span>
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${mobileAccordion === "settings" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {mobileAccordion === "settings" && (
+                        <div className="pb-2 space-y-1">
+                          {([
+                            { label: "Profile", href: "/provider/profile", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
+                            { label: "Q&A", href: "/provider/qna", icon: "M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" },
+                            { label: "Identity Verification", href: "/provider/verification", icon: "M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" },
+                            { label: "Olera Pro", href: "/provider/pro", icon: "M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" },
+                          ] as const).map((item) => {
+                            const active = pathname.startsWith(item.href);
+                            return (
+                              <Link
+                                key={item.label}
+                                href={item.href}
+                                className={`flex items-center gap-3 py-2.5 pl-4 rounded-lg ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                                </svg>
+                                <span className="font-medium">{item.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <hr className="border-gray-100 my-2" />
+
+                      {/* Switch to Family */}
+                      {hasFamilyProfile && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (familyProfileId) switchProfile(familyProfileId);
+                            setIsMobileMenuOpen(false);
+                            router.push("/");
+                          }}
+                          className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium text-left"
+                        >
+                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                          </svg>
+                          Switch to Family Portal
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    /* ─── FAMILY LOGGED-IN ─── */
+                    <>
+                      {/* My Account accordion (open by default) */}
+                      <button
+                        type="button"
+                        onClick={() => setMobileAccordion(mobileAccordion === "account" ? null : "account")}
+                        className="flex items-center justify-between w-full py-3 text-gray-900 font-semibold"
+                        aria-expanded={mobileAccordion === "account"}
+                      >
+                        <span>My Account</span>
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${mobileAccordion === "account" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {mobileAccordion === "account" && (
+                        <div className="pb-2 space-y-1">
+                          {([
+                            { label: "Inbox", href: "/portal/inbox", badge: unreadInboxCount, icon: "M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" },
+                            { label: "Matches", href: "/portal/matches", badge: matchesPendingCount, icon: "M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" },
+                            { label: "Saved", href: "/saved", badge: 0, icon: "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" },
+                            { label: "Account", href: "/portal/profile", badge: 0, icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
+                          ] as const).map((item) => {
+                            const active = pathname.startsWith(item.href) || (item.href === "/saved" && pathname === "/saved");
+                            return (
+                              <Link
+                                key={item.label}
+                                href={item.href}
+                                className={`flex items-center gap-3 py-2.5 pl-4 rounded-lg ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                                </svg>
+                                <span className="font-medium">{item.label}</span>
+                                {item.badge > 0 && (
+                                  <span className="ml-auto mr-2 min-w-[20px] h-5 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Discover accordion (collapsed by default) */}
+                      <button
+                        type="button"
+                        onClick={() => setMobileAccordion(mobileAccordion === "discover" ? null : "discover")}
+                        className="flex items-center justify-between w-full py-3 text-gray-900 font-semibold"
+                        aria-expanded={mobileAccordion === "discover"}
+                      >
+                        <span>Discover</span>
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${mobileAccordion === "discover" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {mobileAccordion === "discover" && (
+                        <div className="pb-2 space-y-1">
+                          <Link
+                            href="/browse"
+                            className={`flex items-center gap-3 py-2.5 pl-4 rounded-lg ${pathname.startsWith("/browse") ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                            </svg>
+                            <span className="font-medium">Find Care</span>
+                          </Link>
+                          {NAV_LINKS.map((link) => {
+                            const active = pathname.startsWith(link.href);
+                            return (
+                              <Link
+                                key={link.label}
+                                href={link.href}
+                                className={`flex items-center gap-3 py-2.5 pl-4 rounded-lg ${active ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                              >
+                                <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d={
+                                    link.label === "Community" ? "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" :
+                                    link.label === "Caregiver Support" ? "M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" :
+                                    "M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
+                                  } />
+                                </svg>
+                                <span className="font-medium">{link.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <hr className="border-gray-100 my-2" />
+
                       {/* Profile switcher */}
-                      <div className="border-t border-gray-100 pt-2 mt-2">
+                      {isFullyLoaded && (
                         <ProfileSwitcher
                           onSwitch={() => setIsMobileMenuOpen(false)}
                           variant="dropdown"
-                          allowedTypes={isProviderPortal ? ["organization", "caregiver"] : ["family"]}
-                          navigateTo={isProviderPortal ? "/provider" : "/"}
+                          allowedTypes={["family"]}
+                          navigateTo="/"
                         />
-                      </div>
+                      )}
+
+                      {/* Switch to Provider */}
+                      {(hasProviderProfile || hasAttemptedOnboarding) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (hasProviderProfile && providerProfileId) {
+                              switchProfile(providerProfileId);
+                              setIsMobileMenuOpen(false);
+                              router.push("/provider");
+                            } else if (hasAttemptedOnboarding) {
+                              setIsMobileMenuOpen(false);
+                              router.push("/provider/onboarding");
+                            }
+                          }}
+                          className="flex items-center gap-3 py-3 text-gray-600 hover:text-primary-600 font-medium text-left"
+                        >
+                          <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                          </svg>
+                          Switch to Provider Hub
+                        </button>
+                      )}
 
                       {isAdmin && (
                         <Link href="/admin" className="flex items-center gap-3 py-3 text-primary-600 hover:text-primary-700 font-medium" onClick={() => setIsMobileMenuOpen(false)}>
@@ -1098,6 +1149,90 @@ export default function Navbar() {
                       )}
                     </>
                   )}
+                </>
+              ) : (
+                /* ═══ LOGGED-OUT MENU ═══ */
+                <>
+                  {/* Find Care with expandable subcategories */}
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileCareOpen((prev) => !prev)}
+                    className={`flex items-center justify-between w-full py-3 font-medium ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    aria-expanded={isMobileCareOpen}
+                  >
+                    <span className="flex items-center gap-3">
+                      <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/browse") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                      </svg>
+                      Find Care
+                    </span>
+                    <svg className={`w-4 h-4 transition-transform ${isMobileCareOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {isMobileCareOpen && (
+                    <div className="pl-8 pb-2 space-y-1">
+                      {CARE_CATEGORIES.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/browse?type=${cat.id}`}
+                          className="block py-2 text-sm text-gray-600 hover:text-primary-600"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <span className="font-medium">{cat.label}</span>
+                          <span className="block text-xs text-gray-400 mt-0.5">{cat.description}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Community */}
+                  <Link
+                    href="/community"
+                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/community") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/community") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                    </svg>
+                    Community
+                  </Link>
+
+                  {/* Caregiver Support */}
+                  <Link
+                    href="/caregiver-support"
+                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/caregiver-support") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                    </svg>
+                    Caregiver Support
+                  </Link>
+
+                  {/* Benefits Center */}
+                  <Link
+                    href="/benefits"
+                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/benefits") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/benefits") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                    Benefits Center
+                  </Link>
+
+                  {/* Saved */}
+                  <Link
+                    href="/saved"
+                    className={`flex items-center gap-3 py-3 font-medium ${pathname === "/saved" ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className={`w-5 h-5 shrink-0 ${pathname === "/saved" ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                    </svg>
+                    Saved
+                  </Link>
                 </>
               )}
             </div>
@@ -1112,7 +1247,7 @@ export default function Navbar() {
                   setIsMobileMenuOpen(false);
                   signOut(() => router.push("/"));
                 }}
-                className="w-full flex items-center justify-center gap-2 py-3 text-red-600 hover:text-red-700 font-medium border border-red-200 rounded-xl hover:bg-red-50 transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 text-red-600 hover:text-red-700 font-medium border border-red-200 rounded-xl hover:bg-red-50 transition-colors min-h-[48px]"
               >
                 <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
@@ -1127,7 +1262,7 @@ export default function Navbar() {
                     setIsMobileMenuOpen(false);
                     openAuth({ defaultMode: "sign-in" });
                   }}
-                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+                  className="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors min-h-[48px]"
                 >
                   Log in
                 </button>
@@ -1137,9 +1272,19 @@ export default function Navbar() {
                     setIsMobileMenuOpen(false);
                     openAuth({});
                   }}
-                  className="w-full py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+                  className="w-full py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors min-h-[48px]"
                 >
                   Sign up
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    openAuth({ intent: "provider", providerType: "organization" });
+                  }}
+                  className="w-full py-2.5 text-sm text-gray-500 hover:text-primary-600 transition-colors min-h-[44px]"
+                >
+                  List your organization
                 </button>
               </div>
             )}

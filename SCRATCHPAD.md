@@ -7,6 +7,11 @@
 
 ## Current Focus
 
+- **Caregiver MVP** (branch: `claude/branch-from-staging-UdHFQ`) — IN PROGRESS
+  - Full caregiver onboarding, profile management, public discovery, and inbox integration
+  - Plan: `plans/caregiver-mvp-plan.md`
+  - Steps 1-5 complete (onboarding, profile, discovery, inbox, cleanup)
+
 - **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
   - Approved business_profiles now appear in all 4 public discovery surfaces
   - Parallel queries with deduplication via source_provider_id
@@ -103,6 +108,55 @@
 ---
 
 ## Session Log
+
+### 2026-03-05 (Session 40) — Caregiver MVP (Steps 1-5)
+
+**Branch:** `claude/branch-from-staging-UdHFQ`
+**Plan:** `plans/caregiver-mvp-plan.md`
+
+**What:** Complete caregiver MVP — individual caregivers can now sign up, build a profile, appear in discovery, receive connections, and communicate via inbox.
+
+**Step 1: Caregiver Onboarding**
+- Replaced "Coming Soon" dead end with real wizard steps in `/provider/onboarding`
+- Caregiver-specific fields: years of experience, certifications (multi-select), hourly rate range
+- API stores caregiver metadata in existing JSONB column (zero schema migrations)
+- Removed waitlist/notify form code, updated WizardNav labels for caregiver flow
+- Files: `app/provider/onboarding/page.tsx`, `app/api/auth/create-profile/route.ts`
+
+**Step 2: Caregiver Profile Management**
+- Extended provider hub dashboard for caregiver profiles
+- Caregiver-specific sections: experience, certifications, hourly rate
+- Profile completeness scoring includes caregiver fields
+- Role-aware copy throughout dashboard (no "organization" references for caregivers)
+- Files: `app/provider/profile/page.tsx`, `app/api/provider/profile/route.ts`
+
+**Step 3: Public Profile + Discovery**
+- New `/browse/caregivers` page with caregiver cards (avatar, name, rate, certs, care types)
+- New `/portal/discover/caregivers` page for org discovery with "Invite to Apply" buttons
+- Public profile page (`/provider/[slug]`) renders caregiver-specific sections
+- ConnectButton supports `invitation` and `application` connection types
+- Files: `app/browse/caregivers/page.tsx`, `app/portal/discover/caregivers/page.tsx`, `app/provider/[slug]/page.tsx`, `components/shared/ConnectButton.tsx`
+
+**Step 4: Connections + Inbox**
+- Expanded inbox queries from `.eq("type", "inquiry")` to `.in("type", ["inquiry", "invitation", "application"])`
+- Both provider and family inboxes now show all connection types
+- Unread badge counts include invitation/application connections
+- ConversationList shows "Hiring Invitation" / "Job Application" labels
+- ConversationPanel shows type badges in header, handles plain text messages
+- Files: `app/provider/inbox/page.tsx`, `app/portal/inbox/page.tsx`, `hooks/useUnreadInboxCount.ts`, `components/messaging/ConversationList.tsx`, `components/messaging/ConversationPanel.tsx`
+
+**Step 5: Cleanup + Polish**
+- Extracted shared `CaregiverCard` component from duplicate inline definitions
+- Updated browse and discover pages to use shared component
+- `lockedMessage` prop for context-specific locked state text
+
+**Architecture notes:**
+- Zero database schema changes — all caregiver fields in existing metadata JSONB
+- Extends existing systems (onboarding, inbox, connections) — no parallel infrastructure
+- Role-aware conditionals (`providerType === "caregiver"`) in shared pages
+- 3 connection types: `inquiry` (family→provider), `invitation` (org→caregiver), `application` (caregiver→org)
+
+---
 
 ### 2026-03-05 (Session 39) — Family Connection Emails + Mock Data Cleanup
 

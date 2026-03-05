@@ -362,10 +362,11 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const baseCardClass =
-    "bg-white rounded-2xl border shadow-sm p-6 md:p-8 transition-all duration-300";
+    "bg-white rounded-2xl border-2 shadow-sm p-6 md:p-8 transition-all duration-300";
+  // Default: blue border to draw attention. Highlighted: orange/coral ring for urgent attention
   const cardClass = highlighted
-    ? `${baseCardClass} border-2 border-primary-400 shadow-lg shadow-primary-100/50`
-    : `${baseCardClass} border-gray-200/80 hover:shadow-md`;
+    ? `${baseCardClass} border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50 animate-pulse-subtle`
+    : `${baseCardClass} border-primary-300 shadow-md shadow-primary-50`;
 
   // ════════════════════════════════════════════════════════════
   // RENDER: Pre-verified State (from email campaign token)

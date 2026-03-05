@@ -199,6 +199,12 @@ export default function SmartDashboardShell({
     setWizardComplete(true);
   }, []);
 
+  // Handle click on preview cards - scroll to top and highlight ActionCard
+  const handlePreviewCardClick = useCallback(() => {
+    setHighlightAction(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
   // Reset highlight after animation
   useEffect(() => {
     if (highlightAction) {
@@ -257,7 +263,7 @@ export default function SmartDashboardShell({
               </div>
             </div>
 
-            {/* Dashboard Cards */}
+            {/* Dashboard Cards - clickable to trigger verification prompt */}
             {[
               <ProfileOverviewCard
                 key="overview"
@@ -305,6 +311,8 @@ export default function SmartDashboardShell({
             ].map((card, i) => (
               <div
                 key={i}
+                onClick={handlePreviewCardClick}
+                className="cursor-pointer"
                 style={{
                   animation: "card-enter 0.25s ease-out both",
                   animationDelay: `${(i + 2) * 60}ms`,

@@ -116,6 +116,30 @@ export interface Connection {
 }
 
 // ============================================================
+// Reviews
+// ============================================================
+
+export type ReviewStatus = "published" | "under_review" | "rejected" | "removed";
+
+export interface Review {
+  id: string;
+  provider_id: string;
+  account_id: string;
+  reviewer_name: string;
+  rating: number;
+  title: string | null;
+  comment: string;
+  relationship: string;
+  status: ReviewStatus;
+  created_at: string;
+  updated_at: string;
+  // Provider reply fields
+  provider_reply: string | null;
+  replied_at: string | null;
+  replied_by: string | null;
+}
+
+// ============================================================
 // Metadata Types (JSONB per profile type)
 // ============================================================
 
@@ -187,9 +211,11 @@ export interface FamilyMetadata {
 // ============================================================
 
 export interface DeferredAction {
-  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit";
+  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review" | "question";
   targetProfileId?: string;
   benefitProgramName?: string;
+  /** For question deferred action - preserve the question text */
+  questionText?: string;
   returnUrl: string;
   createdAt: string;
 }

@@ -12,7 +12,12 @@ import {
   getPrimaryImage,
   toCardFormat,
   type ProviderCardData,
+  businessProfileToCardFormat,
+  mergeProviderCards,
+  enrichBpCards,
+  SUPABASE_CAT_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
+import type { BusinessProfile } from "@/lib/types";
 import BrowseFilters from "@/components/browse/BrowseFilters";
 
 // Care types matching iOS Supabase provider_category values
@@ -86,16 +91,65 @@ export default function BrowsePageClient({
           query = query.eq("state", stateFilter.toUpperCase());
         }
 
-        // Order by rating and limit results
-        const { data, error } = await query
-          .order("google_rating", { ascending: false })
-          .limit(50);
+        // Build parallel business_profiles query
+        let bpQuery = supabase
+          .from("business_profiles")
+          .select("*")
+          .eq("claim_state", "claimed")
+          .eq("is_active", true)
+          .eq("type", "organization");
 
-        if (error) {
-          console.error("Browse fetch error:", error.message);
+        if (careTypeFilter) {
+          const careTypeOption = CARE_TYPE_OPTIONS.find(
+            (ct) => ct.label.toLowerCase().replace(/\s+/g, "-") === careTypeFilter
+          );
+          if (careTypeOption) {
+            const profileCat = SUPABASE_CAT_TO_PROFILE_CATEGORY[careTypeOption.value];
+            if (profileCat) {
+              bpQuery = bpQuery.eq("category", profileCat);
+            }
+          }
+        }
+
+        if (searchQuery) {
+          const trimmed = searchQuery.trim();
+          const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
+          if (cityStateMatch) {
+            const city = cityStateMatch[1].trim();
+            const state = cityStateMatch[2].toUpperCase();
+            bpQuery = bpQuery.ilike("city", `%${city}%`).eq("state", state);
+          } else if (/^[A-Z]{2}$/i.test(trimmed)) {
+            bpQuery = bpQuery.eq("state", trimmed.toUpperCase());
+          } else {
+            bpQuery = bpQuery.or(`city.ilike.%${trimmed}%,display_name.ilike.%${trimmed}%`);
+          }
+        }
+
+        if (stateFilter) {
+          bpQuery = bpQuery.eq("state", stateFilter.toUpperCase());
+        }
+
+        bpQuery = bpQuery.order("created_at", { ascending: false }).limit(50);
+
+        // Run both queries in parallel
+        const [seededResult, bpResult] = await Promise.all([
+          query.order("google_rating", { ascending: false }).limit(50),
+          bpQuery,
+        ]);
+
+        if (seededResult.error) {
+          console.error("Browse fetch error:", seededResult.error.message);
           setProviders([]);
         } else {
-          setProviders((data as Provider[]).map(toCardFormat));
+          const seededCards = (seededResult.data as Provider[]).map(toCardFormat);
+          const bpData = (bpResult.data as BusinessProfile[] | null) ?? [];
+          const bpCards = bpData.map(businessProfileToCardFormat);
+          const bpSourceIds = bpData.map((bp) => bp.source_provider_id);
+          const dedupeIds = new Set(
+            bpSourceIds.filter((id): id is string => id != null)
+          );
+          enrichBpCards(bpCards, seededCards, bpSourceIds);
+          setProviders(mergeProviderCards(seededCards, bpCards, dedupeIds));
         }
       } catch (err) {
         console.error("Browse page error:", err);
@@ -218,7 +272,7 @@ function ProviderBrowseCard({ provider }: { provider: ProviderCardData }) {
         {/* Rating badge */}
         {rating && rating >= 4.0 && (
           <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-900 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
             {rating.toFixed(1)}

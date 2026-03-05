@@ -88,7 +88,8 @@ export async function POST(request: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}${successPath}`,
       cancel_url: `${origin}${cancelPath}`,
-      metadata: { account_id: account.id },
+      metadata: { account_id: account.id, billing_cycle: billingCycle },
+      subscription_data: { trial_period_days: 14 },
     });
 
     return NextResponse.json({ url: session.url });

@@ -4,7 +4,7 @@ import { slugify } from "@/lib/slugify";
 import type { ContentArticleListItem } from "@/types/content";
 
 const LIST_FIELDS =
-  "id, slug, title, excerpt, cover_image_url, care_types, category, author_name, status, featured, reading_time, published_at, created_at, updated_at";
+  "id, slug, title, excerpt, cover_image_url, care_types, category, section, author_name, status, featured, reading_time, published_at, created_at, updated_at";
 
 /**
  * GET /api/admin/content
@@ -27,6 +27,11 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")?.trim() || "";
     const status = searchParams.get("status") || "all";
     const category = searchParams.get("category") || "";
+    const author = searchParams.get("author") || "";
+    const featured = searchParams.get("featured") || "";
+    const section = searchParams.get("section") || "";
+    const sortBy = searchParams.get("sort_by") || "updated_at";
+    const sortDir = searchParams.get("sort_dir") === "asc" ? "asc" : "desc";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "20", 10)));
 
@@ -55,8 +60,27 @@ export async function GET(request: NextRequest) {
       query = query.eq("category", category);
     }
 
-    // Order by most recently updated
-    query = query.order("updated_at", { ascending: false });
+    // Author filter
+    if (author) {
+      query = query.eq("author_name", author);
+    }
+
+    // Section filter
+    if (section) {
+      query = query.eq("section", section);
+    }
+
+    // Featured filter
+    if (featured === "true") {
+      query = query.eq("featured", true);
+    } else if (featured === "false") {
+      query = query.eq("featured", false);
+    }
+
+    // Sorting
+    const allowedSortFields = ["updated_at", "published_at", "created_at", "title"];
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "updated_at";
+    query = query.order(sortField, { ascending: sortDir === "asc" });
 
     // Pagination
     const from = (page - 1) * perPage;
@@ -84,6 +108,7 @@ export async function GET(request: NextRequest) {
       cover_image_url: row.cover_image_url,
       care_types: row.care_types ?? [],
       category: row.category,
+      section: row.section ?? "caregiver-support",
       author_name: row.author_name,
       status: row.status,
       featured: row.featured,
@@ -93,7 +118,15 @@ export async function GET(request: NextRequest) {
       updated_at: row.updated_at,
     }));
 
-    return NextResponse.json({ articles, total, page, per_page: perPage, total_pages: totalPages });
+    // Distinct authors for filter dropdown
+    const { data: authorRows } = await db
+      .from("content_articles")
+      .select("author_name")
+      .not("author_name", "is", null)
+      .order("author_name");
+    const authors = [...new Set((authorRows ?? []).map((r: { author_name: string }) => r.author_name).filter(Boolean))];
+
+    return NextResponse.json({ articles, total, page, per_page: perPage, total_pages: totalPages, authors });
   } catch (err) {
     console.error("Content list error:", err);
     return NextResponse.json(
@@ -141,6 +174,7 @@ export async function POST(request: NextRequest) {
         title,
         slug: finalSlug,
         status: "draft",
+        section: body.section || "caregiver-support",
         category: body.category || "guide",
         author_name: adminUser.email?.split("@")[0] || "Olera Team",
         created_by: user.id,

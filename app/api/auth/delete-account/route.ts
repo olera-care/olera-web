@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
+import { sendLoopsEventBoth } from "@/lib/loops";
 
 export async function DELETE() {
   try {
@@ -76,6 +77,16 @@ export async function DELETE() {
     if (deleteError) {
       console.error("[olera] deleteUser failed:", deleteError);
       // Non-fatal — data is already cleaned up
+    }
+
+    // Loops: account deleted for suppression/cleanup (fire-and-forget)
+    try {
+      await sendLoopsEventBoth({
+        email: user.email || "",
+        eventName: "account_deleted",
+      });
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ success: true });

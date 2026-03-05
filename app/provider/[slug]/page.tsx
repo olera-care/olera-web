@@ -1,5 +1,6 @@
-import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
@@ -15,7 +16,14 @@ import QASectionV2 from "@/components/providers/QASectionV2";
 import SectionNav from "@/components/providers/SectionNav";
 import type { SectionItem } from "@/components/providers/SectionNav";
 import ClaimBadge from "@/components/providers/ClaimBadge";
+import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBar";
+import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
+import MobileClaimLink from "@/components/providers/MobileClaimLink";
+import PriceEstimate from "@/components/providers/PriceEstimate";
+import { ManagePageButton } from "@/components/providers/ManageListingModal";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
+import ReviewsSection from "@/components/providers/ReviewsSection";
+import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
 import {
   getInitials,
   formatCategory,
@@ -24,6 +32,7 @@ import {
   getCategoryServices,
   getSimilarProviders,
 } from "@/lib/provider-utils";
+import { getServiceClient } from "@/lib/admin";
 
 // ============================================================
 // Dynamic Metadata (SEO title, description, OG, canonical)
@@ -32,13 +41,24 @@ import {
 async function fetchProviderForMeta(slug: string) {
   try {
     const supabase = await createClient();
-    const { data: iosProvider } = await supabase
+
+    // Try slug column first (human-readable URL)
+    const { data: bySlug } = await supabase
+      .from("olera-providers")
+      .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
+      .eq("slug", slug)
+      .not("deleted", "is", true)
+      .single();
+    if (bySlug) return bySlug;
+
+    // Fall back to provider_id (legacy alphanumeric ID)
+    const { data: byId } = await supabase
       .from("olera-providers")
       .select("provider_name, provider_category, city, state, provider_description, provider_images, provider_logo")
       .eq("provider_id", slug)
       .not("deleted", "is", true)
       .single();
-    if (iosProvider) return iosProvider;
+    if (byId) return byId;
   } catch { /* fall through */ }
 
   try {
@@ -133,6 +153,9 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   community_score?: number;
   value_score?: number;
   info_score?: number;
+  price_min?: number;
+  price_max?: number;
+  price_unit?: "HOUR" | "MONTH";
 }
 
 // --- Inline SVG icon components ---
@@ -223,18 +246,32 @@ export default async function ProviderPage({
   // --- Data fetching ---
   let profile: Profile | null = null;
 
-  // 1. Try iOS Supabase (olera-providers table) first
+  // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
   try {
     const supabase = await createClient();
-    const { data: iosProvider } = await supabase
+
+    // Try slug column (human-readable URL)
+    const { data: bySlug } = await supabase
       .from("olera-providers")
       .select("*")
-      .eq("provider_id", slug)
+      .eq("slug", slug)
       .not("deleted", "is", true)
       .single<IOSProvider>();
 
-    if (iosProvider) {
-      profile = iosProviderToProfile(iosProvider);
+    if (bySlug) {
+      profile = iosProviderToProfile(bySlug);
+    } else {
+      // Fall back to provider_id (legacy alphanumeric ID)
+      const { data: byId } = await supabase
+        .from("olera-providers")
+        .select("*")
+        .eq("provider_id", slug)
+        .not("deleted", "is", true)
+        .single<IOSProvider>();
+
+      if (byId) {
+        profile = iosProviderToProfile(byId);
+      }
     }
   } catch {
     // iOS Supabase not configured or provider not found
@@ -257,19 +294,27 @@ export default async function ProviderPage({
   }
 
   if (!profile) {
-    return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Provider not found</h1>
-          <p className="mt-2 text-gray-600">
-            The provider you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Link href="/" className="mt-4 inline-block text-primary-600 hover:text-primary-700 font-medium">
-            Back to home
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
+  }
+
+  // --- Actual claim state (iOS data always says "unclaimed") ---
+  let actualClaimState = profile.claim_state;
+  let claimAccountId: string | null = profile.account_id;
+  if (profile.source_provider_id) {
+    try {
+      const supabase = await createClient();
+      const { data: bp } = await supabase
+        .from("business_profiles")
+        .select("claim_state, account_id")
+        .eq("source_provider_id", profile.source_provider_id)
+        .maybeSingle();
+      if (bp) {
+        actualClaimState = bp.claim_state;
+        claimAccountId = bp.account_id;
+      }
+    } catch {
+      // Best effort — use profile defaults
+    }
   }
 
   // --- Data extraction ---
@@ -281,7 +326,6 @@ export default async function ProviderPage({
       : null);
 
   const rating = meta?.rating;
-  const reviewCount = meta?.review_count;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
   const staff = meta?.staff;
   const acceptedPayments = meta?.accepted_payments || [];
@@ -289,11 +333,44 @@ export default async function ProviderPage({
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
 
-  const similarProviders = await getSimilarProviders(profile.category, profile.slug, 3);
+  const similarProviders = await getSimilarProviders(profile.category, profile.source_provider_id || profile.id, 3);
+
+  // Fetch answered Q&A pairs server-side (for FAQPage JSON-LD + initial render)
+  let answeredQuestions: { id: string; question: string; answer: string; asker_name: string; created_at: string }[] = [];
+  // Fetch real review count from database
+  let realReviewCount = 0;
+  try {
+    const db = getServiceClient();
+    const { data: qaRows } = await db
+      .from("provider_questions")
+      .select("id, question, answer, asker_name, created_at")
+      .eq("provider_id", profile.slug)
+      .eq("is_public", true)
+      .in("status", ["approved", "answered"])
+      .not("answer", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (qaRows) {
+      answeredQuestions = qaRows.filter((q) => q.answer && q.answer.trim().length > 0);
+    }
+
+    // Get actual review count from reviews table
+    const { count } = await db
+      .from("reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("provider_id", profile.id)
+      .eq("status", "published");
+    realReviewCount = count ?? 0;
+  } catch {
+    // Service client not available or table doesn't exist — degrade gracefully
+  }
 
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;
   const reviews = meta?.reviews || [];
+
+  // Use real review count from database for CTA display
+  const reviewCount = realReviewCount;
 
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
@@ -304,7 +381,8 @@ export default async function ProviderPage({
   const hasStaff = staff != null;
   const hasReviews = reviews.length > 0;
   const hasOleraScore = oleraScore != null;
-  const hasStaffScreening = staffScreening != null;
+  const hasStaffScreening = staffScreening != null &&
+    (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
   // Build care services: real data first, then pad with category-inferred services
@@ -354,7 +432,7 @@ export default async function ProviderPage({
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasOleraScore || hasReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+  sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
   // Render
@@ -388,6 +466,14 @@ export default async function ProviderPage({
         streetAddress: profile.address,
         addressLocality: profile.city,
         addressRegion: profile.state,
+        ...(profile.zip && { postalCode: profile.zip }),
+      },
+    }),
+    ...(profile.lat != null && profile.lng != null && {
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: profile.lat,
+        longitude: profile.lng,
       },
     }),
     ...(profile.phone && { telephone: profile.phone }),
@@ -402,10 +488,47 @@ export default async function ProviderPage({
       },
     }),
     ...(priceRange && { priceRange }),
+    ...(meta?.price_min != null && meta?.price_max != null && {
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        priceCurrency: "USD",
+        minPrice: meta.price_min,
+        maxPrice: meta.price_max,
+        unitText: meta.price_unit || "MONTH",
+      },
+    }),
+    ...(reviews.length > 0 && {
+      review: reviews.slice(0, 5).map((r) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: r.name },
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: r.rating,
+          bestRating: 5,
+          worstRating: 1,
+        },
+        datePublished: r.date,
+        reviewBody: r.comment,
+      })),
+    }),
   };
 
+  // FAQPage schema — only emitted when real answered Q&A pairs exist
+  const faqJsonLd = answeredQuestions.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: answeredQuestions.map((q) => ({
+      "@type": "Question",
+      name: q.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: q.answer,
+      },
+    })),
+  } : null;
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 md:pb-0">
       {/* Structured data */}
       <script
         type="application/ld+json"
@@ -415,6 +538,12 @@ export default async function ProviderPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       {/* Section Navigation (appears on scroll) */}
       <SectionNav
@@ -425,7 +554,7 @@ export default async function ProviderPage({
 
       {/* ===== Hero Zone — Vanilla Background ===== */}
       <div className="bg-vanilla-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-8">
 
           {/* Breadcrumbs */}
           <Breadcrumbs
@@ -438,14 +567,25 @@ export default async function ProviderPage({
           {/* ── Hero (full width, above the grid) ── */}
           <div className="flex flex-col md:flex-row gap-6">
             {/* Gallery */}
-            <div className="flex-shrink-0 relative w-full md:w-[448px]">
+            <div className="flex-shrink-0 relative w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] md:w-[448px] -mx-4 sm:-mx-6 md:mx-0">
               <ProviderHeroGallery
                 images={images}
                 providerName={profile.display_name}
                 category={profile.category}
               />
+              <MobileGalleryActionBar
+                provider={{
+                  providerId: profile.id,
+                  slug: profile.slug,
+                  name: profile.display_name,
+                  location: locationStr,
+                  careTypes: profile.care_types || [],
+                  image: images[0] || null,
+                  rating: rating || undefined,
+                }}
+              />
               {images.length > 0 && (
-                <div className="absolute top-4 left-4 z-20">
+                <div className="absolute top-4 left-4 z-20 hidden md:block">
                   <ClaimBadge
                     claimState={profile.claim_state}
                     providerName={profile.display_name}
@@ -459,84 +599,132 @@ export default async function ProviderPage({
             <div className="flex-1 min-w-0 flex flex-col">
               {/* Name + Save */}
               <div className="flex items-start justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-serif">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight leading-tight font-display">
                   {profile.display_name}
                 </h1>
-                <SaveButton
-                  provider={{
-                    providerId: profile.id,
-                    slug: profile.slug,
-                    name: profile.display_name,
-                    location: locationStr,
-                    careTypes: profile.care_types || [],
-                    image: images[0] || null,
-                    rating: rating || undefined,
-                  }}
-                  variant="pill"
+                <div className="hidden md:block">
+                  <SaveButton
+                    provider={{
+                      providerId: profile.id,
+                      slug: profile.slug,
+                      name: profile.display_name,
+                      location: locationStr,
+                      careTypes: profile.care_types || [],
+                      image: images[0] || null,
+                      rating: rating || undefined,
+                    }}
+                    variant="pill"
+                  />
+                </div>
+              </div>
+
+              {/* ── Mobile identity layout ── */}
+              <div className="md:hidden">
+                {/* Row 1: Category · Location · Address */}
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-0.5 mt-1.5 text-sm text-gray-500">
+                  {categoryLabel && (
+                    <>
+                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
+                      {locationStr && <span className="text-gray-300">·</span>}
+                    </>
+                  )}
+                  {locationStr && <span>{locationStr}</span>}
+                  {profile.address && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span className="truncate max-w-[180px]">{profile.address}</span>
+                    </>
+                  )}
+                </div>
+
+                {/* Row 2: Price (left) — Rating (right) */}
+                <div className="flex items-center justify-between mt-3">
+                  <div>
+                    {hasPriceRange ? (
+                      <PriceEstimate priceRange={priceRange!} />
+                    ) : (
+                      <p className="text-sm text-gray-400">Contact for pricing</p>
+                    )}
+                  </div>
+                  {hasRating && (
+                    <span className="flex items-center gap-1.5">
+                      <StarIcon className="w-5 h-5 text-primary-500" />
+                      <span className="text-base font-bold text-gray-900">{rating!.toFixed(1)}</span>
+                      {reviewCount != null && <span className="text-sm text-gray-400">({reviewCount})</span>}
+                    </span>
+                  )}
+                </div>
+
+                {/* Row 3: Claim status */}
+                <MobileClaimLink
+                  claimState={profile.claim_state}
+                  providerName={profile.display_name}
+                  claimUrl={`/for-providers/claim/${profile.slug}`}
                 />
               </div>
 
-              {/* Context line: category · location · rating (if available) */}
-              <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
-                {categoryLabel && (
-                  <>
-                    <span className="text-gray-700 font-medium">{categoryLabel}</span>
-                    {(locationStr || hasRating) && <span className="text-gray-300">·</span>}
-                  </>
+              {/* ── Desktop identity layout (unchanged) ── */}
+              <div className="hidden md:block">
+                <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-sm text-gray-500">
+                  {categoryLabel && (
+                    <>
+                      <span className="text-gray-700 font-medium">{categoryLabel}</span>
+                      {(locationStr || hasRating) && <span className="text-gray-300">·</span>}
+                    </>
+                  )}
+                  {locationStr && (
+                    <>
+                      <span>{locationStr}</span>
+                      {hasRating && <span className="text-gray-300">·</span>}
+                    </>
+                  )}
+                  {hasRating && (
+                    <span className="flex items-center gap-1">
+                      <StarIcon className="w-4 h-4 text-primary-500" />
+                      <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
+                      {reviewCount != null && <span>({reviewCount})</span>}
+                    </span>
+                  )}
+                </div>
+
+                {hasPriceRange ? (
+                  <PriceEstimate priceRange={priceRange!} />
+                ) : (
+                  <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
                 )}
-                {locationStr && (
-                  <>
-                    <span>{locationStr}</span>
-                    {hasRating && <span className="text-gray-300">·</span>}
-                  </>
-                )}
-                {hasRating && (
-                  <span className="flex items-center gap-1">
-                    <StarIcon className="w-4 h-4 text-primary-500" />
-                    <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
-                    {reviewCount != null && <span>({reviewCount})</span>}
-                  </span>
+
+                {profile.address && (
+                  <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
                 )}
               </div>
 
-              {/* Price estimate with tooltip, or contact-for-pricing */}
-              {hasPriceRange ? (
-                <div className="relative group/price inline-flex items-center gap-1.5 mt-1">
-                  <p className="text-lg font-semibold text-gray-900">{priceRange}</p>
-                  <span className="text-xs text-gray-400 font-normal self-center">est.</span>
-                  <svg className="w-3.5 h-3.5 text-gray-300 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="absolute left-0 top-full mt-1 z-30 hidden group-hover/price:block">
-                    <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
-                      Price is an estimate and may vary. Contact the provider for exact rates.
+              {/* Highlight badges */}
+              <div id="highlights" className="scroll-mt-20">
+                {/* Mobile: 2-col grid, Zillow-style filled cards */}
+                <div className="md:hidden grid grid-cols-2 gap-2.5 mt-4">
+                  {highlights.map((label) => (
+                    <div key={label} className="bg-gray-50 rounded-xl py-4 px-3.5 flex items-center gap-3">
+                      <HighlightIcon label={label} className="w-6 h-6 text-gray-700 flex-shrink-0" />
+                      <span className="text-[15px] font-semibold text-gray-800 leading-tight">{label}</span>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ) : (
-                <p className="text-sm text-gray-400 mt-1">Contact for pricing</p>
-              )}
-
-              {/* Address */}
-              {profile.address && (
-                <p className="text-sm text-gray-400 mt-0.5">{profile.address}</p>
-              )}
-
-              {/* Highlight badges — real data + category-inferred */}
-              <div id="highlights" className="grid grid-cols-2 gap-2.5 mt-4 scroll-mt-20">
-                {highlights.map((label) => (
-                  <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
-                    <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">{label}</span>
-                  </div>
-                ))}
+                {/* Desktop: 2-column grid */}
+                <div className="hidden md:grid grid-cols-2 gap-2.5 mt-4">
+                  {highlights.map((label) => (
+                    <div key={label} className="bg-white border border-gray-200 rounded-lg py-3 px-3 flex items-center gap-2.5">
+                      <HighlightIcon label={label} className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-600">{label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Managed by — only show when staff data exists */}
               {hasStaff && (
                 <div className="flex items-center gap-2.5 mt-4">
                   {staff!.image ? (
-                    <img src={staff!.image} alt={staff!.name} className="w-7 h-7 rounded-full object-cover" />
+                    <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="rounded-full object-cover" />
                   ) : (
                     <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
                       <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
@@ -570,14 +758,14 @@ export default async function ProviderPage({
 
               {/* ── Care Services ── */}
               <div id="services" className="py-8 scroll-mt-20">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Care Services</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={9} />
               </div>
 
               {/* ── Staff Screening — hidden when no real data ── */}
               {hasStaffScreening && (
                 <div id="screening" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Staff Screening</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Staff Screening</h2>
                   <div className="flex flex-wrap gap-x-8 gap-y-3">
                     {[
                       { label: "Background Checked", verified: staffScreening!.background_checked },
@@ -595,7 +783,7 @@ export default async function ProviderPage({
 
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-4">About</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
                 <ExpandableText
                   text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
                   maxLength={300}
@@ -607,11 +795,11 @@ export default async function ProviderPage({
                 <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <div className="flex items-start justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900 font-serif">Prices at {profile.display_name}</h2>
+                      <h2 className="text-2xl font-bold text-gray-900 font-display">Prices at {profile.display_name}</h2>
                     </div>
-                    <button className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
+                    <ScrollToConnectionCard className="px-5 py-2.5 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors flex-shrink-0">
                       Get a custom quote
-                    </button>
+                    </ScrollToConnectionCard>
                   </div>
                   <div className="space-y-2">
                     {pricingDetails.map((item) => (
@@ -632,7 +820,7 @@ export default async function ProviderPage({
               {/* ── Payment & Insurance — hidden when no real data ── */}
               {hasAcceptedPayments && (
                 <div id="payment" className="py-8 scroll-mt-20 border-t border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">Acceptable Payment / Insurance Options</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Acceptable Payment / Insurance Options</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {acceptedPayments.map((payment) => (
                       <div key={payment} className="flex items-center justify-between py-3 px-4 border-b border-gray-100">
@@ -650,9 +838,9 @@ export default async function ProviderPage({
                   </div>
                   <p className="mt-5 text-base text-gray-500">
                     For clarity and guidance,{" "}
-                    <button className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
+                    <ScrollToConnectionCard className="text-primary-600 hover:text-primary-700 font-medium transition-colors">
                       Book a consultation
-                    </button>
+                    </ScrollToConnectionCard>
                   </p>
                 </div>
               )}
@@ -663,6 +851,13 @@ export default async function ProviderPage({
                   providerId={profile.slug}
                   providerName={profile.display_name}
                   providerImage={images[0]}
+                  questions={answeredQuestions.map((q) => ({
+                    id: q.id,
+                    question: q.question,
+                    answer: q.answer,
+                    asker_name: q.asker_name,
+                    created_at: q.created_at,
+                  }))}
                 />
               </div>
 
@@ -679,7 +874,7 @@ export default async function ProviderPage({
                       {[1, 2, 3, 4, 5].map((star) => (
                         <StarIcon
                           key={star}
-                          className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-yellow-400" : "text-gray-200"}`}
+                          className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-primary-500" : "text-gray-200"}`}
                           filled={star <= Math.round(oleraScore!)}
                         />
                       ))}
@@ -707,71 +902,26 @@ export default async function ProviderPage({
               )}
 
               {/* ── What families are saying ── */}
-              <div className="py-8 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">What families are saying</h2>
-                {hasReviews ? (
-                  <>
-                    <div className="flex items-center justify-end mb-4">
-                      <span className="text-sm text-gray-400">Sort by: <button className="text-gray-700 font-medium">Most Helpful</button></span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {reviews.map((review, index) => (
-                        <div key={index} className="border border-gray-100 rounded-xl p-5">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                                <span className="text-xs font-semibold text-gray-600">{review.name.split(" ").map(n => n[0]).join("")}</span>
-                              </div>
-                              <div>
-                                <p className="text-sm font-semibold text-gray-900">{review.name}</p>
-                                <p className="text-xs text-gray-400">{review.date}</p>
-                              </div>
-                            </div>
-                            <span className="text-sm font-semibold text-primary-600">{review.rating.toFixed(1)} / 5 <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" /></span>
-                          </div>
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            {review.comment.length > 180 ? review.comment.slice(0, 180).trimEnd() + "... " : review.comment + " "}
-                            {review.comment.length > 180 && (
-                              <button className="text-primary-600 font-medium">read more</button>
-                            )}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between mt-5">
-                      <button className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1">
-                        Show more
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
-                        Add review
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <SectionEmptyState
-                    icon="star"
-                    message="No reviews yet."
-                    subMessage="Be the first to share your experience with this provider."
-                  />
-                )}
-              </div>
+              <ReviewsSection
+                providerId={profile.slug}
+                providerSlug={profile.slug}
+                providerName={profile.display_name}
+                mockReviews={reviews}
+              />
 
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (
                 <div id="team" className="py-8 border-t border-gray-200 scroll-mt-20">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 font-serif">Facility manager</h2>
-                    <button className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
+                    <h2 className="text-2xl font-bold text-gray-900 font-display">Facility manager</h2>
+                    <ScrollToConnectionCard className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg hover:bg-primary-50 transition-colors">
                       Connect with us
-                    </button>
+                    </ScrollToConnectionCard>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start gap-6">
                     <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
                       {staff!.image ? (
-                        <img src={staff!.image} alt={staff!.name} className="w-20 h-20 rounded-full object-cover mx-auto mb-3" />
+                        <Image src={staff!.image} alt={staff!.name} width={80} height={80} className="rounded-full object-cover mx-auto mb-3" />
                       ) : (
                         <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                           <span className="text-2xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
@@ -796,34 +946,36 @@ export default async function ProviderPage({
 
               {/* ── Disclaimer ── */}
               <div className="py-8 border-t border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900 font-serif mb-4">Disclaimer</h2>
+                <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">Disclaimer</h2>
                 <p className="text-sm text-gray-500 leading-relaxed">
                   We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
                 </p>
                 <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
                   <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
-                  <Link
-                    href={`/for-providers/claim/${profile.slug}`}
-                    className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors flex-shrink-0"
-                  >
-                    Manage this page
-                  </Link>
+                  <ManagePageButton
+                    providerName={profile.display_name}
+                    providerSlug={profile.slug}
+                    providerId={profile.id}
+                    sourceProviderId={profile.source_provider_id}
+                    claimState={actualClaimState}
+                    claimAccountId={claimAccountId}
+                  />
                 </div>
               </div>
 
             </div>
           </div>
 
-          {/* ========== Right Column — Sticky Sidebar ========== */}
-          <div className="lg:col-span-1 self-stretch">
-            <div className="sticky top-24">
+          {/* ========== Right Column — Sticky Sidebar (hidden on mobile) ========== */}
+          <div className="hidden md:block lg:col-span-1 self-stretch">
+            <div id="connection-card" className="sticky top-24">
               <ConnectionCardWithRedirect
                 providerId={profile.id}
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
                 priceRange={priceRange}
                 oleraScore={oleraScore}
-                reviewCount={meta?.review_count}
+                reviewCount={reviewCount}
                 phone={profile.phone}
                 acceptedPayments={acceptedPayments}
                 careTypes={profile.care_types}
@@ -839,7 +991,7 @@ export default async function ProviderPage({
         {/* ===== Compare Providers ===== */}
         {similarProviders.length > 0 && (
           <div className="border-t border-gray-200 pt-8 mt-4">
-            <h2 className="text-2xl font-bold text-gray-900 font-serif mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 font-display mb-6">
               Compare {profile.display_name}{locationStr ? ` of ${locationStr}` : ""} to the best local options
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -852,6 +1004,22 @@ export default async function ProviderPage({
 
         </div>
       </div>
+
+      {/* Mobile sticky bottom CTA — opens bottom sheet with ConnectionCard */}
+      <MobileStickyBottomCTA
+        providerName={profile.display_name}
+        priceRange={priceRange}
+        providerId={profile.id}
+        providerSlug={profile.slug}
+        oleraScore={oleraScore}
+        reviewCount={reviewCount}
+        phone={profile.phone}
+        acceptedPayments={acceptedPayments}
+        careTypes={profile.care_types}
+        providerCategory={profile.category}
+        providerCity={profile.city}
+        providerState={profile.state}
+      />
     </div>
   );
 }

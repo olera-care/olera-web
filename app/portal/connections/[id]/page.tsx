@@ -125,9 +125,11 @@ export default function ConnectionDetailPage() {
 
   if (loading) {
     return (
-      <div className="px-8 py-6">
-        <div className="text-center py-16">
-          <div className="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center py-16">
+            <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          </div>
         </div>
       </div>
     );
@@ -135,12 +137,14 @@ export default function ConnectionDetailPage() {
 
   if (!connection) {
     return (
-      <div className="px-8 py-6">
-        <div className="text-center py-16">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Connection not found</h2>
-          <Link href="/portal/connections" className="text-primary-600 hover:underline">
-            Back to connections
-          </Link>
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="text-center py-16">
+            <h2 className="text-xl font-display font-bold text-gray-900 mb-2">Connection not found</h2>
+            <Link href="/portal/inbox" className="text-primary-600 hover:underline">
+              Back to inbox
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -165,29 +169,30 @@ export default function ConnectionDetailPage() {
   const badge = statusBadge[connection.status] || statusBadge.pending;
 
   return (
-    <div className="px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="mb-6">
         <Link
-          href="/portal/connections"
+          href="/portal/inbox"
           className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center gap-1"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to connections
+          Back to inbox
         </Link>
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-50 text-red-700 px-4 py-3 rounded-lg text-base" role="alert">
+        <div className="mb-6 bg-red-50 text-red-700 px-4 py-3 rounded-xl text-base" role="alert">
           {error}
         </div>
       )}
 
       {/* Connection header */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 mb-6">
         <div className="flex items-center gap-3 flex-wrap mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-display font-bold text-gray-900">
             {typeLabel}: {shouldBlur ? blurName(otherProfile?.display_name || "Unknown") : otherProfile?.display_name || "Unknown"}
           </h1>
           <Badge variant={badge.variant}>{badge.label}</Badge>
@@ -225,7 +230,7 @@ export default function ConnectionDetailPage() {
             <h3 className="text-base font-semibold text-primary-900 mb-3">
               Next Steps
             </h3>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               {/* Primary CTA: Propose a time */}
               {otherProfile.email && (
                 <a
@@ -286,14 +291,15 @@ export default function ConnectionDetailPage() {
 
       {/* Other party's profile (inline) */}
       {otherProfile && !shouldBlur && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6">
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-4">
             {isInbound ? "Their" : "Recipient"} Profile
           </h2>
 
           <ProfileEmbed profile={otherProfile} showContact={connection.status === "accepted"} />
         </div>
       )}
+    </div>
     </div>
   );
 }
@@ -346,7 +352,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
 
       {/* Family-specific info */}
       {profile.type === "family" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {meta?.timeline && (
             <div>
               <dt className="text-sm text-gray-500">Timeline</dt>
@@ -389,7 +395,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
 
       {/* Caregiver-specific info */}
       {profile.type === "caregiver" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {meta?.years_experience && (
             <div>
               <dt className="text-sm text-gray-500">Experience</dt>
@@ -431,7 +437,7 @@ function ProfileEmbed({ profile, showContact }: { profile: Profile; showContact:
 
       {/* Organization-specific info */}
       {profile.type === "organization" && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {meta?.year_founded && (
             <div>
               <dt className="text-sm text-gray-500">Year Founded</dt>

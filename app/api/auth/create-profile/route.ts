@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -338,6 +339,33 @@ export async function POST(request: Request) {
     if (updateErr) {
       console.error("Update account error:", updateErr);
       // Profile was created — don't fail the whole request
+    }
+
+    // Loops: onboarding completed
+    try {
+      const profileType = intent === "provider"
+        ? (providerType === "caregiver" ? "caregiver" : "organization")
+        : "family";
+      const providerName = intent === "provider"
+        ? (orgName || displayName)
+        : displayName;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      await sendLoopsEvent({
+        email: user.email || "",
+        eventName: "onboarding_completed",
+        audience: intent === "provider" ? "provider" : "seeker",
+        eventProperties: {
+          intent,
+          profileType,
+          provider_name: providerName,
+          profile_link: `${siteUrl}/portal/profile`,
+          city: city || "",
+          state: state || "",
+          care_type: careTypes?.[0] || "",
+        },
+      });
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ profileId });

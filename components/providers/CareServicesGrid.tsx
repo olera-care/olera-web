@@ -21,7 +21,7 @@ export default function CareServicesGrid({
         {visible.map((service) => (
           <span
             key={service}
-            className="px-4 py-2 rounded-full text-text-sm text-gray-600 bg-white border border-gray-200 hover:border-primary-300 hover:text-gray-900 transition-colors cursor-default"
+            className="px-4 py-2 rounded-full text-sm text-gray-600 bg-white border border-gray-200 hover:border-primary-300 hover:text-gray-900 transition-colors cursor-default"
           >
             {service}
           </span>
@@ -30,7 +30,7 @@ export default function CareServicesGrid({
       {needsExpand && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="mt-4 text-text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+          className="mt-4 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
         >
           {expanded ? "Show less" : `Show all ${services.length} services`}
         </button>

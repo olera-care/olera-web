@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { setDeferredAction, getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 interface QAEntry {
   id?: string;
   question: string;
-  answer: string;
+  answer?: string | null;
   asker_name?: string;
+  asker_user_id?: string;
+  status?: "pending" | "approved" | "answered";
   created_at?: string;
+  answered_at?: string;
 }
 
 interface QASectionProps {
@@ -16,6 +21,58 @@ interface QASectionProps {
   providerImage?: string;
   questions?: QAEntry[];
   suggestedQuestions?: string[];
+}
+
+// More menu icon component
+function MoreIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
+      <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  );
+}
+
+// Avatar gradient (deterministic by name)
+const AVATAR_GRADIENTS = [
+  "from-rose-100 to-pink-50",
+  "from-sky-100 to-blue-50",
+  "from-amber-100 to-yellow-50",
+  "from-emerald-100 to-green-50",
+  "from-violet-100 to-purple-50",
+  "from-orange-100 to-amber-50",
+  "from-teal-100 to-cyan-50",
+  "from-fuchsia-100 to-pink-50",
+];
+
+function avatarGradient(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+}
+
+function getInitials(name: string): string {
+  if (!name || name === "Anonymous") return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+// Format relative time
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
 export default function QASectionV2({
@@ -30,11 +87,32 @@ export default function QASectionV2({
     "Do caregivers give meds?",
   ],
 }: QASectionProps) {
+  const { user, openAuth } = useAuth();
   const [inputValue, setInputValue] = useState("");
-  const [showAll, setShowAll] = useState(false);
   const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
   const [submitting, setSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error" | "auth_required">("idle");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [pendingSubmit, setPendingSubmit] = useState(false);
+
+  // Edit question state
+  const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenuId(null);
+      }
+    }
+    if (openMenuId) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
 
   // Fetch public questions on mount
   const fetchQuestions = useCallback(async () => {
@@ -43,13 +121,7 @@ export default function QASectionV2({
       if (res.ok) {
         const data = await res.json();
         if (data.questions?.length > 0) {
-          setQuestions(data.questions.map((q: { question: string; answer: string | null; asker_name: string; created_at: string; id: string }) => ({
-            id: q.id,
-            question: q.question,
-            answer: q.answer || "",
-            asker_name: q.asker_name,
-            created_at: q.created_at,
-          })));
+          setQuestions(data.questions);
         }
       }
     } catch {
@@ -61,8 +133,9 @@ export default function QASectionV2({
     fetchQuestions();
   }, [fetchQuestions]);
 
-  const handleSubmit = async () => {
-    if (!inputValue.trim() || submitting) return;
+  // Submit question (used both directly and after auth return)
+  const submitQuestion = useCallback(async (questionText: string) => {
+    if (!questionText.trim()) return;
 
     setSubmitting(true);
     setSubmitStatus("idle");
@@ -71,181 +144,553 @@ export default function QASectionV2({
       const res = await fetch("/api/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId, question: inputValue.trim() }),
+        body: JSON.stringify({ provider_id: providerId, question: questionText.trim() }),
       });
-
-      if (res.status === 401) {
-        setSubmitStatus("auth_required");
-        return;
-      }
 
       if (!res.ok) {
         setSubmitStatus("error");
         return;
       }
 
+      const data = await res.json();
+      // Add the new question to the top of the list
+      if (data.question) {
+        setQuestions((prev) => [data.question, ...prev]);
+      }
+
       setInputValue("");
       setSubmitStatus("success");
-      // Clear success message after 4 seconds
       setTimeout(() => setSubmitStatus("idle"), 4000);
     } catch {
       setSubmitStatus("error");
     } finally {
       setSubmitting(false);
     }
+  }, [providerId]);
+
+  // Detect deferred action (returning from auth with a pending question)
+  useEffect(() => {
+    if (!user) return;
+    const deferred = getDeferredAction();
+    if (deferred?.action === "question" && deferred?.targetProfileId === providerId) {
+      clearDeferredAction();
+      // Restore the question text and auto-submit
+      if (deferred.questionText) {
+        setInputValue(deferred.questionText);
+        setPendingSubmit(true);
+      }
+    }
+  }, [user, providerId]);
+
+  // Auto-submit when returning from auth
+  useEffect(() => {
+    if (pendingSubmit && user && inputValue.trim()) {
+      setPendingSubmit(false);
+      submitQuestion(inputValue);
+    }
+  }, [pendingSubmit, user, inputValue, submitQuestion]);
+
+  // Handle submit button click
+  const handleSubmit = () => {
+    if (!inputValue.trim() || submitting) return;
+
+    // Auth-on-submit: if not logged in, save the question and open auth
+    if (!user) {
+      setDeferredAction({
+        action: "question",
+        targetProfileId: providerId,
+        questionText: inputValue.trim(),
+        returnUrl: window.location.pathname,
+      });
+      openAuth({
+        defaultMode: "sign-up",
+        intent: "family",
+      });
+      return;
+    }
+
+    submitQuestion(inputValue);
   };
 
-  const visibleQuestions = showAll ? questions : questions.slice(0, 2);
+  const handleEditSubmit = async () => {
+    if (!editingQuestion?.id || !editValue.trim() || editSubmitting) return;
+
+    setEditSubmitting(true);
+    try {
+      const res = await fetch("/api/questions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingQuestion.id, question: editValue.trim() }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to update question");
+        return;
+      }
+
+      const data = await res.json();
+      // Update question in local state
+      setQuestions((prev) =>
+        prev.map((q) => (q.id === editingQuestion.id ? { ...q, ...data.question } : q))
+      );
+      setEditingQuestion(null);
+      setEditValue("");
+    } catch {
+      alert("Failed to update question");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const visibleQuestions = questions.slice(0, 2);
   const hasMore = questions.length > 2;
+  const [showAllModal, setShowAllModal] = useState(false);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showAllModal) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showAllModal]);
   const hasQuestions = questions.length > 0;
+  const answeredCount = questions.filter((q) => q.status === "answered" || q.answer).length;
+  const pendingCount = questions.filter((q) => q.status === "pending" && !q.answer).length;
 
   return (
     <div>
       {/* Header */}
-      <h2 className="text-2xl font-bold text-gray-900 font-serif mb-1">
-        Customer Questions &amp; Answers
-      </h2>
-      <p className="text-sm text-gray-500 mb-6">
-        Ask your specific questions to {providerName}
-      </p>
-
-      {/* Suggested label + pills */}
-      {suggestedQuestions.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs text-gray-400 mb-2">Suggested</p>
-          <div className="flex flex-wrap gap-2">
-            {suggestedQuestions.map((q) => (
-              <button
-                key={q}
-                onClick={() => setInputValue(q)}
-                className="text-sm text-gray-700 px-3.5 py-2 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-50 transition-colors"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
+            Questions & Answers
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {hasQuestions
+              ? `${answeredCount} answered${pendingCount > 0 ? ` · ${pendingCount} awaiting response` : ""}`
+              : `Ask ${providerName} a question`}
+          </p>
         </div>
-      )}
+      </div>
 
-      {/* Textarea + Post button */}
-      <div className="mb-8">
+      {/* Ask a question form */}
+      <div className="bg-vanilla-50/50 rounded-2xl border border-warm-100/60 p-5 mb-6">
+        {/* Suggested pills */}
+        {suggestedQuestions.length > 0 && !inputValue && (
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2.5">Suggested</p>
+            <div className="flex flex-wrap gap-2">
+              {suggestedQuestions.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => setInputValue(q)}
+                  className="text-[13px] text-gray-600 px-3.5 py-2 bg-white border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-colors"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Textarea */}
         <textarea
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Type your question..."
           rows={3}
           maxLength={1000}
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 transition-all"
+          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all"
         />
-        <div className="flex items-center justify-between mt-3">
-          <div className="text-sm">
+
+        {/* Submit row */}
+        <div className="flex items-center justify-between mt-3 gap-4">
+          <div className="text-sm flex-1 min-w-0">
             {submitStatus === "success" && (
-              <span className="text-green-600">Question submitted! It will appear after review.</span>
+              <span className="text-primary-600 font-medium">Question posted! It will appear below.</span>
             )}
             {submitStatus === "error" && (
               <span className="text-red-600">Failed to submit. Please try again.</span>
             )}
-            {submitStatus === "auth_required" && (
-              <span className="text-amber-600">Please sign in to ask a question.</span>
-            )}
           </div>
           <button
+            type="button"
             onClick={handleSubmit}
             disabled={!inputValue.trim() || submitting}
-            className="px-5 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-full hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="shrink-0 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl shadow-sm hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           >
-            {submitting ? "Submitting..." : "Post Question"}
+            {submitting ? "Posting..." : "Post Question"}
           </button>
         </div>
       </div>
 
-      {/* Empty state or Q&A threads */}
+      {/* Questions list */}
       {hasQuestions ? (
-        <>
-          <div className="space-y-6">
-            {visibleQuestions.map((qa, index) => (
-              <div key={qa.id || index} className="border-b border-gray-100 pb-6 last:border-b-0">
+        <div className="space-y-0">
+          {visibleQuestions.map((qa, index) => {
+            const isAnswered = qa.status === "answered" || !!qa.answer;
+            const isPending = !isAnswered;
+            const isOwner = user?.id && qa.asker_user_id === user.id;
+            const canEdit = isOwner && isPending;
+
+            return (
+              <div
+                key={qa.id || index}
+                className={`group/question py-5 ${index > 0 ? "border-t border-gray-100" : ""}`}
+              >
                 {/* Question */}
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                    </svg>
+                  {/* Asker avatar with gradient */}
+                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(qa.asker_name || "Anonymous")} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
+                    <span className="text-xs font-bold text-gray-600">
+                      {getInitials(qa.asker_name || "Anonymous")}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-semibold text-gray-900">{qa.question}</p>
-                    </div>
-                    {qa.asker_name && (
-                      <p className="text-xs text-gray-400 mt-1">Asked by {qa.asker_name}</p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Provider Answer */}
-                {qa.answer && (
-                  <div className="ml-12 mt-4">
-                    <div className="flex items-start gap-3">
-                      {providerImage ? (
-                        <img
-                          src={providerImage}
-                          alt={providerName}
-                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-semibold text-primary-700">
-                            {providerName.charAt(0)}
-                          </span>
+                  <div className="flex-1 min-w-0">
+                    {/* Asker name + time + more menu */}
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {qa.asker_name || "Anonymous"}
+                        </p>
+                        {qa.created_at && (
+                          <span className="text-xs text-gray-400">· {timeAgo(qa.created_at)}</span>
+                        )}
+                      </div>
+                      {/* More menu - only for question owner on pending questions */}
+                      {canEdit && qa.id && (
+                        <div className="relative" ref={openMenuId === qa.id ? menuRef : null}>
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuId(openMenuId === qa.id ? null : qa.id!)}
+                            className="w-8 h-8 -mr-2 flex items-center justify-center rounded-full text-gray-400 lg:opacity-0 lg:group-hover/question:opacity-100 hover:text-gray-600 hover:bg-gray-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all"
+                            aria-label="More options"
+                          >
+                            <MoreIcon className="w-5 h-5" />
+                          </button>
+                          {/* Dropdown menu */}
+                          {openMenuId === qa.id && (
+                            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-10 min-w-[120px] animate-slide-down">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingQuestion(qa);
+                                  setEditValue(qa.question);
+                                  setOpenMenuId(null);
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                              >
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                                Edit question
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-primary-700">{providerName}</span>
-                          <span className="text-xs font-medium text-primary-600">· Provider</span>
+                    </div>
+
+                    {/* Question text */}
+                    <p className="text-sm text-gray-600 leading-relaxed">
+                      {qa.question}
+                    </p>
+
+                    {/* Provider response OR awaiting response */}
+                    {isAnswered && qa.answer ? (
+                      <div className="mt-4">
+                        <div className="flex items-start gap-3">
+                          {/* Provider avatar */}
+                          {providerImage ? (
+                            <img
+                              src={providerImage}
+                              alt={providerName}
+                              className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 ring-2 ring-white">
+                              <span className="text-xs font-bold text-primary-700">
+                                {providerName.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="flex-1 min-w-0">
+                            {/* Provider name + badge */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-semibold text-gray-900">{providerName}</span>
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-primary-700 bg-primary-50 uppercase tracking-wide">
+                                Provider
+                              </span>
+                            </div>
+
+                            {/* Answer text */}
+                            <div className="mt-2 bg-gray-50 rounded-xl px-4 py-3 border-l-2 border-primary-300">
+                              <p className="text-sm text-gray-600 leading-relaxed">
+                                {qa.answer}
+                              </p>
+                            </div>
+
+                            {/* Answered time */}
+                            {qa.answered_at && (
+                              <p className="text-xs text-gray-400 mt-2">
+                                Answered {timeAgo(qa.answered_at)}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div className="bg-gray-50 rounded-lg px-4 py-3 mt-2">
-                          <p className="text-sm text-gray-600 leading-relaxed">
-                            {qa.answer.length > 200
-                              ? qa.answer.slice(0, 200).trimEnd() + "..."
-                              : qa.answer}
+                      </div>
+                    ) : isPending && isOwner ? (
+                      <div className="mt-3 flex items-center gap-2 text-[13px] text-gray-400">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        <span>Awaiting response</span>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* See all questions button */}
+          {hasMore && (
+            <div className="pt-5 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowAllModal(true)}
+                className="text-sm font-semibold text-primary-600 hover:text-primary-700 focus:outline-none focus:underline transition-colors"
+              >
+                See all {questions.length} questions
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Empty state - matches ReviewsSection pattern */
+        <div className="text-center py-12 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+          <svg className="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+          </svg>
+          <p className="text-gray-500 font-medium">No questions yet</p>
+          <p className="text-sm text-gray-400 mt-1">Be the first to ask {providerName} a question.</p>
+        </div>
+      )}
+
+      {/* Edit Question Modal */}
+      {editingQuestion && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 transition-opacity"
+            onClick={() => setEditingQuestion(null)}
+            aria-hidden="true"
+          />
+          {/* Modal */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-question-title"
+            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl max-w-lg mx-auto p-6"
+          >
+            <h3 id="edit-question-title" className="text-lg font-display font-bold text-gray-900 mb-4">
+              Edit your question
+            </h3>
+            <textarea
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              rows={4}
+              maxLength={1000}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all"
+            />
+            <div className="flex items-center justify-end gap-3 mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingQuestion(null);
+                  setEditValue("");
+                }}
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleEditSubmit}
+                disabled={!editValue.trim() || editValue.trim() === editingQuestion.question || editSubmitting}
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl shadow-sm hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {editSubmitting ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* All Questions Modal (Desktop) / Bottom Sheet (Mobile) */}
+      {showAllModal && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] transition-opacity"
+            onClick={() => setShowAllModal(false)}
+            aria-hidden="true"
+          />
+
+          {/* Modal/Sheet Container */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="all-questions-title"
+            className="fixed z-50 bg-white shadow-2xl flex flex-col
+              /* Mobile: Bottom sheet */
+              inset-x-0 bottom-0 h-[85vh] rounded-t-3xl
+              /* Desktop: Centered modal with fixed dimensions */
+              lg:inset-auto lg:top-1/2 lg:left-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:h-[640px] lg:w-[600px] lg:rounded-2xl lg:border lg:border-gray-200/60"
+          >
+            {/* Drag handle (mobile only) */}
+            <div className="lg:hidden pt-3 pb-1 flex justify-center shrink-0">
+              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+            </div>
+
+            {/* Header - fixed */}
+            <div className="px-5 lg:px-6 py-4 lg:py-5 border-b border-gray-200/80 bg-gray-50/50 shrink-0 rounded-t-3xl lg:rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 id="all-questions-title" className="text-lg lg:text-xl font-display font-bold text-gray-900 tracking-tight">
+                    Questions & Answers
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    {questions.length} question{questions.length !== 1 ? "s" : ""} · {answeredCount} answered
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAllModal(false)}
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+                  aria-label="Close"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto overscroll-contain">
+              <div className="px-5 lg:px-6 py-5 lg:py-6">
+                {questions.map((qa, index) => {
+                  const isAnswered = qa.status === "answered" || !!qa.answer;
+                  const isPending = !isAnswered;
+                  const isOwner = user?.id && qa.asker_user_id === user.id;
+                  const askerName = qa.asker_name || "Anonymous";
+
+                  return (
+                    <div
+                      key={qa.id || index}
+                      className={`${index > 0 ? "mt-6 pt-6 border-t border-gray-100" : ""}`}
+                    >
+                      {/* Question */}
+                      <div className="flex items-start gap-3.5">
+                        {/* Asker avatar with gradient */}
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient(askerName)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
+                          <span className="text-sm font-bold text-gray-600">
+                            {getInitials(askerName)}
+                          </span>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          {/* Asker name + time */}
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <p className="text-[15px] font-semibold text-gray-900">
+                              {askerName}
+                            </p>
+                            {qa.created_at && (
+                              <span className="text-[13px] text-gray-400">· {timeAgo(qa.created_at)}</span>
+                            )}
+                          </div>
+
+                          {/* Question text */}
+                          <p className="text-[15px] text-gray-700 leading-relaxed">
+                            {qa.question}
                           </p>
+
+                          {/* Awaiting response (owner only) */}
+                          {isPending && isOwner && (
+                            <div className="mt-3 flex items-center gap-2 text-[13px] text-gray-400">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                              <span>Awaiting response</span>
+                            </div>
+                          )}
+
+                          {/* Provider response - thread style */}
+                          {isAnswered && qa.answer && (
+                            <div className="mt-4 ml-0.5 pl-4 border-l-2 border-primary-200">
+                              <div className="flex items-start gap-3">
+                                {/* Provider avatar */}
+                                {providerImage ? (
+                                  <img
+                                    src={providerImage}
+                                    alt={providerName}
+                                    className="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-white shadow-sm"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm">
+                                    <span className="text-xs font-bold text-primary-700">
+                                      {providerName.charAt(0)}
+                                    </span>
+                                  </div>
+                                )}
+
+                                <div className="flex-1 min-w-0">
+                                  {/* Provider name + badge */}
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-sm font-semibold text-gray-900">{providerName}</span>
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold text-primary-700 bg-primary-50 uppercase tracking-wide">
+                                      Provider
+                                    </span>
+                                  </div>
+
+                                  {/* Answer text */}
+                                  <p className="text-[15px] text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                    {qa.answer}
+                                  </p>
+
+                                  {/* Answered time */}
+                                  {qa.answered_at && (
+                                    <p className="text-xs text-gray-400 mt-2">
+                                      {timeAgo(qa.answered_at)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Show More */}
-          {hasMore && (
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className="mt-2 text-sm font-semibold text-primary-600 hover:text-primary-700 flex items-center gap-1.5 transition-colors"
-            >
-              {showAll ? "Show fewer questions" : `View all ${questions.length} questions`}
-              <svg
-                className={`w-4 h-4 transition-transform ${showAll ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+            {/* Mobile footer with safe area - desktop hidden */}
+            <div className="lg:hidden shrink-0 border-t border-gray-100 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={() => setShowAllModal(false)}
+                className="w-full py-3.5 rounded-xl bg-gray-900 text-[15px] font-semibold text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors active:scale-[0.98]"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          )}
+                Done
+              </button>
+            </div>
+          </div>
         </>
-      ) : (
-        <div className="bg-gray-50 rounded-xl py-8 px-6 flex flex-col items-center text-center">
-          <svg className="w-6 h-6 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-11.25 5.25v-1.875a3.375 3.375 0 013.375-3.375h6.75a3.375 3.375 0 013.375 3.375v1.875m-16.5 0h16.5" />
-          </svg>
-          <p className="text-sm text-gray-500">No questions yet.</p>
-          <p className="text-xs text-gray-400 mt-1">Be the first to ask {providerName} a question.</p>
-        </div>
       )}
     </div>
   );

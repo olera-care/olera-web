@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import {
   getCategoryBySlug,
   getResolvedCategorySlug,
@@ -50,7 +50,7 @@ export default async function CategoryPage({
   // Handle aliases (e.g. "home-care-non-medical" → "home-care")
   const resolved = getResolvedCategorySlug(slug);
   if (resolved && resolved !== slug) {
-    redirect(`/${resolved}`);
+    permanentRedirect(`/${resolved}`);
   }
 
   const config = getCategoryBySlug(slug);

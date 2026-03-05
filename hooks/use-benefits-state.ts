@@ -22,6 +22,10 @@ export interface BenefitsState {
   locationDisplay: string;
   /** Live preview of how many programs may match (null = not enough data yet) */
   previewCount: number | null;
+  /** True when results were restored from DB (skip re-persist/sync) */
+  restoredFromDb: boolean;
+  /** Whether to auto-publish care post after benefits search */
+  publishCarePost: boolean;
 }
 
 export interface BenefitsActions {
@@ -30,6 +34,14 @@ export interface BenefitsActions {
   goToStep: (step: IntakeStep) => void;
   submit: () => Promise<void>;
   reset: () => void;
+  setPublishCarePost: (value: boolean) => void;
+  /** Hydrate state from external data (DB or session cache). */
+  restoreResults: (
+    result: BenefitsSearchResult,
+    answers: BenefitsIntakeAnswers,
+    locationDisplay: string,
+    options?: { fromDb?: boolean }
+  ) => void;
 }
 
 // ─── localStorage ───────────────────────────────────────────────────────────
@@ -94,6 +106,8 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [locationDisplay, setLocationDisplay] = useState("");
   const [previewCount, setPreviewCount] = useState<number | null>(null);
+  const [restoredFromDb, setRestoredFromDb] = useState(false);
+  const [publishCarePost, setPublishCarePost] = useState(true); // Default checked to encourage profile sharing
   const initialized = useRef(false);
   const previewAbort = useRef<AbortController | null>(null);
 
@@ -186,6 +200,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
 
       const data: BenefitsSearchResult = await res.json();
       setResult(data);
+      setRestoredFromDb(false);
       setPageState("results");
       clearDraft();
     } catch (err) {
@@ -203,9 +218,28 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     setResult(null);
     setErrorMsg(null);
     setPreviewCount(null);
+    setRestoredFromDb(false);
+    setPublishCarePost(false);
     setPageState("intake");
     clearDraft();
   }, []);
+
+  const restoreResults = useCallback(
+    (
+      restoredResult: BenefitsSearchResult,
+      restoredAnswers: BenefitsIntakeAnswers,
+      restoredLocation: string,
+      options?: { fromDb?: boolean }
+    ) => {
+      setResult(restoredResult);
+      setAnswers(restoredAnswers);
+      setLocationDisplay(restoredLocation);
+      setRestoredFromDb(options?.fromDb ?? false);
+      setPageState("results");
+      clearDraft();
+    },
+    []
+  );
 
   return {
     // State
@@ -216,11 +250,15 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     errorMsg,
     locationDisplay,
     previewCount,
+    restoredFromDb,
+    publishCarePost,
     // Actions
     updateAnswers,
     setLocationDisplay,
     goToStep,
     submit,
     reset,
+    restoreResults,
+    setPublishCarePost,
   };
 }

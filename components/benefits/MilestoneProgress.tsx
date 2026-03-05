@@ -127,7 +127,7 @@ function MilestoneRow({
       >
         <span
           className={[
-            "text-text-sm leading-5",
+            "text-sm leading-5",
             isCurrent
               ? "text-gray-900 font-medium"
               : isCompleted
@@ -140,7 +140,7 @@ function MilestoneRow({
 
         {/* Answer summary for completed steps */}
         {isCompleted && summary && (
-          <p className="text-text-xs text-gray-400 leading-tight truncate mt-0.5">
+          <p className="text-xs text-gray-400 leading-tight truncate mt-0.5">
             {summary}
           </p>
         )}

@@ -57,7 +57,7 @@ export default async function StatePage({ params }: Props) {
                 href="/benefits/finder"
                 className="shrink-0 inline-flex items-center justify-center px-6 py-2.5 bg-primary-600 text-white font-semibold text-sm rounded-xl hover:bg-primary-500 transition-colors"
               >
-                Check Eligibility
+                Check My Benefits
               </Link>
             </div>
           </div>

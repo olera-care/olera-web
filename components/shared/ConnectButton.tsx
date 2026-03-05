@@ -353,7 +353,7 @@ export default function ConnectButton({
               others on Olera.
             </p>
             <Link
-              href="/portal/settings"
+              href="/provider/pro"
               className="inline-flex items-center justify-center w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors min-h-[44px]"
               onClick={closeModal}
             >

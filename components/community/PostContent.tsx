@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ForumPost, CARE_TYPE_CONFIG } from "@/types/forum";
 
 interface PostContentProps {
@@ -31,7 +32,7 @@ function AuthorAvatar({ author }: { author: ForumPost["author"] }) {
     );
   }
   if (author.avatar) {
-    return <img src={author.avatar} alt={author.displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />;
+    return <Image src={author.avatar} alt={author.displayName} width={40} height={40} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />;
   }
   const initials = author.displayName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
   return (
@@ -98,7 +99,7 @@ export default function PostContent({ post, onClose }: PostContentProps) {
           onClick={handleLike}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             isLiked
-              ? "bg-red-50 text-red-600"
+              ? "bg-primary-50 text-primary-600"
               : "bg-gray-50 text-gray-600 hover:bg-gray-100"
           }`}
         >

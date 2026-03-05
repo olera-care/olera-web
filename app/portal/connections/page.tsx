@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -282,14 +283,14 @@ export default function ConnectionsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-display font-semibold text-gray-900">
             {isProvider ? "Connections" : "My Connections"}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
             {isProvider ? "Manage inquiries from families seeking care." : "Track your care provider requests and responses."}
           </p>
         </div>
-        <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+        <div className="flex w-full gap-0.5 bg-gray-100 p-0.5 rounded-xl sm:max-w-md">
           {(isProvider ? ["Needs Attention", "Active", "Past"] : ["Active", "Connected", "Past"]).map((label) => (
             <div key={label} className="flex-1 flex items-center justify-center px-5 py-2 rounded-lg text-sm font-semibold text-gray-400">
               {label}
@@ -373,7 +374,7 @@ export default function ConnectionsPage() {
 
   // Shared tab bar
   const tabBar = (
-    <div className="flex gap-0.5 bg-gray-100 p-0.5 rounded-xl max-w-md">
+    <div className="flex w-full gap-0.5 bg-gray-100 p-1 rounded-xl sm:max-w-md">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -384,7 +385,7 @@ export default function ConnectionsPage() {
             setSelectedConnectionId(null);
           }}
           className={[
-            "flex-1 flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold transition-all relative",
+            "flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-semibold transition-all relative",
             currentTab === tab.id
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700",
@@ -418,7 +419,7 @@ export default function ConnectionsPage() {
           /* ── Compact list mode (split view) ── */
           <div className="flex flex-col h-full">
             <div className="px-4 pt-4 pb-2 shrink-0">
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-display font-semibold text-gray-900">
                 {isProvider ? "Connections" : "My Connections"}
               </h2>
             </div>
@@ -457,7 +458,7 @@ export default function ConnectionsPage() {
           /* ── Card grid mode (full width) ── */
           <div className="h-full overflow-y-auto max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-display font-semibold text-gray-900">
                 {isProvider ? "Connections" : "My Connections"}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
@@ -557,7 +558,7 @@ function TabEmptyState({ tab }: { tab: ConnectionTab }) {
       >
         {icon}
       </div>
-      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <h3 className="text-base font-display font-semibold text-gray-900">{title}</h3>
       <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">{subtitle}</p>
       {cta && (
         <Link href={cta.href} className="inline-block mt-5">
@@ -603,7 +604,7 @@ function ProviderTabEmptyState({ tab }: { tab: ProviderConnectionTab }) {
       >
         {icon}
       </div>
-      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      <h3 className="text-base font-display font-semibold text-gray-900">{title}</h3>
       <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">{subtitle}</p>
       <style jsx>{`
         @keyframes emptyFloat {
@@ -663,10 +664,12 @@ function ConnectionGridCard({
         {/* Avatar */}
         <div className="relative shrink-0">
           {imageUrl && !shouldBlur ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt={otherName}
+              width={48}
+              height={48}
+              sizes="48px"
               className="w-12 h-12 rounded-full object-cover"
             />
           ) : (

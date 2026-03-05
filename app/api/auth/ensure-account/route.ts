@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account } from "@/lib/types";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -138,6 +139,24 @@ export async function POST(request: Request) {
         { error: `Failed to create account: ${insertError.message}` },
         { status: 500 }
       );
+    }
+
+    // Loops: new account created (fire-and-forget)
+    try {
+      const fullName = displayName || user.user_metadata?.full_name || user.user_metadata?.name || "";
+      const nameParts = fullName.trim().split(/\s+/);
+      await sendLoopsEvent({
+        email: user.email || "",
+        eventName: "user_signup",
+        audience: "seeker",
+        eventProperties: { source: "web_v2" },
+        contactProperties: {
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
+        },
+      });
+    } catch {
+      // Non-blocking
     }
 
     // Also ensure a baseline family profile exists so the Family Portal

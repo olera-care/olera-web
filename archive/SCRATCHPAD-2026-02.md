@@ -28,6 +28,91 @@
 
 ## Archived Sessions
 
+### 2026-02-24 (Session 17b) — v1.0 → v2.0 Migration Phases 1-4 + Internal Linking
+
+**Branch:** `swift-faraday` | **PR:** #53 targeting staging (merged)
+
+**Phase 1 — SEO Infrastructure:**
+- `app/robots.ts` — allows `/`, disallows `/admin/`, `/portal/`, `/api/`
+- `app/sitemap.ts` — dynamic sitemap: static pages, power pages, 39K+ provider profiles
+- `app/layout.tsx` — GA4 (`G-F2F7FG745B`), Organization JSON-LD, enhanced metadata
+- `app/provider/[slug]/page.tsx` — `generateMetadata()`, LocalBusiness JSON-LD
+- `next.config.ts` — 17 static 301 redirects (v1.0 → v2.0 URLs)
+- `middleware.ts` — pattern redirect: `/[category]/[state]/[city]/[slug]` → `/provider/[slug]`
+
+**Phase 2 — Power Pages:**
+- `lib/power-pages.ts` — shared utils: 7 categories, 51 states, slug mapping, data fetching
+- `app/[category]/page.tsx` — category landing (state grid + top providers)
+- `app/[category]/[state]/page.tsx` — state page (city links + provider listing)
+- `app/[category]/[state]/[city]/page.tsx` — city page (provider grid + cross-category links)
+- All with `generateMetadata()`, JSON-LD, ISR (1hr revalidation)
+
+**Phase 3 — Asked Questions:**
+- `supabase/migrations/005_provider_questions.sql` — `provider_questions` table + RLS policies
+- `app/api/questions/route.ts` — public GET + authenticated POST
+- `app/api/admin/questions/route.ts` — admin moderation GET + PATCH
+- `components/providers/QASectionV2.tsx` — wired up with live API
+- `app/admin/questions/page.tsx` — moderation UI with status tabs
+
+**Phase 4 — City Browse Experience:**
+- `components/browse/CityBrowseClient.tsx` — interactive browse merged into city power pages
+- Filters (location, care type, rating), sort, pagination, MapLibre sticky map
+- CSS grid + sticky map (Airbnb pattern) so footer renders full-width
+- Footer redesign with warm vanilla discovery zone + expandable cities (72 deep internal links)
+- Removed hospice from all customer-facing surfaces
+
+**Architecture Research:**
+- Deep research on Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com, Yelp
+- Key finding: ALL use single server-rendered page for SEO + interactive browse
+
+---
+
+### 2026-02-24 (Session 17a) — Web QA Test Plan on Notion
+
+**Branch:** `hopeful-swartz` (no code changes)
+
+**What:** Created a comprehensive Web QA Test Plan database on Notion, modeled after the existing App Store QA Test Plan. 85 test cases across 13 sections.
+
+**Notion database:** https://www.notion.so/9f68deb000be474f919f215dee5f4605
+
+**Handed off to:** Esther for QA execution
+
+---
+
+### 2026-02-21 (Session 16) — Admin Provider Directory Editor
+
+**Branch:** `stellar-hypatia` → merged to `staging` via PR #40
+
+**Provider Directory Editor:** Full CRUD directory (list page with search/filters/tabs/pagination, detail/edit page with 7 sections), API routes with field allowlist + audit logging, sidebar restructure, admin links in navbar/portal, dashboard stat card.
+
+**Key files:** `app/admin/directory/page.tsx`, `app/admin/directory/[providerId]/page.tsx`, `app/api/admin/directory/route.ts`, `app/api/admin/directory/[providerId]/route.ts`
+
+---
+
+### 2026-02-20 (Session 15b) — Browse Page Polish + Bug Fixes
+
+**Branch:** `staging`
+
+Bug fixes: filter dropdown clipping, z-index, deleted provider filtering, AbortError in useEffect.
+
+---
+
+### 2026-02-20 (Session 15) — Browse Page Redesign
+
+**Branch:** `staging`
+
+Redesigned browse page: removed carousel/grid/map views → single list+map layout. Created `BrowseCard.tsx`, refactored `BrowseClient.tsx`.
+
+---
+
+### 2026-02-20 (Session 14) — Smart Defaults & Description Backfill
+
+**Branch:** `quiet-elion`
+
+Smart defaults (highlights, services, descriptions inferred from category). Description backfill: 33,631 of 36,623 NULL descriptions filled from RAG CSV.
+
+---
+
 ### 2026-02-20 (Session 13) — Provider Page Design Polish
 
 **Branch:** `quiet-elion`
@@ -203,3 +288,72 @@ Documented actual table usage for team clarity:
 - Set up Claude GitHub App for olera-care organization
 - Created slash commands: `/resume`, `/explore`, `/plan`, `/commit`, `/save`, `/quicksave`, `/troubleshoot`, `/postmortem`, `/ui-critique`, `/compact`
 - Created SCRATCHPAD.md
+
+---
+
+### 2026-02-26 (Session 19) — Staging Reconciliation + PR Merge Command
+
+**Branch:** `wonderful-euler` → `reconcile-staging` (PR #67, merged) + `pr-merge-improvements`
+
+**What:** Processed Esther's PRs #66 and #65 to staging, discovered they regressed TJ's SEO/auth/branding work, reconciled both workstreams, then built tooling to prevent it from happening again.
+
+**PR merge sequence:**
+- PR #66 (Provider Hub Redesign, 81 files) → merged to staging
+- PR #65 (Refinements, 20 files) → converted from draft, merged to staging
+- Discovered regression: footer discovery zone, homepage power page routing, auth OTP performance, GA4 analytics, v1.0 redirects, provider detail JSON-LD, teal bird branding all silently reverted
+- PR #67 (Reconciliation) → started from `fond-fermi`, merged staging in, restored TJ's 17 care-seeker/SEO/auth files while keeping Esther's provider hub files. Build passes.
+
+**New tooling created:**
+- `.claude/commands/pr-merge.md` — slash command for safe PR merges with analysis, content regression detection, and Notion reporting
+
+---
+
+### 2026-02-25 (Session 18) — Branding Update: Teal Bird Logo + App Store Badge
+
+**Branch:** `fond-fermi` | **PR:** #63 targeting staging (merged)
+
+**What:** Replaced all Olera branding with the teal bird logo and added App Store badge to benefits finder.
+
+**Changes:**
+- `public/images/olera-logo.png` — replaced with teal bird
+- `app/icon.png` + `app/apple-icon.png` — new favicon/touch icon
+- Navbar + Footer — replaced hardcoded blue "O" div with `<img>` tag
+- `public/images/app-store-badge.png` — App Store badge added to benefits finder sidebar
+
+---
+
+## Architecture Research: Directory City Page Patterns (2026-02-24)
+
+> Archived from SCRATCHPAD.md. Critical findings for unified browse/power page architecture.
+
+### Key Finding: Every Top Directory Uses ONE Page
+
+Every major directory — Zillow, A Place for Mom, Caring.com, Zocdoc, Apartments.com — uses a single page per city+category that serves BOTH as the SEO landing page AND the interactive search/browse page.
+
+Architecture: server-render the first load (Google sees full HTML), then hydrate client-side for filters/sort/map.
+
+### Two-Tier URL Strategy
+
+| Tier | URL Type | Example | Indexed? |
+|------|----------|---------|----------|
+| Tier 1 | Clean path | `/assisted-living/texas/houston` | Yes |
+| Tier 2 | Query params | `?rating=4&sort=price` | Blocked in robots.txt |
+
+### Implications for Olera
+
+1. Must merge `/browse` (client-only) + `/[category]/[state]/[city]` (server-only) into single page
+2. Server-rendered for SEO + client-hydrated for interactivity
+3. Filters operate client-side without changing URL
+
+## Phase 4 Plan: Unified Browse+Power Page (archived from SCRATCHPAD)
+
+```
+/[category]/[state]/[city]/page.tsx (Server Component)
+  ├─ Server-fetches providers via fetchPowerPageData()
+  ├─ Generates metadata, JSON-LD, breadcrumbs
+  └─ Passes providers as props to <CityBrowseClient /> (Client Component)
+      ├─ Hydrates with filter/sort/map interactivity
+      └─ Pagination client-side (24 per page)
+```
+
+Key decisions needed: map on city pages, which filters, fate of `/browse`, provider limit.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import { saveProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
@@ -254,11 +255,12 @@ export default function EditGalleryModal({
               const isProfilePhoto = src === profilePhoto;
               return (
                 <div key={src} className={`relative group rounded-xl overflow-hidden aspect-square ${isProfilePhoto ? "ring-2 ring-primary-500 ring-offset-2" : ""}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={src}
                     alt={`Gallery photo ${i + 1}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 33vw, 200px"
+                    className="object-cover"
                   />
                   {/* Profile photo badge */}
                   {isProfilePhoto && (
@@ -295,11 +297,12 @@ export default function EditGalleryModal({
             {/* Uploading placeholders */}
             {uploading.map((u) => (
               <div key={u.id} className="relative rounded-xl overflow-hidden aspect-square bg-warm-50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={u.preview}
                   alt={`Uploading ${u.name}`}
-                  className="w-full h-full object-cover opacity-50"
+                  fill
+                  sizes="(max-width: 768px) 33vw, 200px"
+                  className="object-cover opacity-50"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-600 rounded-full animate-spin" />

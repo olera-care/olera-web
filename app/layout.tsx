@@ -61,6 +61,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 // Organization JSON-LD for the entire site
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -94,6 +100,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* ── Resource hints for faster external connections ── */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.lordicon.com" crossOrigin="anonymous" />
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="anonymous" />
+        )}
+
+        {/* DNS-prefetch for domains used on specific pages (browse, map) */}
+        <link rel="dns-prefetch" href="https://a.basemaps.cartocdn.com" />
+        <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+        <link rel="dns-prefetch" href="https://api.maptiler.com" />
+
         {/* GA4 — same property as v1.0 */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}

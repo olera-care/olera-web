@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import EditCarePostModal from "./EditCarePostModal";
 
@@ -213,7 +214,7 @@ export default function CarePostSidebar({
             <button
               type="button"
               onClick={() => setEditModalOpen(true)}
-              className="text-[12px] font-medium text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
+              className="min-h-[44px] px-2 -mr-2 text-[12px] font-medium text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
             >
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
@@ -226,10 +227,12 @@ export default function CarePostSidebar({
           {/* Profile row */}
           <div className="flex items-center gap-3 mb-4">
             {activeProfile.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={activeProfile.image_url}
                 alt=""
+                width={44}
+                height={44}
+                sizes="44px"
                 className="w-11 h-11 rounded-full object-cover border border-gray-100"
               />
             ) : (
@@ -304,8 +307,8 @@ export default function CarePostSidebar({
         {/* Actions section */}
         <div className="border-t border-gray-100 px-5 py-3.5 space-y-3">
           {/* Accepting new matches toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] text-gray-600">Accepting new matches</span>
+          <div className="flex items-center justify-between min-h-[44px]">
+            <span className="text-[14px] text-gray-600">Accepting new matches</span>
             <button
               type="button"
               role="switch"
@@ -313,14 +316,14 @@ export default function CarePostSidebar({
               onClick={handleToggleAccepting}
               disabled={deactivating || publishing}
               className={[
-                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50",
+                "relative inline-flex h-7 w-[52px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50",
                 acceptingMatches ? "bg-primary-500" : "bg-gray-200",
               ].join(" ")}
             >
               <span
                 className={[
-                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
-                  acceptingMatches ? "translate-x-5" : "translate-x-0",
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
+                  acceptingMatches ? "translate-x-6" : "translate-x-0",
                 ].join(" ")}
               />
             </button>
@@ -380,7 +383,7 @@ export default function CarePostSidebar({
                           type="button"
                           onClick={() => toggleDeleteReason(reason)}
                           className={[
-                            "text-[12px] font-medium px-3 py-1.5 rounded-full border transition-all duration-150",
+                            "text-[13px] font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150",
                             isSelected
                               ? "border-gray-300 bg-gray-100 text-gray-800"
                               : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50",
@@ -398,7 +401,7 @@ export default function CarePostSidebar({
                         setShowDeleteConfirm(false);
                         setSelectedDeleteReasons([]);
                       }}
-                      className="flex-1 py-2 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="flex-1 min-h-[44px] py-2 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                     >
                       Keep profile
                     </button>
@@ -406,7 +409,7 @@ export default function CarePostSidebar({
                       type="button"
                       onClick={handleDeletePost}
                       disabled={deleting}
-                      className="flex-1 py-2 rounded-lg bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-2 rounded-lg bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
                     >
                       {deleting ? "Removing..." : "Delete profile"}
                     </button>
@@ -420,7 +423,7 @@ export default function CarePostSidebar({
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="text-[13px] text-gray-400 hover:text-red-600 transition-colors"
+              className="min-h-[44px] px-2 -mx-2 text-[13px] text-gray-400 hover:text-red-600 transition-colors"
             >
               Delete profile
             </button>

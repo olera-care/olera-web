@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
+import { sendEmail } from "@/lib/email";
+import { connectionRequestEmail, connectionSentEmail } from "@/lib/email-templates";
+import { sendSlackAlert, slackNewLead } from "@/lib/slack";
+import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { sendLoopsEvent } from "@/lib/loops";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -369,7 +374,153 @@ export async function POST(request: Request) {
       );
     }
 
-    // 9. Sync intent data back to user's family profile
+    // 9. Confirmation email to the family (fire-and-forget)
+    try {
+      if (user.email) {
+        const careTypeMap0: Record<string, string> = {
+          home_care: "Home Care",
+          home_health: "Home Health Care",
+          assisted_living: "Assisted Living",
+          memory_care: "Memory Care",
+        };
+
+        await sendEmail({
+          to: user.email,
+          subject: `Your inquiry to ${providerName} was sent`,
+          html: connectionSentEmail({
+            familyName: firstName || "there",
+            providerName,
+            careType: intentData?.careType ? (careTypeMap0[intentData.careType] || intentData.careType) : null,
+            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+          }),
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send connection confirmation email:", emailErr);
+    }
+
+    // 9b. Email notification to provider (fire-and-forget)
+    try {
+      // Look up provider email from business_profiles or olera-providers
+      const { data: providerProfile } = await db
+        .from("business_profiles")
+        .select("email, display_name")
+        .eq("id", toProfileId)
+        .single();
+
+      let providerEmail = providerProfile?.email;
+      if (!providerEmail) {
+        // Fall back to olera-providers table
+        const { data: iosProvider } = await db
+          .from("olera-providers")
+          .select("email")
+          .eq("provider_id", providerId)
+          .single();
+        providerEmail = iosProvider?.email;
+      }
+
+      if (providerEmail) {
+        const careTypeMap: Record<string, string> = {
+          home_care: "Home Care",
+          home_health: "Home Health Care",
+          assisted_living: "Assisted Living",
+          memory_care: "Memory Care",
+        };
+
+        await sendEmail({
+          to: providerEmail,
+          subject: `New care inquiry from ${firstName || "a family"} on Olera`,
+          html: connectionRequestEmail({
+            providerName: providerProfile?.display_name || providerName,
+            familyName: account.display_name || "A family",
+            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
+            message: intentData?.additionalNotes || null,
+            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+          }),
+        });
+      }
+    } catch (emailErr) {
+      // Non-blocking — connection was created, email is best-effort
+      console.error("Failed to send connection request email:", emailErr);
+    }
+
+    // 9c. SMS notification to provider (fire-and-forget)
+    try {
+      // Use provider phone from business_profiles or olera-providers
+      let providerPhone: string | null = null;
+      const { data: bpPhone } = await db
+        .from("business_profiles")
+        .select("phone")
+        .eq("id", toProfileId)
+        .single();
+      providerPhone = bpPhone?.phone || null;
+      console.log("[sms] business_profiles phone:", providerPhone);
+
+      if (!providerPhone) {
+        const { data: iosPhone } = await db
+          .from("olera-providers")
+          .select("phone")
+          .eq("provider_id", providerId)
+          .single();
+        providerPhone = iosPhone?.phone || null;
+        console.log("[sms] olera-providers fallback phone:", providerPhone);
+      }
+
+      if (providerPhone) {
+        const normalized = normalizeUSPhone(providerPhone);
+        console.log("[sms] Normalized:", normalized, "from raw:", providerPhone);
+        if (normalized) {
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          const result = await sendSMS({
+            to: normalized,
+            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/portal/connections`,
+          });
+          console.log("[sms] Send result:", JSON.stringify(result));
+        } else {
+          console.log("[sms] Phone normalization failed for:", providerPhone);
+        }
+      } else {
+        console.log("[sms] No phone found for provider:", toProfileId);
+      }
+    } catch (smsErr) {
+      console.error("[sms] Unexpected error:", smsErr);
+    }
+
+    // 9d. Slack alert for new lead (fire-and-forget)
+    try {
+      const careTypeMap2: Record<string, string> = {
+        home_care: "Home Care",
+        home_health: "Home Health Care",
+        assisted_living: "Assisted Living",
+        memory_care: "Memory Care",
+      };
+      const alert = slackNewLead({
+        familyName: account.display_name || "A family",
+        providerName: providerName,
+        careType: intentData?.careType ? (careTypeMap2[intentData.careType] || intentData.careType) : null,
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
+    } catch {
+      // Non-blocking
+    }
+
+    // 9e. Loops: new lead event (fire-and-forget)
+    try {
+      await sendLoopsEvent({
+        email: user.email || "",
+        eventName: "new_lead",
+        audience: "seeker",
+        eventProperties: {
+          providerName,
+          careType: intentData?.careType || "",
+          urgency: intentData?.urgency || "",
+        },
+      });
+    } catch {
+      // Non-blocking
+    }
+
+    // 10. Sync intent data back to user's family profile
     if (intentData) {
       try {
         const { data: currentProfile } = await db

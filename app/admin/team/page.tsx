@@ -15,18 +15,24 @@ export default function AdminTeamPage() {
   const [addError, setAddError] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [removeLoading, setRemoveLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   const isMaster = currentAdmin?.role === "master_admin";
 
   const fetchAdmins = useCallback(async () => {
+    setError(null);
     try {
       const res = await fetch("/api/admin/team");
       if (res.ok) {
         const data = await res.json();
         setAdmins(data.admins ?? []);
+      } else {
+        setError("Failed to load team data. Please try again.");
       }
     } catch (err) {
       console.error("Failed to fetch admins:", err);
+      setError("Failed to load team data. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -68,6 +74,7 @@ export default function AdminTeamPage() {
     if (!confirm("Are you sure you want to remove this admin?")) return;
 
     setRemoveLoading(id);
+    setRemoveError(null);
     try {
       const res = await fetch("/api/admin/team", {
         method: "DELETE",
@@ -78,11 +85,11 @@ export default function AdminTeamPage() {
       if (res.ok) {
         await fetchAdmins();
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to remove admin");
+        const data = await res.json().catch(() => ({}));
+        setRemoveError(data.error || "Failed to remove admin. Please try again.");
       }
     } catch {
-      alert("Network error");
+      setRemoveError("Failed to remove admin. Please check your connection.");
     } finally {
       setRemoveLoading(null);
     }
@@ -108,6 +115,18 @@ export default function AdminTeamPage() {
           </button>
         )}
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {removeError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {removeError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

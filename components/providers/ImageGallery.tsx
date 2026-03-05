@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface ImageGalleryProps {
   images: string[];
@@ -28,12 +29,15 @@ export default function ImageGallery({ images, alt, onClose }: ImageGalleryProps
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {images.map((img, index) => (
-            <img
-              key={index}
-              src={img}
-              alt={`${alt} - Image ${index + 1}`}
-              className="w-full h-full object-cover flex-shrink-0"
-            />
+            <div key={index} className="relative w-full h-full flex-shrink-0">
+              <Image
+                src={img}
+                alt={`${alt} - Image ${index + 1}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
           ))}
         </div>
       </div>

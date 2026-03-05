@@ -15,7 +15,7 @@ export default function CreateProfileRedirect() {
     sessionStorage.removeItem("olera_create_profile_form");
 
     // Redirect to the consolidated onboarding flow
-    router.replace("/onboarding?intent=organization");
+    router.replace("/onboarding?intent=provider");
   }, [router]);
 
   return (

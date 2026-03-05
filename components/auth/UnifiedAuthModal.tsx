@@ -485,6 +485,14 @@ export default function UnifiedAuthModal({
     // data loading in the background, and its onboarding-detection useEffect
     // will auto-open post-auth if onboarding is incomplete.
 
+    // Deferred returnUrl — skip PostAuth entirely and redirect.
+    // Used by the claim page to return after auth (verification-first flow).
+    if (options.deferred?.returnUrl) {
+      onClose();
+      router.push(options.deferred.returnUrl);
+      return;
+    }
+
     // New signups always need onboarding
     if (otpContext === "signup") {
       if (options.intent === "provider") {
@@ -723,12 +731,13 @@ export default function UnifiedAuthModal({
                 autoComplete="current-password"
                 className={inputClass}
               />
-              <div className="flex justify-between mt-2">
+              {/* Links grouped with input, proper touch targets, space before button */}
+              <div className="flex justify-between mt-1.5 -mx-2">
                 <button
                   type="button"
                   onClick={handleSendOtpForSignIn}
                   disabled={loading || !email.trim()}
-                  className="text-xs text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-h-[44px] px-2 flex items-center text-[15px] text-primary-600 hover:text-primary-700 font-medium focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Email me a code instead
                 </button>
@@ -736,7 +745,7 @@ export default function UnifiedAuthModal({
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={loading || !email.trim()}
-                  className="text-xs text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="min-h-[44px] px-2 flex items-center text-[15px] text-gray-400 hover:text-gray-600 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Forgot password?
                 </button>
@@ -749,9 +758,11 @@ export default function UnifiedAuthModal({
               </div>
             )}
 
-            <Button type="submit" loading={loading} fullWidth size="lg">
-              Sign in
-            </Button>
+            <div className="pt-2">
+              <Button type="submit" loading={loading} fullWidth size="lg">
+                Sign in
+              </Button>
+            </div>
           </form>
 
           <p className="text-center text-sm text-gray-400 mt-5">

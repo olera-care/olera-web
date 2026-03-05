@@ -21,6 +21,8 @@ export default function TestimonialCarousel({
 }: TestimonialCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const isPaused = useRef(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -43,6 +45,35 @@ export default function TestimonialCarousel({
     [testimonials.length],
   );
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = null;
+    isPaused.current = true;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchStartX.current === null || touchEndX.current === null) {
+      isPaused.current = false;
+      return;
+    }
+    const diff = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+    if (Math.abs(diff) > minSwipeDistance) {
+      if (diff > 0) {
+        next();
+      } else {
+        prev();
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+    isPaused.current = false;
+  }, [next, prev]);
+
   return (
     <section className="bg-vanilla-50 border-y border-warm-100/60 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -53,6 +84,9 @@ export default function TestimonialCarousel({
         <div
           onMouseEnter={() => { isPaused.current = true; }}
           onMouseLeave={() => { isPaused.current = false; }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Stacked testimonials with fade crossfade */}
           <div className="relative">
@@ -98,7 +132,7 @@ export default function TestimonialCarousel({
             <button
               type="button"
               onClick={prev}
-              className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-white hover:border-gray-300 transition-colors"
+              className="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center hover:bg-white hover:border-gray-300 transition-colors"
               aria-label="Previous testimonial"
             >
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -114,8 +148,8 @@ export default function TestimonialCarousel({
                   onClick={() => goTo(i)}
                   className={`rounded-full transition-all duration-300 ${
                     i === activeIndex
-                      ? "w-6 h-2 bg-primary-400"
-                      : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+                      ? "w-6 h-2.5 bg-primary-400"
+                      : "w-2.5 h-2.5 bg-gray-300 hover:bg-gray-400"
                   }`}
                   aria-label={`Go to testimonial ${i + 1}`}
                 />
@@ -125,7 +159,7 @@ export default function TestimonialCarousel({
             <button
               type="button"
               onClick={next}
-              className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-white hover:border-gray-300 transition-colors"
+              className="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center hover:bg-white hover:border-gray-300 transition-colors"
               aria-label="Next testimonial"
             >
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

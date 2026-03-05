@@ -1,0 +1,154 @@
+const WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
+
+interface SlackBlock {
+  type: string;
+  text?: { type: string; text: string; emoji?: boolean };
+  fields?: { type: string; text: string }[];
+  elements?: { type: string; text: string }[];
+}
+
+/**
+ * Send an alert to Slack via incoming webhook.
+ * Fire-and-forget safe — logs errors but never throws.
+ */
+export async function sendSlackAlert(
+  text: string,
+  blocks?: SlackBlock[]
+): Promise<{ success: boolean; error?: string }> {
+  if (!WEBHOOK_URL) {
+    console.warn("[slack] SLACK_WEBHOOK_URL not configured, skipping alert");
+    return { success: false, error: "Slack not configured" };
+  }
+
+  try {
+    const body: Record<string, unknown> = { text };
+    if (blocks) body.blocks = blocks;
+
+    const res = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      console.error("[slack] Webhook error:", res.status, msg);
+      return { success: false, error: msg };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("[slack] Send failed:", err);
+    return { success: false, error: String(err) };
+  }
+}
+
+// ── Pre-built alert helpers ─────────────────────────────────────
+
+export function slackNewLead(opts: {
+  familyName: string;
+  providerName: string;
+  careType: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  return {
+    text: `New lead: ${opts.familyName} → ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🔔 New Care Inquiry", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Family:*\n${opts.familyName}` },
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          ...(opts.careType
+            ? [{ type: "mrkdwn", text: `*Care Type:*\n${opts.careType}` }]
+            : []),
+        ],
+      },
+    ],
+  };
+}
+
+export function slackProviderClaimed(opts: {
+  providerName: string;
+  claimedByEmail: string;
+  providerSlug: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: `Provider claimed: ${opts.providerName} by ${opts.claimedByEmail}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "✅ Provider Claimed", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Claimed by:*\n${opts.claimedByEmail}` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View listing>` },
+        ],
+      },
+    ],
+  };
+}
+
+export function slackDispute(opts: {
+  providerName: string;
+  reportedBy: string;
+  reason: string;
+}): { text: string; blocks: SlackBlock[] } {
+  return {
+    text: `Dispute reported: ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "⚠️ Content Dispute", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Reported by:*\n${opts.reportedBy}` },
+          { type: "mrkdwn", text: `*Reason:*\n${opts.reason}` },
+        ],
+      },
+    ],
+  };
+}
+
+export function slackProviderAction(opts: {
+  providerName: string;
+  action: "approved" | "rejected";
+  adminEmail: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const emoji = opts.action === "approved" ? "👍" : "👎";
+  return {
+    text: `Provider ${opts.action}: ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `${emoji} Provider ${opts.action.charAt(0).toUpperCase() + opts.action.slice(1)}`,
+          emoji: true,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*By:*\n${opts.adminEmail}` },
+        ],
+      },
+    ],
+  };
+}

@@ -95,8 +95,7 @@ export default function CarePostView({
     ? meta.payment_methods.join(", ")
     : null;
 
-  const notesDisplay =
-    meta.about_situation || activeProfile.description || null;
+  const notesDisplay = activeProfile.description || null;
 
   const relationshipDisplay = meta.relationship_to_recipient
     ? meta.relationship_to_recipient

@@ -55,30 +55,66 @@ export default function Modal({
     setMounted(true);
   }, []);
 
+  // Blur active element before closing to prevent scroll-to-footer.
+  // When React removes the portal while an element inside has focus,
+  // the browser scrolls to the next focusable element (footer links).
+  // Blurring first means no focused element = no scroll.
+  // See: docs/POSTMORTEMS.md "2026-02-25: Modal close scrolls page to footer"
+  const handleClose = useCallback(() => {
+    const active = document.activeElement;
+    if (active && active !== document.body) {
+      (active as HTMLElement).blur();
+    }
+    onCloseRef.current();
+  }, []);
+
   // Close on Escape key — uses ref so effect doesn't depend on onClose identity
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
-      onCloseRef.current();
+      handleClose();
     }
-  }, []);
+  }, [handleClose]);
 
   // Keyboard listener + scroll lock — only re-runs when isOpen changes.
   // Compensates for scrollbar width to prevent layout shift.
+  // iOS Safari ignores overflow:hidden on <body>, so we also use position:fixed
+  // (the standard iOS scroll-lock technique). We store scrollY and restore it
+  // on close so the page doesn't jump to the top.
   useEffect(() => {
     if (!isOpen) return;
 
+    const scrollY = window.scrollY;
     const scrollbarWidth = getScrollbarWidth();
 
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+
+      // Read the stored scroll position from the top style before clearing
+      const storedScrollY = parseInt(document.body.style.top || "0", 10) * -1;
+
+      // Clear all styles
       document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
       document.body.style.paddingRight = "";
+
+      // Restore scroll position immediately without animation.
+      // Using scrollTo with behavior:'instant' prevents any smooth scrolling
+      // that could cause a visible jump. We use requestAnimationFrame to ensure
+      // the scroll happens in the same paint frame as the style changes.
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: storedScrollY, behavior: "instant" });
+      });
     };
   }, [isOpen, handleKeyDown]);
 
@@ -103,7 +139,7 @@ export default function Modal({
   const modalContent = (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label={title}
@@ -114,7 +150,7 @@ export default function Modal({
         onMouseDown={(e) => {
           // Only close if the mousedown started on the backdrop itself
           if (e.target === e.currentTarget) {
-            onCloseRef.current();
+            handleClose();
           }
         }}
       />
@@ -123,18 +159,29 @@ export default function Modal({
       <div
         ref={contentRef}
         className={[
-          "relative bg-white rounded-2xl shadow-2xl w-full min-h-[50vh] max-h-[85vh] flex flex-col",
-          "animate-slide-up",
+          "relative bg-white shadow-2xl w-full flex flex-col",
+          // Mobile: bottom sheet
+          "rounded-t-2xl max-h-[92vh] animate-sheet-up",
+          // Desktop: centered modal
+          "sm:rounded-2xl sm:min-h-[50vh] sm:max-h-[85vh] sm:animate-modal-pop",
           sizeClasses[size],
         ].join(" ")}
+        // Extend the white sheet into the iPhone safe-area zone so the
+        // home indicator doesn't create a transparent gap at the bottom.
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
+        {/* Drag handle — mobile only */}
+        <div className="sm:hidden flex justify-center pt-2 pb-1 shrink-0">
+          <div className="w-10 h-1 rounded-full bg-gray-300" />
+        </div>
+
         {/* Header — pinned top */}
-        <div className="flex items-center gap-3 px-7 pt-6 pb-0 shrink-0">
+        <div className="flex items-center gap-3 px-5 sm:px-7 pt-4 sm:pt-6 pb-0 shrink-0">
           {/* Back button */}
           {onBack && (
             <button
               onClick={onBack}
-              className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
               aria-label="Go back"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,15 +192,15 @@ export default function Modal({
 
           {/* Title (left-aligned) */}
           {title ? (
-            <h2 className="text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
+            <h2 className="text-xl sm:text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
           ) : (
             <div className="flex-1" />
           )}
 
           {/* Close button */}
           <button
-            onClick={() => onCloseRef.current()}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+            onClick={handleClose}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors shrink-0"
             aria-label="Close"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,13 +210,13 @@ export default function Modal({
         </div>
 
         {/* Scrollable body */}
-        <div className={`px-7 pt-2 flex-1 min-h-0 overflow-y-auto ${footer ? "" : "pb-7"}`}>
+        <div className={`px-5 sm:px-7 pt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}>
           {children}
         </div>
 
         {/* Sticky footer — pinned bottom */}
         {footer && (
-          <div className="px-7 pb-7 shrink-0">{footer}</div>
+          <div className="px-5 sm:px-7 pb-5 sm:pb-7 shrink-0">{footer}</div>
         )}
       </div>
     </div>

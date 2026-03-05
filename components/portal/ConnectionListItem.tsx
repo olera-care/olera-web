@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Connection, Profile } from "@/lib/types";
 import { avatarGradient, blurName } from "./ConnectionDetailContent";
 
@@ -62,10 +63,12 @@ export default function ConnectionListItem({
         {/* Avatar */}
         <div className="relative shrink-0">
           {imageUrl && !shouldBlur ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt={otherName}
+              width={40}
+              height={40}
+              sizes="40px"
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : (

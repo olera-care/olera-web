@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, type ChangeEvent } from "react";
+import Image from "next/image";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import Pill from "@/components/providers/connection-card/Pill";
@@ -115,9 +116,7 @@ export default function ProfileEditContent({
   const [payments, setPayments] = useState<string[]>(meta.payment_methods || []);
   const [living, setLiving] = useState(meta.living_situation || "");
   const [schedule, setSchedule] = useState(meta.schedule_preference || "");
-  const [careLocation, setCareLocation] = useState(meta.care_location || "");
   const [languages, setLanguages] = useState<string[]>(readLanguages(meta));
-  const [about, setAbout] = useState(meta.about_situation || "");
 
   // Image upload state
   const [imageUploading, setImageUploading] = useState(false);
@@ -187,9 +186,7 @@ export default function ProfileEditContent({
     setPayments(m.payment_methods || []);
     setLiving(m.living_situation || "");
     setSchedule(m.schedule_preference || "");
-    setCareLocation(m.care_location || "");
     setLanguages(readLanguages(m));
-    setAbout(m.about_situation || "");
   }, [profile, userEmail]);
 
   const saveToDb = useCallback(async () => {
@@ -214,9 +211,7 @@ export default function ProfileEditContent({
         care_needs: careNeeds.length > 0 ? careNeeds : undefined,
         living_situation: living || undefined,
         schedule_preference: schedule || undefined,
-        care_location: careLocation || undefined,
         language_preference: languages.length > 0 ? languages : undefined,
-        about_situation: about || undefined,
       };
 
       await supabase
@@ -239,7 +234,7 @@ export default function ProfileEditContent({
     } finally {
       savingRef.current = false;
     }
-  }, [profile.id, displayName, country, city, state, email, phone, contactPref, careRecipient, careTypes, timeline, notes, payments, living, schedule, careLocation, languages, about, onSaved]);
+  }, [profile.id, displayName, country, city, state, email, phone, contactPref, careRecipient, careTypes, timeline, notes, payments, living, schedule, languages, onSaved]);
 
   // Keep ref in sync so deferred pill saves always use the latest function
   saveToDbRef.current = saveToDb;
@@ -296,8 +291,7 @@ export default function ProfileEditContent({
                 >
                   {profile.image_url ? (
                     <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={profile.image_url} alt={profile.display_name} className="w-full h-full object-cover" />
+                      <Image src={profile.image_url} alt={profile.display_name} width={80} height={80} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-full flex flex-col items-center justify-center gap-0.5">
                         <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -440,7 +434,6 @@ export default function ProfileEditContent({
                 ))}
               </div>
             </div>
-            <Input label="Care location / area" value={careLocation} onChange={(e) => setCareLocation((e.target as HTMLInputElement).value)} onBlur={() => saveToDb()} placeholder="e.g. North Austin, near Anderson Mill" />
           </div>
         )}
 
@@ -453,10 +446,6 @@ export default function ProfileEditContent({
                   <Pill key={opt} label={opt} selected={languages.includes(opt)} onClick={() => { setLanguages((prev) => prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]); deferredSave(); }} small />
                 ))}
               </div>
-            </div>
-            <div>
-              <Input label="About the care situation" as="textarea" rows={4} value={about} onChange={(e) => setAbout((e.target as HTMLTextAreaElement).value)} onBlur={() => saveToDb()} placeholder="Tell providers more about daily life and what you're looking for..." maxLength={500} />
-              <p className="text-sm text-gray-400 mt-1 text-right">{about.length}/500</p>
             </div>
           </div>
         )}

@@ -51,18 +51,34 @@ export async function POST(request: NextRequest) {
         const accountId = session.metadata?.account_id;
         if (!accountId) break;
 
+        // Retrieve the subscription to get period and trial dates
+        const stripe = getStripe();
+        const subscriptionId = session.subscription as string;
+        const sub = await stripe.subscriptions.retrieve(subscriptionId);
+
+        const updateData: Record<string, unknown> = {
+          plan: "pro",
+          status: sub.status === "trialing" ? "trialing" : "active",
+          stripe_customer_id: session.customer as string,
+          stripe_subscription_id: subscriptionId,
+          billing_cycle:
+            session.metadata?.billing_cycle === "annual"
+              ? "annual"
+              : "monthly",
+          current_period_ends_at: new Date(
+            sub.items.data[0]?.current_period_end
+              ? sub.items.data[0].current_period_end * 1000
+              : Date.now()
+          ).toISOString(),
+        };
+
+        if (sub.trial_end) {
+          updateData.trial_ends_at = new Date(sub.trial_end * 1000).toISOString();
+        }
+
         await supabase
           .from("memberships")
-          .update({
-            plan: "pro",
-            status: "active",
-            stripe_customer_id: session.customer as string,
-            stripe_subscription_id: session.subscription as string,
-            billing_cycle:
-              session.metadata?.billing_cycle === "annual"
-                ? "annual"
-                : "monthly",
-          })
+          .update(updateData)
           .eq("account_id", accountId);
         break;
       }
@@ -84,6 +100,9 @@ export async function POST(request: NextRequest) {
 
         let status: string;
         switch (subscription.status) {
+          case "trialing":
+            status = "trialing";
+            break;
           case "active":
             status = "active";
             break;

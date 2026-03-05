@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import Pill from "@/components/providers/connection-card/Pill";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
+import { useAuth } from "@/components/auth/AuthProvider";
+import type { FamilyMetadata } from "@/lib/types";
 import {
   INTAKE_STEPS,
   TOTAL_INTAKE_STEPS,
@@ -44,7 +47,10 @@ export default function BenefitsIntakeForm() {
     setLocationDisplay,
     goToStep,
     submit,
+    publishCarePost,
+    setPublishCarePost,
   } = useCareProfile();
+  const { user, activeProfile, openAuth } = useAuth();
 
   // ─── Local UI state (not shared via context) ────────────────────────────
   const [locationInput, setLocationInputLocal] = useState(locationDisplay);
@@ -72,19 +78,18 @@ export default function BenefitsIntakeForm() {
     setAgeInput(answers.age ? String(answers.age) : "");
   }, [step, locationDisplay, answers.stateCode, answers.age]);
 
-  // Close dropdown when clicking outside
+  // Set default for "publish care post" when arriving at step 5
+  const publishDefaultSet = useRef(false);
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        locationDropdownRef.current &&
-        !locationDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowLocationDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (step !== 5 || !user || !activeProfile || publishDefaultSet.current) return;
+    publishDefaultSet.current = true;
+    const meta = (activeProfile.metadata || {}) as FamilyMetadata;
+    const isAlreadyActive = meta.care_post?.status === "active";
+    setPublishCarePost(!isAlreadyActive);
+  }, [step, user, activeProfile, setPublishCarePost]);
+
+  // Close dropdown when clicking outside (blur-before-close prevents scroll-to-footer)
+  useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
 
   // ─── Location helpers ───────────────────────────────────────────────────
 
@@ -194,7 +199,14 @@ export default function BenefitsIntakeForm() {
     if (step < 5) {
       goToStep((step + 1) as IntakeStep);
     } else {
-      // Final step — submit with all answers flushed
+      // Final step — auth gate before submitting
+      if (!user) {
+        // Prompt sign-in, preserving wizard state in React context
+        openAuth({ defaultMode: "sign-up", intent: "family" });
+        return;
+      }
+
+      // Submit with all answers flushed
       updateAnswers({
         stateCode: selectedStateCode,
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,
@@ -233,7 +245,7 @@ export default function BenefitsIntakeForm() {
     <div className="w-full">
       {/* Step content — keyed to animate on step change */}
       <div key={step} className="animate-step-in">
-      <p className="text-text-xs text-gray-400 mb-3 tabular-nums">
+      <p className="text-xs text-gray-400 mb-3 tabular-nums">
         {step + 1} / {TOTAL_INTAKE_STEPS}
       </p>
       <h2 className="font-display text-display-sm font-medium text-gray-900 mb-8 leading-snug tracking-tight">
@@ -300,7 +312,7 @@ export default function BenefitsIntakeForm() {
                   type="button"
                   onClick={detectLocation}
                   disabled={isGeolocating}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg text-primary-700 font-medium transition-colors disabled:opacity-60"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 min-h-[44px] bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg text-primary-700 font-medium transition-colors disabled:opacity-60"
                 >
                   {isGeolocating ? (
                     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -339,7 +351,7 @@ export default function BenefitsIntakeForm() {
                     key={loc.full}
                     type="button"
                     onClick={() => selectLocation(loc.full, loc.state)}
-                    className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                    className={`flex items-center gap-3 w-full px-4 py-2.5 min-h-[44px] text-left hover:bg-gray-50 transition-colors ${
                       locationInput === loc.full
                         ? "bg-primary-50 text-primary-700"
                         : "text-gray-900"
@@ -411,7 +423,7 @@ export default function BenefitsIntakeForm() {
       {/* Step 3: Primary needs (multi-select) */}
       {step === 3 && (
         <>
-          <p className="text-text-xs text-gray-400 mb-3">Select all that apply</p>
+          <p className="text-xs text-gray-400 mb-3">Select all that apply</p>
           <div className="flex flex-wrap gap-2.5 mb-4">
             {(Object.entries(PRIMARY_NEEDS) as [PrimaryNeed, { displayTitle: string; icon: string }][]).map(
               ([key, val]) => (
@@ -445,6 +457,7 @@ export default function BenefitsIntakeForm() {
 
       {/* Step 5: Medicaid status */}
       {step === 5 && (
+        <>
         <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
             ([key, val]) => (
@@ -457,6 +470,26 @@ export default function BenefitsIntakeForm() {
             )
           )}
         </div>
+
+        {/* Let providers find me — shown to everyone, auth required at submit */}
+        <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={publishCarePost}
+            onChange={(e) => setPublishCarePost(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 shrink-0 accent-gray-900"
+          />
+          <div className="min-w-0">
+            <span className="text-sm font-medium text-gray-700 leading-tight block">
+              Let providers find me
+            </span>
+            <span className="text-xs text-gray-400 leading-relaxed block mt-0.5">
+              Share your care profile so providers in your area can reach out.
+              {!user && " (requires sign-in)"}
+            </span>
+          </div>
+        </label>
+        </>
       )}
       </div>{/* end animate-step-in wrapper */}
 

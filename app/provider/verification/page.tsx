@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { saveProfile } from "@/components/provider-dashboard/edit-modals/save-profile";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import Modal from "@/components/ui/Modal";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -125,29 +128,30 @@ function UploadArea({
     return (
       <div className="relative rounded-xl overflow-hidden bg-warm-50 border border-warm-100">
         <div className="flex items-center gap-4 p-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={existingUrl}
             alt="Uploaded"
-            className="w-16 h-16 rounded-lg object-cover shrink-0"
+            width={64}
+            height={64}
+            className="rounded-lg object-cover shrink-0"
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">Image uploaded</p>
             <p className="text-xs text-gray-500 mt-0.5">JPEG, PNG, or WebP</p>
           </div>
           {!disabled && (
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-colors px-3 py-2 rounded-lg min-h-[44px] flex items-center"
               >
                 Replace
               </button>
               <button
                 type="button"
                 onClick={onRemove}
-                className="text-sm font-medium text-gray-400 hover:text-red-500 transition-colors"
+                className="text-sm font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors px-3 py-2 rounded-lg min-h-[44px] flex items-center"
               >
                 Remove
               </button>
@@ -328,6 +332,8 @@ export default function ProviderVerificationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<SectionKey | null>(null);
+  const [mobileSheetSection, setMobileSheetSection] = useState<SectionKey | null>(null);
+  const isMobile = useIsMobile();
 
   // Hydrate from metadata once profile loads
   useEffect(() => {
@@ -431,7 +437,17 @@ export default function ProviderVerificationPage() {
 
   function toggleSection(key: SectionKey) {
     if (isReadOnly) return;
-    setExpandedSection((prev) => (prev === key ? null : key));
+    if (isMobile) {
+      // Mobile: open bottom sheet
+      setMobileSheetSection(key);
+    } else {
+      // Desktop: toggle accordion
+      setExpandedSection((prev) => (prev === key ? null : key));
+    }
+  }
+
+  function closeMobileSheet() {
+    setMobileSheetSection(null);
   }
 
   if (!profile) return <VerificationSkeleton />;
@@ -573,8 +589,8 @@ export default function ProviderVerificationPage() {
                   )}
                 </button>
 
-                {/* Expanded content */}
-                {isExpanded && !isReadOnly && (
+                {/* Expanded content - desktop only (mobile uses bottom sheet) */}
+                {isExpanded && !isReadOnly && !isMobile && (
                   <div className="px-6 pb-5 pt-0">
                     {section.key === "id" && (
                       <div className="space-y-4">
@@ -670,46 +686,240 @@ export default function ProviderVerificationPage() {
               </div>
             );
           })}
+
+          {/* Error */}
+          {error && (
+            <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4 mx-6 mb-5" role="alert">
+              <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <p className="text-sm text-red-700 flex-1">{error}</p>
+              <button
+                type="button"
+                onClick={() => setError(null)}
+                className="text-red-300 hover:text-red-500 transition-colors shrink-0"
+                aria-label="Dismiss error"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Submit button */}
+          {!isReadOnly && (
+            <div className="px-6 py-5 border-t border-warm-100/60">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                className="w-full sm:w-auto sm:ml-auto sm:block px-8 py-3 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm min-h-[48px]"
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Submitting...
+                  </span>
+                ) : (
+                  "Submit for Verification"
+                )}
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4 mb-6" role="alert">
-            <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            <p className="text-sm text-red-700 flex-1">{error}</p>
+        {/* Mobile Bottom Sheets */}
+        {/* ID Verification Sheet */}
+        <Modal
+          isOpen={mobileSheetSection === "id"}
+          onClose={closeMobileSheet}
+          title="ID Verification"
+          size="lg"
+          footer={
             <button
               type="button"
-              onClick={() => setError(null)}
-              className="text-red-300 hover:text-red-500 transition-colors shrink-0"
-              aria-label="Dismiss error"
+              onClick={closeMobileSheet}
+              disabled={!idType || !idImageUrl}
+              className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[48px]"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              {idType && idImageUrl ? "Done" : "Complete to continue"}
             </button>
-          </div>
-        )}
-
-        {/* Submit button */}
-        {!isReadOnly && (
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
-          >
-            {submitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Submitting...
-              </span>
-            ) : (
-              "Submit for Verification"
+          }
+        >
+          <div className="space-y-5 py-2">
+            {error && (
+              <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-3" role="alert">
+                <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p className="text-sm text-red-700 flex-1">{error}</p>
+              </div>
             )}
-          </button>
-        )}
+            <p className="text-sm text-gray-500">
+              Select your ID type and upload an image of it.
+            </p>
+            <div>
+              <label
+                htmlFor="id-type-mobile"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                ID Type
+              </label>
+              <select
+                id="id-type-mobile"
+                value={idType}
+                onChange={(e) => setIdType(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] appearance-none"
+              >
+                <option value="">Select ID type</option>
+                {ID_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                ID Image
+              </label>
+              <UploadArea
+                existingUrl={idImageUrl}
+                uploading={uploadingId}
+                onFileSelected={(file) =>
+                  uploadFile(file, setIdImageUrl, setUploadingId)
+                }
+                onRemove={() => setIdImageUrl("")}
+              />
+            </div>
+          </div>
+        </Modal>
+
+        {/* Photo Sheet */}
+        <Modal
+          isOpen={mobileSheetSection === "photo"}
+          onClose={closeMobileSheet}
+          title="Your Photo"
+          size="lg"
+          footer={
+            <button
+              type="button"
+              onClick={closeMobileSheet}
+              disabled={!managerPhotoUrl}
+              className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[48px]"
+            >
+              {managerPhotoUrl ? "Done" : "Upload photo to continue"}
+            </button>
+          }
+        >
+          <div className="space-y-5 py-2">
+            {error && (
+              <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-3" role="alert">
+                <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p className="text-sm text-red-700 flex-1">{error}</p>
+              </div>
+            )}
+            <p className="text-sm text-gray-500">
+              Upload a clear photo of yourself.
+            </p>
+            <UploadArea
+              existingUrl={managerPhotoUrl}
+              uploading={uploadingPhoto}
+              onFileSelected={(file) =>
+                uploadFile(file, setManagerPhotoUrl, setUploadingPhoto)
+              }
+              onRemove={() => setManagerPhotoUrl("")}
+            />
+          </div>
+        </Modal>
+
+        {/* Role Sheet */}
+        <Modal
+          isOpen={mobileSheetSection === "role"}
+          onClose={closeMobileSheet}
+          title="Your Role"
+          size="lg"
+          footer={
+            <button
+              type="button"
+              onClick={closeMobileSheet}
+              disabled={!role}
+              className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[48px]"
+            >
+              {role ? "Done" : "Select role to continue"}
+            </button>
+          }
+        >
+          <div className="space-y-5 py-2">
+            <p className="text-sm text-gray-500">
+              What is your role at this business?
+            </p>
+            <div>
+              <label
+                htmlFor="role-select-mobile"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Select your role
+              </label>
+              <select
+                id="role-select-mobile"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] appearance-none"
+              >
+                <option value="">Select role</option>
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Affiliation Sheet */}
+        <Modal
+          isOpen={mobileSheetSection === "affiliation"}
+          onClose={closeMobileSheet}
+          title="Business Affiliation"
+          size="lg"
+          footer={
+            <button
+              type="button"
+              onClick={closeMobileSheet}
+              disabled={!affiliationImageUrl}
+              className="w-full py-3.5 rounded-xl text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors min-h-[48px]"
+            >
+              {affiliationImageUrl ? "Done" : "Upload photo to continue"}
+            </button>
+          }
+        >
+          <div className="space-y-5 py-2">
+            {error && (
+              <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-3" role="alert">
+                <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <p className="text-sm text-red-700 flex-1">{error}</p>
+              </div>
+            )}
+            <p className="text-sm text-gray-500">
+              Upload a photo showing your connection to the business. This could be a photo of the facility, your company badge, uniform, or anything that shows your connection.
+            </p>
+            <UploadArea
+              existingUrl={affiliationImageUrl}
+              uploading={uploadingAffiliation}
+              onFileSelected={(file) =>
+                uploadFile(file, setAffiliationImageUrl, setUploadingAffiliation)
+              }
+              onRemove={() => setAffiliationImageUrl("")}
+            />
+          </div>
+        </Modal>
       </div>
     </div>
     </div>

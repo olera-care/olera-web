@@ -272,25 +272,13 @@ function CommunityPageContent() {
     <div>
       {/* ── Sticky composer header — flush, no side/top padding ── */}
       <div className={`sticky top-0 z-20 bg-white border-b border-gray-200 ${showComposer ? "shadow-md" : ""}`}>
-        {/* Mobile: Search + Category pills */}
-        <div className="lg:hidden px-4 pt-4 space-y-3">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search discussions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-            <div className="flex gap-2 min-w-max pb-1">
+        {/* Mobile: Category pills only (search hidden on mobile) */}
+        <div className="lg:hidden px-5 pt-4">
+          <div className="overflow-x-auto scrollbar-hide -mx-5 px-5">
+            <div className="flex gap-2 min-w-max pb-2">
               <button
                 onClick={() => handleCategoryChange("all")}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   activeCategory === "all"
                     ? "bg-gray-900 text-white"
                     : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
@@ -302,7 +290,7 @@ function CommunityPageContent() {
                 <button
                   key={careType}
                   onClick={() => handleCategoryChange(careType)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                     activeCategory === careType
                       ? "bg-gray-900 text-white"
                       : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
@@ -316,31 +304,31 @@ function CommunityPageContent() {
         </div>
 
         {/* Composer */}
-        <div className={`px-8 ${showComposer ? "py-6" : "py-6"} transition-all duration-200 ${showComposer ? "relative z-20" : ""}`}>
+        <div className={`px-5 sm:px-8 ${showComposer ? "py-6" : "py-5"} transition-all duration-200 ${showComposer ? "relative z-20" : ""}`}>
           {!showComposer ? (
-            <div className="space-y-3">
-              <div className="flex items-end justify-between">
+            <div className="space-y-4">
+              <div className="flex items-end justify-between gap-4">
                 <div>
                   <p className="text-sm text-gray-500">{getGreeting()}</p>
-                  <h2 className="text-xl font-semibold text-gray-900">What&apos;s on your mind today?</h2>
+                  <h2 className="font-display text-display-xs font-semibold text-gray-900 leading-snug">What&apos;s on your mind?</h2>
                 </div>
-                <div className="relative" ref={sortMenuRef}>
+                <div className="relative shrink-0" ref={sortMenuRef}>
                   <button
                     onClick={() => setShowSortMenu(!showSortMenu)}
-                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                    className="flex items-center gap-1.5 min-h-[44px] px-3 -mr-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     Sort: {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   {showSortMenu && (
-                    <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                    <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20">
                       {SORT_OPTIONS.map((option) => (
                         <button
                           key={option.value}
                           onClick={() => { setSortBy(option.value); setShowSortMenu(false); }}
-                          className={`w-full px-3 py-2 text-left text-sm transition-colors ${
+                          className={`w-full px-4 py-2 min-h-[44px] text-left text-sm transition-colors ${
                             sortBy === option.value ? "bg-gray-50 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-50"
                           }`}
                         >
@@ -353,13 +341,13 @@ function CommunityPageContent() {
               </div>
               <div
                 onClick={() => setShowComposer(true)}
-                className="flex items-center gap-3 pl-3 pr-1.5 py-1.5 bg-white border border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer"
+                className="flex items-center gap-3 pl-4 pr-2 py-2 min-h-[56px] bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors cursor-pointer shadow-sm"
               >
-                <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-600 font-medium text-xs">JD</span>
+                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-primary-600 font-medium text-sm">JD</span>
                 </div>
-                <span className="flex-1 text-left text-gray-500 text-sm font-medium">Start a discussion...</span>
-                <button className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">Post</button>
+                <span className="flex-1 text-left text-gray-400 text-sm">Start a discussion...</span>
+                <button className="px-5 py-2.5 min-h-[44px] bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">Post</button>
               </div>
             </div>
           ) : (
@@ -396,8 +384,8 @@ function CommunityPageContent() {
                   {composerErrors.category && <p className="mt-1 text-sm text-red-500">{composerErrors.category}</p>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={resetComposer} className="px-4 py-2 text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">Cancel</button>
-                  <button onClick={handlePostSubmit} className="px-5 py-2 text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors">Post Discussion</button>
+                  <button onClick={resetComposer} className="px-4 py-2 min-h-[44px] text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">Cancel</button>
+                  <button onClick={handlePostSubmit} className="px-5 py-2 min-h-[44px] text-sm font-medium rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors">Post Discussion</button>
                 </div>
               </div>
             </div>
@@ -409,17 +397,17 @@ function CommunityPageContent() {
       </div>
 
       {/* ── Posts list ── */}
-      <div className="px-8 py-6">
+      <div className="px-5 sm:px-8 py-6">
         <div>
           {/* Section heading */}
-          <div className="flex items-baseline gap-2 mb-4">
+          <div className="flex items-baseline gap-2.5 mb-5">
             <h3 className="text-base font-semibold text-gray-900">
               {activeCategory === "all" ? "All Discussions" : CARE_TYPE_CONFIG[activeCategory].label}
             </h3>
-            <span className="text-sm text-gray-400 font-medium">{posts.length}</span>
+            <span className="text-sm text-gray-400 font-medium tabular-nums">{posts.length}</span>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {paginatedPosts.length > 0 ? (
               paginatedPosts.map((post) => (
                 <ForumPostCardV3
@@ -430,21 +418,21 @@ function CommunityPageContent() {
                 />
               ))
             ) : (
-              <div className="py-12 text-center">
+              <div className="py-16 text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No discussions found</h3>
-                <p className="text-gray-500">{searchQuery ? "Try different keywords or browse all topics." : "Be the first to start a discussion!"}</p>
+                <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">No discussions found</h3>
+                <p className="text-sm text-gray-500 max-w-xs mx-auto">{searchQuery ? "Try different keywords or browse all topics." : "Be the first to start a discussion!"}</p>
               </div>
             )}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-6 flex justify-center">
+            <div className="mt-8 flex justify-center">
               <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={posts.length} itemsPerPage={POSTS_PER_PAGE}
                 onPageChange={(page) => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 itemLabel="discussions" showItemCount={false} />
@@ -469,10 +457,10 @@ function CommunityPageContent() {
         </div>
         <button
           onClick={handleClosePost}
-          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors flex-shrink-0"
+          className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors flex-shrink-0"
           aria-label="Close"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -500,10 +488,10 @@ function CommunityPageContent() {
         </div>
         <button
           onClick={handleClosePost}
-          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors flex-shrink-0"
+          className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors flex-shrink-0"
           aria-label="Close"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>

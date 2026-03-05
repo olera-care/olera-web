@@ -78,9 +78,7 @@ export default function ActionCard({
   // Current state
   const [state, setState] = useState<ActionCardState>(initialState);
 
-  // Verify form state
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  // Form state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -127,11 +125,6 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const handleSubmitVerifyForm = async () => {
-    if (!email.trim() || !phone.trim()) {
-      setError("Please enter both email and phone number.");
-      return;
-    }
-
     setSubmitting(true);
     setError("");
 
@@ -149,8 +142,7 @@ export default function ActionCard({
 
       if (!res.ok) {
         if (res.status === 422) {
-          // No email on file
-          setNoAccessEmail(email);
+          // No email on file - go to manual request form
           setState("no-access");
         } else {
           setError(result.error || "Failed to send verification code.");
@@ -774,13 +766,16 @@ export default function ActionCard({
   }
 
   // ════════════════════════════════════════════════════════════
-  // RENDER: Verify Form State (Default)
+  // RENDER: Verify Form State (Default) - Simplified
   // ════════════════════════════════════════════════════════════
+
+  const businessEmail = provider.email;
+  const hasEmailOnFile = !!businessEmail;
 
   return (
     <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
       {/* Header */}
-      <div className="flex items-start gap-4 mb-6">
+      <div className="flex items-start gap-4 mb-5">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
           <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24">
             <path
@@ -788,104 +783,78 @@ export default function ActionCard({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
             />
           </svg>
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
-            Verify your business email
+            Claim this listing
           </h3>
           <p className="text-[15px] text-gray-500 leading-relaxed">
-            We&apos;ll send a verification code to the <strong className="text-gray-700">email on file</strong> for this business.
+            Verify your connection to <strong className="text-gray-700">{provider.provider_name}</strong> to manage this listing.
           </p>
         </div>
       </div>
 
-      {/* Info banner about email on file */}
-      {provider.email && (
-        <div className="mb-5 px-4 py-3 bg-vanilla-50 border border-warm-100/60 rounded-xl">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-primary-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      {/* Email on file info */}
+      {hasEmailOnFile && (
+        <div className="mb-5 px-4 py-3.5 bg-vanilla-50 border border-warm-100/60 rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary-100/80 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
             <p className="text-sm text-gray-600">
-              Code will be sent to: <span className="font-semibold text-gray-800">{maskEmail(provider.email)}</span>
+              We&apos;ll send a code to <span className="font-semibold text-gray-800">{maskEmail(businessEmail)}</span>
             </p>
           </div>
         </div>
       )}
 
-      {/* Form */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className={labelClasses}>
-              Your email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className={inputClasses}
-            />
-            <p className="text-xs text-gray-400">For our records</p>
-          </div>
-          <div className="space-y-1.5">
-            <label className={labelClasses}>
-              Phone number <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="(555) 123-4567"
-              className={inputClasses}
-            />
-            <p className="text-xs text-gray-400">For our records</p>
-          </div>
+      {error && (
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg mb-4">
+          <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <p className="text-sm text-red-700" role="alert">{error}</p>
         </div>
+      )}
 
-        {error && (
-          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
-            <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+      {/* Primary action */}
+      <button
+        onClick={handleSubmitVerifyForm}
+        disabled={submitting}
+        className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] shadow-sm"
+      >
+        {submitting ? (
+          <span className="inline-flex items-center justify-center gap-2">
+            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            <p className="text-sm text-red-700" role="alert">{error}</p>
-          </div>
+            Sending...
+          </span>
+        ) : (
+          "Send verification code"
         )}
+      </button>
 
-        <p className="text-xs text-gray-400 leading-relaxed">
-          You will not be charged to confirm your account. By confirming, you agree to our{" "}
-          <Link href="/terms" className="text-primary-600 hover:underline font-medium">Provider TOS</Link>
-          {" & "}
-          <Link href="/privacy" className="text-primary-600 hover:underline font-medium">Privacy Notice</Link>.
-        </p>
+      {/* TOS notice */}
+      <p className="text-xs text-gray-400 leading-relaxed mt-4 text-center">
+        By continuing, you agree to our{" "}
+        <Link href="/terms" className="text-primary-600 hover:underline">Provider TOS</Link>
+        {" & "}
+        <Link href="/privacy" className="text-primary-600 hover:underline">Privacy Notice</Link>.
+      </p>
 
-        <button
-          onClick={handleSubmitVerifyForm}
-          disabled={!email.trim() || !phone.trim() || submitting}
-          className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] shadow-sm"
-        >
-          {submitting ? (
-            <span className="inline-flex items-center justify-center gap-2">
-              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Sending code...
-            </span>
-          ) : (
-            "Send verification code"
-          )}
-        </button>
-
-        {/* No access link */}
+      {/* No access link */}
+      <div className="mt-5 pt-4 border-t border-gray-100">
         <button
           type="button"
           onClick={() => setState("no-access")}
-          className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors pt-2 min-h-[44px]"
+          className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px]"
         >
           I don&apos;t have access to the business email
         </button>

@@ -432,12 +432,15 @@ export function enrichBpCards(
   bpSourceIds: (string | null)[],
 ): void {
   const seededById = new Map(seededCards.map((c) => [c.id, c]));
+  const seededBySlug = new Map(seededCards.map((c) => [c.slug, c]));
+
   for (let i = 0; i < bpCards.length; i++) {
-    const sourceId = bpSourceIds[i];
-    if (!sourceId) continue;
-    const seeded = seededById.get(sourceId);
-    if (!seeded) continue;
     const bp = bpCards[i];
+    // Match by source_provider_id first, then fall back to slug
+    const sourceId = bpSourceIds[i];
+    const seeded = (sourceId ? seededById.get(sourceId) : null) ?? seededBySlug.get(bp.slug);
+    if (!seeded) continue;
+
     if (bp.imageType === "placeholder" && seeded.imageType !== "placeholder") {
       bp.image = seeded.image;
       bp.imageType = seeded.imageType;
@@ -462,9 +465,12 @@ export function mergeProviderCards(
   bpCards: ProviderCardData[],
   dedupeSourceIds: Set<string>,
 ): ProviderCardData[] {
-  const filtered = dedupeSourceIds.size > 0
-    ? seededCards.filter((c) => !dedupeSourceIds.has(c.id))
-    : seededCards;
+  // Also deduplicate by slug so claimed BPs without source_provider_id
+  // don't appear alongside their seeded counterpart
+  const bpSlugs = new Set(bpCards.map((c) => c.slug));
+  const filtered = seededCards.filter(
+    (c) => !dedupeSourceIds.has(c.id) && !bpSlugs.has(c.slug)
+  );
   return [...filtered, ...bpCards];
 }
 

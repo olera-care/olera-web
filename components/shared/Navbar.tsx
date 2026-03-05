@@ -14,7 +14,6 @@ import { useNavbar } from "@/components/shared/NavbarContext";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { useUnreadInboxCount } from "@/hooks/useUnreadInboxCount";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
-import { MOCK_LEADS } from "@/lib/mock/provider-leads";
 
 export default function Navbar() {
   const router = useRouter();
@@ -47,7 +46,7 @@ export default function Navbar() {
       if (stored !== null) return parseInt(stored, 10) || 0;
     } catch { /* localStorage unavailable */ }
     // No stored value yet — compute from source data
-    return MOCK_LEADS.filter((l) => l.isNew).length;
+    return 0;
   });
   useEffect(() => {
     const handler = (e: Event) => setNewLeadsCount((e as CustomEvent).detail as number);

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
-import { getMockConnectionIds } from "@/lib/mock/provider-leads";
 
 /**
  * Lightweight hook that counts unread inbox conversations.
@@ -33,9 +32,7 @@ export function useUnreadInboxCount(profileIds: string[]): number {
     }
 
     if (!isSupabaseConfigured()) {
-      // No Supabase — count mock connections as unread
-      const mockIds = getMockConnectionIds();
-      setCount(mockIds.filter((id) => !readIds.has(id)).length);
+      setCount(0);
       return;
     }
 
@@ -71,10 +68,8 @@ export function useUnreadInboxCount(profileIds: string[]): number {
         connectionIds.push(conn.id);
       }
 
-      // If Supabase returned no real connections, fall back to mock data
       if (connectionIds.length === 0) {
-        const mockIds = getMockConnectionIds();
-        setCount(mockIds.filter((id) => !readIds.has(id)).length);
+        setCount(0);
         return;
       }
 

@@ -143,8 +143,8 @@ export default function RemovalRequestPage() {
         </div>
       </div>
 
-      {/* Scrollable form — pb-36 leaves room for sticky footer */}
-      <div className="max-w-lg mx-auto px-4 sm:px-6 py-8 pb-36 space-y-6">
+      {/* Scrollable form */}
+      <div className="max-w-lg mx-auto px-4 sm:px-6 py-8 pb-8 space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">Request to hide or remove page</h1>
 
         {/* Full name */}
@@ -260,14 +260,9 @@ export default function RemovalRequestPage() {
         {formError && (
           <p className="text-sm text-red-600" role="alert">{formError}</p>
         )}
-      </div>
 
-      {/* Sticky submit footer */}
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 pt-4"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 16px)" }}
-      >
-        <div className="max-w-lg mx-auto">
+        {/* Submit button */}
+        <div className="pt-4">
           <Button
             fullWidth
             size="lg"

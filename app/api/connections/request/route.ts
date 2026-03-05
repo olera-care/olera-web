@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail } from "@/lib/email";
-import { connectionRequestEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
@@ -374,7 +374,32 @@ export async function POST(request: Request) {
       );
     }
 
-    // 9. Email notification to provider (fire-and-forget)
+    // 9. Confirmation email to the family (fire-and-forget)
+    try {
+      if (user.email) {
+        const careTypeMap0: Record<string, string> = {
+          home_care: "Home Care",
+          home_health: "Home Health Care",
+          assisted_living: "Assisted Living",
+          memory_care: "Memory Care",
+        };
+
+        await sendEmail({
+          to: user.email,
+          subject: `Your inquiry to ${providerName} was sent`,
+          html: connectionSentEmail({
+            familyName: firstName || "there",
+            providerName,
+            careType: intentData?.careType ? (careTypeMap0[intentData.careType] || intentData.careType) : null,
+            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+          }),
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send connection confirmation email:", emailErr);
+    }
+
+    // 9b. Email notification to provider (fire-and-forget)
     try {
       // Look up provider email from business_profiles or olera-providers
       const { data: providerProfile } = await db
@@ -419,7 +444,7 @@ export async function POST(request: Request) {
       console.error("Failed to send connection request email:", emailErr);
     }
 
-    // 9b. SMS notification to provider (fire-and-forget)
+    // 9c. SMS notification to provider (fire-and-forget)
     try {
       // Use provider phone from business_profiles or olera-providers
       let providerPhone: string | null = null;
@@ -461,7 +486,7 @@ export async function POST(request: Request) {
       console.error("[sms] Unexpected error:", smsErr);
     }
 
-    // 9c. Slack alert for new lead (fire-and-forget)
+    // 9d. Slack alert for new lead (fire-and-forget)
     try {
       const careTypeMap2: Record<string, string> = {
         home_care: "Home Care",
@@ -479,7 +504,7 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // 9d. Loops: new lead event (fire-and-forget)
+    // 9e. Loops: new lead event (fire-and-forget)
     try {
       await sendLoopsEvent({
         email: user.email || "",

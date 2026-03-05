@@ -97,6 +97,27 @@ export function connectionRequestEmail(opts: {
   `);
 }
 
+/** Confirmation email to family after they send a connection request */
+export function connectionSentEmail(opts: {
+  familyName: string;
+  providerName: string;
+  careType: string | null;
+  viewUrl: string;
+}): string {
+  const careLine = opts.careType
+    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 24px;"><strong>Care type:</strong> ${opts.careType}</p>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your inquiry was sent</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, your care inquiry to <strong>${opts.providerName}</strong> has been delivered. You'll be notified when they respond.
+    </p>
+    ${careLine}
+    <div>${button("View your inbox", opts.viewUrl)}</div>
+  `);
+}
+
 /** Email to family when a provider responds (accept/decline) */
 export function connectionResponseEmail(opts: {
   familyName: string;

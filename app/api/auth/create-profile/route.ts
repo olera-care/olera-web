@@ -87,6 +87,11 @@ export async function POST(request: Request) {
       claimedProfileId,
       careNeeds,
       isAddingProfile = false,
+      // Caregiver-specific metadata
+      yearsExperience,
+      certifications,
+      hourlyRateMin,
+      hourlyRateMax,
     } = body;
 
     // Validate required fields
@@ -163,6 +168,18 @@ export async function POST(request: Request) {
         const name = providerType === "organization" ? (orgName || displayName) : displayName;
         const slug = generateSlug(name, city || "", state || "");
 
+        // Build metadata — include caregiver-specific fields when applicable
+        const profileMetadata: Record<string, unknown> = {
+          visible_to_families: visibleToFamilies ?? true,
+          visible_to_providers: visibleToProviders ?? true,
+        };
+        if (profileType === "caregiver") {
+          if (yearsExperience != null) profileMetadata.years_experience = yearsExperience;
+          if (certifications?.length) profileMetadata.certifications = certifications;
+          if (hourlyRateMin != null) profileMetadata.hourly_rate_min = hourlyRateMin;
+          if (hourlyRateMax != null) profileMetadata.hourly_rate_max = hourlyRateMax;
+        }
+
         const { data: newProfile, error: insertErr } = await db
           .from("business_profiles")
           .insert({
@@ -181,10 +198,7 @@ export async function POST(request: Request) {
             verification_state: "unverified",
             source: "user_created",
             is_active: true,
-            metadata: {
-              visible_to_families: visibleToFamilies ?? true,
-              visible_to_providers: visibleToProviders ?? true,
-            },
+            metadata: profileMetadata,
           })
           .select("id")
           .single();

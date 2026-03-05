@@ -16,7 +16,7 @@ import OtpInput from "@/components/auth/OtpInput";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "caregiver-coming-soon" | "search" | "verify" | 2 | 3 | 4 | 5;
+type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4 | 5;
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
@@ -51,6 +51,18 @@ const CARE_TYPES = [
   "Rehabilitation",
 ];
 
+const CAREGIVER_CERTIFICATIONS = [
+  "CNA (Certified Nursing Assistant)",
+  "HHA (Home Health Aide)",
+  "CPR / First Aid",
+  "BLS (Basic Life Support)",
+  "Medication Administration",
+  "Dementia / Alzheimer's Care",
+  "Hospice & Palliative Care",
+  "Wound Care",
+  "Physical Therapy Aide",
+];
+
 interface WizardData {
   displayName: string;
   description: string;
@@ -62,6 +74,11 @@ interface WizardData {
   email: string;
   website: string;
   careTypes: string[];
+  // Caregiver-specific fields
+  yearsExperience: string;
+  certifications: string[];
+  hourlyRateMin: string;
+  hourlyRateMax: string;
 }
 
 const EMPTY: WizardData = {
@@ -75,6 +92,10 @@ const EMPTY: WizardData = {
   email: "",
   website: "",
   careTypes: [],
+  yearsExperience: "",
+  certifications: [],
+  hourlyRateMin: "",
+  hourlyRateMax: "",
 };
 
 function getProviderImage(provider: Provider): string | null {
@@ -127,10 +148,6 @@ function ProviderOnboardingContent() {
   const [submitError, setSubmitError] = useState("");
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
   const [checkingPrefill, setCheckingPrefill] = useState(true);
-  // Caregiver coming-soon notify state
-  const [caregiverEmail, setCaregiverEmail] = useState(user?.email || "");
-  const [caregiverNotified, setCaregiverNotified] = useState(false);
-  const [caregiverNotifying, setCaregiverNotifying] = useState(false);
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
@@ -456,8 +473,12 @@ function ProviderOnboardingContent() {
         }
       }
     } else {
-      // Caregiver flow is disabled — send to Coming Soon
-      setStep("caregiver-coming-soon");
+      // Caregiver flow: resume at saved step or start at step 2
+      if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
+        setStep(savedStep);
+      } else {
+        setStep(2);
+      }
     }
   };
 
@@ -718,7 +739,7 @@ function ProviderOnboardingContent() {
           orgName:
             providerType === "organization" ? data.displayName : undefined,
           description: data.description || undefined,
-          category: data.category || undefined,
+          category: providerType === "caregiver" ? "private_caregiver" : (data.category || undefined),
           phone: data.phone || undefined,
           email: data.email || undefined,
           website: data.website || undefined,
@@ -727,6 +748,13 @@ function ProviderOnboardingContent() {
           zip: data.zip || undefined,
           careTypes: data.careTypes,
           isAddingProfile: isAdding,
+          // Caregiver-specific metadata
+          ...(providerType === "caregiver" && {
+            yearsExperience: data.yearsExperience ? Number(data.yearsExperience) : undefined,
+            certifications: data.certifications.length > 0 ? data.certifications : undefined,
+            hourlyRateMin: data.hourlyRateMin ? Number(data.hourlyRateMin) : undefined,
+            hourlyRateMax: data.hourlyRateMax ? Number(data.hourlyRateMax) : undefined,
+          }),
         }),
       });
 
@@ -758,12 +786,14 @@ function ProviderOnboardingContent() {
   const displayName =
     account?.display_name || user?.email?.split("@")[0] || "back";
 
-  // WizardNav step mapping — org flow: 6 steps
+  // WizardNav step mapping
   const isOrg = providerType === "organization";
-  const wizardTotal = 6;
-  const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
-  const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
-  const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon";
+  const isCaregiver = providerType === "caregiver";
+  const wizardTotal = isCaregiver ? 5 : 6;
+  const wizardCurrentMapOrg: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
+  const wizardCurrentMapCaregiver: Record<string, number> = { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+  const wizardCurrentStep = (isCaregiver ? wizardCurrentMapCaregiver : wizardCurrentMapOrg)[String(step)] ?? 1;
+  const showWizardNav = step !== "resume";
 
   // Show loading while auth is loading or while checking for landing page prefill
   if (isLoading || checkingPrefill) {
@@ -913,10 +943,16 @@ function ProviderOnboardingContent() {
               {/* Private Caregiver */}
               <button
                 type="button"
-                onClick={() => setStep("caregiver-coming-soon")}
-                className="group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
+                onClick={() => handleSelectType("caregiver")}
+                className={`group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
+                  providerType === "caregiver"
+                    ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
+                    : "border-gray-200 hover:border-primary-400 hover:shadow-md"
+                }`}
               >
-                <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200">
+                <div className={`w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200 ${
+                  providerType === "caregiver" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
+                }`}>
                   <svg className="w-7 h-7 lg:w-10 lg:h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -927,98 +963,6 @@ function ProviderOnboardingContent() {
                 </p>
               </button>
             </div>
-          </div>
-        )}
-
-        {/* ── Caregiver Coming Soon ── */}
-        {step === "caregiver-coming-soon" && (
-          <div className="flex flex-col items-center justify-center text-center min-h-[60vh] w-full max-w-md mx-auto px-4">
-            {/* Icon */}
-            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-5 lg:mb-6">
-              <svg className="w-8 h-8 lg:w-9 lg:h-9 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-
-            {/* Badge */}
-            <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-primary-600 border border-primary-200 mb-4 lg:mb-5">
-              Coming Soon
-            </span>
-
-            {/* Heading */}
-            <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight mb-2 lg:mb-3">
-              Private Caregiver
-            </h1>
-
-            <p className="text-sm lg:text-base text-gray-500 max-w-sm leading-relaxed mb-6 lg:mb-8">
-              Individual caregiver onboarding is coming soon. Get notified when it launches.
-            </p>
-
-            {/* Notify form */}
-            {!caregiverNotified ? (
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (!caregiverEmail.trim()) return;
-                  setCaregiverNotifying(true);
-                  try {
-                    if (isSupabaseConfigured()) {
-                      const supabase = createClient();
-                      const { error } = await supabase.from("feature_waitlist").upsert(
-                        { feature: "caregiver_onboarding", email: caregiverEmail.trim(), profile_id: null },
-                        { onConflict: "feature,email" },
-                      );
-                      if (error) throw error;
-                    }
-                    setCaregiverNotified(true);
-                  } catch {
-                    alert("Something went wrong. Please try again.");
-                  } finally {
-                    setCaregiverNotifying(false);
-                  }
-                }}
-                className="w-full max-w-sm mb-3"
-              >
-                <div className="flex items-center border border-gray-200 rounded-xl bg-white overflow-hidden">
-                  <input
-                    type="email"
-                    value={caregiverEmail}
-                    onChange={(e) => setCaregiverEmail(e.target.value)}
-                    placeholder="Your email"
-                    required
-                    className="flex-1 px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
-                  />
-                  <button
-                    type="submit"
-                    disabled={caregiverNotifying}
-                    className="px-5 py-2.5 mr-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
-                  >
-                    {caregiverNotifying ? "..." : "Notify me"}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400 mt-2.5">
-                  We&apos;ll send one email when caregiver onboarding launches. No spam.
-                </p>
-              </form>
-            ) : (
-              <div className="mb-8">
-                <p className="text-sm text-primary-600 font-medium">
-                  You&apos;re on the list. We&apos;ll let you know!
-                </p>
-              </div>
-            )}
-
-            {/* Back button */}
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-4"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-              </svg>
-              Back
-            </button>
           </div>
         )}
 
@@ -1733,22 +1677,24 @@ function ProviderOnboardingContent() {
           <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-6 lg:mb-8">
               <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Tell us about your organization
+                {isCaregiver ? "Tell us about yourself" : "Tell us about your organization"}
               </h1>
               <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                This is what families will see on your public profile.
+                {isCaregiver
+                  ? "This is what families and organizations will see on your profile."
+                  : "This is what families will see on your public profile."}
               </p>
             </div>
 
             <div className="space-y-5">
               <Input
-                label="Organization name"
+                label={isCaregiver ? "Your full name" : "Organization name"}
                 value={data.displayName}
                 onChange={(e) =>
                   update("displayName", (e.target as HTMLInputElement).value)
                 }
                 required
-                placeholder="e.g. Sunrise Senior Living"
+                placeholder={isCaregiver ? "e.g. Maria Johnson" : "e.g. Sunrise Senior Living"}
               />
 
               {providerType === "organization" && (
@@ -1911,58 +1857,160 @@ function ProviderOnboardingContent() {
                 required
               />
 
-              <Input
-                label="Website (Optional)"
-                type="url"
-                value={data.website}
-                onChange={(e) =>
-                  update("website", (e.target as HTMLInputElement).value)
-                }
-                placeholder="https://example.com"
-              />
+              {isOrg && (
+                <Input
+                  label="Website (Optional)"
+                  type="url"
+                  value={data.website}
+                  onChange={(e) =>
+                    update("website", (e.target as HTMLInputElement).value)
+                  }
+                  placeholder="https://example.com"
+                />
+              )}
             </div>
           </div>
         )}
 
-        {/* ── Step 5: Services + Review + Submit ── */}
+        {/* ── Step 5: Services / Experience + Review + Submit ── */}
         {step === 5 && (
           <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-6 lg:mb-8">
               <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                Services offered
+                {isCaregiver ? "Experience & services" : "Services offered"}
               </h1>
               <p className="text-gray-500 mt-2 lg:mt-3 text-base">
-                Select at least one care type you provide. You can always update these later.
+                {isCaregiver
+                  ? "Tell us about your experience and the services you provide."
+                  : "Select at least one care type you provide. You can always update these later."}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3 mb-10">
-              {CARE_TYPES.map((ct) => {
-                const selected = data.careTypes.includes(ct);
-                return (
-                  <button
-                    key={ct}
-                    type="button"
-                    role="switch"
-                    aria-checked={selected}
-                    onClick={() => toggleCareType(ct)}
-                    className={[
-                      "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[15px] font-medium border transition-all duration-200",
-                      selected
-                        ? "bg-primary-50 border-primary-500 text-primary-700"
-                        : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
-                    ].join(" ")}
-                  >
-                    {selected && (
-                      <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                    {ct}
-                  </button>
-                );
-              })}
+            {/* Care types — shared by both flows */}
+            <div className="mb-6">
+              <label className="block text-base font-medium text-gray-700 mb-3">
+                {isCaregiver ? "Care services you provide" : "Care types"}
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {CARE_TYPES.map((ct) => {
+                  const selected = data.careTypes.includes(ct);
+                  return (
+                    <button
+                      key={ct}
+                      type="button"
+                      role="switch"
+                      aria-checked={selected}
+                      onClick={() => toggleCareType(ct)}
+                      className={[
+                        "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[15px] font-medium border transition-all duration-200",
+                        selected
+                          ? "bg-primary-50 border-primary-500 text-primary-700"
+                          : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                      ].join(" ")}
+                    >
+                      {selected && (
+                        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      {ct}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Caregiver-specific fields */}
+            {isCaregiver && (
+              <div className="space-y-6 mb-8">
+                {/* Years of experience */}
+                <Input
+                  label="Years of experience"
+                  type="number"
+                  value={data.yearsExperience}
+                  onChange={(e) =>
+                    update("yearsExperience", (e.target as HTMLInputElement).value)
+                  }
+                  placeholder="e.g. 5"
+                  min="0"
+                  max="60"
+                />
+
+                {/* Certifications */}
+                <div>
+                  <label className="block text-base font-medium text-gray-700 mb-3">
+                    Certifications
+                  </label>
+                  <div className="flex flex-wrap gap-2.5">
+                    {CAREGIVER_CERTIFICATIONS.map((cert) => {
+                      const selected = data.certifications.includes(cert);
+                      return (
+                        <button
+                          key={cert}
+                          type="button"
+                          role="switch"
+                          aria-checked={selected}
+                          onClick={() => {
+                            const next = selected
+                              ? data.certifications.filter((c) => c !== cert)
+                              : [...data.certifications, cert];
+                            update("certifications", next);
+                          }}
+                          className={[
+                            "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
+                            selected
+                              ? "bg-secondary-50 border-secondary-500 text-secondary-700"
+                              : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                          ].join(" ")}
+                        >
+                          {selected && (
+                            <svg className="w-3.5 h-3.5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {cert}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Hourly rate range */}
+                <div>
+                  <label className="block text-base font-medium text-gray-700 mb-1.5">
+                    Hourly rate range (Optional)
+                  </label>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Helps families understand your pricing. You can update this later.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="Min ($/hr)"
+                      type="number"
+                      value={data.hourlyRateMin}
+                      onChange={(e) =>
+                        update("hourlyRateMin", (e.target as HTMLInputElement).value)
+                      }
+                      placeholder="e.g. 20"
+                      min="0"
+                    />
+                    <Input
+                      label="Max ($/hr)"
+                      type="number"
+                      value={data.hourlyRateMax}
+                      onChange={(e) =>
+                        update("hourlyRateMax", (e.target as HTMLInputElement).value)
+                      }
+                      placeholder="e.g. 35"
+                      min="0"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Spacer between care types and preview for org flow */}
+            {isOrg && <div className="mb-10" />}
 
             {/* Mini listing card preview */}
             <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
@@ -1984,9 +2032,14 @@ function ProviderOnboardingContent() {
               {/* Card content */}
               <div className="p-5">
                 {/* Category label */}
-                {data.category && (
+                {isOrg && data.category && (
                   <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
                     {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
+                  </p>
+                )}
+                {isCaregiver && (
+                  <p className="text-xs font-medium text-secondary-600 uppercase tracking-wide mb-1">
+                    Private Caregiver
                   </p>
                 )}
 
@@ -2006,6 +2059,23 @@ function ProviderOnboardingContent() {
                   </div>
                 )}
 
+                {/* Experience + rate for caregiver */}
+                {isCaregiver && (data.yearsExperience || data.hourlyRateMin) && (
+                  <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
+                    {data.yearsExperience && (
+                      <span>{data.yearsExperience} yr{Number(data.yearsExperience) !== 1 ? "s" : ""} experience</span>
+                    )}
+                    {data.yearsExperience && data.hourlyRateMin && (
+                      <span className="text-gray-300">·</span>
+                    )}
+                    {data.hourlyRateMin && (
+                      <span>
+                        ${data.hourlyRateMin}{data.hourlyRateMax ? `–$${data.hourlyRateMax}` : ""}/hr
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 {/* Service tags */}
                 {data.careTypes.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
@@ -2017,6 +2087,22 @@ function ProviderOnboardingContent() {
                     {data.careTypes.length > 3 && (
                       <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
                         +{data.careTypes.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Certification tags for caregiver */}
+                {isCaregiver && data.certifications.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {data.certifications.slice(0, 3).map((cert) => (
+                      <span key={cert} className="bg-secondary-50 text-secondary-700 text-xs px-2.5 py-1 rounded-full">
+                        {cert}
+                      </span>
+                    ))}
+                    {data.certifications.length > 3 && (
+                      <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full">
+                        +{data.certifications.length - 3} more
                       </span>
                     )}
                   </div>
@@ -2056,7 +2142,9 @@ function ProviderOnboardingContent() {
             )}
 
             <p className="text-center text-sm text-gray-500 mt-5">
-              You can add more details — photos, certifications, pricing — after setup.
+              {isCaregiver
+                ? "You can add more details — photo, languages, availability — after setup."
+                : "You can add more details — photos, certifications, pricing — after setup."}
             </p>
           </div>
         )}
@@ -2084,7 +2172,7 @@ function ProviderOnboardingContent() {
                   setNoAccessSuccess(false);
                 }
               : step === 2
-              ? () => setStep("search")
+              ? () => setStep(isCaregiver ? 1 : "search")
               : step === 3
               ? () => setStep(2)
               : step === 4
@@ -2125,7 +2213,7 @@ function ProviderOnboardingContent() {
               : step === "verify"
               ? verifyCode.length !== 6 || verifyChecking
               : step === 2
-              ? !data.displayName.trim() || (providerType === "organization" && !data.category)
+              ? !data.displayName.trim() || (isOrg && !data.category)
               : step === 3
               ? !data.city.trim()
               : step === 4

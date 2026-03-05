@@ -18,13 +18,22 @@ export default function AboutCard({
   onEdit,
 }: AboutCardProps) {
   const description = profile.description || null;
+  const isCaregiver = profile.type === "caregiver";
 
+  // Organization detail pills
   const yearFounded = metadata.year_founded;
   const bedCount = metadata.bed_count;
   const staffCount = metadata.staff_count;
   const licenseNumber = metadata.license_number;
+  const hasOrgDetails = yearFounded || bedCount || staffCount || licenseNumber;
 
-  const hasDetails = yearFounded || bedCount || staffCount || licenseNumber;
+  // Caregiver detail pills
+  const yearsExperience = metadata.years_experience;
+  const languages = metadata.languages;
+  const availability = metadata.availability;
+  const hasCaregiverDetails = yearsExperience != null || (languages && languages.length > 0) || availability;
+
+  const hasDetails = isCaregiver ? hasCaregiverDetails : hasOrgDetails;
 
   return (
     <DashboardSectionCard
@@ -37,14 +46,29 @@ export default function AboutCard({
         <SectionEmptyState
           icon="info"
           message="No about information"
-          subMessage="Tell families what makes your organization special."
+          subMessage={isCaregiver
+            ? "Tell families and organizations what makes you a great caregiver."
+            : "Tell families what makes your organization special."}
         />
       ) : (
         <div className="space-y-4">
           {description && (
             <ExpandableText text={description} maxLength={200} />
           )}
-          {hasDetails && (
+          {isCaregiver && hasCaregiverDetails && (
+            <div className={`flex flex-wrap gap-2.5 ${description ? "pt-3 border-t border-gray-100" : ""}`}>
+              {yearsExperience != null && (
+                <DetailPill label="Experience" value={`${yearsExperience} yr${yearsExperience !== 1 ? "s" : ""}`} />
+              )}
+              {availability && (
+                <DetailPill label="Availability" value={availability} />
+              )}
+              {languages && languages.length > 0 && (
+                <DetailPill label="Languages" value={languages.join(", ")} />
+              )}
+            </div>
+          )}
+          {!isCaregiver && hasOrgDetails && (
             <div className={`flex flex-wrap gap-2.5 ${description ? "pt-3 border-t border-gray-100" : ""}`}>
               {yearFounded && (
                 <DetailPill label="Founded" value={String(yearFounded)} />

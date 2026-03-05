@@ -18,6 +18,7 @@ import StaffScreeningCard from "./StaffScreeningCard";
 import AboutCard from "./AboutCard";
 import PricingCard from "./PricingCard";
 import PaymentInsuranceCard from "./PaymentInsuranceCard";
+import CertificationsCard from "./CertificationsCard";
 import ProfileCompletenessSidebar from "./ProfileCompletenessSidebar";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -26,6 +27,7 @@ import EditStaffScreeningModal from "./edit-modals/EditStaffScreeningModal";
 import EditAboutModal from "./edit-modals/EditAboutModal";
 import EditPricingModal from "./edit-modals/EditPricingModal";
 import EditPaymentModal from "./edit-modals/EditPaymentModal";
+import EditCertificationsModal from "./edit-modals/EditCertificationsModal";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
@@ -115,6 +117,7 @@ function DashboardContent({
   setEditingSection: (s: SectionId | null) => void;
   refreshAccountData: () => Promise<void>;
 }) {
+  const isCaregiver = profile.type === "caregiver";
   const guided = useGuidedOnboarding(completeness);
   const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
 
@@ -181,7 +184,9 @@ function DashboardContent({
         >
           <div>
             <p className="text-[15px] font-semibold text-gray-900">
-              Complete your profile to attract more families
+              {isCaregiver
+                ? "Complete your profile to get noticed by families and organizations"
+                : "Complete your profile to attract more families"}
             </p>
             <p className="text-sm text-gray-500 mt-0.5">
               We&apos;ll guide you through each section step by step.
@@ -226,7 +231,46 @@ function DashboardContent({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Main content — staggered entrance */}
         <div className="lg:col-span-2 space-y-6">
-          {[
+          {(isCaregiver ? [
+            <ProfileOverviewCard
+              key="overview"
+              profile={profile}
+              completionPercent={sectionPercent("overview")}
+              onEdit={() => handleEdit("overview")}
+            />,
+            <AboutCard
+              key="about"
+              profile={profile}
+              metadata={meta}
+              completionPercent={sectionPercent("about")}
+              onEdit={() => handleEdit("about")}
+            />,
+            <CertificationsCard
+              key="certifications"
+              metadata={meta}
+              completionPercent={sectionPercent("certifications")}
+              onEdit={() => handleEdit("certifications")}
+            />,
+            <CareServicesCard
+              key="services"
+              profile={profile}
+              completionPercent={sectionPercent("services")}
+              onEdit={() => handleEdit("services")}
+            />,
+            <PricingCard
+              key="pricing"
+              profile={profile}
+              metadata={meta}
+              completionPercent={sectionPercent("pricing")}
+              onEdit={() => handleEdit("pricing")}
+            />,
+            <GalleryCard
+              key="gallery"
+              metadata={meta}
+              completionPercent={sectionPercent("gallery")}
+              onEdit={() => handleEdit("gallery")}
+            />,
+          ] : [
             <ProfileOverviewCard
               key="overview"
               profile={profile}
@@ -260,6 +304,7 @@ function DashboardContent({
             />,
             <PricingCard
               key="pricing"
+              profile={profile}
               metadata={meta}
               completionPercent={sectionPercent("pricing")}
               onEdit={() => handleEdit("pricing")}
@@ -270,7 +315,7 @@ function DashboardContent({
               completionPercent={sectionPercent("payment")}
               onEdit={() => handleEdit("payment")}
             />,
-          ].map((card, i) => (
+          ]).map((card, i) => (
             <div
               key={i}
               style={{
@@ -308,6 +353,7 @@ function DashboardContent({
       {editingSection === "about" && <EditAboutModal {...modalProps} />}
       {editingSection === "pricing" && <EditPricingModal {...modalProps} />}
       {editingSection === "payment" && <EditPaymentModal {...modalProps} />}
+      {editingSection === "certifications" && <EditCertificationsModal {...modalProps} />}
     </div>
     </div>
   );

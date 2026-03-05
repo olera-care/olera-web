@@ -56,7 +56,120 @@ function formatStartingPrice(price: string, type: string): string {
   return `$${formatted} ${label}`;
 }
 
-export default function EditPricingModal({
+export default function EditPricingModal(props: BaseEditModalProps) {
+  if (props.profile.type === "caregiver") {
+    return <CaregiverPricingModal {...props} />;
+  }
+  return <OrgPricingModal {...props} />;
+}
+
+function CaregiverPricingModal({
+  profile,
+  metadata,
+  onClose,
+  onSaved,
+  guidedMode,
+  guidedStep,
+  guidedTotal,
+  onGuidedBack,
+}: BaseEditModalProps) {
+  const [rateMin, setRateMin] = useState(
+    metadata.hourly_rate_min != null ? String(metadata.hourly_rate_min) : ""
+  );
+  const [rateMax, setRateMax] = useState(
+    metadata.hourly_rate_max != null ? String(metadata.hourly_rate_max) : ""
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const hasChanges =
+    rateMin !== (metadata.hourly_rate_min != null ? String(metadata.hourly_rate_min) : "") ||
+    rateMax !== (metadata.hourly_rate_max != null ? String(metadata.hourly_rate_max) : "");
+
+  async function handleSave() {
+    if (!hasChanges && !guidedMode) {
+      onClose();
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await saveProfile({
+        profileId: profile.id,
+        metadataFields: {
+          hourly_rate_min: rateMin ? Number(rateMin) : undefined,
+          hourly_rate_max: rateMax ? Number(rateMax) : undefined,
+        },
+        existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
+      });
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Edit Hourly Rate"
+      size="2xl"
+      footer={
+        <ModalFooter
+          saving={saving}
+          hasChanges={hasChanges}
+          onClose={onClose}
+          onSave={handleSave}
+          guidedMode={guidedMode}
+          guidedStep={guidedStep}
+          guidedTotal={guidedTotal}
+          onGuidedBack={onGuidedBack}
+        />
+      }
+    >
+      <div className="space-y-5 pt-2">
+        <p className="text-sm text-gray-500">
+          Set your hourly rate range so families know what to expect.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="block text-base font-medium text-gray-700">Min ($/hr)</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">$</span>
+              <input
+                type="number"
+                value={rateMin}
+                onChange={(e) => setRateMin(e.target.value)}
+                placeholder="e.g. 20"
+                min="0"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="block text-base font-medium text-gray-700">Max ($/hr)</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">$</span>
+              <input
+                type="number"
+                value={rateMax}
+                onChange={(e) => setRateMax(e.target.value)}
+                placeholder="e.g. 35"
+                min="0"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
+              />
+            </div>
+          </div>
+        </div>
+        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+      </div>
+    </Modal>
+  );
+}
+
+function OrgPricingModal({
   profile,
   metadata,
   onClose,

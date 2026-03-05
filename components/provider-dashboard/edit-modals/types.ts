@@ -8,7 +8,8 @@ export type SectionId =
   | "screening"
   | "about"
   | "pricing"
-  | "payment";
+  | "payment"
+  | "certifications";
 
 export interface BaseEditModalProps {
   profile: Profile;
@@ -22,7 +23,7 @@ export interface BaseEditModalProps {
   onGuidedBack?: () => void;
 }
 
-/** Section order used for guided onboarding flow */
+/** Section order used for guided onboarding flow — organization */
 export const GUIDED_SECTION_ORDER: SectionId[] = [
   "overview",
   "pricing",
@@ -31,4 +32,14 @@ export const GUIDED_SECTION_ORDER: SectionId[] = [
   "gallery",
   "about",
   "payment",
+];
+
+/** Section order used for guided onboarding flow — caregiver */
+export const GUIDED_SECTION_ORDER_CAREGIVER: SectionId[] = [
+  "overview",
+  "about",
+  "certifications",
+  "services",
+  "pricing",
+  "gallery",
 ];

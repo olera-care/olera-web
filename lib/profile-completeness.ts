@@ -113,35 +113,91 @@ function scorePaymentInsurance(meta: ExtendedMetadata): number {
   return 0;
 }
 
+// ── Caregiver-specific scoring ──
+
+function scoreCaregiverPricing(meta: ExtendedMetadata): number {
+  if (meta.hourly_rate_min != null && meta.hourly_rate_max != null) return 100;
+  if (meta.hourly_rate_min != null || meta.hourly_rate_max != null) return 50;
+  return 0;
+}
+
+function scoreCertifications(meta: ExtendedMetadata): number {
+  const count = meta.certifications?.length ?? 0;
+  if (count >= 3) return 100;
+  if (count >= 1) return 50;
+  return 0;
+}
+
+function scoreCaregiverAbout(profile: Profile, meta: ExtendedMetadata): number {
+  let score = 0;
+  const desc = profile.description?.trim() ?? "";
+  if (desc.length >= 100) score += 50;
+  else if (desc.length > 0) score += 25;
+  if (meta.years_experience != null) score += 25;
+  if (meta.languages && meta.languages.length > 0) score += 25;
+  return clamp(score);
+}
+
 export function calculateProfileCompleteness(
   profile: Profile,
   metadata: ExtendedMetadata
 ): ProfileCompleteness {
-  const sections: SectionScore[] = [
-    {
-      id: "overview",
-      label: "Profile overview",
-      percent: scoreProfileOverview(profile),
-    },
-    { id: "pricing", label: "Pricing", percent: scorePricing(metadata) },
-    {
-      id: "screening",
-      label: "Staff screening",
-      percent: scoreStaffScreening(metadata),
-    },
-    {
-      id: "services",
-      label: "Care services",
-      percent: scoreCareServices(profile),
-    },
-    { id: "gallery", label: "Gallery", percent: scoreGallery(metadata) },
-    { id: "about", label: "About", percent: scoreAbout(profile) },
-    {
-      id: "payment",
-      label: "Accepted Payments & Insurance",
-      percent: scorePaymentInsurance(metadata),
-    },
-  ];
+  const isCaregiver = profile.type === "caregiver";
+
+  const sections: SectionScore[] = isCaregiver
+    ? [
+        {
+          id: "overview",
+          label: "Profile overview",
+          percent: scoreProfileOverview(profile),
+        },
+        {
+          id: "about",
+          label: "About",
+          percent: scoreCaregiverAbout(profile, metadata),
+        },
+        {
+          id: "certifications",
+          label: "Certifications",
+          percent: scoreCertifications(metadata),
+        },
+        {
+          id: "services",
+          label: "Care services",
+          percent: scoreCareServices(profile),
+        },
+        {
+          id: "pricing",
+          label: "Hourly rate",
+          percent: scoreCaregiverPricing(metadata),
+        },
+        { id: "gallery", label: "Gallery", percent: scoreGallery(metadata) },
+      ]
+    : [
+        {
+          id: "overview",
+          label: "Profile overview",
+          percent: scoreProfileOverview(profile),
+        },
+        { id: "pricing", label: "Pricing", percent: scorePricing(metadata) },
+        {
+          id: "screening",
+          label: "Staff screening",
+          percent: scoreStaffScreening(metadata),
+        },
+        {
+          id: "services",
+          label: "Care services",
+          percent: scoreCareServices(profile),
+        },
+        { id: "gallery", label: "Gallery", percent: scoreGallery(metadata) },
+        { id: "about", label: "About", percent: scoreAbout(profile) },
+        {
+          id: "payment",
+          label: "Accepted Payments & Insurance",
+          percent: scorePaymentInsurance(metadata),
+        },
+      ];
 
   const overall =
     sections.length > 0

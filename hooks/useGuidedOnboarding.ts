@@ -3,7 +3,6 @@
 import { useState, useCallback, useMemo } from "react";
 import type { ProfileCompleteness } from "@/lib/profile-completeness";
 import {
-  GUIDED_SECTION_ORDER,
   type SectionId,
 } from "@/components/provider-dashboard/edit-modals/types";
 
@@ -30,12 +29,12 @@ export function useGuidedOnboarding(completeness: ProfileCompleteness) {
   const [dismissed, setDismissedState] = useState(isDismissed);
   const [active, setActive] = useState(false);
 
+  // Use the sections from completeness data (already profile-type-aware)
   const incompleteSections = useMemo(
     () =>
-      GUIDED_SECTION_ORDER.filter(
-        (id) =>
-          (completeness.sections.find((s) => s.id === id)?.percent ?? 0) < 100
-      ),
+      completeness.sections
+        .filter((s) => s.percent < 100)
+        .map((s) => s.id as SectionId),
     [completeness]
   );
 

@@ -363,7 +363,7 @@ export default function ManageListingModal({
               <button
                 type="button"
                 onClick={() => setView("choice")}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mb-4"
+                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mb-5 -ml-0.5"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -371,12 +371,20 @@ export default function ManageListingModal({
                 Back
               </button>
 
-              <h2 className="text-lg font-bold text-gray-900 mb-5">Request to hide or remove page</h2>
+              {/* Header with context */}
+              <div className="mb-6">
+                <h2 className="text-lg font-display font-bold text-gray-900 tracking-tight">
+                  Request to hide or remove page
+                </h2>
+                <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
+                  Please provide your contact details so we can verify your request and follow up.
+                </p>
+              </div>
 
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {/* Full name */}
                 <div className="space-y-1.5">
-                  <label htmlFor="modal-removal-name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="modal-removal-name" className="block text-[13px] font-semibold text-gray-700">
                     Full name <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -385,13 +393,13 @@ export default function ManageListingModal({
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Your full name"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
                   />
                 </div>
 
                 {/* Email */}
                 <div className="space-y-1.5">
-                  <label htmlFor="modal-removal-email" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="modal-removal-email" className="block text-[13px] font-semibold text-gray-700">
                     Business email <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -399,109 +407,117 @@ export default function ManageListingModal({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@gmail.com"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                    placeholder="you@company.com"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
                   />
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label htmlFor="modal-removal-phone" className="block text-sm font-medium text-gray-700">
-                    Business phone number <span className="text-red-500">*</span>
+                  <label htmlFor="modal-removal-phone" className="block text-[13px] font-semibold text-gray-700">
+                    Business phone <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="modal-removal-phone"
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+1 (555) 123-4567"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                    placeholder="(555) 123-4567"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
                   />
                 </div>
 
-                {/* Hide or delete */}
-                <div className="space-y-1.5">
-                  <label htmlFor="modal-removal-action" className="block text-sm font-medium text-gray-700">
-                    Hide or delete page <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="modal-removal-action"
-                      value={action}
-                      onChange={(e) => setAction(e.target.value)}
-                      className={`w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 bg-white appearance-none ${
-                        !action ? "text-gray-400" : "text-gray-900"
-                      }`}
-                    >
-                      <option value="" disabled>Select</option>
-                      {ACTION_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                {/* Two-column layout for action + reason */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Hide or delete */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="modal-removal-action" className="block text-[13px] font-semibold text-gray-700">
+                      Action <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="modal-removal-action"
+                        value={action}
+                        onChange={(e) => setAction(e.target.value)}
+                        className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white appearance-none transition-all min-h-[48px] cursor-pointer ${
+                          !action ? "text-gray-400" : "text-gray-900"
+                        }`}
+                      >
+                        <option value="" disabled>Select action</option>
+                        {ACTION_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
 
-                {/* Reason */}
-                <div className="space-y-1.5">
-                  <label htmlFor="modal-removal-reason" className="block text-sm font-medium text-gray-700">
-                    Reason <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="modal-removal-reason"
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      className={`w-full px-4 py-2.5 pr-10 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 bg-white appearance-none ${
-                        !reason ? "text-gray-400" : "text-gray-900"
-                      }`}
-                    >
-                      <option value="" disabled>Select</option>
-                      {REASON_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                  {/* Reason */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="modal-removal-reason" className="block text-[13px] font-semibold text-gray-700">
+                      Reason <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="modal-removal-reason"
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white appearance-none transition-all min-h-[48px] cursor-pointer ${
+                          !reason ? "text-gray-400" : "text-gray-900"
+                        }`}
+                      >
+                        <option value="" disabled>Select reason</option>
+                        {REASON_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
 
                 {/* Additional details */}
                 <div className="space-y-1.5">
-                  <label htmlFor="modal-removal-details" className="block text-sm font-medium text-gray-700">
-                    Additional details
+                  <label htmlFor="modal-removal-details" className="block text-[13px] font-semibold text-gray-700">
+                    Additional details <span className="text-gray-400 font-normal">(optional)</span>
                   </label>
                   <textarea
                     id="modal-removal-details"
                     value={details}
                     onChange={(e) => setDetails(e.target.value)}
-                    placeholder="Any additional context to help us process your request..."
+                    placeholder="Any context to help us process your request..."
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white resize-none transition-all"
                   />
                 </div>
 
                 {formError && (
-                  <p className="text-sm text-red-600" role="alert">{formError}</p>
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+                    <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    <p className="text-sm text-red-700" role="alert">{formError}</p>
+                  </div>
                 )}
 
                 {/* Submit button */}
-                <div className="pt-2">
+                <div className="pt-3">
                   <Button
                     fullWidth
-                    size="md"
+                    size="lg"
                     onClick={handleRemovalSubmit}
                     loading={submitting}
                     disabled={!canSubmit}
                   >
                     Submit request
                   </Button>
-                  <p className="text-xs text-gray-500 text-center mt-3">
+                  <p className="text-xs text-gray-400 text-center mt-3">
                     By submitting, you agree to our{" "}
-                    <span className="text-primary-600 font-medium">Takedown Policy</span>.
+                    <span className="text-primary-600 font-medium hover:underline cursor-pointer">Takedown Policy</span>.
                   </p>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 interface ClaimBadgeProps {
@@ -15,10 +15,36 @@ export default function ClaimBadge({
   claimUrl,
 }: ClaimBadgeProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isHoveringBadge, setIsHoveringBadge] = useState(false);
+  const [isHoveringTooltip, setIsHoveringTooltip] = useState(false);
   const badgeRef = useRef<HTMLButtonElement>(null);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
 
   const isClaimed = claimState === "claimed";
+
+  // Show tooltip when hovering badge or tooltip
+  useEffect(() => {
+    if (isHoveringBadge || isHoveringTooltip) {
+      // Clear any pending hide timeout
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+        hideTimeoutRef.current = null;
+      }
+      setShowTooltip(true);
+    } else {
+      // Small delay before hiding to allow mouse to travel from badge to tooltip
+      hideTimeoutRef.current = setTimeout(() => {
+        setShowTooltip(false);
+      }, 100);
+    }
+
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, [isHoveringBadge, isHoveringTooltip]);
 
   // Calculate fixed position for tooltip so it escapes overflow-hidden
   useEffect(() => {
@@ -31,10 +57,15 @@ export default function ClaimBadge({
     }
   }, [showTooltip]);
 
+  const handleBadgeEnter = useCallback(() => setIsHoveringBadge(true), []);
+  const handleBadgeLeave = useCallback(() => setIsHoveringBadge(false), []);
+  const handleTooltipEnter = useCallback(() => setIsHoveringTooltip(true), []);
+  const handleTooltipLeave = useCallback(() => setIsHoveringTooltip(false), []);
+
   return (
     <div
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={handleBadgeEnter}
+      onMouseLeave={handleBadgeLeave}
     >
       {/* Badge */}
       <button
@@ -84,6 +115,8 @@ export default function ClaimBadge({
             top: tooltipPos.top,
             left: tooltipPos.left,
           }}
+          onMouseEnter={handleTooltipEnter}
+          onMouseLeave={handleTooltipLeave}
         >
           <div className="bg-gray-900 text-white rounded-lg px-4 py-3 text-[13px] leading-relaxed shadow-lg">
             {isClaimed ? (

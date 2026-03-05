@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { StateData } from "@/data/waiver-library";
-import { stateProgramCounts } from "@/data/waiver-library";
 
 interface StateGridProps {
   states: StateData[];
@@ -83,7 +82,7 @@ export function StateGrid({ states }: StateGridProps) {
             >
               <span className="absolute top-2 right-2">
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
-                  {stateProgramCounts[state.id] ?? state.programs.length}
+                  {state.programs.length}
                 </span>
               </span>
               <div className="mt-2">

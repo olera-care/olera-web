@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import type { StateData } from "@/data/waiver-library";
-import { stateProgramCounts } from "@/data/waiver-library";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const usStatesData = require("us-atlas/states-10m.json");
@@ -286,7 +285,7 @@ export function USMap({ states }: USMapProps) {
           >
             <p className="font-semibold text-gray-900 text-sm">{tooltip.name}</p>
             <p className="text-gray-500 text-xs mt-0.5">
-              {stateProgramCounts[tooltip.stateId] ?? 0} programs available
+              {stateMap.get(tooltip.stateId)?.programs.length ?? 0} programs available
             </p>
             <p className="mt-1.5 text-primary-600 text-xs font-medium">Click to explore →</p>
           </div>

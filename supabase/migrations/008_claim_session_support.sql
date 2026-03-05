@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS claim_verification_codes (
   user_id uuid,
   claim_session uuid,
   code text NOT NULL,
+  attempts int NOT NULL DEFAULT 0,
   expires_at timestamptz NOT NULL,
   verified_at timestamptz,
   created_at timestamptz DEFAULT now()

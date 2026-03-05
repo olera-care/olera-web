@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
 import type { Provider } from "@/lib/types/provider";
 import type { Profile, OrganizationMetadata } from "@/lib/types";
 import { parseProviderImages, getPrimaryImage } from "@/lib/types/provider";
@@ -148,26 +147,6 @@ function providerToProfile(provider: Provider): Profile {
 }
 
 // ============================================================
-// Nav Items Configuration
-// ============================================================
-
-const NAV_ITEMS = [
-  { id: "profile", label: "Profile", href: "/provider" },
-  { id: "inbox", label: "Inbox", href: "/provider/inbox" },
-  { id: "leads", label: "Leads", href: "/provider/matches" },
-  { id: "qna", label: "Q&A", href: "/provider/qna" },
-  { id: "reviews", label: "Reviews", href: "/provider/reviews" },
-  { id: "pro", label: "Olera Pro", href: "/provider/pro" },
-];
-
-// Which nav items are highlighted per wizard step
-const WIZARD_HIGHLIGHTED_NAV: Record<number, string[]> = {
-  0: [], // Step 0: sidebar is highlighted, not nav
-  1: ["leads"], // Step 1: Leads nav
-  2: ["inbox", "leads", "qna", "reviews"], // Step 2: All communication nav items
-};
-
-// ============================================================
 // Component Props
 // ============================================================
 
@@ -220,32 +199,6 @@ export default function SmartDashboardShell({
     setWizardComplete(true);
   }, []);
 
-  // Handle nav click intercept
-  const handleNavClick = useCallback(
-    (e: React.MouseEvent, navId: string) => {
-      e.preventDefault();
-
-      // If wizard is not complete, map nav item to wizard step
-      if (!wizardComplete) {
-        // Wizard steps: 0=profile, 1=matches (leads), 2=connected-families (final)
-        if (navId === "profile") {
-          setWizardStep(0);
-        } else if (navId === "leads") {
-          setWizardStep(1);
-        } else {
-          // Any other nav item (inbox, qna, reviews, pro) → complete wizard
-          setWizardComplete(true);
-          setHighlightAction(true);
-        }
-      } else {
-        // Wizard complete - just highlight the action card
-        setHighlightAction(true);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-    },
-    [wizardComplete]
-  );
-
   // Reset highlight after animation
   useEffect(() => {
     if (highlightAction) {
@@ -259,98 +212,11 @@ export default function SmartDashboardShell({
     completeness.sections.find((s) => s.id === id)?.percent ?? 0;
 
   // Determine which elements are highlighted based on wizard step
-  const highlightedNavItems = !wizardComplete ? WIZARD_HIGHLIGHTED_NAV[wizardStep] || [] : [];
   const isSidebarHighlighted = !wizardComplete && wizardStep === 0;
   const isWizardActive = !wizardComplete;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      {/* Navigation Bar */}
-      <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200/80 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
-                <path
-                  d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z"
-                  fill="#199087"
-                />
-                <path
-                  d="M22.5 12.5c0 3.59-2.91 6.5-6.5 6.5s-6.5-2.91-6.5-6.5S12.41 6 16 6s6.5 2.91 6.5 6.5z"
-                  fill="white"
-                />
-              </svg>
-              <span className="text-xl font-bold text-gray-900">Olera</span>
-            </Link>
-
-            {/* Nav Items (Desktop) */}
-            <div className="hidden md:flex items-center gap-1">
-              {NAV_ITEMS.map((item) => {
-                const isHighlighted = highlightedNavItems.includes(item.id);
-                const shouldBlur = isWizardActive && highlightedNavItems.length > 0 && !isHighlighted;
-
-                return (
-                  <button
-                    key={item.id}
-                    data-wizard-target={item.id}
-                    onClick={(e) => handleNavClick(e, item.id)}
-                    className={`relative px-4 py-2.5 text-sm font-medium rounded-xl transition-all min-h-[44px] ${
-                      item.id === "profile"
-                        ? "text-primary-600 bg-primary-50"
-                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100"
-                    } ${shouldBlur ? "opacity-40 blur-[1px]" : ""} ${isHighlighted ? "relative z-50 ring-2 ring-primary-400 ring-offset-2" : ""}`}
-                  >
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Right side */}
-            <div className="flex items-center gap-3">
-              <Link
-                href="/for-caregivers"
-                className="hidden md:block text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                For caregivers
-              </Link>
-              <button
-                onClick={(e) => handleNavClick(e, "login")}
-                className="px-4 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[44px] shadow-sm"
-              >
-                Login
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Nav - horizontal scroll with hidden scrollbar */}
-      <div className="md:hidden border-b border-gray-100 bg-white overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-        <div className="flex px-4 py-2.5 gap-1.5 min-w-max">
-          {NAV_ITEMS.slice(0, 5).map((item) => {
-            const isHighlighted = highlightedNavItems.includes(item.id);
-            const shouldBlur = isWizardActive && highlightedNavItems.length > 0 && !isHighlighted;
-
-            return (
-              <button
-                key={item.id}
-                data-wizard-target={item.id}
-                onClick={(e) => handleNavClick(e, item.id)}
-                className={`whitespace-nowrap px-3.5 py-2.5 text-sm font-medium rounded-lg transition-colors min-h-[44px] ${
-                  item.id === "profile"
-                    ? "text-primary-600 bg-primary-50"
-                    : "text-gray-600 hover:bg-gray-50 active:bg-gray-100"
-                } ${shouldBlur ? "opacity-40 blur-[1px]" : ""} ${isHighlighted ? "relative z-50 ring-2 ring-primary-400 ring-offset-2" : ""}`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Mobile Progress Banner */}

@@ -91,7 +91,9 @@ export default function Navbar() {
     pathname.startsWith("/provider/pro") ||
     pathname.startsWith("/provider/qna") ||
     pathname.startsWith("/provider/verification") ||
-    pathname.startsWith("/provider/account");
+    pathname.startsWith("/provider/account") ||
+    // Claim/onboard flow shows provider portal nav
+    (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
   const isCommunity = pathname.startsWith("/community");
   const isMinimalNav = pathname.startsWith("/portal/inbox");
 

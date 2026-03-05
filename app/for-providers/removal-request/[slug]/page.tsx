@@ -127,9 +127,9 @@ export default function RemovalRequestPage() {
 
   // ── Form screen ──
   return (
-    <>
+    <div className="min-h-[100dvh] flex flex-col bg-white">
       {/* Minimal top nav */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 shrink-0">
         <div className="max-w-lg mx-auto px-4 sm:px-6 h-14 flex items-center">
           <Link
             href={`/provider/${slug}`}
@@ -144,125 +144,144 @@ export default function RemovalRequestPage() {
       </div>
 
       {/* Scrollable form */}
-      <div className="max-w-lg mx-auto px-4 sm:px-6 py-8 pb-8 space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Request to hide or remove page</h1>
-
-        {/* Full name */}
-        <div className="space-y-2">
-          <label htmlFor="removal-full-name" className="block text-base font-medium text-gray-700">
-            Full name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="removal-full-name"
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Your full name"
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px]"
-          />
-        </div>
-
-        {/* Email */}
-        <div className="space-y-2">
-          <label htmlFor="removal-email" className="block text-base font-medium text-gray-700">
-            Business email <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="removal-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@gmail.com"
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px]"
-          />
-        </div>
-
-        {/* Phone */}
-        <div className="space-y-2">
-          <label htmlFor="removal-phone" className="block text-base font-medium text-gray-700">
-            Business phone number <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="removal-phone"
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+1 (555) 123-4567"
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px]"
-          />
-        </div>
-
-        {/* Hide or delete */}
-        <div className="space-y-2">
-          <label htmlFor="removal-action" className="block text-base font-medium text-gray-700">
-            Hide or delete page <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <select
-              id="removal-action"
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] bg-white appearance-none ${
-                !action ? "text-gray-400" : "text-gray-900"
-              }`}
-            >
-              <option value="" disabled>Select</option>
-              {ACTION_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-lg mx-auto px-4 sm:px-6 py-6 space-y-5">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-gray-900 tracking-tight">
+              Request to hide or remove page
+            </h1>
+            <p className="text-sm text-gray-500 mt-1.5">
+              Please provide your contact details so we can verify your request.
+            </p>
           </div>
-        </div>
 
-        {/* Reason */}
-        <div className="space-y-2">
-          <label htmlFor="removal-reason" className="block text-base font-medium text-gray-700">
-            Reason <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <select
-              id="removal-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] bg-white appearance-none ${
-                !reason ? "text-gray-400" : "text-gray-900"
-              }`}
-            >
-              <option value="" disabled>Select</option>
-              {REASON_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+          {/* Full name */}
+          <div className="space-y-1.5">
+            <label htmlFor="removal-full-name" className="block text-[13px] font-semibold text-gray-700">
+              Full name <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="removal-full-name"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Your full name"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+            />
           </div>
+
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label htmlFor="removal-email" className="block text-[13px] font-semibold text-gray-700">
+              Business email <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="removal-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+            />
+          </div>
+
+          {/* Phone */}
+          <div className="space-y-1.5">
+            <label htmlFor="removal-phone" className="block text-[13px] font-semibold text-gray-700">
+              Business phone <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="removal-phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(555) 123-4567"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
+            />
+          </div>
+
+          {/* Hide or delete */}
+          <div className="space-y-1.5">
+            <label htmlFor="removal-action" className="block text-[13px] font-semibold text-gray-700">
+              Action <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                id="removal-action"
+                value={action}
+                onChange={(e) => setAction(e.target.value)}
+                className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white min-h-[48px] appearance-none cursor-pointer transition-all ${
+                  !action ? "text-gray-400" : "text-gray-900"
+                }`}
+              >
+                <option value="" disabled>Select action</option>
+                {ACTION_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Reason */}
+          <div className="space-y-1.5">
+            <label htmlFor="removal-reason" className="block text-[13px] font-semibold text-gray-700">
+              Reason <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <select
+                id="removal-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white min-h-[48px] appearance-none cursor-pointer transition-all ${
+                  !reason ? "text-gray-400" : "text-gray-900"
+                }`}
+              >
+                <option value="" disabled>Select reason</option>
+                {REASON_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Additional details */}
+          <div className="space-y-1.5">
+            <label htmlFor="removal-details" className="block text-[13px] font-semibold text-gray-700">
+              Additional details <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <textarea
+              id="removal-details"
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="Any context to help us process your request..."
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white resize-none transition-all"
+            />
+          </div>
+
+          {formError && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg">
+              <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+              <p className="text-sm text-red-700" role="alert">{formError}</p>
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Additional details */}
-        <div className="space-y-2">
-          <label htmlFor="removal-details" className="block text-base font-medium text-gray-700">
-            Additional details
-          </label>
-          <textarea
-            id="removal-details"
-            value={details}
-            onChange={(e) => setDetails(e.target.value)}
-            placeholder="Any additional context to help us process your request..."
-            rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 resize-none"
-          />
-        </div>
-
-        {formError && (
-          <p className="text-sm text-red-600" role="alert">{formError}</p>
-        )}
-
-        {/* Submit button */}
-        <div className="pt-4">
+      {/* Fixed footer with submit button */}
+      <div
+        className="shrink-0 border-t border-gray-100 bg-white px-4 pt-4"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 16px)" }}
+      >
+        <div className="max-w-lg mx-auto">
           <Button
             fullWidth
             size="lg"
@@ -272,12 +291,12 @@ export default function RemovalRequestPage() {
           >
             Submit request
           </Button>
-          <p className="text-sm text-gray-500 text-center mt-3">
+          <p className="text-xs text-gray-400 text-center mt-3">
             By submitting, you agree to our{" "}
-            <span className="text-primary-600 font-medium underline underline-offset-2">Takedown Policy</span>.
+            <span className="text-primary-600 font-medium">Takedown Policy</span>.
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }

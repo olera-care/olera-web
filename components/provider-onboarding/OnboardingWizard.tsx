@@ -6,10 +6,11 @@ import { useEffect, useState, useCallback } from "react";
 const WIZARD_STEPS = [
   {
     id: "profile",
-    target: "profile",
+    target: "sidebar", // Points to Profile Completeness sidebar
+    targetSelector: "[data-wizard-target='sidebar']",
     greeting: "Hello & Welcome!",
     title: "Update your profile",
-    description: "Add your details so families know who you are.",
+    description: "Track your progress and complete your profile to attract more families.",
     mobileDescription: "Your profile helps families learn about your care services and what makes you unique.",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,7 +20,8 @@ const WIZARD_STEPS = [
   },
   {
     id: "matches",
-    target: "leads",
+    target: "leads", // Points to Leads nav item
+    targetSelector: "[data-wizard-target='leads']",
     title: "See your matches",
     description: "View families actively searching for care in your area.",
     mobileDescription: "We match you with families looking for exactly what you offer. No more cold outreach.",
@@ -31,9 +33,10 @@ const WIZARD_STEPS = [
   },
   {
     id: "connected-families",
-    target: null,
+    target: "nav-group", // Points to Inbox/Leads/Q&A/Reviews group
+    targetSelector: "[data-wizard-target='inbox']",
     title: "Connect with families",
-    description: "Messages, leads, Q&A, and reviews — all in one place.",
+    description: "Inbox, Leads, Q&A, and Reviews — all in one place.",
     mobileDescription: "Manage all your family communications, respond to questions, and build your reputation.",
     buttonText: "Get started",
     icon: (
@@ -78,28 +81,35 @@ export default function OnboardingWizard({
       return;
     }
 
-    if (currentStep.target) {
-      // Find the nav button with matching text
-      const buttons = document.querySelectorAll("nav button");
-      const targetButton = Array.from(buttons).find(
-        (btn) => btn.textContent?.toLowerCase().includes(currentStep.target!)
-      );
+    if (currentStep.targetSelector) {
+      const targetElement = document.querySelector(currentStep.targetSelector);
 
-      if (targetButton) {
-        const rect = targetButton.getBoundingClientRect();
-        setPosition({
-          top: rect.bottom + 12,
-          left: rect.left + rect.width / 2,
-        });
+      if (targetElement) {
+        const rect = targetElement.getBoundingClientRect();
+
+        if (currentStep.target === "sidebar") {
+          // Position tooltip to the left of the sidebar
+          setPosition({
+            top: rect.top + 100,
+            left: rect.left - 20,
+          });
+        } else {
+          // Position tooltip below nav items
+          setPosition({
+            top: rect.bottom + 12,
+            left: rect.left + rect.width / 2,
+          });
+        }
+        return;
       }
-    } else {
-      // Center on screen for final step
-      setPosition({
-        top: 200,
-        left: window.innerWidth / 2,
-      });
     }
-  }, [currentStep.target, isMobile]);
+
+    // Fallback: center on screen
+    setPosition({
+      top: 200,
+      left: window.innerWidth / 2,
+    });
+  }, [currentStep.targetSelector, currentStep.target, isMobile]);
 
   useEffect(() => {
     setIsVisible(false);

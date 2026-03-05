@@ -156,9 +156,16 @@ const NAV_ITEMS = [
   { id: "inbox", label: "Inbox", href: "/provider/inbox" },
   { id: "leads", label: "Leads", href: "/provider/matches" },
   { id: "qna", label: "Q&A", href: "/provider/qna" },
-  { id: "reviews", label: "Reviews", href: "/provider/reviews", badge: "New" },
+  { id: "reviews", label: "Reviews", href: "/provider/reviews" },
   { id: "pro", label: "Olera Pro", href: "/provider/pro" },
 ];
+
+// Which nav items are highlighted per wizard step
+const WIZARD_HIGHLIGHTED_NAV: Record<number, string[]> = {
+  0: [], // Step 0: sidebar is highlighted, not nav
+  1: ["leads"], // Step 1: Leads nav
+  2: ["inbox", "leads", "qna", "reviews"], // Step 2: All communication nav items
+};
 
 // ============================================================
 // Component Props
@@ -251,6 +258,11 @@ export default function SmartDashboardShell({
   const sectionPercent = (id: string) =>
     completeness.sections.find((s) => s.id === id)?.percent ?? 0;
 
+  // Determine which elements are highlighted based on wizard step
+  const highlightedNavItems = !wizardComplete ? WIZARD_HIGHLIGHTED_NAV[wizardStep] || [] : [];
+  const isSidebarHighlighted = !wizardComplete && wizardStep === 0;
+  const isWizardActive = !wizardComplete;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       {/* Navigation Bar */}
@@ -274,24 +286,25 @@ export default function SmartDashboardShell({
 
             {/* Nav Items (Desktop) */}
             <div className="hidden md:flex items-center gap-1">
-              {NAV_ITEMS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={(e) => handleNavClick(e, item.id)}
-                  className={`relative px-4 py-2.5 text-sm font-medium rounded-xl transition-all min-h-[44px] ${
-                    item.id === "profile"
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100"
-                  }`}
-                >
-                  {item.label}
-                  {item.badge && (
-                    <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold uppercase bg-primary-100 text-primary-700 rounded-md">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const isHighlighted = highlightedNavItems.includes(item.id);
+                const shouldBlur = isWizardActive && highlightedNavItems.length > 0 && !isHighlighted;
+
+                return (
+                  <button
+                    key={item.id}
+                    data-wizard-target={item.id}
+                    onClick={(e) => handleNavClick(e, item.id)}
+                    className={`relative px-4 py-2.5 text-sm font-medium rounded-xl transition-all min-h-[44px] ${
+                      item.id === "profile"
+                        ? "text-primary-600 bg-primary-50"
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100"
+                    } ${shouldBlur ? "opacity-40 blur-[1px]" : ""} ${isHighlighted ? "relative z-50 ring-2 ring-primary-400 ring-offset-2" : ""}`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Right side */}
@@ -316,24 +329,25 @@ export default function SmartDashboardShell({
       {/* Mobile Nav - horizontal scroll with hidden scrollbar */}
       <div className="md:hidden border-b border-gray-100 bg-white overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
         <div className="flex px-4 py-2.5 gap-1.5 min-w-max">
-          {NAV_ITEMS.slice(0, 5).map((item) => (
-            <button
-              key={item.id}
-              onClick={(e) => handleNavClick(e, item.id)}
-              className={`whitespace-nowrap px-3.5 py-2.5 text-sm font-medium rounded-lg transition-colors min-h-[44px] ${
-                item.id === "profile"
-                  ? "text-primary-600 bg-primary-50"
-                  : "text-gray-600 hover:bg-gray-50 active:bg-gray-100"
-              }`}
-            >
-              {item.label}
-              {item.badge && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[9px] font-bold uppercase bg-primary-100 text-primary-700 rounded">
-                  {item.badge}
-                </span>
-              )}
-            </button>
-          ))}
+          {NAV_ITEMS.slice(0, 5).map((item) => {
+            const isHighlighted = highlightedNavItems.includes(item.id);
+            const shouldBlur = isWizardActive && highlightedNavItems.length > 0 && !isHighlighted;
+
+            return (
+              <button
+                key={item.id}
+                data-wizard-target={item.id}
+                onClick={(e) => handleNavClick(e, item.id)}
+                className={`whitespace-nowrap px-3.5 py-2.5 text-sm font-medium rounded-lg transition-colors min-h-[44px] ${
+                  item.id === "profile"
+                    ? "text-primary-600 bg-primary-50"
+                    : "text-gray-600 hover:bg-gray-50 active:bg-gray-100"
+                } ${shouldBlur ? "opacity-40 blur-[1px]" : ""} ${isHighlighted ? "relative z-50 ring-2 ring-primary-400 ring-offset-2" : ""}`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -345,7 +359,7 @@ export default function SmartDashboardShell({
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Main Content - Cards */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className={`lg:col-span-2 space-y-6 ${isWizardActive ? "opacity-40 blur-[2px]" : ""}`}>
             {/* Action Card - TOP OF LEFT COLUMN */}
             <ActionCard
               provider={provider}
@@ -436,9 +450,12 @@ export default function SmartDashboardShell({
           </div>
 
           {/* Sidebar */}
-          <div className="hidden lg:block lg:col-span-1">
+          <div
+            data-wizard-target="sidebar"
+            className={`hidden lg:block lg:col-span-1 ${isWizardActive && !isSidebarHighlighted ? "opacity-40 blur-[2px]" : ""} ${isSidebarHighlighted ? "relative z-50" : ""}`}
+          >
             <div
-              className="sticky top-24"
+              className={`sticky top-24 ${isSidebarHighlighted ? "ring-2 ring-primary-400 ring-offset-4 rounded-2xl" : ""}`}
               style={{
                 animation: "card-enter 0.25s ease-out both",
                 animationDelay: "540ms",

@@ -397,15 +397,19 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     ? PROFILE_CAT_TO_SUPABASE_CAT[bp.category] || ""
     : "";
 
-  const image = bp.image_url || getCategoryFallbackImage(supabaseCat, bp.id);
+  // Gallery images are stored in metadata.images (uploaded via provider dashboard)
+  const meta = bp.metadata as Record<string, unknown> | null;
+  const metaImages = Array.isArray(meta?.images) ? (meta.images as string[]) : [];
+  const primaryImage = bp.image_url || metaImages[0] || null;
+  const hasImage = !!primaryImage;
 
   return {
     id: bp.id,
     slug: bp.slug,
     name: bp.display_name,
-    image,
-    imageType: bp.image_url ? "photo" : "placeholder",
-    images: bp.image_url ? [bp.image_url] : [],
+    image: primaryImage || getCategoryFallbackImage(supabaseCat, bp.id),
+    imageType: hasImage ? "photo" : "placeholder",
+    images: metaImages.length > 0 ? metaImages : (bp.image_url ? [bp.image_url] : []),
     address: [bp.city, bp.state].filter(Boolean).join(", "),
     rating: 0,
     reviewCount: undefined,

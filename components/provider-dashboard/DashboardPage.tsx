@@ -403,7 +403,7 @@ function MobileProgressBanner({
             <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
             <circle
               cx="20" cy="20" r="16" fill="none"
-              stroke={completeness.overall >= 100 ? "#22c55e" : "#199087"}
+              stroke="#199087"
               strokeWidth="3" strokeLinecap="round"
               strokeDasharray={`${completeness.overall * 1.005} 100.5`}
             />
@@ -509,7 +509,7 @@ function MobileCompletenessSheet({
                   cy="50"
                   r="42"
                   fill="none"
-                  stroke={completeness.overall >= 100 ? "#22c55e" : "#199087"}
+                  stroke="#199087"
                   strokeWidth="10"
                   strokeLinecap="round"
                   strokeDasharray={`${completeness.overall * 2.64} 264`}

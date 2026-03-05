@@ -133,6 +133,10 @@ export interface Review {
   status: ReviewStatus;
   created_at: string;
   updated_at: string;
+  // Provider reply fields
+  provider_reply: string | null;
+  replied_at: string | null;
+  replied_by: string | null;
 }
 
 // ============================================================
@@ -207,9 +211,11 @@ export interface FamilyMetadata {
 // ============================================================
 
 export interface DeferredAction {
-  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review";
+  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review" | "question";
   targetProfileId?: string;
   benefitProgramName?: string;
+  /** For question deferred action - preserve the question text */
+  questionText?: string;
   returnUrl: string;
   createdAt: string;
 }

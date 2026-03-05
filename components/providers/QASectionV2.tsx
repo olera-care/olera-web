@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { setDeferredAction, getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 interface QAEntry {
   id?: string;
@@ -86,11 +87,12 @@ export default function QASectionV2({
     "Do caregivers give meds?",
   ],
 }: QASectionProps) {
-  const { user } = useAuth();
+  const { user, openAuth } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
   const [submitting, setSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error" | "auth_required">("idle");
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [pendingSubmit, setPendingSubmit] = useState(false);
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -131,8 +133,9 @@ export default function QASectionV2({
     fetchQuestions();
   }, [fetchQuestions]);
 
-  const handleSubmit = async () => {
-    if (!inputValue.trim() || submitting) return;
+  // Submit question (used both directly and after auth return)
+  const submitQuestion = useCallback(async (questionText: string) => {
+    if (!questionText.trim()) return;
 
     setSubmitting(true);
     setSubmitStatus("idle");
@@ -141,13 +144,8 @@ export default function QASectionV2({
       const res = await fetch("/api/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId, question: inputValue.trim() }),
+        body: JSON.stringify({ provider_id: providerId, question: questionText.trim() }),
       });
-
-      if (res.status === 401) {
-        setSubmitStatus("auth_required");
-        return;
-      }
 
       if (!res.ok) {
         setSubmitStatus("error");
@@ -168,6 +166,50 @@ export default function QASectionV2({
     } finally {
       setSubmitting(false);
     }
+  }, [providerId]);
+
+  // Detect deferred action (returning from auth with a pending question)
+  useEffect(() => {
+    if (!user) return;
+    const deferred = getDeferredAction();
+    if (deferred?.action === "question" && deferred?.targetProfileId === providerId) {
+      clearDeferredAction();
+      // Restore the question text and auto-submit
+      if (deferred.questionText) {
+        setInputValue(deferred.questionText);
+        setPendingSubmit(true);
+      }
+    }
+  }, [user, providerId]);
+
+  // Auto-submit when returning from auth
+  useEffect(() => {
+    if (pendingSubmit && user && inputValue.trim()) {
+      setPendingSubmit(false);
+      submitQuestion(inputValue);
+    }
+  }, [pendingSubmit, user, inputValue, submitQuestion]);
+
+  // Handle submit button click
+  const handleSubmit = () => {
+    if (!inputValue.trim() || submitting) return;
+
+    // Auth-on-submit: if not logged in, save the question and open auth
+    if (!user) {
+      setDeferredAction({
+        action: "question",
+        targetProfileId: providerId,
+        questionText: inputValue.trim(),
+        returnUrl: window.location.pathname,
+      });
+      openAuth({
+        defaultMode: "sign-up",
+        intent: "family",
+      });
+      return;
+    }
+
+    submitQuestion(inputValue);
   };
 
   const handleEditSubmit = async () => {
@@ -274,15 +316,12 @@ export default function QASectionV2({
             {submitStatus === "error" && (
               <span className="text-red-600">Failed to submit. Please try again.</span>
             )}
-            {submitStatus === "auth_required" && (
-              <span className="text-amber-600">Please sign in to ask a question.</span>
-            )}
           </div>
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!inputValue.trim() || submitting}
-            className="shrink-0 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-full shadow-sm hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="shrink-0 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl shadow-sm hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             {submitting ? "Posting..." : "Post Question"}
           </button>

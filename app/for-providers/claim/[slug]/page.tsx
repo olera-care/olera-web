@@ -35,6 +35,15 @@ function generateUUID(): string {
   return crypto.randomUUID();
 }
 
+/** Mask email for preview (e.g., "t***n@company.com") */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return "***@***.com";
+  const maskedLocal =
+    local.length <= 2 ? "*".repeat(local.length) : local[0] + "***" + local[local.length - 1];
+  return `${maskedLocal}@${domain}`;
+}
+
 function getOrCreateClaimSession(): string {
   if (typeof window === "undefined") return generateUUID();
   const existing = sessionStorage.getItem(SK_SESSION);
@@ -110,6 +119,7 @@ export default function ClaimPage() {
   // ── Verify State ────────────────────────────────────────────
   const [verifyCode, setVerifyCode] = useState("");
   const [verifyEmailHint, setVerifyEmailHint] = useState("");
+  const [previewEmailHint, setPreviewEmailHint] = useState(""); // Show masked email on info step
   const [verifySending, setVerifySending] = useState(false);
   const [verifyChecking, setVerifyChecking] = useState(false);
   const [verifyError, setVerifyError] = useState("");
@@ -203,6 +213,11 @@ export default function ClaimPage() {
 
       // Update with full provider data (may have more fields than cache)
       setProvider(foundProvider);
+
+      // Set preview email hint if available (for info step anticipation)
+      if (foundProvider.email) {
+        setPreviewEmailHint(maskEmail(foundProvider.email));
+      }
 
       // Save provider_id for OAuth return
       try {
@@ -794,7 +809,11 @@ export default function ClaimPage() {
                 <div className="pb-6 pt-0.5">
                   <p className="font-semibold text-gray-900 text-base">Receive a verification code</p>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    We&apos;ll email a code to the address on file
+                    {previewEmailHint ? (
+                      <>We&apos;ll email a code to <span className="font-medium text-gray-700">{previewEmailHint}</span></>
+                    ) : (
+                      <>We&apos;ll email a code to the address on file</>
+                    )}
                   </p>
                 </div>
               </div>

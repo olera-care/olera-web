@@ -5,21 +5,17 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 
-const ACTION_OPTIONS = [
-  { value: "hide", label: "Hide page" },
-  { value: "delete", label: "Delete page" },
+const ROLE_OPTIONS = [
+  { value: "Owner", label: "Owner" },
+  { value: "Administrator", label: "Administrator" },
+  { value: "Executive Director", label: "Executive Director" },
+  { value: "Office Manager", label: "Office Manager" },
+  { value: "Marketing / Communications", label: "Marketing / Communications" },
+  { value: "Staff Member", label: "Staff Member" },
+  { value: "Other", label: "Other" },
 ];
 
-const REASON_OPTIONS = [
-  { value: "i_own_this_business", label: "I own this business" },
-  { value: "business_permanently_closed", label: "Business is permanently closed" },
-  { value: "duplicate_listing", label: "Duplicate listing" },
-  { value: "information_is_inaccurate", label: "Information is inaccurate" },
-  { value: "privacy_concern", label: "Privacy concern" },
-  { value: "other", label: "Other" },
-];
-
-export default function RemovalRequestPage() {
+export default function DisputePage() {
   const { slug } = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
   const providerName = searchParams.get("provider_name") || "this provider";
@@ -27,16 +23,13 @@ export default function RemovalRequestPage() {
 
   // Form state
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [action, setAction] = useState("");
+  const [role, setRole] = useState("");
   const [reason, setReason] = useState("");
-  const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
 
-  const canSubmit = !!fullName.trim() && !!email.trim() && !!phone.trim() && !!action && !!reason;
+  const canSubmit = !!fullName.trim() && !!role && !!reason.trim();
 
   async function handleSubmit() {
     if (!canSubmit) {
@@ -48,25 +41,21 @@ export default function RemovalRequestPage() {
     setFormError(null);
 
     try {
-      const res = await fetch("/api/removal-request", {
+      const res = await fetch("/api/disputes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: providerId,
           provider_name: providerName,
-          provider_slug: slug,
-          full_name: fullName.trim(),
-          business_email: email.trim(),
-          business_phone: phone.trim(),
-          action,
-          reason,
-          additional_details: details.trim() || null,
+          claimant_name: fullName.trim(),
+          claimant_role: role,
+          reason: reason.trim(),
         }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to submit request");
+        throw new Error(data.error || "Failed to submit dispute");
       }
 
       setSubmitted(true);
@@ -101,7 +90,7 @@ export default function RemovalRequestPage() {
           <div className="relative inline-block mb-6">
             <div className="w-16 h-16 bg-primary-50 rounded-2xl flex items-center justify-center shadow-sm">
               <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
             </div>
             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center ring-2 ring-white animate-success-pop">
@@ -111,10 +100,10 @@ export default function RemovalRequestPage() {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Thank you!</h1>
-          <p className="text-lg font-medium text-gray-800 mb-3">Your request has been received</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Dispute submitted</h1>
+          <p className="text-lg font-medium text-gray-800 mb-3">We&apos;ll review your claim</p>
           <p className="text-gray-500 text-base max-w-sm mx-auto leading-relaxed mb-8">
-            Our team will verify your ownership and contact you within 2 to 3 business days to confirm removal.
+            Our team will review your dispute and get back to you within 2–3 business days.
           </p>
 
           <Button onClick={() => window.history.back()} size="md">
@@ -148,20 +137,20 @@ export default function RemovalRequestPage() {
         <div className="max-w-lg mx-auto px-4 sm:px-6 py-6 space-y-5">
           <div>
             <h1 className="text-2xl font-display font-bold text-gray-900 tracking-tight">
-              Request to hide or remove page
+              Dispute this claim
             </h1>
-            <p className="text-sm text-gray-500 mt-1.5">
-              Please provide your contact details so we can verify your request.
+            <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
+              Tell us about your connection to <strong className="text-gray-700">{providerName}</strong> and why you believe you should manage this listing.
             </p>
           </div>
 
           {/* Full name */}
           <div className="space-y-1.5">
-            <label htmlFor="removal-full-name" className="block text-[13px] font-semibold text-gray-700">
+            <label htmlFor="dispute-full-name" className="block text-[13px] font-semibold text-gray-700">
               Full name <span className="text-red-500">*</span>
             </label>
             <input
-              id="removal-full-name"
+              id="dispute-full-name"
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
@@ -170,52 +159,22 @@ export default function RemovalRequestPage() {
             />
           </div>
 
-          {/* Email */}
+          {/* Role */}
           <div className="space-y-1.5">
-            <label htmlFor="removal-email" className="block text-[13px] font-semibold text-gray-700">
-              Business email <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="removal-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
-            />
-          </div>
-
-          {/* Phone */}
-          <div className="space-y-1.5">
-            <label htmlFor="removal-phone" className="block text-[13px] font-semibold text-gray-700">
-              Business phone <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="removal-phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="(555) 123-4567"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white transition-all min-h-[48px]"
-            />
-          </div>
-
-          {/* Hide or delete */}
-          <div className="space-y-1.5">
-            <label htmlFor="removal-action" className="block text-[13px] font-semibold text-gray-700">
-              Action <span className="text-red-500">*</span>
+            <label htmlFor="dispute-role" className="block text-[13px] font-semibold text-gray-700">
+              Your role <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <select
-                id="removal-action"
-                value={action}
-                onChange={(e) => setAction(e.target.value)}
+                id="dispute-role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
                 className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white min-h-[48px] appearance-none cursor-pointer transition-all ${
-                  !action ? "text-gray-400" : "text-gray-900"
+                  !role ? "text-gray-400" : "text-gray-900"
                 }`}
               >
-                <option value="" disabled>Select action</option>
-                {ACTION_OPTIONS.map((opt) => (
+                <option value="" disabled>Select your role…</option>
+                {ROLE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
@@ -227,40 +186,15 @@ export default function RemovalRequestPage() {
 
           {/* Reason */}
           <div className="space-y-1.5">
-            <label htmlFor="removal-reason" className="block text-[13px] font-semibold text-gray-700">
-              Reason <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                id="removal-reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white min-h-[48px] appearance-none cursor-pointer transition-all ${
-                  !reason ? "text-gray-400" : "text-gray-900"
-                }`}
-              >
-                <option value="" disabled>Select reason</option>
-                {REASON_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Additional details */}
-          <div className="space-y-1.5">
-            <label htmlFor="removal-details" className="block text-[13px] font-semibold text-gray-700">
-              Additional details <span className="text-gray-400 font-normal">(optional)</span>
+            <label htmlFor="dispute-reason" className="block text-[13px] font-semibold text-gray-700">
+              Why should you manage this listing? <span className="text-red-500">*</span>
             </label>
             <textarea
-              id="removal-details"
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              placeholder="Any context to help us process your request..."
-              rows={3}
+              id="dispute-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Explain your connection to this organization..."
+              rows={4}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white resize-none transition-all"
             />
           </div>
@@ -289,12 +223,8 @@ export default function RemovalRequestPage() {
             loading={submitting}
             disabled={!canSubmit}
           >
-            Submit request
+            Submit dispute
           </Button>
-          <p className="text-xs text-gray-400 text-center mt-3">
-            By submitting, you agree to our{" "}
-            <span className="text-primary-600 font-medium">Takedown Policy</span>.
-          </p>
         </div>
       </div>
     </div>

@@ -45,7 +45,7 @@
   - Plan: `plans/backend-integration-roadmap-plan.md`
   - Analysis: `docs/backend-integration-analysis.md`
   - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
-  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing), #138 (Approval Email + Loops), #141 (Fix: accounts table lookup)
+  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing), #138 (Approval Email + Loops), #141 (Fix: accounts table lookup), #147 (Family emails + remove mock leads)
   - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → ~~Marketing (Loops)~~ ✅ → Sentry (P4 backlog)
   - **Notification Test Matrix:** [Notion](https://www.notion.so/Notification-Test-Matrix-2026-03-04-3195903a0ffe8190be95d95554e52dd1) — 18 tests across Email/SMS/Slack/Cron/Loops
 
@@ -61,8 +61,9 @@
 
 ## Next Up
 
-1. **Continue notification test matrix** — tests #7-18 remaining (rejection email, SMS, cron, Loops spot-check)
+1. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
 2. **Remove debug logging** from admin route after testing complete
+3. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 3. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
 4. **Remaining ~2,992 providers without CSV descriptions**
 5. **Test Google OAuth end-to-end**
@@ -102,6 +103,43 @@
 ---
 
 ## Session Log
+
+### 2026-03-05 (Session 39) — Family Connection Emails + Mock Data Cleanup
+
+**Branch:** `quick-pike` → merged as PR #147
+
+**What:** Fixed missing family email notifications and removed all mock lead data from provider inbox.
+
+**Bug found:** Provider accept/decline in Inbox did a direct Supabase update, bypassing server-side notifications. Family profiles don't have `email` on `business_profiles`, so message notification email lookup silently failed.
+
+**New template (`lib/email-templates.tsx`):**
+- `connectionSentEmail()`: "Your inquiry was sent" — confirmation to family after connection request
+
+**Modified files:**
+- `app/api/connections/request/route.ts`: Added family confirmation email (step 9)
+- `app/api/connections/message/route.ts`: Email lookup fallback via `accounts` → `auth.users` for families
+- `app/api/connections/manage/route.ts`: Added `accept`/`decline` actions with email + Loops
+- `components/portal/ConnectionDetailContent.tsx`: `handleStatusUpdate` now calls API instead of direct Supabase
+
+**Mock data removed:**
+- `app/provider/inbox/page.tsx`: Removed mock fallback (was showing fake leads when 0 real connections)
+- `app/provider/connections/page.tsx`: Emptied `MOCK_LEADS` array
+- `hooks/useUnreadInboxCount.ts`: Removed mock count fallback
+- `components/shared/Navbar.tsx`: Removed mock leads badge count
+
+**Test results:**
+- Test #1 (connection request email): PASS (previously confirmed)
+- Test #2 (family confirmation email): PASS — "Your inquiry was sent" email arrives
+- Test #6 (approval email): PASS (previously confirmed)
+- Test #7 (rejection email): PASS (previously confirmed)
+- Test #9 (SMS): BLOCKED — 10DLC registration pending
+- Test #10 (Slack lead alert): PASS (previously confirmed)
+- Test #13 (Slack approve/reject): PASS (previously confirmed)
+- Remaining: #3-5, #8, #11-12, #14-18
+
+**Pending:** Delete fake seed connections from Supabase DB (Sarah Reynolds, James Adeyemi, Diana Nguyen, Linda Washington, Robert Park, Tomoko Chen, Maria Kowalski, Angela Johnson)
+
+---
 
 ### 2026-03-04 (Session 38) — Provider Approval/Rejection Email + Notification Testing
 

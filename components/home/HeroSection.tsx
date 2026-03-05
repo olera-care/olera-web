@@ -195,11 +195,13 @@ export default function HeroSection() {
                         onFocus={(e) => {
                           setShowLocationDropdown(true);
                           preloadCities();
-                          // On mobile, scroll the form to the top of the viewport
-                          // so the dropdown isn't hidden behind the keyboard
-                          setTimeout(() => {
-                            e.target.closest("form")?.scrollIntoView({ block: "start", behavior: "smooth" });
-                          }, 300);
+                          // On mobile, scroll the form into view so the
+                          // dropdown isn't hidden behind the keyboard
+                          if (window.innerWidth < 640) {
+                            setTimeout(() => {
+                              e.target.closest("form")?.scrollIntoView({ block: "start", behavior: "smooth" });
+                            }, 300);
+                          }
                         }}
                         placeholder="City or ZIP code"
                         className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
@@ -208,43 +210,37 @@ export default function HeroSection() {
 
                     {/* Location Dropdown */}
                     {showLocationDropdown && (
-                      <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-xl shadow-xl border border-gray-200 py-3 z-50 max-h-[340px] overflow-y-auto">
+                      <div className="absolute left-0 top-[calc(100%+6px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-[340px] overflow-y-auto">
                         {/* Use Current Location */}
-                        <div className="px-3 pb-3">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              detectLocation();
-                              setShowLocationDropdown(false);
-                            }}
-                            disabled={isGeolocating}
-                            className="flex items-center justify-center gap-2 w-full py-2.5 bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg text-primary-700 font-medium transition-colors disabled:opacity-60"
-                          >
-                            {isGeolocating ? (
-                              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                              </svg>
-                            ) : (
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
-                              </svg>
-                            )}
-                            <span>{isGeolocating ? "Detecting location..." : "Use my current location"}</span>
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            detectLocation();
+                            setShowLocationDropdown(false);
+                          }}
+                          disabled={isGeolocating}
+                          className="flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm text-primary-600 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                          {isGeolocating ? (
+                            <svg className="w-4 h-4 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
+                            </svg>
+                          )}
+                          <span className="font-medium">{isGeolocating ? "Detecting location..." : "Use my current location"}</span>
+                        </button>
 
                         {/* Divider */}
-                        <div className="flex items-center gap-3 px-4 py-1">
-                          <div className="flex-1 h-px bg-gray-200" />
-                          <span className="text-xs text-gray-400 font-medium">or search</span>
-                          <div className="flex-1 h-px bg-gray-200" />
-                        </div>
+                        <div className="mx-4 my-1.5 h-px bg-gray-100" />
 
                         {/* Popular Cities Label */}
                         {!location.trim() && cityResults.length > 0 && (
-                          <div className="px-4 pt-2 pb-1">
-                            <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Popular cities</span>
+                          <div className="px-4 pt-1 pb-1">
+                            <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Popular cities</span>
                           </div>
                         )}
 
@@ -257,19 +253,19 @@ export default function HeroSection() {
                                 setLocation(loc.full);
                                 setShowLocationDropdown(false);
                               }}
-                              className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
+                              className={`flex items-center gap-2.5 w-full px-4 py-2 text-left text-sm transition-colors ${
                                 location === loc.full
                                   ? "bg-primary-50 text-primary-700"
                                   : index === 0 && location.trim()
                                     ? "bg-gray-50 text-gray-900"
-                                    : "text-gray-900"
+                                    : "text-gray-700 hover:bg-gray-50"
                               }`}
                             >
-                              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                               </svg>
-                              <span className="font-medium">{loc.full}</span>
+                              <span>{loc.full}</span>
                               {index === 0 && location.trim() && (
                                 <span className="ml-auto text-xs text-gray-400">Enter</span>
                               )}

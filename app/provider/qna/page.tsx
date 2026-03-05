@@ -245,12 +245,12 @@ function PendingQuestionCard({
         </div>
 
         {/* Publish button */}
-        <div className="mt-4">
+        <div className="mt-4 flex justify-end">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={!answer.trim() || isSubmitting}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-[15px] font-semibold text-white shadow-[0_1px_3px_rgba(6,182,212,0.3),0_1px_2px_rgba(6,182,212,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(6,182,212,0.35),0_1px_3px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99]"
+            className="w-full lg:w-auto px-6 py-3.5 lg:py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-[15px] lg:text-[14px] font-semibold text-white shadow-[0_1px_3px_rgba(6,182,212,0.3),0_1px_2px_rgba(6,182,212,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(6,182,212,0.35),0_1px_3px_rgba(6,182,212,0.25)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
           >
             {isSubmitting ? (
               <span className="inline-flex items-center gap-2">
@@ -323,11 +323,11 @@ function PublishedQuestionCard({
         )}
 
         {/* Edit button */}
-        <div className="mt-5">
+        <div className="mt-5 lg:flex lg:justify-end">
           <button
             type="button"
             onClick={() => onEdit(question)}
-            className="w-full py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-primary-600 hover:bg-primary-50/50 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all active:scale-[0.99] min-h-[48px]"
+            className="w-full lg:w-auto px-6 py-3 lg:py-2.5 rounded-xl border border-gray-200 text-[15px] lg:text-[14px] font-semibold text-primary-600 hover:bg-primary-50/50 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
           >
             Edit
           </button>

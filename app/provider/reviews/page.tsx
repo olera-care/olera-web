@@ -400,11 +400,11 @@ function ReviewCard({
         )}
 
         {/* Action button */}
-        <div className="mt-5">
+        <div className="mt-5 lg:flex lg:justify-end">
           <button
             type="button"
             onClick={() => hasReply ? onEdit(review) : onReply(review)}
-            className="w-full py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-primary-600 hover:bg-primary-50/50 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all active:scale-[0.99] min-h-[48px]"
+            className="w-full lg:w-auto px-6 py-3 lg:py-2.5 rounded-xl border border-gray-200 text-[15px] lg:text-[14px] font-semibold text-primary-600 hover:bg-primary-50/50 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
           >
             {hasReply ? "Edit reply" : "Reply"}
           </button>
@@ -777,56 +777,6 @@ function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerS
             </div>
           </div>
 
-          {/* ── Section 3: Tips ── */}
-          <div className="px-6 py-5 border-t border-gray-100">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-1 h-4 bg-gray-300 rounded-full" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Tips for Great Responses
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {/* Tip 1 */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Respond promptly</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Quick responses show you value feedback</p>
-                </div>
-              </div>
-
-              {/* Tip 2 */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Thank reviewers</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Show appreciation for their time</p>
-                </div>
-              </div>
-
-              {/* Tip 3 */}
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Address concerns</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Turn criticism into opportunity</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -855,7 +805,7 @@ function MobileStatsBanner({
             <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
             <circle
               cx="20" cy="20" r="16" fill="none"
-              stroke={stats.avgRating >= 4 ? "#22c55e" : "#199087"}
+              stroke="#199087"
               strokeWidth="3" strokeLinecap="round"
               strokeDasharray={`${(stats.avgRating / 5) * 100.5} 100.5`}
             />
@@ -953,7 +903,7 @@ function MobileStatsSheet({
                     <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10" />
                     <circle
                       cx="50" cy="50" r="42" fill="none"
-                      stroke={stats.avgRating >= 4 ? "#22c55e" : "#199087"}
+                      stroke="#199087"
                       strokeWidth="10" strokeLinecap="round"
                       strokeDasharray={`${(stats.avgRating / 5) * 264} 264`}
                       className="transition-all duration-500"

@@ -36,6 +36,14 @@ function ChevronUpIcon({ className }: { className?: string }) {
   );
 }
 
+function MoreIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
+      <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  );
+}
+
 // ── Types ──
 
 interface MockReview {
@@ -57,6 +65,7 @@ interface DisplayReview {
   isMock: boolean;
   providerReply?: string | null;
   repliedAt?: string | null;
+  accountId?: string;
 }
 
 type SortOption = "helpful" | "recent" | "highest" | "lowest";
@@ -82,7 +91,7 @@ interface ReviewsSectionProps {
 // ── Component ──
 
 export default function ReviewsSection({ providerId, providerSlug, providerName, mockReviews }: ReviewsSectionProps) {
-  const { user } = useAuth();
+  const { user, account } = useAuth();
 
   // Data
   const [realReviews, setRealReviews] = useState<Review[]>([]);
@@ -97,7 +106,15 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
   // Review modal
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
+  // Edit review state
+  const [editingReview, setEditingReview] = useState<DisplayReview | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editComment, setEditComment] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
   const sortRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // ── Fetch real reviews ──
 
@@ -143,6 +160,19 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
     return () => document.removeEventListener("mousedown", handleClick);
   }, [sortOpen]);
 
+  // ── Close more menu on outside click ──
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenuId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [openMenuId]);
+
   // ── Merge + sort reviews ──
 
   const normalizedMock: DisplayReview[] = mockReviews.map((r, i) => ({
@@ -167,6 +197,7 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
     isMock: false,
     providerReply: r.provider_reply,
     repliedAt: r.replied_at,
+    accountId: r.account_id,
   }));
 
   // Real reviews take priority; fall back to mock
@@ -206,6 +237,43 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
       return next;
     });
   }
+
+  // ── Handle edit review submit ──
+
+  const handleEditSubmit = async () => {
+    if (!editingReview?.id || !editComment.trim() || editSubmitting) return;
+
+    setEditSubmitting(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingReview.id,
+          rating: editRating,
+          comment: editComment.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to update review");
+        return;
+      }
+
+      const data = await res.json();
+      // Update review in local state
+      setRealReviews((prev) =>
+        prev.map((r) => (r.id === editingReview.id ? { ...r, ...data.review } : r))
+      );
+      setEditingReview(null);
+      setEditComment("");
+    } catch {
+      alert("Failed to update review");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
 
   // ── Render ──
 
@@ -254,9 +322,10 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
               const displayComment = isLong && !isExpanded
                 ? review.comment.slice(0, 180).trimEnd() + "..."
                 : review.comment;
+              const isOwner = !review.isMock && account && review.accountId === account.id;
 
               return (
-                <div key={review.id} className="shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 bg-white">
+                <div key={review.id} className="group/review shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 bg-white">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -269,10 +338,45 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
                         <p className="text-xs text-gray-400">{review.date}</p>
                       </div>
                     </div>
-                    <span className="text-sm font-semibold text-primary-600">
-                      {review.rating.toFixed(1)} / 5{" "}
-                      <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" />
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-primary-600">
+                        {review.rating.toFixed(1)} / 5{" "}
+                        <StarIcon className="w-3.5 h-3.5 text-primary-500 inline" />
+                      </span>
+                      {/* More menu - only for review owner */}
+                      {isOwner && (
+                        <div className="relative" ref={openMenuId === review.id ? menuRef : null}>
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuId(openMenuId === review.id ? null : review.id)}
+                            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 lg:opacity-0 lg:group-hover/review:opacity-100 hover:text-gray-600 hover:bg-gray-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all"
+                            aria-label="More options"
+                          >
+                            <MoreIcon className="w-5 h-5" />
+                          </button>
+                          {/* Dropdown menu */}
+                          {openMenuId === review.id && (
+                            <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-10 min-w-[120px] animate-slide-down">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingReview(review);
+                                  setEditRating(review.rating);
+                                  setEditComment(review.comment);
+                                  setOpenMenuId(null);
+                                }}
+                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                              >
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                                Edit review
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {review.relationship && (
                     <p className="text-xs text-gray-400 mb-2">{review.relationship}</p>
@@ -364,6 +468,83 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
         providerName={providerName}
         onReviewSubmitted={(review) => setRealReviews((prev) => [review, ...prev])}
       />
+
+      {/* Edit Review Modal */}
+      {editingReview && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 transition-opacity"
+            onClick={() => setEditingReview(null)}
+            aria-hidden="true"
+          />
+          {/* Modal */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-review-title"
+            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl max-w-lg mx-auto p-6"
+          >
+            <h3 id="edit-review-title" className="text-lg font-display font-bold text-gray-900 mb-4">
+              Edit your review
+            </h3>
+
+            {/* Star rating */}
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Rating</label>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setEditRating(star)}
+                    className="p-0.5 focus:outline-none focus:ring-2 focus:ring-primary-200 rounded transition-transform hover:scale-110"
+                  >
+                    <StarIcon
+                      className={`w-7 h-7 ${star <= editRating ? "text-primary-500" : "text-gray-200"}`}
+                      filled={star <= editRating}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Comment */}
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700 mb-2 block">Your review</label>
+              <textarea
+                value={editComment}
+                onChange={(e) => setEditComment(e.target.value)}
+                rows={4}
+                maxLength={2000}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 focus:bg-white transition-all"
+              />
+              <p className="text-xs text-gray-400 text-right mt-1">{editComment.length}/2000</p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingReview(null);
+                  setEditComment("");
+                }}
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleEditSubmit}
+                disabled={!editComment.trim() || (editComment.trim() === editingReview.comment && editRating === editingReview.rating) || editSubmitting}
+                className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl shadow-sm hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {editSubmitting ? "Saving..." : "Save changes"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

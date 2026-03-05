@@ -20,6 +20,7 @@ export default function ConditionalFooter() {
     pathname.startsWith("/provider/onboarding") ||
     pathname.startsWith("/for-providers/claim") ||
     pathname.startsWith("/for-providers/removal-request") ||
+    pathname.startsWith("/for-providers/dispute") ||
     pathname.match(/^\/portal\/matches\/[^/]+$/)
   ) {
     return null;

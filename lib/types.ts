@@ -211,9 +211,11 @@ export interface FamilyMetadata {
 // ============================================================
 
 export interface DeferredAction {
-  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review";
+  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review" | "question";
   targetProfileId?: string;
   benefitProgramName?: string;
+  /** For question deferred action - preserve the question text */
+  questionText?: string;
   returnUrl: string;
   createdAt: string;
 }

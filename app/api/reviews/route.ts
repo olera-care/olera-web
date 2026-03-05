@@ -138,3 +138,101 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+/**
+ * PATCH /api/reviews
+ *
+ * Edit a review. Requires authentication and ownership.
+ * Body: { id, rating?, title?, comment?, relationship? }
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, rating, title, comment, relationship } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Review ID is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Look up account for this user
+    const { data: account } = await db
+      .from("accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account) {
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    // Fetch the review and verify ownership
+    const { data: review } = await db
+      .from("reviews")
+      .select("id, account_id")
+      .eq("id", id)
+      .single();
+
+    if (!review) {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    }
+
+    if (review.account_id !== account.id) {
+      return NextResponse.json({ error: "You can only edit your own reviews" }, { status: 403 });
+    }
+
+    // Build update object
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+    if (rating !== undefined) {
+      if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+        return NextResponse.json({ error: "Rating must be an integer between 1 and 5" }, { status: 400 });
+      }
+      updates.rating = rating;
+    }
+
+    if (title !== undefined) {
+      updates.title = title?.trim() || null;
+    }
+
+    if (comment !== undefined) {
+      if (!comment.trim()) {
+        return NextResponse.json({ error: "Review text cannot be empty" }, { status: 400 });
+      }
+      updates.comment = comment.trim();
+    }
+
+    if (relationship !== undefined) {
+      if (!relationship) {
+        return NextResponse.json({ error: "Relationship is required" }, { status: 400 });
+      }
+      updates.relationship = relationship;
+    }
+
+    // Update the review
+    const { data: updatedReview, error } = await db
+      .from("reviews")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to update review:", error);
+      return NextResponse.json({ error: "Failed to update review" }, { status: 500 });
+    }
+
+    return NextResponse.json({ review: updatedReview });
+  } catch (err) {
+    console.error("Reviews PATCH error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

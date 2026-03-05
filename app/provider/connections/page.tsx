@@ -3,7 +3,9 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MOCK_LEADS, persistMockMessage, type LeadDetail } from "@/lib/mock/provider-leads";
+import type { LeadDetail } from "@/lib/mock/provider-leads";
+
+const MOCK_LEADS: LeadDetail[] = [];
 
 // ── Types ──
 
@@ -215,10 +217,7 @@ function LeadDetailDrawer({
 
   const handleSendMessage = () => {
     if (!lead) return;
-    // Persist the message to localStorage so the inbox can show it
-    if (messageText.trim()) {
-      persistMockMessage(lead.id, messageText, "provider");
-    }
+    // Message sending — no-op for mock leads
     setMessageSent(true);
     onMessage(lead.id);
   };

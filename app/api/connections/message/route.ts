@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { newMessageEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
@@ -138,22 +139,37 @@ export async function POST(request: Request) {
               .single(),
             supabase
               .from("business_profiles")
-              .select("display_name, email")
+              .select("display_name, email, account_id")
               .eq("id", recipientProfileId)
               .single(),
           ]);
 
-        if (recipientProfile?.email) {
+        // Resolve recipient email: business_profiles.email → accounts → auth.users
+        let recipientEmail = recipientProfile?.email;
+        if (!recipientEmail && recipientProfile?.account_id) {
+          const admin = getServiceClient();
+          const { data: acct } = await admin
+            .from("accounts")
+            .select("user_id")
+            .eq("id", recipientProfile.account_id)
+            .single();
+          if (acct?.user_id) {
+            const { data: { user: authUser } } = await admin.auth.admin.getUserById(acct.user_id);
+            recipientEmail = authUser?.email;
+          }
+        }
+
+        if (recipientEmail) {
           const preview =
             text.trim().length > 200
               ? text.trim().slice(0, 200) + "..."
               : text.trim();
 
           await sendEmail({
-            to: recipientProfile.email,
+            to: recipientEmail,
             subject: `New message from ${senderProfile?.display_name || "someone"} on Olera`,
             html: newMessageEmail({
-              recipientName: recipientProfile.display_name || "there",
+              recipientName: recipientProfile?.display_name || "there",
               senderName: senderProfile?.display_name || "Someone",
               messagePreview: preview,
               viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,

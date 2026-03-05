@@ -344,13 +344,16 @@ export default function ConnectionDetailContent({
 
     setResponding(true);
     try {
-      const supabase = createClient();
-      const { error: updateError } = await supabase
-        .from("connections")
-        .update({ status: newStatus })
-        .eq("id", connection.id);
-
-      if (updateError) throw new Error(updateError.message);
+      const action = newStatus === "accepted" ? "accept" : newStatus === "declined" ? "decline" : "archive";
+      const res = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId: connection.id, action }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to ${action}`);
+      }
       setConnection((prev) =>
         prev ? { ...prev, status: newStatus } : null
       );

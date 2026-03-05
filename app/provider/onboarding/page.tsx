@@ -1346,7 +1346,7 @@ function ProviderOnboardingContent() {
                                           })
                                         );
                                       } catch {}
-                                      router.push(`/for-providers/claim/${provider.slug || provider.provider_id}?provider_id=${provider.provider_id}`);
+                                      router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
                                     }}
                                     className="px-4 sm:px-5 py-2.5 text-sm sm:text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >

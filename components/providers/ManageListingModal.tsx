@@ -153,7 +153,7 @@ export default function ManageListingModal({
   function handleClaimClick() {
     // Navigate directly — page change will unmount modal, no need to close first
     const claimId = sourceProviderId || providerId;
-    router.push(`/for-providers/claim/${providerSlug}?provider_id=${claimId}`);
+    router.push(`/provider/${providerSlug}/onboard?provider_id=${claimId}`);
   }
 
   function handleDisputeClick() {

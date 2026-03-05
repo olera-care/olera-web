@@ -368,7 +368,9 @@ export default function ConversationPanel({
   const autoIntro = getAutoIntro(connMetadata);
   const additionalNotes = parseInitialNotes(connection.message);
   const careRequest = parseCareRequest(connection.message);
-  const initialNotes = autoIntro || additionalNotes;
+  // For invitation/application connections, the message is plain text (not JSON)
+  const plainMessage = !careRequest && !additionalNotes && connection.message ? connection.message : null;
+  const initialNotes = autoIntro || additionalNotes || plainMessage;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
 
   const profileHref = otherProfile
@@ -427,9 +429,21 @@ export default function ConversationPanel({
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
-            {otherName}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
+              {otherName}
+            </Link>
+            {connection.type === "invitation" && (
+              <span className="text-[11px] font-semibold text-secondary-700 bg-secondary-50 px-2 py-0.5 rounded-full shrink-0">
+                Invitation
+              </span>
+            )}
+            {connection.type === "application" && (
+              <span className="text-[11px] font-semibold text-secondary-700 bg-secondary-50 px-2 py-0.5 rounded-full shrink-0">
+                Application
+              </span>
+            )}
+          </div>
           {otherProfile?.city || otherProfile?.state ? (
             <p className="text-sm text-gray-500 truncate">
               {[otherProfile.city, otherProfile.state].filter(Boolean).join(", ")}

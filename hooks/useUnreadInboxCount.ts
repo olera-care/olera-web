@@ -47,13 +47,13 @@ export function useUnreadInboxCount(profileIds: string[]): number {
           .from("connections")
           .select("id, metadata")
           .in("from_profile_id", ids)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "invitation", "application"])
           .in("status", ["pending", "accepted"]),
         supabase
           .from("connections")
           .select("id, metadata")
           .in("to_profile_id", ids)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "invitation", "application"])
           .in("status", ["pending", "accepted"]),
       ]);
 

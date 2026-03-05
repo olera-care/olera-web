@@ -69,6 +69,12 @@ function getCareType(connection: ConnectionWithProfile): string | null {
   return null;
 }
 
+function getConnectionTypeLabel(connection: ConnectionWithProfile): { label: string; color: string } | null {
+  if (connection.type === "invitation") return { label: "Hiring Invitation", color: "text-secondary-600" };
+  if (connection.type === "application") return { label: "Job Application", color: "text-secondary-600" };
+  return null;
+}
+
 function getLastMessage(connection: ConnectionWithProfile): { text: string; timestamp: string } | null {
   const meta = connection.metadata as Record<string, unknown> | undefined;
   const thread = (meta?.thread as ThreadMessage[]) || [];
@@ -246,6 +252,7 @@ export default function ConversationList({
     const initials = name.split(/\s+/).map((w) => w[0]).join("").toUpperCase().slice(0, 2);
     const lastMsg = getLastMessage(conn);
     const careType = getCareType(conn);
+    const connTypeLabel = getConnectionTypeLabel(conn);
     const isSelected = conn.id === selectedId;
     const isMenuOpen = menuOpenId === conn.id;
     const isUnread = !readIds.has(conn.id);
@@ -304,11 +311,16 @@ export default function ConversationList({
                   </span>
                 )}
               </div>
-              {(careType || isReported) && (
+              {(careType || connTypeLabel || isReported) && (
                 <div className="flex items-center gap-2 mt-0.5">
                   {careType && (
                     <p className="text-sm text-primary-600 font-medium truncate">
                       {careType}
+                    </p>
+                  )}
+                  {!careType && connTypeLabel && (
+                    <p className={`text-sm ${connTypeLabel.color} font-medium truncate`}>
+                      {connTypeLabel.label}
                     </p>
                   )}
                   {isReported && (
@@ -459,7 +471,7 @@ export default function ConversationList({
             </div>
             <p className="text-[15px] font-display font-medium text-gray-900 mb-1">No conversations yet</p>
             {variant === "provider" ? (
-              <p className="text-sm text-gray-500">When families connect with you, their messages will appear here</p>
+              <p className="text-sm text-gray-500">When someone connects with you, their messages will appear here</p>
             ) : (
               <>
                 <p className="text-sm text-gray-500 mb-4">Connect with a provider to start messaging</p>
@@ -591,7 +603,7 @@ export default function ConversationList({
                 <div className="text-center">
                   <p className="text-[15px] font-display font-medium text-gray-900 mb-1">You have no messages yet</p>
                   {variant === "provider" ? (
-                    <p className="text-sm text-gray-500">When families connect with you, their messages will appear here</p>
+                    <p className="text-sm text-gray-500">When someone connects with you, their messages will appear here</p>
                   ) : (
                     <>
                       <p className="text-sm text-gray-500 mb-4">Browse providers to start a conversation</p>

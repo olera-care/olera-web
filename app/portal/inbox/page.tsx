@@ -79,13 +79,13 @@ function InboxContent() {
               .from("connections")
               .select("id, metadata")
               .in("from_profile_id", profileIds)
-              .eq("type", "inquiry")
+              .in("type", ["inquiry", "invitation", "application"])
               .filter("metadata->>archived", "eq", "true"),
             supabase
               .from("connections")
               .select("id, metadata")
               .in("to_profile_id", profileIds)
-              .eq("type", "inquiry")
+              .in("type", ["inquiry", "invitation", "application"])
               .filter("metadata->>archived", "eq", "true"),
           ]);
           const archivedIds = new Set<string>();
@@ -106,14 +106,14 @@ function InboxContent() {
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("from_profile_id", profileIds)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "invitation", "application"])
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("to_profile_id", profileIds)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "invitation", "application"])
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
       ]);
@@ -277,14 +277,14 @@ function InboxContent() {
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("from_profile_id", pIds)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "invitation", "application"])
           .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("to_profile_id", pIds)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "invitation", "application"])
           .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
       ]);

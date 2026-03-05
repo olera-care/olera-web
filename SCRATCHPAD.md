@@ -120,11 +120,18 @@
 **PRs:** #138 (approval email + Loops), #140 (debug logging), #141 (fix accounts table lookup)
 
 **Test results so far:**
+- Test #1 (connection request email): PASS — email arrives, but URL pointed to v1.0 (fixed via `NEXT_PUBLIC_SITE_URL` env var)
 - Test #6 (approval email): PASS — email arrives with correct template
-- Test #13 (Slack on approve): PASS — Slack alert fires correctly
-- Tests #7-18: Remaining
+- Test #7 (rejection email): PASS — "Your claim needs attention" email arrives
+- Test #10 (Slack lead alert): PASS — fires on connection request
+- Test #13 (Slack approve/reject): PASS — fires correctly
+- Tests #2-5, #8-9, #11-12, #14-18: Remaining
+
+**Env var fix:** Added `NEXT_PUBLIC_SITE_URL=https://staging-olera2-web.vercel.app` (Preview only) to Vercel. Without it, all email CTAs linked to `olera.care` (v1.0).
 
 **Postmortem:** Notion MCP Cloudflare rate limiting — documented in `docs/POSTMORTEMS.md`
+
+**Next session:** Continue notification testing. Need `CRON_SECRET` for tests #14-16. Connection accept (#2) needs provider to accept in Inbox. SMS tests (#8-9) need phone verification.
 
 ---
 

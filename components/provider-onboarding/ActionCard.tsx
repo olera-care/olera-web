@@ -367,39 +367,28 @@ export default function ActionCard({
   if (state === "pre-verified") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-          {/* Icon */}
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        <div className="flex items-start gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-
-          {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary-100 text-primary-700">
-                Verified
-              </span>
-            </div>
             <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
               Email verified
             </h3>
-            <p className="text-[15px] text-gray-500 leading-relaxed">
-              Your email <span className="font-semibold text-gray-700">{emailHint || preVerifiedEmail}</span> has been verified. Sign in to access your dashboard.
+            <p className="text-[15px] text-gray-500">
+              <span className="font-semibold text-gray-700">{emailHint || preVerifiedEmail}</span> is verified. Sign in to continue.
             </p>
           </div>
-
-          {/* Action */}
-          <div className="sm:shrink-0">
-            <button
-              onClick={onVerificationComplete}
-              className="w-full sm:w-auto px-6 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm"
-            >
-              Continue to sign in
-            </button>
-          </div>
         </div>
+
+        <button
+          onClick={onVerificationComplete}
+          className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm"
+        >
+          Continue to sign in
+        </button>
       </div>
     );
   }
@@ -411,35 +400,28 @@ export default function ActionCard({
   if (state === "no-access-success") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="text-center py-4">
-          <div className="relative inline-block mb-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-sm shadow-primary-500/10 border border-primary-100/60">
-              <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center ring-2 ring-white">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5">
-            Request submitted
-          </h3>
-          <p className="text-[15px] text-gray-500 mb-6 max-w-sm mx-auto leading-relaxed">
-            Our team will review your request and get back to you within 2–3 business days.
-          </p>
-          <Link
-            href={`/provider/${provider.slug || provider.provider_id}`}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-          >
-            Return to listing
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        <div className="flex items-start gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-          </Link>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+              Request submitted
+            </h3>
+            <p className="text-[15px] text-gray-500">
+              We&apos;ll review and respond within 2–3 business days.
+            </p>
+          </div>
         </div>
+
+        <Link
+          href={`/provider/${provider.slug || provider.provider_id}`}
+          className="block w-full py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all min-h-[48px] text-center"
+        >
+          Return to listing
+        </Link>
       </div>
     );
   }
@@ -451,35 +433,28 @@ export default function ActionCard({
   if (state === "dispute-submitted") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="text-center py-4">
-          <div className="relative inline-block mb-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shadow-sm shadow-primary-500/10 border border-primary-100/60">
-              <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center ring-2 ring-white">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5">
-            Dispute submitted
-          </h3>
-          <p className="text-[15px] text-gray-500 mb-6 max-w-sm mx-auto leading-relaxed">
-            Our team will review your dispute and get back to you within 2–3 business days.
-          </p>
-          <Link
-            href={`/provider/${provider.slug || provider.provider_id}`}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-          >
-            Return to listing
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        <div className="flex items-start gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-          </Link>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+              Dispute submitted
+            </h3>
+            <p className="text-[15px] text-gray-500">
+              We&apos;ll review and respond within 2–3 business days.
+            </p>
+          </div>
         </div>
+
+        <Link
+          href={`/provider/${provider.slug || provider.provider_id}`}
+          className="block w-full py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all min-h-[48px] text-center"
+        >
+          Return to listing
+        </Link>
       </div>
     );
   }
@@ -492,17 +467,17 @@ export default function ActionCard({
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center shrink-0 border border-amber-200/60">
-            <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
-              We couldn&apos;t find an email on file
+              Verify your identity
             </h3>
-            <p className="text-[15px] text-gray-500 leading-relaxed">
-              Please provide your details so we can verify your connection to this listing.
+            <p className="text-[15px] text-gray-500">
+              Tell us about yourself and your role at this organization.
             </p>
           </div>
         </div>
@@ -611,15 +586,15 @@ export default function ActionCard({
         <div className="flex items-start gap-4 mb-6">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center shrink-0 border border-amber-200/60">
             <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
-              This listing has been claimed
+              This listing is claimed
             </h3>
-            <p className="text-[15px] text-gray-500 leading-relaxed">
-              If you believe you should manage <strong className="text-gray-700">{provider.provider_name}</strong>, please tell us why.
+            <p className="text-[15px] text-gray-500">
+              Submit a dispute if you should manage this listing.
             </p>
           </div>
         </div>
@@ -702,22 +677,25 @@ export default function ActionCard({
   if (state === "verify-code") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="text-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-            <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Header - same style as other states */}
+        <div className="flex items-start gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5">
-            Check your email
-          </h3>
-          <p className="text-[15px] text-gray-500">
-            We sent a 6-digit code to <span className="font-semibold text-gray-700">{emailHint}</span>
-          </p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+              Enter verification code
+            </h3>
+            <p className="text-[15px] text-gray-500">
+              We sent a 6-digit code to <span className="font-semibold text-gray-700">{emailHint}</span>
+            </p>
+          </div>
         </div>
 
         {/* Code input */}
-        <div className="flex justify-center gap-2.5 mb-6" onPaste={handleCodePaste}>
+        <div className="flex justify-center gap-2.5 mb-5" onPaste={handleCodePaste}>
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <input
               key={i}
@@ -729,13 +707,13 @@ export default function ActionCard({
               onChange={(e) => handleCodeChange(i, e.target.value)}
               onKeyDown={(e) => handleCodeKeyDown(i, e)}
               disabled={verifying}
-              className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white disabled:opacity-50 transition-all"
+              className="w-11 h-14 sm:w-12 sm:h-14 text-center text-xl font-bold border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white disabled:opacity-50 transition-all"
             />
           ))}
         </div>
 
         {error && (
-          <div className="flex items-center justify-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg mb-4">
+          <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg mb-4">
             <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
@@ -753,7 +731,7 @@ export default function ActionCard({
           </button>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-gray-100">
+        <div className="mt-5 pt-4 border-t border-gray-100">
           <button
             onClick={() => setState("no-access")}
             className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 text-center transition-colors min-h-[44px]"

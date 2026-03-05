@@ -326,7 +326,6 @@ export default async function ProviderPage({
       : null);
 
   const rating = meta?.rating;
-  const reviewCount = meta?.review_count;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
   const staff = meta?.staff;
   const acceptedPayments = meta?.accepted_payments || [];
@@ -338,6 +337,8 @@ export default async function ProviderPage({
 
   // Fetch answered Q&A pairs server-side (for FAQPage JSON-LD + initial render)
   let answeredQuestions: { id: string; question: string; answer: string; asker_name: string; created_at: string }[] = [];
+  // Fetch real review count from database
+  let realReviewCount = 0;
   try {
     const db = getServiceClient();
     const { data: qaRows } = await db
@@ -352,6 +353,14 @@ export default async function ProviderPage({
     if (qaRows) {
       answeredQuestions = qaRows.filter((q) => q.answer && q.answer.trim().length > 0);
     }
+
+    // Get actual review count from reviews table
+    const { count } = await db
+      .from("reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("provider_id", profile.id)
+      .eq("status", "published");
+    realReviewCount = count ?? 0;
   } catch {
     // Service client not available or table doesn't exist — degrade gracefully
   }
@@ -359,6 +368,9 @@ export default async function ProviderPage({
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;
   const reviews = meta?.reviews || [];
+
+  // Use real review count from database for CTA display
+  const reviewCount = realReviewCount;
 
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
@@ -862,7 +874,7 @@ export default async function ProviderPage({
                       {[1, 2, 3, 4, 5].map((star) => (
                         <StarIcon
                           key={star}
-                          className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-yellow-400" : "text-gray-200"}`}
+                          className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-primary-500" : "text-gray-200"}`}
                           filled={star <= Math.round(oleraScore!)}
                         />
                       ))}
@@ -963,7 +975,7 @@ export default async function ProviderPage({
                 providerSlug={profile.slug}
                 priceRange={priceRange}
                 oleraScore={oleraScore}
-                reviewCount={meta?.review_count}
+                reviewCount={reviewCount}
                 phone={profile.phone}
                 acceptedPayments={acceptedPayments}
                 careTypes={profile.care_types}
@@ -1000,7 +1012,7 @@ export default async function ProviderPage({
         providerId={profile.id}
         providerSlug={profile.slug}
         oleraScore={oleraScore}
-        reviewCount={meta?.review_count}
+        reviewCount={reviewCount}
         phone={profile.phone}
         acceptedPayments={acceptedPayments}
         careTypes={profile.care_types}

@@ -15,41 +15,65 @@ export default function WaiverLibraryPage() {
   return (
     <div className="bg-vanilla-100 min-h-screen">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary-700 via-primary-800 to-secondary-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
-          <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Find Your Senior Care Benefits
-              </h1>
-              <p className="mt-6 text-lg md:text-xl text-primary-100">
-                Find out what benefits you&apos;re eligible for in just 2 minutes. Many families
-                save up to $10,000 a year. It&apos;s free, simple, and personalized to you.
-              </p>
-              <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Link
-                  href="/benefits/finder"
-                  className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-primary-700 font-semibold rounded-xl hover:bg-primary-50 transition-colors"
-                >
-                  Check Eligibility
-                </Link>
-                <a
-                  href="#states"
-                  className="inline-flex items-center justify-center px-8 py-3.5 border border-primary-300 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors"
-                >
-                  Browse by State
-                </a>
-              </div>
+      <section className="relative min-h-[480px] md:min-h-[540px] text-white overflow-hidden">
+        {/* Full-bleed background image */}
+        <Image
+          src="/waiver-hero.png"
+          alt="Caregiver with elderly woman"
+          fill
+          className="object-cover"
+          style={{ objectPosition: "75% 20%" }}
+          priority
+        />
+        {/* Dark overlay — strong on left for text, light on right to keep faces clear */}
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 via-35% to-transparent" />
+
+        {/* Content — pinned to left so it never overlaps the right-side faces */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 flex items-center min-h-[480px] md:min-h-[540px]">
+          <div className="max-w-xl">
+            <h1 className="font-bold leading-tight">
+              <span className="block text-3xl md:text-4xl lg:text-5xl">Save $10,000 a Year</span>
+              <span className="block text-xl md:text-2xl lg:text-3xl text-primary-300 mt-4">in Senior Care Benefits</span>
+            </h1>
+            <p className="mt-4 text-lg md:text-xl text-gray-200">
+              Check what you qualify for in 2 minutes. Free, no signup required.
+            </p>
+            <div className="mt-4 flex flex-col sm:flex-row gap-4">
+              <Link
+                href="/benefits/finder"
+                className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-primary-700 font-semibold rounded-xl hover:bg-primary-50 transition-colors"
+              >
+                Check My Benefits
+              </Link>
+              <a
+                href="#states"
+                className="inline-flex items-center gap-2 text-white font-semibold hover:text-primary-200 transition-colors"
+              >
+                Browse by State
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
             </div>
-            <div className="flex-shrink-0 w-full md:w-[400px] lg:w-[480px]">
-              <Image
-                src="https://dazzlinginsights.com/wp-content/uploads/2020/09/Caring-for-your-ageing-parents-and-other-family-members.jpg"
-                alt="Family caring for elderly loved one"
-                width={480}
-                height={360}
-                className="rounded-2xl object-cover w-full h-auto shadow-2xl"
-                priority
-              />
+          </div>
+        </div>
+
+        {/* NIH badge — bottom of hero */}
+        <div className="absolute bottom-0 inset-x-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 flex justify-end">
+            <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-5 py-3">
+              {/* NIH logo */}
+              <div className="flex items-center justify-center w-12 h-12 border-2 border-white rounded-md">
+                <span className="text-white font-bold text-sm tracking-wide">NIH</span>
+                <svg className="w-3 h-3 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M10 17l6-5-6-5v10z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-white/70 text-xs">Proudly supported by</p>
+                <p className="text-white font-semibold text-sm">National Institute on Aging</p>
+              </div>
             </div>
           </div>
         </div>

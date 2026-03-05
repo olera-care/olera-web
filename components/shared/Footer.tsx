@@ -205,7 +205,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link href="/waiver-library" className="text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Waiver Library
+                    Benefits Hub
                   </Link>
                 </li>
               </ul>

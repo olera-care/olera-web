@@ -397,15 +397,19 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     ? PROFILE_CAT_TO_SUPABASE_CAT[bp.category] || ""
     : "";
 
-  const image = bp.image_url || getCategoryFallbackImage(supabaseCat, bp.id);
+  // Gallery images are stored in metadata.images (uploaded via provider dashboard)
+  const meta = bp.metadata as Record<string, unknown> | null;
+  const metaImages = Array.isArray(meta?.images) ? (meta.images as string[]) : [];
+  const primaryImage = bp.image_url || metaImages[0] || null;
+  const hasImage = !!primaryImage;
 
   return {
     id: bp.id,
     slug: bp.slug,
     name: bp.display_name,
-    image,
-    imageType: bp.image_url ? "photo" : "placeholder",
-    images: bp.image_url ? [bp.image_url] : [],
+    image: primaryImage || getCategoryFallbackImage(supabaseCat, bp.id),
+    imageType: hasImage ? "photo" : "placeholder",
+    images: metaImages.length > 0 ? metaImages : (bp.image_url ? [bp.image_url] : []),
     address: [bp.city, bp.state].filter(Boolean).join(", "),
     rating: 0,
     reviewCount: undefined,
@@ -422,6 +426,41 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
 }
 
 /**
+ * Enrich BP cards with data from the seeded providers they replaced.
+ * When a provider claims their page, the BP may lack images/pricing/rating
+ * that exist on the original olera-providers record.
+ */
+export function enrichBpCards(
+  bpCards: ProviderCardData[],
+  seededCards: ProviderCardData[],
+  bpSourceIds: (string | null)[],
+): void {
+  const seededById = new Map(seededCards.map((c) => [c.id, c]));
+  const seededBySlug = new Map(seededCards.map((c) => [c.slug, c]));
+
+  for (let i = 0; i < bpCards.length; i++) {
+    const bp = bpCards[i];
+    // Match by source_provider_id first, then fall back to slug
+    const sourceId = bpSourceIds[i];
+    const seeded = (sourceId ? seededById.get(sourceId) : null) ?? seededBySlug.get(bp.slug);
+    if (!seeded) continue;
+
+    if (bp.imageType === "placeholder" && seeded.imageType !== "placeholder") {
+      bp.image = seeded.image;
+      bp.imageType = seeded.imageType;
+      if (seeded.images.length > 0) bp.images = seeded.images;
+    }
+    if (bp.priceRange === "Contact for pricing" && seeded.priceRange !== "Contact for pricing") {
+      bp.priceRange = seeded.priceRange;
+    }
+    if (bp.rating === 0 && seeded.rating > 0) {
+      bp.rating = seeded.rating;
+      bp.reviewCount = seeded.reviewCount;
+    }
+  }
+}
+
+/**
  * Merge seeded provider cards with business_profile cards.
  * If a BP has a source_provider_id matching a seeded card, the BP version wins.
  */
@@ -430,9 +469,12 @@ export function mergeProviderCards(
   bpCards: ProviderCardData[],
   dedupeSourceIds: Set<string>,
 ): ProviderCardData[] {
-  const filtered = dedupeSourceIds.size > 0
-    ? seededCards.filter((c) => !dedupeSourceIds.has(c.id))
-    : seededCards;
+  // Also deduplicate by slug so claimed BPs without source_provider_id
+  // don't appear alongside their seeded counterpart
+  const bpSlugs = new Set(bpCards.map((c) => c.slug));
+  const filtered = seededCards.filter(
+    (c) => !dedupeSourceIds.has(c.id) && !bpSlugs.has(c.slug)
+  );
   return [...filtered, ...bpCards];
 }
 

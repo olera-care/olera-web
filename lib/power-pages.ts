@@ -13,6 +13,7 @@ import {
   getCategoryDisplayName,
   businessProfileToCardFormat,
   mergeProviderCards,
+  enrichBpCards,
   SUPABASE_CAT_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
 import type { BusinessProfile } from "@/lib/types";
@@ -233,11 +234,14 @@ export async function fetchPowerPageData(opts: {
   // Convert and merge
   const seededCards = (providers as Provider[]).map(toCardFormat);
   const bpCards = bpProviders.map(businessProfileToCardFormat);
+  const bpSourceIds = bpProviders.map((bp) => bp.source_provider_id);
   const dedupeSourceIds = new Set(
-    bpProviders
-      .map((bp) => bp.source_provider_id)
-      .filter((id): id is string => id != null)
+    bpSourceIds.filter((id): id is string => id != null)
   );
+
+  // Enrich BP cards with images/pricing/rating from the seeded providers they replace
+  enrichBpCards(bpCards, seededCards, bpSourceIds);
+
   const mergedCards = mergeProviderCards(seededCards, bpCards, dedupeSourceIds);
 
   // Compute average prices (from seeded providers only — BPs don't have pricing yet)

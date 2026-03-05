@@ -14,6 +14,7 @@ import {
   type ProviderCardData,
   businessProfileToCardFormat,
   mergeProviderCards,
+  enrichBpCards,
   SUPABASE_CAT_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
 import type { BusinessProfile } from "@/lib/types";
@@ -143,9 +144,11 @@ export default function BrowsePageClient({
           const seededCards = (seededResult.data as Provider[]).map(toCardFormat);
           const bpData = (bpResult.data as BusinessProfile[] | null) ?? [];
           const bpCards = bpData.map(businessProfileToCardFormat);
+          const bpSourceIds = bpData.map((bp) => bp.source_provider_id);
           const dedupeIds = new Set(
-            bpData.map((bp) => bp.source_provider_id).filter((id): id is string => id != null)
+            bpSourceIds.filter((id): id is string => id != null)
           );
+          enrichBpCards(bpCards, seededCards, bpSourceIds);
           setProviders(mergeProviderCards(seededCards, bpCards, dedupeIds));
         }
       } catch (err) {

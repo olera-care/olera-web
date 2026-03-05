@@ -133,6 +133,10 @@ export interface Review {
   status: ReviewStatus;
   created_at: string;
   updated_at: string;
+  // Provider reply fields
+  provider_reply: string | null;
+  replied_at: string | null;
+  replied_by: string | null;
 }
 
 // ============================================================

@@ -55,6 +55,8 @@ interface DisplayReview {
   relationship?: string;
   title?: string | null;
   isMock: boolean;
+  providerReply?: string | null;
+  repliedAt?: string | null;
 }
 
 type SortOption = "helpful" | "recent" | "highest" | "lowest";
@@ -163,6 +165,8 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
     relationship: r.relationship,
     title: r.title,
     isMock: false,
+    providerReply: r.provider_reply,
+    repliedAt: r.replied_at,
   }));
 
   // Real reviews take priority; fall back to mock
@@ -287,6 +291,20 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
                       </button>
                     )}
                   </p>
+                  {/* Provider response */}
+                  {review.providerReply && (
+                    <div className="mt-4 pl-4 border-l-2 border-primary-100 bg-primary-50/30 rounded-r-lg p-3">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-xs font-semibold text-primary-600">Provider Response</span>
+                        {review.repliedAt && (
+                          <span className="text-xs text-gray-400">
+                            {new Date(review.repliedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">{review.providerReply}</p>
+                    </div>
+                  )}
                 </div>
               );
             })}

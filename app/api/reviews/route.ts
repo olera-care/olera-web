@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const { data: reviews, error } = await db
       .from("reviews")
-      .select("id, provider_id, account_id, reviewer_name, rating, title, comment, relationship, status, created_at, updated_at")
+      .select("id, provider_id, account_id, reviewer_name, rating, title, comment, relationship, status, created_at, updated_at, provider_reply, replied_at")
       .eq("provider_id", providerId)
       .eq("status", "published")
       .order("created_at", { ascending: false });

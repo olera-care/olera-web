@@ -187,6 +187,7 @@ function ProviderOnboardingContent() {
 
   // Claim verification state
   const [claimingProvider, setClaimingProvider] = useState<Provider | null>(null);
+  const [claimSession] = useState(() => crypto.randomUUID());
   const [verifyCode, setVerifyCode] = useState("");
   const [verifyEmailHint, setVerifyEmailHint] = useState("");
   const [verifyNoEmail, setVerifyNoEmail] = useState(false);
@@ -494,7 +495,7 @@ function ProviderOnboardingContent() {
       const res = await fetch("/api/claim/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId: provider.provider_id }),
+        body: JSON.stringify({ providerId: provider.provider_id, claimSession }),
       });
       const result = await res.json();
       if (!res.ok) {
@@ -526,6 +527,7 @@ function ProviderOnboardingContent() {
         body: JSON.stringify({
           providerId: claimingProvider.provider_id,
           code: verifyCode,
+          claimSession,
         }),
       });
       const result = await res.json();

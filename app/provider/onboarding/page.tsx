@@ -10,6 +10,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 import WizardNav from "@/components/ui/WizardNav";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
@@ -175,15 +176,6 @@ function ProviderOnboardingContent() {
       // localStorage unavailable
     }
   }, [searchQuery]);
-
-  // Dispute state
-  const [disputingId, setDisputingId] = useState<string | null>(null);
-  const [disputeName, setDisputeName] = useState("");
-  const [disputeRole, setDisputeRole] = useState("");
-  const [disputeReason, setDisputeReason] = useState("");
-  const [disputeSubmitting, setDisputeSubmitting] = useState(false);
-  const [disputeSuccess, setDisputeSuccess] = useState<string | null>(null);
-  const [disputeError, setDisputeError] = useState("");
 
   // Claim verification state
   const [claimingProvider, setClaimingProvider] = useState<Provider | null>(null);
@@ -654,39 +646,6 @@ function ProviderOnboardingContent() {
     } finally {
       setHasSearched(true);
       setSearching(false);
-    }
-  };
-
-  const handleDisputeSubmit = async (provider: Provider) => {
-    if (!disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()) return;
-    setDisputeSubmitting(true);
-    setDisputeError("");
-
-    try {
-      const res = await fetch("/api/disputes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          provider_name: provider.provider_name,
-          claimant_name: disputeName,
-          claimant_role: disputeRole,
-          reason: disputeReason,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        setDisputeError(err.error || "Failed to submit dispute. Please try again.");
-        return;
-      }
-
-      setDisputeSuccess(provider.provider_id);
-      setDisputingId(null);
-    } catch {
-      setDisputeError("Something went wrong. Please try again.");
-    } finally {
-      setDisputeSubmitting(false);
     }
   };
 
@@ -1256,8 +1215,6 @@ function ProviderOnboardingContent() {
                       const address = formatAddress(provider);
                       const highlights = getProviderHighlights(provider);
                       const isClaimed = claimedIds.has(provider.provider_id);
-                      const isDisputing = disputingId === provider.provider_id;
-                      const isDisputeSuccess = disputeSuccess === provider.provider_id;
 
                       return (
                         <div
@@ -1356,85 +1313,20 @@ function ProviderOnboardingContent() {
                                 </div>
                               )}
 
-                              {/* Action — claimed (dispute) */}
-                              {isClaimed && !isDisputeSuccess && (
+                              {/* Action — claimed (dispute) → redirects to onboard page */}
+                              {isClaimed && (
                                 <div className="mt-1">
-                                  {!isDisputing ? (
-                                    <div className="flex justify-end">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setDisputingId(provider.provider_id);
-                                          setDisputeName("");
-                                          setDisputeRole("");
-                                          setDisputeReason("");
-                                          setDisputeError("");
-                                        }}
-                                        className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors"
-                                      >
-                                        Dispute ownership
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <div className="mt-3 pt-4 border-t border-gray-100 space-y-3">
-                                      <p className="text-base font-semibold text-gray-700">Tell us about your claim</p>
-                                      <input
-                                        type="text"
-                                        value={disputeName}
-                                        onChange={(e) => setDisputeName(e.target.value)}
-                                        placeholder="Your name"
-                                        className="w-full px-4 py-3 text-base rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 transition-all"
-                                      />
-                                      <input
-                                        type="text"
-                                        value={disputeRole}
-                                        onChange={(e) => setDisputeRole(e.target.value)}
-                                        placeholder="Your role (e.g. Owner, Administrator)"
-                                        className="w-full px-4 py-3 text-base rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 transition-all"
-                                      />
-                                      <textarea
-                                        value={disputeReason}
-                                        onChange={(e) => setDisputeReason(e.target.value)}
-                                        placeholder="Why do you believe you are the owner of this listing?"
-                                        rows={3}
-                                        className="w-full px-4 py-3 text-base rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 resize-none transition-all"
-                                      />
-                                      {disputeError && (
-                                        <p className="text-sm text-red-600">{disputeError}</p>
-                                      )}
-                                      <div className="flex items-center justify-between gap-3">
-                                        <button
-                                          type="button"
-                                          onClick={() => setDisputingId(null)}
-                                          className="text-base text-gray-500 hover:text-gray-700 transition-colors"
-                                        >
-                                          Cancel
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleDisputeSubmit(provider)}
-                                          disabled={disputeSubmitting || !disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()}
-                                          className="px-5 py-2.5 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                                        >
-                                          {disputeSubmitting ? "Submitting…" : "Submit dispute"}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Dispute success */}
-                              {isClaimed && isDisputeSuccess && (
-                                <div className="mt-3 pt-4 border-t border-gray-100 flex items-start gap-2.5">
-                                  <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                    </svg>
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}&state=already-claimed`);
+                                      }}
+                                      className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                                    >
+                                      Dispute ownership
+                                    </button>
                                   </div>
-                                  <p className="text-base text-gray-500 leading-relaxed">
-                                    We&apos;ve received your dispute. Our team will review it within 2–3 business days.
-                                  </p>
                                 </div>
                               )}
                             </div>
@@ -1662,31 +1554,21 @@ function ProviderOnboardingContent() {
                       required
                     />
 
-                    <div className="space-y-1.5">
-                      <label htmlFor="no-access-role" className="block text-base font-medium text-gray-700">
-                        Your role
-                      </label>
-                      <div className="relative">
-                        <select
-                          id="no-access-role"
-                          value={noAccessReason}
-                          onChange={(e) => setNoAccessReason(e.target.value)}
-                          className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                        >
-                          <option value="">Select your role…</option>
-                          <option value="Owner">Owner</option>
-                          <option value="Administrator">Administrator</option>
-                          <option value="Executive Director">Executive Director</option>
-                          <option value="Office Manager">Office Manager</option>
-                          <option value="Marketing / Communications">Marketing / Communications</option>
-                          <option value="Staff Member">Staff Member</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </div>
+                    <Select
+                      label="Your role"
+                      options={[
+                        { value: "Owner", label: "Owner" },
+                        { value: "Administrator", label: "Administrator" },
+                        { value: "Executive Director", label: "Executive Director" },
+                        { value: "Office Manager", label: "Office Manager" },
+                        { value: "Marketing / Communications", label: "Marketing / Communications" },
+                        { value: "Staff Member", label: "Staff Member" },
+                        { value: "Other", label: "Other" },
+                      ]}
+                      value={noAccessReason}
+                      onChange={setNoAccessReason}
+                      placeholder="Select your role..."
+                    />
 
                     <Input
                       label="Organization email"
@@ -1754,29 +1636,13 @@ function ProviderOnboardingContent() {
               />
 
               {providerType === "organization" && (
-                <div className="space-y-1.5">
-                  <label htmlFor="org-type" className="block text-base font-medium text-gray-700">
-                    Organization type
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="org-type"
-                      value={data.category}
-                      onChange={(e) => update("category", e.target.value)}
-                      className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                    >
-                      <option value="">Select a type</option>
-                      {ORG_CATEGORIES.map((cat) => (
-                        <option key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
-                    <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <Select
+                  label="Organization type"
+                  options={ORG_CATEGORIES}
+                  value={data.category}
+                  onChange={(val) => update("category", val)}
+                  placeholder="Select a type"
+                />
               )}
 
             </div>

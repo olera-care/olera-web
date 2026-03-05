@@ -29,6 +29,7 @@ export default function ProviderOnboardPage() {
   const searchParams = useSearchParams();
   const providerIdParam = searchParams.get("provider_id");
   const tokenParam = searchParams.get("token");
+  const stateParam = searchParams.get("state") as ActionCardState | null;
   const router = useRouter();
   const { user, openAuth, refreshAccountData } = useAuth();
 
@@ -140,11 +141,17 @@ export default function ProviderOnboardPage() {
       }
 
       // Start with dashboard (wizard will show first, then verification)
-      setActionCardState("verify-form");
+      // If state param provided (e.g., from dispute link), use it
+      const validStates: ActionCardState[] = ["verify-form", "already-claimed", "no-access"];
+      if (stateParam && validStates.includes(stateParam)) {
+        setActionCardState(stateParam);
+      } else {
+        setActionCardState("verify-form");
+      }
       setStep("dashboard");
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, providerIdParam]);
+  }, [slug, providerIdParam, stateParam]);
 
   // Validate email campaign token
   const validateToken = async (foundProvider: Provider, claimSessionData: ClaimSessionData) => {

@@ -42,11 +42,229 @@ const ROLE_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
+// Tooltip content for each state
+const TOOLTIP_CONTENT: Record<ActionCardState, { text: string; showTos?: boolean }> = {
+  "verify-form": {
+    text: "We'll send a verification code to confirm you have access to this business email.",
+    showTos: true,
+  },
+  "verify-code": {
+    text: "Check your inbox (and spam folder) for the 6-digit code. Codes expire after 10 minutes.",
+  },
+  "pre-verified": {
+    text: "Your email has been verified. Sign in to complete the claim process.",
+    showTos: true,
+  },
+  "no-access": {
+    text: "We'll review your information and reach out within 2–3 business days to verify your connection.",
+    showTos: true,
+  },
+  "no-access-success": {
+    text: "Our team will review your request and contact you at the email provided.",
+  },
+  "already-claimed": {
+    text: "This listing is managed by someone else. Submit a dispute and we'll review within 2–3 business days.",
+    showTos: true,
+  },
+  "dispute-submitted": {
+    text: "Our team will review your dispute and contact you at the email provided.",
+  },
+};
+
+// ============================================================
+// Info Tooltip Component
+// ============================================================
+
+function InfoTooltip({
+  content,
+  showTos = false
+}: {
+  content: string;
+  showTos?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  // Close on escape key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
+
+  return (
+    <div className="relative inline-flex" ref={tooltipRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1.5 -m-1 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
+        aria-label="More information"
+        aria-expanded={isOpen}
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full mt-2 z-50 w-[calc(100vw-3rem)] max-w-72 p-3.5 bg-gray-900 text-white text-sm rounded-xl shadow-xl animate-fade-in"
+          role="tooltip"
+        >
+          {/* Arrow */}
+          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 w-3 h-3 bg-gray-900 rotate-45" />
+
+          <p className="relative text-[13px] leading-relaxed text-gray-100">
+            {content}
+          </p>
+
+          {showTos && (
+            <p className="relative mt-2.5 pt-2.5 border-t border-gray-700 text-[11px] text-gray-400 leading-relaxed">
+              By continuing, you agree to our{" "}
+              <Link href="/terms" className="text-primary-300 hover:text-primary-200 underline">Provider TOS</Link>
+              {" & "}
+              <Link href="/privacy" className="text-primary-300 hover:text-primary-200 underline">Privacy Notice</Link>.
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// Role Dropdown Component (Custom Select)
+// ============================================================
+
+function RoleDropdown({
+  value,
+  onChange,
+  placeholder = "Select your role...",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  // Close on escape
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
+
+  const selectedOption = ROLE_OPTIONS.find((opt) => opt.value === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Trigger button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 py-3 pr-10 rounded-xl border bg-gray-50/50 text-[15px] text-left focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white transition-all min-h-[48px] cursor-pointer ${
+          isOpen ? "border-primary-300 ring-2 ring-primary-300 bg-white" : "border-gray-200"
+        } ${!value ? "text-gray-400" : "text-gray-900"}`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        {selectedOption?.label || placeholder}
+      </button>
+
+      {/* Chevron icon */}
+      <svg
+        className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none transition-transform ${
+          isOpen ? "rotate-180" : ""
+        }`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div
+          className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-fade-in max-h-[280px] overflow-y-auto"
+          role="listbox"
+        >
+          {ROLE_OPTIONS.map((option, index) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`w-full px-4 py-3.5 text-left text-[15px] transition-colors focus:outline-none focus-visible:bg-gray-100 ${
+                value === option.value
+                  ? "bg-primary-50 text-primary-700 font-medium"
+                  : "text-gray-700 hover:bg-gray-50 active:bg-gray-100"
+              } ${index === 0 ? "rounded-t-xl" : ""} ${index === ROLE_OPTIONS.length - 1 ? "rounded-b-xl" : ""}`}
+              role="option"
+              aria-selected={value === option.value}
+            >
+              <span className="flex items-center gap-2.5">
+                {value === option.value ? (
+                  <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <span className="w-4 shrink-0" />
+                )}
+                <span>{option.label}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Shared input classes matching dashboard design system
 const inputClasses =
   "w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white transition-all min-h-[48px]";
-const selectClasses =
-  "w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white appearance-none transition-all min-h-[48px] cursor-pointer";
 const labelClasses = "block text-[13px] font-semibold text-gray-700 mb-1.5";
 
 // ============================================================
@@ -90,13 +308,16 @@ export default function ActionCard({
 
   // No-access form state
   const [noAccessName, setNoAccessName] = useState("");
-  const [noAccessRole, setNoAccessRole] = useState("");
   const [noAccessEmail, setNoAccessEmail] = useState("");
+  const [noAccessPhone, setNoAccessPhone] = useState("");
+  const [noAccessRole, setNoAccessRole] = useState("");
   const [noAccessNotes, setNoAccessNotes] = useState("");
   const [noAccessSubmitting, setNoAccessSubmitting] = useState(false);
 
   // Dispute form state
   const [disputeName, setDisputeName] = useState("");
+  const [disputeEmail, setDisputeEmail] = useState("");
+  const [disputePhone, setDisputePhone] = useState("");
   const [disputeRole, setDisputeRole] = useState("");
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
@@ -272,7 +493,7 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const handleNoAccessSubmit = async () => {
-    if (!noAccessName.trim() || !noAccessRole || !noAccessEmail.trim()) {
+    if (!noAccessName.trim() || !noAccessRole || !noAccessEmail.trim() || !noAccessPhone.trim()) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -288,6 +509,7 @@ export default function ActionCard({
           providerId: provider.provider_id,
           providerName: provider.provider_name,
           contactName: noAccessName,
+          contactPhone: noAccessPhone,
           reason: noAccessNotes
             ? `${noAccessRole} — ${noAccessNotes}`
             : noAccessRole,
@@ -314,7 +536,7 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const handleDisputeSubmit = async () => {
-    if (!disputeName.trim() || !disputeRole || !disputeReason.trim()) {
+    if (!disputeName.trim() || !disputeEmail.trim() || !disputePhone.trim() || !disputeRole || !disputeReason.trim()) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -330,6 +552,8 @@ export default function ActionCard({
           provider_id: provider.provider_id,
           provider_name: provider.provider_name,
           claimant_name: disputeName.trim(),
+          claimant_email: disputeEmail.trim(),
+          claimant_phone: disputePhone.trim(),
           claimant_role: disputeRole,
           reason: disputeReason.trim(),
         }),
@@ -374,8 +598,9 @@ export default function ActionCard({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
               Email verified
+              <InfoTooltip content={TOOLTIP_CONTENT["pre-verified"].text} showTos={TOOLTIP_CONTENT["pre-verified"].showTos} />
             </h3>
             <p className="text-[15px] text-gray-500">
               <span className="font-semibold text-gray-700">{emailHint || preVerifiedEmail}</span> is verified. Sign in to continue.
@@ -385,7 +610,7 @@ export default function ActionCard({
 
         <button
           onClick={onVerificationComplete}
-          className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm"
+          className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
         >
           Continue to sign in
         </button>
@@ -407,8 +632,9 @@ export default function ActionCard({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
               Request submitted
+              <InfoTooltip content={TOOLTIP_CONTENT["no-access-success"].text} />
             </h3>
             <p className="text-[15px] text-gray-500">
               We&apos;ll review and respond within 2–3 business days.
@@ -418,7 +644,7 @@ export default function ActionCard({
 
         <Link
           href={`/provider/${provider.slug || provider.provider_id}`}
-          className="block w-full py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all min-h-[48px] text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
         >
           Return to listing
         </Link>
@@ -440,8 +666,9 @@ export default function ActionCard({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
               Dispute submitted
+              <InfoTooltip content={TOOLTIP_CONTENT["dispute-submitted"].text} />
             </h3>
             <p className="text-[15px] text-gray-500">
               We&apos;ll review and respond within 2–3 business days.
@@ -451,7 +678,7 @@ export default function ActionCard({
 
         <Link
           href={`/provider/${provider.slug || provider.provider_id}`}
-          className="block w-full py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all min-h-[48px] text-center"
+          className="block w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-200 active:scale-[0.99] transition-all min-h-[48px] text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
         >
           Return to listing
         </Link>
@@ -473,8 +700,9 @@ export default function ActionCard({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
               Verify your identity
+              <InfoTooltip content={TOOLTIP_CONTENT["no-access"].text} showTos={TOOLTIP_CONTENT["no-access"].showTos} />
             </h3>
             <p className="text-[15px] text-gray-500">
               Tell us about yourself and your role at this organization.
@@ -483,58 +711,72 @@ export default function ActionCard({
         </div>
 
         <div className="space-y-4">
+          {/* Full name - full width */}
           <div className="space-y-1.5">
-            <label className={labelClasses}>
+            <label htmlFor="no-access-name" className={labelClasses}>
               Full name <span className="text-red-500">*</span>
             </label>
             <input
+              id="no-access-name"
               type="text"
               value={noAccessName}
               onChange={(e) => setNoAccessName(e.target.value)}
               placeholder="Your full name"
+              autoComplete="name"
               className={inputClasses}
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className={labelClasses}>
-              Your role <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                value={noAccessRole}
-                onChange={(e) => setNoAccessRole(e.target.value)}
-                className={`${selectClasses} ${!noAccessRole ? "text-gray-400" : "text-gray-900"}`}
-              >
-                <option value="" disabled>Select your role...</option>
-                {ROLE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+          {/* Email and Phone - 2 columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5">
+              <label htmlFor="no-access-email" className={labelClasses}>
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="no-access-email"
+                type="email"
+                value={noAccessEmail}
+                onChange={(e) => setNoAccessEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className={inputClasses}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="no-access-phone" className={labelClasses}>
+                Phone <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="no-access-phone"
+                type="tel"
+                value={noAccessPhone}
+                onChange={(e) => setNoAccessPhone(e.target.value)}
+                placeholder="(555) 123-4567"
+                autoComplete="tel"
+                className={inputClasses}
+              />
             </div>
           </div>
 
+          {/* Your role dropdown */}
           <div className="space-y-1.5">
-            <label className={labelClasses}>
-              Your email <span className="text-red-500">*</span>
+            <label id="no-access-role-label" className={labelClasses}>
+              Your role <span className="text-red-500">*</span>
             </label>
-            <input
-              type="email"
-              value={noAccessEmail}
-              onChange={(e) => setNoAccessEmail(e.target.value)}
-              placeholder="you@example.com"
-              className={inputClasses}
+            <RoleDropdown
+              value={noAccessRole}
+              onChange={setNoAccessRole}
             />
           </div>
 
+          {/* Additional notes - optional */}
           <div className="space-y-1.5">
-            <label className={labelClasses}>
+            <label htmlFor="no-access-notes" className={labelClasses}>
               Additional notes <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <textarea
+              id="no-access-notes"
               value={noAccessNotes}
               onChange={(e) => setNoAccessNotes(e.target.value)}
               placeholder="Anything else we should know?"
@@ -556,7 +798,7 @@ export default function ActionCard({
             <button
               type="button"
               onClick={() => { setState("verify-form"); setError(""); }}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px]"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -565,8 +807,8 @@ export default function ActionCard({
             </button>
             <button
               onClick={handleNoAccessSubmit}
-              disabled={!noAccessName.trim() || !noAccessRole || !noAccessEmail.trim() || noAccessSubmitting}
-              className="px-6 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px]"
+              disabled={!noAccessName.trim() || !noAccessRole || !noAccessEmail.trim() || !noAccessPhone.trim() || noAccessSubmitting}
+              className="px-6 py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
             >
               {noAccessSubmitting ? "Submitting..." : "Submit request"}
             </button>
@@ -584,14 +826,15 @@ export default function ActionCard({
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center shrink-0 border border-amber-200/60">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/10 border border-amber-200/60">
             <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
               This listing is claimed
+              <InfoTooltip content={TOOLTIP_CONTENT["already-claimed"].text} showTos={TOOLTIP_CONTENT["already-claimed"].showTos} />
             </h3>
             <p className="text-[15px] text-gray-500">
               Submit a dispute if you should manage this listing.
@@ -600,49 +843,76 @@ export default function ActionCard({
         </div>
 
         <div className="space-y-4">
+          {/* Full name - full width */}
           <div className="space-y-1.5">
-            <label className={labelClasses}>
+            <label htmlFor="dispute-name" className={labelClasses}>
               Full name <span className="text-red-500">*</span>
             </label>
             <input
+              id="dispute-name"
               type="text"
               value={disputeName}
               onChange={(e) => setDisputeName(e.target.value)}
               placeholder="Your full name"
+              autoComplete="name"
               className={inputClasses}
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className={labelClasses}>
-              Your role <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                value={disputeRole}
-                onChange={(e) => setDisputeRole(e.target.value)}
-                className={`${selectClasses} ${!disputeRole ? "text-gray-400" : "text-gray-900"}`}
-              >
-                <option value="" disabled>Select your role...</option>
-                {ROLE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+          {/* Email and Phone - 2 columns */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5">
+              <label htmlFor="dispute-email" className={labelClasses}>
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="dispute-email"
+                type="email"
+                value={disputeEmail}
+                onChange={(e) => setDisputeEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                className={inputClasses}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="dispute-phone" className={labelClasses}>
+                Phone <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="dispute-phone"
+                type="tel"
+                value={disputePhone}
+                onChange={(e) => setDisputePhone(e.target.value)}
+                placeholder="(555) 123-4567"
+                autoComplete="tel"
+                className={inputClasses}
+              />
             </div>
           </div>
 
+          {/* Your role dropdown */}
           <div className="space-y-1.5">
-            <label className={labelClasses}>
+            <label id="dispute-role-label" className={labelClasses}>
+              Your role <span className="text-red-500">*</span>
+            </label>
+            <RoleDropdown
+              value={disputeRole}
+              onChange={setDisputeRole}
+            />
+          </div>
+
+          {/* Why should you manage this listing - required reason */}
+          <div className="space-y-1.5">
+            <label htmlFor="dispute-reason" className={labelClasses}>
               Why should you manage this listing? <span className="text-red-500">*</span>
             </label>
             <textarea
+              id="dispute-reason"
               value={disputeReason}
               onChange={(e) => setDisputeReason(e.target.value)}
               placeholder="Explain your connection to this organization..."
-              rows={4}
+              rows={3}
               className={`${inputClasses} resize-none`}
             />
           </div>
@@ -656,11 +926,21 @@ export default function ActionCard({
             </div>
           )}
 
-          <div className="pt-3">
+          <div className="flex items-center justify-between pt-3">
+            <button
+              type="button"
+              onClick={() => { setState("verify-form"); setError(""); }}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
             <button
               onClick={handleDisputeSubmit}
-              disabled={!disputeName.trim() || !disputeRole || !disputeReason.trim() || disputeSubmitting}
-              className="w-full py-3.5 bg-amber-600 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px]"
+              disabled={!disputeName.trim() || !disputeEmail.trim() || !disputePhone.trim() || !disputeRole || !disputeReason.trim() || disputeSubmitting}
+              className="px-6 py-3 bg-amber-600 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2"
             >
               {disputeSubmitting ? "Submitting..." : "Submit dispute"}
             </button>
@@ -685,8 +965,9 @@ export default function ActionCard({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
               Enter verification code
+              <InfoTooltip content={TOOLTIP_CONTENT["verify-code"].text} />
             </h3>
             <p className="text-[15px] text-gray-500">
               We sent a 6-digit code to <span className="font-semibold text-gray-700">{emailHint}</span>
@@ -695,19 +976,22 @@ export default function ActionCard({
         </div>
 
         {/* Code input */}
-        <div className="flex justify-center gap-2.5 mb-5" onPaste={handleCodePaste}>
+        <div className="flex justify-center gap-2 sm:gap-3 mb-6" onPaste={handleCodePaste}>
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <input
               key={i}
               ref={(el) => { codeInputRefs.current[i] = el; }}
               type="text"
               inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
               maxLength={1}
               value={code[i] || ""}
               onChange={(e) => handleCodeChange(i, e.target.value)}
               onKeyDown={(e) => handleCodeKeyDown(i, e)}
               disabled={verifying}
-              className="w-11 h-14 sm:w-12 sm:h-14 text-center text-xl font-bold border border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent focus:bg-white disabled:opacity-50 transition-all"
+              aria-label={`Digit ${i + 1} of 6`}
+              className="w-10 h-12 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold border-2 border-gray-200 bg-gray-50/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 focus:bg-white disabled:opacity-50 transition-all"
             />
           ))}
         </div>
@@ -725,7 +1009,7 @@ export default function ActionCard({
           <button
             onClick={handleResend}
             disabled={resendCooldown > 0}
-            className="text-sm font-semibold text-primary-600 hover:text-primary-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors min-h-[44px]"
+            className="text-sm font-semibold text-primary-600 hover:text-primary-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors min-h-[44px] focus:outline-none focus-visible:underline"
           >
             {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}
           </button>
@@ -734,7 +1018,7 @@ export default function ActionCard({
         <div className="mt-5 pt-4 border-t border-gray-100">
           <button
             onClick={() => setState("no-access")}
-            className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 text-center transition-colors min-h-[44px]"
+            className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 text-center transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900 focus-visible:underline"
           >
             I don&apos;t have access to this email
           </button>
@@ -766,8 +1050,9 @@ export default function ActionCard({
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
             Verify your email
+            <InfoTooltip content={TOOLTIP_CONTENT["verify-form"].text} showTos={TOOLTIP_CONTENT["verify-form"].showTos} />
           </h3>
           {hasEmailOnFile ? (
             <p className="text-[15px] text-gray-500">
@@ -794,7 +1079,7 @@ export default function ActionCard({
       <button
         onClick={handleSubmitVerifyForm}
         disabled={submitting}
-        className="w-full py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] shadow-sm"
+        className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 block"
       >
         {submitting ? (
           <span className="inline-flex items-center justify-center gap-2">
@@ -809,20 +1094,12 @@ export default function ActionCard({
         )}
       </button>
 
-      {/* TOS notice */}
-      <p className="text-xs text-gray-400 leading-relaxed mt-4 text-center">
-        By continuing, you agree to our{" "}
-        <Link href="/terms" className="text-primary-600 hover:underline">Provider TOS</Link>
-        {" & "}
-        <Link href="/privacy" className="text-primary-600 hover:underline">Privacy Notice</Link>.
-      </p>
-
       {/* No access link */}
       <div className="mt-5 pt-4 border-t border-gray-100">
         <button
           type="button"
           onClick={() => setState("no-access")}
-          className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px]"
+          className="w-full text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900 focus-visible:underline"
         >
           I don&apos;t have access to the business email
         </button>

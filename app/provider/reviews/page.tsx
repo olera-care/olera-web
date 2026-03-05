@@ -404,7 +404,7 @@ function ReviewCard({
           <button
             type="button"
             onClick={() => hasReply ? onEdit(review) : onReply(review)}
-            className="w-full lg:w-auto px-6 py-3 lg:py-2.5 rounded-xl border border-gray-200 text-[15px] lg:text-[14px] font-semibold text-primary-600 hover:bg-primary-50/50 hover:border-primary-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
+            className="w-full lg:w-auto px-6 py-3 lg:py-2.5 rounded-xl bg-primary-600 text-[15px] lg:text-[14px] font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all active:scale-[0.99] min-h-[48px] lg:min-h-0"
           >
             {hasReply ? "Edit reply" : "Reply"}
           </button>
@@ -514,7 +514,7 @@ function BottomSheet({
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
               aria-label="Close"
             >
               <CloseIcon className="w-5 h-5" />

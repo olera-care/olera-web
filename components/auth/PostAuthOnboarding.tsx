@@ -8,6 +8,7 @@ import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 
 // ============================================================
 // Types
@@ -471,23 +472,13 @@ export default function PostAuthOnboarding({
           </div>
 
           {intent === "provider" && providerType === "organization" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Organization type
-              </label>
-              <select
-                value={category || ""}
-                onChange={(e) => setCategory(e.target.value as ProfileCategory || null)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors min-h-[44px]"
-              >
-                <option value="">Select a type...</option>
-                {ORG_CATEGORIES.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Organization type"
+              options={ORG_CATEGORIES}
+              value={category || ""}
+              onChange={(val) => setCategory(val as ProfileCategory || null)}
+              placeholder="Select a type..."
+            />
           )}
 
           <div>

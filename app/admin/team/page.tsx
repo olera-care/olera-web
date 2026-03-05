@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import type { AdminUser } from "@/lib/types";
 
 export default function AdminTeamPage() {
@@ -226,23 +227,16 @@ export default function AdminTeamPage() {
                 </p>
               </div>
               <div className="mb-4">
-                <label
-                  htmlFor="admin-role"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Role
-                </label>
-                <select
-                  id="admin-role"
+                <Select
+                  label="Role"
+                  options={[
+                    { value: "admin", label: "Admin" },
+                    { value: "master_admin", label: "Master Admin" },
+                  ]}
                   value={addRole}
-                  onChange={(e) =>
-                    setAddRole(e.target.value as "admin" | "master_admin")
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="master_admin">Master Admin</option>
-                </select>
+                  onChange={(val) => setAddRole(val as "admin" | "master_admin")}
+                  size="sm"
+                />
               </div>
               {addError && (
                 <p className="text-sm text-red-600 mb-4">{addError}</p>

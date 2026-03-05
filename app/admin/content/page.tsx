@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import Pagination from "@/components/ui/Pagination";
+import Select from "@/components/ui/Select";
 import { ALL_RESOURCE_CATEGORIES, RESOURCE_CATEGORY_CONFIG } from "@/types/resource";
 import type { ContentArticleListItem, ContentStatus, ContentSection } from "@/types/content";
 
@@ -189,49 +190,51 @@ export default function AdminContentPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
-        <select
+        <Select
+          options={[
+            { value: "", label: "All Sections" },
+            { value: "caregiver-support", label: "Caregiver Support" },
+            { value: "research-and-press", label: "Research & Press" },
+          ]}
           value={section}
-          onChange={(e) => handleSectionChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">All Sections</option>
-          <option value="caregiver-support">Caregiver Support</option>
-          <option value="research-and-press">Research &amp; Press</option>
-        </select>
+          onChange={handleSectionChange}
+          size="sm"
+          className="w-44"
+        />
 
-        <select
+        <Select
+          options={[
+            { value: "", label: "All Categories" },
+            ...ALL_RESOURCE_CATEGORIES.map(cat => ({ value: cat, label: RESOURCE_CATEGORY_CONFIG[cat].label })),
+          ]}
           value={category}
-          onChange={(e) => handleCategoryChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">All Categories</option>
-          {ALL_RESOURCE_CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>
-              {RESOURCE_CATEGORY_CONFIG[cat].label}
-            </option>
-          ))}
-        </select>
+          onChange={handleCategoryChange}
+          size="sm"
+          className="w-48"
+        />
 
-        <select
+        <Select
+          options={[
+            { value: "", label: "All Authors" },
+            ...authors.map(a => ({ value: a, label: a })),
+          ]}
           value={author}
-          onChange={(e) => handleAuthorChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">All Authors</option>
-          {authors.map((a) => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
+          onChange={handleAuthorChange}
+          size="sm"
+          className="w-40"
+        />
 
-        <select
+        <Select
+          options={[
+            { value: "", label: "All Articles" },
+            { value: "true", label: "Featured Only" },
+            { value: "false", label: "Not Featured" },
+          ]}
           value={featured}
-          onChange={(e) => handleFeaturedChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">All Articles</option>
-          <option value="true">Featured Only</option>
-          <option value="false">Not Featured</option>
-        </select>
+          onChange={handleFeaturedChange}
+          size="sm"
+          className="w-36"
+        />
       </div>
 
       {/* Tabs */}

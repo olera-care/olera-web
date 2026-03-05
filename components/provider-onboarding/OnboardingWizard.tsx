@@ -269,7 +269,7 @@ export default function OnboardingWizard({
               {/* Primary action button */}
               <button
                 onClick={handleNext}
-                className="w-full py-4 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all shadow-sm"
+                className="w-full py-4 bg-primary-600 text-white text-base font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
               >
                 {currentStep.buttonText || "Next"}
               </button>
@@ -278,7 +278,7 @@ export default function OnboardingWizard({
               {!isLastStep && (
                 <button
                   onClick={onComplete}
-                  className="w-full mt-3 py-2 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
+                  className="w-full mt-3 py-2 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900"
                 >
                   Skip tour
                 </button>
@@ -349,7 +349,7 @@ export default function OnboardingWizard({
           {/* Button - matching dashboard button styling */}
           <button
             onClick={handleNext}
-            className="w-full py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm"
+            className="w-full py-3 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
           >
             {currentStep.buttonText || "Next"}
           </button>
@@ -376,7 +376,7 @@ export default function OnboardingWizard({
           {!isLastStep && (
             <button
               onClick={onComplete}
-              className="w-full mt-4 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
+              className="w-full mt-4 text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:text-gray-900"
             >
               Skip tour
             </button>

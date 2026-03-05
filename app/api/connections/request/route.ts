@@ -429,6 +429,7 @@ export async function POST(request: Request) {
         .eq("id", toProfileId)
         .single();
       providerPhone = bpPhone?.phone || null;
+      console.log("[sms] business_profiles phone:", providerPhone);
 
       if (!providerPhone) {
         const { data: iosPhone } = await db
@@ -437,20 +438,27 @@ export async function POST(request: Request) {
           .eq("provider_id", providerId)
           .single();
         providerPhone = iosPhone?.phone || null;
+        console.log("[sms] olera-providers fallback phone:", providerPhone);
       }
 
       if (providerPhone) {
         const normalized = normalizeUSPhone(providerPhone);
+        console.log("[sms] Normalized:", normalized, "from raw:", providerPhone);
         if (normalized) {
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-          await sendSMS({
+          const result = await sendSMS({
             to: normalized,
             body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/portal/connections`,
           });
+          console.log("[sms] Send result:", JSON.stringify(result));
+        } else {
+          console.log("[sms] Phone normalization failed for:", providerPhone);
         }
+      } else {
+        console.log("[sms] No phone found for provider:", toProfileId);
       }
-    } catch {
-      // Non-blocking
+    } catch (smsErr) {
+      console.error("[sms] Unexpected error:", smsErr);
     }
 
     // 9c. Slack alert for new lead (fire-and-forget)

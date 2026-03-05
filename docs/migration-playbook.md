@@ -216,34 +216,16 @@ Complete list of every route in Olera v1.0 and its v2 migration status.
 
 ## 3. DNS Cutover Plan (Zero Downtime)
 
-Based on XFive's guidance + Vercel documentation.
+> **Full step-by-step runbook with pre-flight checks, verification commands, and rollback plan:**
+> **See [`docs/cutover-runbook.md`](./cutover-runbook.md)**
 
-### Current Setup
-- **DNS:** Cloudflare (manages `olera.care`)
+### Quick Summary
+- **DNS:** Cloudflare (manages `olera.care`) — proxy must be OFF (gray cloud)
 - **v1.0 hosting:** Vercel project (Ruby on Rails + React, olera.care domain attached)
-- **v2.0 hosting:** Vercel project (Next.js 16, currently at `olera2-web.vercel.app` and `staging-olera2-web.vercel.app`)
-
-### Migration Steps (Zero Downtime)
-
-```
-Step 1: Verify v2.0 is fully deployed and working on olera2-web.vercel.app
-Step 2: Verify Cloudflare DNS proxy is DISABLED (gray cloud) for olera.care records
-Step 3: Run: vercel alias set <v2-deployment-url> olera.care
-Step 4: Run: vercel alias set <v2-deployment-url> www.olera.care
-Step 5: Test olera.care in browser — should serve v2.0
-Step 6: Remove olera.care from v1.0 project in Vercel dashboard
-Step 7: Add olera.care to v2.0 project in Vercel dashboard
-Step 8: Verify SSL certificate issued on new project
-Step 9: Trigger a production deployment to confirm auto-aliasing works
-```
-
-### Key Gotchas
-- **Order matters:** Alias FIRST, then remove from old project, then add to new
-- **Use the Automatic URL** (with unique hash, not the project URL)
-- **Don't include `https://`** in the alias command
-- **Cloudflare proxy must be OFF** (gray cloud) — orange cloud breaks Vercel SSL
-- **Handle both apex + www** — run alias for each separately
-- **After aliasing, before adding domain:** new deployments won't auto-update the alias
+- **v2.0 hosting:** Vercel project (Next.js 16, currently at `olera2-web.vercel.app`)
+- **Switch mechanism:** `vercel alias set <v2-deployment-url> olera.care` (instant, zero downtime)
+- **Order:** Alias first → verify → remove domain from v1.0 → add to v2.0 → verify SSL → deploy
+- **Rollback:** Re-alias back to v1.0 deployment URL (instant)
 
 ---
 

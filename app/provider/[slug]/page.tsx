@@ -337,6 +337,8 @@ export default async function ProviderPage({
 
   // Fetch answered Q&A pairs server-side (for FAQPage JSON-LD + initial render)
   let answeredQuestions: { id: string; question: string; answer: string; asker_name: string; created_at: string }[] = [];
+  // Fetch real review count from database
+  let realReviewCount = 0;
   try {
     const db = getServiceClient();
     const { data: qaRows } = await db
@@ -351,6 +353,14 @@ export default async function ProviderPage({
     if (qaRows) {
       answeredQuestions = qaRows.filter((q) => q.answer && q.answer.trim().length > 0);
     }
+
+    // Get actual review count from reviews table
+    const { count } = await db
+      .from("reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("provider_id", profile.id)
+      .eq("status", "published");
+    realReviewCount = count ?? 0;
   } catch {
     // Service client not available or table doesn't exist — degrade gracefully
   }
@@ -359,8 +369,8 @@ export default async function ProviderPage({
   const staffScreening = meta?.staff_screening;
   const reviews = meta?.reviews || [];
 
-  // Use actual reviews array length when available, otherwise fall back to metadata count
-  const reviewCount = reviews.length > 0 ? reviews.length : (meta?.review_count ?? 0);
+  // Use real review count from database for CTA display
+  const reviewCount = realReviewCount;
 
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);

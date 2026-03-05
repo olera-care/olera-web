@@ -155,7 +155,7 @@
 - Added email send + Loops event after Slack alert block
 - **Bug fix:** `account_id` references `accounts` table, not `auth.users` — need `accounts.user_id` to look up auth user email
 
-**PRs:** #138 (approval email + Loops), #140 (debug logging), #141 (fix accounts table lookup)
+**PRs:** #138 (approval email + Loops), #140 (debug logging), #141 (fix accounts table lookup), #144 (SMS debug logging)
 
 **Test results so far:**
 - Test #1 (connection request email): PASS — email arrives, but URL pointed to v1.0 (fixed via `NEXT_PUBLIC_SITE_URL` env var)
@@ -163,13 +163,21 @@
 - Test #7 (rejection email): PASS — "Your claim needs attention" email arrives
 - Test #10 (Slack lead alert): PASS — fires on connection request
 - Test #13 (Slack approve/reject): PASS — fires correctly
-- Tests #2-5, #8-9, #11-12, #14-18: Remaining
+- Test #9 (SMS connection request): BLOCKED — Twilio returns `success:true` but messages show "Undelivered" (Error 30034: US A2P 10DLC unregistered number)
+- Tests #2-5, #8, #11-12, #14-18: Remaining
 
 **Env var fix:** Added `NEXT_PUBLIC_SITE_URL=https://staging-olera2-web.vercel.app` (Preview only) to Vercel. Without it, all email CTAs linked to `olera.care` (v1.0).
 
+**SMS debugging:**
+- Added debug logging to SMS block in connection request route (PR #144) — previously catch was completely silent
+- Vercel logs confirmed `[sms] Send result: {"success":true}` — Twilio accepted the API call
+- Twilio Message Logs showed all 3 messages as "Undelivered" with Error 30034
+- Root cause: Twilio number `+12137722970` not registered for A2P 10DLC (US carrier compliance requirement since 2023)
+- Submitted Sole Proprietor brand registration + campaign in Twilio console. Approval takes 1-5 business days.
+
 **Postmortem:** Notion MCP Cloudflare rate limiting — documented in `docs/POSTMORTEMS.md`
 
-**Next session:** Continue notification testing. Need `CRON_SECRET` for tests #14-16. Connection accept (#2) needs provider to accept in Inbox. SMS tests (#8-9) need phone verification.
+**Next session:** Continue notification testing. Need `CRON_SECRET` for tests #14-16. Connection accept (#2) needs provider to accept in Inbox. SMS tests (#8-9) blocked on 10DLC approval. Delete existing Aggie connection in Supabase before re-testing connection request URL fix.
 
 ---
 

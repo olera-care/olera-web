@@ -133,7 +133,7 @@ export default function WaiverLibraryPage() {
               Browse by State
             </h2>
             <p className="mt-2 text-gray-600">
-              Select a state to explore available waiver programs and eligibility information.
+              Click your state to see available programs and estimated savings.
             </p>
           </div>
 

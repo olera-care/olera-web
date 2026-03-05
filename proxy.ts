@@ -47,7 +47,7 @@ function resolveStateAbbrev(segment: string): string | null {
   return STATE_ABBREV_TO_SLUG[segment.toUpperCase()] ?? null;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
 
   // ── v1.0 provider canonical URLs ──

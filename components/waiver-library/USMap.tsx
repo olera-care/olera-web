@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import type { StateData } from "@/data/waiver-library";
@@ -86,6 +86,30 @@ const stateCentroids: Record<string, [number, number]> = {
 // States too small to show a label clearly on the map
 const hideLabel = new Set(["connecticut", "delaware", "rhode-island", "new-jersey", "maryland"]);
 
+/** Parse "$X,XXX – $Y,YYY/year" → average of X and Y */
+function parseSavingsAverage(savingsRange: string): number {
+  const matches = savingsRange.match(/\$([\d,]+)/g);
+  if (!matches || matches.length === 0) return 0;
+  const nums = matches.map((m) => Number(m.replace(/[$,]/g, "")));
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+}
+
+/** Heat-map fill color based on program count (more transparent) */
+function getTierFill(programCount: number): string {
+  if (programCount >= 15) return "rgba(21, 94, 117, 0.75)";  // primary-800
+  if (programCount >= 11) return "rgba(14, 116, 144, 0.65)"; // primary-700
+  if (programCount >= 6) return "rgba(6, 182, 212, 0.55)";   // primary-500
+  return "rgba(165, 243, 252, 0.55)";                         // primary-200
+}
+
+/** Label color: dark text on light fills, white on dark */
+function getLabelColor(programCount: number): string {
+  if (programCount >= 6) return "#ffffff";
+  return "#155e75"; // dark text on light background
+}
+
+const LEGEND_GRADIENT = "linear-gradient(to right, #a5f3fc, #06b6d4, #0e7490, #155e75)";
+
 interface TooltipInfo {
   stateId: string;
   name: string;
@@ -106,6 +130,19 @@ export function USMap({ states }: USMapProps) {
 
   const stateMap = new Map(states.map((s) => [s.id, s]));
 
+  // Compute total estimated savings per state
+  const stateSavings = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const state of states) {
+      const total = state.programs.reduce(
+        (sum, p) => sum + parseSavingsAverage(p.savingsRange),
+        0
+      );
+      map.set(state.id, total);
+    }
+    return map;
+  }, [states]);
+
   const matchedIds: Set<string> | null = query.trim()
     ? new Set(
         states
@@ -124,22 +161,29 @@ export function USMap({ states }: USMapProps) {
 
   function getFill(stateId: string | undefined, hovered: boolean): string {
     if (!stateId) return "#e5e7eb";
-    if (!isActive(stateId)) return "#d1dbe6"; // secondary-200 dimmed
-    if (hovered) return "#0e7490"; // primary-700
-    return "#0891b2"; // primary-600
+    const state = stateMap.get(stateId);
+    if (!state) return "#e5e7eb";
+    if (!isActive(stateId)) return "rgba(209, 219, 230, 0.5)"; // dimmed
+    if (hovered) return "rgba(8, 51, 68, 0.85)"; // primary-950
+    return getTierFill(state.programs.length);
+  }
+
+  function formatSavings(amount: number): string {
+    if (amount >= 1000) return `$${Math.round(amount / 1000)}k`;
+    return `$${Math.round(amount)}`;
   }
 
   return (
     <div>
       {/* Search */}
-      <div className="mb-8 max-w-sm">
-        <label htmlFor="state-search" className="sr-only">
-          Search your state
+      <div className="mb-8 max-w-xl">
+        <label htmlFor="state-search" className="block text-sm font-medium text-gray-700 mb-2">
+          Find your state
         </label>
         <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
             <svg
-              className="h-4 w-4 text-gray-400"
+              className="h-5 w-5 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -158,15 +202,15 @@ export function USMap({ states }: USMapProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search your state…"
-            className="block w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-4 text-sm text-gray-900 placeholder-gray-400 shadow-xs focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
+            className="block w-full rounded-2xl border-2 border-primary-200 bg-white py-4 pl-11 pr-4 text-base text-gray-900 placeholder-gray-400 shadow-md focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/20"
           />
           {query && (
             <button
               onClick={() => setQuery("")}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600"
               aria-label="Clear search"
             >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -195,6 +239,7 @@ export function USMap({ states }: USMapProps) {
                 const state = stateId ? stateMap.get(stateId) : undefined;
                 const isHovered = hoveredId === stateId;
                 const fill = getFill(stateId, isHovered);
+                const programCount = state?.programs.length ?? 0;
 
                 return (
                   <Geography
@@ -229,14 +274,14 @@ export function USMap({ states }: USMapProps) {
                       default: {
                         fill,
                         stroke: "#ffffff",
-                        strokeWidth: 0.5,
+                        strokeWidth: isHovered ? 1.5 : 0.5,
                         outline: "none",
                         cursor: stateId ? "pointer" : "default",
                       },
                       hover: {
-                        fill: stateId && isActive(stateId) ? "#0e7490" : "#d1dbe6",
+                        fill: stateId && isActive(stateId) ? "rgba(8, 51, 68, 0.85)" : "rgba(209, 219, 230, 0.5)",
                         stroke: "#ffffff",
-                        strokeWidth: 0.5,
+                        strokeWidth: 1.5,
                         outline: "none",
                         cursor: stateId ? "pointer" : "default",
                       },
@@ -251,11 +296,43 @@ export function USMap({ states }: USMapProps) {
             }
           </Geographies>
 
-          {/* State abbreviation labels */}
+          {/* State labels: abbreviations or program count badges when searching */}
           {states.map((state) => {
             const centroid = stateCentroids[state.id];
             if (!centroid || hideLabel.has(state.id)) return null;
             const active = isActive(state.id);
+            const programCount = state.programs.length;
+            const showBadge = matchedIds && matchedIds.has(state.id);
+
+            if (showBadge) {
+              // Show circular badge with program count
+              return (
+                <Marker key={state.id} coordinates={centroid}>
+                  <circle
+                    r={8}
+                    fill="#ffffff"
+                    stroke="#0e7490"
+                    strokeWidth={1.5}
+                    style={{ pointerEvents: "none" }}
+                  />
+                  <text
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      fontSize: "6.5px",
+                      fontWeight: 700,
+                      fill: "#0e7490",
+                      pointerEvents: "none",
+                      userSelect: "none",
+                    }}
+                  >
+                    {programCount}
+                  </text>
+                </Marker>
+              );
+            }
+
             return (
               <Marker key={state.id} coordinates={centroid}>
                 <text
@@ -265,7 +342,7 @@ export function USMap({ states }: USMapProps) {
                     fontFamily: "Inter, system-ui, sans-serif",
                     fontSize: "7px",
                     fontWeight: 600,
-                    fill: active ? "#ffffff" : "#9ca3af",
+                    fill: active ? getLabelColor(programCount) : "#9ca3af",
                     pointerEvents: "none",
                     userSelect: "none",
                   }}
@@ -280,16 +357,39 @@ export function USMap({ states }: USMapProps) {
         {/* Hover tooltip */}
         {tooltip && (
           <div
-            className="absolute z-20 pointer-events-none bg-white rounded-xl shadow-lg border border-gray-200 px-4 py-3 min-w-[160px]"
+            className="absolute z-20 pointer-events-none bg-white rounded-xl shadow-lg border border-gray-200 px-4 py-3 min-w-[200px]"
             style={{ left: tooltip.x + 16, top: tooltip.y - 80 }}
           >
             <p className="font-semibold text-gray-900 text-sm">{tooltip.name}</p>
             <p className="text-gray-500 text-xs mt-0.5">
               {stateMap.get(tooltip.stateId)?.programs.length ?? 0} programs available
             </p>
+            {(stateSavings.get(tooltip.stateId) ?? 0) > 0 && (
+              <p className="text-gray-500 text-xs mt-0.5">
+                Est. savings: ~{formatSavings(stateSavings.get(tooltip.stateId)!)}
+                /yr
+              </p>
+            )}
             <p className="mt-1.5 text-primary-600 text-xs font-medium">Click to explore →</p>
           </div>
         )}
+      </div>
+
+      {/* Heat map legend — gradient slider */}
+      <div className="mt-6 flex flex-col items-center gap-1.5">
+        <span className="text-xs font-medium text-gray-500">Programs per state</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400">1</span>
+          <div
+            className="w-48 h-2.5 rounded-full"
+            style={{ background: LEGEND_GRADIENT }}
+          />
+          <span className="text-xs text-gray-400">20+</span>
+        </div>
+        <div className="flex justify-between w-48 ml-[26px] mr-[30px]">
+          <span className="text-[10px] text-gray-400">Fewer</span>
+          <span className="text-[10px] text-gray-400">More</span>
+        </div>
       </div>
 
       {/* No-match message when searching */}

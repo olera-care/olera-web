@@ -81,15 +81,24 @@ export async function POST(request: Request) {
       }
     }
 
-    // Rate limit: max 3 codes per provider per hour (regardless of user/session)
+    // Rate limit: progressive — 5 per 10 min, 10 per hour
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await db
-      .from("claim_verification_codes")
-      .select("id", { count: "exact", head: true })
-      .eq("provider_id", providerId)
-      .gte("created_at", oneHourAgo);
 
-    if ((count ?? 0) >= 3) {
+    const [{ count: recentCount }, { count: hourlyCount }] = await Promise.all([
+      db.from("claim_verification_codes").select("id", { count: "exact", head: true })
+        .eq("provider_id", providerId).gte("created_at", tenMinAgo),
+      db.from("claim_verification_codes").select("id", { count: "exact", head: true })
+        .eq("provider_id", providerId).gte("created_at", oneHourAgo),
+    ]);
+
+    if ((recentCount ?? 0) >= 5) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please wait a few minutes before trying again." },
+        { status: 429 }
+      );
+    }
+    if ((hourlyCount ?? 0) >= 10) {
       return NextResponse.json(
         { error: "Too many attempts. Please try again in an hour." },
         { status: 429 }

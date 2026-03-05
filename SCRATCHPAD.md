@@ -41,12 +41,13 @@
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Plan: `plans/provider-deletion-request-plan.md`
 
-- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅
+- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅ + Notification Testing IN PROGRESS
   - Plan: `plans/backend-integration-roadmap-plan.md`
   - Analysis: `docs/backend-integration-analysis.md`
   - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
-  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing)
+  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing), #138 (Approval Email + Loops), #141 (Fix: accounts table lookup)
   - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → ~~Marketing (Loops)~~ ✅ → Sentry (P4 backlog)
+  - **Notification Test Matrix:** [Notion](https://www.notion.so/Notification-Test-Matrix-2026-03-04-3195903a0ffe8190be95d95554e52dd1) — 18 tests across Email/SMS/Slack/Cron/Loops
 
 ---
 
@@ -60,11 +61,12 @@
 
 ## Next Up
 
-1. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
-2. **Remaining ~2,992 providers without CSV descriptions**
-3. **Test Google OAuth end-to-end**
-4. **Email notifications** for provider approval/rejection
-5. **Community forum flagging** for admin moderation
+1. **Continue notification test matrix** — tests #7-18 remaining (rejection email, SMS, cron, Loops spot-check)
+2. **Remove debug logging** from admin route after testing complete
+3. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
+4. **Remaining ~2,992 providers without CSV descriptions**
+5. **Test Google OAuth end-to-end**
+6. **Community forum flagging** for admin moderation
 
 ---
 
@@ -100,6 +102,31 @@
 ---
 
 ## Session Log
+
+### 2026-03-04 (Session 38) — Provider Approval/Rejection Email + Notification Testing
+
+**Branch:** `vibrant-keller`
+
+**What:** Added email notification when admin approves/rejects a provider claim. Started systematic notification test matrix (18 tests across all channels).
+
+**New template (`lib/email-templates.tsx`):**
+- `claimDecisionEmail()`: Approved → "Your listing is live!" / Rejected → "Your claim needs attention"
+
+**Modified (`app/api/admin/providers/[id]/route.ts`):**
+- Expanded `.select()` to include `account_id, slug`
+- Added email send + Loops event after Slack alert block
+- **Bug fix:** `account_id` references `accounts` table, not `auth.users` — need `accounts.user_id` to look up auth user email
+
+**PRs:** #138 (approval email + Loops), #140 (debug logging), #141 (fix accounts table lookup)
+
+**Test results so far:**
+- Test #6 (approval email): PASS — email arrives with correct template
+- Test #13 (Slack on approve): PASS — Slack alert fires correctly
+- Tests #7-18: Remaining
+
+**Postmortem:** Notion MCP Cloudflare rate limiting — documented in `docs/POSTMORTEMS.md`
+
+---
 
 ### 2026-03-04 (Session 37) — Surface Approved Providers in Public Search
 

@@ -774,8 +774,8 @@ export default function ActionCard({
 
   return (
     <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-5">
+      {/* Compact header with inline email */}
+      <div className="flex items-start gap-4 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
           <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24">
             <path
@@ -783,35 +783,25 @@ export default function ActionCard({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={1.5}
-              d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-display font-bold text-gray-900 mb-1">
-            Claim this listing
+            Verify your email
           </h3>
-          <p className="text-[15px] text-gray-500 leading-relaxed">
-            Verify your connection to <strong className="text-gray-700">{provider.provider_name}</strong> to manage this listing.
-          </p>
+          {hasEmailOnFile ? (
+            <p className="text-[15px] text-gray-500">
+              We&apos;ll send a code to <span className="font-semibold text-gray-700">{maskEmail(businessEmail)}</span>
+            </p>
+          ) : (
+            <p className="text-[15px] text-gray-500">
+              Verify your connection to manage this listing.
+            </p>
+          )}
         </div>
       </div>
-
-      {/* Email on file info */}
-      {hasEmailOnFile && (
-        <div className="mb-5 px-4 py-3.5 bg-vanilla-50 border border-warm-100/60 rounded-xl">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary-100/80 flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <p className="text-sm text-gray-600">
-              We&apos;ll send a code to <span className="font-semibold text-gray-800">{maskEmail(businessEmail)}</span>
-            </p>
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="flex items-center gap-2 px-3 py-2.5 bg-red-50 border border-red-100 rounded-lg mb-4">

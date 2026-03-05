@@ -422,6 +422,38 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
 }
 
 /**
+ * Enrich BP cards with data from the seeded providers they replaced.
+ * When a provider claims their page, the BP may lack images/pricing/rating
+ * that exist on the original olera-providers record.
+ */
+export function enrichBpCards(
+  bpCards: ProviderCardData[],
+  seededCards: ProviderCardData[],
+  bpSourceIds: (string | null)[],
+): void {
+  const seededById = new Map(seededCards.map((c) => [c.id, c]));
+  for (let i = 0; i < bpCards.length; i++) {
+    const sourceId = bpSourceIds[i];
+    if (!sourceId) continue;
+    const seeded = seededById.get(sourceId);
+    if (!seeded) continue;
+    const bp = bpCards[i];
+    if (bp.imageType === "placeholder" && seeded.imageType !== "placeholder") {
+      bp.image = seeded.image;
+      bp.imageType = seeded.imageType;
+      if (seeded.images.length > 0) bp.images = seeded.images;
+    }
+    if (bp.priceRange === "Contact for pricing" && seeded.priceRange !== "Contact for pricing") {
+      bp.priceRange = seeded.priceRange;
+    }
+    if (bp.rating === 0 && seeded.rating > 0) {
+      bp.rating = seeded.rating;
+      bp.reviewCount = seeded.reviewCount;
+    }
+  }
+}
+
+/**
  * Merge seeded provider cards with business_profile cards.
  * If a BP has a source_provider_id matching a seeded card, the BP version wins.
  */

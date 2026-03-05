@@ -8,35 +8,22 @@ import { canEngage } from "@/lib/membership";
 import type { Profile, CaregiverMetadata } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import UpgradePrompt from "@/components/providers/UpgradePrompt";
-import RoleGate from "@/components/shared/RoleGate";
 import ConnectButton from "@/components/shared/ConnectButton";
 
 export default function BrowseCaregiversPage() {
-  return (
-    <RoleGate
-      requiredType="organization"
-      actionLabel="browse caregivers for hiring"
-    >
-      <BrowseCaregiversContent />
-    </RoleGate>
-  );
-}
-
-function BrowseCaregiversContent() {
-  const { activeProfile, membership } = useAuth();
+  const { activeProfile, membership, openAuth } = useAuth();
   const [caregivers, setCaregivers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isLoggedIn = !!activeProfile;
   const hasAccess = canEngage(
     activeProfile?.type,
     membership,
     "view_inquiry_details"
   );
 
-  const profileId = activeProfile?.id;
-
   useEffect(() => {
-    if (!profileId || !isSupabaseConfigured()) {
+    if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
     }
@@ -61,7 +48,7 @@ function BrowseCaregiversContent() {
     };
 
     fetchCaregivers();
-  }, [profileId]);
+  }, []);
 
   if (loading) {
     return (
@@ -80,15 +67,29 @@ function BrowseCaregiversContent() {
             Browse Caregivers
           </h1>
           <p className="mt-2 text-lg text-gray-600">
-            Find experienced caregivers to join your team.
+            Find experienced private caregivers in your area.
           </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!hasAccess && (
+        {isLoggedIn && !hasAccess && (
           <div className="mb-8">
             <UpgradePrompt context="browse caregiver profiles and send invitations" />
+          </div>
+        )}
+
+        {!isLoggedIn && (
+          <div className="mb-8 bg-secondary-50 border border-secondary-200 rounded-xl p-6 text-center">
+            <p className="text-base text-gray-700 mb-3">
+              Sign in to view full caregiver profiles and send connection requests.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => openAuth({ defaultMode: "sign-in" })}
+            >
+              Sign in
+            </Button>
           </div>
         )}
 
@@ -208,7 +209,7 @@ function CaregiverCard({
 
       {!hasAccess && (
         <p className="text-sm text-warm-600 font-medium mt-3">
-          Upgrade to Pro to view full details and invite.
+          Sign in to view full details and connect.
         </p>
       )}
 

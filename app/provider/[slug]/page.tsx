@@ -375,15 +375,25 @@ export default async function ProviderPage({
   // Olera Score: use community_score if available, otherwise rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
 
+  // --- Profile type flags ---
+  const isCaregiver = profile.type === "caregiver";
+
+  // --- Caregiver-specific data ---
+  const certifications = meta?.certifications || [];
+  const yearsExperience = meta?.years_experience;
+  const languages = meta?.languages;
+  const availability = meta?.availability;
+
   // --- Boolean flags for real data availability ---
   const hasRating = rating != null;
   const hasPriceRange = priceRange != null;
-  const hasStaff = staff != null;
+  const hasStaff = staff != null && !isCaregiver;
   const hasReviews = reviews.length > 0;
   const hasOleraScore = oleraScore != null;
-  const hasStaffScreening = staffScreening != null &&
+  const hasStaffScreening = !isCaregiver && staffScreening != null &&
     (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
-  const hasAcceptedPayments = acceptedPayments.length > 0;
+  const hasAcceptedPayments = !isCaregiver && acceptedPayments.length > 0;
+  const hasCertifications = isCaregiver && certifications.length > 0;
 
   // Build care services: real data first, then pad with category-inferred services
   const careServices: string[] = [...(profile.care_types ?? [])];
@@ -428,10 +438,11 @@ export default async function ProviderPage({
   const sectionItems: SectionItem[] = [];
   sectionItems.push({ id: "highlights", label: "Highlights" });
   sectionItems.push({ id: "services", label: "Services" });
+  if (hasCertifications) sectionItems.push({ id: "certifications", label: "Certifications" });
   sectionItems.push({ id: "about", label: "About" });
-  if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
+  if (!isCaregiver && pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
+  if (!isCaregiver) sectionItems.push({ id: "qa", label: "Q&A" });
   sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
@@ -781,6 +792,24 @@ export default async function ProviderPage({
                 </div>
               )}
 
+              {/* ── Certifications — caregiver only ── */}
+              {hasCertifications && (
+                <div id="certifications" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Certifications</h2>
+                  <div className="flex flex-wrap gap-2.5">
+                    {certifications.map((cert) => (
+                      <span
+                        key={cert}
+                        className="inline-flex items-center gap-1.5 bg-secondary-50 text-secondary-700 text-sm font-medium px-3.5 py-2 rounded-full"
+                      >
+                        <CheckIcon className="w-4 h-4" />
+                        {cert}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
@@ -788,10 +817,34 @@ export default async function ProviderPage({
                   text={profile.description || (profile.category ? getCategoryDescription(profile.category, profile.display_name, locationStr || null) : "")}
                   maxLength={300}
                 />
+
+                {/* Caregiver detail pills */}
+                {isCaregiver && (yearsExperience || languages || availability) && (
+                  <div className="flex flex-wrap gap-3 mt-5">
+                    {yearsExperience && (
+                      <div className="bg-gray-50 rounded-lg px-4 py-2.5">
+                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Experience</p>
+                        <p className="text-sm font-semibold text-gray-900 mt-0.5">{yearsExperience} years</p>
+                      </div>
+                    )}
+                    {languages && (
+                      <div className="bg-gray-50 rounded-lg px-4 py-2.5">
+                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Languages</p>
+                        <p className="text-sm font-semibold text-gray-900 mt-0.5">{languages}</p>
+                      </div>
+                    )}
+                    {availability && (
+                      <div className="bg-gray-50 rounded-lg px-4 py-2.5">
+                        <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Availability</p>
+                        <p className="text-sm font-semibold text-gray-900 mt-0.5">{availability}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* ── Detailed Pricing ── */}
-              {pricingDetails.length > 0 && (
+              {/* ── Detailed Pricing — org only ── */}
+              {!isCaregiver && pricingDetails.length > 0 && (
                 <div id="pricing" className="py-8 scroll-mt-20 border-t border-gray-200">
                   <div className="flex items-start justify-between mb-6">
                     <div>
@@ -845,21 +898,23 @@ export default async function ProviderPage({
                 </div>
               )}
 
-              {/* ── Customer Questions & Answers ── */}
-              <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <QASectionV2
-                  providerId={profile.slug}
-                  providerName={profile.display_name}
-                  providerImage={images[0]}
-                  questions={answeredQuestions.map((q) => ({
-                    id: q.id,
-                    question: q.question,
-                    answer: q.answer,
-                    asker_name: q.asker_name,
-                    created_at: q.created_at,
-                  }))}
-                />
-              </div>
+              {/* ── Customer Questions & Answers — org only ── */}
+              {!isCaregiver && (
+                <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
+                  <QASectionV2
+                    providerId={profile.slug}
+                    providerName={profile.display_name}
+                    providerImage={images[0]}
+                    questions={answeredQuestions.map((q) => ({
+                      id: q.id,
+                      question: q.question,
+                      answer: q.answer,
+                      asker_name: q.asker_name,
+                      created_at: q.created_at,
+                    }))}
+                  />
+                </div>
+              )}
 
               {/* ── Olera Score — hidden when no scores exist ── */}
               {hasOleraScore && (
@@ -948,19 +1003,21 @@ export default async function ProviderPage({
               <div className="py-8 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">Disclaimer</h2>
                 <p className="text-sm text-gray-500 leading-relaxed">
-                  We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with the provider by submitting a connect request or contacting them.
+                  We strive to keep this page accurate and current, but some details may not be up to date. To confirm whether {profile.display_name} is the right fit for you or your loved one, please verify all information directly with {isCaregiver ? "this caregiver" : "the provider"} by submitting a connect request or contacting them.
                 </p>
-                <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
-                  <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
-                  <ManagePageButton
-                    providerName={profile.display_name}
-                    providerSlug={profile.slug}
-                    providerId={profile.id}
-                    sourceProviderId={profile.source_provider_id}
-                    claimState={actualClaimState}
-                    claimAccountId={claimAccountId}
-                  />
-                </div>
+                {!isCaregiver && (
+                  <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-200">
+                    <p className="text-base font-semibold text-gray-900">Are you the owner of this business?</p>
+                    <ManagePageButton
+                      providerName={profile.display_name}
+                      providerSlug={profile.slug}
+                      providerId={profile.id}
+                      sourceProviderId={profile.source_provider_id}
+                      claimState={actualClaimState}
+                      claimAccountId={claimAccountId}
+                    />
+                  </div>
+                )}
               </div>
 
             </div>

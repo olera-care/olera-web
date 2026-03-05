@@ -131,6 +131,17 @@ export default function FindCareMegaMenu({
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <div className="border-t border-gray-100 mx-3 my-2" />
+                  <Link
+                    href="/browse/caregivers"
+                    onClick={onClose}
+                    onMouseEnter={() => setHoveredCategory("")}
+                    className="text-[15px] font-medium transition-all text-left w-full py-2.5 pl-3 pr-4 rounded-lg block text-secondary-700 hover:text-secondary-800 hover:bg-secondary-50"
+                  >
+                    Private Caregivers
+                  </Link>
+                </li>
               </ul>
             </div>
 

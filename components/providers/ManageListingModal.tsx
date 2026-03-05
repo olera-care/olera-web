@@ -203,12 +203,32 @@ export default function ManageListingModal({
 
   const modalTitle = view === "removal" ? "Request removal" : "Manage listing";
 
+  // Sticky footer for removal view
+  const removalFooter = view === "removal" && !submitted ? (
+    <div className="pt-4 border-t border-gray-100">
+      <Button
+        fullWidth
+        size="lg"
+        onClick={handleRemovalSubmit}
+        loading={submitting}
+        disabled={!canSubmit}
+      >
+        Submit request
+      </Button>
+      <p className="text-xs text-gray-400 text-center mt-3">
+        By submitting, you agree to our{" "}
+        <span className="text-primary-600 font-medium hover:underline cursor-pointer">Takedown Policy</span>.
+      </p>
+    </div>
+  ) : undefined;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
       title={modalTitle}
       size="2xl"
+      footer={removalFooter}
     >
       <div ref={viewContentRef}>
       {/* ── Choice Screen ── */}
@@ -503,23 +523,6 @@ export default function ManageListingModal({
                     <p className="text-sm text-red-700" role="alert">{formError}</p>
                   </div>
                 )}
-
-                {/* Submit button */}
-                <div className="pt-3">
-                  <Button
-                    fullWidth
-                    size="lg"
-                    onClick={handleRemovalSubmit}
-                    loading={submitting}
-                    disabled={!canSubmit}
-                  >
-                    Submit request
-                  </Button>
-                  <p className="text-xs text-gray-400 text-center mt-3">
-                    By submitting, you agree to our{" "}
-                    <span className="text-primary-600 font-medium hover:underline cursor-pointer">Takedown Policy</span>.
-                  </p>
-                </div>
               </div>
             </>
           )}

@@ -77,6 +77,31 @@ const nextConfig: NextConfig = {
       { source: "/caregiver-relief-network", destination: "/", permanent: true },
       { source: "/caregiver-relief-network/:path*", destination: "/", permanent: true },
       { source: "/company/:slug", destination: "/", permanent: true },
+
+      // Tier 4: v1.0 provider auth URLs (from provider-portal-redirects.ts)
+      { source: "/provider/sign-up", destination: "/for-providers", permanent: true },
+      { source: "/provider/sign-in", destination: "/for-providers", permanent: true },
+      { source: "/provider/forgot-password", destination: "/for-providers", permanent: true },
+      { source: "/provider/resend-activation-link", destination: "/for-providers", permanent: true },
+      { source: "/provider/claim", destination: "/for-providers/claim", permanent: true },
+      { source: "/provider/new/edit-basics", destination: "/for-providers/create", permanent: true },
+
+      // Tier 4: v1.0 provider edit/status URLs
+      { source: "/provider/:slug/preview", destination: "/provider/:slug", permanent: true },
+      { source: "/provider/:slug/edit-basics", destination: "/provider/:slug", permanent: true },
+      { source: "/provider/:slug/edit-images", destination: "/provider/:slug", permanent: true },
+      { source: "/provider/:slug/edit-prices", destination: "/provider/:slug", permanent: true },
+      { source: "/provider/:slug/status", destination: "/provider/:slug", permanent: true },
+
+      // Tier 4: v1.0 CMS pages catch-all
+      { source: "/pages/:slug", destination: "/", permanent: true },
+
+      // Tier 4: v1.0 curated articles
+      { source: "/caregiver-support/curated", destination: "/caregiver-support", permanent: true },
+      { source: "/caregiver-support/curated/:slug", destination: "/caregiver-support", permanent: true },
+
+      // Tier 4: v1.0 sign-out
+      { source: "/sign-out", destination: "/", permanent: true },
     ];
   },
 };

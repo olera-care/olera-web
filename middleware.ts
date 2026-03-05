@@ -90,6 +90,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  // ── v1.0 category-scoped caregiver-support articles ──
+  // /[category]/caregiver-support/[slug] → /caregiver-support/[slug]
+  if (
+    segments.length >= 2 &&
+    V1_CATEGORY_SLUGS.has(segments[0]) &&
+    segments[1] === "caregiver-support"
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${segments.slice(1).join("/")}`;
+    return NextResponse.redirect(url, 301);
+  }
+
+  // ── v1.0 category-scoped caregiver-forum ──
+  // /[category]/caregiver-forum/* → /community
+  if (
+    segments.length >= 2 &&
+    V1_CATEGORY_SLUGS.has(segments[0]) &&
+    segments[1] === "caregiver-forum"
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/community";
+    return NextResponse.redirect(url, 301);
+  }
+
   return await updateSession(request);
 }
 

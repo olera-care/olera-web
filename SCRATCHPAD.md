@@ -32,6 +32,16 @@
 - **v1.0 → v2.0 Migration Playbook** (branch: `seo/structured-data-p1`) — REDIRECTS COMPLETE
   - **Remaining:** P2 SEO polish, CMS migration, DNS cutover ops
 
+- **Migration Sanity Check** (branch: `helpful-williams`) — DONE ✅
+  - PR #152: Full audit of v1.0 codebase against v2.0
+  - Found 13 gaps not in original playbook; fixed 11 in this session
+  - Added 14 redirect rules (next.config.ts) + 2 middleware rules
+  - Expanded sitemap with `generateSitemaps()`, articles, waiver library, browse pages
+  - Created `docs/migration-sanity-check.md` tracking all findings
+  - Created `docs/cutover-runbook.md` — step-by-step DNS cutover with pre-flight, rollback
+  - Item #1 (gated provider portal page) assigned to Esther
+  - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -61,7 +71,10 @@
 
 ## Next Up
 
-1. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+1. **Verify research-and-press redirect** — sanity check item #12: next.config.ts may have conflicting redirect for live pages
+2. **Monitor forum content loss** — sanity check item #13: all discussions → `/community` may lose traffic
+3. **Gated provider portal page** — Esther building; sanity check item #1
+4. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
 2. **Remove debug logging** from admin route after testing complete
 3. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 3. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
@@ -75,6 +88,8 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-05 | Flat `/provider/{slug}` URL is correct | v1.0 already used flat canonical URLs — no SEO trade-off in migration |
+| 2026-03-05 | Gated provider portal → Esther | `/provider-portal/provider/{slug}/*` needs smart landing page, not just redirect. Critical for provider email funnel |
 | 2026-03-02 | 16:9 primary featured image, 4 featured articles | 3:2 and 4:3 were too tall — pushed article grid below fold. 4 featured (1 large + 3 small) fills the right column without blank space |
 | 2026-03-01 | Skip MedicalBusiness schema, revisit later | Low reward: Google doesn't render it differently than LocalBusiness. No concrete SERP benefit. Competitors don't use it either. |
 | 2026-02-28 | CTA: quiet nudge over teal gradient banner | Strip template blobs, one warm heading, one button — calm confidence over SaaS shouting |

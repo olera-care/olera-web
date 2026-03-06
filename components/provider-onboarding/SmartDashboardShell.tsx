@@ -294,8 +294,8 @@ export default function SmartDashboardShell({
       {/* Custom Onboarding Header - only shown after wizard completes (fixed position) */}
       {wizardComplete && <OnboardingHeader providerName={provider.provider_name} />}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+      {/* Main Content - py-8 matches provider dashboard spacing */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Mobile Progress Banner */}
         <MobileProgressBanner completeness={completeness} />
 

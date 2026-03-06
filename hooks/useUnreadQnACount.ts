@@ -48,8 +48,6 @@ function migrateQnAReadData(providerSlug: string): void {
 export function useUnreadQnACount(providerSlug: string | null): number {
   const [count, setCount] = useState(0);
   const migratedRef = useRef(false);
-  // Track if Q&A page has synced the authoritative count
-  const syncedRef = useRef(false);
 
   // Migrate old data on first run
   useEffect(() => {
@@ -59,94 +57,49 @@ export function useUnreadQnACount(providerSlug: string | null): number {
     }
   }, [providerSlug]);
 
-  const recount = useCallback(() => {
-    // If Q&A page has synced, trust that count instead of re-querying
-    if (syncedRef.current) return;
-
+  // Read cached count from localStorage (set by Q&A page)
+  useEffect(() => {
     if (!providerSlug) {
       setCount(0);
       return;
     }
 
-    // Use provider-scoped localStorage key to avoid cross-user conflicts
-    const qnaReadKey = `olera_qna_read_${providerSlug}`;
-    let readIds = new Set<string>();
     try {
-      const stored = localStorage.getItem(qnaReadKey);
-      if (stored) readIds = new Set(JSON.parse(stored));
+      const cacheKey = `olera_qna_count_${providerSlug}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached !== null) {
+        setCount(parseInt(cached, 10) || 0);
+      }
     } catch {
-      // localStorage may be unavailable
+      // localStorage unavailable
     }
-
-    if (!isSupabaseConfigured()) {
-      // No Supabase configured - return 0
-      setCount(0);
-      return;
-    }
-
-    (async () => {
-      // Double-check sync flag before setting (async operation may complete after sync)
-      if (syncedRef.current) return;
-
-      const supabase = createClient();
-
-      // Fetch pending questions for this provider
-      const { data, error } = await supabase
-        .from("provider_questions")
-        .select("id")
-        .eq("provider_id", providerSlug)
-        .eq("status", "pending");
-
-      if (syncedRef.current) return; // Check again after await
-
-      if (error) {
-        console.error("Failed to fetch Q&A count:", error);
-        setCount(0);
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        setCount(0);
-        return;
-      }
-
-      // Count questions that haven't been read
-      const unreadCount = data.filter((q) => !readIds.has(q.id)).length;
-      setCount(unreadCount);
-    })();
   }, [providerSlug]);
 
-  // Initial count
-  useEffect(() => {
-    recount();
-  }, [recount]);
-
-  // Re-count when a question is marked as read, or a new question is submitted
-  useEffect(() => {
-    const handler = () => {
-      // Reset sync flag so we re-query (new question submitted)
-      syncedRef.current = false;
-      recount();
-    };
-    window.addEventListener("olera:qna-read", handler);
-    window.addEventListener("olera:qna-new", handler);
-    return () => {
-      window.removeEventListener("olera:qna-read", handler);
-      window.removeEventListener("olera:qna-new", handler);
-    };
-  }, [recount]);
-
-  // Sync event from Q&A page - this is the authoritative count
+  // Listen for sync events from Q&A page (authoritative source)
   useEffect(() => {
     const syncHandler = (e: Event) => {
-      const { count: syncedCount } = (e as CustomEvent).detail;
+      const { count: syncedCount, providerSlug: syncSlug } = (e as CustomEvent).detail;
       if (typeof syncedCount === "number") {
-        syncedRef.current = true; // Mark as synced so recount is skipped
         setCount(syncedCount);
+        // Cache the count for future page loads
+        if (syncSlug) {
+          try {
+            localStorage.setItem(`olera_qna_count_${syncSlug}`, String(syncedCount));
+          } catch {
+            // localStorage unavailable
+          }
+        }
       }
     };
     window.addEventListener("olera:qna-sync", syncHandler);
     return () => window.removeEventListener("olera:qna-sync", syncHandler);
+  }, []);
+
+  // Listen for new questions (increment count)
+  useEffect(() => {
+    const newHandler = () => setCount((c) => c + 1);
+    window.addEventListener("olera:qna-new", newHandler);
+    return () => window.removeEventListener("olera:qna-new", newHandler);
   }, []);
 
   return count;

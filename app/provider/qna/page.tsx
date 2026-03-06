@@ -889,7 +889,9 @@ export default function ProviderQnAPage() {
         }
 
         // Dispatch event to sync navbar badge with actual count (fixes stale badge)
-        window.dispatchEvent(new CustomEvent("olera:qna-sync", { detail: { count: 0 } }));
+        window.dispatchEvent(new CustomEvent("olera:qna-sync", {
+          detail: { count: 0, providerSlug: providerProfile?.slug }
+        }));
       } catch (err) {
         console.error("Failed to fetch questions:", err);
         setError("Unable to load questions. Please try again.");

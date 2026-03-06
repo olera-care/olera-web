@@ -148,8 +148,11 @@ function ProviderOnboardingContent() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   // Pre-fill display name from account (set during signup / OAuth)
+  // Only for caregivers — org name should always start blank since it's
+  // the organization's name, not the person's name.
   const prefillAppliedRef = useRef(false);
   useEffect(() => {
+    if (providerType === "organization") return;
     if (prefillAppliedRef.current || data.displayName) return;
     const name = account?.display_name || "";
     // Skip email-prefix-style names (e.g. "john" from "john@gmail.com")
@@ -159,7 +162,7 @@ function ProviderOnboardingContent() {
       prefillAppliedRef.current = true;
       setData((prev) => ({ ...prev, displayName: resolvedName }));
     }
-  }, [account?.display_name, user?.email, data.displayName]);
+  }, [providerType, account?.display_name, user?.email, data.displayName]);
 
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
   const [checkingPrefill, setCheckingPrefill] = useState(true);
@@ -1910,7 +1913,7 @@ function ProviderOnboardingContent() {
                 {isCaregiver ? "Services you provide" : "Care types"}
               </label>
               {isCaregiver ? (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   {CAREGIVER_SKILLS.map((skill) => {
                     const selected = data.careTypes.includes(skill.id);
                     return (
@@ -1921,19 +1924,17 @@ function ProviderOnboardingContent() {
                         aria-checked={selected}
                         onClick={() => toggleCareType(skill.id)}
                         className={[
-                          "flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl text-left border transition-all duration-200",
+                          "flex items-start gap-2 px-4 py-2.5 rounded-xl text-left border transition-all duration-200",
                           selected
-                            ? "bg-secondary-50 border-secondary-400 text-secondary-800"
-                            : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
+                            ? "bg-secondary-50 border-secondary-500 text-secondary-700"
+                            : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
                         ].join(" ")}
                       >
-                        <span className={`mt-0.5 w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${selected ? "bg-secondary-500 border-secondary-500" : "border-gray-300"}`}>
-                          {selected && (
-                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </span>
+                        {selected && (
+                          <svg className="w-4 h-4 text-secondary-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
                         <div>
                           <span className="text-sm font-medium">{skill.label}</span>
                           <span className="block text-xs text-gray-400">{skill.description}</span>
@@ -1994,7 +1995,7 @@ function ProviderOnboardingContent() {
                   <label className="block text-base font-medium text-gray-700 mb-3">
                     Certifications
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     {CAREGIVER_CERTIFICATIONS.map((cert) => {
                       const selected = data.certifications.includes(cert);
                       return (
@@ -2010,20 +2011,18 @@ function ProviderOnboardingContent() {
                             update("certifications", next);
                           }}
                           className={[
-                            "flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-left border transition-all duration-200",
+                            "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                             selected
-                              ? "bg-secondary-50 border-secondary-400 text-secondary-800"
-                              : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
+                              ? "bg-secondary-50 border-secondary-500 text-secondary-700"
+                              : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
                           ].join(" ")}
                         >
-                          <span className={`w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${selected ? "bg-secondary-500 border-secondary-500" : "border-gray-300"}`}>
-                            {selected && (
-                              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                              </svg>
-                            )}
-                          </span>
-                          <span className="text-sm font-medium">{cert}</span>
+                          {selected && (
+                            <svg className="w-3.5 h-3.5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {cert}
                         </button>
                       );
                     })}

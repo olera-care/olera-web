@@ -1024,6 +1024,18 @@ function FamilyCareCard({
 
 type MatchesView = "families" | "organizations" | "caregivers";
 
+// ── Inbound interest types ──
+
+interface InboundInterest {
+  id: string;
+  from_profile_id: string;
+  type: string;
+  status: string;
+  message: string | null;
+  created_at: string;
+  profile: Profile | null;
+}
+
 export default function ProviderMatchesPage() {
   const providerProfile = useProviderProfile();
   const { membership, refreshAccountData } = useAuth();
@@ -1038,6 +1050,71 @@ export default function ProviderMatchesPage() {
     if (tab === "organizations") setActiveView("organizations");
     if (tab === "caregivers") setActiveView("caregivers");
   }, []);
+
+  // ── Section A: Inbound interest (families/orgs who reached out to us) ──
+  const [inboundInterest, setInboundInterest] = useState<InboundInterest[]>([]);
+  const [inboundLoading, setInboundLoading] = useState(true);
+
+  const profileId_for_inbound = providerProfile?.id;
+
+  useEffect(() => {
+    if (!profileId_for_inbound || !isSupabaseConfigured()) {
+      setInboundLoading(false);
+      return;
+    }
+
+    const fetchInbound = async () => {
+      try {
+        const supabase = createClient();
+
+        // Fetch connections where someone reached out TO this provider
+        // Types: "inquiry" (family → provider), "invitation" (org → caregiver)
+        const { data: connections, error } = await supabase
+          .from("connections")
+          .select("id, from_profile_id, type, status, message, created_at")
+          .eq("to_profile_id", profileId_for_inbound)
+          .in("type", ["inquiry", "invitation"])
+          .in("status", ["pending", "accepted"])
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (error) {
+          console.error("[olera] inbound interest error:", error.message);
+          setInboundLoading(false);
+          return;
+        }
+
+        if (!connections || connections.length === 0) {
+          setInboundInterest([]);
+          setInboundLoading(false);
+          return;
+        }
+
+        // Enrich with profile data
+        const fromIds = [...new Set(connections.map((c) => c.from_profile_id))];
+        const { data: profiles } = await supabase
+          .from("business_profiles")
+          .select("id, display_name, city, state, type, care_types, metadata, image_url, slug")
+          .in("id", fromIds);
+
+        const profileMap = new Map((profiles || []).map((p) => [p.id, p as Profile]));
+
+        setInboundInterest(
+          connections.map((c) => ({
+            ...c,
+            profile: profileMap.get(c.from_profile_id) || null,
+          }))
+        );
+      } catch (err) {
+        console.error("[olera] inbound interest failed:", err);
+      } finally {
+        setInboundLoading(false);
+      }
+    };
+
+    fetchInbound();
+  }, [profileId_for_inbound]);
+
   const [families, setFamilies] = useState<Profile[]>([]);
   const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
@@ -1388,20 +1465,93 @@ export default function ProviderMatchesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
       {/* ── Page header ── */}
-      <div className="mb-5 lg:mb-8">
+      <div className="mb-6 lg:mb-8">
         <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-          {isCaregiver ? "Find opportunities" : "Find families"}
+          Matches
         </h1>
-        <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed max-w-2xl">
-          {activeView === "families"
-            ? "Families and organizations in your area who may need your services. Browse matches and reach out to start a conversation."
-            : activeView === "organizations"
-            ? "Organizations hiring caregivers in your area. Apply to join their team."
-            : "Browse caregivers you could hire for your organization."}
+        <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed max-w-2xl">
+          {isCaregiver
+            ? "Discover families and organizations looking for care in your area. Reach out to start a conversation and get hired."
+            : "Discover families and caregivers looking for your services. Reach out to connect."}
         </p>
       </div>
 
-      {/* ── Top-level view tabs ── */}
+      {/* ── Section A: Interested in you ── */}
+      {!inboundLoading && inboundInterest.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2.5 mb-4">
+            <h2 className="text-base font-display font-semibold text-gray-900">
+              Interested in you
+            </h2>
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs font-bold">
+              {inboundInterest.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {inboundInterest.map((item) => {
+              const p = item.profile;
+              if (!p) return null;
+              const locationStr = [p.city, p.state].filter(Boolean).join(", ");
+              const isInquiry = item.type === "inquiry";
+              return (
+                <Link
+                  key={item.id}
+                  href="/provider/inbox"
+                  className="bg-white rounded-xl border border-primary-100 hover:border-primary-300 hover:shadow-md p-4 transition-all duration-200 block"
+                >
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold text-white"
+                      style={{ background: avatarGradient(p.display_name || "?") }}
+                    >
+                      {getInitials(p.display_name || "?")}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {hasFullAccess ? p.display_name : blurName(p.display_name)}
+                      </p>
+                      {locationStr && (
+                        <p className="text-xs text-gray-500 truncate">{hasFullAccess ? locationStr : "***"}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-primary-600">
+                      {isInquiry ? "Sent you an inquiry" : "Invited you to apply"}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {timeAgo(item.created_at)}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {!inboundLoading && inboundInterest.length === 0 && (
+        <div className="mb-6 flex items-center gap-2.5 px-4 py-3 bg-vanilla-50 border border-warm-100/60 rounded-xl">
+          <InfoIcon className="w-4 h-4 text-gray-400 shrink-0" />
+          <p className="text-sm text-gray-500">
+            When families or organizations reach out to you directly, they&apos;ll appear here. Browse open opportunities below to get started.
+          </p>
+        </div>
+      )}
+
+      {/* ── Section B: Open opportunities ── */}
+      <div className="flex items-center gap-2.5 mb-4">
+        <h2 className="text-base font-display font-semibold text-gray-900">
+          Open opportunities
+        </h2>
+        {activeView === "families" && families.length > 0 && (
+          <span className="text-sm text-gray-400">
+            {families.length} {families.length === 1 ? "family" : "families"} looking for care
+          </span>
+        )}
+      </div>
+
+      {/* ── Discovery view tabs ── */}
       {(isCaregiver || isOrg) && (
         <div className="flex gap-1 border-b border-gray-200 mb-5 lg:mb-6">
           {(isCaregiver

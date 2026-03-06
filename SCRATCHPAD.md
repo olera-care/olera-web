@@ -42,6 +42,17 @@
   - Item #1 (gated provider portal page) assigned to Esther
   - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
 
+- **Codex & Gemini Migration Audit** (branch: `codex-gemini-audit`, worktree: `fine-bohr`) — IN PROGRESS
+  - Plan: `plans/codex-gemini-integration-plan.md`
+  - Throwaway branch — will NOT be merged
+  - Created: `AGENTS.md` (shared AI agent context), `.gemini/` (styleguide + config), `.codex/config.toml`, `.github/copilot-instructions.md`
+  - **Next:** Install Gemini Code Assist + Codex CLI extensions, run audits, compare against Claude's 13 findings
+  - Notion task updated: renamed from "Cortex & Duet" to "Codex & Gemini"
+
+- **Notion Roadmap Cleanup** (2026-03-05) — DONE ✅
+  - Marked 11 tasks as Done based on codebase verification + notification test matrix
+  - Tasks closed: email utility lib, 4 email templates, Slack utility, Slack wiring, Twilio utility, SMS verification, SMS notifications, email notifications (legacy)
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -88,6 +99,8 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-05 | Codex/Gemini audit on throwaway branch | Second-opinion audit of migration using different AI tools. Branch never merges — config files are single-use |
+| 2026-03-05 | AGENTS.md as shared AI context file | Works across Codex, Gemini, Copilot, Claude. Tool-specific configs stay lightweight and reference AGENTS.md |
 | 2026-03-05 | Flat `/provider/{slug}` URL is correct | v1.0 already used flat canonical URLs — no SEO trade-off in migration |
 | 2026-03-05 | Gated provider portal → Esther | `/provider-portal/provider/{slug}/*` needs smart landing page, not just redirect. Critical for provider email funnel |
 | 2026-03-02 | 16:9 primary featured image, 4 featured articles | 3:2 and 4:3 were too tall — pushed article grid below fold. 4 featured (1 large + 3 small) fills the right column without blank space |

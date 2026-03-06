@@ -46,9 +46,9 @@ function OnboardingHeader({ providerName }: { providerName: string }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-100">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <svg className="w-6 h-6 text-primary-600" viewBox="0 0 32 32" fill="currentColor">
@@ -310,8 +310,8 @@ export default function SmartDashboardShell({
   const isWizardActive = !wizardComplete;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      {/* Custom Onboarding Header - only shown after wizard completes */}
+    <div className={`min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white ${wizardComplete ? "pt-16 sm:pt-20" : ""}`}>
+      {/* Custom Onboarding Header - only shown after wizard completes (fixed position) */}
       {wizardComplete && <OnboardingHeader providerName={provider.provider_name} />}
 
       {/* Main Content */}

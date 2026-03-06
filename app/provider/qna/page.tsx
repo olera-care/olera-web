@@ -580,7 +580,7 @@ function EmptyState({ filter }: { filter: TabFilter }) {
         <style jsx>{`
           @keyframes emptyFloat {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-6px); }
           }
         `}</style>
       </div>
@@ -605,7 +605,7 @@ function EmptyState({ filter }: { filter: TabFilter }) {
       <style jsx>{`
         @keyframes emptyFloat {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
+          50% { transform: translateY(-6px); }
         }
       `}</style>
     </div>

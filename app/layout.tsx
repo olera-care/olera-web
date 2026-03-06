@@ -101,6 +101,9 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* ── Resource hints for faster external connections ── */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet" />
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.lordicon.com" crossOrigin="anonymous" />
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (

@@ -66,12 +66,19 @@ export function useUnreadInboxCount(profileIds: string[]): number {
   const recount = useCallback(() => {
     if (!profileKey) return;
 
-    // Use profile-scoped localStorage key to avoid cross-user conflicts
-    const inboxReadKey = `olera_inbox_read_${profileKey}`;
+    const profileIdList = profileKey.split(",");
+
+    // Collect read IDs from ALL individual profile keys
+    // ConversationList marks as read using single profile ID, so we need to check each
     let readIds = new Set<string>();
     try {
-      const stored = localStorage.getItem(inboxReadKey);
-      if (stored) readIds = new Set(JSON.parse(stored));
+      for (const id of profileIdList) {
+        const stored = localStorage.getItem(`olera_inbox_read_${id}`);
+        if (stored) {
+          const parsed: string[] = JSON.parse(stored);
+          parsed.forEach((readId) => readIds.add(readId));
+        }
+      }
     } catch {
       // localStorage may be unavailable
     }
@@ -81,8 +88,6 @@ export function useUnreadInboxCount(profileIds: string[]): number {
       return;
     }
 
-    const ids = profileKey.split(",");
-
     (async () => {
       const supabase = createClient();
 
@@ -91,13 +96,13 @@ export function useUnreadInboxCount(profileIds: string[]): number {
         supabase
           .from("connections")
           .select("id, metadata")
-          .in("from_profile_id", ids)
+          .in("from_profile_id", profileIdList)
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"]),
         supabase
           .from("connections")
           .select("id, metadata")
-          .in("to_profile_id", ids)
+          .in("to_profile_id", profileIdList)
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"]),
       ]);

@@ -11,7 +11,6 @@ import {
   type ExtendedMetadata,
 } from "@/lib/profile-completeness";
 import { useNavbar } from "@/components/shared/NavbarContext";
-import { useAuth } from "@/components/auth/AuthProvider";
 
 // Dashboard card components (reused in preview mode)
 import ProfileOverviewCard from "@/components/provider-dashboard/ProfileOverviewCard";
@@ -32,10 +31,6 @@ import ActionCard, { type ActionCardState } from "./ActionCard";
 // ============================================================
 
 function OnboardingHeader({ providerName }: { providerName: string }) {
-  const { user, activeProfile } = useAuth();
-  // User has an existing provider profile if activeProfile is an organization type
-  const hasExistingProvider = activeProfile?.type === "organization";
-
   const handleBack = () => {
     // Go back to previous page
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -63,29 +58,16 @@ function OnboardingHeader({ providerName }: { providerName: string }) {
             </span>
           </div>
 
-          {/* Right: Back button */}
-          {hasExistingProvider ? (
-            <Link
-              href="/provider"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="hidden sm:inline">Back to my dashboard</span>
-              <span className="sm:hidden">Back</span>
-            </Link>
-          ) : (
-            <button
-              onClick={handleBack}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back
-            </button>
-          )}
+          {/* Right: Back button - always uses browser history */}
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </button>
         </div>
       </div>
 
@@ -312,8 +294,11 @@ export default function SmartDashboardShell({
       {/* Custom Onboarding Header - only shown after wizard completes (fixed position) */}
       {wizardComplete && <OnboardingHeader providerName={provider.provider_name} />}
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content
+          - When wizardComplete: pt-16 on outer (for fixed header) + pt-4 inner = proper spacing
+          - During wizard: sticky navbar takes up flow space, so just pt-4 for breathing room
+       */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
         {/* Mobile Progress Banner */}
         <MobileProgressBanner completeness={completeness} />
 

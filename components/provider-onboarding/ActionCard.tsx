@@ -324,6 +324,8 @@ export default function ActionCard({
 
   // Track if user clicked to show identity form (when no email on file)
   const [showIdentityForm, setShowIdentityForm] = useState(false);
+  // Track if user clicked to show dispute form (when already claimed)
+  const [showDisputeForm, setShowDisputeForm] = useState(false);
 
   // Refs for auto-submit
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -873,10 +875,40 @@ export default function ActionCard({
   }
 
   // ════════════════════════════════════════════════════════════
-  // RENDER: Already Claimed State (Dispute Form)
+  // RENDER: Already Claimed State (Compact + Dispute Form)
   // ════════════════════════════════════════════════════════════
 
   if (state === "already-claimed") {
+    // Compact view - just show info and "Dispute listing" button
+    if (!showDisputeForm) {
+      return (
+        <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-amber-500/10 border border-amber-200/60">
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
+              This listing is claimed
+              <InfoTooltip content={TOOLTIP_CONTENT["already-claimed"].text} showTos={TOOLTIP_CONTENT["already-claimed"].showTos} />
+            </h3>
+            <p className="text-[15px] text-gray-500">
+              Someone else is managing this listing. If you believe this is an error, you can submit a dispute.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowDisputeForm(true)}
+            className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-amber-600 text-white text-sm font-semibold rounded-xl hover:bg-amber-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 block"
+          >
+            Dispute listing
+          </button>
+        </div>
+      );
+    }
+
+    // Full dispute form
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
         <div className="text-center mb-6">
@@ -886,11 +918,11 @@ export default function ActionCard({
             </svg>
           </div>
           <h3 className="text-xl font-display font-bold text-gray-900 mb-1.5 inline-flex items-center gap-1.5">
-            This listing is claimed
+            Dispute this listing
             <InfoTooltip content={TOOLTIP_CONTENT["already-claimed"].text} showTos={TOOLTIP_CONTENT["already-claimed"].showTos} />
           </h3>
           <p className="text-[15px] text-gray-500">
-            Submit a dispute if you should manage this listing.
+            Tell us about yourself and why you should manage this listing.
           </p>
         </div>
 
@@ -981,7 +1013,7 @@ export default function ActionCard({
           <div className="flex items-center justify-between pt-3">
             <button
               type="button"
-              onClick={() => { setState("verify-form"); setError(""); }}
+              onClick={() => { setShowDisputeForm(false); setError(""); }}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -102,6 +102,12 @@ export default function OnboardingWizard({
     const targetElement = document.querySelector(currentStep.targetSelector) as HTMLElement;
     if (!targetElement) return;
 
+    // For nav items (matches, engage), we need to also elevate the navbar itself
+    // because children can't escape their parent's stacking context
+    const isNavItem = currentStep.target === "matches" || currentStep.target === "engage";
+    // The main navbar is a <nav> with sticky top-0 z-50 classes
+    const navbar = isNavItem ? document.querySelector("nav.sticky.top-0.z-50, nav[class*='sticky'][class*='z-50']") as HTMLElement : null;
+
     // Save original styles
     const originalStyles = {
       position: targetElement.style.position,
@@ -111,6 +117,12 @@ export default function OnboardingWizard({
       boxShadow: targetElement.style.boxShadow,
       padding: targetElement.style.padding,
     };
+    const originalNavbarZIndex = navbar?.style.zIndex || "";
+
+    // For nav items, elevate the entire navbar above the overlay
+    if (navbar) {
+      navbar.style.zIndex = "52";
+    }
 
     // Elevate above the overlay (z-50 = 50, so we use 51)
     targetElement.style.position = "relative";
@@ -132,6 +144,10 @@ export default function OnboardingWizard({
       targetElement.style.borderRadius = originalStyles.borderRadius;
       targetElement.style.boxShadow = originalStyles.boxShadow;
       targetElement.style.padding = originalStyles.padding;
+      // Restore navbar z-index
+      if (navbar) {
+        navbar.style.zIndex = originalNavbarZIndex;
+      }
     };
   }, [currentStep.targetSelector, currentStep.target]);
 

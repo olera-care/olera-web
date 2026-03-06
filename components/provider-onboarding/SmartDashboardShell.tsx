@@ -294,11 +294,8 @@ export default function SmartDashboardShell({
       {/* Custom Onboarding Header - only shown after wizard completes (fixed position) */}
       {wizardComplete && <OnboardingHeader providerName={provider.provider_name} />}
 
-      {/* Main Content
-          - When wizardComplete: pt-16 on outer (for fixed header) + pt-4 inner = proper spacing
-          - During wizard: sticky navbar takes up flow space, so just pt-4 for breathing room
-       */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
         {/* Mobile Progress Banner */}
         <MobileProgressBanner completeness={completeness} />
 

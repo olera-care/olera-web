@@ -2,6 +2,7 @@ import type { Profile } from "@/lib/types";
 import DashboardSectionCard from "./DashboardSectionCard";
 import CareServicesList from "@/components/providers/CareServicesList";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
+import { CAREGIVER_SKILL_LABELS } from "@/lib/constants/caregiver-skills";
 
 interface CareServicesCardProps {
   profile: Profile;
@@ -14,7 +15,9 @@ export default function CareServicesCard({
   completionPercent,
   onEdit,
 }: CareServicesCardProps) {
-  const services: string[] = Array.isArray(profile.care_types) ? [...profile.care_types] : [];
+  const isCaregiver = profile.type === "caregiver";
+  const rawServices: string[] = Array.isArray(profile.care_types) ? [...profile.care_types] : [];
+  const services = rawServices.map((s) => CAREGIVER_SKILL_LABELS[s] || s);
 
   return (
     <DashboardSectionCard
@@ -27,7 +30,7 @@ export default function CareServicesCard({
         <SectionEmptyState
           icon="clipboard"
           message="No care services listed"
-          subMessage="Add the services your organization provides."
+          subMessage={isCaregiver ? "Add the services you offer." : "Add the services your organization provides."}
         />
       ) : (
         <CareServicesList services={services} initialCount={12} />

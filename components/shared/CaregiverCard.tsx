@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Profile, CaregiverMetadata } from "@/lib/types";
 import ConnectButton from "@/components/shared/ConnectButton";
+import { CAREGIVER_SKILL_LABELS } from "@/lib/constants/caregiver-skills";
 
 function blurName(name: string): string {
   if (!name) return "***";
@@ -87,7 +88,7 @@ export default function CaregiverCard({
               key={type}
               className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full"
             >
-              {type}
+              {CAREGIVER_SKILL_LABELS[type] || type}
             </span>
           ))}
         </div>

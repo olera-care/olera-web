@@ -32,6 +32,7 @@ import {
   getCategoryServices,
   getSimilarProviders,
 } from "@/lib/provider-utils";
+import { CAREGIVER_SKILL_LABELS } from "@/lib/constants/caregiver-skills";
 import { getServiceClient } from "@/lib/admin";
 
 // ============================================================
@@ -396,7 +397,8 @@ export default async function ProviderPage({
   const hasCertifications = isCaregiver && certifications.length > 0;
 
   // Build care services: real data first, then pad with category-inferred services
-  const careServices: string[] = [...(profile.care_types ?? [])];
+  const resolveLabel = (s: string) => CAREGIVER_SKILL_LABELS[s] || s;
+  const careServices: string[] = (profile.care_types ?? []).map(resolveLabel);
   if (profile.category) {
     const inferred = getCategoryServices(profile.category);
     const existing = new Set(careServices.map((s) => s.toLowerCase()));
@@ -412,7 +414,7 @@ export default async function ProviderPage({
   if (staffScreening?.insured) highlights.push("Insured");
   if (profile.care_types && profile.care_types.length > 0) {
     for (const ct of profile.care_types.slice(0, 4 - highlights.length)) {
-      highlights.push(ct);
+      highlights.push(resolveLabel(ct));
     }
   }
   if (highlights.length < 4 && profile.category) {

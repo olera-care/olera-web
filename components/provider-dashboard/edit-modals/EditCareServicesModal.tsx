@@ -5,8 +5,9 @@ import Modal from "@/components/ui/Modal";
 import { saveProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
+import { CAREGIVER_SKILLS, CAREGIVER_SKILL_LABELS } from "@/lib/constants/caregiver-skills";
 
-const COMMON_SERVICES = [
+const ORG_SERVICES = [
   "Assisted Living",
   "Memory Care",
   "Independent Living",
@@ -39,9 +40,11 @@ export default function EditCareServicesModal({
   guidedTotal,
   onGuidedBack,
 }: BaseEditModalProps) {
+  const isCaregiver = profile.type === "caregiver";
   const initialCareTypes = Array.isArray(profile.care_types) ? profile.care_types : [];
   const [selected, setSelected] = useState<string[]>([...initialCareTypes]);
   const [customService, setCustomService] = useState("");
+  const COMMON_SERVICES = isCaregiver ? CAREGIVER_SKILLS.map((s) => s.id) : ORG_SERVICES;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,7 +125,7 @@ export default function EditCareServicesModal({
                     : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
                 }`}
               >
-                {service}
+                {CAREGIVER_SKILL_LABELS[service] || service}
               </button>
             );
           })}
@@ -138,7 +141,7 @@ export default function EditCareServicesModal({
                 onClick={() => toggle(service)}
                 className="px-3.5 py-2 rounded-xl text-sm font-medium border bg-primary-50 border-primary-300 text-primary-700 transition-all duration-200"
               >
-                {service}
+                {CAREGIVER_SKILL_LABELS[service] || service}
               </button>
             ))}
         </div>

@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
+import { CAREGIVER_SKILLS, CAREGIVER_SKILL_LABELS } from "@/lib/constants/caregiver-skills";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import WizardNav from "@/components/ui/WizardNav";
@@ -1895,38 +1896,73 @@ function ProviderOnboardingContent() {
               </p>
             </div>
 
-            {/* Care types — shared by both flows */}
+            {/* Care types / skills — role-aware */}
             <div className="mb-6">
               <label className="block text-base font-medium text-gray-700 mb-3">
-                {isCaregiver ? "Care services you provide" : "Care types"}
+                {isCaregiver ? "Services you provide" : "Care types"}
               </label>
-              <div className="flex flex-wrap gap-3">
-                {CARE_TYPES.map((ct) => {
-                  const selected = data.careTypes.includes(ct);
-                  return (
-                    <button
-                      key={ct}
-                      type="button"
-                      role="switch"
-                      aria-checked={selected}
-                      onClick={() => toggleCareType(ct)}
-                      className={[
-                        "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[15px] font-medium border transition-all duration-200",
-                        selected
-                          ? "bg-primary-50 border-primary-500 text-primary-700"
-                          : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
-                      ].join(" ")}
-                    >
-                      {selected && (
-                        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                      {ct}
-                    </button>
-                  );
-                })}
-              </div>
+              {isCaregiver ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {CAREGIVER_SKILLS.map((skill) => {
+                    const selected = data.careTypes.includes(skill.id);
+                    return (
+                      <button
+                        key={skill.id}
+                        type="button"
+                        role="switch"
+                        aria-checked={selected}
+                        onClick={() => toggleCareType(skill.id)}
+                        className={[
+                          "flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl text-left border transition-all duration-200",
+                          selected
+                            ? "bg-secondary-50 border-secondary-400 text-secondary-800"
+                            : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
+                        ].join(" ")}
+                      >
+                        <span className={`mt-0.5 w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${selected ? "bg-secondary-500 border-secondary-500" : "border-gray-300"}`}>
+                          {selected && (
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </span>
+                        <div>
+                          <span className="text-sm font-medium">{skill.label}</span>
+                          <span className="block text-xs text-gray-400">{skill.description}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  {CARE_TYPES.map((ct) => {
+                    const selected = data.careTypes.includes(ct);
+                    return (
+                      <button
+                        key={ct}
+                        type="button"
+                        role="switch"
+                        aria-checked={selected}
+                        onClick={() => toggleCareType(ct)}
+                        className={[
+                          "inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-[15px] font-medium border transition-all duration-200",
+                          selected
+                            ? "bg-primary-50 border-primary-500 text-primary-700"
+                            : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                        ].join(" ")}
+                      >
+                        {selected && (
+                          <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                        {ct}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Caregiver-specific fields */}
@@ -2089,8 +2125,8 @@ function ProviderOnboardingContent() {
                 {data.careTypes.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {data.careTypes.slice(0, 3).map((ct) => (
-                      <span key={ct} className="bg-primary-50 text-primary-700 text-xs px-2.5 py-1 rounded-full">
-                        {ct}
+                      <span key={ct} className={`text-xs px-2.5 py-1 rounded-full ${isCaregiver ? "bg-secondary-50 text-secondary-700" : "bg-primary-50 text-primary-700"}`}>
+                        {CAREGIVER_SKILL_LABELS[ct] || ct}
                       </span>
                     ))}
                     {data.careTypes.length > 3 && (

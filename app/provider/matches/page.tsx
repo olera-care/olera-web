@@ -889,6 +889,8 @@ export default function ProviderMatchesPage() {
   const isCaregiver = providerProfile?.type === "caregiver";
   const isOrg = providerProfile?.type === "organization";
   const [activeView, setActiveView] = useState<MatchesView>("families");
+  const [orgCount, setOrgCount] = useState<number | null>(null);
+  const [caregiverCount, setCaregiverCount] = useState<number | null>(null);
 
   // Read ?tab= from URL on mount (avoids useSearchParams Suspense requirement)
   useEffect(() => {
@@ -1416,12 +1418,12 @@ export default function ProviderMatchesPage() {
           <div className="flex gap-1">
             {(isCaregiver
               ? [
-                  { id: "families" as MatchesView, label: "Families", count: families.length },
-                  { id: "organizations" as MatchesView, label: "Jobs" },
+                  { id: "families" as MatchesView, label: "Families seeking care", count: families.length },
+                  { id: "organizations" as MatchesView, label: "Orgs hiring", count: orgCount },
                 ]
               : [
-                  { id: "families" as MatchesView, label: "Families", count: families.length },
-                  { id: "caregivers" as MatchesView, label: "Caregivers" },
+                  { id: "families" as MatchesView, label: "Families seeking care", count: families.length },
+                  { id: "caregivers" as MatchesView, label: "Caregivers available", count: caregiverCount },
                 ]
             ).map((tab) => (
               <button
@@ -1429,15 +1431,15 @@ export default function ProviderMatchesPage() {
                 type="button"
                 onClick={() => setActiveView(tab.id)}
                 className={[
-                  "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors",
+                  "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap",
                   activeView === tab.id
                     ? "border-primary-600 text-primary-700"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
                 ].join(" ")}
               >
                 {tab.label}
-                {"count" in tab && tab.count != null && (
-                  <span className="ml-1.5 text-xs text-gray-400">({tab.count})</span>
+                {tab.count != null && (
+                  <span className="ml-1.5 text-xs text-gray-400 font-normal">({tab.count})</span>
                 )}
               </button>
             ))}
@@ -1491,10 +1493,10 @@ export default function ProviderMatchesPage() {
         <div className="lg:col-span-2">
           {/* ── Organizations tab ── */}
           {isCaregiver && activeView === "organizations" ? (
-            <OrganizationsTab providerCareTypes={providerCareTypes} />
+            <OrganizationsTab providerCareTypes={providerCareTypes} onCountChange={setOrgCount} />
           ) : isOrg && activeView === "caregivers" ? (
             /* ── Caregivers tab ── */
-            <CaregiversTab />
+            <CaregiversTab onCountChange={setCaregiverCount} />
           ) : (
             /* ── Families tab ── */
             <div className="space-y-5">

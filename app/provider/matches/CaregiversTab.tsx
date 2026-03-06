@@ -23,7 +23,11 @@ function blurName(name: string): string {
   return name.charAt(0) + "***";
 }
 
-export default function CaregiversTab() {
+export default function CaregiversTab({
+  onCountChange,
+}: {
+  onCountChange?: (count: number) => void;
+} = {}) {
   const { activeProfile, membership } = useAuth();
   const [caregivers, setCaregivers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +58,9 @@ export default function CaregiversTab() {
           .limit(50);
 
         if (error) console.error("[olera] discover caregivers error:", error.message);
-        setCaregivers((data as Profile[]) || []);
+        const result = (data as Profile[]) || [];
+        setCaregivers(result);
+        onCountChange?.(result.length);
       } catch (err) {
         console.error("[olera] discover caregivers failed:", err);
       } finally {

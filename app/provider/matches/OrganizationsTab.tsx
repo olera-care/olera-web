@@ -28,8 +28,10 @@ function computeMatchingServices(
 
 export default function OrganizationsTab({
   providerCareTypes = [],
+  onCountChange,
 }: {
   providerCareTypes?: string[];
+  onCountChange?: (count: number) => void;
 }) {
   const { activeProfile, membership } = useAuth();
   const [orgs, setOrgs] = useState<Profile[]>([]);
@@ -61,7 +63,9 @@ export default function OrganizationsTab({
           .limit(50);
 
         if (error) console.error("[olera] discover orgs error:", error.message);
-        setOrgs((data as Profile[]) || []);
+        const result = (data as Profile[]) || [];
+        setOrgs(result);
+        onCountChange?.(result.length);
       } catch (err) {
         console.error("[olera] discover orgs failed:", err);
       } finally {

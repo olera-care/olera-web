@@ -7,7 +7,7 @@
 
 ## Summary
 
-The migration-playbook.md covers provider pages and editorial content well. This sanity check found **10 gaps** that weren't previously caught — mostly around provider portal operations, sitemap coverage, and category-scoped content URLs.
+The migration-playbook.md covers provider pages and editorial content well. This sanity check found **11 gaps** that weren't previously caught — mostly around provider portal operations, sitemap coverage, and category-scoped content URLs.
 
 ---
 
@@ -53,6 +53,8 @@ The migration-playbook.md covers provider pages and editorial content well. This
 
 - [ ] **13. Forum content compressed to single URL** — All ~100+ forum discussions redirect to `/community`. If any had backlinks or traffic, that's content equity being funneled into one page. Acceptable trade-off if forum content is being rebuilt in community, but worth monitoring.
 
+- [ ] **14. `/research-and-press/c/{categorySlug}` not redirected** — *Found by OpenAI Codex audit (2026-03-06).* v1.0 had category index pages at `/research-and-press/c/{categorySlug}` (documented in `migration-playbook.md:179`). The old wildcard redirect was removed (`next.config.ts:48,54`), and v2.0 app routes only cover `/research-and-press` and `/research-and-press/[slug]` — no `/c/` segment. These category URLs will 404 after cutover. Fix: add a redirect from `/research-and-press/c/:slug` → `/research-and-press`.
+
 ---
 
 ## Corrections to migration-playbook.md
@@ -69,6 +71,7 @@ This is **not fully accurate** based on comparison with v1.0 source code. The fo
 6. `/pages/{slug}` (beyond terms/privacy)
 7. `/caregiver-support/curated/*`
 8. `/sign-out`
+9. `/research-and-press/c/{categorySlug}` *(found by Codex)*
 
 ---
 

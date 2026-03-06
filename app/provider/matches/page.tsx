@@ -9,6 +9,7 @@ import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfil
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
+import OrganizationsTab from "./OrganizationsTab";
 
 // ── Types ──
 
@@ -1020,9 +1021,19 @@ function FamilyCareCard({
 // Main Page
 // ---------------------------------------------------------------------------
 
+type MatchesView = "families" | "organizations";
+
 export default function ProviderMatchesPage() {
   const providerProfile = useProviderProfile();
   const { membership, refreshAccountData } = useAuth();
+  const isCaregiver = providerProfile?.type === "caregiver";
+  const [activeView, setActiveView] = useState<MatchesView>("families");
+
+  // Read ?tab= from URL on mount (avoids useSearchParams Suspense requirement)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "organizations") setActiveView("organizations");
+  }, []);
   const [families, setFamilies] = useState<Profile[]>([]);
   const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
@@ -1378,9 +1389,41 @@ export default function ProviderMatchesPage() {
           Matches
         </h1>
         <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
-          Matched to your services and location. Reach out to start a conversation.
+          {activeView === "families"
+            ? "Matched to your services and location. Reach out to start a conversation."
+            : "Browse organizations looking for caregivers."}
         </p>
       </div>
+
+      {/* ── Top-level view tabs (caregiver only) ── */}
+      {isCaregiver && (
+        <div className="flex gap-1 border-b border-gray-200 mb-5 lg:mb-6">
+          {([
+            { id: "families" as const, label: "Families" },
+            { id: "organizations" as const, label: "Organizations" },
+          ]).map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveView(tab.id)}
+              className={[
+                "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors",
+                activeView === tab.id
+                  ? "border-primary-600 text-primary-700"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+              ].join(" ")}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ── Organizations tab (caregiver find jobs) ── */}
+      {isCaregiver && activeView === "organizations" ? (
+        <OrganizationsTab />
+      ) : (
+      <>
 
       {/* ── Filter tabs + Sort ── */}
       <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
@@ -1667,6 +1710,8 @@ export default function ProviderMatchesPage() {
           </div>
         </>
       )}
+    </>
+    )}
     </div>
     </div>
   );

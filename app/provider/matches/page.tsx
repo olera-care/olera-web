@@ -1352,11 +1352,18 @@ export default function ProviderMatchesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
       {/* ── Page header ── */}
-      <div className="mb-5 lg:mb-6">
+      <div className="mb-1.5 lg:mb-2">
         <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-          Matches
+          Matches{providerProfile?.city ? ` in ${providerProfile.city}` : ""}
         </h1>
       </div>
+
+      {/* ── Orientation line ── */}
+      <p className="text-[15px] text-gray-500 mb-5 lg:mb-6 leading-relaxed">
+        {isCaregiver
+          ? "Get hired directly by families, or connect with organizations hiring caregivers."
+          : "Find families who need care, or discover caregivers to grow your team."}
+      </p>
 
       {/* ── Section A: Inbound interest — only visible when populated ── */}
       {!inboundLoading && inboundInterest.length > 0 && (
@@ -1485,6 +1492,16 @@ export default function ProviderMatchesPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* ── Tab context line ── */}
+      {(isCaregiver || isOrg) && (
+        <p className="text-sm text-gray-400 mb-4 lg:mb-5">
+          {isCaregiver && activeView === "families" && "Browse families and reach out to get hired directly."}
+          {isCaregiver && activeView === "organizations" && "Apply to organizations that assign caregivers to families."}
+          {isOrg && activeView === "families" && "Reach out to families who need care your organization provides."}
+          {isOrg && activeView === "caregivers" && "Find caregivers and invite them to join your team."}
+        </p>
       )}
 
       {/* ── Content grid — sidebar persists across all tabs ── */}

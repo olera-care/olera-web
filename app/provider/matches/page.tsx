@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
@@ -295,244 +295,105 @@ function MatchesSidebar({
   respondedCount: number;
   newMatchesToday: number;
 }) {
-  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const isPro = !isFreeTier;
   const responseRate = contactedCount > 0 ? Math.round((respondedCount / contactedCount) * 100) : 0;
 
+  const used = FREE_CONNECTION_LIMIT - (remaining ?? FREE_CONNECTION_LIMIT);
+
   return (
     <div className="sticky top-24 space-y-3">
-      {/* ── Main sidebar card ── */}
-      <div className="rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        <div className="bg-white p-6">
+      {/* ── Activity + reach-out counter ── */}
+      <div className="rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden bg-white">
+        <div className="p-5">
+          <h3 className="text-[13px] font-semibold text-gray-400 uppercase tracking-wider mb-4">
+            Your activity
+          </h3>
 
-          {/* ── FREE TIER: reach-outs ring + families count ── */}
+          {/* Pipeline stats */}
+          <div className="space-y-3 mb-5">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] text-gray-500">Reach-outs sent</span>
+              <span className="text-[13px] font-bold text-gray-900">{contactedCount}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] text-gray-500">Responses received</span>
+              <span className="text-[13px] font-bold text-gray-900">{respondedCount}</span>
+            </div>
+            {newMatchesToday > 0 && (
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-gray-500">New matches today</span>
+                <span className="text-[13px] font-bold text-primary-600">{newMatchesToday}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Reach-out bar (free tier) */}
           {isFreeTier && remaining !== null && (
-            <>
-              {/* Circular progress + count */}
-              <div className="flex flex-col items-center text-center mb-5">
-                <div className="relative w-20 h-20 mb-3">
-                  <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                    <circle cx="40" cy="40" r="34" fill="none" stroke="#f0eeeb" strokeWidth="5" />
-                    <circle
-                      cx="40" cy="40" r="34" fill="none"
-                      stroke="#374151" strokeWidth="5" strokeLinecap="round"
-                      strokeDasharray={`${(remaining / FREE_CONNECTION_LIMIT) * 213.6} 213.6`}
-                    />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-[28px] font-display font-bold text-gray-900">
-                    {remaining}
-                  </span>
-                </div>
-                <p className="text-[15px] text-gray-500">
-                  <span className="font-bold text-gray-900">{remaining} of {FREE_CONNECTION_LIMIT}</span> reach-outs remaining
-                </p>
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[13px] text-gray-500">Reach-outs remaining</span>
+                <span className="text-[13px] font-bold text-gray-900">{remaining}</span>
               </div>
-
-              {/* Families stat */}
-              <div className="flex items-center justify-center gap-2.5 bg-warm-50/50 rounded-xl px-4 py-3">
-                <PeopleIcon className="w-5 h-5 text-gray-400 shrink-0" />
-                <p className="text-[13px] text-gray-500">
-                  <span className="font-bold text-gray-900">{totalFamilies}</span> families waiting
-                </p>
+              <div className="h-2 bg-warm-100/60 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gray-900 rounded-full transition-all duration-500"
+                  style={{ width: `${(used / FREE_CONNECTION_LIMIT) * 100}%` }}
+                />
               </div>
-            </>
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                {used} of {FREE_CONNECTION_LIMIT} used
+              </p>
+            </div>
           )}
 
-          {/* ── PRO + FAMILIES WAITING ── */}
-          {isPro && totalFamilies > 0 && (
-            <>
-              {/* Pro badge */}
-              <div className="flex justify-center mb-5">
-                <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-50/60 border border-primary-100/60">
-                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  <span className="text-xs font-bold text-primary-700 tracking-wide uppercase">Pro</span>
-                </div>
+          {/* Pro badge for pro users */}
+          {isPro && (
+            <div className="pt-4 border-t border-gray-100 flex items-center gap-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-50/60 border border-primary-100/60">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                <span className="text-[10px] font-bold text-primary-700 tracking-wide uppercase">Pro</span>
               </div>
-
-              {/* Big family count */}
-              <div className="text-center mb-2">
-                <p className="text-[52px] font-display font-bold text-gray-900 leading-none tracking-tight">
-                  {totalFamilies}
-                </p>
-              </div>
-              <p className="text-[17px] text-gray-700 text-center font-medium leading-snug">
-                {totalFamilies === 1 ? "family" : "families"} waiting for you
-              </p>
-              <p className="text-[13px] text-gray-400 text-center mt-1.5 leading-relaxed">
-                Families choose the first provider who responds.
-              </p>
-
-              {/* Stats row */}
-              <div className="mt-6 pt-5 border-t border-gray-100">
-                <div className="grid grid-cols-3 gap-1">
-                  <div className="text-center">
-                    <p className="text-xl font-display font-bold text-gray-900 tracking-tight">{contactedCount}</p>
-                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">Reached out</p>
-                  </div>
-                  <div className="text-center border-x border-gray-100">
-                    <p className="text-xl font-display font-bold text-gray-900 tracking-tight">{respondedCount}</p>
-                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">Responded</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-display font-bold text-gray-900 tracking-tight">{responseRate}%</p>
-                    <p className="text-[11px] text-gray-400 font-medium mt-0.5">Rate</p>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* ── PRO + ALL CAUGHT UP ── */}
-          {isPro && totalFamilies === 0 && (
-            <>
-              {/* Pro badge */}
-              <div className="flex justify-center mb-5">
-                <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-50/60 border border-primary-100/60">
-                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  <span className="text-xs font-bold text-primary-700 tracking-wide uppercase">Pro</span>
-                </div>
-              </div>
-
-              {/* Checkmark circle */}
-              <div className="flex justify-center mb-5">
-                <div className="w-14 h-14 rounded-full bg-primary-50/60 flex items-center justify-center">
-                  <svg className="w-7 h-7 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-display font-bold text-gray-900 text-center">
-                You&apos;re all caught up
-              </h3>
-              <p className="text-[13px] text-gray-400 text-center mt-2 leading-relaxed max-w-[220px] mx-auto">
-                No new families waiting. We&apos;ll notify you when someone&apos;s looking for care in your area.
-              </p>
-            </>
+              <span className="text-[13px] text-gray-500">Unlimited reach-outs</span>
+            </div>
           )}
         </div>
 
-        {/* ── Contextual footer strip ── */}
-
-        {/* Pro + families: urgency nudge */}
-        {isPro && totalFamilies > 0 && newMatchesToday > 0 && (
-          <div className="px-5 py-3.5 bg-amber-50/60 border-t border-amber-100/40 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
-              <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-              </svg>
-            </div>
-            <p className="text-[13px] text-gray-600 leading-relaxed">
-              <span className="font-semibold text-gray-800">{newMatchesToday} new {newMatchesToday === 1 ? "match" : "matches"} today</span> — respond within 24hrs for the best chance.
-            </p>
-          </div>
-        )}
-
-        {/* Pro + all caught up: profile tip */}
-        {isPro && totalFamilies === 0 && (
-          <div className="px-5 py-3.5 bg-warm-50/50 border-t border-warm-100/60">
-            <p className="text-[13px] text-gray-500 text-center leading-relaxed">
-              Tip: <Link href="/provider/profile" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">Complete your profile</Link> to match with more families.
-            </p>
-          </div>
-        )}
-
-        {/* Free tier: dark Pro upsell */}
+        {/* Free tier: compact Pro upsell */}
         {isFreeTier && (
-          <div
-            className="relative"
-            style={{ background: "linear-gradient(135deg, #1a1d23 0%, #252830 50%, #1e2127 100%)" }}
+          <Link
+            href="/provider/pro"
+            className="flex items-center justify-center gap-2 px-5 py-3.5 bg-gray-900 text-white text-[13px] font-semibold hover:bg-gray-800 transition-colors"
           >
-            <div
-              className="absolute top-0 right-0 w-48 h-48 opacity-[0.06] pointer-events-none"
-              style={{ background: "radial-gradient(circle at 80% 20%, #199087, transparent 70%)" }}
-            />
-
-            <div className="relative p-6">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 mb-4">
-                <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                </svg>
-                <span className="text-[11px] font-bold text-amber-400 tracking-wide uppercase">Pro</span>
-              </div>
-
-              <h3 className="text-[17px] font-display font-bold text-white leading-tight mb-1.5 tracking-tight">
-                Connect with every family
-              </h3>
-              <p className="text-[13px] text-gray-400 leading-relaxed mb-5">
-                Unlimited reach-outs, priority visibility, and more leads.
-              </p>
-
-              <div className="flex items-center justify-between mb-5">
-                <div className="text-center">
-                  <p className="text-sm font-display font-bold text-white tracking-tight leading-none uppercase">Unlimited</p>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1.5">Reach-outs</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-display font-bold text-white tracking-tight leading-none">3&times;</p>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1.5">Visibility</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-display font-bold text-white tracking-tight leading-none">2&times;</p>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-1.5">More leads</p>
-                </div>
-              </div>
-
-              <Link
-                href="/provider/pro"
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-primary-500 text-white text-[14px] font-bold hover:bg-primary-400 transition-colors shadow-lg shadow-primary-500/20"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
-                </svg>
-                Get unlimited · $25/mo
-              </Link>
-            </div>
-          </div>
+            <svg className="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+            </svg>
+            Get unlimited · $25/mo
+          </Link>
         )}
       </div>
 
-      {/* ── How It Works accordion ── */}
-      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setHowItWorksOpen(!howItWorksOpen)}
-          className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-warm-50/30 transition-colors"
-        >
-          <span className="text-[13px] font-semibold text-gray-500">How it works</span>
-          <svg
-            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${howItWorksOpen ? "rotate-180" : ""}`}
-            fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div
-          className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
-          style={{ gridTemplateRows: howItWorksOpen ? "1fr" : "0fr" }}
-        >
-          <div className="overflow-hidden">
-            <div className="px-5 pb-5 space-y-4 border-t border-warm-100/60 pt-4">
-              {[
-                { num: 1, bold: "Send a note", rest: "explaining why you\u2019re a good fit" },
-                { num: 2, bold: "Family reviews", rest: "your profile and message" },
-                { num: 3, bold: "If they accept,", rest: "a conversation opens in your inbox" },
-              ].map((step) => (
-                <div key={step.num} className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-warm-100/70 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[12px] font-bold text-gray-500">{step.num}</span>
-                  </div>
-                  <p className="text-[13px] text-gray-500 leading-relaxed">
-                    <span className="font-semibold text-gray-700">{step.bold}</span> {step.rest}
-                  </p>
-                </div>
-              ))}
+      {/* ── How It Works — always visible ── */}
+      <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden p-5">
+        <h3 className="text-[13px] font-semibold text-gray-400 uppercase tracking-wider mb-4">
+          How it works
+        </h3>
+        <div className="space-y-3.5">
+          {[
+            { num: 1, bold: "Browse matches", rest: "and reach out" },
+            { num: 2, bold: "They review", rest: "your profile and message" },
+            { num: 3, bold: "Continue", rest: "the conversation in your Inbox" },
+          ].map((step) => (
+            <div key={step.num} className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-warm-100/70 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-[12px] font-bold text-gray-500">{step.num}</span>
+              </div>
+              <p className="text-[13px] text-gray-500 leading-relaxed">
+                <span className="font-semibold text-gray-700">{step.bold}</span> {step.rest}
+              </p>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
@@ -562,6 +423,7 @@ function FamilyCareCard({
   onSend,
   sendError,
   reachOutCount,
+  isNew,
 }: {
   family: Profile;
   hasFullAccess: boolean;
@@ -581,6 +443,7 @@ function FamilyCareCard({
   onSend?: () => void;
   sendError?: string | null;
   reachOutCount?: number;
+  isNew?: boolean;
 }) {
   const meta = family.metadata as FamilyMetadata;
   const locationStr = [family.city, family.state].filter(Boolean).join(", ");
@@ -598,6 +461,18 @@ function FamilyCareCard({
   const familyFirstName = displayName.split(/\s+/)[0];
   const matchCount = computeMatchingServices(careNeeds, providerCareTypes);
   const reachOuts = reachOutCount ?? 0;
+
+  // Match context line
+  const matchingNames = careNeeds.filter((n) =>
+    providerCareTypes.some((s) => s.toLowerCase() === n.toLowerCase())
+  );
+  const matchContext = matchCount >= 2
+    ? `Strong match — needs ${matchingNames.slice(0, 2).join(" and ")}, which you provide`
+    : matchCount === 1
+    ? `Good match — needs ${matchingNames[0]}, which you provide`
+    : reachOuts === 0
+    ? "New opportunity — be first to connect"
+    : null;
 
   // Distance computation
   const providerLat = providerProfile?.lat;
@@ -659,6 +534,11 @@ function FamilyCareCard({
           </div>
           {/* Badges row */}
           <div className="flex items-center gap-2 flex-wrap">
+            {isNew && !contacted && (
+              <span className="inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-full bg-primary-50 text-primary-600 border border-primary-100">
+                New
+              </span>
+            )}
             {timeline && (
               <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
                 <span
@@ -697,7 +577,12 @@ function FamilyCareCard({
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 shrink-0">
+            {isNew && !contacted && (
+              <span className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full bg-primary-50 text-primary-600 border border-primary-100">
+                New
+              </span>
+            )}
             {timeline && (
               <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
                 <span
@@ -715,63 +600,25 @@ function FamilyCareCard({
           </div>
         </div>
 
-        {/* ── Stats bar — mobile: 2 columns, desktop: 3 columns ── */}
-        {/* Mobile stats */}
-        <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
-          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-            <CheckCircleIcon className="w-4 h-4 text-primary-500 shrink-0" />
-            <p className="text-xs text-gray-600">
-              <span className="font-bold">{matchCount}</span> service match
+        {/* ── Match context line ── */}
+        {matchContext && !contacted && (
+          <div className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl mb-4 lg:mb-5 ${
+            matchCount >= 2
+              ? "bg-primary-50/60 border border-primary-100/60"
+              : matchCount === 1
+              ? "bg-warm-50/60 border border-warm-100/60"
+              : "bg-primary-50/40 border border-primary-100/40"
+          }`}>
+            {matchCount > 0 ? (
+              <CheckCircleIcon className="w-4 h-4 text-primary-500 shrink-0" />
+            ) : (
+              <PeopleIcon className="w-4 h-4 text-primary-500 shrink-0" />
+            )}
+            <p className={`text-[13px] font-medium ${matchCount >= 2 ? "text-primary-700" : matchCount === 1 ? "text-gray-600" : "text-primary-600"}`}>
+              {matchContext}
             </p>
           </div>
-          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-            <LocationIcon className="w-4 h-4 text-primary-500 shrink-0" />
-            <p className="text-xs text-gray-600">
-              {driveTime ? (
-                <><span className="font-bold">{driveTime}</span> away</>
-              ) : (
-                <span className="font-bold">{locationStr || "—"}</span>
-              )}
-            </p>
-          </div>
-          {reachOuts === 0 && (
-            <div className="col-span-2 flex items-center justify-center gap-2 py-2 px-3 bg-primary-50/60 rounded-lg border border-primary-100/50">
-              <PeopleIcon className="w-4 h-4 text-primary-600 shrink-0" />
-              <p className="text-xs font-semibold text-primary-700">Be first to connect!</p>
-            </div>
-          )}
-        </div>
-
-        {/* Desktop stats */}
-        <div className="hidden lg:grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
-          <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <CheckCircleIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-500">
-              <span className="font-bold text-gray-700">{matchCount} service{matchCount !== 1 ? "s" : ""}</span>{" "}
-              match
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30 border-x border-warm-100/80">
-            <LocationIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-500">
-              {driveTime ? (
-                <><span className="font-bold text-gray-700">{driveTime}</span> from you</>
-              ) : (
-                <span className="font-bold text-gray-700">{locationStr || "—"}</span>
-              )}
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <PeopleIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-500">
-              {reachOuts === 0 ? (
-                <><span className="font-bold text-gray-700">Be first</span> to connect!</>
-              ) : (
-                <><span className="font-bold text-gray-900">{reachOuts >= 4 ? "4+" : reachOuts} provider{reachOuts !== 1 ? "s" : ""}</span> reached out</>
-              )}
-            </p>
-          </div>
-        </div>
+        )}
 
         {/* ── About situation — full text when expanded ── */}
         <div className="border-l-2 border-warm-200 pl-3 lg:pl-4 mb-4 lg:mb-5">
@@ -1126,6 +973,21 @@ export default function ProviderMatchesPage() {
   const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
 
+  // Toast state for post-reach-out feedback
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Last visit tracking for "New" badges
+  const [lastVisitTs, setLastVisitTs] = useState<number>(0);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("olera_matches_last_visit");
+      if (stored) setLastVisitTs(parseInt(stored, 10));
+      // Update the timestamp for next visit
+      localStorage.setItem("olera_matches_last_visit", String(Date.now()));
+    } catch { /* ignore */ }
+  }, []);
+
   // Reach-out expansion state
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [reachOutNote, setReachOutNote] = useState("");
@@ -1257,7 +1119,15 @@ export default function ProviderMatchesPage() {
 
         setContactedIds((prev) => new Set([...prev, toProfileId]));
         setExpandedCardId(null);
+        setReachOutSheetFamily(null);
         setReachOutNote("");
+
+        // Show toast confirmation
+        const targetFamily = families.find((f) => f.id === toProfileId);
+        const firstName = targetFamily?.display_name?.split(/\s+/)[0] || "this family";
+        setToast(`Reach-out sent! ${firstName} will see your profile and message.`);
+        if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = setTimeout(() => setToast(null), 5000);
       } catch (err: unknown) {
         const msg =
           err && typeof err === "object" && "message" in err
@@ -1426,6 +1296,21 @@ export default function ProviderMatchesPage() {
     [families, contactedIds],
   );
 
+  // New since last visit count
+  const newSinceLastVisit = useMemo(() => {
+    if (!lastVisitTs) return 0;
+    return families.filter((f) => {
+      const ts = f.created_at ? new Date(f.created_at).getTime() : 0;
+      return ts > lastVisitTs;
+    }).length;
+  }, [families, lastVisitTs]);
+
+  // Check if a family card is "new" since last visit
+  const isNewCard = useCallback((createdAt: string | undefined) => {
+    if (!lastVisitTs || !createdAt) return false;
+    return new Date(createdAt).getTime() > lastVisitTs;
+  }, [lastVisitTs]);
+
   if (!providerProfile || loading) {
     return <MatchesSkeleton />;
   }
@@ -1465,29 +1350,55 @@ export default function ProviderMatchesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
       {/* ── Page header ── */}
-      <div className="mb-6 lg:mb-8">
+      <div className="mb-2 lg:mb-3">
         <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
           Matches
         </h1>
-        <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed max-w-2xl">
-          {isCaregiver
-            ? "Discover families and organizations looking for care in your area. Reach out to start a conversation and get hired."
-            : "Discover families and caregivers looking for your services. Reach out to connect."}
-        </p>
       </div>
 
-      {/* ── Section A: Interested in you ── */}
+      {/* ── Progress strip — adaptive to user state ── */}
+      <div className="mb-5 lg:mb-6 flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+        {contactedIds.size === 0 && respondedIds.size === 0 ? (
+          // First-time user: orient them
+          <p>
+            <span className="font-semibold text-gray-700">{families.length} {families.length === 1 ? "family" : "families"}</span> near you looking for care — reach out to get started
+          </p>
+        ) : (
+          // Returning user: show pipeline
+          <>
+            <span className="inline-flex items-center gap-1.5">
+              <SendIcon className="w-3.5 h-3.5 text-gray-400" />
+              <span className="font-semibold text-gray-700">{contactedIds.size}</span> sent
+            </span>
+            <span className="text-gray-300">&middot;</span>
+            <span className="inline-flex items-center gap-1.5">
+              <CheckCircleIcon className="w-3.5 h-3.5 text-primary-500" />
+              <span className="font-semibold text-gray-700">{respondedIds.size}</span> {respondedIds.size === 1 ? "response" : "responses"}
+            </span>
+            {newSinceLastVisit > 0 && (
+              <>
+                <span className="text-gray-300">&middot;</span>
+                <span className="inline-flex items-center gap-1.5 text-primary-600 font-medium">
+                  {newSinceLastVisit} new
+                </span>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── Section A: Inbound interest — only visible when populated ── */}
       {!inboundLoading && inboundInterest.length > 0 && (
-        <div className="mb-8">
-          <div className="flex items-center gap-2.5 mb-4">
-            <h2 className="text-base font-display font-semibold text-gray-900">
+        <div className="mb-6">
+          <div className="flex items-center gap-2.5 mb-3">
+            <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
               Interested in you
             </h2>
-            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary-100 text-primary-700 text-xs font-bold">
+            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary-100 text-primary-700 text-xs font-bold">
               {inboundInterest.length}
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {inboundInterest.map((item) => {
               const p = item.profile;
               if (!p) return null;
@@ -1530,110 +1441,90 @@ export default function ProviderMatchesPage() {
         </div>
       )}
 
-      {!inboundLoading && inboundInterest.length === 0 && (
-        <div className="mb-6 flex items-center gap-2.5 px-4 py-3 bg-vanilla-50 border border-warm-100/60 rounded-xl">
-          <InfoIcon className="w-4 h-4 text-gray-400 shrink-0" />
-          <p className="text-sm text-gray-500">
-            When families or organizations reach out to you directly, they&apos;ll appear here. Browse open opportunities below to get started.
-          </p>
-        </div>
-      )}
-
-      {/* ── Section B: Open opportunities ── */}
-      <div className="flex items-center gap-2.5 mb-4">
-        <h2 className="text-base font-display font-semibold text-gray-900">
-          Open opportunities
-        </h2>
-        {activeView === "families" && families.length > 0 && (
-          <span className="text-sm text-gray-400">
-            {families.length} {families.length === 1 ? "family" : "families"} looking for care
-          </span>
-        )}
-      </div>
-
-      {/* ── Discovery view tabs ── */}
+      {/* ── Tabs with counts + Sort on the same row ── */}
       {(isCaregiver || isOrg) && (
-        <div className="flex gap-1 border-b border-gray-200 mb-5 lg:mb-6">
-          {(isCaregiver
-            ? [
-                { id: "families" as MatchesView, label: "Families" },
-                { id: "organizations" as MatchesView, label: "Organizations" },
-              ]
-            : [
-                { id: "families" as MatchesView, label: "Families" },
-                { id: "caregivers" as MatchesView, label: "Caregivers" },
-              ]
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveView(tab.id)}
-              className={[
-                "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors",
-                activeView === tab.id
-                  ? "border-primary-600 text-primary-700"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex items-center justify-between border-b border-gray-200 mb-5 lg:mb-6">
+          <div className="flex gap-1">
+            {(isCaregiver
+              ? [
+                  { id: "families" as MatchesView, label: "Families", count: families.length },
+                  { id: "organizations" as MatchesView, label: "Organizations" },
+                ]
+              : [
+                  { id: "families" as MatchesView, label: "Families", count: families.length },
+                  { id: "caregivers" as MatchesView, label: "Caregivers" },
+                ]
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveView(tab.id)}
+                className={[
+                  "px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors",
+                  activeView === tab.id
+                    ? "border-primary-600 text-primary-700"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                ].join(" ")}
+              >
+                {tab.label}
+                {"count" in tab && tab.count != null && (
+                  <span className="ml-1.5 text-xs text-gray-400">({tab.count})</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort + filter dropdowns — visible in Families tab */}
+          {activeView === "families" && (
+            <div className="hidden lg:flex items-center gap-2 shrink-0 pb-2">
+              {/* Timeline filter */}
+              <div className="relative">
+                <select
+                  value={activeFilter}
+                  onChange={(e) => setActiveFilter(e.target.value as TimelineFilter)}
+                  aria-label="Filter by timeline"
+                  className="text-sm font-medium text-gray-600 border border-gray-200 rounded-xl pl-3.5 pr-8 py-2 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
+                >
+                  {FILTER_TABS.map((tab) => (
+                    <option key={tab.id} value={tab.id}>
+                      {tab.label}
+                    </option>
+                  ))}
+                </select>
+                <svg className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+              {/* Sort */}
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  aria-label="Sort matches"
+                  className="text-sm font-medium text-gray-600 border border-gray-200 rounded-xl pl-3.5 pr-8 py-2 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <svg className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                </svg>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* ── Organizations tab (caregiver find jobs) ── */}
       {isCaregiver && activeView === "organizations" ? (
-        <OrganizationsTab />
+        <OrganizationsTab providerCareTypes={providerCareTypes} />
       ) : isOrg && activeView === "caregivers" ? (
         <CaregiversTab />
       ) : (
       <>
-
-      {/* ── Filter tabs + Sort ── */}
-      <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
-        {/* Filter tabs - horizontal scroll on mobile */}
-        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 flex-1 scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
-            {FILTER_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveFilter(tab.id)}
-                className={[
-                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center",
-                  activeFilter === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Desktop sort dropdown */}
-        <div className="hidden lg:flex items-center shrink-0">
-          <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              aria-label="Sort matches"
-              className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-xl pl-3.5 pr-8 py-2.5 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <svg className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </div>
-        </div>
-      </div>
 
       {/* ── Content grid ── */}
       {families.length === 0 ? (
@@ -1679,6 +1570,7 @@ export default function ProviderMatchesPage() {
                     onSend={() => handleSend(family.id)}
                     sendError={sendError}
                     reachOutCount={reachOutCounts.get(family.id) || 0}
+                    isNew={isNewCard(family.created_at)}
                   />
                 </div>
               ))
@@ -1875,6 +1767,25 @@ export default function ProviderMatchesPage() {
         </>
       )}
     </>
+    )}
+
+    {/* ── Toast notification ── */}
+    {toast && (
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom duration-300">
+        <div className="flex items-center gap-3 px-5 py-3.5 bg-gray-900 text-white rounded-xl shadow-2xl max-w-md">
+          <CheckCircleIcon className="w-5 h-5 text-primary-400 shrink-0" />
+          <p className="text-sm font-medium">{toast}</p>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            className="ml-2 text-gray-400 hover:text-white transition-colors shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
     )}
     </div>
     </div>

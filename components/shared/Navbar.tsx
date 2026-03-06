@@ -60,19 +60,21 @@ export default function Navbar() {
     window.addEventListener("olera:leads-count", handler);
     return () => window.removeEventListener("olera:leads-count", handler);
   }, []);
-  const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(false);
+  // Check localStorage synchronously on client (SSR-safe with typeof check)
+  const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!localStorage.getItem("olera_onboarding_provider_type");
+    }
+    return false;
+  });
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Track client-side mount for createPortal (SSR-safe)
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    setHasAttemptedOnboarding(
-      !!localStorage.getItem("olera_onboarding_provider_type")
-    );
+    // Re-check in case SSR hydration missed it
+    setHasAttemptedOnboarding(!!localStorage.getItem("olera_onboarding_provider_type"));
   }, []);
 
   // Lightweight admin check
@@ -1194,8 +1196,8 @@ export default function Navbar() {
                         </div>
                       )}
 
-                      {/* Switch to Provider */}
-                      {(hasProviderProfile || hasAttemptedOnboarding) && (
+                      {/* Switch to Provider - show while loading or when user has provider access */}
+                      {(hasProviderProfile || hasAttemptedOnboarding || authLoading) && (
                         <button
                           type="button"
                           onClick={() => {
@@ -1214,7 +1216,10 @@ export default function Navbar() {
                               router.push("/provider/onboarding");
                             }
                           }}
-                          className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full"
+                          disabled={authLoading && !hasProviderProfile && !hasAttemptedOnboarding}
+                          className={`flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full ${
+                            (authLoading && !hasProviderProfile && !hasAttemptedOnboarding) ? "opacity-50" : ""
+                          }`}
                         >
                           <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />

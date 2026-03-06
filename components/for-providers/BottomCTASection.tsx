@@ -7,9 +7,14 @@ import { useAuth } from "@/components/auth/AuthProvider";
 const PREFILL_KEY = "olera_provider_search_prefill";
 
 export default function BottomCTASection() {
-  const { user, openAuth } = useAuth();
+  const { user, profiles, openAuth } = useAuth();
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
+
+  // Check if user already has a provider profile
+  const hasProviderProfile = (profiles || []).some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
 
   const handleGetStarted = () => {
     const val = searchInput.trim();
@@ -29,7 +34,11 @@ export default function BottomCTASection() {
     }
 
     if (user) {
-      router.push("/provider/onboarding");
+      // If already has provider profile, add ?adding=true to allow claiming another
+      const url = hasProviderProfile
+        ? "/provider/onboarding?adding=true"
+        : "/provider/onboarding";
+      router.push(url);
     } else {
       openAuth({ intent: "provider" });
     }

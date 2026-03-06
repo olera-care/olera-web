@@ -127,11 +127,11 @@ function InfoTooltip({
 
       {isOpen && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full mt-2 z-[200] w-[calc(100vw-3rem)] max-w-72 p-3.5 bg-gray-900 text-white text-sm rounded-xl shadow-xl animate-fade-in"
+          className="absolute right-0 sm:left-0 sm:right-auto top-full mt-2 z-[200] w-[calc(100vw-3rem)] max-w-72 p-3.5 bg-gray-900 text-white text-sm rounded-xl shadow-xl animate-fade-in"
           role="tooltip"
         >
           {/* Arrow */}
-          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 sm:left-4 sm:translate-x-0 w-3 h-3 bg-gray-900 rotate-45" />
+          <div className="absolute -top-1.5 right-3 sm:right-auto sm:left-4 w-3 h-3 bg-gray-900 rotate-45" />
 
           <p className="relative text-[13px] leading-relaxed text-gray-100">
             {content}

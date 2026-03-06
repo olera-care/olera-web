@@ -1036,6 +1036,21 @@ export default function Navbar() {
                         )}
                       </div>
 
+                      {/* Provider profile switcher */}
+                      {isFullyLoaded && (
+                        <>
+                          <div className="my-3 border-t border-gray-100" />
+                          <div className="px-3">
+                            <ProfileSwitcher
+                              onSwitch={() => setIsMobileMenuOpen(false)}
+                              variant="dropdown"
+                              allowedTypes={["organization", "caregiver"]}
+                              navigateTo="/provider"
+                            />
+                          </div>
+                        </>
+                      )}
+
                       {/* Switch to Family */}
                       {hasFamilyProfile && (
                         <>

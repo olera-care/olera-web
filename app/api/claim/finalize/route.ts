@@ -143,6 +143,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     let profileSlug: string;
+    let profileId: string;
 
     if (existingProfile) {
       if (existingProfile.claim_state === "claimed" && existingProfile.account_id) {
@@ -162,6 +163,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Failed to claim listing." }, { status: 500 });
       }
       profileSlug = existingProfile.slug;
+      profileId = existingProfile.id;
     } else {
       // Create new business_profile from olera-providers data
       const { data: provider } = await db
@@ -177,37 +179,42 @@ export async function POST(request: Request) {
       profileSlug =
         provider.slug || generateProviderSlug(provider.provider_name, provider.state);
 
-      const { error: insertErr } = await db.from("business_profiles").insert({
-        account_id: accountId,
-        source_provider_id: providerId,
-        slug: profileSlug,
-        type: "organization",
-        display_name: provider.provider_name,
-        description: provider.provider_description,
-        image_url: provider.hero_image_url || provider.provider_logo,
-        phone: provider.phone,
-        email: provider.email,
-        website: provider.website,
-        address: provider.address,
-        city: provider.city,
-        state: provider.state,
-        zip: provider.zipcode?.toString() || null,
-        claim_state: "claimed",
-        verification_state: "verified",
-        source: "seeded",
-        is_active: true,
-      });
+      const { data: newProfile, error: insertErr } = await db
+        .from("business_profiles")
+        .insert({
+          account_id: accountId,
+          source_provider_id: providerId,
+          slug: profileSlug,
+          type: "organization",
+          display_name: provider.provider_name,
+          description: provider.provider_description,
+          image_url: provider.hero_image_url || provider.provider_logo,
+          phone: provider.phone,
+          email: provider.email,
+          website: provider.website,
+          address: provider.address,
+          city: provider.city,
+          state: provider.state,
+          zip: provider.zipcode?.toString() || null,
+          claim_state: "claimed",
+          verification_state: "verified",
+          source: "seeded",
+          is_active: true,
+        })
+        .select("id")
+        .single();
 
-      if (insertErr) {
+      if (insertErr || !newProfile) {
         console.error("Failed to create profile:", insertErr);
         return NextResponse.json({ error: "Failed to create listing." }, { status: 500 });
       }
+      profileId = newProfile.id;
     }
 
-    // 4. Mark account onboarding as completed
+    // 4. Mark account onboarding as completed and set active profile
     await db
       .from("accounts")
-      .update({ onboarding_completed: true })
+      .update({ onboarding_completed: true, active_profile_id: profileId })
       .eq("id", accountId);
 
     // 5. Clean up verification codes
@@ -282,7 +289,7 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    return NextResponse.json({ success: true, profileSlug });
+    return NextResponse.json({ success: true, profileSlug, profileId });
   } catch (err) {
     console.error("Finalize claim error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

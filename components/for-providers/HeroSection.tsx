@@ -34,14 +34,22 @@ export default function HeroSection() {
       }
     }
 
+    // Determine the target URL
+    const targetUrl = hasProviderProfile
+      ? "/provider/onboarding?adding=true"
+      : "/provider/onboarding";
+
     if (user) {
-      // If already has provider profile, add ?adding=true to allow claiming another
-      const url = hasProviderProfile
-        ? "/provider/onboarding?adding=true"
-        : "/provider/onboarding";
-      router.push(url);
+      router.push(targetUrl);
     } else {
-      openAuth({ intent: "provider" });
+      // Include returnUrl so user is redirected after auth
+      openAuth({
+        intent: "provider",
+        deferred: {
+          action: "redirect",
+          returnUrl: targetUrl,
+        },
+      });
     }
   };
 

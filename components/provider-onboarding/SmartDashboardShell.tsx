@@ -52,35 +52,50 @@ function OnboardingHeader({ providerName }: { providerName: string }) {
             <span className="text-lg font-display font-bold text-gray-900">Olera</span>
           </Link>
 
-          {/* Center: Claiming context */}
-          <div className="hidden sm:flex items-center gap-2 text-sm">
-            <span className="text-gray-400">Claiming:</span>
-            <span className="font-semibold text-gray-700 truncate max-w-[200px] md:max-w-[300px]">
-              {providerName}
-            </span>
-          </div>
-
-          {/* Right: Back to dashboard (if logged in with existing provider) */}
-          {user && hasExistingProvider && (
-            <Link
-              href="/provider"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+          {/* Center: Nav items for wizard spotlight (non-functional preview) */}
+          <nav className="hidden md:flex items-center gap-6">
+            <span className="text-sm font-medium text-gray-400">Dashboard</span>
+            <span
+              data-wizard-target="inbox"
+              className="text-sm font-medium text-gray-400 px-1"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="hidden sm:inline">Back to my dashboard</span>
-              <span className="sm:hidden">Dashboard</span>
-            </Link>
-          )}
+              Inbox
+            </span>
+            <span
+              data-wizard-target="reviews"
+              className="text-sm font-medium text-gray-400 px-1"
+            >
+              Reviews
+            </span>
+          </nav>
 
-          {/* If not logged in, show nothing on right (or could show login later) */}
-          {!user && <div />}
+          {/* Right: Back to dashboard or claiming context */}
+          <div className="flex items-center gap-4">
+            {/* Claiming context (visible on larger screens) */}
+            <div className="hidden lg:flex items-center gap-2 text-sm">
+              <span className="text-gray-400">Claiming:</span>
+              <span className="font-medium text-gray-600 truncate max-w-[180px]">
+                {providerName}
+              </span>
+            </div>
+
+            {user && hasExistingProvider && (
+              <Link
+                href="/provider"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                <span className="hidden sm:inline">My dashboard</span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Mobile: Show provider name below */}
-      <div className="sm:hidden border-t border-gray-50 px-4 py-2 bg-gray-50/50">
+      <div className="md:hidden border-t border-gray-50 px-4 py-2 bg-gray-50/50">
         <p className="text-xs text-gray-400">
           Claiming: <span className="font-medium text-gray-600">{providerName}</span>
         </p>

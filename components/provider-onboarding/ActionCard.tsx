@@ -225,7 +225,7 @@ function RoleDropdown({
       {/* Dropdown menu */}
       {isOpen && (
         <div
-          className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-fade-in max-h-[280px] overflow-y-auto"
+          className="absolute left-0 right-0 top-full mt-1.5 z-[100] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-fade-in max-h-[280px] overflow-y-auto"
           role="listbox"
         >
           {ROLE_OPTIONS.map((option, index) => (

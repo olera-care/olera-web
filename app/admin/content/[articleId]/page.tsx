@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback, lazy, Suspense } from "react
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import { slugify } from "@/lib/slugify";
 import { ALL_RESOURCE_CATEGORIES, RESOURCE_CATEGORY_CONFIG } from "@/types/resource";
 import { ALL_CARE_TYPES, CARE_TYPE_CONFIG } from "@/types/forum";
@@ -216,20 +217,13 @@ export default function AdminContentEditorPage() {
               value={formData.slug as string}
               onChange={(v) => updateField("slug", v)}
             />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Category</label>
-              <select
-                value={(formData.category as string) || "guide"}
-                onChange={(e) => updateField("category", e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                {ALL_RESOURCE_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {RESOURCE_CATEGORY_CONFIG[cat].label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Category"
+              options={ALL_RESOURCE_CATEGORIES.map(cat => ({ value: cat, label: RESOURCE_CATEGORY_CONFIG[cat].label }))}
+              value={(formData.category as string) || "guide"}
+              onChange={(val) => updateField("category", val)}
+              size="sm"
+            />
             <FieldInput
               label="Reading Time"
               value={formData.reading_time as string}
@@ -288,29 +282,27 @@ export default function AdminContentEditorPage() {
         {/* Settings */}
         <Section title="Settings">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Section</label>
-              <select
-                value={(formData.section as string) || "caregiver-support"}
-                onChange={(e) => updateField("section", e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                <option value="caregiver-support">Caregiver Support</option>
-                <option value="research-and-press">Research &amp; Press</option>
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Status</label>
-              <select
-                value={(formData.status as string) || "draft"}
-                onChange={(e) => updateField("status", e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="archived">Archived</option>
-              </select>
-            </div>
+            <Select
+              label="Section"
+              options={[
+                { value: "caregiver-support", label: "Caregiver Support" },
+                { value: "research-and-press", label: "Research & Press" },
+              ]}
+              value={(formData.section as string) || "caregiver-support"}
+              onChange={(val) => updateField("section", val)}
+              size="sm"
+            />
+            <Select
+              label="Status"
+              options={[
+                { value: "draft", label: "Draft" },
+                { value: "published", label: "Published" },
+                { value: "archived", label: "Archived" },
+              ]}
+              value={(formData.status as string) || "draft"}
+              onChange={(val) => updateField("status", val)}
+              size="sm"
+            />
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">&nbsp;</label>
               <label className="flex items-center gap-2 cursor-pointer py-2.5">

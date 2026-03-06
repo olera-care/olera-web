@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { setDeferredAction } from "@/lib/deferred-action";
 import type { Review } from "@/lib/types";
@@ -233,27 +234,14 @@ export default function ReviewModal({
           </div>
 
           {/* Relationship */}
-          <div>
-            <label htmlFor="review-relationship" className="block text-sm font-medium text-gray-700 mb-2">
-              How do you know this provider? <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                id="review-relationship"
-                value={relationship}
-                onChange={(e) => setRelationship(e.target.value)}
-                className="w-full appearance-none pl-4 pr-10 py-3 rounded-xl border border-gray-200 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-              >
-                <option value="">Select your relationship</option>
-                {RELATIONSHIP_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-              <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
+          <Select
+            label="How do you know this provider?"
+            required
+            options={RELATIONSHIP_OPTIONS}
+            value={relationship}
+            onChange={setRelationship}
+            placeholder="Select your relationship"
+          />
         </div>
       )}
 

@@ -589,7 +589,7 @@ export default async function ProviderPage({
                   <ClaimBadge
                     claimState={profile.claim_state}
                     providerName={profile.display_name}
-                    claimUrl={`/for-providers/claim/${profile.slug}`}
+                    claimUrl={`/provider/${profile.slug}/onboard`}
                   />
                 </div>
               )}
@@ -659,7 +659,7 @@ export default async function ProviderPage({
                 <MobileClaimLink
                   claimState={profile.claim_state}
                   providerName={profile.display_name}
-                  claimUrl={`/for-providers/claim/${profile.slug}`}
+                  claimUrl={`/provider/${profile.slug}/onboard`}
                 />
               </div>
 

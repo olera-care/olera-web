@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { ClaimState } from "@/lib/types";
 
@@ -153,7 +154,7 @@ export default function ManageListingModal({
   function handleClaimClick() {
     // Navigate directly — page change will unmount modal, no need to close first
     const claimId = sourceProviderId || providerId;
-    router.push(`/for-providers/claim/${providerSlug}?provider_id=${claimId}`);
+    router.push(`/provider/${providerSlug}/onboard?provider_id=${claimId}`);
   }
 
   function handleDisputeClick() {
@@ -529,54 +530,24 @@ export default function ManageListingModal({
                 {/* Two-column layout for action + reason */}
                 <div className="grid grid-cols-2 gap-3">
                   {/* Hide or delete */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="modal-removal-action" className="block text-[13px] font-semibold text-gray-700">
-                      Action <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="modal-removal-action"
-                        value={action}
-                        onChange={(e) => setAction(e.target.value)}
-                        className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white appearance-none transition-all min-h-[48px] cursor-pointer ${
-                          !action ? "text-gray-400" : "text-gray-900"
-                        }`}
-                      >
-                        <option value="" disabled>Select action</option>
-                        {ACTION_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
+                  <Select
+                    label="Action"
+                    required
+                    options={ACTION_OPTIONS}
+                    value={action}
+                    onChange={setAction}
+                    placeholder="Select action"
+                  />
 
                   {/* Reason */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="modal-removal-reason" className="block text-[13px] font-semibold text-gray-700">
-                      Reason <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="modal-removal-reason"
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white appearance-none transition-all min-h-[48px] cursor-pointer ${
-                          !reason ? "text-gray-400" : "text-gray-900"
-                        }`}
-                      >
-                        <option value="" disabled>Select reason</option>
-                        {REASON_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
-                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
+                  <Select
+                    label="Reason"
+                    required
+                    options={REASON_OPTIONS}
+                    value={reason}
+                    onChange={setReason}
+                    placeholder="Select reason"
+                  />
                 </div>
 
                 {/* Additional details */}
@@ -678,33 +649,22 @@ export default function ManageListingModal({
                 </div>
 
                 {/* Role */}
-                <div className="space-y-1.5">
-                  <label htmlFor="modal-dispute-role" className="block text-[13px] font-semibold text-gray-700">
-                    Your role <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="modal-dispute-role"
-                      value={disputeRole}
-                      onChange={(e) => setDisputeRole(e.target.value)}
-                      className={`w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50/50 text-[15px] focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-300 focus:bg-white appearance-none transition-all min-h-[48px] cursor-pointer ${
-                        !disputeRole ? "text-gray-400" : "text-gray-900"
-                      }`}
-                    >
-                      <option value="" disabled>Select your role…</option>
-                      <option value="Owner">Owner</option>
-                      <option value="Administrator">Administrator</option>
-                      <option value="Executive Director">Executive Director</option>
-                      <option value="Office Manager">Office Manager</option>
-                      <option value="Marketing / Communications">Marketing / Communications</option>
-                      <option value="Staff Member">Staff Member</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <Select
+                  label="Your role"
+                  required
+                  options={[
+                    { value: "Owner", label: "Owner" },
+                    { value: "Administrator", label: "Administrator" },
+                    { value: "Executive Director", label: "Executive Director" },
+                    { value: "Office Manager", label: "Office Manager" },
+                    { value: "Marketing / Communications", label: "Marketing / Communications" },
+                    { value: "Staff Member", label: "Staff Member" },
+                    { value: "Other", label: "Other" },
+                  ]}
+                  value={disputeRole}
+                  onChange={setDisputeRole}
+                  placeholder="Select your role..."
+                />
 
                 {/* Reason */}
                 <div className="space-y-1.5">

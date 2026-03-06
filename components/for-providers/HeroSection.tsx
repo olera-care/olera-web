@@ -8,9 +8,14 @@ import { useAuth } from "@/components/auth/AuthProvider";
 const PREFILL_KEY = "olera_provider_search_prefill";
 
 export default function HeroSection() {
-  const { user, openAuth } = useAuth();
+  const { user, profiles, openAuth } = useAuth();
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
+
+  // Check if user already has a provider profile
+  const hasProviderProfile = (profiles || []).some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
 
   const handleGetStarted = () => {
     const val = searchInput.trim();
@@ -29,10 +34,22 @@ export default function HeroSection() {
       }
     }
 
+    // Determine the target URL
+    const targetUrl = hasProviderProfile
+      ? "/provider/onboarding?adding=true"
+      : "/provider/onboarding";
+
     if (user) {
-      router.push("/provider/onboarding");
+      router.push(targetUrl);
     } else {
-      openAuth({ intent: "provider" });
+      // Include returnUrl so user is redirected after auth
+      openAuth({
+        intent: "provider",
+        deferred: {
+          action: "claim",
+          returnUrl: targetUrl,
+        },
+      });
     }
   };
 

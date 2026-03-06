@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
 import type { DirectoryProvider } from "@/lib/types";
 
@@ -203,18 +204,13 @@ export default function AdminDirectoryDetailPage() {
         <Section title="Basic Info">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FieldInput label="Provider Name" value={formData.provider_name as string} onChange={(v) => updateField("provider_name", v)} />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Category</label>
-              <select
-                value={(formData.provider_category as string) || ""}
-                onChange={(e) => updateField("provider_category", e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                {PROVIDER_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Category"
+              options={PROVIDER_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
+              value={(formData.provider_category as string) || ""}
+              onChange={(val) => updateField("provider_category", val)}
+              size="sm"
+            />
             <FieldInput label="Main Category" value={formData.main_category as string} onChange={(v) => updateField("main_category", v)} />
           </div>
           <div className="mt-4">
@@ -265,18 +261,17 @@ export default function AdminDirectoryDetailPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <FieldInput label="Lower Price" value={formData.lower_price as string} onChange={(v) => updateField("lower_price", v === "" ? null : Number(v))} type="number" />
             <FieldInput label="Upper Price" value={formData.upper_price as string} onChange={(v) => updateField("upper_price", v === "" ? null : Number(v))} type="number" />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Contact for Price</label>
-              <select
-                value={(formData.contact_for_price as string) ?? ""}
-                onChange={(e) => updateField("contact_for_price", e.target.value || null)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-              >
-                <option value="">—</option>
-                <option value="True">True</option>
-                <option value="False">False</option>
-              </select>
-            </div>
+            <Select
+              label="Contact for Price"
+              options={[
+                { value: "", label: "—" },
+                { value: "True", label: "True" },
+                { value: "False", label: "False" },
+              ]}
+              value={(formData.contact_for_price as string) ?? ""}
+              onChange={(val) => updateField("contact_for_price", val || null)}
+              size="sm"
+            />
           </div>
         </Section>
 

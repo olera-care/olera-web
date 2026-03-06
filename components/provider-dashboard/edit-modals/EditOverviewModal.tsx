@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ProfileCategory } from "@/lib/types";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
 import { saveProfile } from "./save-profile";
 import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
@@ -118,23 +119,13 @@ export default function EditOverviewModal({
           placeholder="Your organization name"
         />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Category
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
-          >
-            <option value="">Select a category</option>
-            {CATEGORY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Select
+          label="Category"
+          options={CATEGORY_OPTIONS}
+          value={category}
+          onChange={setCategory}
+          placeholder="Select a category"
+        />
 
         <Input
           label="Street Address"

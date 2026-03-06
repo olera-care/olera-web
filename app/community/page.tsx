@@ -9,6 +9,7 @@ import PostContent from "@/components/community/PostContent";
 import CommentThread from "@/components/community/CommentThread";
 import SplitViewLayout from "@/components/portal/SplitViewLayout";
 import Pagination from "@/components/ui/Pagination";
+import Select from "@/components/ui/Select";
 import { getPostsByCategory, getPostBySlug } from "@/data/mock/forumPosts";
 import { getCommentsByPostId } from "@/data/mock/forumComments";
 import { ForumPost, CareTypeId, CARE_TYPE_CONFIG, ALL_CARE_TYPES } from "@/types/forum";
@@ -370,18 +371,23 @@ function CommunityPageContent() {
                 </div>
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <div>
-                  <select value={composerCategory} onChange={(e) => handleCategorySelect(e.target.value)}
-                    className={`text-sm bg-gray-50 border rounded-lg pl-3 pr-10 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M3%205l3%203%203-3%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_0.75rem_center] bg-no-repeat ${composerErrors.category ? "border-red-400" : "border-gray-200"} ${composerCategory ? 'text-gray-900' : 'text-gray-500'}`}>
-                    <option value="">Select category</option>
-                    <option value="home-health">Home Health</option>
-                    <option value="home-care">Home Care</option>
-                    <option value="assisted-living">Assisted Living</option>
-                    <option value="memory-care">Memory Care</option>
-                    <option value="nursing-homes">Nursing Homes</option>
-                    <option value="independent-living">Independent Living</option>
-                  </select>
-                  {composerErrors.category && <p className="mt-1 text-sm text-red-500">{composerErrors.category}</p>}
+                <div className="w-44">
+                  <Select
+                    options={[
+                      { value: "home-health", label: "Home Health" },
+                      { value: "home-care", label: "Home Care" },
+                      { value: "assisted-living", label: "Assisted Living" },
+                      { value: "memory-care", label: "Memory Care" },
+                      { value: "nursing-homes", label: "Nursing Homes" },
+                      { value: "independent-living", label: "Independent Living" },
+                    ]}
+                    value={composerCategory}
+                    onChange={handleCategorySelect}
+                    placeholder="Select category"
+                    size="sm"
+                    error={!!composerErrors.category}
+                    errorMessage={composerErrors.category}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={resetComposer} className="px-4 py-2 min-h-[44px] text-gray-600 text-sm font-medium hover:text-gray-800 transition-colors">Cancel</button>

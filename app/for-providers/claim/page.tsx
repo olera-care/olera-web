@@ -154,7 +154,7 @@ export default function ClaimSearchPage() {
                   key={profile.id}
                   href={
                     profile.claim_state === "unclaimed"
-                      ? `/for-providers/claim/${profile.slug}`
+                      ? `/provider/${profile.slug}/onboard`
                       : `/provider/${profile.slug}`
                   }
                   className="block p-5 rounded-xl border-2 border-gray-200 bg-white hover:border-primary-300 hover:shadow-sm transition-all"

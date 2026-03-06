@@ -7,6 +7,7 @@ import { useProviderProfile } from "@/hooks/useProviderProfile";
 import { saveProfile } from "@/components/provider-dashboard/edit-modals/save-profile";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import Modal from "@/components/ui/Modal";
+import Select from "@/components/ui/Select";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -594,27 +595,13 @@ export default function ProviderVerificationPage() {
                   <div className="px-6 pb-5 pt-0">
                     {section.key === "id" && (
                       <div className="space-y-4">
-                        <div>
-                          <label
-                            htmlFor="id-type"
-                            className="block text-sm font-medium text-gray-700 mb-1.5"
-                          >
-                            ID Type
-                          </label>
-                          <select
-                            id="id-type"
-                            value={idType}
-                            onChange={(e) => setIdType(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px] appearance-none"
-                          >
-                            <option value="">Select ID type</option>
-                            {ID_TYPES.map((type) => (
-                              <option key={type} value={type}>
-                                {type}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                        <Select
+                          label="ID Type"
+                          options={ID_TYPES}
+                          value={idType}
+                          onChange={setIdType}
+                          placeholder="Select ID type"
+                        />
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1.5">
                             ID Image
@@ -643,27 +630,13 @@ export default function ProviderVerificationPage() {
                     )}
 
                     {section.key === "role" && (
-                      <div>
-                        <label
-                          htmlFor="role-select"
-                          className="block text-sm font-medium text-gray-700 mb-1.5"
-                        >
-                          Select your role
-                        </label>
-                        <select
-                          id="role-select"
-                          value={role}
-                          onChange={(e) => setRole(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px] appearance-none"
-                        >
-                          <option value="">Select role</option>
-                          {ROLES.map((r) => (
-                            <option key={r} value={r}>
-                              {r}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <Select
+                        label="Select your role"
+                        options={ROLES}
+                        value={role}
+                        onChange={setRole}
+                        placeholder="Select role"
+                      />
                     )}
 
                     {section.key === "affiliation" && (
@@ -759,27 +732,13 @@ export default function ProviderVerificationPage() {
             <p className="text-sm text-gray-500">
               Select your ID type and upload an image of it.
             </p>
-            <div>
-              <label
-                htmlFor="id-type-mobile"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
-              >
-                ID Type
-              </label>
-              <select
-                id="id-type-mobile"
-                value={idType}
-                onChange={(e) => setIdType(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] appearance-none"
-              >
-                <option value="">Select ID type</option>
-                {ID_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="ID Type"
+              options={ID_TYPES}
+              value={idType}
+              onChange={setIdType}
+              placeholder="Select ID type"
+            />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 ID Image
@@ -857,27 +816,13 @@ export default function ProviderVerificationPage() {
             <p className="text-sm text-gray-500">
               What is your role at this business?
             </p>
-            <div>
-              <label
-                htmlFor="role-select-mobile"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
-              >
-                Select your role
-              </label>
-              <select
-                id="role-select-mobile"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[48px] appearance-none"
-              >
-                <option value="">Select role</option>
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Select your role"
+              options={ROLES}
+              value={role}
+              onChange={setRole}
+              placeholder="Select role"
+            />
           </div>
         </Modal>
 

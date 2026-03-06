@@ -9,6 +9,7 @@ import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfil
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
+import Select from "@/components/ui/Select";
 
 // ── Types ──
 
@@ -1408,23 +1409,13 @@ export default function ProviderMatchesPage() {
         {/* Desktop sort dropdown */}
         <div className="hidden lg:flex items-center shrink-0">
           <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              aria-label="Sort matches"
-              className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-xl pl-3.5 pr-8 py-2.5 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <svg className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </div>
+          <Select
+            options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
+            value={sortBy}
+            onChange={(val) => setSortBy(val as SortOption)}
+            size="sm"
+            className="w-40"
+          />
         </div>
       </div>
 

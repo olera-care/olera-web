@@ -48,6 +48,8 @@ function migrateQnAReadData(providerSlug: string): void {
 export function useUnreadQnACount(providerSlug: string | null): number {
   const [count, setCount] = useState(0);
   const migratedRef = useRef(false);
+  // Track if Q&A page has synced the authoritative count
+  const syncedRef = useRef(false);
 
   // Migrate old data on first run
   useEffect(() => {
@@ -58,6 +60,9 @@ export function useUnreadQnACount(providerSlug: string | null): number {
   }, [providerSlug]);
 
   const recount = useCallback(() => {
+    // If Q&A page has synced, trust that count instead of re-querying
+    if (syncedRef.current) return;
+
     if (!providerSlug) {
       setCount(0);
       return;
@@ -80,6 +85,9 @@ export function useUnreadQnACount(providerSlug: string | null): number {
     }
 
     (async () => {
+      // Double-check sync flag before setting (async operation may complete after sync)
+      if (syncedRef.current) return;
+
       const supabase = createClient();
 
       // Fetch pending questions for this provider
@@ -88,6 +96,8 @@ export function useUnreadQnACount(providerSlug: string | null): number {
         .select("id")
         .eq("provider_id", providerSlug)
         .eq("status", "pending");
+
+      if (syncedRef.current) return; // Check again after await
 
       if (error) {
         console.error("Failed to fetch Q&A count:", error);
@@ -113,7 +123,11 @@ export function useUnreadQnACount(providerSlug: string | null): number {
 
   // Re-count when a question is marked as read, or a new question is submitted
   useEffect(() => {
-    const handler = () => recount();
+    const handler = () => {
+      // Reset sync flag so we re-query (new question submitted)
+      syncedRef.current = false;
+      recount();
+    };
     window.addEventListener("olera:qna-read", handler);
     window.addEventListener("olera:qna-new", handler);
     return () => {
@@ -122,11 +136,12 @@ export function useUnreadQnACount(providerSlug: string | null): number {
     };
   }, [recount]);
 
-  // Sync event from Q&A page to override count (fixes stale badge from localStorage mismatch)
+  // Sync event from Q&A page - this is the authoritative count
   useEffect(() => {
     const syncHandler = (e: Event) => {
       const { count: syncedCount } = (e as CustomEvent).detail;
       if (typeof syncedCount === "number") {
+        syncedRef.current = true; // Mark as synced so recount is skipped
         setCount(syncedCount);
       }
     };

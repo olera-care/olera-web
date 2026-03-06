@@ -4,109 +4,8 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import type { Review } from "@/lib/types";
 
-// ── Mock Data for Development/Testing ──
-
-const MOCK_REVIEWS: Review[] = [
-  {
-    id: "mock-1",
-    provider_id: "demo-provider",
-    account_id: "acc-1",
-    reviewer_name: "Sarah M.",
-    rating: 5,
-    title: "Exceptional care for my mother",
-    comment: "The caregivers here have been absolutely wonderful with my mother. They treat her with such kindness and patience. The communication with the family has been excellent - we always know what's happening and feel involved in her care. I can't recommend them highly enough.",
-    relationship: "Daughter of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: "Thank you so much, Sarah! It's been a pleasure caring for your mother. She brings such joy to our team with her wonderful stories. We're honored to be part of her care journey.",
-    replied_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-    replied_by: "provider-1",
-  },
-  {
-    id: "mock-2",
-    provider_id: "demo-provider",
-    account_id: "acc-2",
-    reviewer_name: "Michael R.",
-    rating: 4,
-    title: "Good experience overall",
-    comment: "We've been using their services for about 6 months now. The caregivers are professional and caring. Only reason for 4 stars instead of 5 is that scheduling can sometimes be a bit inflexible. But overall, we're very satisfied with the care provided.",
-    relationship: "Son of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
-    updated_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: null,
-    replied_at: null,
-    replied_by: null,
-  },
-  {
-    id: "mock-3",
-    provider_id: "demo-provider",
-    account_id: "acc-3",
-    reviewer_name: "Jennifer L.",
-    rating: 5,
-    title: null,
-    comment: "Five stars all the way! The team went above and beyond when my father needed extra support during his recovery. They coordinated beautifully with his doctors and kept us informed every step of the way. Truly grateful for their dedication.",
-    relationship: "Daughter of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(), // 21 days ago
-    updated_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: "Jennifer, thank you for sharing your experience. Your father's progress has been wonderful to see, and we're so glad we could support your family during this time. Wishing him continued health!",
-    replied_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-    replied_by: "provider-1",
-  },
-  {
-    id: "mock-4",
-    provider_id: "demo-provider",
-    account_id: "acc-4",
-    reviewer_name: "David K.",
-    rating: 3,
-    title: "Mixed feelings",
-    comment: "The care itself is good, but we've had some issues with consistency - different caregivers each time makes it hard for my mother to build trust. Would appreciate more consistency in staffing.",
-    relationship: "Son of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
-    updated_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: null,
-    replied_at: null,
-    replied_by: null,
-  },
-  {
-    id: "mock-5",
-    provider_id: "demo-provider",
-    account_id: "acc-5",
-    reviewer_name: "Patricia W.",
-    rating: 5,
-    title: "Couldn't ask for better",
-    comment: "After trying several agencies, we finally found the right fit. The caregivers are compassionate, skilled, and treat my husband with dignity. The administrative team is also very responsive and helpful.",
-    relationship: "Spouse of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
-    updated_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: "Patricia, we're touched by your kind words. It's our privilege to care for your husband. Thank you for trusting us with his care.",
-    replied_at: new Date(Date.now() - 44 * 24 * 60 * 60 * 1000).toISOString(),
-    replied_by: "provider-1",
-  },
-  {
-    id: "mock-6",
-    provider_id: "demo-provider",
-    account_id: "acc-6",
-    reviewer_name: "Robert T.",
-    rating: 4,
-    title: null,
-    comment: "Great care team. My mother really enjoys her time with the caregivers. They're patient and engaging. Would recommend to others looking for quality senior care.",
-    relationship: "Son of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
-    updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: null,
-    replied_at: null,
-    replied_by: null,
-  },
-];
-
-// Calculate mock stats from mock reviews
-function calculateMockStats(reviews: Review[]): ReviewStats {
+// Calculate stats from reviews
+function calculateStats(reviews: Review[]): ReviewStats {
   const totalReviews = reviews.length;
   const repliedCount = reviews.filter(r => r.provider_reply).length;
   const avgRating = totalReviews > 0
@@ -1045,7 +944,6 @@ export default function ProviderReviewsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [usingMockData, setUsingMockData] = useState(false);
 
   // Sheet state
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -1063,14 +961,12 @@ export default function ProviderReviewsPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fetch reviews from API (falls back to mock data if API fails)
+  // Fetch reviews from API
   useEffect(() => {
     if (!providerProfile?.slug) {
-      // No provider profile yet - use mock data for testing
-      console.log("[Reviews] No provider profile, using mock data for development");
-      setReviews(MOCK_REVIEWS);
-      setStats(calculateMockStats(MOCK_REVIEWS));
-      setUsingMockData(true);
+      // No provider profile yet - show empty state
+      setReviews([]);
+      setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
       setIsLoading(false);
       return;
     }
@@ -1084,23 +980,13 @@ export default function ProviderReviewsPage() {
         const data = await res.json();
         const fetchedReviews = data.reviews || [];
 
-        // If no real reviews exist, use mock data for testing
-        if (fetchedReviews.length === 0) {
-          console.log("[Reviews] No real reviews found, using mock data for development");
-          setReviews(MOCK_REVIEWS);
-          setStats(calculateMockStats(MOCK_REVIEWS));
-          setUsingMockData(true);
-        } else {
-          setReviews(fetchedReviews);
-          setStats(data.stats || calculateMockStats(fetchedReviews));
-          setUsingMockData(false);
-        }
+        setReviews(fetchedReviews);
+        setStats(data.stats || calculateStats(fetchedReviews));
       } catch (err) {
-        console.error("Failed to fetch reviews, using mock data:", err);
-        // Fallback to mock data on error (e.g., migration not applied yet)
-        setReviews(MOCK_REVIEWS);
-        setStats(calculateMockStats(MOCK_REVIEWS));
-        setUsingMockData(true);
+        console.error("Failed to fetch reviews:", err);
+        // Show empty state on error
+        setReviews([]);
+        setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
       } finally {
         setIsLoading(false);
       }
@@ -1135,23 +1021,6 @@ export default function ProviderReviewsPage() {
 
   // Handle sheet submit
   const handleSheetSubmit = useCallback(async (review: Review, reply: string) => {
-    // If using mock data, just update local state
-    if (usingMockData) {
-      const now = new Date().toISOString();
-      setReviews((prev) =>
-        prev.map((r) =>
-          r.id === review.id
-            ? { ...r, provider_reply: reply, replied_at: now }
-            : r
-        )
-      );
-      setStats((prev) => ({
-        ...prev,
-        repliedCount: prev.repliedCount + (review.provider_reply ? 0 : 1),
-      }));
-      return;
-    }
-
     try {
       const res = await fetch("/api/provider/reviews", {
         method: "PATCH",
@@ -1184,7 +1053,7 @@ export default function ProviderReviewsPage() {
       console.error("Failed to save reply:", err);
       alert("Failed to save reply. Please try again.");
     }
-  }, [usingMockData]);
+  }, []);
 
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
@@ -1255,15 +1124,6 @@ export default function ProviderReviewsPage() {
         <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
           {/* Left column - review cards */}
           <div>
-            {/* Mock data indicator for development */}
-            {usingMockData && (
-              <div className="mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-center gap-2">
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                </svg>
-                <span>Showing sample data for preview. Real reviews will appear once the database is configured.</span>
-              </div>
-            )}
             {filteredReviews.length > 0 ? (
               <div className="space-y-4">
                 {filteredReviews.map((review, idx) => (

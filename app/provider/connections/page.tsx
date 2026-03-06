@@ -4,9 +4,47 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Select from "@/components/ui/Select";
-import type { LeadDetail } from "@/lib/mock/provider-leads";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { Connection, Profile } from "@/lib/types";
 
-const MOCK_LEADS: LeadDetail[] = [];
+// ── Lead types (previously from mock file) ──
+
+interface ActivityEvent {
+  label: string;
+  date: string;
+}
+
+interface LeadDetail {
+  id: string;
+  name: string;
+  initials: string;
+  subtitle: string;
+  location: string;
+  urgency: Urgency;
+  status: LeadStatus;
+  date: string;
+  isNew: boolean;
+  email?: string;
+  phone?: string;
+  contactPreference?: ContactMethod;
+  careRecipient?: string;
+  careRecipientName?: string;
+  careType?: string[];
+  careNeeds?: string[];
+  livingSituation?: string;
+  schedulePreference?: string;
+  careLocation?: string;
+  languagePreference?: string;
+  insuranceType?: string;
+  benefits?: string[];
+  additionalNotes?: string;
+  activity?: ActivityEvent[];
+  archivedDate?: string;
+  archiveReason?: string;
+  messagedAt?: string;
+  connectionId?: string; // Link to actual connection
+}
 
 // ── Types ──
 
@@ -859,14 +897,212 @@ function LeadDetailDrawer({
   );
 }
 
+// ── Helpers for mapping connections to leads ──
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return `${Math.floor(diffDays / 30)}mo ago`;
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+/** Migrate old unscoped leads key to new profile-scoped key (one-time) */
+function migrateLeadsViewedData(providerProfileId: string): void {
+  const OLD_KEY = "olera_leads_viewed";
+  const newKey = `olera_leads_viewed_${providerProfileId}`;
+  const migrationFlag = `olera_leads_migrated_${providerProfileId}`;
+
+  try {
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      const existingNew = localStorage.getItem(newKey);
+      if (!existingNew) {
+        localStorage.setItem(newKey, oldData);
+      } else {
+        const oldIds: string[] = JSON.parse(oldData);
+        const newIds: string[] = JSON.parse(existingNew);
+        const merged = [...new Set([...oldIds, ...newIds])];
+        localStorage.setItem(newKey, JSON.stringify(merged));
+      }
+    }
+    localStorage.setItem(migrationFlag, "1");
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+interface ConnectionWithProfile extends Connection {
+  fromProfile?: Profile | null;
+}
+
+function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: string): LeadDetail {
+  const meta = conn.metadata as Record<string, unknown> | undefined;
+  const thread = (meta?.thread as Array<{ from_profile_id: string; text: string; created_at: string }>) || [];
+  const isArchived = meta?.archived === true;
+  const fromProfile = conn.fromProfile;
+
+  // Parse the message JSON for care details
+  let careDetails: Record<string, unknown> = {};
+  try {
+    careDetails = conn.message ? JSON.parse(conn.message) : {};
+  } catch {
+    careDetails = {};
+  }
+
+  const firstName = (careDetails.seeker_first_name as string) || fromProfile?.display_name?.split(" ")[0] || "Unknown";
+  const lastName = (careDetails.seeker_last_name as string) || fromProfile?.display_name?.split(" ").slice(1).join(" ") || "";
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  // Determine urgency from care details
+  const urgencyMap: Record<string, Urgency> = {
+    asap: "immediate",
+    within_month: "within_1_month",
+    researching: "exploring",
+  };
+  const urgency = urgencyMap[careDetails.urgency as string] || "exploring";
+
+  // Determine status
+  const hasProviderReply = thread.some((msg) => msg.from_profile_id === providerProfileId);
+  let status: LeadStatus = "new";
+  if (isArchived) {
+    status = "archived";
+  } else if (hasProviderReply) {
+    status = "replied";
+  } else if (conn.status === "pending" && thread.length === 0) {
+    status = "new";
+  } else {
+    status = "no_reply";
+  }
+
+  // Build activity timeline
+  const activity: ActivityEvent[] = [
+    { label: "Lead received", date: `${timeAgo(conn.created_at)} · Via Olera` },
+  ];
+  for (const msg of thread) {
+    if (msg.from_profile_id === providerProfileId) {
+      activity.push({ label: "You sent a message", date: timeAgo(msg.created_at) });
+    } else {
+      activity.push({ label: "Family responded", date: timeAgo(msg.created_at) });
+    }
+  }
+
+  // Care recipient info
+  const careRecipientMap: Record<string, string> = {
+    parent: "Parent",
+    spouse: "Spouse",
+    self: "Self",
+    other: "Family member",
+  };
+  const careRecipient = careRecipientMap[careDetails.care_recipient as string] || "Family member";
+
+  // Check if this is a "new" lead (not viewed yet) - scoped by provider profile
+  let isNew = false;
+  try {
+    // Migrate old data on first access
+    migrateLeadsViewedData(providerProfileId);
+    const leadsKey = `olera_leads_viewed_${providerProfileId}`;
+    const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
+    isNew = !viewedIds.includes(conn.id) && status !== "archived" && status !== "replied";
+  } catch {
+    isNew = status === "new";
+  }
+
+  return {
+    id: conn.id,
+    connectionId: conn.id,
+    name: fullName,
+    initials: getInitials(fullName),
+    subtitle: `For ${careRecipient.toLowerCase()}`,
+    location: fromProfile?.city && fromProfile?.state
+      ? `${fromProfile.city}, ${fromProfile.state}`
+      : "Location not specified",
+    urgency,
+    status,
+    date: timeAgo(conn.created_at),
+    isNew,
+    email: fromProfile?.email || undefined,
+    phone: fromProfile?.phone || undefined,
+    careRecipient,
+    additionalNotes: (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
+    activity,
+  };
+}
+
 // ── Page ──
 
 export default function ProviderLeadsPage() {
+  const providerProfile = useProviderProfile();
   const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
-  const [leads, setLeads] = useState<LeadDetail[]>(MOCK_LEADS);
+  const [leads, setLeads] = useState<LeadDetail[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const fetchedRef = useRef(false);
+
+  // Fetch leads (connections) from Supabase
+  useEffect(() => {
+    if (!providerProfile || fetchedRef.current) return;
+    if (!isSupabaseConfigured()) {
+      setIsLoading(false);
+      return;
+    }
+
+    fetchedRef.current = true;
+
+    (async () => {
+      try {
+        const supabase = createClient();
+        const profileId = providerProfile.id;
+
+        // Fetch connections where this provider is the recipient (to_profile_id)
+        const { data: connections, error } = await supabase
+          .from("connections")
+          .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type)")
+          .eq("to_profile_id", profileId)
+          .eq("type", "inquiry")
+          .in("status", ["pending", "accepted"])
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Failed to fetch leads:", error);
+          setIsLoading(false);
+          return;
+        }
+
+        // Map connections to leads, filtering out hidden ones
+        const mappedLeads = (connections || [])
+          .filter((conn) => {
+            const meta = conn.metadata as Record<string, unknown> | undefined;
+            return !meta?.hidden;
+          })
+          .map((conn) => mapConnectionToLead(conn as ConnectionWithProfile, profileId));
+
+        setLeads(mappedLeads);
+      } catch (err) {
+        console.error("Failed to fetch leads:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [providerProfile]);
 
   // Broadcast new-leads count to Navbar badge and persist to localStorage
   const newLeadsCount = useMemo(() => leads.filter((l) => l.isNew).length, [leads]);
@@ -884,13 +1120,24 @@ export default function ProviderLeadsPage() {
   const openDrawer = useCallback((lead: LeadDetail) => {
     setSelectedLeadId(lead.id);
     setIsDrawerOpen(true);
-    // Clear "New" badge once viewed
-    if (lead.isNew) {
+    // Clear "New" badge once viewed and persist to localStorage
+    if (lead.isNew && providerProfile) {
       setLeads((prev) =>
         prev.map((l) => (l.id === lead.id ? { ...l, isNew: false } : l))
       );
+      // Persist viewed status to localStorage (scoped by provider profile)
+      try {
+        const leadsKey = `olera_leads_viewed_${providerProfile.id}`;
+        const viewedIds: string[] = JSON.parse(localStorage.getItem(leadsKey) || "[]");
+        if (!viewedIds.includes(lead.id)) {
+          viewedIds.push(lead.id);
+          localStorage.setItem(leadsKey, JSON.stringify(viewedIds));
+        }
+      } catch {
+        // localStorage unavailable
+      }
     }
-  }, []);
+  }, [providerProfile]);
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
@@ -948,6 +1195,34 @@ export default function ProviderLeadsPage() {
       return leads.filter((l) => l.status !== "archived");
     }
   }, [activeFilter, leads]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 w-32 bg-warm-100 rounded-lg mb-2" />
+            <div className="h-4 w-72 bg-warm-50 rounded mb-8" />
+            <div className="h-12 w-full max-w-md bg-vanilla-50 border border-warm-100/60 rounded-xl mb-5" />
+            <div className="space-y-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-2xl border border-warm-100/60 p-5">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-warm-100 shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-5 w-32 bg-warm-100 rounded mb-2" />
+                      <div className="h-3 w-48 bg-warm-50 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">

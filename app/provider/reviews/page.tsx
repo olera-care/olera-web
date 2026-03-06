@@ -4,109 +4,8 @@ import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
 import type { Review } from "@/lib/types";
 
-// ── Mock Data for Development/Testing ──
-
-const MOCK_REVIEWS: Review[] = [
-  {
-    id: "mock-1",
-    provider_id: "demo-provider",
-    account_id: "acc-1",
-    reviewer_name: "Sarah M.",
-    rating: 5,
-    title: "Exceptional care for my mother",
-    comment: "The caregivers here have been absolutely wonderful with my mother. They treat her with such kindness and patience. The communication with the family has been excellent - we always know what's happening and feel involved in her care. I can't recommend them highly enough.",
-    relationship: "Daughter of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-    updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: "Thank you so much, Sarah! It's been a pleasure caring for your mother. She brings such joy to our team with her wonderful stories. We're honored to be part of her care journey.",
-    replied_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-    replied_by: "provider-1",
-  },
-  {
-    id: "mock-2",
-    provider_id: "demo-provider",
-    account_id: "acc-2",
-    reviewer_name: "Michael R.",
-    rating: 4,
-    title: "Good experience overall",
-    comment: "We've been using their services for about 6 months now. The caregivers are professional and caring. Only reason for 4 stars instead of 5 is that scheduling can sometimes be a bit inflexible. But overall, we're very satisfied with the care provided.",
-    relationship: "Son of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
-    updated_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: null,
-    replied_at: null,
-    replied_by: null,
-  },
-  {
-    id: "mock-3",
-    provider_id: "demo-provider",
-    account_id: "acc-3",
-    reviewer_name: "Jennifer L.",
-    rating: 5,
-    title: null,
-    comment: "Five stars all the way! The team went above and beyond when my father needed extra support during his recovery. They coordinated beautifully with his doctors and kept us informed every step of the way. Truly grateful for their dedication.",
-    relationship: "Daughter of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(), // 21 days ago
-    updated_at: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: "Jennifer, thank you for sharing your experience. Your father's progress has been wonderful to see, and we're so glad we could support your family during this time. Wishing him continued health!",
-    replied_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-    replied_by: "provider-1",
-  },
-  {
-    id: "mock-4",
-    provider_id: "demo-provider",
-    account_id: "acc-4",
-    reviewer_name: "David K.",
-    rating: 3,
-    title: "Mixed feelings",
-    comment: "The care itself is good, but we've had some issues with consistency - different caregivers each time makes it hard for my mother to build trust. Would appreciate more consistency in staffing.",
-    relationship: "Son of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
-    updated_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: null,
-    replied_at: null,
-    replied_by: null,
-  },
-  {
-    id: "mock-5",
-    provider_id: "demo-provider",
-    account_id: "acc-5",
-    reviewer_name: "Patricia W.",
-    rating: 5,
-    title: "Couldn't ask for better",
-    comment: "After trying several agencies, we finally found the right fit. The caregivers are compassionate, skilled, and treat my husband with dignity. The administrative team is also very responsive and helpful.",
-    relationship: "Spouse of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
-    updated_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: "Patricia, we're touched by your kind words. It's our privilege to care for your husband. Thank you for trusting us with his care.",
-    replied_at: new Date(Date.now() - 44 * 24 * 60 * 60 * 1000).toISOString(),
-    replied_by: "provider-1",
-  },
-  {
-    id: "mock-6",
-    provider_id: "demo-provider",
-    account_id: "acc-6",
-    reviewer_name: "Robert T.",
-    rating: 4,
-    title: null,
-    comment: "Great care team. My mother really enjoys her time with the caregivers. They're patient and engaging. Would recommend to others looking for quality senior care.",
-    relationship: "Son of Resident",
-    status: "published",
-    created_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
-    updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    provider_reply: null,
-    replied_at: null,
-    replied_by: null,
-  },
-];
-
-// Calculate mock stats from mock reviews
-function calculateMockStats(reviews: Review[]): ReviewStats {
+// Calculate stats from reviews
+function calculateStats(reviews: Review[]): ReviewStats {
   const totalReviews = reviews.length;
   const repliedCount = reviews.filter(r => r.provider_reply).length;
   const avgRating = totalReviews > 0
@@ -220,6 +119,54 @@ function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
     </svg>
+  );
+}
+
+// ── Tips Accordion Component ──
+
+function TipsAccordion({ title, children }: { title: string; children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border-t border-gray-100">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-4 bg-gray-300 rounded-full" />
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            {title}
+          </span>
+        </div>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ease-out ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={`px-6 pb-5 transition-opacity duration-200 ${
+              isOpen ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -603,7 +550,10 @@ function EmptyState({ filter }: { filter: TabFilter }) {
     return (
       <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
         {/* Illustration */}
-        <div className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative">
+        <div
+          className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
+          style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+        >
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform rotate-3 shadow-sm">
               <svg className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -630,14 +580,20 @@ function EmptyState({ filter }: { filter: TabFilter }) {
   // All empty state - "No reviews yet"
   return (
     <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-      <div className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative">
+      <div
+        className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
+        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      >
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform -rotate-3 shadow-sm">
             <StarIcon className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" filled={false} />
           </div>
         </div>
+        {/* Decorative elements */}
         <div className="absolute top-4 right-6 w-3 h-3 rounded-full bg-amber-200" />
         <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-primary-200" />
+        <div className="absolute top-10 left-4 w-4 h-1 rounded-full bg-warm-200 transform rotate-45" />
+        <div className="absolute bottom-12 right-4 w-2 h-2 rounded-full bg-warm-300" />
       </div>
       <h3 className="text-xl lg:text-2xl font-display font-bold text-gray-900 tracking-tight">
         No reviews yet
@@ -653,6 +609,8 @@ function EmptyState({ filter }: { filter: TabFilter }) {
 
 function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerSlug: string | null }) {
   const [copied, setCopied] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
 
   const handleCopyLink = async () => {
     if (!providerSlug) return;
@@ -666,12 +624,37 @@ function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerS
     }
   };
 
+  // Close tooltip on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setShowTooltip(false);
+      }
+    }
+    if (showTooltip) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showTooltip]);
+
   const categoryLabels: Record<string, string> = {
     care_quality: "Care Quality",
     communication: "Communication",
     value: "Value",
     cleanliness: "Cleanliness",
   };
+
+  // Score label based on rating
+  const getScoreLabel = (rating: number): { label: string; color: string } => {
+    if (rating >= 4.5) return { label: "Excellent", color: "text-primary-700" };
+    if (rating >= 4.0) return { label: "Great", color: "text-primary-600" };
+    if (rating >= 3.5) return { label: "Good", color: "text-amber-600" };
+    if (rating >= 3.0) return { label: "Fair", color: "text-amber-500" };
+    return { label: "Building", color: "text-gray-500" };
+  };
+
+  const scoreInfo = getScoreLabel(stats.avgRating);
+  const progressPercent = (stats.avgRating / 5) * 100;
 
   return (
     <div className="hidden lg:block">
@@ -681,50 +664,102 @@ function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerS
 
           {/* ── Section 1: Olera Score ── */}
           <div className="p-6">
-            {/* Header */}
+            {/* Header with tooltip */}
             <div className="flex items-center gap-2 mb-5">
               <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                 Olera Score
               </span>
+              <div className="relative" ref={tooltipRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowTooltip(!showTooltip)}
+                  className="w-[18px] h-[18px] rounded-full flex items-center justify-center text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+                  aria-label="What is Olera Score?"
+                >
+                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                  </svg>
+                </button>
+                {/* Tooltip */}
+                {showTooltip && (
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 p-4 bg-gray-900 text-white text-[13px] rounded-xl shadow-xl z-20">
+                    <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-gray-900 rotate-45" />
+                    <p className="relative leading-relaxed">
+                      Your Olera Score is the average of all family reviews. Higher scores help you stand out in search results and build trust with families.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Score display */}
             {stats.totalReviews > 0 ? (
               <>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="text-center">
-                    <div className="flex items-baseline justify-center gap-0.5">
-                      <span className="text-[52px] font-display font-bold text-gray-900 leading-none tracking-tight">
-                        {stats.avgRating.toFixed(1)}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-center gap-1 mt-2">
-                      <StarRating rating={Math.round(stats.avgRating)} size="md" />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-2">
-                      {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""}
-                    </p>
+                {/* Score + label badge */}
+                <div className="flex items-end justify-between mb-5">
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-[44px] font-display font-bold text-gray-900 leading-none tracking-tight">
+                      {stats.avgRating.toFixed(1)}
+                    </span>
+                    <span className="text-lg text-gray-300 font-medium">/5</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100/60">
+                    <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                    </svg>
+                    <span className={`text-xs font-bold ${scoreInfo.color}`}>{scoreInfo.label}</span>
                   </div>
                 </div>
 
+                {/* Progress bar with markers */}
+                <div className="mb-2.5">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-500"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400 mb-5">
+                  <span>Needs work</span>
+                  <span>Strong</span>
+                  <span>Top rated</span>
+                </div>
+
+                {/* Star rating + review count */}
+                <div className="flex items-center justify-center gap-3 pb-5 border-b border-gray-100">
+                  <StarRating rating={Math.round(stats.avgRating)} size="md" />
+                  <span className="text-sm text-gray-500">
+                    {stats.totalReviews} review{stats.totalReviews !== 1 ? "s" : ""} · {stats.repliedCount} replied
+                  </span>
+                </div>
+
                 {/* Category breakdown */}
-                <div className="space-y-3 pt-4 border-t border-gray-100">
-                  {Object.entries(stats.categoryStats).map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-3">
-                      <span className="text-sm text-gray-600 w-28 shrink-0">
-                        {categoryLabels[key] || key}
-                      </span>
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-500"
-                          style={{ width: `${(value / 5) * 100}%` }}
-                        />
+                <div className="pt-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-4 bg-gray-300 rounded-full" />
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Rating Breakdown
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {Object.entries(stats.categoryStats).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-3">
+                        <span className="text-sm text-gray-600 w-28 shrink-0">
+                          {categoryLabels[key] || key}
+                        </span>
+                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-full transition-all duration-500"
+                            style={{ width: `${(value / 5) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 w-8 text-right">
+                          {value.toFixed(1)}
+                        </span>
                       </div>
-                      <span className="text-sm font-medium text-gray-700 w-8 text-right">
-                        {value.toFixed(1)}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </>
             ) : (
@@ -732,7 +767,8 @@ function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerS
                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
                   <StarIcon className="w-6 h-6 text-gray-300" filled={false} />
                 </div>
-                <p className="text-sm text-gray-500">No ratings yet</p>
+                <p className="text-sm text-gray-500 font-medium">No ratings yet</p>
+                <p className="text-xs text-gray-400 mt-1">Reviews will appear here when families rate your services.</p>
               </div>
             )}
           </div>
@@ -776,6 +812,50 @@ function ReviewsSidebar({ stats, providerSlug }: { stats: ReviewStats; providerS
               </div>
             </div>
           </div>
+
+          {/* ── Section 3: Tips for More Reviews (Collapsible) ── */}
+          <TipsAccordion title="Tips for More Reviews">
+            <div className="space-y-4">
+              {/* Tip 1 */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Ask after great interactions</p>
+                  <p className="text-sm text-gray-500 mt-0.5">Families love to share positive experiences</p>
+                </div>
+              </div>
+
+              {/* Tip 2 */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Respond to every review</p>
+                  <p className="text-sm text-gray-500 mt-0.5">Shows you value feedback</p>
+                </div>
+              </div>
+
+              {/* Tip 3 */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Share your profile link</p>
+                  <p className="text-sm text-gray-500 mt-0.5">Include it in follow-up messages</p>
+                </div>
+              </div>
+            </div>
+          </TipsAccordion>
 
         </div>
       </div>
@@ -850,6 +930,17 @@ function MobileStatsSheet({
     cleanliness: "Cleanliness",
   };
 
+  // Score label based on rating
+  const getScoreLabel = (rating: number): { label: string; color: string } => {
+    if (rating >= 4.5) return { label: "Excellent", color: "text-primary-700" };
+    if (rating >= 4.0) return { label: "Great", color: "text-primary-600" };
+    if (rating >= 3.5) return { label: "Good", color: "text-amber-600" };
+    if (rating >= 3.0) return { label: "Fair", color: "text-amber-500" };
+    return { label: "Building", color: "text-gray-500" };
+  };
+
+  const scoreInfo = getScoreLabel(stats.avgRating);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -897,6 +988,16 @@ function MobileStatsSheet({
           {/* Score display */}
           {stats.totalReviews > 0 ? (
             <>
+              {/* Score label badge */}
+              <div className="flex justify-center mb-4">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100/60">
+                  <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                  </svg>
+                  <span className={`text-xs font-bold ${scoreInfo.color}`}>{scoreInfo.label}</span>
+                </div>
+              </div>
+
               <div className="flex flex-col items-center mb-6">
                 <div className="relative w-28 h-28 mb-3">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -1045,7 +1146,6 @@ export default function ProviderReviewsPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [usingMockData, setUsingMockData] = useState(false);
 
   // Sheet state
   const [selectedReview, setSelectedReview] = useState<Review | null>(null);
@@ -1063,14 +1163,12 @@ export default function ProviderReviewsPage() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Fetch reviews from API (falls back to mock data if API fails)
+  // Fetch reviews from API
   useEffect(() => {
     if (!providerProfile?.slug) {
-      // No provider profile yet - use mock data for testing
-      console.log("[Reviews] No provider profile, using mock data for development");
-      setReviews(MOCK_REVIEWS);
-      setStats(calculateMockStats(MOCK_REVIEWS));
-      setUsingMockData(true);
+      // No provider profile yet - show empty state
+      setReviews([]);
+      setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
       setIsLoading(false);
       return;
     }
@@ -1084,23 +1182,13 @@ export default function ProviderReviewsPage() {
         const data = await res.json();
         const fetchedReviews = data.reviews || [];
 
-        // If no real reviews exist, use mock data for testing
-        if (fetchedReviews.length === 0) {
-          console.log("[Reviews] No real reviews found, using mock data for development");
-          setReviews(MOCK_REVIEWS);
-          setStats(calculateMockStats(MOCK_REVIEWS));
-          setUsingMockData(true);
-        } else {
-          setReviews(fetchedReviews);
-          setStats(data.stats || calculateMockStats(fetchedReviews));
-          setUsingMockData(false);
-        }
+        setReviews(fetchedReviews);
+        setStats(data.stats || calculateStats(fetchedReviews));
       } catch (err) {
-        console.error("Failed to fetch reviews, using mock data:", err);
-        // Fallback to mock data on error (e.g., migration not applied yet)
-        setReviews(MOCK_REVIEWS);
-        setStats(calculateMockStats(MOCK_REVIEWS));
-        setUsingMockData(true);
+        console.error("Failed to fetch reviews:", err);
+        // Show empty state on error
+        setReviews([]);
+        setStats({ totalReviews: 0, repliedCount: 0, avgRating: 0, categoryStats: { care_quality: 0, communication: 0, value: 0, cleanliness: 0 } });
       } finally {
         setIsLoading(false);
       }
@@ -1135,23 +1223,6 @@ export default function ProviderReviewsPage() {
 
   // Handle sheet submit
   const handleSheetSubmit = useCallback(async (review: Review, reply: string) => {
-    // If using mock data, just update local state
-    if (usingMockData) {
-      const now = new Date().toISOString();
-      setReviews((prev) =>
-        prev.map((r) =>
-          r.id === review.id
-            ? { ...r, provider_reply: reply, replied_at: now }
-            : r
-        )
-      );
-      setStats((prev) => ({
-        ...prev,
-        repliedCount: prev.repliedCount + (review.provider_reply ? 0 : 1),
-      }));
-      return;
-    }
-
     try {
       const res = await fetch("/api/provider/reviews", {
         method: "PATCH",
@@ -1184,7 +1255,7 @@ export default function ProviderReviewsPage() {
       console.error("Failed to save reply:", err);
       alert("Failed to save reply. Please try again.");
     }
-  }, [usingMockData]);
+  }, []);
 
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
@@ -1201,6 +1272,23 @@ export default function ProviderReviewsPage() {
   ];
 
   return (
+    <>
+    <style jsx global>{`
+      @keyframes card-enter {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes emptyFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+      }
+    `}</style>
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         {/* ── Page header ── */}
@@ -1255,15 +1343,6 @@ export default function ProviderReviewsPage() {
         <div className="lg:grid lg:grid-cols-[1fr,340px] lg:gap-8 lg:items-start">
           {/* Left column - review cards */}
           <div>
-            {/* Mock data indicator for development */}
-            {usingMockData && (
-              <div className="mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-center gap-2">
-                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                </svg>
-                <span>Showing sample data for preview. Real reviews will appear once the database is configured.</span>
-              </div>
-            )}
             {filteredReviews.length > 0 ? (
               <div className="space-y-4">
                 {filteredReviews.map((review, idx) => (
@@ -1311,5 +1390,6 @@ export default function ProviderReviewsPage() {
         mode={sheetMode}
       />
     </div>
+    </>
   );
 }

@@ -31,7 +31,7 @@ export default function ProviderOnboardPage() {
   const tokenParam = searchParams.get("token");
   const stateParam = searchParams.get("state") as ActionCardState | null;
   const router = useRouter();
-  const { user, openAuth, refreshAccountData } = useAuth();
+  const { user, openAuth, refreshAccountData, switchProfile } = useAuth();
 
   // Core state
   const [step, setStep] = useState<OnboardStep>("loading");
@@ -246,6 +246,12 @@ export default function ProviderOnboardPage() {
 
       clearClaimSession();
       await refreshAccountData();
+
+      // Switch to the newly claimed profile
+      if (result.profileId) {
+        switchProfile(result.profileId);
+      }
+
       setStep("success");
     } catch {
       setErrorMsg("Something went wrong. Please try again.");

@@ -18,15 +18,16 @@ interface Question {
   is_public?: boolean;
 }
 
-// ── Helper to mark question as read ──
+// ── Helper to mark question as read (scoped by provider slug) ──
 
-function markQuestionAsRead(questionId: string): void {
+function markQuestionAsRead(questionId: string, providerSlug: string): void {
   try {
-    const stored = localStorage.getItem("olera_qna_read");
+    const qnaReadKey = `olera_qna_read_${providerSlug}`;
+    const stored = localStorage.getItem(qnaReadKey);
     const readIds: string[] = stored ? JSON.parse(stored) : [];
     if (!readIds.includes(questionId)) {
       readIds.push(questionId);
-      localStorage.setItem("olera_qna_read", JSON.stringify(readIds));
+      localStorage.setItem(qnaReadKey, JSON.stringify(readIds));
       window.dispatchEvent(new CustomEvent("olera:qna-read"));
     }
   } catch {
@@ -108,6 +109,54 @@ function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
     </svg>
+  );
+}
+
+// ── Tips Accordion Component ──
+
+function TipsAccordion({ title, children }: { title: string; children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border-t border-gray-100">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-4 bg-gray-300 rounded-full" />
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            {title}
+          </span>
+        </div>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ease-out ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={`px-6 pb-5 transition-opacity duration-200 ${
+              isOpen ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -506,8 +555,11 @@ function EmptyState({ filter }: { filter: TabFilter }) {
   if (filter === "published") {
     return (
       <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-        {/* Illustration */}
-        <div className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative">
+        {/* Illustration with floating animation */}
+        <div
+          className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
+          style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+        >
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform rotate-3 shadow-sm">
               <QuestionMarkIcon className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" />
@@ -525,6 +577,12 @@ function EmptyState({ filter }: { filter: TabFilter }) {
         <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-sm">
           Respond to pending Q&As now to get your answers published and visible on your profile.
         </p>
+        <style jsx>{`
+          @keyframes emptyFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -532,7 +590,10 @@ function EmptyState({ filter }: { filter: TabFilter }) {
   // Pending empty state - "All caught up"
   return (
     <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-      <div className="w-16 h-16 rounded-2xl bg-primary-50 border border-primary-100/50 flex items-center justify-center mb-6">
+      <div
+        className="w-16 h-16 rounded-2xl bg-primary-50 border border-primary-100/50 flex items-center justify-center mb-6"
+        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      >
         <CheckIcon className="w-8 h-8 text-primary-500" />
       </div>
       <h3 className="text-lg lg:text-xl font-display font-bold text-gray-900">
@@ -541,6 +602,12 @@ function EmptyState({ filter }: { filter: TabFilter }) {
       <p className="text-[15px] text-gray-500 mt-2 leading-relaxed max-w-sm">
         You&apos;ve answered all questions from families. New questions will appear here when families ask.
       </p>
+      <style jsx>{`
+        @keyframes emptyFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -692,15 +759,8 @@ function QnASidebar({ publishedCount, providerSlug }: { publishedCount: number; 
             </div>
           </div>
 
-          {/* ── Section 3: Tips for Better Answers ── */}
-          <div className="px-6 py-5 border-t border-gray-100">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-1 h-4 bg-gray-300 rounded-full" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Tips for Better Answers
-              </span>
-            </div>
-
+          {/* ── Section 3: Tips for Better Answers (Collapsible) ── */}
+          <TipsAccordion title="Tips for Better Answers">
             <div className="space-y-4">
               {/* Tip 1 */}
               <div className="flex items-start gap-3">
@@ -741,7 +801,7 @@ function QnASidebar({ publishedCount, providerSlug }: { publishedCount: number; 
                 </div>
               </div>
             </div>
-          </div>
+          </TipsAccordion>
         </div>
       </div>
     </div>
@@ -821,11 +881,17 @@ export default function ProviderQnAPage() {
         setQuestions(data.questions || []);
 
         // Mark all pending questions as read when page loads
-        for (const q of data.questions || []) {
-          if (q.status === "pending") {
-            markQuestionAsRead(q.id);
+        const pendingQuestions = (data.questions || []).filter((q: Question) => q.status === "pending");
+        for (const q of pendingQuestions) {
+          if (providerProfile?.slug) {
+            markQuestionAsRead(q.id, providerProfile.slug);
           }
         }
+
+        // Dispatch event to sync navbar badge with actual count (fixes stale badge)
+        window.dispatchEvent(new CustomEvent("olera:qna-sync", {
+          detail: { count: 0, providerSlug: providerProfile?.slug }
+        }));
       } catch (err) {
         console.error("Failed to fetch questions:", err);
         setError("Unable to load questions. Please try again.");

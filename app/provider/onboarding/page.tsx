@@ -120,7 +120,7 @@ function ProviderOnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAdding = searchParams.get("adding") === "true";
-  const { user, account, profiles, isLoading, refreshAccountData } = useAuth();
+  const { user, account, profiles, isLoading, refreshAccountData, switchProfile } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [providerType, setProviderType] = useState<ProviderType | null>(null);
   const [data, setData] = useState<WizardData>(EMPTY);
@@ -691,23 +691,32 @@ function ProviderOnboardingContent() {
         }),
       });
 
+      const result = await res.json();
+
       if (!res.ok) {
-        const err = await res.json();
-        setSubmitError(err.error || "Failed to create profile. Please try again.");
+        setSubmitError(result.error || "Failed to create profile. Please try again.");
         return;
       }
+
+      const { profileId } = result;
 
       try {
         localStorage.removeItem(TYPE_KEY);
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-  
+
       } catch {
         // localStorage unavailable (SSR or private mode)
       }
 
       await refreshAccountData();
+
+      // When adding a new profile, switch to it before navigating
+      if (isAdding && profileId) {
+        switchProfile(profileId);
+      }
+
       router.replace("/provider");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
@@ -847,7 +856,7 @@ function ProviderOnboardingContent() {
               </h1>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 lg:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-5">
               {/* Organization */}
               <button
                 type="button"
@@ -1322,7 +1331,7 @@ function ProviderOnboardingContent() {
                                       onClick={() => {
                                         router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}&state=already-claimed`);
                                       }}
-                                      className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                                      className="text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
                                     >
                                       Dispute ownership
                                     </button>

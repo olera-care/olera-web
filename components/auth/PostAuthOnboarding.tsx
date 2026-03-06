@@ -438,7 +438,7 @@ export default function PostAuthOnboarding({
                       : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
                   }`}
                 >
-                  Private Caregiver
+                  Caregiver
                 </button>
               </div>
             </div>

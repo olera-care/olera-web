@@ -30,7 +30,7 @@ const CARE_TYPES = [
   "Hospice Care",
   "Adult Day Care",
   "Rehabilitation",
-  "Private Caregiver",
+  "Caregiver",
 ];
 const TIMELINES = [
   { value: "immediate", label: "As soon as possible" },

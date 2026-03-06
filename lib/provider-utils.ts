@@ -41,7 +41,7 @@ const categoryLabels: Record<ProfileCategory, string> = {
   rehab_facility: "Rehabilitation",
   adult_day_care: "Adult Day Care",
   wellness_center: "Wellness Center",
-  private_caregiver: "Private Caregiver",
+  private_caregiver: "Caregiver",
 };
 
 export function formatCategory(category: ProfileCategory | null): string | null {
@@ -100,7 +100,7 @@ const categoryDescriptionTemplates: Record<ProfileCategory, (name: string, locat
   wellness_center: (name, loc) =>
     `${name} is a wellness center${loc ? ` in ${loc}` : ""}. They offer health and fitness programs, wellness education, preventive screenings, and community activities designed to support healthy aging and overall well-being.`,
   private_caregiver: (name, loc) =>
-    `${name} is a private caregiver${loc ? ` serving the ${loc} area` : ""}. They provide one-on-one personal care, companionship, meal preparation, light housekeeping, and assistance with daily activities to help individuals maintain their independence at home.`,
+    `${name} is a professional caregiver${loc ? ` serving the ${loc} area` : ""}. They provide one-on-one personal care, companionship, meal preparation, light housekeeping, and assistance with daily activities to help individuals maintain their independence at home.`,
 };
 
 export function getCategoryDescription(

@@ -342,7 +342,7 @@ const PROFILE_CATEGORY_DISPLAY: Record<ProfileCategory, string> = {
   rehab_facility: "Rehabilitation",
   adult_day_care: "Adult Day Care",
   wellness_center: "Wellness Center",
-  private_caregiver: "Private Caregiver",
+  private_caregiver: "Caregiver",
 };
 
 /**

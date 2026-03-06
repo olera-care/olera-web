@@ -269,6 +269,7 @@ function DashboardContent({
               metadata={meta}
               completionPercent={sectionPercent("gallery")}
               onEdit={() => handleEdit("gallery")}
+              profileType={profile.type}
             />,
           ] : [
             <ProfileOverviewCard
@@ -282,6 +283,7 @@ function DashboardContent({
               metadata={meta}
               completionPercent={sectionPercent("gallery")}
               onEdit={() => handleEdit("gallery")}
+              profileType={profile.type}
             />,
             <CareServicesCard
               key="services"

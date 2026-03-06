@@ -6,12 +6,14 @@ interface GalleryCardProps {
   metadata: ExtendedMetadata;
   completionPercent: number;
   onEdit?: () => void;
+  profileType?: string;
 }
 
 export default function GalleryCard({
   metadata,
   completionPercent,
   onEdit,
+  profileType,
 }: GalleryCardProps) {
   const images = Array.isArray(metadata.images) ? metadata.images : [];
 
@@ -36,7 +38,11 @@ export default function GalleryCard({
           </div>
           <div className="text-left">
             <p className="text-[15px] font-semibold text-gray-800">Add photos</p>
-            <p className="text-sm text-gray-400">Upload images to showcase your facility</p>
+            <p className="text-sm text-gray-400">
+              {profileType === "caregiver"
+                ? "Upload photos to showcase your caregiving experience"
+                : "Upload photos to showcase your organization"}
+            </p>
           </div>
         </button>
       ) : (

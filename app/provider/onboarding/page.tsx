@@ -146,6 +146,15 @@ function ProviderOnboardingContent() {
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Pre-fill display name from account (set during signup / OAuth)
+  const prefillAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!prefillAppliedRef.current && account?.display_name && !data.displayName) {
+      prefillAppliedRef.current = true;
+      setData((prev) => ({ ...prev, displayName: account.display_name }));
+    }
+  }, [account?.display_name, data.displayName]);
+
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
   const [checkingPrefill, setCheckingPrefill] = useState(true);
   // Search state
@@ -876,7 +885,7 @@ function ProviderOnboardingContent() {
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-primary-600 uppercase tracking-wide mb-1">Continue where you left off</p>
                   <p className="text-lg font-semibold text-gray-900">
-                    {providerType === "organization" ? "Organization" : "Private Caregiver"}
+                    {providerType === "organization" ? "Organization" : "Caregiver"}
                   </p>
                 </div>
                 <svg className="w-5 h-5 text-primary-300 group-hover:text-primary-500 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -940,7 +949,7 @@ function ProviderOnboardingContent() {
                 </p>
               </button>
 
-              {/* Private Caregiver */}
+              {/* Caregiver */}
               <button
                 type="button"
                 onClick={() => handleSelectType("caregiver")}
@@ -957,7 +966,7 @@ function ProviderOnboardingContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Private Caregiver</h2>
+                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Caregiver</h2>
                 <p className="text-xs lg:text-base text-gray-500 leading-relaxed">
                   Individual caregiver offering personal care services
                 </p>
@@ -1681,7 +1690,7 @@ function ProviderOnboardingContent() {
               </h1>
               <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 {isCaregiver
-                  ? "This is what families and organizations will see on your profile."
+                  ? "This is how you'll appear to people searching for care."
                   : "This is what families will see on your public profile."}
               </p>
             </div>
@@ -1827,7 +1836,7 @@ function ProviderOnboardingContent() {
           <div className="w-full max-w-lg pb-24">
             <div className="text-center mb-6 lg:mb-8">
               <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
-                How can families reach you?
+                {isCaregiver ? "How should people reach you?" : "How can families reach you?"}
               </h1>
               <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 Give families a way to connect with you.
@@ -1981,7 +1990,7 @@ function ProviderOnboardingContent() {
                     Hourly rate range (Optional)
                   </label>
                   <p className="text-sm text-gray-500 mb-3">
-                    Helps families understand your pricing. You can update this later.
+                    You can update this anytime.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <Input
@@ -2039,7 +2048,7 @@ function ProviderOnboardingContent() {
                 )}
                 {isCaregiver && (
                   <p className="text-xs font-medium text-secondary-600 uppercase tracking-wide mb-1">
-                    Private Caregiver
+                    Caregiver
                   </p>
                 )}
 

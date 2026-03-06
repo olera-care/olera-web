@@ -15,7 +15,7 @@ const CARE_RECIPIENTS = ["Myself", "My parent", "My spouse", "Someone else"];
 const CARE_TYPES = [
   "Home Care", "Home Health Care", "Assisted Living", "Memory Care",
   "Nursing Home", "Independent Living", "Hospice Care", "Adult Day Care",
-  "Rehabilitation", "Private Caregiver",
+  "Rehabilitation", "Caregiver",
 ];
 const TIMELINES = [
   { value: "immediate", label: "As soon as possible" },

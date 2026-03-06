@@ -30,7 +30,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   rehab_facility: "Rehab Facility",
   adult_day_care: "Adult Day Care",
   wellness_center: "Wellness Center",
-  private_caregiver: "Private Caregiver",
+  private_caregiver: "Caregiver",
 };
 
 function getCategoryLabel(
@@ -38,7 +38,7 @@ function getCategoryLabel(
   type: string | undefined
 ): string {
   if (category && CATEGORY_LABELS[category]) return CATEGORY_LABELS[category];
-  if (type === "caregiver") return "Private Caregiver";
+  if (type === "caregiver") return "Caregiver";
   if (type === "organization") return "Care Provider";
   return "Care Provider";
 }

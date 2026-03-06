@@ -26,7 +26,7 @@ export interface CardProfile {
   imageUrl: string | null;
   verified: boolean;
   careTypes: string[];
-  /** Primary label shown above the name (e.g., "Assisted Living", "Private Caregiver") */
+  /** Primary label shown above the name (e.g., "Assisted Living", "Caregiver") */
   category: string | null;
   /** Price or rate string (e.g., "$4,500/mo", "$25-35/hr") */
   priceLabel: string | null;
@@ -57,7 +57,7 @@ export function profileToCard(profile: Profile): CardProfile {
     if (m?.bed_count) details.push({ label: "Capacity", value: `${m.bed_count} beds` });
   } else if (profile.type === "caregiver") {
     const m = meta as CaregiverMetadata;
-    category = "Private Caregiver";
+    category = "Caregiver";
     if (m?.hourly_rate_min && m?.hourly_rate_max) {
       priceLabel = `$${m.hourly_rate_min}–$${m.hourly_rate_max}/hr`;
     } else if (m?.hourly_rate_min) {
@@ -130,7 +130,7 @@ export function formatCategory(category: string | null): string | null {
     rehab_facility: "Rehabilitation",
     adult_day_care: "Adult Day Care",
     wellness_center: "Wellness Center",
-    private_caregiver: "Private Caregiver",
+    private_caregiver: "Caregiver",
   };
   return map[category] || category;
 }

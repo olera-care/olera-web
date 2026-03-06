@@ -1149,7 +1149,7 @@ export default function Navbar() {
                               <svg className={`w-5 h-5 shrink-0 ${pathname === "/browse/caregivers" ? "text-secondary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                               </svg>
-                              <span className="text-[15px]">Private Caregivers</span>
+                              <span className="text-[15px]">Caregivers</span>
                             </Link>
                             {NAV_LINKS.map((link) => {
                               const active = pathname.startsWith(link.href);
@@ -1269,7 +1269,7 @@ export default function Navbar() {
                         className="block py-2 text-sm text-secondary-700 hover:text-secondary-800"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <span className="font-medium">Private Caregivers</span>
+                        <span className="font-medium">Caregivers</span>
                         <span className="block text-xs text-gray-400 mt-0.5">Find experienced individual caregivers</span>
                       </Link>
                     </div>

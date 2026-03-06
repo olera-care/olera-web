@@ -66,7 +66,7 @@ export default function BrowseCaregiversPage() {
             Browse Caregivers
           </h1>
           <p className="mt-2 text-lg text-gray-600">
-            Find experienced private caregivers in your area.
+            Find experienced caregivers in your area.
           </p>
         </div>
       </div>

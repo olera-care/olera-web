@@ -20,7 +20,7 @@ const CATEGORY_OPTIONS: { value: ProfileCategory; label: string }[] = [
   { value: "rehab_facility", label: "Rehabilitation Facility" },
   { value: "adult_day_care", label: "Adult Day Care" },
   { value: "wellness_center", label: "Wellness Center" },
-  { value: "private_caregiver", label: "Private Caregiver" },
+  { value: "private_caregiver", label: "Caregiver" },
 ];
 
 export default function EditOverviewModal({

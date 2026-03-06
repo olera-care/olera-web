@@ -79,13 +79,13 @@ function InboxContent() {
               .from("connections")
               .select("id, metadata")
               .in("from_profile_id", profileIds)
-              .eq("type", "inquiry")
+              .in("type", ["inquiry", "request"])
               .filter("metadata->>archived", "eq", "true"),
             supabase
               .from("connections")
               .select("id, metadata")
               .in("to_profile_id", profileIds)
-              .eq("type", "inquiry")
+              .in("type", ["inquiry", "request"])
               .filter("metadata->>archived", "eq", "true"),
           ]);
           const archivedIds = new Set<string>();
@@ -101,7 +101,8 @@ function InboxContent() {
       })();
 
       // Only wait for active connections (pending/accepted) before proceeding to render
-      const [outbound, inbound] = await Promise.all([
+      // Query both inquiry connections AND accepted provider-initiated matches (type=request)
+      const [outbound, inbound, matchesOutbound, matchesInbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
@@ -116,11 +117,32 @@ function InboxContent() {
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"])
           .order("updated_at", { ascending: false }),
+        // Provider-initiated matches that user accepted (shown in inbox for messaging)
+        supabase
+          .from("connections")
+          .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
+          .in("from_profile_id", profileIds)
+          .eq("type", "request")
+          .eq("status", "accepted")
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("connections")
+          .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
+          .in("to_profile_id", profileIds)
+          .eq("type", "request")
+          .eq("status", "accepted")
+          .order("updated_at", { ascending: false }),
       ]);
 
       // Merge and deduplicate — skip hidden and metadata-archived connections
       // (archive state lives in metadata.archived, not the status column)
-      const allConns = [...(outbound.data || []), ...(inbound.data || [])] as Connection[];
+      // Include both inquiry connections and accepted provider-initiated matches
+      const allConns = [
+        ...(outbound.data || []),
+        ...(inbound.data || []),
+        ...(matchesOutbound.data || []),
+        ...(matchesInbound.data || []),
+      ] as Connection[];
       const deduped = new Map<string, Connection>();
       for (const conn of allConns) {
         const meta = conn.metadata as Record<string, unknown> | undefined;
@@ -272,19 +294,20 @@ function InboxContent() {
       const pIds = profiles.map((p) => p.id);
 
       // Archive state is in metadata.archived = true (not status column)
+      // Include both inquiry and request types
       const [outbound, inbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("from_profile_id", pIds)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "request"])
           .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
         supabase
           .from("connections")
           .select("id, type, status, from_profile_id, to_profile_id, message, metadata, created_at, updated_at")
           .in("to_profile_id", pIds)
-          .eq("type", "inquiry")
+          .in("type", ["inquiry", "request"])
           .filter("metadata->>archived", "eq", "true")
           .order("updated_at", { ascending: false }),
       ]);

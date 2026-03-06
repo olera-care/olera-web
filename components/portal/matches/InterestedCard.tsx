@@ -247,7 +247,7 @@ export default function InterestedCard({
           {/* Go to inbox button */}
           <div className="mb-2.5">
             <Link
-              href="/portal/inbox"
+              href={`/portal/inbox?id=${item.id}`}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap px-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
             >
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

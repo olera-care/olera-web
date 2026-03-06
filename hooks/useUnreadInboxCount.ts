@@ -92,7 +92,8 @@ export function useUnreadInboxCount(profileIds: string[]): number {
       const supabase = createClient();
 
       // Match inbox query: fetch both outbound and inbound, active statuses only
-      const [outbound, inbound] = await Promise.all([
+      // Also include accepted provider-initiated matches (type="request")
+      const [outbound, inbound, matchesOutbound, matchesInbound] = await Promise.all([
         supabase
           .from("connections")
           .select("id, metadata")
@@ -105,12 +106,31 @@ export function useUnreadInboxCount(profileIds: string[]): number {
           .in("to_profile_id", profileIdList)
           .eq("type", "inquiry")
           .in("status", ["pending", "accepted"]),
+        // Accepted provider-initiated matches
+        supabase
+          .from("connections")
+          .select("id, metadata")
+          .in("from_profile_id", profileIdList)
+          .eq("type", "request")
+          .eq("status", "accepted"),
+        supabase
+          .from("connections")
+          .select("id, metadata")
+          .in("to_profile_id", profileIdList)
+          .eq("type", "request")
+          .eq("status", "accepted"),
       ]);
 
       // Merge, deduplicate, and filter out hidden and archived connections
       const seen = new Set<string>();
       const connectionIds: string[] = [];
-      for (const conn of [...(outbound.data || []), ...(inbound.data || [])]) {
+      const allConns = [
+        ...(outbound.data || []),
+        ...(inbound.data || []),
+        ...(matchesOutbound.data || []),
+        ...(matchesInbound.data || []),
+      ];
+      for (const conn of allConns) {
         if (seen.has(conn.id)) continue;
         seen.add(conn.id);
         const meta = conn.metadata as Record<string, unknown> | undefined;

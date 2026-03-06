@@ -74,7 +74,6 @@ export async function GET(request: NextRequest) {
           display_name:
             data.user.user_metadata?.full_name ||
             data.user.user_metadata?.name ||
-            data.user.email?.split("@")[0] ||
             "",
           onboarding_completed: false,
         });

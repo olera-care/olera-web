@@ -150,11 +150,16 @@ function ProviderOnboardingContent() {
   // Pre-fill display name from account (set during signup / OAuth)
   const prefillAppliedRef = useRef(false);
   useEffect(() => {
-    if (!prefillAppliedRef.current && account?.display_name && !data.displayName) {
+    if (prefillAppliedRef.current || data.displayName) return;
+    const name = account?.display_name || "";
+    // Skip email-prefix-style names (e.g. "john" from "john@gmail.com")
+    const emailPrefix = user?.email?.split("@")[0] || "";
+    const resolvedName = name && name !== emailPrefix ? name : "";
+    if (resolvedName) {
       prefillAppliedRef.current = true;
-      setData((prev) => ({ ...prev, displayName: account.display_name ?? "" }));
+      setData((prev) => ({ ...prev, displayName: resolvedName }));
     }
-  }, [account?.display_name, data.displayName]);
+  }, [account?.display_name, user?.email, data.displayName]);
 
   // Track if we're still checking for landing page prefill (to avoid flashing step 1)
   const [checkingPrefill, setCheckingPrefill] = useState(true);
@@ -793,8 +798,7 @@ function ProviderOnboardingContent() {
     }
   };
 
-  const displayName =
-    account?.display_name || user?.email?.split("@")[0] || "back";
+  const displayName = account?.display_name || "back";
 
   // WizardNav step mapping
   const isOrg = providerType === "organization";
@@ -1990,7 +1994,7 @@ function ProviderOnboardingContent() {
                   <label className="block text-base font-medium text-gray-700 mb-3">
                     Certifications
                   </label>
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="grid grid-cols-2 gap-2">
                     {CAREGIVER_CERTIFICATIONS.map((cert) => {
                       const selected = data.certifications.includes(cert);
                       return (
@@ -2006,18 +2010,20 @@ function ProviderOnboardingContent() {
                             update("certifications", next);
                           }}
                           className={[
-                            "inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
+                            "flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-left border transition-all duration-200",
                             selected
-                              ? "bg-secondary-50 border-secondary-500 text-secondary-700"
-                              : "bg-white border-gray-300 text-gray-700 hover:border-gray-400",
+                              ? "bg-secondary-50 border-secondary-400 text-secondary-800"
+                              : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                           ].join(" ")}
                         >
-                          {selected && (
-                            <svg className="w-3.5 h-3.5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                          {cert}
+                          <span className={`w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center transition-colors ${selected ? "bg-secondary-500 border-secondary-500" : "border-gray-300"}`}>
+                            {selected && (
+                              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </span>
+                          <span className="text-sm font-medium">{cert}</span>
                         </button>
                       );
                     })}

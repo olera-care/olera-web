@@ -10,6 +10,7 @@ import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
 import OrganizationsTab from "./OrganizationsTab";
+import CaregiversTab from "./CaregiversTab";
 
 // ── Types ──
 
@@ -1021,18 +1022,21 @@ function FamilyCareCard({
 // Main Page
 // ---------------------------------------------------------------------------
 
-type MatchesView = "families" | "organizations";
+type MatchesView = "families" | "organizations" | "caregivers";
 
 export default function ProviderMatchesPage() {
   const providerProfile = useProviderProfile();
   const { membership, refreshAccountData } = useAuth();
   const isCaregiver = providerProfile?.type === "caregiver";
+  const isOrg = providerProfile?.type === "organization";
   const [activeView, setActiveView] = useState<MatchesView>("families");
 
   // Read ?tab= from URL on mount (avoids useSearchParams Suspense requirement)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("tab") === "organizations") setActiveView("organizations");
+    const tab = params.get("tab");
+    if (tab === "organizations") setActiveView("organizations");
+    if (tab === "caregivers") setActiveView("caregivers");
   }, []);
   const [families, setFamilies] = useState<Profile[]>([]);
   const [contactedIds, setContactedIds] = useState<Set<string>>(new Set());
@@ -1386,22 +1390,30 @@ export default function ProviderMatchesPage() {
       {/* ── Page header ── */}
       <div className="mb-5 lg:mb-8">
         <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
-          Matches
+          {isCaregiver ? "Find opportunities" : "Find families"}
         </h1>
-        <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
+        <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed max-w-2xl">
           {activeView === "families"
-            ? "Matched to your services and location. Reach out to start a conversation."
-            : "Browse organizations looking for caregivers."}
+            ? "Families and organizations in your area who may need your services. Browse matches and reach out to start a conversation."
+            : activeView === "organizations"
+            ? "Organizations hiring caregivers in your area. Apply to join their team."
+            : "Browse caregivers you could hire for your organization."}
         </p>
       </div>
 
-      {/* ── Top-level view tabs (caregiver only) ── */}
-      {isCaregiver && (
+      {/* ── Top-level view tabs ── */}
+      {(isCaregiver || isOrg) && (
         <div className="flex gap-1 border-b border-gray-200 mb-5 lg:mb-6">
-          {([
-            { id: "families" as const, label: "Families" },
-            { id: "organizations" as const, label: "Organizations" },
-          ]).map((tab) => (
+          {(isCaregiver
+            ? [
+                { id: "families" as MatchesView, label: "Families" },
+                { id: "organizations" as MatchesView, label: "Organizations" },
+              ]
+            : [
+                { id: "families" as MatchesView, label: "Families" },
+                { id: "caregivers" as MatchesView, label: "Caregivers" },
+              ]
+          ).map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -1422,6 +1434,8 @@ export default function ProviderMatchesPage() {
       {/* ── Organizations tab (caregiver find jobs) ── */}
       {isCaregiver && activeView === "organizations" ? (
         <OrganizationsTab />
+      ) : isOrg && activeView === "caregivers" ? (
+        <CaregiversTab />
       ) : (
       <>
 

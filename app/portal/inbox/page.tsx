@@ -417,6 +417,7 @@ function InboxContent() {
       const existingMeta = (conn.metadata as Record<string, unknown>) || {};
       const updatedMeta = {
         ...existingMeta,
+        archived: true,
         reported: true,
         reported_at: new Date().toISOString(),
         reported_by: activeProfile?.id,
@@ -452,7 +453,7 @@ function InboxContent() {
 
       // API confirmed — now update local state
       const existingMeta = (conn.metadata as Record<string, unknown>) || {};
-      const archiveMeta = { ...existingMeta, archived_from_status: conn.status };
+      const archiveMeta = { ...existingMeta, archived: true, archived_from_status: conn.status };
 
       managedOpsRef.current.set(connectionId, "expect_absent");
       setConnections((prev) =>

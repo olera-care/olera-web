@@ -1884,7 +1884,7 @@ function ProviderOnboardingContent() {
 
         {/* ── Step 5: Services / Experience + Review + Submit ── */}
         {step === 5 && (
-          <div className="w-full max-w-lg pb-24">
+          <div className="w-full max-w-lg lg:max-w-4xl pb-24">
             <div className="text-center mb-6 lg:mb-8">
               <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 {isCaregiver ? "Experience & services" : "Services offered"}
@@ -1896,6 +1896,10 @@ function ProviderOnboardingContent() {
               </p>
             </div>
 
+            <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-8 lg:items-start">
+
+            {/* Form column */}
+            <div>
             {/* Care types / skills — role-aware */}
             <div className="mb-6">
               <label className="block text-base font-medium text-gray-700 mb-3">
@@ -2056,8 +2060,10 @@ function ProviderOnboardingContent() {
 
             {/* Spacer between care types and preview for org flow */}
             {isOrg && <div className="mb-10" />}
+            </div>{/* end form column */}
 
-            {/* Mini listing card preview */}
+            {/* Mini listing card preview — sticky on desktop */}
+            <div className="mt-8 lg:mt-0 lg:sticky lg:top-24">
             <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
               {/* Gradient header with initials */}
               <div className="h-28 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative flex items-center justify-center">
@@ -2176,6 +2182,8 @@ function ProviderOnboardingContent() {
                 )}
               </div>
             </div>
+            </div>{/* end sticky preview wrapper */}
+            </div>{/* end grid */}
 
             {submitError && (
               <div

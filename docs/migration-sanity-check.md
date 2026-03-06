@@ -7,7 +7,7 @@
 
 ## Summary
 
-The migration-playbook.md covers provider pages and editorial content well. This sanity check found **11 gaps** that weren't previously caught — mostly around provider portal operations, sitemap coverage, and category-scoped content URLs.
+The migration-playbook.md covers provider pages and editorial content well. This sanity check found **14 redirect gaps** and **7 strategic gaps** — covering provider portal operations, sitemap coverage, category-scoped content URLs, user flow friction, taxonomy inconsistency, and SEO metadata.
 
 ---
 
@@ -54,6 +54,33 @@ The migration-playbook.md covers provider pages and editorial content well. This
 - [ ] **13. Forum content compressed to single URL** — All ~100+ forum discussions redirect to `/community`. If any had backlinks or traffic, that's content equity being funneled into one page. Acceptable trade-off if forum content is being rebuilt in community, but worth monitoring.
 
 - [ ] **14. `/research-and-press/c/{categorySlug}` not redirected** — *Found by OpenAI Codex audit (2026-03-06).* v1.0 had category index pages at `/research-and-press/c/{categorySlug}` (documented in `migration-playbook.md:179`). The old wildcard redirect was removed (`next.config.ts:48,54`), and v2.0 app routes only cover `/research-and-press` and `/research-and-press/[slug]` — no `/c/` segment. These category URLs will 404 after cutover. Fix: add a redirect from `/research-and-press/c/:slug` → `/research-and-press`.
+
+---
+
+## Strategic Gaps (Codex second-pass audit, 2026-03-06)
+
+> These go beyond redirect coverage into site architecture, user flows, and naming consistency.
+> Found by OpenAI Codex (gpt-5.3-codex) using the broader "north star" migration prompt.
+
+### Critical
+
+- [ ] **S1. Provider experience split between `/portal/*` and `/provider/*`** — Legacy redirects send providers to `/portal/*` (`next.config.ts:33`), while main nav sends them to `/provider/*` (`Navbar.tsx:549`). `/provider/connections` runs on mock data (`app/provider/connections/page.tsx:8`) while `/portal/connections` is real-data driven (`app/portal/connections/page.tsx:77`). **Action:** Clean up or remove the mock connections page; clarify the two hubs in nav.
+
+### High
+
+- [ ] **S2. Provider creation/claim funnel friction** — `/for-providers/create` redirects to `/onboarding?intent=provider` (`app/for-providers/create/page.tsx:18`), but onboarding logic can leave signed-in/completed users in a non-progressing state or bounce `intent=organization` to `/portal` (`app/onboarding/page.tsx:25-26`). Claim flow uses the organization intent path (`app/for-providers/claim/page.tsx:114`). **Action:** QA the create/claim/organization flows end-to-end; fix edge cases.
+
+- [ ] **S3. SEO canonical inconsistency (extends finding #6)** — Root layout sets global canonical `/` (`app/layout.tsx:34`). Important pages define metadata without canonical overrides: `/browse` (`app/browse/page.tsx:58`), `/team` (`app/team/page.tsx:5`), `/for-providers` (`app/for-providers/page.tsx:11`). **Action:** Add canonical overrides to all key pages.
+
+- [ ] **S4. Trust/legal dead-end links** — Footer links to `/privacy`, `/terms`, `/support` (`Footer.tsx:264`, `SimpleFooter.tsx:13`) only resolve via legacy `/pages/privacy` and `/pages/terms` redirects (`next.config.ts:44,66`). Org schema references missing `/contact` (`app/layout.tsx:83`). **Action:** Create proper pages or ensure redirects resolve cleanly; add `/contact` and `/support` routes.
+
+### Medium
+
+- [ ] **S5. Community runs on mock data** — Community page uses mock post data (`app/community/page.tsx:12`, `data/mock/forumPosts.ts:59`). Post detail has a back link to non-existent `/community/{careType}` (`app/community/post/[slug]/page.tsx:191`). Sitemap omits `/community/post/*` (`app/sitemap.ts:74,132`). **Action:** Fix broken back link; add "coming soon" state or hide from nav if not production-ready.
+
+- [ ] **S6. Taxonomy naming inconsistency across discovery surfaces** — Power pages use `home-health-care` / `nursing-home` (`lib/power-pages.ts:58,46`), while nav/browse/community use `home-health` / `nursing-homes` (`NavMenuData.ts:27,79`, `app/browse/page.tsx:16`). Inconsistent slugs fragment link equity. **Action:** Audit and standardize slugs across power pages, nav, and browse.
+
+- [ ] **S7. High-intent v1 funnels collapsed to homepage** — `/care-assessment`, `/caregiver-relief-network/*`, `/company/*` all redirect to `/` (`next.config.ts:50,77,79`) instead of nearest v2 equivalent. `/care-assessment` → `/benefits/finder` would preserve intent. **Action:** Remap high-intent redirects to their closest v2 task path.
 
 ---
 

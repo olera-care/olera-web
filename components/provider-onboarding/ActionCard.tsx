@@ -127,7 +127,7 @@ function InfoTooltip({
 
       {isOpen && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full mt-2 z-50 w-[calc(100vw-3rem)] max-w-72 p-3.5 bg-gray-900 text-white text-sm rounded-xl shadow-xl animate-fade-in"
+          className="absolute left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 top-full mt-2 z-[200] w-[calc(100vw-3rem)] max-w-72 p-3.5 bg-gray-900 text-white text-sm rounded-xl shadow-xl animate-fade-in"
           role="tooltip"
         >
           {/* Arrow */}
@@ -225,7 +225,7 @@ function RoleDropdown({
       {/* Dropdown menu */}
       {isOpen && (
         <div
-          className="absolute left-0 right-0 top-full mt-1.5 z-[100] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-fade-in max-h-[280px] overflow-y-auto"
+          className="absolute left-0 right-0 top-full mt-1.5 z-[200] bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-fade-in max-h-[280px] overflow-y-auto"
           role="listbox"
         >
           {ROLE_OPTIONS.map((option, index) => (
@@ -581,7 +581,7 @@ export default function ActionCard({
   // ────────────────────────────────────────────────────────────
 
   const baseCardClass =
-    "bg-white rounded-2xl border-2 shadow-sm p-6 md:p-8 transition-all duration-300";
+    "relative z-10 bg-white rounded-2xl border-2 shadow-sm p-6 md:p-8 transition-all duration-300";
   // Default: blue border to draw attention. Highlighted: orange/coral ring for urgent attention
   const cardClass = highlighted
     ? `${baseCardClass} border-orange-400 ring-4 ring-orange-200 shadow-lg shadow-orange-100/50 animate-pulse-subtle`

@@ -256,7 +256,7 @@ function MatchesSkeleton() {
 
 function MatchesEmptyState() {
   return (
-    <div className="lg:col-span-2">
+    <div>
       <div className="flex flex-col items-center text-center py-20 px-8">
         <div
           className="w-16 h-16 rounded-2xl bg-warm-100/60 border border-warm-200/50 flex items-center justify-center mb-6"
@@ -1350,41 +1350,10 @@ export default function ProviderMatchesPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <style dangerouslySetInnerHTML={{ __html: floatKeyframes }} />
       {/* ── Page header ── */}
-      <div className="mb-2 lg:mb-3">
+      <div className="mb-5 lg:mb-6">
         <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
           Matches
         </h1>
-      </div>
-
-      {/* ── Progress strip — adaptive to user state ── */}
-      <div className="mb-5 lg:mb-6 flex items-center gap-2 text-sm text-gray-500 flex-wrap">
-        {contactedIds.size === 0 && respondedIds.size === 0 ? (
-          // First-time user: orient them
-          <p>
-            <span className="font-semibold text-gray-700">{families.length} {families.length === 1 ? "family" : "families"}</span> near you looking for care — reach out to get started
-          </p>
-        ) : (
-          // Returning user: show pipeline
-          <>
-            <span className="inline-flex items-center gap-1.5">
-              <SendIcon className="w-3.5 h-3.5 text-gray-400" />
-              <span className="font-semibold text-gray-700">{contactedIds.size}</span> sent
-            </span>
-            <span className="text-gray-300">&middot;</span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircleIcon className="w-3.5 h-3.5 text-primary-500" />
-              <span className="font-semibold text-gray-700">{respondedIds.size}</span> {respondedIds.size === 1 ? "response" : "responses"}
-            </span>
-            {newSinceLastVisit > 0 && (
-              <>
-                <span className="text-gray-300">&middot;</span>
-                <span className="inline-flex items-center gap-1.5 text-primary-600 font-medium">
-                  {newSinceLastVisit} new
-                </span>
-              </>
-            )}
-          </>
-        )}
       </div>
 
       {/* ── Section A: Inbound interest — only visible when populated ── */}
@@ -1441,14 +1410,14 @@ export default function ProviderMatchesPage() {
         </div>
       )}
 
-      {/* ── Tabs with counts + Sort on the same row ── */}
+      {/* ── Tabs with counts ── */}
       {(isCaregiver || isOrg) && (
         <div className="flex items-center justify-between border-b border-gray-200 mb-5 lg:mb-6">
           <div className="flex gap-1">
             {(isCaregiver
               ? [
                   { id: "families" as MatchesView, label: "Families", count: families.length },
-                  { id: "organizations" as MatchesView, label: "Organizations" },
+                  { id: "organizations" as MatchesView, label: "Jobs" },
                 ]
               : [
                   { id: "families" as MatchesView, label: "Families", count: families.length },
@@ -1477,7 +1446,6 @@ export default function ProviderMatchesPage() {
           {/* Sort + filter dropdowns — visible in Families tab */}
           {activeView === "families" && (
             <div className="hidden lg:flex items-center gap-2 shrink-0 pb-2">
-              {/* Timeline filter */}
               <div className="relative">
                 <select
                   value={activeFilter}
@@ -1495,7 +1463,6 @@ export default function ProviderMatchesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                 </svg>
               </div>
-              {/* Sort */}
               <div className="relative">
                 <select
                   value={sortBy}
@@ -1518,143 +1485,141 @@ export default function ProviderMatchesPage() {
         </div>
       )}
 
-      {/* ── Organizations tab (caregiver find jobs) ── */}
-      {isCaregiver && activeView === "organizations" ? (
-        <OrganizationsTab providerCareTypes={providerCareTypes} />
-      ) : isOrg && activeView === "caregivers" ? (
-        <CaregiversTab />
-      ) : (
-      <>
-
-      {/* ── Content grid ── */}
-      {families.length === 0 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <MatchesEmptyState />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Main content — 2/3 */}
-          <div className="lg:col-span-2 space-y-5">
-            {filteredFamilies.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm text-center py-16 px-8">
-                <div className="w-12 h-12 rounded-2xl bg-warm-50 border border-warm-100/60 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-warm-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-                  </svg>
+      {/* ── Content grid — sidebar persists across all tabs ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Main content — 2/3 */}
+        <div className="lg:col-span-2">
+          {/* ── Organizations tab ── */}
+          {isCaregiver && activeView === "organizations" ? (
+            <OrganizationsTab providerCareTypes={providerCareTypes} />
+          ) : isOrg && activeView === "caregivers" ? (
+            /* ── Caregivers tab ── */
+            <CaregiversTab />
+          ) : (
+            /* ── Families tab ── */
+            <div className="space-y-5">
+              {families.length === 0 ? (
+                <MatchesEmptyState />
+              ) : filteredFamilies.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm text-center py-16 px-8">
+                  <div className="w-12 h-12 rounded-2xl bg-warm-50 border border-warm-100/60 flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-6 h-6 text-warm-300" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+                    </svg>
+                  </div>
+                  <p className="text-[15px] font-display font-semibold text-gray-900 mb-1">
+                    No matches for this filter
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Try &ldquo;All matches&rdquo; to see everyone.
+                  </p>
                 </div>
-                <p className="text-[15px] font-display font-semibold text-gray-900 mb-1">
-                  No matches for this filter
-                </p>
-                <p className="text-sm text-gray-500">
-                  Try &ldquo;All matches&rdquo; to see everyone.
-                </p>
-              </div>
-            ) : (
-              filteredFamilies.map((family, idx) => (
-                <div key={family.id}>
-                  <FamilyCareCard
-                    family={family}
-                    hasFullAccess={hasFullAccess}
-                    fromProfileId={profileId!}
-                    providerCareTypes={providerCareTypes}
-                    freeRemaining={freeRemaining}
-                    isExpanded={expandedCardId === family.id}
-                    onExpand={(f) => handleExpand(f.id, f)}
-                    onCollapse={handleCollapse}
-                    providerProfile={providerProfile}
-                    reachOutNote={reachOutNote}
-                    onNoteChange={setReachOutNote}
-                    saveAsDefault={saveAsDefault}
-                    onSaveAsDefaultChange={setSaveAsDefault}
-                    sending={sending}
-                    onSend={() => handleSend(family.id)}
-                    sendError={sendError}
-                    reachOutCount={reachOutCounts.get(family.id) || 0}
-                    isNew={isNewCard(family.created_at)}
-                  />
-                </div>
-              ))
-            )}
-
-            {/* Already contacted */}
-            {contactedFamilies.length > 0 && (
-              <div className="pt-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                  Already contacted &middot; {contactedFamilies.length}
-                </p>
-                <div className="space-y-5">
-                  {contactedFamilies.map((family) => (
+              ) : (
+                filteredFamilies.map((family) => (
+                  <div key={family.id}>
                     <FamilyCareCard
-                      key={family.id}
                       family={family}
                       hasFullAccess={hasFullAccess}
                       fromProfileId={profileId!}
                       providerCareTypes={providerCareTypes}
                       freeRemaining={freeRemaining}
-                      contacted
-                      reachOutCount={reachOutCounts.get(family.id) || 0}
+                      isExpanded={expandedCardId === family.id}
+                      onExpand={(f) => handleExpand(f.id, f)}
+                      onCollapse={handleCollapse}
                       providerProfile={providerProfile}
+                      reachOutNote={reachOutNote}
+                      onNoteChange={setReachOutNote}
+                      saveAsDefault={saveAsDefault}
+                      onSaveAsDefaultChange={setSaveAsDefault}
+                      sending={sending}
+                      onSend={() => handleSend(family.id)}
+                      sendError={sendError}
+                      reachOutCount={reachOutCounts.get(family.id) || 0}
+                      isNew={isNewCard(family.created_at)}
                     />
-                  ))}
+                  </div>
+                ))
+              )}
 
+              {/* Already contacted */}
+              {contactedFamilies.length > 0 && (
+                <div className="pt-4">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                    Already contacted &middot; {contactedFamilies.length}
+                  </p>
+                  <div className="space-y-5">
+                    {contactedFamilies.map((family) => (
+                      <FamilyCareCard
+                        key={family.id}
+                        family={family}
+                        hasFullAccess={hasFullAccess}
+                        fromProfileId={profileId!}
+                        providerCareTypes={providerCareTypes}
+                        freeRemaining={freeRemaining}
+                        contacted
+                        reachOutCount={reachOutCounts.get(family.id) || 0}
+                        providerProfile={providerProfile}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Load more */}
-            {hasMore && (
-              <div className="flex justify-center pt-4">
-                <button
-                  type="button"
-                  onClick={() => fetchFamilies(families.length)}
-                  disabled={loadingMore}
-                  className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingMore ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                      Loading...
-                    </span>
-                  ) : (
-                    "Load more matches"
-                  )}
-                </button>
-              </div>
-            )}
+              {/* Load more */}
+              {hasMore && (
+                <div className="flex justify-center pt-4">
+                  <button
+                    type="button"
+                    onClick={() => fetchFamilies(families.length)}
+                    disabled={loadingMore}
+                    className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                        Loading...
+                      </span>
+                    ) : (
+                      "Load more matches"
+                    )}
+                  </button>
+                </div>
+              )}
 
-            {/* Inline error for load-more failures */}
-            {fetchError && families.length > 0 && (
-              <div className="flex items-center justify-center gap-3 py-4">
-                <p className="text-sm text-red-500">Couldn&apos;t load more matches.</p>
-                <button
-                  type="button"
-                  onClick={() => fetchFamilies(families.length)}
-                  className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Retry
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Sidebar — hidden on mobile */}
-          <div className="hidden lg:block lg:col-span-1">
-            <MatchesSidebar
-              remaining={freeRemaining}
-              totalFamilies={families.length}
-              isFreeTier={isFreeTier}
-              contactedCount={contactedIds.size}
-              respondedCount={respondedIds.size}
-              newMatchesToday={families.filter((f) => {
-                const created = f.created_at ? new Date(f.created_at) : null;
-                if (!created) return false;
-                const today = new Date();
-                return created.toDateString() === today.toDateString();
-              }).length}
-            />
-          </div>
+              {/* Inline error for load-more failures */}
+              {fetchError && families.length > 0 && (
+                <div className="flex items-center justify-center gap-3 py-4">
+                  <p className="text-sm text-red-500">Couldn&apos;t load more matches.</p>
+                  <button
+                    type="button"
+                    onClick={() => fetchFamilies(families.length)}
+                    className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Sidebar — hidden on mobile, persistent across all tabs */}
+        <div className="hidden lg:block lg:col-span-1">
+          <MatchesSidebar
+            remaining={freeRemaining}
+            totalFamilies={families.length}
+            isFreeTier={isFreeTier}
+            contactedCount={contactedIds.size}
+            respondedCount={respondedIds.size}
+            newMatchesToday={families.filter((f) => {
+              const created = f.created_at ? new Date(f.created_at) : null;
+              if (!created) return false;
+              const today = new Date();
+              return created.toDateString() === today.toDateString();
+            }).length}
+          />
+        </div>
+      </div>
 
       {/* ── Mobile Reach Out Bottom Sheet ── */}
       {reachOutSheetFamily && (
@@ -1766,8 +1731,6 @@ export default function ProviderMatchesPage() {
           </div>
         </>
       )}
-    </>
-    )}
 
     {/* ── Toast notification ── */}
     {toast && (

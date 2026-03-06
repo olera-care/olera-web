@@ -921,6 +921,33 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
+/** Migrate old unscoped leads key to new profile-scoped key (one-time) */
+function migrateLeadsViewedData(providerProfileId: string): void {
+  const OLD_KEY = "olera_leads_viewed";
+  const newKey = `olera_leads_viewed_${providerProfileId}`;
+  const migrationFlag = `olera_leads_migrated_${providerProfileId}`;
+
+  try {
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      const existingNew = localStorage.getItem(newKey);
+      if (!existingNew) {
+        localStorage.setItem(newKey, oldData);
+      } else {
+        const oldIds: string[] = JSON.parse(oldData);
+        const newIds: string[] = JSON.parse(existingNew);
+        const merged = [...new Set([...oldIds, ...newIds])];
+        localStorage.setItem(newKey, JSON.stringify(merged));
+      }
+    }
+    localStorage.setItem(migrationFlag, "1");
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 interface ConnectionWithProfile extends Connection {
   fromProfile?: Profile | null;
 }
@@ -988,6 +1015,8 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   // Check if this is a "new" lead (not viewed yet) - scoped by provider profile
   let isNew = false;
   try {
+    // Migrate old data on first access
+    migrateLeadsViewedData(providerProfileId);
     const leadsKey = `olera_leads_viewed_${providerProfileId}`;
     const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
     isNew = !viewedIds.includes(conn.id) && status !== "archived" && status !== "replied";

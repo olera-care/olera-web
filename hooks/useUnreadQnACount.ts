@@ -1,7 +1,41 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+
+/**
+ * Migrate old unscoped localStorage key to new profile-scoped key.
+ * Only runs once per provider slug.
+ */
+function migrateQnAReadData(providerSlug: string): void {
+  const OLD_KEY = "olera_qna_read";
+  const newKey = `olera_qna_read_${providerSlug}`;
+  const migrationFlag = `olera_qna_migrated_${providerSlug}`;
+
+  try {
+    // Skip if already migrated
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      const existingNew = localStorage.getItem(newKey);
+      if (!existingNew) {
+        // Migrate old data to new key
+        localStorage.setItem(newKey, oldData);
+      } else {
+        // Merge old and new data
+        const oldIds: string[] = JSON.parse(oldData);
+        const newIds: string[] = JSON.parse(existingNew);
+        const merged = [...new Set([...oldIds, ...newIds])];
+        localStorage.setItem(newKey, JSON.stringify(merged));
+      }
+    }
+    // Mark as migrated
+    localStorage.setItem(migrationFlag, "1");
+  } catch {
+    // localStorage unavailable
+  }
+}
 
 /**
  * Lightweight hook that counts unread pending Q&A questions for a provider.
@@ -13,6 +47,15 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
  */
 export function useUnreadQnACount(providerSlug: string | null): number {
   const [count, setCount] = useState(0);
+  const migratedRef = useRef(false);
+
+  // Migrate old data on first run
+  useEffect(() => {
+    if (providerSlug && !migratedRef.current) {
+      migrateQnAReadData(providerSlug);
+      migratedRef.current = true;
+    }
+  }, [providerSlug]);
 
   const recount = useCallback(() => {
     if (!providerSlug) {

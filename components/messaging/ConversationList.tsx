@@ -147,8 +147,37 @@ function getInboxReadKey(profileId: string): string {
   return `olera_inbox_read_${profileId}`;
 }
 
+/** Migrate old unscoped key to new profile-scoped key (one-time) */
+function migrateInboxReadData(profileId: string): void {
+  const OLD_KEY = "olera_inbox_read";
+  const newKey = getInboxReadKey(profileId);
+  const migrationFlag = `olera_inbox_migrated_${profileId}`;
+
+  try {
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      const existingNew = localStorage.getItem(newKey);
+      if (!existingNew) {
+        localStorage.setItem(newKey, oldData);
+      } else {
+        const oldIds: string[] = JSON.parse(oldData);
+        const newIds: string[] = JSON.parse(existingNew);
+        const merged = [...new Set([...oldIds, ...newIds])];
+        localStorage.setItem(newKey, JSON.stringify(merged));
+      }
+    }
+    localStorage.setItem(migrationFlag, "1");
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 function getReadSet(profileId: string): Set<string> {
   try {
+    // Ensure migration runs before reading
+    migrateInboxReadData(profileId);
     const raw = localStorage.getItem(getInboxReadKey(profileId));
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch {

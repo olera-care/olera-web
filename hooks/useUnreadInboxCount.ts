@@ -1,7 +1,41 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+
+/**
+ * Migrate old unscoped localStorage key to new profile-scoped key.
+ * Only runs once per profile key.
+ */
+function migrateInboxReadData(profileKey: string): void {
+  const OLD_KEY = "olera_inbox_read";
+  const newKey = `olera_inbox_read_${profileKey}`;
+  const migrationFlag = `olera_inbox_migrated_${profileKey}`;
+
+  try {
+    // Skip if already migrated
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      const existingNew = localStorage.getItem(newKey);
+      if (!existingNew) {
+        // Migrate old data to new key
+        localStorage.setItem(newKey, oldData);
+      } else {
+        // Merge old and new data
+        const oldIds: string[] = JSON.parse(oldData);
+        const newIds: string[] = JSON.parse(existingNew);
+        const merged = [...new Set([...oldIds, ...newIds])];
+        localStorage.setItem(newKey, JSON.stringify(merged));
+      }
+    }
+    // Mark as migrated (don't delete old key yet - other profiles may need it)
+    localStorage.setItem(migrationFlag, "1");
+  } catch {
+    // localStorage unavailable
+  }
+}
 
 /**
  * Lightweight hook that counts unread inbox conversations.
@@ -16,9 +50,18 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
  */
 export function useUnreadInboxCount(profileIds: string[]): number {
   const [count, setCount] = useState(0);
+  const migratedRef = useRef(false);
 
   // Stable key for deps — avoids re-running on every render when array ref changes
   const profileKey = profileIds.join(",");
+
+  // Migrate old data on first run
+  useEffect(() => {
+    if (profileKey && !migratedRef.current) {
+      migrateInboxReadData(profileKey);
+      migratedRef.current = true;
+    }
+  }, [profileKey]);
 
   const recount = useCallback(() => {
     if (!profileKey) return;

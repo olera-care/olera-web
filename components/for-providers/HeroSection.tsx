@@ -46,7 +46,7 @@ export default function HeroSection() {
       openAuth({
         intent: "provider",
         deferred: {
-          action: "redirect",
+          action: "claim",
           returnUrl: targetUrl,
         },
       });

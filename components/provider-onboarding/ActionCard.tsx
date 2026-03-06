@@ -591,21 +591,19 @@ export default function ActionCard({
   if (state === "pre-verified") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
             <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-              Email verified
-              <InfoTooltip content={TOOLTIP_CONTENT["pre-verified"].text} showTos={TOOLTIP_CONTENT["pre-verified"].showTos} />
-            </h3>
-            <p className="text-[15px] text-gray-500">
-              <span className="font-semibold text-gray-700">{emailHint || preVerifiedEmail}</span> is verified. Sign in to continue.
-            </p>
-          </div>
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+            Email verified
+            <InfoTooltip content={TOOLTIP_CONTENT["pre-verified"].text} showTos={TOOLTIP_CONTENT["pre-verified"].showTos} />
+          </h3>
+          <p className="text-[15px] text-gray-500">
+            <span className="font-semibold text-gray-700">{emailHint || preVerifiedEmail}</span> is verified. Sign in to continue.
+          </p>
         </div>
 
         <button
@@ -625,21 +623,19 @@ export default function ActionCard({
   if (state === "no-access-success") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
             <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-              Request submitted
-              <InfoTooltip content={TOOLTIP_CONTENT["no-access-success"].text} />
-            </h3>
-            <p className="text-[15px] text-gray-500">
-              We&apos;ll review and respond within 2–3 business days.
-            </p>
-          </div>
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+            Request submitted
+            <InfoTooltip content={TOOLTIP_CONTENT["no-access-success"].text} />
+          </h3>
+          <p className="text-[15px] text-gray-500">
+            We&apos;ll review and respond within 2–3 business days.
+          </p>
         </div>
 
         <Link
@@ -659,21 +655,19 @@ export default function ActionCard({
   if (state === "dispute-submitted") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
             <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-              Dispute submitted
-              <InfoTooltip content={TOOLTIP_CONTENT["dispute-submitted"].text} />
-            </h3>
-            <p className="text-[15px] text-gray-500">
-              We&apos;ll review and respond within 2–3 business days.
-            </p>
-          </div>
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+            Dispute submitted
+            <InfoTooltip content={TOOLTIP_CONTENT["dispute-submitted"].text} />
+          </h3>
+          <p className="text-[15px] text-gray-500">
+            We&apos;ll review and respond within 2–3 business days.
+          </p>
         </div>
 
         <Link
@@ -698,24 +692,22 @@ export default function ActionCard({
   if (showNoAccessForm) {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
             <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-              {!hasEmailOnFile ? "We don't have your email" : "Verify your identity"}
-              <InfoTooltip content={TOOLTIP_CONTENT["no-access"].text} showTos={TOOLTIP_CONTENT["no-access"].showTos} />
-            </h3>
-            <p className="text-[15px] text-gray-500">
-              {!hasEmailOnFile
-                ? "Send us your business email so we can verify your connection to this listing."
-                : "Tell us about yourself and your role at this organization."
-              }
-            </p>
-          </div>
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+            {!hasEmailOnFile ? "We don't have your email" : "Verify your identity"}
+            <InfoTooltip content={TOOLTIP_CONTENT["no-access"].text} showTos={TOOLTIP_CONTENT["no-access"].showTos} />
+          </h3>
+          <p className="text-[15px] text-gray-500">
+            {!hasEmailOnFile
+              ? "Send us your business email so we can verify your connection to this listing."
+              : "Tell us about yourself and your role at this organization."
+            }
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -833,21 +825,19 @@ export default function ActionCard({
   if (state === "already-claimed") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/10 border border-amber-200/60">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-amber-500/10 border border-amber-200/60">
             <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-              This listing is claimed
-              <InfoTooltip content={TOOLTIP_CONTENT["already-claimed"].text} showTos={TOOLTIP_CONTENT["already-claimed"].showTos} />
-            </h3>
-            <p className="text-[15px] text-gray-500">
-              Submit a dispute if you should manage this listing.
-            </p>
-          </div>
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+            This listing is claimed
+            <InfoTooltip content={TOOLTIP_CONTENT["already-claimed"].text} showTos={TOOLTIP_CONTENT["already-claimed"].showTos} />
+          </h3>
+          <p className="text-[15px] text-gray-500">
+            Submit a dispute if you should manage this listing.
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -965,22 +955,20 @@ export default function ActionCard({
   if (state === "verify-code") {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-        {/* Header - same style as other states */}
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+        {/* Header - centered style */}
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
             <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-              Enter verification code
-              <InfoTooltip content={TOOLTIP_CONTENT["verify-code"].text} />
-            </h3>
-            <p className="text-[15px] text-gray-500">
-              We sent a 6-digit code to <span className="font-semibold text-gray-700">{emailHint}</span>
-            </p>
-          </div>
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+            Enter verification code
+            <InfoTooltip content={TOOLTIP_CONTENT["verify-code"].text} />
+          </h3>
+          <p className="text-[15px] text-gray-500">
+            We sent a 6-digit code to <span className="font-semibold text-gray-700">{emailHint}</span>
+          </p>
         </div>
 
         {/* Code input */}
@@ -1044,9 +1032,9 @@ export default function ActionCard({
 
   return (
     <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
-      {/* Compact header with inline email */}
-      <div className="flex items-start gap-4 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+      {/* Centered header with email */}
+      <div className="text-center mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
           <svg className="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24">
             <path
               stroke="currentColor"
@@ -1057,15 +1045,13 @@ export default function ActionCard({
             />
           </svg>
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-            Verify your email
-            <InfoTooltip content={TOOLTIP_CONTENT["verify-form"].text} showTos={TOOLTIP_CONTENT["verify-form"].showTos} />
-          </h3>
-          <p className="text-[15px] text-gray-500">
-            We&apos;ll send a code to <span className="font-semibold text-gray-700">{maskEmail(verifyEmail)}</span>
-          </p>
-        </div>
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+          Verify your email
+          <InfoTooltip content={TOOLTIP_CONTENT["verify-form"].text} showTos={TOOLTIP_CONTENT["verify-form"].showTos} />
+        </h3>
+        <p className="text-[15px] text-gray-500">
+          We&apos;ll send a code to <span className="font-semibold text-gray-700">{maskEmail(verifyEmail)}</span>
+        </p>
       </div>
 
       {error && (

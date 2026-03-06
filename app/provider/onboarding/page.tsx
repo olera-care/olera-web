@@ -152,7 +152,7 @@ function ProviderOnboardingContent() {
   useEffect(() => {
     if (!prefillAppliedRef.current && account?.display_name && !data.displayName) {
       prefillAppliedRef.current = true;
-      setData((prev) => ({ ...prev, displayName: account.display_name }));
+      setData((prev) => ({ ...prev, displayName: account.display_name ?? "" }));
     }
   }, [account?.display_name, data.displayName]);
 

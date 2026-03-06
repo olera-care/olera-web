@@ -1,0 +1,20 @@
+# Gemini Code Assist configuration for Olera Web
+
+# Code review settings
+code_review:
+  comment_severity_threshold: MEDIUM
+  max_review_comments: 20
+  pull_request_opened: true
+
+# Files to ignore during analysis
+ignore_patterns:
+  - "node_modules/**"
+  - ".next/**"
+  - "public/data/**"
+  - "*.lock"
+  - ".vercel/**"
+  - "archive/**"
+
+# Memory persistence
+memory_config:
+  enabled: true

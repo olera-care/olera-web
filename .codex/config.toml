@@ -1,0 +1,8 @@
+# OpenAI Codex CLI configuration for Olera Web
+# This is a read-only audit — no code modifications
+
+model = "o4-mini"
+personality = "pragmatic"
+
+# Read-only sandbox — audit only, no file writes
+sandbox = "read-only"

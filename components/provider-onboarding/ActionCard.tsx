@@ -690,7 +690,12 @@ export default function ActionCard({
   // RENDER: No-Access Form State
   // ════════════════════════════════════════════════════════════
 
-  if (state === "no-access") {
+  // Check if we should show no-access form (either explicit state or no email on file)
+  const businessEmail = provider.email;
+  const hasEmailOnFile = !!businessEmail;
+  const showNoAccessForm = state === "no-access" || (state === "verify-form" && !hasEmailOnFile);
+
+  if (showNoAccessForm) {
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
         <div className="flex items-start gap-4 mb-6">
@@ -701,11 +706,14 @@ export default function ActionCard({
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-display font-bold text-gray-900 mb-1 flex items-center gap-1.5">
-              Verify your identity
+              {!hasEmailOnFile ? "We don't have your email" : "Verify your identity"}
               <InfoTooltip content={TOOLTIP_CONTENT["no-access"].text} showTos={TOOLTIP_CONTENT["no-access"].showTos} />
             </h3>
             <p className="text-[15px] text-gray-500">
-              Tell us about yourself and your role at this organization.
+              {!hasEmailOnFile
+                ? "Send us your business email so we can verify your connection to this listing."
+                : "Tell us about yourself and your role at this organization."
+              }
             </p>
           </div>
         </div>
@@ -1028,11 +1036,11 @@ export default function ActionCard({
   }
 
   // ════════════════════════════════════════════════════════════
-  // RENDER: Verify Form State (Default) - Simplified
+  // RENDER: Verify Form State (Default) - Only shown when email exists
   // ════════════════════════════════════════════════════════════
 
-  const businessEmail = provider.email;
-  const hasEmailOnFile = !!businessEmail;
+  // Note: If no email on file, showNoAccessForm above will be true and we won't reach here
+  const verifyEmail = provider.email!;
 
   return (
     <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
@@ -1054,15 +1062,9 @@ export default function ActionCard({
             Verify your email
             <InfoTooltip content={TOOLTIP_CONTENT["verify-form"].text} showTos={TOOLTIP_CONTENT["verify-form"].showTos} />
           </h3>
-          {hasEmailOnFile ? (
-            <p className="text-[15px] text-gray-500">
-              We&apos;ll send a code to <span className="font-semibold text-gray-700">{maskEmail(businessEmail)}</span>
-            </p>
-          ) : (
-            <p className="text-[15px] text-gray-500">
-              Verify your connection to manage this listing.
-            </p>
-          )}
+          <p className="text-[15px] text-gray-500">
+            We&apos;ll send a code to <span className="font-semibold text-gray-700">{maskEmail(verifyEmail)}</span>
+          </p>
         </div>
       </div>
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import type { Provider } from "@/lib/types/provider";
 import type { Profile, OrganizationMetadata } from "@/lib/types";
 import { parseProviderImages, getPrimaryImage } from "@/lib/types/provider";
@@ -8,6 +10,8 @@ import {
   calculateProfileCompleteness,
   type ExtendedMetadata,
 } from "@/lib/profile-completeness";
+import { useNavbar } from "@/components/shared/NavbarContext";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 // Dashboard card components (reused in preview mode)
 import ProfileOverviewCard from "@/components/provider-dashboard/ProfileOverviewCard";
@@ -22,6 +26,68 @@ import ProfileCompletenessSidebar from "@/components/provider-dashboard/ProfileC
 // Onboarding components
 import OnboardingWizard from "./OnboardingWizard";
 import ActionCard, { type ActionCardState } from "./ActionCard";
+
+// ============================================================
+// Onboarding Header (replaces main navbar during claim flow)
+// ============================================================
+
+function OnboardingHeader({ providerName }: { providerName: string }) {
+  const { user, activeProfile } = useAuth();
+  // User has an existing provider profile if activeProfile is an organization type
+  const hasExistingProvider = activeProfile?.type === "organization";
+
+  return (
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <Image
+              src="/images/olera-logo.svg"
+              alt="Olera"
+              width={28}
+              height={28}
+              className="w-7 h-7"
+            />
+            <span className="text-lg font-display font-bold text-gray-900">Olera</span>
+          </Link>
+
+          {/* Center: Claiming context */}
+          <div className="hidden sm:flex items-center gap-2 text-sm">
+            <span className="text-gray-400">Claiming:</span>
+            <span className="font-semibold text-gray-700 truncate max-w-[200px] md:max-w-[300px]">
+              {providerName}
+            </span>
+          </div>
+
+          {/* Right: Back to dashboard (if logged in with existing provider) */}
+          {user && hasExistingProvider && (
+            <Link
+              href="/provider"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="hidden sm:inline">Back to my dashboard</span>
+              <span className="sm:hidden">Dashboard</span>
+            </Link>
+          )}
+
+          {/* If not logged in, show nothing on right (or could show login later) */}
+          {!user && <div />}
+        </div>
+      </div>
+
+      {/* Mobile: Show provider name below */}
+      <div className="sm:hidden border-t border-gray-50 px-4 py-2 bg-gray-50/50">
+        <p className="text-xs text-gray-400">
+          Claiming: <span className="font-medium text-gray-600">{providerName}</span>
+        </p>
+      </div>
+    </header>
+  );
+}
 
 // ============================================================
 // Mobile Progress Banner (matches DashboardPage)
@@ -171,6 +237,14 @@ export default function SmartDashboardShell({
   initialActionState = "verify-form",
   preVerifiedEmail,
 }: SmartDashboardShellProps) {
+  const { setForceHidden } = useNavbar();
+
+  // Hide main navbar on mount, restore on unmount
+  useEffect(() => {
+    setForceHidden(true);
+    return () => setForceHidden(false);
+  }, [setForceHidden]);
+
   // Convert provider to profile shape
   const profile = useMemo(() => providerToProfile(provider), [provider]);
   const metadata = profile.metadata as ExtendedMetadata;
@@ -223,6 +297,9 @@ export default function SmartDashboardShell({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+      {/* Custom Onboarding Header (main navbar is hidden) */}
+      <OnboardingHeader providerName={provider.provider_name} />
+
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Mobile Progress Banner */}

@@ -50,11 +50,9 @@ function OnboardingHeader({ providerName }: { providerName: string }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <svg className="w-6 h-6 text-primary-600" viewBox="0 0 32 32" fill="currentColor">
-              <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm0 4c2.758 0 5.258 1.06 7.14 2.79l-3.18 3.18A6.96 6.96 0 0016 10.5a6.96 6.96 0 00-3.96 1.47l-3.18-3.18A9.94 9.94 0 0116 6zm-6.93 4.93l3.18 3.18A6.96 6.96 0 0010.5 16c0 .7.1 1.38.29 2.02l-3.6 2.08A9.9 9.9 0 016 16c0-1.93.55-3.73 1.5-5.26l1.57 1.19zM16 22.5c-3.59 0-6.5-2.91-6.5-6.5 0-3.59 2.91-6.5 6.5-6.5s6.5 2.91 6.5 6.5c0 3.59-2.91 6.5-6.5 6.5zm8.81-2.4l-3.6-2.08c.19-.64.29-1.32.29-2.02 0-.7-.1-1.38-.29-2.02l3.6-2.08A9.9 9.9 0 0126 16c0 1.54-.35 3-.79 4.32l-1.4-.22z"/>
-            </svg>
-            <span className="text-lg font-display font-bold text-gray-900">Olera</span>
+          <Link href="/" className="flex items-center space-x-2 shrink-0">
+            <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
+            <span className="text-xl font-bold text-gray-900">Olera</span>
           </Link>
 
           {/* Center: Claiming context */}
@@ -310,7 +308,7 @@ export default function SmartDashboardShell({
   const isWizardActive = !wizardComplete;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white ${wizardComplete ? "pt-16 sm:pt-20" : ""}`}>
+    <div className={`min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white ${wizardComplete ? "pt-16" : ""}`}>
       {/* Custom Onboarding Header - only shown after wizard completes (fixed position) */}
       {wizardComplete && <OnboardingHeader providerName={provider.provider_name} />}
 

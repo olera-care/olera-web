@@ -111,6 +111,54 @@ function CheckIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
+// ── Tips Accordion Component ──
+
+function TipsAccordion({ title, children }: { title: string; children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border-t border-gray-100">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-4 bg-gray-300 rounded-full" />
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            {title}
+          </span>
+        </div>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform duration-300 ease-out ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={`px-6 pb-5 transition-opacity duration-200 ${
+              isOpen ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Avatar Component ──
 
 function Avatar({
@@ -692,15 +740,8 @@ function QnASidebar({ publishedCount, providerSlug }: { publishedCount: number; 
             </div>
           </div>
 
-          {/* ── Section 3: Tips for Better Answers ── */}
-          <div className="px-6 py-5 border-t border-gray-100">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-1 h-4 bg-gray-300 rounded-full" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Tips for Better Answers
-              </span>
-            </div>
-
+          {/* ── Section 3: Tips for Better Answers (Collapsible) ── */}
+          <TipsAccordion title="Tips for Better Answers">
             <div className="space-y-4">
               {/* Tip 1 */}
               <div className="flex items-start gap-3">
@@ -741,7 +782,7 @@ function QnASidebar({ publishedCount, providerSlug }: { publishedCount: number; 
                 </div>
               </div>
             </div>
-          </div>
+          </TipsAccordion>
         </div>
       </div>
     </div>

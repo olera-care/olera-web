@@ -548,12 +548,12 @@ export default function Navbar() {
                   /* Provider Hub nav links */
                   <>
                     {([
-                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0 },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount },
-                      { label: "Q&A", href: "/provider/qna", match: "/provider/qna", badge: qnaCount },
-                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
-                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0 },
+                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0, wizardTarget: "dashboard" },
+                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount, wizardTarget: "inbox" },
+                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, wizardTarget: "leads" },
+                      { label: "Q&A", href: "/provider/qna", match: "/provider/qna", badge: qnaCount, wizardTarget: "qna" },
+                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0, wizardTarget: "reviews" },
+                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0, wizardTarget: "matches" },
                     ] as const).map((item) => {
                       const active = item.match
                         ? item.match === "/provider"
@@ -564,6 +564,7 @@ export default function Navbar() {
                         <Link
                           key={item.label}
                           href={item.href}
+                          data-wizard-target={item.wizardTarget}
                           className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
                             active
                               ? "text-primary-600"

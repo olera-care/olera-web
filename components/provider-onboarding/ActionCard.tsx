@@ -322,6 +322,9 @@ export default function ActionCard({
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeSubmitting, setDisputeSubmitting] = useState(false);
 
+  // Track if user clicked to show identity form (when no email on file)
+  const [showIdentityForm, setShowIdentityForm] = useState(false);
+
   // Refs for auto-submit
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const autoSubmitRef = useRef(false);
@@ -681,15 +684,60 @@ export default function ActionCard({
   }
 
   // ════════════════════════════════════════════════════════════
-  // RENDER: No-Access Form State
+  // RENDER: No-Access / No-Email States
   // ════════════════════════════════════════════════════════════
 
-  // Check if we should show no-access form (either explicit state or no email on file)
+  // Check email availability
   const businessEmail = provider.email;
   const hasEmailOnFile = !!businessEmail;
-  const showNoAccessForm = state === "no-access" || (state === "verify-form" && !hasEmailOnFile);
+
+  // Determine what to show:
+  // 1. "no-access" state (user clicked "I don't have access") -> show identity form
+  // 2. "verify-form" state with no email on file AND user clicked button -> show identity form
+  // 3. "verify-form" state with no email on file but hasn't clicked -> show prompt card
+  const showNoAccessForm = state === "no-access" || (state === "verify-form" && !hasEmailOnFile && showIdentityForm);
+  const showNoEmailPrompt = state === "verify-form" && !hasEmailOnFile && !showIdentityForm;
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: No Email Prompt Card (intermediate step)
+  // ════════════════════════════════════════════════════════════
+
+  if (showNoEmailPrompt) {
+    return (
+      <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center mx-auto mb-4 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
+            We don&apos;t have your email
+            <InfoTooltip content="We don't have an email on file for this listing. You'll need to verify your identity manually so we can confirm your connection." showTos />
+          </h3>
+          <p className="text-[15px] text-gray-500">
+            Send us your business email so we can verify your connection to this listing.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowIdentityForm(true)}
+          className="w-full sm:max-w-[280px] sm:mx-auto py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 active:scale-[0.99] transition-all min-h-[48px] shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 block"
+        >
+          Verify your identity
+        </button>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // RENDER: No-Access Form State (full identity form)
+  // ════════════════════════════════════════════════════════════
 
   if (showNoAccessForm) {
+    // Determine if we came from "no email" prompt or "I don't have access" link
+    const cameFromNoEmailPrompt = !hasEmailOnFile && showIdentityForm;
+
     return (
       <div className={cardClass} style={{ animation: "card-enter 0.25s ease-out both" }}>
         <div className="text-center mb-6">
@@ -699,14 +747,11 @@ export default function ActionCard({
             </svg>
           </div>
           <h3 className="text-lg font-display font-bold text-gray-900 mb-1 inline-flex items-center gap-1.5">
-            {!hasEmailOnFile ? "We don't have your email" : "Verify your identity"}
+            Verify your identity
             <InfoTooltip content={TOOLTIP_CONTENT["no-access"].text} showTos={TOOLTIP_CONTENT["no-access"].showTos} />
           </h3>
           <p className="text-[15px] text-gray-500">
-            {!hasEmailOnFile
-              ? "Send us your business email so we can verify your connection to this listing."
-              : "Tell us about yourself and your role at this organization."
-            }
+            Tell us about yourself and your role at this organization.
           </p>
         </div>
 
@@ -797,7 +842,16 @@ export default function ActionCard({
           <div className="flex items-center justify-between pt-3">
             <button
               type="button"
-              onClick={() => { setState("verify-form"); setError(""); }}
+              onClick={() => {
+                if (cameFromNoEmailPrompt) {
+                  // Go back to the prompt card
+                  setShowIdentityForm(false);
+                } else {
+                  // Go back to verify-form (has email)
+                  setState("verify-form");
+                }
+                setError("");
+              }}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

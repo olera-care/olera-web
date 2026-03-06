@@ -547,39 +547,61 @@ export default function Navbar() {
                 {isProviderPortal ? (
                   /* Provider Hub nav links */
                   <>
-                    {([
-                      { label: "Dashboard", href: "/provider", match: "/provider", badge: 0, wizardTarget: "dashboard" },
-                      { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount, wizardTarget: "inbox" },
-                      { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount, wizardTarget: "leads" },
-                      { label: "Q&A", href: "/provider/qna", match: "/provider/qna", badge: qnaCount, wizardTarget: "qna" },
-                      { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0, wizardTarget: "reviews" },
-                      { label: "Matches", href: "/provider/matches", match: "/provider/matches", badge: 0, wizardTarget: "matches" },
-                    ] as const).map((item) => {
-                      const active = item.match
-                        ? item.match === "/provider"
-                          ? pathname === "/provider"
-                          : pathname.startsWith(item.match)
-                        : false;
-                      return (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          data-wizard-target={item.wizardTarget}
-                          className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
-                            active
-                              ? "text-primary-600"
-                              : "text-gray-700 hover:text-gray-900"
-                          }`}
-                        >
-                          {item.label}
-                          {item.badge > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
+                    {/* Dashboard - standalone */}
+                    <Link
+                      href="/provider"
+                      data-wizard-target="dashboard"
+                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
+                        pathname === "/provider"
+                          ? "text-primary-600"
+                          : "text-gray-700 hover:text-gray-900"
+                      }`}
+                    >
+                      Dashboard
+                    </Link>
+
+                    {/* Engagement group: Inbox, Leads, Q&A, Reviews - wrapped for wizard spotlight */}
+                    <div data-wizard-target="engage" className="flex items-center">
+                      {([
+                        { label: "Inbox", href: "/provider/inbox", match: "/provider/inbox", badge: providerInboxCount },
+                        { label: "Leads", href: "/provider/connections", match: "/provider/connections", badge: newLeadsCount },
+                        { label: "Q&A", href: "/provider/qna", match: "/provider/qna", badge: qnaCount },
+                        { label: "Reviews", href: "/provider/reviews", match: "/provider/reviews", badge: 0 },
+                      ] as const).map((item) => {
+                        const active = pathname.startsWith(item.match);
+                        return (
+                          <Link
+                            key={item.label}
+                            href={item.href}
+                            className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
+                              active
+                                ? "text-primary-600"
+                                : "text-gray-700 hover:text-gray-900"
+                            }`}
+                          >
+                            {item.label}
+                            {item.badge > 0 && (
+                              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-primary-600 rounded-full">
+                                {item.badge}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+
+                    {/* Matches - standalone */}
+                    <Link
+                      href="/provider/matches"
+                      data-wizard-target="matches"
+                      className={`relative px-4 py-2 text-[15px] font-medium transition-colors ${
+                        pathname.startsWith("/provider/matches")
+                          ? "text-primary-600"
+                          : "text-gray-700 hover:text-gray-900"
+                      }`}
+                    >
+                      Matches
+                    </Link>
                   </>
                 ) : (
                   /* Family / public nav links */

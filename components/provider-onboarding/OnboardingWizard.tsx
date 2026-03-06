@@ -22,8 +22,8 @@ const WIZARD_STEPS = [
   },
   {
     id: "engage",
-    target: "inbox", // Points to Inbox nav item (center of the group)
-    targetSelector: "[data-wizard-target='inbox']",
+    target: "engage", // Points to the engagement nav group (Inbox, Leads, Q&A, Reviews)
+    targetSelector: "[data-wizard-target='engage']",
     title: "Engage with families",
     description: "Inbox, Leads, Q&A, and Reviews — all in one place.",
     mobileDescription: "Manage messages, respond to leads, answer questions, and collect reviews.",

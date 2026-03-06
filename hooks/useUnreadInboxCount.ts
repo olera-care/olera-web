@@ -6,8 +6,8 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 /**
  * Lightweight hook that counts unread inbox conversations.
  * Fetches active inquiry connections (pending/accepted) for the given profiles,
- * excludes hidden (soft-deleted) ones, checks against `olera_inbox_read`
- * localStorage, and returns the count.
+ * excludes hidden (soft-deleted) ones, checks against profile-scoped localStorage,
+ * and returns the count.
  *
  * Falls back to mock connection IDs when Supabase has no real connections.
  *
@@ -23,9 +23,11 @@ export function useUnreadInboxCount(profileIds: string[]): number {
   const recount = useCallback(() => {
     if (!profileKey) return;
 
+    // Use profile-scoped localStorage key to avoid cross-user conflicts
+    const inboxReadKey = `olera_inbox_read_${profileKey}`;
     let readIds = new Set<string>();
     try {
-      const stored = localStorage.getItem("olera_inbox_read");
+      const stored = localStorage.getItem(inboxReadKey);
       if (stored) readIds = new Set(JSON.parse(stored));
     } catch {
       // localStorage may be unavailable

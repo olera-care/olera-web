@@ -142,22 +142,24 @@ function searchConnections(connections: ConnectionWithProfile[], query: string, 
   });
 }
 
-/** Read-tracking key for localStorage */
-const READ_KEY = "olera_inbox_read";
+/** Read-tracking key for localStorage - scoped by profile ID */
+function getInboxReadKey(profileId: string): string {
+  return `olera_inbox_read_${profileId}`;
+}
 
-function getReadSet(): Set<string> {
+function getReadSet(profileId: string): Set<string> {
   try {
-    const raw = localStorage.getItem(READ_KEY);
+    const raw = localStorage.getItem(getInboxReadKey(profileId));
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch {
     return new Set();
   }
 }
 
-function markAsRead(connectionId: string) {
-  const readSet = getReadSet();
+function markAsRead(connectionId: string, profileId: string) {
+  const readSet = getReadSet(profileId);
   readSet.add(connectionId);
-  localStorage.setItem(READ_KEY, JSON.stringify([...readSet]));
+  localStorage.setItem(getInboxReadKey(profileId), JSON.stringify([...readSet]));
   // Notify navbar badge hook to re-count
   window.dispatchEvent(new CustomEvent("olera:inbox-read"));
 }
@@ -188,18 +190,20 @@ export default function ConversationList({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Load read tracking from localStorage
+  // Load read tracking from localStorage (scoped by profile)
   useEffect(() => {
-    setReadIds(getReadSet());
-  }, []);
+    if (activeProfileId) {
+      setReadIds(getReadSet(activeProfileId));
+    }
+  }, [activeProfileId]);
 
   // Mark selected conversation as read
   useEffect(() => {
-    if (selectedId) {
-      markAsRead(selectedId);
+    if (selectedId && activeProfileId) {
+      markAsRead(selectedId, activeProfileId);
       setReadIds((prev) => new Set([...prev, selectedId]));
     }
-  }, [selectedId]);
+  }, [selectedId, activeProfileId]);
 
   // Track scroll for divider
   const handleScroll = useCallback(() => {

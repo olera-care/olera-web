@@ -985,10 +985,11 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
   };
   const careRecipient = careRecipientMap[careDetails.care_recipient as string] || "Family member";
 
-  // Check if this is a "new" lead (not viewed yet)
+  // Check if this is a "new" lead (not viewed yet) - scoped by provider profile
   let isNew = false;
   try {
-    const viewedIds = JSON.parse(localStorage.getItem("olera_leads_viewed") || "[]");
+    const leadsKey = `olera_leads_viewed_${providerProfileId}`;
+    const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
     isNew = !viewedIds.includes(conn.id) && status !== "archived" && status !== "replied";
   } catch {
     isNew = status === "new";
@@ -1090,13 +1091,24 @@ export default function ProviderLeadsPage() {
   const openDrawer = useCallback((lead: LeadDetail) => {
     setSelectedLeadId(lead.id);
     setIsDrawerOpen(true);
-    // Clear "New" badge once viewed
-    if (lead.isNew) {
+    // Clear "New" badge once viewed and persist to localStorage
+    if (lead.isNew && providerProfile) {
       setLeads((prev) =>
         prev.map((l) => (l.id === lead.id ? { ...l, isNew: false } : l))
       );
+      // Persist viewed status to localStorage (scoped by provider profile)
+      try {
+        const leadsKey = `olera_leads_viewed_${providerProfile.id}`;
+        const viewedIds: string[] = JSON.parse(localStorage.getItem(leadsKey) || "[]");
+        if (!viewedIds.includes(lead.id)) {
+          viewedIds.push(lead.id);
+          localStorage.setItem(leadsKey, JSON.stringify(viewedIds));
+        }
+      } catch {
+        // localStorage unavailable
+      }
     }
-  }, []);
+  }, [providerProfile]);
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);

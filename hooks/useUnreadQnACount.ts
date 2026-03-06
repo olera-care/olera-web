@@ -6,7 +6,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 /**
  * Lightweight hook that counts unread pending Q&A questions for a provider.
  * Fetches pending questions for the given provider slug,
- * checks against `olera_qna_read` localStorage, and returns the count.
+ * checks against profile-scoped localStorage, and returns the count.
  *
  * Listens for "olera:qna-read" custom events so the count updates
  * immediately when a question is viewed in the Q&A page.
@@ -20,9 +20,11 @@ export function useUnreadQnACount(providerSlug: string | null): number {
       return;
     }
 
+    // Use provider-scoped localStorage key to avoid cross-user conflicts
+    const qnaReadKey = `olera_qna_read_${providerSlug}`;
     let readIds = new Set<string>();
     try {
-      const stored = localStorage.getItem("olera_qna_read");
+      const stored = localStorage.getItem(qnaReadKey);
       if (stored) readIds = new Set(JSON.parse(stored));
     } catch {
       // localStorage may be unavailable
@@ -76,6 +78,18 @@ export function useUnreadQnACount(providerSlug: string | null): number {
       window.removeEventListener("olera:qna-new", handler);
     };
   }, [recount]);
+
+  // Sync event from Q&A page to override count (fixes stale badge from localStorage mismatch)
+  useEffect(() => {
+    const syncHandler = (e: Event) => {
+      const { count: syncedCount } = (e as CustomEvent).detail;
+      if (typeof syncedCount === "number") {
+        setCount(syncedCount);
+      }
+    };
+    window.addEventListener("olera:qna-sync", syncHandler);
+    return () => window.removeEventListener("olera:qna-sync", syncHandler);
+  }, []);
 
   return count;
 }

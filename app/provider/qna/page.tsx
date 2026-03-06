@@ -18,15 +18,16 @@ interface Question {
   is_public?: boolean;
 }
 
-// ── Helper to mark question as read ──
+// ── Helper to mark question as read (scoped by provider slug) ──
 
-function markQuestionAsRead(questionId: string): void {
+function markQuestionAsRead(questionId: string, providerSlug: string): void {
   try {
-    const stored = localStorage.getItem("olera_qna_read");
+    const qnaReadKey = `olera_qna_read_${providerSlug}`;
+    const stored = localStorage.getItem(qnaReadKey);
     const readIds: string[] = stored ? JSON.parse(stored) : [];
     if (!readIds.includes(questionId)) {
       readIds.push(questionId);
-      localStorage.setItem("olera_qna_read", JSON.stringify(readIds));
+      localStorage.setItem(qnaReadKey, JSON.stringify(readIds));
       window.dispatchEvent(new CustomEvent("olera:qna-read"));
     }
   } catch {
@@ -554,8 +555,11 @@ function EmptyState({ filter }: { filter: TabFilter }) {
   if (filter === "published") {
     return (
       <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-        {/* Illustration */}
-        <div className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative">
+        {/* Illustration with floating animation */}
+        <div
+          className="w-40 h-40 lg:w-48 lg:h-48 mb-6 relative"
+          style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+        >
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-28 h-28 lg:w-32 lg:h-32 rounded-2xl bg-gradient-to-br from-primary-50 to-vanilla-100 border border-primary-100/50 flex items-center justify-center transform rotate-3 shadow-sm">
               <QuestionMarkIcon className="w-14 h-14 lg:w-16 lg:h-16 text-primary-300" />
@@ -573,6 +577,12 @@ function EmptyState({ filter }: { filter: TabFilter }) {
         <p className="text-[15px] text-gray-500 mt-2.5 leading-relaxed max-w-sm">
           Respond to pending Q&As now to get your answers published and visible on your profile.
         </p>
+        <style jsx>{`
+          @keyframes emptyFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -580,7 +590,10 @@ function EmptyState({ filter }: { filter: TabFilter }) {
   // Pending empty state - "All caught up"
   return (
     <div className="flex flex-col items-center text-center py-16 lg:py-24 px-6">
-      <div className="w-16 h-16 rounded-2xl bg-primary-50 border border-primary-100/50 flex items-center justify-center mb-6">
+      <div
+        className="w-16 h-16 rounded-2xl bg-primary-50 border border-primary-100/50 flex items-center justify-center mb-6"
+        style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
+      >
         <CheckIcon className="w-8 h-8 text-primary-500" />
       </div>
       <h3 className="text-lg lg:text-xl font-display font-bold text-gray-900">
@@ -589,6 +602,12 @@ function EmptyState({ filter }: { filter: TabFilter }) {
       <p className="text-[15px] text-gray-500 mt-2 leading-relaxed max-w-sm">
         You&apos;ve answered all questions from families. New questions will appear here when families ask.
       </p>
+      <style jsx>{`
+        @keyframes emptyFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
+        }
+      `}</style>
     </div>
   );
 }
@@ -862,11 +881,15 @@ export default function ProviderQnAPage() {
         setQuestions(data.questions || []);
 
         // Mark all pending questions as read when page loads
-        for (const q of data.questions || []) {
-          if (q.status === "pending") {
-            markQuestionAsRead(q.id);
+        const pendingQuestions = (data.questions || []).filter((q: Question) => q.status === "pending");
+        for (const q of pendingQuestions) {
+          if (providerProfile?.slug) {
+            markQuestionAsRead(q.id, providerProfile.slug);
           }
         }
+
+        // Dispatch event to sync navbar badge with actual count (fixes stale badge)
+        window.dispatchEvent(new CustomEvent("olera:qna-sync", { detail: { count: 0 } }));
       } catch (err) {
         console.error("Failed to fetch questions:", err);
         setError("Unable to load questions. Please try again.");

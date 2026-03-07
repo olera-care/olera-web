@@ -28,51 +28,48 @@ export default function TopProvidersSection({ geoState }: TopProvidersSectionPro
     async function fetchFeaturedProviders() {
       try {
         const supabase = createClient();
-        let query = supabase
-          .from(PROVIDERS_TABLE)
-          .select("*")
-          .not("deleted", "is", true)
-          .not("google_rating", "is", null)
-          .gte("google_rating", 4.0)
-          .not("provider_images", "is", null)
-          .order("google_rating", { ascending: false })
-          .limit(8);
 
-        // Filter by state if we have geo data
+        const buildQuery = (state?: string | null) => {
+          let q = supabase
+            .from(PROVIDERS_TABLE)
+            .select("*")
+            .not("deleted", "is", true)
+            .not("google_rating", "is", null)
+            .gte("google_rating", 4.0)
+            .not("provider_images", "is", null)
+            .order("google_rating", { ascending: false })
+            .limit(8);
+          if (state) q = q.eq("state", state);
+          return q;
+        };
+
         if (geoState) {
-          query = query.eq("state", geoState);
+          // Run state + national queries in parallel to avoid waterfall
+          const [stateResult, nationalResult] = await Promise.all([
+            buildQuery(geoState),
+            buildQuery(),
+          ]);
+
+          if (stateResult.data && stateResult.data.length > 0) {
+            setFeaturedProviders((stateResult.data as IOSProvider[]).map(toCardFormat));
+            setDetectedState(geoState);
+          } else {
+            setDetectedState(null);
+            setFeaturedProviders(
+              nationalResult.data
+                ? (nationalResult.data as IOSProvider[]).map(toCardFormat)
+                : []
+            );
+          }
+        } else {
+          const { data, error } = await buildQuery();
+          if (error || !data) {
+            console.error("Error fetching featured providers:", error?.message);
+            setFeaturedProviders([]);
+          } else {
+            setFeaturedProviders((data as IOSProvider[]).map(toCardFormat));
+          }
         }
-
-        const { data, error } = await query;
-
-        if (error || !data) {
-          console.error("Error fetching featured providers:", error?.message);
-          setFeaturedProviders([]);
-          return;
-        }
-
-        // If geo-filtered query returned results, use them
-        if (data.length > 0) {
-          setFeaturedProviders((data as IOSProvider[]).map(toCardFormat));
-          setDetectedState(geoState ?? null);
-          return;
-        }
-
-        // Fallback: no results for this state — fetch national
-        setDetectedState(null);
-        const { data: fallback } = await supabase
-          .from(PROVIDERS_TABLE)
-          .select("*")
-          .not("deleted", "is", true)
-          .not("google_rating", "is", null)
-          .gte("google_rating", 4.0)
-          .not("provider_images", "is", null)
-          .order("google_rating", { ascending: false })
-          .limit(8);
-
-        setFeaturedProviders(
-          fallback ? (fallback as IOSProvider[]).map(toCardFormat) : []
-        );
       } catch (err) {
         console.error("Error fetching providers:", err);
         setFeaturedProviders([]);

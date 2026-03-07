@@ -166,7 +166,7 @@ export async function POST(request: Request) {
                 familyName: familyBp?.display_name || "there",
                 providerName: providerBp?.display_name || "The provider",
                 accepted: action === "accept",
-                viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+                viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
               }),
             });
           }

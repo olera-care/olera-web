@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
           recipientName: recipient.display_name || "there",
           senderName: sender?.display_name || "Someone",
           messagePreview: preview,
-          viewUrl: `${siteUrl}/portal/connections`,
+          viewUrl: `${siteUrl}/provider/connections`,
         }),
       });
 

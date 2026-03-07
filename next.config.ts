@@ -46,8 +46,9 @@ const nextConfig: NextConfig = {
       // Tier 1: Deprecated v1.0 pages → homepage
       { source: "/education-material", destination: "/", permanent: true },
       // /research-and-press — now a live page (removed redirect)
+      { source: "/research-and-press/c/:slug", destination: "/research-and-press", permanent: true },
       { source: "/forum", destination: "/", permanent: true },
-      { source: "/care-assessment", destination: "/", permanent: true },
+      { source: "/care-assessment", destination: "/benefits/finder", permanent: true },
 
       // Tier 2: Deprecated content pages with slugs → homepage
       { source: "/education-material/:slug*", destination: "/", permanent: true },

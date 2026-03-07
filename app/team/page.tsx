@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Our Team | Olera",
   description:
     "Meet the team behind Olera — building a better way for families to find quality senior care.",
+  alternates: {
+    canonical: "/team",
+  },
   openGraph: {
     title: "Our Team | Olera",
     description:

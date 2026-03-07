@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "For Providers | Reach More Families on Olera",
   description:
     "Join a network of senior care providers families trust. Set up your profile, get found in local searches, and connect with families — free to get started.",
+  alternates: {
+    canonical: "/for-providers",
+  },
   openGraph: {
     title: "For Providers | Reach More Families on Olera",
     description:

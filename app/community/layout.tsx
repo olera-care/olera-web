@@ -1,28 +1,31 @@
-"use client";
+import type { Metadata } from "next";
+import HideFooter from "./HideFooter";
 
-import { useLayoutEffect } from "react";
+export const metadata: Metadata = {
+  title: "Community | Olera",
+  description:
+    "Join the Olera community — share experiences, ask questions, and connect with other caregivers navigating senior care.",
+  alternates: {
+    canonical: "/community",
+  },
+  openGraph: {
+    title: "Community | Olera",
+    description:
+      "Join the Olera community — share experiences, ask questions, and connect with other caregivers.",
+    url: "/community",
+    type: "website",
+  },
+};
 
 export default function CommunityLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Hide the global footer when this layout is active
-  // useLayoutEffect runs synchronously before paint to prevent flash
-  useLayoutEffect(() => {
-    // Find and hide the footer
-    const footer = document.querySelector("footer");
-    if (footer) {
-      footer.style.display = "none";
-    }
-
-    // Cleanup: restore footer when leaving the page
-    return () => {
-      if (footer) {
-        footer.style.display = "";
-      }
-    };
-  }, []);
-
-  return <>{children}</>;
+  return (
+    <>
+      <HideFooter />
+      {children}
+    </>
+  );
 }

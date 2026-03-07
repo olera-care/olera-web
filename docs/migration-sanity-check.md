@@ -15,7 +15,7 @@ The migration-playbook.md covers provider pages and editorial content well. This
 
 ### Critical — Operations (broken links for real users now)
 
-- [ ] **1. Gated provider portal page missing** — `/provider-portal/provider/{slug}/*` URLs used in all provider emails (lead alerts, Q&A, reviews, cold outreach). These are dead links right now. Not indexed, but critical to provider activation funnel. **Assigned to Esther.**
+- [x] **1. Gated provider portal page missing** — DONE (Esther) — `/provider/{slug}/onboard` page live on staging with profile completeness widget. Provider email links now land on a functional onboarding page instead of 404.
 
 - [x] **2. v1.0 provider auth URLs not redirected** — DONE (PR #152) — `/provider/sign-up`, `/provider/sign-in`, `/provider/forgot-password`, `/provider/resend-activation-link`. These had explicit redirects in v1.0's `next-config/provider-portal-redirects.ts` but weren't carried over to v2.0. Any old emails or bookmarks with these URLs will 404.
 
@@ -49,11 +49,11 @@ The migration-playbook.md covers provider pages and editorial content well. This
 
 - [x] **11. `/sign-out` not redirected** — DONE (PR #152) — Minor, but old bookmarks will 404.
 
-- [ ] **12. Research & Press is live in v2.0 but redirected to `/`** — `migration-playbook.md` shows `/research-and-press/*` redirecting to homepage, but v2.0 actually has `/research-and-press` and `/research-and-press/[slug]` pages. The redirect in next.config.ts should be removed (it was removed per a comment in the config, but should be verified).
+- [x] **12. Research & Press is live in v2.0 but redirected to `/`** — VERIFIED OK — The old wildcard redirects were already removed from `next.config.ts` (lines 48, 54 have comments confirming removal). Live `/research-and-press` and `/research-and-press/[slug]` pages work correctly.
 
 - [ ] **13. Forum content compressed to single URL** — All ~100+ forum discussions redirect to `/community`. If any had backlinks or traffic, that's content equity being funneled into one page. Acceptable trade-off if forum content is being rebuilt in community, but worth monitoring.
 
-- [ ] **14. `/research-and-press/c/{categorySlug}` not redirected** — *Found by OpenAI Codex audit (2026-03-06).* v1.0 had category index pages at `/research-and-press/c/{categorySlug}` (documented in `migration-playbook.md:179`). The old wildcard redirect was removed (`next.config.ts:48,54`), and v2.0 app routes only cover `/research-and-press` and `/research-and-press/[slug]` — no `/c/` segment. These category URLs will 404 after cutover. Fix: add a redirect from `/research-and-press/c/:slug` → `/research-and-press`.
+- [x] **14. `/research-and-press/c/{categorySlug}` not redirected** — DONE — Added redirect `/research-and-press/c/:slug` → `/research-and-press` in `next.config.ts`.
 
 ---
 
@@ -70,17 +70,17 @@ The migration-playbook.md covers provider pages and editorial content well. This
 
 - [ ] **S2. Provider creation/claim funnel friction** — `/for-providers/create` redirects to `/onboarding?intent=provider` (`app/for-providers/create/page.tsx:18`), but onboarding logic can leave signed-in/completed users in a non-progressing state or bounce `intent=organization` to `/portal` (`app/onboarding/page.tsx:25-26`). Claim flow uses the organization intent path (`app/for-providers/claim/page.tsx:114`). **Action:** QA the create/claim/organization flows end-to-end; fix edge cases.
 
-- [ ] **S3. SEO canonical inconsistency (extends finding #6)** — Root layout sets global canonical `/` (`app/layout.tsx:34`). Important pages define metadata without canonical overrides: `/browse` (`app/browse/page.tsx:58`), `/team` (`app/team/page.tsx:5`), `/for-providers` (`app/for-providers/page.tsx:11`). **Action:** Add canonical overrides to all key pages.
+- [x] **S3. SEO canonical inconsistency (extends finding #6)** — DONE — Added `alternates: { canonical }` to `/browse`, `/team`, `/for-providers`, `/community`. `/caregiver-support` and `/research-and-press` already had canonicals in their layouts.
 
 - [ ] **S4. Trust/legal dead-end links** — Footer links to `/privacy`, `/terms`, `/support` (`Footer.tsx:264`, `SimpleFooter.tsx:13`) only resolve via legacy `/pages/privacy` and `/pages/terms` redirects (`next.config.ts:44,66`). Org schema references missing `/contact` (`app/layout.tsx:83`). **Action:** Create proper pages or ensure redirects resolve cleanly; add `/contact` and `/support` routes.
 
 ### Medium
 
-- [ ] **S5. Community runs on mock data** — Community page uses mock post data (`app/community/page.tsx:12`, `data/mock/forumPosts.ts:59`). Post detail has a back link to non-existent `/community/{careType}` (`app/community/post/[slug]/page.tsx:191`). Sitemap omits `/community/post/*` (`app/sitemap.ts:74,132`). **Action:** Fix broken back link; add "coming soon" state or hide from nav if not production-ready.
+- [x] **S5. Community runs on mock data (partial fix)** — Fixed broken back link: `/community/{careType}` → `/community`. Community still uses mock data — acceptable for launch, can be replaced with real data post-cutover.
 
 - [ ] **S6. Taxonomy naming inconsistency across discovery surfaces** — Power pages use `home-health-care` / `nursing-home` (`lib/power-pages.ts:58,46`), while nav/browse/community use `home-health` / `nursing-homes` (`NavMenuData.ts:27,79`, `app/browse/page.tsx:16`). Inconsistent slugs fragment link equity. **Action:** Audit and standardize slugs across power pages, nav, and browse.
 
-- [ ] **S7. High-intent v1 funnels collapsed to homepage** — `/care-assessment`, `/caregiver-relief-network/*`, `/company/*` all redirect to `/` (`next.config.ts:50,77,79`) instead of nearest v2 equivalent. `/care-assessment` → `/benefits/finder` would preserve intent. **Action:** Remap high-intent redirects to their closest v2 task path.
+- [x] **S7. High-intent v1 funnels collapsed to homepage (partial fix)** — DONE — Remapped `/care-assessment` → `/benefits/finder` (preserves user intent). `/caregiver-relief-network/*` and `/company/*` still → `/` (no closer v2 equivalent exists).
 
 ---
 

@@ -65,8 +65,10 @@ const nextConfig: NextConfig = {
       { source: "/providers", destination: "/for-providers", permanent: true },
       { source: "/account", destination: "/portal", permanent: true },
       { source: "/inbox", destination: "/portal", permanent: true },
-      { source: "/caregiver-forum", destination: "/community", permanent: true },
-      { source: "/caregiver-forum/:path*", destination: "/community", permanent: true },
+      { source: "/community", destination: "/", permanent: false },
+      { source: "/community/:path*", destination: "/", permanent: false },
+      { source: "/caregiver-forum", destination: "/", permanent: true },
+      { source: "/caregiver-forum/:path*", destination: "/", permanent: true },
       { source: "/pages/privacy", destination: "/privacy", permanent: true },
 
       // Tier 3: v1.0 auth pages (no v2 equivalent — auth handled via modal/Supabase)

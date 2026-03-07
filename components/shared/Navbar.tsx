@@ -100,7 +100,6 @@ export default function Navbar() {
     pathname.startsWith("/provider/account") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isCommunity = pathname.startsWith("/community");
   const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
@@ -512,17 +511,17 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal || isCommunity ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
         }}
       >
-        <div className={isMinimalNav ? "px-[44px]" : isCommunity ? "px-8" : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"}>
+        <div className={isMinimalNav ? "px-[44px]" : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8"}>
           {/*
            * 3-column layout: Left | Center Nav | Right
            *
-           * Family mode:  [Olera logo]  |  [Find Care, Community, ...]  |  [For Providers, ♥, User menu]
+           * Family mode:  [Olera logo]  |  [Find Care, Caregiver Support, ...]  |  [For Providers, ♥, User menu]
            * Provider mode: [User menu]  |  [Profile, Inbox, Leads, ...]  |  [Olera logo]
            *
            * Left and right are flex-1 so center nav is truly page-centered.
@@ -1169,7 +1168,6 @@ export default function Navbar() {
                                 >
                                   <svg className={`w-5 h-5 shrink-0 ${active ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d={
-                                      link.label === "Community" ? "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" :
                                       link.label === "Caregiver Support" ? "M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" :
                                       "M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
                                     } />
@@ -1272,18 +1270,6 @@ export default function Navbar() {
                       ))}
                     </div>
                   )}
-
-                  {/* Community */}
-                  <Link
-                    href="/community"
-                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/community") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/community") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                    </svg>
-                    Community
-                  </Link>
 
                   {/* Caregiver Support */}
                   <Link

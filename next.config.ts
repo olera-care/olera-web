@@ -65,8 +65,10 @@ const nextConfig: NextConfig = {
       { source: "/providers", destination: "/for-providers", permanent: true },
       { source: "/account", destination: "/portal", permanent: true },
       { source: "/inbox", destination: "/portal", permanent: true },
-      { source: "/caregiver-forum", destination: "/community", permanent: true },
-      { source: "/caregiver-forum/:path*", destination: "/community", permanent: true },
+      { source: "/community", destination: "/", permanent: false },
+      { source: "/community/:path*", destination: "/", permanent: false },
+      { source: "/caregiver-forum", destination: "/", permanent: true },
+      { source: "/caregiver-forum/:path*", destination: "/", permanent: true },
       { source: "/pages/privacy", destination: "/privacy", permanent: true },
 
       // Tier 3: v1.0 auth pages (no v2 equivalent — auth handled via modal/Supabase)
@@ -76,6 +78,12 @@ const nextConfig: NextConfig = {
       // Tier 3: v1.0 review submission pages → provider page
       { source: "/provider/:slug/review/:uuid", destination: "/provider/:slug", permanent: true },
       { source: "/provider/:slug/request-review/:token", destination: "/provider/:slug", permanent: true },
+
+      // Tier 3: v1.0 company pages → v2 equivalents
+      { source: "/company/about", destination: "/about", permanent: true },
+      { source: "/company/leadership", destination: "/team", permanent: true },
+      { source: "/company/contact-us", destination: "/contact", permanent: true },
+      { source: "/company/investors", destination: "/about", permanent: true },
 
       // Tier 3: v1.0 pages with no v2 equivalent → homepage
       { source: "/caregiver-relief-network", destination: "/", permanent: true },

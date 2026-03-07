@@ -30,7 +30,6 @@ export const CARE_CATEGORIES: CareCategory[] = [
     description: "Skilled medical care in the comfort of home",
     image: "/images/home-health.webp",
     resources: [
-      { title: "Community Forum", href: "/community?category=home-health", icon: "chat" },
       { title: "Home Health Guide", href: "/caregiver-support?type=home-health", icon: "book" },
       { title: "Paying for Home Health", href: "/benefits?type=home-health", icon: "dollar" },
       { title: "Home Health vs Home Care", href: "/caregiver-support/home-health-vs-home-care", icon: "info" },
@@ -43,7 +42,6 @@ export const CARE_CATEGORIES: CareCategory[] = [
     description: "In-home assistance for daily living activities",
     image: "/images/home-care.jpg",
     resources: [
-      { title: "Community Forum", href: "/community?category=home-care", icon: "chat" },
       { title: "Home Care Guide", href: "/caregiver-support?type=home-care", icon: "book" },
       { title: "Paying for Home Care", href: "/benefits?type=home-care", icon: "dollar" },
       { title: "When to Consider Home Care", href: "/caregiver-support/caregiver-burnout-prevention", icon: "info" },
@@ -56,7 +54,6 @@ export const CARE_CATEGORIES: CareCategory[] = [
     description: "Residential communities with personal care support",
     image: "/images/assisted-living.webp",
     resources: [
-      { title: "Community Forum", href: "/community?category=assisted-living", icon: "chat" },
       { title: "Assisted Living Guide", href: "/caregiver-support?type=assisted-living", icon: "book" },
       { title: "Paying for Assisted Living", href: "/benefits?type=assisted-living", icon: "dollar" },
       { title: "Assisted Living vs Nursing Home", href: "/caregiver-support/nursing-home-vs-assisted-living", icon: "info" },
@@ -69,7 +66,6 @@ export const CARE_CATEGORIES: CareCategory[] = [
     description: "Specialized care for dementia and Alzheimer's",
     image: "/images/memory-care.jpg",
     resources: [
-      { title: "Community Forum", href: "/community?category=memory-care", icon: "chat" },
       { title: "Memory Care Guide", href: "/caregiver-support?type=memory-care", icon: "book" },
       { title: "Paying for Memory Care", href: "/benefits?type=memory-care", icon: "dollar" },
       { title: "Signs It's Time for Memory Care", href: "/caregiver-support/when-its-time-for-memory-care", icon: "info" },
@@ -82,7 +78,6 @@ export const CARE_CATEGORIES: CareCategory[] = [
     description: "24/7 skilled nursing and medical care",
     image: "/images/nursing-homes.webp",
     resources: [
-      { title: "Community Forum", href: "/community?category=nursing-homes", icon: "chat" },
       { title: "Nursing Home Guide", href: "/caregiver-support?type=nursing-homes", icon: "book" },
       { title: "Paying for Nursing Home", href: "/benefits?type=nursing-homes", icon: "dollar" },
       { title: "Medicare & Medicaid Coverage", href: "/caregiver-support/medicaid-nursing-home-coverage", icon: "info" },
@@ -95,7 +90,6 @@ export const CARE_CATEGORIES: CareCategory[] = [
     description: "Active adult communities for seniors",
     image: "/images/independent-living.jpg",
     resources: [
-      { title: "Community Forum", href: "/community?category=independent-living", icon: "chat" },
       { title: "Independent Living Guide", href: "/caregiver-support?type=independent-living", icon: "book" },
       { title: "Paying for Independent Living", href: "/benefits?type=independent-living", icon: "dollar" },
       { title: "Is Independent Living Right?", href: "/caregiver-support/independent-living-guide", icon: "info" },
@@ -104,7 +98,6 @@ export const CARE_CATEGORIES: CareCategory[] = [
 ];
 
 export const NAV_LINKS: NavLink[] = [
-  { label: "Community", href: "/community" },
   { label: "Caregiver Support", href: "/caregiver-support" },
   { label: "Benefits Center", href: "/benefits" },
 ];

@@ -101,12 +101,17 @@ export async function generateMetadata({
   const category = provider.provider_category || "Senior Care";
   const city = provider.city;
   const state = provider.state;
-  const location = [city, state].filter(Boolean).join(", ");
+  const locationComma = [city, state].filter(Boolean).join(", ");
+  const locationSpace = [city, state].filter(Boolean).join(" ");
 
-  const title = `${name} | ${category} in ${location || "Your Area"} | Olera`;
+  // Match v1.0 title format exactly to preserve SERP CTR during migration
+  // v1: "{Name}, {City} {State}: Pricing & Availability | Olera.care"
+  const title = locationSpace
+    ? `${name}, ${locationSpace}: Pricing & Availability | Olera.care`
+    : `${name}: Pricing & Availability | Olera.care`;
   const description = provider.provider_description
     ? provider.provider_description.slice(0, 160).trimEnd() + (provider.provider_description.length > 160 ? "..." : "")
-    : `Find details, reviews, and pricing for ${name}, a ${category} provider${location ? ` in ${location}` : ""}. Compare options on Olera.`;
+    : `Find details, reviews, and pricing for ${name}, a ${category} provider${locationComma ? ` in ${locationComma}` : ""}. Compare options on Olera.`;
 
   const images: string[] = [];
   if (provider.provider_images) {

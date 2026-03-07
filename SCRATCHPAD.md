@@ -8,19 +8,13 @@
 ## Current Focus
 
 - **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — DONE ✅
-  - S1: Consolidated duplicate connections pages → `/provider/connections`
-  - S2: Fixed onboarding dead-end for signed-in users with intent params
-  - S6: Added slug aliases for `home-health` and `nursing-homes`
-  - Geo-personalized homepage "Top providers" carousel (city → state → national cascade)
-  - Switched BrowseCard provider name from serif to sans-serif
-  - SEO metadata audit: added canonical + OG to all waiver library pages (~1,160), benefits/finder, terms
-  - GSC traffic analysis: 0 404 risks, 70 clicks lost from /company/* pages
-  - Built /about and /contact pages to recover company page traffic
-  - Restored /team as standalone people-first page
-  - Removed community/forum section (17 clicks organic — not worth keeping)
-  - Fixed article meta description: prefer excerpt over CMS meta_description
-  - Bulk-fixed article metadata: 95 author roles, 55 care_types, 2 name normalizations
-  - Top 10 article spotcheck: 10/10 pass v1↔v2 content parity
+  - PRs #165-171 all merged to staging
+
+- **Editorial Content Polish** (branch: `stellar-stonebraker`) — IN PROGRESS
+  - Deleted 6 dummy articles (fake authors: Dr. Sarah Chen, Jennifer Walsh, Michael Torres, Lisa Park RN)
+  - Next: Topic-based filter tabs (replacing care_type tabs with: Costs & Benefits, Getting Started, Dementia Care, Comparing Care, Legal & Planning, Wellness & Support)
+  - Next: Author pages at `/author/[slug]` — shared across caregiver-support and research-and-press
+  - Next: Person JSON-LD on author pages
 
 - **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
   - Approved business_profiles now appear in all 4 public discovery surfaces

@@ -10,11 +10,14 @@
 - **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — DONE ✅
   - PRs #165-171 all merged to staging
 
-- **Editorial Content Polish** (branch: `stellar-stonebraker`) — IN PROGRESS
-  - Deleted 6 dummy articles (fake authors: Dr. Sarah Chen, Jennifer Walsh, Michael Torres, Lisa Park RN)
-  - Next: Topic-based filter tabs (replacing care_type tabs with: Costs & Benefits, Getting Started, Dementia Care, Comparing Care, Legal & Planning, Wellness & Support)
-  - Next: Author pages at `/author/[slug]` — shared across caregiver-support and research-and-press
-  - Next: Person JSON-LD on author pages
+- **Editorial Content Polish** (branch: `stellar-stonebraker`) — DONE ✅
+  - PRs #172-176 all merged to staging
+  - Author pages at `/author/[slug]` with Person JSON-LD
+  - Topic-based filter tabs (6 categories replacing care_type tabs)
+  - Author linking in article bylines + avatar fallback to static data
+  - CMS admin: author dropdown + topic category dropdown
+  - OG/Twitter metadata audit — all page types now have full social previews
+  - LinkedIn URLs corrected for TJ and Logan
 
 - **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
   - Approved business_profiles now appear in all 4 public discovery surfaces
@@ -127,6 +130,48 @@
 ---
 
 ## Session Log
+
+### 2026-03-07 (Session 42) — Editorial Polish: Author Pages, Topic Tabs, OG Metadata
+
+**Branch:** `stellar-stonebraker` (multiple feature branches merged)
+
+**What:** Completed the editorial content polish workstream — author pages, topic-based filters, CMS improvements, and a full OG metadata audit across the entire site.
+
+**Author pages (`app/author/[slug]/page.tsx`):**
+- New dynamic route with `generateStaticParams` for all known authors
+- Fetches articles from Supabase, splits into caregiver-support vs research-and-press sections
+- Person JSON-LD structured data
+- ISR with 60s revalidation
+
+**Topic-based filter tabs (`app/caregiver-support/page.tsx`):**
+- Replaced `CareTypeId` tabs with `ArticleTopic` tabs (6 categories)
+- New `lib/article-topics.ts`: costs-and-benefits, getting-started, dementia-care, comparing-care, legal-and-planning, wellness-and-support
+- SQL migration reclassified 85 articles from format-based to topic-based categories
+
+**Author linking in articles:**
+- Both `caregiver-support/[slug]` and `research-and-press/[slug]` now link author names to `/author/[slug]`
+- Avatar fallback: if DB `author_avatar` is null, falls back to static author data from `lib/authors.ts`
+
+**CMS admin (`app/admin/content/[articleId]/page.tsx`):**
+- Author dropdown pre-filling name, role, avatar on selection
+- Category dropdown switched to topic-based options
+
+**OG metadata audit (PR #176):**
+- `app/opengraph-image.tsx` + `app/twitter-image.tsx`: Default branded 1200x630 OG image for all pages
+- Added `twitter` card metadata to 9 pages/layouts: author, team, about, contact, for-providers, privacy, terms, caregiver-support, research-and-press
+- Added missing `siteName` (for-providers, privacy) and `type` (privacy)
+
+**LinkedIn URL fixes:**
+- TJ: `/tj-falohun/` → `/tfalohun` (3 files)
+- Logan: `/logandubose/` → `/logan-dubose/` (1 file)
+
+**PRs merged to staging:** #172, #174, #175, #176
+
+**Files created:** `lib/authors.ts`, `lib/article-topics.ts`, `app/author/[slug]/page.tsx`, `app/opengraph-image.tsx`, `app/twitter-image.tsx`
+
+**Files modified:** `app/caregiver-support/page.tsx`, `app/caregiver-support/[slug]/page.tsx`, `app/research-and-press/[slug]/page.tsx`, `app/admin/content/[articleId]/page.tsx`, `app/layout.tsx`, `app/about/page.tsx`, `app/contact/page.tsx`, `app/team/page.tsx`, `app/for-providers/page.tsx`, `app/privacy/page.tsx`, `app/terms/page.tsx`, `app/caregiver-support/layout.tsx`, `app/research-and-press/layout.tsx`, `components/for-providers/LeadershipSection.tsx`
+
+---
 
 ### 2026-03-07 (Session 41) — GSC Traffic Analysis + Traffic Recovery Pages + Community Removal
 

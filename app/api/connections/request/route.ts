@@ -391,7 +391,7 @@ export async function POST(request: Request) {
             familyName: firstName || "there",
             providerName,
             careType: intentData?.careType ? (careTypeMap0[intentData.careType] || intentData.careType) : null,
-            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
           }),
         });
       }
@@ -435,7 +435,7 @@ export async function POST(request: Request) {
             familyName: account.display_name || "A family",
             careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
             message: intentData?.additionalNotes || null,
-            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
           }),
         });
       }
@@ -473,7 +473,7 @@ export async function POST(request: Request) {
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           const result = await sendSMS({
             to: normalized,
-            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/portal/connections`,
+            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/provider/connections`,
           });
           console.log("[sms] Send result:", JSON.stringify(result));
         } else {

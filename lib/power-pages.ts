@@ -71,8 +71,10 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
 // Also handle these v1.0 slugs — redirect or alias to the primary slug
 export const CATEGORY_ALIASES: Record<string, string> = {
   "home-care-non-medical": "home-care",
+  "home-health": "home-health-care",                   // short form used in nav/browse filters
+  "nursing-homes": "nursing-home",                     // plural form used in nav/browse filters
   "senior-communities": "assisted-living",
-  "elder-law-attorney": "assisted-living",            // no DB match — redirect to closest
+  "elder-law-attorney": "assisted-living",             // no DB match — redirect to closest
   "financial-legal-other-services": "assisted-living", // no DB match — redirect to closest
 };
 

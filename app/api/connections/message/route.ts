@@ -172,7 +172,7 @@ export async function POST(request: Request) {
               recipientName: recipientProfile?.display_name || "there",
               senderName: senderProfile?.display_name || "Someone",
               messagePreview: preview,
-              viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/connections`,
+              viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
             }),
           });
         }

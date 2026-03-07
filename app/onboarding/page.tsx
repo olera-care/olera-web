@@ -20,9 +20,23 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (isLoading || prompted) return;
 
-    // Skip redirect when user intends to add a provider profile
     const params = new URLSearchParams(window.location.search);
-    if (user && account?.onboarding_completed && params.get("intent") !== "provider") {
+    const intent = params.get("intent");
+
+    // Signed in + onboarded + has an intent (provider or organization) →
+    // open post-auth flow so they can add another profile
+    if (user && account?.onboarding_completed && (intent === "provider" || intent === "organization")) {
+      setPrompted(true);
+      openAuth({
+        startAtPostAuth: true,
+        intent: intent === "organization" ? "provider" : "provider",
+        providerType: intent === "organization" ? "organization" : undefined,
+      });
+      return;
+    }
+
+    // Signed in + onboarded + no intent → already done, go to portal
+    if (user && account?.onboarding_completed) {
       router.replace("/portal");
       return;
     }

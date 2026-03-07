@@ -15,6 +15,12 @@ export const metadata: Metadata = {
     siteName: "Olera",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Research & Press | Olera",
+    description:
+      "The latest in senior care research, industry news, and Olera announcements.",
+  },
 };
 
 export default function ResearchAndPressLayout({

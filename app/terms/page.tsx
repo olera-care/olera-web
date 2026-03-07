@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     siteName: "Olera",
     type: "website",
   },
+  twitter: {
+    card: "summary",
+    title: "Terms of Use | Olera",
+    description:
+      "Terms of Use for Olera, Inc. — governing your access to and use of the olera.care website and related services.",
+  },
 };
 
 export default function TermsPage() {

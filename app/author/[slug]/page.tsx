@@ -35,6 +35,12 @@ export async function generateMetadata({
       type: "profile",
       ...(author.avatar && { images: [author.avatar] }),
     },
+    twitter: {
+      card: "summary",
+      title: `${author.name} — Author | Olera`,
+      description: author.bio,
+      ...(author.avatar && { images: [author.avatar] }),
+    },
   };
 }
 

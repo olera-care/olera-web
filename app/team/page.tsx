@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     siteName: "Olera",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Our Team | Olera",
+    description:
+      "Meet the people behind Olera — a team of engineers, physicians, and caregivers building a better way to find senior care.",
+  },
 };
 
 const leaders = [

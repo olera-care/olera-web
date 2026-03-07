@@ -20,7 +20,14 @@ export const metadata: Metadata = {
     description:
       "Join a network of senior care providers families trust. Set up your profile, get found in local searches, and connect with families.",
     url: "/for-providers",
+    siteName: "Olera",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "For Providers | Reach More Families on Olera",
+    description:
+      "Join a network of senior care providers families trust. Set up your profile, get found in local searches, and connect with families.",
   },
 };
 

@@ -120,7 +120,7 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
       <div className="flex-1 p-4 flex flex-col">
         {/* Name + Rating */}
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-display font-semibold text-base text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">
+          <h3 className="font-sans font-semibold text-base text-gray-900 group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">
             {provider.name}
           </h3>
           {provider.rating > 0 && (

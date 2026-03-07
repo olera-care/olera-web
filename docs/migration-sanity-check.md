@@ -72,7 +72,7 @@ The migration-playbook.md covers provider pages and editorial content well. This
 
 - [x] **S3. SEO canonical inconsistency (extends finding #6)** — DONE — Added `alternates: { canonical }` to `/browse`, `/team`, `/for-providers`, `/community`. `/caregiver-support` and `/research-and-press` already had canonicals in their layouts.
 
-- [ ] **S4. Trust/legal dead-end links** — Footer links to `/privacy`, `/terms`, `/support` (`Footer.tsx:264`, `SimpleFooter.tsx:13`) only resolve via legacy `/pages/privacy` and `/pages/terms` redirects (`next.config.ts:44,66`). Org schema references missing `/contact` (`app/layout.tsx:83`). **Action:** Create proper pages or ensure redirects resolve cleanly; add `/contact` and `/support` routes.
+- [x] **S4. Trust/legal dead-end links** — DONE — Created `/privacy` and `/terms` pages with full legal content from v1.0. Updated redirects: `/pages/privacy`, `/pages/privacy-policy` → `/privacy`; `/pages/terms`, `/terms-and-conditions` → `/terms`. Fixed org schema: replaced dead `/contact` URL with actual email + phone. Added both pages to sitemap.
 
 ### Medium
 

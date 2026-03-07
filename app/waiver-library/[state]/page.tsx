@@ -17,9 +17,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { state: stateId } = await params;
   const state = getStateById(stateId);
   if (!state || state.programs.length === 0) return {};
+  const title = `${state.name} Medicaid Waivers & Benefits | Waiver Library | Olera`;
   return {
-    title: `${state.name} Benefits | Waiver Library | Olera`,
+    title,
     description: state.description,
+    alternates: { canonical: `/waiver-library/${stateId}` },
+    openGraph: {
+      title,
+      description: state.description,
+      url: `/waiver-library/${stateId}`,
+      siteName: "Olera",
+      type: "website",
+    },
   };
 }
 

@@ -26,9 +26,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const state = getStateById(stateId);
   const program = getProgramById(stateId, benefitId);
   if (!state || !program) return {};
+  const title = `${program.shortName} Forms & Documents | ${state.name} | Waiver Library | Olera`;
+  const description = `Download official application forms and documents for ${program.name} in ${state.name}. Everything you need to apply.`;
   return {
-    title: `${program.shortName} Forms & Documents | ${state.name} | Waiver Library | Olera`,
-    description: `Download application forms and documents for ${program.name} in ${state.name}.`,
+    title,
+    description,
+    alternates: { canonical: `/waiver-library/${stateId}/${benefitId}/forms` },
+    openGraph: {
+      title,
+      description,
+      url: `/waiver-library/${stateId}/${benefitId}/forms`,
+      siteName: "Olera",
+      type: "website",
+    },
   };
 }
 

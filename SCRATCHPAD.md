@@ -13,6 +13,7 @@
   - S6: Added slug aliases for `home-health` and `nursing-homes`
   - Geo-personalized homepage "Top providers" carousel (city → state → national cascade)
   - Switched BrowseCard provider name from serif to sans-serif
+  - SEO metadata audit: added canonical + OG to all waiver library pages (~1,160), benefits/finder, terms
 
 - **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
   - Approved business_profiles now appear in all 4 public discovery surfaces
@@ -153,9 +154,16 @@
 **BrowseCard font fix:**
 - `components/browse/BrowseCard.tsx`: Switched provider name from `font-display` (DM Serif Display) to `font-sans` (Inter)
 
-**PRs:** #166 (S1+S2+S6, merged to staging), PR for geo+font pending
+**SEO metadata audit:**
+- Audited all 66 page routes for title, description, canonical, OG, JSON-LD
+- Fixed 8 files across 6 waiver library route levels + benefits/finder + terms
+- ~1,160 pages gained canonical URLs and OG tags
+- 100% of public pages now have full metadata
+- Audit report published to Notion
 
-**Commits:** `889d5a1`, `791f7ac`, `63ea52d`, `14e9345`, `2fb0ef4`
+**PRs:** #166 (S1+S2+S6, merged), #167 (geo+font, merged), SEO metadata PR pending
+
+**Commits:** `889d5a1`, `791f7ac`, `63ea52d`, `14e9345`, `2fb0ef4`, `5869fb0`
 
 ---
 

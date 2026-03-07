@@ -7,7 +7,7 @@
 
 ## Current Focus
 
-- **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — IN PROGRESS
+- **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — DONE ✅
   - S1: Consolidated duplicate connections pages → `/provider/connections`
   - S2: Fixed onboarding dead-end for signed-in users with intent params
   - S6: Added slug aliases for `home-health` and `nursing-homes`
@@ -19,6 +19,8 @@
   - Restored /team as standalone people-first page
   - Removed community/forum section (17 clicks organic — not worth keeping)
   - Fixed article meta description: prefer excerpt over CMS meta_description
+  - Bulk-fixed article metadata: 95 author roles, 55 care_types, 2 name normalizations
+  - Top 10 article spotcheck: 10/10 pass v1↔v2 content parity
 
 - **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
   - Approved business_profiles now appear in all 4 public discovery surfaces
@@ -173,7 +175,20 @@
 
 **PRs:** #169 (seo-metadata-fixes) — 5 commits
 
-**Pending:** Spotcheck #2 article (does-blue-cross-blue-shield-cover-caregiver-expenses, 238 clicks)
+**Bulk article metadata fix (Supabase, via `scripts/fix-article-metadata.mjs`):**
+- 95 author roles populated (TJ: 19, Logan: 21, Lisa: 25, Laura: 29, Jamie: 1)
+- 2 author name normalizations: "Logan DuBose" → "Dr. Logan DuBose", "Laura Herman - Dementia Care Specialist, CCF" → "Laura Herman" (credential in role)
+- 55 care_types assigned (coverage: 37 → 92 of 109 articles, 34% → 84%)
+- 17 company news/press articles intentionally left without care_types
+- 1 tag fix: custody article had wrong BCBS/insurance tags → legal/guardianship/custody
+- Used service role key (anon key silently fails on RLS-protected updates)
+
+**Top 10 article spotcheck (v1 vs v2):**
+- 10/10 articles pass: titles, meta descriptions, first paragraphs, H2 structure, authors, JSON-LD all match
+- Only minor diff: article #7 has extra "Intro" H2 in v2 (no SEO impact)
+- Editorial article migration confirmed clean — no ranking risk
+
+**PRs:** #169 (SEO metadata, merged), #170 (traffic recovery + community removal, merged)
 
 ---
 

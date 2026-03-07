@@ -19,7 +19,7 @@ export const AUTHORS: Author[] = [
     role: "Co-founder & CEO",
     bio: "TJ Falohun, co-founder and CEO of Olera, is a trained biomedical engineer passionate about developing novel digital health and medical technologies. His passion for innovative solutions drives him to write about the cost of healthcare in America and to revolutionize the senior healthcare industry.",
     avatar: "/images/for-providers/team/tj.jpg",
-    linkedin: "https://www.linkedin.com/in/tj-falohun/",
+    linkedin: "https://www.linkedin.com/in/tfalohun/",
   },
   {
     slug: "logan-dubose",

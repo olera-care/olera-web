@@ -28,7 +28,7 @@ const leaders = [
     role: "Co-Founder & CEO",
     bio: "Before founding Olera, TJ worked at Pfizer as a biomedical engineer designing auto-injectors. Watching his own family navigate the fragmented senior care landscape sparked a mission: make finding quality care as straightforward as booking a flight. He leads product and engineering, obsessing over every detail so families don\u2019t have to.",
     image: "/images/for-providers/team/tj.jpg",
-    linkedIn: "https://www.linkedin.com/in/tj-falohun/",
+    linkedIn: "https://www.linkedin.com/in/tfalohun/",
   },
   {
     name: "Logan DuBose, MD, MBA",

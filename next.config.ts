@@ -39,15 +39,18 @@ const nextConfig: NextConfig = {
       { source: "/provider-portal/benefits", destination: "/benefits", permanent: true },
       { source: "/provider-portal/availability", destination: "/portal/calendar", permanent: true },
 
-      // Tier 1: Static page renames → homepage (no dedicated legal pages in v2 yet)
-      { source: "/terms-and-conditions", destination: "/", permanent: true },
-      { source: "/pages/terms", destination: "/", permanent: true },
+      // Tier 1: Legal page redirects → dedicated v2 pages
+      { source: "/terms-and-conditions", destination: "/terms", permanent: true },
+      { source: "/pages/terms", destination: "/terms", permanent: true },
+      { source: "/pages/terms-and-conditions", destination: "/terms", permanent: true },
+      { source: "/pages/privacy-policy", destination: "/privacy", permanent: true },
 
       // Tier 1: Deprecated v1.0 pages → homepage
       { source: "/education-material", destination: "/", permanent: true },
       // /research-and-press — now a live page (removed redirect)
+      { source: "/research-and-press/c/:slug", destination: "/research-and-press", permanent: true },
       { source: "/forum", destination: "/", permanent: true },
-      { source: "/care-assessment", destination: "/", permanent: true },
+      { source: "/care-assessment", destination: "/benefits/finder", permanent: true },
 
       // Tier 2: Deprecated content pages with slugs → homepage
       { source: "/education-material/:slug*", destination: "/", permanent: true },
@@ -63,7 +66,7 @@ const nextConfig: NextConfig = {
       { source: "/inbox", destination: "/portal", permanent: true },
       { source: "/caregiver-forum", destination: "/community", permanent: true },
       { source: "/caregiver-forum/:path*", destination: "/community", permanent: true },
-      { source: "/pages/privacy", destination: "/", permanent: true },
+      { source: "/pages/privacy", destination: "/privacy", permanent: true },
 
       // Tier 3: v1.0 auth pages (no v2 equivalent — auth handled via modal/Supabase)
       { source: "/confirm-email", destination: "/", permanent: true },

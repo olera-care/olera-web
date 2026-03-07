@@ -84,6 +84,8 @@ export default async function sitemap({
       { path: "/caregiver-support", priority: 0.6, changeFrequency: "weekly" as const },
       { path: "/research-and-press", priority: 0.6, changeFrequency: "weekly" as const },
       { path: "/team", priority: 0.7, changeFrequency: "monthly" as const },
+      { path: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
+      { path: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
       { path: "/waiver-library", priority: 0.6, changeFrequency: "monthly" as const },
       { path: "/waiver-library/forms", priority: 0.5, changeFrequency: "monthly" as const },
     ];

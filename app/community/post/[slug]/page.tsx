@@ -188,7 +188,7 @@ export default function PostDetailPage() {
         {/* Back Link */}
         <div className="mt-12 pt-6 border-t border-gray-100">
           <Link
-            href={`/community/${post.careType}`}
+            href="/community"
             className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -80,7 +80,9 @@ const organizationJsonLd = {
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer service",
-    url: "https://olera.care/contact",
+    email: "support@olera.care",
+    telephone: "+1-979-243-9801",
+    url: "https://olera.care",
   },
   potentialAction: {
     "@type": "SearchAction",

@@ -58,6 +58,9 @@ export async function generateMetadata({
   return {
     title: seo.title,
     description: seo.description,
+    alternates: {
+      canonical: "/browse",
+    },
     openGraph: {
       title: seo.title,
       description: seo.description,

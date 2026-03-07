@@ -7,6 +7,13 @@
 
 ## Current Focus
 
+- **Migration Quick Wins + Geo-Personalization** (branch: `stellar-stonebraker`) — DONE ✅
+  - S1: Consolidated duplicate connections pages → `/provider/connections`
+  - S2: Fixed onboarding dead-end for signed-in users with intent params
+  - S6: Added slug aliases for `home-health` and `nursing-homes`
+  - Geo-personalized homepage "Top providers" carousel (city → state → national cascade)
+  - Switched BrowseCard provider name from serif to sans-serif
+
 - **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
   - Approved business_profiles now appear in all 4 public discovery surfaces
   - Parallel queries with deduplication via source_provider_id
@@ -118,6 +125,39 @@
 ---
 
 ## Session Log
+
+### 2026-03-07 (Session 40) — Migration Quick Wins + Homepage Geo-Personalization
+
+**Branch:** `stellar-stonebraker`
+
+**What:** Closed 3 migration strategic gaps (S1, S2, S6) and added city-level geo-personalization to the homepage top providers carousel. Also fixed BrowseCard serif font.
+
+**S1 — Duplicate connections pages:**
+- Deleted `/portal/connections` (716 lines) and `/portal/connections/[id]` (545 lines)
+- Kept `/provider/connections` (Leads table with urgency filters, sort, slide-out drawer)
+- Added redirect in `next.config.ts`, updated 5 API route email/SMS URLs + calendar page links
+
+**S6 — Taxonomy slug aliases:**
+- Added `home-health` → `home-health-care` and `nursing-homes` → `nursing-home` to `CATEGORY_ALIASES` in `lib/power-pages.ts`
+
+**S2 — Onboarding dead-end fix:**
+- Added condition in `app/onboarding/page.tsx` for signed-in + onboarded users with `intent=provider` or `intent=organization`
+- Now opens post-auth flow with intent pre-set instead of bouncing to `/portal`
+
+**Geo-personalized top providers:**
+- `app/page.tsx`: Reads `x-vercel-ip-country-region` + `x-vercel-ip-city` headers, validates against US_STATES
+- `components/home/TopProvidersSection.tsx`: Cascade — city+state → state → national (all 3 queries in parallel)
+- Heading shows "Top-rated providers in Irvine, California" or falls back to state/national
+- Homepage is now `ƒ` (dynamic) instead of `○` (static) due to header reads
+
+**BrowseCard font fix:**
+- `components/browse/BrowseCard.tsx`: Switched provider name from `font-display` (DM Serif Display) to `font-sans` (Inter)
+
+**PRs:** #166 (S1+S2+S6, merged to staging), PR for geo+font pending
+
+**Commits:** `889d5a1`, `791f7ac`, `63ea52d`, `14e9345`, `2fb0ef4`
+
+---
 
 ### 2026-03-05 (Session 39) — Family Connection Emails + Mock Data Cleanup
 

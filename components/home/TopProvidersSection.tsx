@@ -10,10 +10,17 @@ import {
   PROVIDERS_TABLE,
   toCardFormat,
 } from "@/lib/types/provider";
+import { US_STATES } from "@/lib/power-pages";
 
-export default function TopProvidersSection() {
+interface TopProvidersSectionProps {
+  geoState?: string | null; // 2-letter state code from Vercel IP geo
+  geoCity?: string | null;  // City name from Vercel IP geo e.g. "Irvine"
+}
+
+export default function TopProvidersSection({ geoState, geoCity }: TopProvidersSectionProps) {
   const [featuredProviders, setFeaturedProviders] = useState<ProviderCardData[]>([]);
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
+  const [locationLabel, setLocationLabel] = useState<string | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -22,21 +29,53 @@ export default function TopProvidersSection() {
     async function fetchFeaturedProviders() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
-          .from(PROVIDERS_TABLE)
-          .select("*")
-          .not("deleted", "is", true)
-          .not("google_rating", "is", null)
-          .gte("google_rating", 4.0)
-          .not("provider_images", "is", null)
-          .order("google_rating", { ascending: false })
-          .limit(8);
 
-        if (error || !data) {
-          console.error("Error fetching featured providers:", error?.message);
-          setFeaturedProviders([]);
+        const buildQuery = (opts?: { state?: string; city?: string }) => {
+          let q = supabase
+            .from(PROVIDERS_TABLE)
+            .select("*")
+            .not("deleted", "is", true)
+            .not("google_rating", "is", null)
+            .gte("google_rating", 4.0)
+            .not("provider_images", "is", null)
+            .order("google_rating", { ascending: false })
+            .limit(8);
+          if (opts?.state) q = q.eq("state", opts.state);
+          if (opts?.city) q = q.ilike("city", opts.city);
+          return q;
+        };
+
+        if (geoState) {
+          // Fire city + state + national in parallel — pick best available
+          const queries = [
+            geoCity ? buildQuery({ state: geoState, city: geoCity }) : Promise.resolve({ data: [] }),
+            buildQuery({ state: geoState }),
+            buildQuery(),
+          ];
+          const [cityResult, stateResult, nationalResult] = await Promise.all(queries);
+
+          if (cityResult.data && cityResult.data.length > 0) {
+            setFeaturedProviders((cityResult.data as IOSProvider[]).map(toCardFormat));
+            setLocationLabel(`${geoCity}, ${US_STATES[geoState]}`);
+          } else if (stateResult.data && stateResult.data.length > 0) {
+            setFeaturedProviders((stateResult.data as IOSProvider[]).map(toCardFormat));
+            setLocationLabel(US_STATES[geoState]);
+          } else {
+            setLocationLabel(null);
+            setFeaturedProviders(
+              nationalResult.data
+                ? (nationalResult.data as IOSProvider[]).map(toCardFormat)
+                : []
+            );
+          }
         } else {
-          setFeaturedProviders((data as IOSProvider[]).map(toCardFormat));
+          const { data, error } = await buildQuery();
+          if (error || !data) {
+            console.error("Error fetching featured providers:", error?.message);
+            setFeaturedProviders([]);
+          } else {
+            setFeaturedProviders((data as IOSProvider[]).map(toCardFormat));
+          }
         }
       } catch (err) {
         console.error("Error fetching providers:", err);
@@ -47,7 +86,7 @@ export default function TopProvidersSection() {
     }
 
     fetchFeaturedProviders();
-  }, []);
+  }, [geoState, geoCity]);
 
   const updateScrollState = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -94,10 +133,12 @@ export default function TopProvidersSection() {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Top-rated providers
+              Top-rated providers{locationLabel ? ` in ${locationLabel}` : ""}
             </h2>
             <p className="mt-1.5 text-base text-gray-500">
-              Highly reviewed care providers across the country
+              {locationLabel
+                ? "Highly reviewed care providers near you"
+                : "Highly reviewed care providers across the country"}
             </p>
           </div>
           <Link

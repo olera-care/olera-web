@@ -5,6 +5,7 @@ import { getArticleBySlug, getRelatedArticles } from "@/lib/content";
 import { renderContentToHTML } from "@/lib/render-content";
 import { CareTypeId, CARE_TYPE_CONFIG } from "@/types/forum";
 import { processArticleHtml } from "@/lib/article-html";
+import { getAuthorByName } from "@/lib/authors";
 import {
   DesktopTableOfContents,
   MobileTableOfContents,
@@ -102,6 +103,7 @@ export default async function ResearchAndPressArticlePage({
   const careTypes = (article.care_types ?? []) as CareTypeId[];
   const tags = article.tags ?? [];
   const showAuthorCard = authorName !== "Olera Team";
+  const authorSlug = getAuthorByName(authorName)?.slug;
 
   // Render content
   let contentHtml = article.content_html || "";
@@ -243,9 +245,13 @@ export default async function ResearchAndPressArticlePage({
                         </span>
                       </div>
                     )}
-                    <span className="text-gray-600 font-medium">
-                      {authorName}
-                    </span>
+                    {authorSlug ? (
+                      <Link href={`/author/${authorSlug}`} className="text-gray-600 font-medium hover:text-primary-600 transition-colors">
+                        {authorName}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-600 font-medium">{authorName}</span>
+                    )}
                   </div>
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
@@ -297,9 +303,13 @@ export default async function ResearchAndPressArticlePage({
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {authorName}
-                    </p>
+                    {authorSlug ? (
+                      <Link href={`/author/${authorSlug}`} className="text-sm font-semibold text-gray-900 hover:text-primary-600 transition-colors">
+                        {authorName}
+                      </Link>
+                    ) : (
+                      <p className="text-sm font-semibold text-gray-900">{authorName}</p>
+                    )}
                     {authorRole && (
                       <p className="text-sm text-gray-500">{authorRole}</p>
                     )}

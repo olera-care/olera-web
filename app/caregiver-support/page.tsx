@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MOCK_RESOURCES } from "@/data/mock/resources";
 import { Resource } from "@/types/resource";
-import { CareTypeId, CARE_TYPE_CONFIG, ALL_CARE_TYPES } from "@/types/forum";
+import { ArticleTopic, TOPIC_CONFIG, ALL_TOPICS } from "@/lib/article-topics";
 import Pagination from "@/components/ui/Pagination";
 
 // ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ interface ArticleFromAPI {
   subtitle: string;
   excerpt: string;
   cover_image_url: string | null;
-  care_types: CareTypeId[];
+  care_types: string[];
   category: string;
   author_name: string;
   author_role: string;
@@ -39,8 +39,8 @@ function apiToResource(a: ArticleFromAPI): Resource {
     subtitle: a.subtitle || "",
     excerpt: a.excerpt || "",
     coverImage: a.cover_image_url || "/images/home-health.webp",
-    careTypes: a.care_types || [],
-    category: (a.category as Resource["category"]) || "guide",
+    careTypes: (a.care_types || []) as Resource["careTypes"],
+    category: a.category || "",
     author: { name: a.author_name, role: a.author_role || "" },
     publishedAt: a.published_at || new Date().toISOString(),
     readingTime: (a.reading_time as Resource["readingTime"]) || "5 min",
@@ -70,9 +70,9 @@ function FeaturedArticlePrimary({ resource }: { resource: Resource }) {
           />
         </div>
         <div className="flex-1 flex flex-col">
-          {resource.careTypes[0] && (
+          {resource.category && TOPIC_CONFIG[resource.category as ArticleTopic] && (
             <span className="text-sm font-medium text-gray-400 mb-2">
-              {CARE_TYPE_CONFIG[resource.careTypes[0]].label}
+              {TOPIC_CONFIG[resource.category as ArticleTopic].label}
             </span>
           )}
           <h3 className="font-display text-display-xs md:text-display-sm font-bold text-gray-900 leading-tight group-hover:text-gray-600 transition-colors duration-200 mb-3">
@@ -109,9 +109,9 @@ function FeaturedArticleSecondary({ resource }: { resource: Resource }) {
           />
         </div>
         <div className="flex-1 min-w-0 flex flex-col justify-center">
-          {resource.careTypes[0] && (
+          {resource.category && TOPIC_CONFIG[resource.category as ArticleTopic] && (
             <span className="text-xs font-medium text-gray-400 mb-1">
-              {CARE_TYPE_CONFIG[resource.careTypes[0]].label}
+              {TOPIC_CONFIG[resource.category as ArticleTopic].label}
             </span>
           )}
           <h3 className="font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200 line-clamp-2">
@@ -190,9 +190,9 @@ function FeaturedSection({ articles }: { articles: Resource[] }) {
         href={`/caregiver-support/${primary.slug}`}
         className="group block mt-5 lg:max-w-[58%]"
       >
-        {primary.careTypes[0] && (
+        {primary.category && TOPIC_CONFIG[primary.category as ArticleTopic] && (
           <span className="text-sm font-medium text-gray-400 mb-2 block">
-            {CARE_TYPE_CONFIG[primary.careTypes[0]].label}
+            {TOPIC_CONFIG[primary.category as ArticleTopic].label}
           </span>
         )}
         <h3 className="font-display text-display-xs md:text-display-sm font-bold text-gray-900 leading-tight group-hover:text-gray-600 transition-colors duration-200 mb-3">
@@ -246,7 +246,7 @@ function FeaturedSkeleton() {
 // ---------------------------------------------------------------------------
 
 function ArticleCard({ resource }: { resource: Resource }) {
-  const careType = resource.careTypes[0];
+  const topicLabel = resource.category && TOPIC_CONFIG[resource.category as ArticleTopic]?.label;
 
   return (
     <Link href={`/caregiver-support/${resource.slug}`} className="group block">
@@ -260,9 +260,9 @@ function ArticleCard({ resource }: { resource: Resource }) {
             className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
           />
         </div>
-        {careType && (
+        {topicLabel && (
           <span className="text-xs font-medium text-gray-400 tracking-wide uppercase">
-            {CARE_TYPE_CONFIG[careType].label}
+            {topicLabel}
           </span>
         )}
         <h3 className="mt-2 font-display text-lg font-semibold text-gray-900 leading-snug group-hover:text-gray-600 transition-colors duration-200 line-clamp-2">
@@ -286,9 +286,9 @@ function CaregiverSupportContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const typeParam = searchParams.get("type");
-  const [activeCareType, setActiveCareType] = useState<CareTypeId | "all">(
-    (typeParam as CareTypeId) || "all"
+  const topicParam = searchParams.get("topic");
+  const [activeTopic, setActiveTopic] = useState<ArticleTopic | "all">(
+    (topicParam as ArticleTopic) || "all"
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [apiResources, setApiResources] = useState<Resource[] | null>(null);
@@ -296,10 +296,10 @@ function CaregiverSupportContent() {
 
   // Sync filter with URL (handles browser back/forward)
   useEffect(() => {
-    const urlType = searchParams.get("type");
-    const next = (urlType as CareTypeId) || "all";
-    if (next !== activeCareType) {
-      setActiveCareType(next);
+    const urlTopic = searchParams.get("topic");
+    const next = (urlTopic as ArticleTopic) || "all";
+    if (next !== activeTopic) {
+      setActiveTopic(next);
       setCurrentPage(1);
     }
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -333,14 +333,14 @@ function CaregiverSupportContent() {
     () => allResources.filter((r) => r.featured),
     [allResources]
   );
-  const showFeatured = activeCareType === "all" && currentPage === 1;
+  const showFeatured = activeTopic === "all" && currentPage === 1;
 
   // Filtered & sorted articles (excluding featured when shown in hero)
   const filteredResources = useMemo(() => {
     let resources = allResources;
 
-    if (activeCareType !== "all") {
-      resources = resources.filter((r) => r.careTypes.includes(activeCareType));
+    if (activeTopic !== "all") {
+      resources = resources.filter((r) => r.category === activeTopic);
     }
 
     // When showing featured section, exclude those articles from the grid
@@ -353,7 +353,7 @@ function CaregiverSupportContent() {
       (a, b) =>
         new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
-  }, [activeCareType, allResources, showFeatured, featuredArticles]);
+  }, [activeTopic, allResources, showFeatured, featuredArticles]);
 
   // Pagination
   const totalPages = Math.ceil(filteredResources.length / ARTICLES_PER_PAGE);
@@ -362,16 +362,16 @@ function CaregiverSupportContent() {
     return filteredResources.slice(start, start + ARTICLES_PER_PAGE);
   }, [filteredResources, currentPage]);
 
-  const handleCategoryChange = useCallback(
-    (category: CareTypeId | "all") => {
-      setActiveCareType(category);
+  const handleTopicChange = useCallback(
+    (topic: ArticleTopic | "all") => {
+      setActiveTopic(topic);
       setCurrentPage(1);
       // Persist filter in URL so deep-links & back-button work
       const params = new URLSearchParams(searchParams.toString());
-      if (category === "all") {
-        params.delete("type");
+      if (topic === "all") {
+        params.delete("topic");
       } else {
-        params.set("type", category);
+        params.set("topic", topic);
       }
       const qs = params.toString();
       router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
@@ -412,26 +412,26 @@ function CaregiverSupportContent() {
           <div className="overflow-x-auto scrollbar-hide px-5 sm:px-0">
             <div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap pb-2 sm:pb-0">
               <button
-                onClick={() => handleCategoryChange("all")}
+                onClick={() => handleTopicChange("all")}
                 className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
-                  activeCareType === "all"
+                  activeTopic === "all"
                     ? "bg-gray-900 text-white"
                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                 }`}
               >
                 All
               </button>
-              {ALL_CARE_TYPES.map((careType) => (
+              {ALL_TOPICS.map((topic) => (
                 <button
-                  key={careType}
-                  onClick={() => handleCategoryChange(careType)}
+                  key={topic}
+                  onClick={() => handleTopicChange(topic)}
                   className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150 ${
-                    activeCareType === careType
+                    activeTopic === topic
                       ? "bg-gray-900 text-white"
                       : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                 >
-                  {CARE_TYPE_CONFIG[careType].label}
+                  {TOPIC_CONFIG[topic].label}
                 </button>
               ))}
             </div>
@@ -449,7 +449,7 @@ function CaregiverSupportContent() {
           <div className="py-20 text-center">
             <p className="text-base text-gray-400 mb-4">No articles found</p>
             <button
-              onClick={() => handleCategoryChange("all")}
+              onClick={() => handleTopicChange("all")}
               className="min-h-[44px] px-4 text-sm text-gray-900 underline underline-offset-4 hover:text-gray-600 transition-colors"
             >
               View all articles

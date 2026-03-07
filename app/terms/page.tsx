@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   description:
     "Terms of Use for Olera, Inc. — governing your access to and use of the olera.care website and related services.",
   alternates: { canonical: "/terms" },
+  openGraph: {
+    title: "Terms of Use | Olera",
+    description:
+      "Terms of Use for Olera, Inc. — governing your access to and use of the olera.care website and related services.",
+    url: "/terms",
+    siteName: "Olera",
+    type: "website",
+  },
 };
 
 export default function TermsPage() {

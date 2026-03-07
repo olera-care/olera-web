@@ -4,9 +4,18 @@ import { allStates } from "@/data/waiver-library";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
 
 export const metadata: Metadata = {
-  title: "Forms & Documents | Waiver Library | Olera",
+  title: "Medicaid Waiver Forms & Documents by State | Waiver Library | Olera",
   description:
     "Browse and download official Medicaid waiver application forms and documents for every state.",
+  alternates: { canonical: "/waiver-library/forms" },
+  openGraph: {
+    title: "Medicaid Waiver Forms & Documents by State | Waiver Library | Olera",
+    description:
+      "Browse and download official Medicaid waiver application forms and documents for every state.",
+    url: "/waiver-library/forms",
+    siteName: "Olera",
+    type: "website",
+  },
 };
 
 export default function FormsHubPage() {

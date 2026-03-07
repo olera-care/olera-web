@@ -7,9 +7,18 @@ import { StateSearchProvider } from "@/components/waiver-library/StateSearchCont
 import { HeroStateSearch } from "@/components/waiver-library/HeroStateSearch";
 
 export const metadata: Metadata = {
-  title: "Waiver Library | Olera",
+  title: "Medicaid Waiver Library | Find Senior Care Benefits by State | Olera",
   description:
     "Find HCBS and long-term care Medicaid waivers by state. Explore programs, eligibility requirements, and application steps for seniors and adults with disabilities.",
+  alternates: { canonical: "/waiver-library" },
+  openGraph: {
+    title: "Medicaid Waiver Library | Find Senior Care Benefits by State | Olera",
+    description:
+      "Find HCBS and long-term care Medicaid waivers by state. Explore programs, eligibility, and application steps.",
+    url: "/waiver-library",
+    siteName: "Olera",
+    type: "website",
+  },
 };
 
 function parseSavingsAvg(s: string): number {

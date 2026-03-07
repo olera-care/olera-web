@@ -6,8 +6,9 @@ import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
 import { slugify } from "@/lib/slugify";
-import { ALL_RESOURCE_CATEGORIES, RESOURCE_CATEGORY_CONFIG } from "@/types/resource";
 import { ALL_CARE_TYPES, CARE_TYPE_CONFIG } from "@/types/forum";
+import { AUTHORS } from "@/lib/authors";
+import { ALL_TOPICS, TOPIC_CONFIG } from "@/lib/article-topics";
 import type { ContentArticle, ContentStatus } from "@/types/content";
 import ImageDropZone from "@/components/admin/content/ImageDropZone";
 import SEOSection from "@/components/admin/content/SEOSection";
@@ -219,8 +220,8 @@ export default function AdminContentEditorPage() {
             />
             <Select
               label="Category"
-              options={ALL_RESOURCE_CATEGORIES.map(cat => ({ value: cat, label: RESOURCE_CATEGORY_CONFIG[cat].label }))}
-              value={(formData.category as string) || "guide"}
+              options={ALL_TOPICS.map(topic => ({ value: topic, label: TOPIC_CONFIG[topic].label }))}
+              value={(formData.category as string) || ""}
               onChange={(val) => updateField("category", val)}
               size="sm"
             />
@@ -245,6 +246,26 @@ export default function AdminContentEditorPage() {
         {/* Author */}
         <Section title="Author">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Author</label>
+              <select
+                value={AUTHORS.find(a => a.name === formData.author_name)?.slug || ""}
+                onChange={(e) => {
+                  const author = AUTHORS.find(a => a.slug === e.target.value);
+                  if (author) {
+                    updateField("author_name", author.name);
+                    updateField("author_role", author.role);
+                    if (author.avatar) updateField("author_avatar", author.avatar);
+                  }
+                }}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
+              >
+                <option value="">Custom author...</option>
+                {AUTHORS.map(a => (
+                  <option key={a.slug} value={a.slug}>{a.name} — {a.role}</option>
+                ))}
+              </select>
+            </div>
             <FieldInput
               label="Author Name"
               value={formData.author_name as string}

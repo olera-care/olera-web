@@ -9,12 +9,14 @@ import { US_STATES } from "@/lib/power-pages";
 export default async function HomePage() {
   const hdrs = await headers();
   const region = hdrs.get("x-vercel-ip-country-region"); // 2-letter state code e.g. "TX"
+  const city = hdrs.get("x-vercel-ip-city"); // city name e.g. "Irvine"
   const geoState = region && US_STATES[region] ? region : null;
+  const geoCity = geoState && city ? decodeURIComponent(city) : null;
 
   return (
     <div className="bg-gray-50">
       <HeroSection />
-      <TopProvidersSection geoState={geoState} />
+      <TopProvidersSection geoState={geoState} geoCity={geoCity} />
       <ExploreCareSection />
       <CommunitySection />
       <CTASection />

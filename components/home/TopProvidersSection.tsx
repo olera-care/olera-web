@@ -14,12 +14,13 @@ import { US_STATES } from "@/lib/power-pages";
 
 interface TopProvidersSectionProps {
   geoState?: string | null; // 2-letter state code from Vercel IP geo
+  geoCity?: string | null;  // City name from Vercel IP geo e.g. "Irvine"
 }
 
-export default function TopProvidersSection({ geoState }: TopProvidersSectionProps) {
+export default function TopProvidersSection({ geoState, geoCity }: TopProvidersSectionProps) {
   const [featuredProviders, setFeaturedProviders] = useState<ProviderCardData[]>([]);
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
-  const [detectedState, setDetectedState] = useState<string | null>(geoState ?? null);
+  const [locationLabel, setLocationLabel] = useState<string | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -29,7 +30,7 @@ export default function TopProvidersSection({ geoState }: TopProvidersSectionPro
       try {
         const supabase = createClient();
 
-        const buildQuery = (state?: string | null) => {
+        const buildQuery = (opts?: { state?: string; city?: string }) => {
           let q = supabase
             .from(PROVIDERS_TABLE)
             .select("*")
@@ -39,22 +40,28 @@ export default function TopProvidersSection({ geoState }: TopProvidersSectionPro
             .not("provider_images", "is", null)
             .order("google_rating", { ascending: false })
             .limit(8);
-          if (state) q = q.eq("state", state);
+          if (opts?.state) q = q.eq("state", opts.state);
+          if (opts?.city) q = q.ilike("city", opts.city);
           return q;
         };
 
         if (geoState) {
-          // Run state + national queries in parallel to avoid waterfall
-          const [stateResult, nationalResult] = await Promise.all([
-            buildQuery(geoState),
+          // Fire city + state + national in parallel — pick best available
+          const queries = [
+            geoCity ? buildQuery({ state: geoState, city: geoCity }) : Promise.resolve({ data: [] }),
+            buildQuery({ state: geoState }),
             buildQuery(),
-          ]);
+          ];
+          const [cityResult, stateResult, nationalResult] = await Promise.all(queries);
 
-          if (stateResult.data && stateResult.data.length > 0) {
+          if (cityResult.data && cityResult.data.length > 0) {
+            setFeaturedProviders((cityResult.data as IOSProvider[]).map(toCardFormat));
+            setLocationLabel(`${geoCity}, ${US_STATES[geoState]}`);
+          } else if (stateResult.data && stateResult.data.length > 0) {
             setFeaturedProviders((stateResult.data as IOSProvider[]).map(toCardFormat));
-            setDetectedState(geoState);
+            setLocationLabel(US_STATES[geoState]);
           } else {
-            setDetectedState(null);
+            setLocationLabel(null);
             setFeaturedProviders(
               nationalResult.data
                 ? (nationalResult.data as IOSProvider[]).map(toCardFormat)
@@ -79,7 +86,7 @@ export default function TopProvidersSection({ geoState }: TopProvidersSectionPro
     }
 
     fetchFeaturedProviders();
-  }, [geoState]);
+  }, [geoState, geoCity]);
 
   const updateScrollState = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -126,11 +133,11 @@ export default function TopProvidersSection({ geoState }: TopProvidersSectionPro
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Top-rated providers{detectedState ? ` in ${US_STATES[detectedState]}` : ""}
+              Top-rated providers{locationLabel ? ` in ${locationLabel}` : ""}
             </h2>
             <p className="mt-1.5 text-base text-gray-500">
-              {detectedState
-                ? `Highly reviewed care providers near you`
+              {locationLabel
+                ? "Highly reviewed care providers near you"
                 : "Highly reviewed care providers across the country"}
             </p>
           </div>

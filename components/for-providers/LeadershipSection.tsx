@@ -6,7 +6,7 @@ const leaders = [
     name: "TJ Falohun, MS",
     role: "CEO",
     bio: "Before Olera, TJ worked at Pfizer as a biomedical engineer, designing auto-injectors.",
-    linkedIn: "https://www.linkedin.com/in/tj-falohun/",
+    linkedIn: "https://www.linkedin.com/in/tfalohun/",
     image: "/images/for-providers/team/tj.jpg",
   },
   {

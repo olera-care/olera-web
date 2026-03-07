@@ -15,6 +15,12 @@ export const metadata: Metadata = {
     siteName: "Olera",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Caregiver Support | Olera",
+    description:
+      "Guides, comparisons, and practical advice to help you navigate senior care options.",
+  },
 };
 
 export default function ResourcesLayout({

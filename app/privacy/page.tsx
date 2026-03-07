@@ -11,6 +11,14 @@ export const metadata: Metadata = {
     description:
       "Olera Privacy Policy — learn how we collect, use, and protect your personal data.",
     url: "/privacy",
+    siteName: "Olera",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Privacy Policy | Olera",
+    description:
+      "Olera Privacy Policy — learn how we collect, use, and protect your personal data.",
   },
 };
 

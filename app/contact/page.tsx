@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     siteName: "Olera",
     type: "website",
   },
+  twitter: {
+    card: "summary",
+    title: "Contact Us | Olera",
+    description:
+      "Get in touch with the Olera team. We're here to help families find quality senior care.",
+  },
 };
 
 export default function ContactPage() {

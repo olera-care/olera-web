@@ -15,6 +15,12 @@ export const metadata: Metadata = {
     siteName: "Olera",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Olera | Our Mission to Transform Senior Care",
+    description:
+      "Olera helps families find quality senior care — from home care to assisted living to financial planning.",
+  },
 };
 
 export default function AboutPage() {

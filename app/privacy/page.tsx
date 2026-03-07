@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import LegalPageLayout from "@/components/legal/LegalPageLayout";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Olera",
@@ -16,18 +16,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="max-w-3xl mx-auto px-4 py-12 sm:py-16">
-      <Link
-        href="/"
-        className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-      >
-        &larr; Back to Home
-      </Link>
-
-      <h1 className="text-3xl sm:text-4xl font-bold mt-6">Privacy Policy</h1>
-      <p className="text-gray-500 mt-2">Last Updated: December 2, 2025</p>
-
-      <div className="prose prose-gray max-w-none mt-8">
+    <LegalPageLayout title="Privacy Policy" lastUpdated="December 2, 2025">
         {/* ── Interpretation and Definitions ── */}
         <h2>Interpretation and Definitions</h2>
 
@@ -432,7 +421,6 @@ export default function PrivacyPage() {
         <p>
           <strong>Email:</strong> support@olera.care
         </p>
-      </div>
-    </main>
+    </LegalPageLayout>
   );
 }

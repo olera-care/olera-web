@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import LegalPageLayout from "@/components/legal/LegalPageLayout";
 
 export const metadata: Metadata = {
   title: "Terms of Use | Olera",
@@ -10,18 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="max-w-3xl mx-auto px-4 py-12 sm:py-16">
-      <Link
-        href="/"
-        className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-      >
-        &larr; Back to Home
-      </Link>
-
-      <h1 className="text-3xl sm:text-4xl font-bold mt-6">Terms of Use</h1>
-      <p className="text-gray-500 mt-2">Last Updated: December 1, 2025</p>
-
-      <div className="prose prose-gray max-w-none mt-8">
+    <LegalPageLayout title="Terms of Use" lastUpdated="December 1, 2025">
         {/* 1. AGREEMENT TO TERMS */}
         <h2>1. Agreement to Terms</h2>
         <p>
@@ -233,9 +222,7 @@ export default function TermsPage() {
         <p>
           We care about data privacy and security. Please review our Privacy
           Policy at{" "}
-          <Link href="/privacy" className="text-blue-600 hover:underline">
-            /privacy
-          </Link>
+          <a href="/privacy">/privacy</a>
           . By using the Site, you agree to be bound by our Privacy Policy. The
           Site is hosted in the United States.
         </p>
@@ -562,7 +549,6 @@ export default function TermsPage() {
           <br />
           Email: support@olera.care
         </p>
-      </div>
-    </main>
+    </LegalPageLayout>
   );
 }

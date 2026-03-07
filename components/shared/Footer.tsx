@@ -184,8 +184,18 @@ export default function Footer() {
               </h3>
               <ul className="space-y-0">
                 <li>
+                  <Link href="/about" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    About Us
+                  </Link>
+                </li>
+                <li>
                   <Link href="/team" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Our Team
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Contact
                   </Link>
                 </li>
                 <li>

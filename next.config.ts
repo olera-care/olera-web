@@ -77,6 +77,12 @@ const nextConfig: NextConfig = {
       { source: "/provider/:slug/review/:uuid", destination: "/provider/:slug", permanent: true },
       { source: "/provider/:slug/request-review/:token", destination: "/provider/:slug", permanent: true },
 
+      // Tier 3: v1.0 company pages → v2 equivalents
+      { source: "/company/about", destination: "/about", permanent: true },
+      { source: "/company/leadership", destination: "/team", permanent: true },
+      { source: "/company/contact-us", destination: "/contact", permanent: true },
+      { source: "/company/investors", destination: "/about", permanent: true },
+
       // Tier 3: v1.0 pages with no v2 equivalent → homepage
       { source: "/caregiver-relief-network", destination: "/", permanent: true },
       { source: "/caregiver-relief-network/:path*", destination: "/", permanent: true },

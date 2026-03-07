@@ -7,13 +7,18 @@
 
 ## Current Focus
 
-- **Migration Quick Wins + Geo-Personalization** (branch: `stellar-stonebraker`) — DONE ✅
+- **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — IN PROGRESS
   - S1: Consolidated duplicate connections pages → `/provider/connections`
   - S2: Fixed onboarding dead-end for signed-in users with intent params
   - S6: Added slug aliases for `home-health` and `nursing-homes`
   - Geo-personalized homepage "Top providers" carousel (city → state → national cascade)
   - Switched BrowseCard provider name from serif to sans-serif
   - SEO metadata audit: added canonical + OG to all waiver library pages (~1,160), benefits/finder, terms
+  - GSC traffic analysis: 0 404 risks, 70 clicks lost from /company/* pages
+  - Built /about and /contact pages to recover company page traffic
+  - Restored /team as standalone people-first page
+  - Removed community/forum section (17 clicks organic — not worth keeping)
+  - Fixed article meta description: prefer excerpt over CMS meta_description
 
 - **Surface Approved Providers in Public Search** (branch: `vibrant-keller`) — DONE ✅
   - Approved business_profiles now appear in all 4 public discovery surfaces
@@ -72,8 +77,8 @@
 ## Blocked / Needs Input
 
 - ~~**Migration Playbook → Notion:**~~ ✅ Done (2026-03-01) — updated via Notion MCP
-- **Top 100 pages from Search Console:** TJ needs to export from Google Search Console (Performance → Pages → exclude `/provider/` → sort by clicks → top 100)
-- ~~**Editorial content redirect decision:**~~ ✅ Done — all v1.0 content routes now have redirects in `next.config.ts`: `/research-and-press/*` → homepage, `/caregiver-forum/*` → `/community`, `/caregiver-relief-network/*` → homepage, `/company/*` → homepage
+- ~~**Top 100 pages from Search Console:**~~ ✅ Done — GSC export analyzed, 0 404 risks found
+- ~~**Editorial content redirect decision:**~~ ✅ Done — all v1.0 content routes now have redirects in `next.config.ts`: `/research-and-press/*` → homepage, `/caregiver-forum/*` → `/`, `/caregiver-relief-network/*` → homepage, `/company/*` → dedicated pages
 
 ---
 
@@ -126,6 +131,51 @@
 ---
 
 ## Session Log
+
+### 2026-03-07 (Session 41) — GSC Traffic Analysis + Traffic Recovery Pages + Community Removal
+
+**Branch:** `seo-metadata-fixes` (on `stellar-stonebraker` worktree)
+
+**What:** Analyzed GSC export to validate redirect coverage, built pages to recover lost company traffic, removed low-traffic community section, and fixed article meta description strategy.
+
+**GSC Traffic Analysis:**
+- Analyzed `docs/Pages.csv` (GSC Performance export, excluding /provider/ URLs)
+- Result: 0 URLs returning 404 — all v1.0 paths covered by redirects
+- Found 70 clicks lost from `/company/*` pages (about: 21, contact-us: 7, leadership: 42)
+
+**Traffic Recovery Pages:**
+- `app/about/page.tsx` (NEW): Mission, origin story (Texas A&M/Sling Health), team teaser with overlapping portraits linking to /team, NIA badge
+- `app/contact/page.tsx` (NEW): Phone + email cards, amber "we're a directory" disclaimer, provider CTA
+- `app/team/page.tsx` (REWRITTEN): Standalone people-first page after user feedback — full portraits, bios, LinkedIn links
+
+**Community/Forum Removal:**
+- GSC showed only 17 organic clicks for forum content — not worth maintaining
+- Deleted: `components/home/CommunitySection.tsx`, `app/community/` (4 files), `components/community/` (9 files), `components/team/HeroSection.tsx`, `components/team/TeamSection.tsx`
+- Removed community from: Navbar, NavMenuData, Footer, homepage
+- Added 302 redirects for `/community` and `/community/:path*` → `/` (temporary, will return)
+
+**Article Meta Description Fix:**
+- Changed fallback order: `excerpt || meta_description || undefined` (was `meta_description || excerpt`)
+- Rationale: Google pulls snippets from body content for top articles; CMS meta_description would override this
+- Verified all top 10 articles have excerpts populated
+
+**Article Analysis:**
+- Compared v1 vs v2 body content for #1 article — confirmed identical HTML
+- Discovered two taxonomy systems: `care_types` (user-facing CareTypeId) vs `category` (CMS-only ResourceCategory format labels)
+- Categories are CMS-internal and can be changed post-migration without SEO impact
+
+**Redirects added (next.config.ts):**
+- `/company/about` → `/about`, `/company/leadership` → `/team`, `/company/contact-us` → `/contact`, `/company/investors` → `/about`
+- `/community` → `/` (302), `/community/:path*` → `/` (302)
+- `/caregiver-forum` → `/` (was → `/community`)
+
+**Footer updated:** Added "About Us" (/about) and "Contact" (/contact) links
+
+**PRs:** #169 (seo-metadata-fixes) — 5 commits
+
+**Pending:** Spotcheck #2 article (does-blue-cross-blue-shield-cover-caregiver-expenses, 238 clicks)
+
+---
 
 ### 2026-03-07 (Session 40) — Migration Quick Wins + Homepage Geo-Personalization
 

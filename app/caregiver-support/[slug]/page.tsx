@@ -37,7 +37,10 @@ export async function generateMetadata({
   }
 
   const title = article.meta_title || article.title;
-  const description = article.meta_description || article.excerpt || `${article.title} - Olera Caregiver Support`;
+  // Prefer excerpt (natural opening paragraph) over CMS meta_description
+  // to avoid overriding Google's body-pulled snippets for top articles.
+  // CMS meta_description is only used when explicitly set AND excerpt is empty.
+  const description = article.excerpt || article.meta_description || undefined;
   const ogTitle = article.og_title || title;
   const ogDescription = article.og_description || description;
   const ogImage = article.og_image_url || article.cover_image_url;

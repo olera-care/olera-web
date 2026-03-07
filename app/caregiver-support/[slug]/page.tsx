@@ -129,7 +129,7 @@ export default async function ResourceArticlePage({
   const subtitle = article?.subtitle ?? mockResource?.subtitle ?? "";
   const authorName = article?.author_name ?? mockResource!.author.name;
   const authorRole = article?.author_role ?? mockResource!.author.role;
-  const authorAvatar = article?.author_avatar ?? mockResource?.author.avatar ?? null;
+  let authorAvatar = article?.author_avatar ?? mockResource?.author.avatar ?? null;
   const readingTime = article?.reading_time ?? mockResource!.readingTime;
   const publishedAt = article?.published_at ?? mockResource!.publishedAt;
   const coverImage = article?.cover_image_url ?? mockResource!.coverImage;
@@ -138,7 +138,12 @@ export default async function ResourceArticlePage({
   const primaryCareType = careTypes[0] as CareTypeId | undefined;
   const careTypeLabel = primaryCareType ? CARE_TYPE_CONFIG[primaryCareType]?.label : null;
   const showAuthorCard = authorName !== "Olera Team";
-  const authorSlug = getAuthorByName(authorName)?.slug;
+  const knownAuthor = getAuthorByName(authorName);
+  const authorSlug = knownAuthor?.slug;
+  // Fall back to static author avatar when DB value is missing
+  if (!authorAvatar && knownAuthor?.avatar) {
+    authorAvatar = knownAuthor.avatar;
+  }
 
   // Render content
   let contentHtml = article?.content_html || "";

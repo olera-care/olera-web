@@ -96,14 +96,18 @@ export default async function ResearchAndPressArticlePage({
   const subtitle = article.subtitle ?? "";
   const authorName = article.author_name;
   const authorRole = article.author_role;
-  const authorAvatar = article.author_avatar;
+  let authorAvatar = article.author_avatar;
   const readingTime = article.reading_time;
   const publishedAt = article.published_at ?? article.created_at;
   const coverImage = article.cover_image_url;
   const careTypes = (article.care_types ?? []) as CareTypeId[];
   const tags = article.tags ?? [];
   const showAuthorCard = authorName !== "Olera Team";
-  const authorSlug = getAuthorByName(authorName)?.slug;
+  const knownAuthor = getAuthorByName(authorName);
+  const authorSlug = knownAuthor?.slug;
+  if (!authorAvatar && knownAuthor?.avatar) {
+    authorAvatar = knownAuthor.avatar;
+  }
 
   // Render content
   let contentHtml = article.content_html || "";

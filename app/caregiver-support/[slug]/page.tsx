@@ -6,6 +6,7 @@ import { getResourceBySlug } from "@/data/mock/resources";
 import { renderContentToHTML } from "@/lib/render-content";
 import { CareTypeId, CARE_TYPE_CONFIG } from "@/types/forum";
 import { processArticleHtml } from "@/lib/article-html";
+import { getAuthorByName } from "@/lib/authors";
 import {
   DesktopTableOfContents,
   MobileTableOfContents,
@@ -137,6 +138,7 @@ export default async function ResourceArticlePage({
   const primaryCareType = careTypes[0] as CareTypeId | undefined;
   const careTypeLabel = primaryCareType ? CARE_TYPE_CONFIG[primaryCareType]?.label : null;
   const showAuthorCard = authorName !== "Olera Team";
+  const authorSlug = getAuthorByName(authorName)?.slug;
 
   // Render content
   let contentHtml = article?.content_html || "";
@@ -186,15 +188,7 @@ export default async function ResourceArticlePage({
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
       { "@type": "ListItem", position: 2, name: "Caregiver Support", item: "https://olera.care/caregiver-support" },
-      ...(primaryCareType && careTypeLabel
-        ? [{
-            "@type": "ListItem",
-            position: 3,
-            name: careTypeLabel,
-            item: `https://olera.care/caregiver-support?type=${primaryCareType}`,
-          }]
-        : []),
-      { "@type": "ListItem", position: primaryCareType ? 4 : 3, name: title },
+      { "@type": "ListItem", position: 3, name: title },
     ],
   };
 
@@ -267,7 +261,13 @@ export default async function ResourceArticlePage({
                         </span>
                       </div>
                     )}
-                    <span className="text-gray-600 font-medium">{authorName}</span>
+                    {authorSlug ? (
+                      <Link href={`/author/${authorSlug}`} className="text-gray-600 font-medium hover:text-primary-600 transition-colors">
+                        {authorName}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-600 font-medium">{authorName}</span>
+                    )}
                   </div>
                   <span className="text-gray-300 mx-1.5">&middot;</span>
                 </>
@@ -336,7 +336,13 @@ export default async function ResourceArticlePage({
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{authorName}</p>
+                  {authorSlug ? (
+                    <Link href={`/author/${authorSlug}`} className="text-sm font-semibold text-gray-900 hover:text-primary-600 transition-colors">
+                      {authorName}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-semibold text-gray-900">{authorName}</p>
+                  )}
                   {authorRole && (
                     <p className="text-sm text-gray-500">{authorRole}</p>
                   )}
@@ -344,16 +350,15 @@ export default async function ResourceArticlePage({
               </div>
             )}
 
-            {/* Tags as text links */}
+            {/* Tags */}
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {careTypes.map((careType) => (
-                <Link
+                <span
                   key={careType}
-                  href={`/caregiver-support?type=${careType}`}
-                  className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
+                  className="text-sm text-gray-500"
                 >
                   {CARE_TYPE_CONFIG[careType]?.label ?? careType}
-                </Link>
+                </span>
               ))}
               {tags.slice(0, 3).map((tag) => (
                 <span key={tag} className="text-sm text-gray-400">

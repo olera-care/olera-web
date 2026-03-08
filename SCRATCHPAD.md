@@ -167,6 +167,43 @@
 
 ---
 
+### 2026-03-07/08 (Session 43) — OG Metadata, LinkedIn Fixes, LCP Optimization
+
+**Branch:** `fix-og-metadata` → PRs #176, #177, #178, #179 (all merged to staging)
+
+**What:** Comprehensive OG/Twitter metadata audit, LinkedIn URL corrections, provider title tag format match, and LCP performance optimization.
+
+**OG/Twitter metadata (PR #176):**
+- Added `twitter` card fields to 10+ page types: author, team, about, contact, terms, privacy, for-providers, caregiver-support, research-and-press
+- Created `app/opengraph-image.tsx` and `app/twitter-image.tsx` — default branded social preview images using `next/og` edge runtime
+- twitter-image.tsx must be a full implementation, not a re-export (Next.js convention limitation)
+
+**LinkedIn URL fixes (PR #176):**
+- `lib/authors.ts`: Logan → `/logan-dubose/`, TJ → `/tfalohun`
+- `components/for-providers/LeadershipSection.tsx`: TJ → `/tfalohun`
+- `app/team/page.tsx`: TJ → `/tfalohun`
+
+**Title tag format match (PR #178):**
+- `app/provider/[slug]/page.tsx` `generateMetadata`: Changed from `{Name} | {Category} in {City, State} | Olera` to `{Name}, {City} {State}: Pricing & Availability | Olera.care` — matches v1 exactly to preserve SERP CTR during migration
+
+**LCP optimization (PR #179):**
+- `app/layout.tsx`: Switched DM Serif Display from render-blocking Google Fonts `<link>` to `next/font/google` self-hosting. Eliminates 3-hop blocking chain (DNS → CSS → font file)
+- `app/provider/[slug]/page.tsx`: Parallelized 4 sequential Supabase queries (claim state, similar providers, Q&A, reviews) via `Promise.all`. Inner Q&A + review count also parallelized
+- `tailwind.config.ts`: Display font now uses CSS variable `var(--font-dm-serif-display)`
+
+**Lighthouse results (provider page, after LCP fix):**
+- Desktop: Score 90, LCP 2.1s, CLS 0, TBT 0ms, render-blocking 0
+- Mobile: Score 88, LCP 3.8s, CLS 0, TBT 80ms, render-blocking 0
+
+**Notion updates:**
+- Updated Migration Readiness Report with LCP optimization section + new benchmark table
+- Created action item: "Submit updated sitemap immediately after DNS cutover" (P1, TJ)
+- Created PR #179 merge report in PR Merge Reports
+
+**Merge note:** PR #179 required rebase before merge — would have silently reverted title tag fix from PR #178 due to diverged `provider/[slug]/page.tsx`
+
+---
+
 ### 2026-03-05 (Session 39) — Family Connection Emails + Mock Data Cleanup
 
 **Branch:** `quick-pike` → merged as PR #147

@@ -131,6 +131,30 @@
 
 ## Session Log
 
+### 2026-03-08 (Session 43) — LCP Optimization + Notion Updates
+
+**Branch:** `fix-og-metadata` → PR #179 (merged to staging)
+
+**What:** Optimized Largest Contentful Paint on provider pages and published results to Notion.
+
+**LCP optimization:**
+- `app/layout.tsx`: Switched DM Serif Display from render-blocking Google Fonts `<link>` to `next/font/google` self-hosting. Eliminates 3-hop blocking chain (DNS → CSS → font file)
+- `app/provider/[slug]/page.tsx`: Parallelized 4 sequential Supabase queries (claim state, similar providers, Q&A, reviews) via `Promise.all`. Inner Q&A + review count also parallelized
+- `tailwind.config.ts`: Display font now uses CSS variable `var(--font-dm-serif-display)`
+
+**Lighthouse results (provider page, after):**
+- Desktop: Score 90, LCP 2.1s, CLS 0, TBT 0ms, render-blocking 0
+- Mobile: Score 88, LCP 3.8s, CLS 0, TBT 80ms, render-blocking 0
+
+**Notion updates:**
+- Updated Migration Readiness Report with LCP optimization section + benchmark table
+- Created action item: "Submit updated sitemap immediately after DNS cutover" (P1, TJ)
+- Created PR #179 merge report
+
+**Merge note:** PR #179 required rebase — would have silently reverted title tag fix from PR #178
+
+---
+
 ### 2026-03-07 (Session 42) — Editorial Polish: Author Pages, Topic Tabs, OG Metadata
 
 **Branch:** `stellar-stonebraker` (multiple feature branches merged)

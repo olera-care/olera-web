@@ -302,26 +302,6 @@ export default async function ProviderPage({
     notFound();
   }
 
-  // --- Actual claim state (iOS data always says "unclaimed") ---
-  let actualClaimState = profile.claim_state;
-  let claimAccountId: string | null = profile.account_id;
-  if (profile.source_provider_id) {
-    try {
-      const supabase = await createClient();
-      const { data: bp } = await supabase
-        .from("business_profiles")
-        .select("claim_state, account_id")
-        .eq("source_provider_id", profile.source_provider_id)
-        .maybeSingle();
-      if (bp) {
-        actualClaimState = bp.claim_state;
-        claimAccountId = bp.account_id;
-      }
-    } catch {
-      // Best effort — use profile defaults
-    }
-  }
-
   // --- Data extraction ---
   const meta = profile.metadata as ExtendedMetadata;
   const priceRange =
@@ -338,37 +318,67 @@ export default async function ProviderPage({
   const categoryLabel = formatCategory(profile.category);
   const locationStr = [profile.city, profile.state].filter(Boolean).join(", ");
 
-  const similarProviders = await getSimilarProviders(profile.category, profile.source_provider_id || profile.id, 3);
+  // --- Parallel data fetching (claim state, similar providers, Q&A, reviews) ---
+  const [claimResult, similarProviders, qaResult] = await Promise.all([
+    // 1. Actual claim state (iOS data always says "unclaimed")
+    profile.source_provider_id
+      ? (async () => {
+          try {
+            const supabase = await createClient();
+            const { data: bp } = await supabase
+              .from("business_profiles")
+              .select("claim_state, account_id")
+              .eq("source_provider_id", profile.source_provider_id!)
+              .maybeSingle();
+            return bp;
+          } catch {
+            return null;
+          }
+        })()
+      : Promise.resolve(null),
 
-  // Fetch answered Q&A pairs server-side (for FAQPage JSON-LD + initial render)
-  let answeredQuestions: { id: string; question: string; answer: string; asker_name: string; created_at: string }[] = [];
-  // Fetch real review count from database
-  let realReviewCount = 0;
-  try {
-    const db = getServiceClient();
-    const { data: qaRows } = await db
-      .from("provider_questions")
-      .select("id, question, answer, asker_name, created_at")
-      .eq("provider_id", profile.slug)
-      .eq("is_public", true)
-      .in("status", ["approved", "answered"])
-      .not("answer", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    if (qaRows) {
-      answeredQuestions = qaRows.filter((q) => q.answer && q.answer.trim().length > 0);
-    }
+    // 2. Similar providers
+    getSimilarProviders(profile.category, profile.source_provider_id || profile.id, 3),
 
-    // Get actual review count from reviews table
-    const { count } = await db
-      .from("reviews")
-      .select("id", { count: "exact", head: true })
-      .eq("provider_id", profile.id)
-      .eq("status", "published");
-    realReviewCount = count ?? 0;
-  } catch {
-    // Service client not available or table doesn't exist — degrade gracefully
+    // 3. Q&A pairs + review count
+    (async () => {
+      try {
+        const db = getServiceClient();
+        const [qaResponse, reviewResponse] = await Promise.all([
+          db
+            .from("provider_questions")
+            .select("id, question, answer, asker_name, created_at")
+            .eq("provider_id", profile.slug)
+            .eq("is_public", true)
+            .in("status", ["approved", "answered"])
+            .not("answer", "is", null)
+            .order("created_at", { ascending: false })
+            .limit(20),
+          db
+            .from("reviews")
+            .select("id", { count: "exact", head: true })
+            .eq("provider_id", profile.id)
+            .eq("status", "published"),
+        ]);
+        return {
+          questions: (qaResponse.data || []).filter((q: { answer: string | null }) => q.answer && q.answer.trim().length > 0),
+          reviewCount: reviewResponse.count ?? 0,
+        };
+      } catch {
+        return { questions: [], reviewCount: 0 };
+      }
+    })(),
+  ]);
+
+  let actualClaimState = profile.claim_state;
+  let claimAccountId: string | null = profile.account_id;
+  if (claimResult) {
+    actualClaimState = claimResult.claim_state;
+    claimAccountId = claimResult.account_id;
   }
+
+  const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
+  const realReviewCount = qaResult.reviewCount;
 
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/shared/Navbar";
 import ConditionalFooter from "@/components/shared/ConditionalFooter";
@@ -7,6 +8,13 @@ import AuthProvider from "@/components/auth/AuthProvider";
 import GlobalUnifiedAuthModal from "@/components/auth/GlobalUnifiedAuthModal";
 import { SavedProvidersProvider } from "@/hooks/use-saved-providers";
 import { NavbarProvider } from "@/components/shared/NavbarContext";
+
+const dmSerifDisplay = DM_Serif_Display({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-dm-serif-display",
+});
 
 const GA_MEASUREMENT_ID = "G-F2F7FG745B";
 
@@ -100,12 +108,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={dmSerifDisplay.variable}>
       <head>
         {/* ── Resource hints for faster external connections ── */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet" />
+        {/* DM Serif Display is self-hosted via next/font — no external font CSS needed */}
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.lordicon.com" crossOrigin="anonymous" />
         {process.env.NEXT_PUBLIC_SUPABASE_URL && (

@@ -198,7 +198,7 @@ export default function TopProvidersSection({ geoState, geoCity }: TopProvidersS
                 ))
               ) : (
                 featuredProviders.map((provider) => (
-                  <div key={provider.id} className="flex-shrink-0 w-[310px]">
+                  <div key={provider.id} className="flex-shrink-0 w-[310px] self-stretch">
                     <BrowseCard provider={provider} />
                   </div>
                 ))

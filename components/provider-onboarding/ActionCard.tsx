@@ -854,7 +854,7 @@ export default function ActionCard({
                 }
                 setError("");
               }}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1014,7 +1014,7 @@ export default function ActionCard({
             <button
               type="button"
               onClick={() => { setShowDisputeForm(false); setError(""); }}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors min-h-[44px] focus:outline-none focus-visible:text-gray-900"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-200"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

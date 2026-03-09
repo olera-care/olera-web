@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
 import EditCareRequestModal from "./EditCareRequestModal";
@@ -371,11 +370,7 @@ export default function ConversationPanel({
   const initialNotes = autoIntro || additionalNotes;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
 
-  const profileHref = otherProfile
-    ? (otherProfile.type === "organization" || otherProfile.type === "caregiver") && otherProfile.slug
-      ? `/provider/${otherProfile.slug}`
-      : `/profile/${otherProfile.id}`
-    : "#";
+  // Names in conversation header are not clickable - use "View full profile" in details panel instead
 
   const showMessageInput =
     (connection.status === "pending" || connection.status === "accepted");
@@ -412,7 +407,7 @@ export default function ConversationPanel({
         )}
 
         {/* Avatar */}
-        <Link href={profileHref} className="shrink-0">
+        <div className="shrink-0">
           {imageUrl ? (
             <Image src={imageUrl} alt={otherName} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
           ) : (
@@ -423,13 +418,13 @@ export default function ConversationPanel({
               {otherInitial}
             </div>
           )}
-        </Link>
+        </div>
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
+          <span className="text-lg font-display font-semibold text-gray-900 truncate block">
             {otherName}
-          </Link>
+          </span>
           {otherProfile?.city || otherProfile?.state ? (
             <p className="text-sm text-gray-500 truncate">
               {[otherProfile.city, otherProfile.state].filter(Boolean).join(", ")}

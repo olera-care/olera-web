@@ -72,9 +72,9 @@ export async function GET(request: NextRequest) {
     // Calculate stats
     const allReviews = reviews ?? [];
     const totalReviews = allReviews.length;
-    const repliedCount = allReviews.filter(r => r.provider_reply).length;
+    const repliedCount = allReviews.filter((r: any) => r.provider_reply).length;
     const avgRating = totalReviews > 0
-      ? allReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+      ? allReviews.reduce((sum: number, r: any) => sum + r.rating, 0) / totalReviews
       : 0;
 
     // Calculate category breakdown (mock for now - can be expanded)

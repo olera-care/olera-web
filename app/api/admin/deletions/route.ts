@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       const accountIds = [
         ...new Set(
           (profiles ?? [])
-            .map((p) => p.account_id)
+            .map((p: any) => p.account_id)
             .filter(Boolean)
         ),
       ];
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
         if (accounts) {
           // Get auth user emails
-          for (const acc of accounts) {
+          for (const acc of accounts as any[]) {
             const { data: authData } = await db.auth.admin.getUserById(acc.user_id);
             if (authData?.user?.email) {
               accountEmails[acc.id] = authData.user.email;
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const requests = (profiles ?? []).map((p) => ({
+      const requests = (profiles ?? []).map((p: any) => ({
         ...p,
         requester_email: p.account_id ? accountEmails[p.account_id] ?? null : null,
       }));
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
 
       // Build a map of source_provider_id -> profile info
       const profileMap: Record<string, { profile_id: string; display_name: string; deletion_approved_at: string }> = {};
-      for (const p of deletedProfiles ?? []) {
+      for (const p of (deletedProfiles ?? []) as any[]) {
         if (p.source_provider_id) {
           profileMap[p.source_provider_id] = {
             profile_id: p.id,
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const history = (deletedProviders ?? []).map((p) => ({
+      const history = (deletedProviders ?? []).map((p: any) => ({
         ...p,
         linked_profile: profileMap[p.provider_id] ?? null,
       }));

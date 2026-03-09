@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     const total = count ?? 0;
     const totalPages = Math.ceil(total / perPage);
 
-    const articles: ContentArticleListItem[] = (data ?? []).map((row) => ({
+    const articles: ContentArticleListItem[] = (data ?? []).map((row: any) => ({
       id: row.id,
       slug: row.slug,
       title: row.title,
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
       .select("author_name")
       .not("author_name", "is", null)
       .order("author_name");
-    const authors = [...new Set((authorRows ?? []).map((r: { author_name: string }) => r.author_name).filter(Boolean))];
+    const authors = [...new Set((authorRows ?? []).map((r: any) => r.author_name).filter(Boolean))];
 
     return NextResponse.json({ articles, total, page, per_page: perPage, total_pages: totalPages, authors });
   } catch (err) {

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Flatten admin email into entries
-    const formatted = (entries ?? []).map((entry) => ({
+    const formatted = (entries ?? []).map((entry: any) => ({
       id: entry.id,
       action: entry.action,
       target_type: entry.target_type,

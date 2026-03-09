@@ -7,9 +7,13 @@ import type { AdminUser } from "@/lib/types";
  * Only use server-side in API routes.
  * Cached as a module singleton to avoid repeated client instantiation.
  */
-let _serviceClient: ReturnType<typeof createClient> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _serviceClient: any = null;
 
-export function getServiceClient() {
+// Returns untyped client — generated Supabase types are incomplete
+// (missing audit_log, content_articles, business_profiles, etc.)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getServiceClient(): any {
   if (_serviceClient) return _serviceClient;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

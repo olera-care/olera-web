@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(total / perPage);
 
     // Derive image info from provider_images string
-    const providers: DirectoryListItem[] = (data ?? []).map((row) => {
+    const providers: DirectoryListItem[] = (data ?? []).map((row: any) => {
       const images = row.provider_images
         ? (row.provider_images as string).split(" | ").filter(Boolean)
         : [];

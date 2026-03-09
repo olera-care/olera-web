@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
 
     // For no_images, we need to filter out classified providers in memory
     if (status === "no_images") {
-      filteredProviders = filteredProviders.filter((p) => !classifiedIds.has(p.provider_id));
+      filteredProviders = filteredProviders.filter((p: any) => !classifiedIds.has(p.provider_id));
       total = filteredProviders.length;
 
       if (countOnly) {
@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
       filteredProviders = filteredProviders.slice(offset, offset + limit);
     }
 
-    const providers = filteredProviders.map((p) => {
+    const providers = filteredProviders.map((p: any) => {
       const pStats = providerStats.get(p.provider_id);
 
       const rawImages: string[] = [];

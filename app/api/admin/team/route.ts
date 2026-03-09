@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     const targetUser = authUsers.users.find(
-      (u) => u.email?.toLowerCase() === email
+      (u: any) => u.email?.toLowerCase() === email
     );
 
     if (!targetUser) {

@@ -48,9 +48,9 @@ export async function GET() {
       totalProviders = totalProvidersRes.count || 0;
 
       // Deduplicate provider_ids in memory (lightweight — only string arrays)
-      const allProviderIds = new Set((allMetadataRes.data || []).map((r: { provider_id: string }) => r.provider_id));
-      const lowConfProviderIds = new Set((lowConfRes.data || []).map((r: { provider_id: string }) => r.provider_id));
-      const photoProviderIds = new Set((photoRes.data || []).map((r: { provider_id: string }) => r.provider_id));
+      const allProviderIds = new Set((allMetadataRes.data || []).map((r: any) => r.provider_id));
+      const lowConfProviderIds = new Set((lowConfRes.data || []).map((r: any) => r.provider_id));
+      const photoProviderIds = new Set((photoRes.data || []).map((r: any) => r.provider_id));
 
       classifiedProviders = allProviderIds.size;
       needsReview = lowConfProviderIds.size;

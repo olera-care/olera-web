@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     // Ensure bucket exists
     const { data: buckets } = await admin.storage.listBuckets();
-    const bucketExists = buckets?.some((b) => b.name === BUCKET);
+    const bucketExists = buckets?.some((b: any) => b.name === BUCKET);
     if (!bucketExists) {
       await admin.storage.createBucket(BUCKET, {
         public: true,

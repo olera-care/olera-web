@@ -73,8 +73,8 @@ export function canEngage(
   // Active paid membership
   if (membership.status === "active") return true;
 
-  // Trialing — full Pro access during trial period
-  if (membership.status === "trialing") return true;
+  // Trial — full Pro access during trial period
+  if (membership.status === "trial" || membership.status === "trialing") return true;
 
   // Past due — grace period
   if (membership.status === "past_due") return true;
@@ -95,7 +95,7 @@ export function getFreeConnectionsRemaining(
 ): number | null {
   if (!membership) return FREE_CONNECTION_LIMIT;
 
-  if (membership.status === "active" || membership.status === "trialing" || membership.status === "past_due") {
+  if (membership.status === "active" || membership.status === "trial" || membership.status === "trialing" || membership.status === "past_due") {
     return null; // unlimited on paid/trial plan
   }
 

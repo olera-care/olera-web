@@ -9,12 +9,14 @@ import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfil
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
-import Select from "@/components/ui/Select";
-
-// ── Types ──
-
-type TimelineFilter = "all" | "immediate" | "within_1_month" | "exploring";
-type SortOption = "best_match" | "most_recent" | "most_urgent";
+import MatchesFilterBar, {
+  type MatchesFilters,
+  type SortOption,
+  DEFAULT_FILTERS,
+  SERVICE_OPTIONS,
+  PAYMENT_OPTIONS,
+} from "@/components/provider/matches/MatchesFilterBar";
+import MatchesFilterSheet, { type FilterSheetType } from "@/components/provider/matches/MatchesFilterSheet";
 
 // ── Timeline config ──
 
@@ -24,19 +26,6 @@ const TIMELINE_CONFIG: Record<string, { label: string; dot: string; glow: string
   within_3_months: { label: "Within 3 months", dot: "bg-blue-400", glow: "glowBlue", border: "border-blue-200", text: "text-blue-600", bg: "bg-blue-50/50" },
   exploring: { label: "Exploring", dot: "bg-warm-300", glow: "glowWarm", border: "border-warm-200", text: "text-gray-500", bg: "bg-warm-50/50" },
 };
-
-const FILTER_TABS: { id: TimelineFilter; label: string }[] = [
-  { id: "all", label: "All matches" },
-  { id: "immediate", label: "Immediate" },
-  { id: "within_1_month", label: "Within 1 month" },
-  { id: "exploring", label: "Exploring" },
-];
-
-const SORT_OPTIONS: { id: SortOption; label: string }[] = [
-  { id: "best_match", label: "Best match" },
-  { id: "most_recent", label: "Most recent" },
-  { id: "most_urgent", label: "Most urgent" },
-];
 
 // ── Helpers ──
 
@@ -270,6 +259,74 @@ function MatchesEmptyState() {
           When families publish care profiles matching your services and location,
           they&apos;ll appear here. Check back soon.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Contacted Row (condensed view for already contacted families)
+// ---------------------------------------------------------------------------
+
+function ContactedRow({
+  family,
+  isAccepted,
+}: {
+  family: Profile;
+  isAccepted: boolean;
+}) {
+  const displayName = family.display_name || "Family";
+  const initials = getInitials(displayName);
+  const locationStr = [family.city, family.state].filter(Boolean).join(", ");
+  const meta = family.metadata as FamilyMetadata;
+  const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
+
+  return (
+    <div className="flex items-center gap-3 py-3 px-4 bg-white rounded-xl border border-gray-200/60 shadow-sm hover:shadow transition-shadow duration-200">
+      {/* Avatar */}
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-white shadow-sm"
+        style={{ background: avatarGradient(displayName) }}
+      >
+        {initials}
+      </div>
+
+      {/* Name + location */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+        {locationStr && (
+          <p className="text-xs text-gray-500 truncate">{locationStr}</p>
+        )}
+      </div>
+
+      {/* Timeline badge (smaller, hidden on mobile) */}
+      {timeline && (
+        <span className={`hidden lg:inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`} />
+          {timeline.label}
+        </span>
+      )}
+
+      {/* Status */}
+      <div className={`flex items-center gap-1.5 text-[11px] lg:text-xs font-semibold px-2 lg:px-3 py-1.5 rounded-full shrink-0 ${
+        isAccepted
+          ? "bg-green-50 text-green-700 border border-green-200/80"
+          : "bg-amber-50 text-amber-600 border border-amber-200/80"
+      }`}>
+        {isAccepted ? (
+          <>
+            <CheckCircleIcon className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Connected</span>
+            <span className="sm:hidden">Done</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span>Pending</span>
+          </>
+        )}
       </div>
     </div>
   );
@@ -982,7 +1039,7 @@ function FamilyCareCard({
               </div>
               <Link
                 href="/provider/pro"
-                className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-4 lg:pl-4 lg:pr-5 py-2.5 rounded-xl lg:rounded-full bg-gray-900 text-white text-xs lg:text-[13px] font-semibold hover:bg-gray-800 transition-colors min-h-[44px]"
+                className="w-full lg:w-auto inline-flex items-center justify-center gap-2 px-4 lg:pl-4 lg:pr-5 py-2.5 rounded-xl bg-primary-600 text-white text-xs lg:text-[13px] font-semibold hover:bg-primary-500 transition-colors min-h-[44px]"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
@@ -1032,8 +1089,11 @@ export default function ProviderMatchesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
+  const [filters, setFilters] = useState<MatchesFilters>(DEFAULT_FILTERS);
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
+
+  // Mobile filter sheet state
+  const [filterSheetType, setFilterSheetType] = useState<FilterSheetType | null>(null);
 
   // Reach-out expansion state
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
@@ -1044,6 +1104,9 @@ export default function ProviderMatchesPage() {
 
   // Mobile bottom sheet state
   const [reachOutSheetFamily, setReachOutSheetFamily] = useState<Profile | null>(null);
+
+  // Contacted section accordion (collapsed by default)
+  const [contactedExpanded, setContactedExpanded] = useState(false);
 
   const hasFullAccess = canEngage(
     providerProfile?.type,
@@ -1135,11 +1198,8 @@ export default function ProviderMatchesPage() {
           throw new Error(insertError.message);
         }
 
-        // Increment free_responses_used for free tier
-        if (
-          membership &&
-          (membership.status === "free" || membership.status === "trialing")
-        ) {
+        // Increment free_responses_used only for free tier (not trial)
+        if (membership && membership.status === "free") {
           const newCount = (membership.free_responses_used ?? 0) + 1;
           await supabase
             .from("memberships")
@@ -1287,17 +1347,59 @@ export default function ProviderMatchesPage() {
 
   // Filter + sort
   const filteredFamilies = useMemo(() => {
-    const newF = families.filter((f) => !contactedIds.has(f.id));
+    let result = families.filter((f) => !contactedIds.has(f.id));
 
-    let filtered = newF;
-    if (activeFilter !== "all") {
-      filtered = newF.filter((f) => {
-        const meta = f.metadata as FamilyMetadata;
-        return meta?.timeline === activeFilter;
+    // Location filter
+    if (filters.location) {
+      result = result.filter((f) => {
+        const familyLocation = [f.city, f.state].filter(Boolean).join(", ");
+        return familyLocation.toLowerCase() === filters.location!.toLowerCase();
       });
     }
 
-    const sorted = [...filtered].sort((a, b) => {
+    // Services filter (OR logic - any match)
+    if (filters.services.length > 0) {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        const needs = meta?.care_needs || f.care_types || [];
+        // Normalize: check if any filter service matches any family need
+        return filters.services.some((filterService) => {
+          const filterLabel = SERVICE_OPTIONS.find((s) => s.id === filterService)?.label.toLowerCase();
+          return needs.some((need) => {
+            const needLower = need.toLowerCase();
+            return needLower.includes(filterLabel || filterService) ||
+                   (filterLabel && filterLabel.includes(needLower));
+          });
+        });
+      });
+    }
+
+    // Payment filter (OR logic - any match)
+    if (filters.payment.length > 0) {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        const methods = meta?.payment_methods || [];
+        return filters.payment.some((filterPayment) => {
+          const filterLabel = PAYMENT_OPTIONS.find((p) => p.id === filterPayment)?.label.toLowerCase();
+          return methods.some((method) => {
+            const methodLower = method.toLowerCase();
+            return methodLower.includes(filterLabel || filterPayment) ||
+                   (filterLabel && filterLabel.includes(methodLower));
+          });
+        });
+      });
+    }
+
+    // Timeline filter
+    if (filters.timeline !== "all") {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        return meta?.timeline === filters.timeline;
+      });
+    }
+
+    // Sort
+    const sorted = [...result].sort((a, b) => {
       const metaA = a.metadata as FamilyMetadata;
       const metaB = b.metadata as FamilyMetadata;
 
@@ -1328,7 +1430,7 @@ export default function ProviderMatchesPage() {
     });
 
     return sorted;
-  }, [families, contactedIds, activeFilter, sortBy, providerCareTypes]);
+  }, [families, contactedIds, filters, sortBy, providerCareTypes]);
 
   const contactedFamilies = useMemo(
     () => families.filter((f) => contactedIds.has(f.id)),
@@ -1383,41 +1485,37 @@ export default function ProviderMatchesPage() {
         </p>
       </div>
 
-      {/* ── Filter tabs + Sort ── */}
-      <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
-        {/* Filter tabs - horizontal scroll on mobile */}
-        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 flex-1 scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
-            {FILTER_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveFilter(tab.id)}
-                className={[
-                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center",
-                  activeFilter === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Desktop sort dropdown */}
-        <div className="hidden lg:flex items-center shrink-0">
-          <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-          <Select
-            options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
-            value={sortBy}
-            onChange={(val) => setSortBy(val as SortOption)}
-            size="sm"
-            className="w-40"
-          />
-        </div>
+      {/* ── Filter bar ── */}
+      <div className="mb-4 lg:mb-5">
+        <MatchesFilterBar
+          filters={filters}
+          onChange={setFilters}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          resultCount={filteredFamilies.length}
+          providerLocation={
+            providerProfile
+              ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ") || null
+              : null
+          }
+          onOpenSheet={(type) => setFilterSheetType(type)}
+        />
       </div>
+
+      {/* ── Mobile filter sheet ── */}
+      <MatchesFilterSheet
+        isOpen={filterSheetType !== null}
+        onClose={() => setFilterSheetType(null)}
+        type={filterSheetType || "timeline"}
+        filters={filters}
+        onChange={setFilters}
+        resultCount={filteredFamilies.length}
+        providerLocation={
+          providerProfile
+            ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ") || null
+            : null
+        }
+      />
 
       {/* ── Content grid ── */}
       {families.length === 0 ? (
@@ -1436,10 +1534,10 @@ export default function ProviderMatchesPage() {
                   </svg>
                 </div>
                 <p className="text-[15px] font-display font-semibold text-gray-900 mb-1">
-                  No matches for this filter
+                  No matches for these filters
                 </p>
                 <p className="text-sm text-gray-500">
-                  Try &ldquo;All matches&rdquo; to see everyone.
+                  Try adjusting your filters to see more families.
                 </p>
               </div>
             ) : (
@@ -1468,27 +1566,52 @@ export default function ProviderMatchesPage() {
               ))
             )}
 
-            {/* Already contacted */}
+            {/* Already contacted - collapsible accordion */}
             {contactedFamilies.length > 0 && (
-              <div className="pt-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                  Already contacted &middot; {contactedFamilies.length}
-                </p>
-                <div className="space-y-5">
-                  {contactedFamilies.map((family) => (
-                    <FamilyCareCard
-                      key={family.id}
-                      family={family}
-                      hasFullAccess={hasFullAccess}
-                      fromProfileId={profileId!}
-                      providerCareTypes={providerCareTypes}
-                      freeRemaining={freeRemaining}
-                      contacted
-                      reachOutCount={reachOutCounts.get(family.id) || 0}
-                      providerProfile={providerProfile}
-                    />
-                  ))}
+              <div className="pt-8">
+                <button
+                  type="button"
+                  onClick={() => setContactedExpanded(!contactedExpanded)}
+                  className="w-full flex items-center justify-between py-3.5 px-4 bg-gray-50/80 hover:bg-gray-100/80 rounded-xl border border-gray-200/60 transition-all duration-200 group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-white border border-gray-200/80 flex items-center justify-center shadow-sm">
+                      <CheckCircleIcon className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700">
+                      Already contacted
+                    </span>
+                    <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-0.5 rounded-full border border-gray-200/80 shadow-sm">
+                      {contactedFamilies.length}
+                    </span>
+                  </div>
+                  <svg
+                    className={`w-5 h-5 text-gray-400 group-hover:text-gray-500 transition-all duration-300 ease-out ${contactedExpanded ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
 
+                {/* Expandable content */}
+                <div
+                  className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
+                  style={{ gridTemplateRows: contactedExpanded ? "1fr" : "0fr" }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="pt-3 space-y-2">
+                      {contactedFamilies.map((family) => (
+                        <ContactedRow
+                          key={family.id}
+                          family={family}
+                          isAccepted={respondedIds.has(family.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

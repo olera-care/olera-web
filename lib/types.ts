@@ -25,8 +25,9 @@ export type ClaimState = "unclaimed" | "pending" | "claimed" | "rejected";
 export type VerificationState = "unverified" | "pending" | "verified";
 export type ProfileSource = "seeded" | "user_created";
 
-export type MembershipPlan = "free" | "pro";
+export type MembershipPlan = "free" | "pro" | "basic" | "professional" | "enterprise";
 export type MembershipStatus =
+  | "trial"
   | "trialing"
   | "active"
   | "past_due"

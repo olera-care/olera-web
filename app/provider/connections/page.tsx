@@ -189,6 +189,8 @@ function LeadDetailDrawer({
   const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Generate pre-filled template from lead data
@@ -208,6 +210,8 @@ function LeadDetailDrawer({
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
+      setSendingMessage(false);
+      setSendError(null);
     }
   }, [isOpen]);
 
@@ -224,6 +228,8 @@ function LeadDetailDrawer({
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
+      setSendingMessage(false);
+      setSendError(null);
     }
   }, [lead]);
 
@@ -254,11 +260,35 @@ function LeadDetailDrawer({
     };
   }, [isOpen, onClose, showComposer, showArchive, showDeleteConfirm]);
 
-  const handleSendMessage = () => {
-    if (!lead) return;
-    // Message sending — no-op for mock leads
-    setMessageSent(true);
-    onMessage(lead.id);
+  const handleSendMessage = async () => {
+    if (!lead || !lead.connectionId || !messageText.trim()) return;
+
+    setSendingMessage(true);
+    setSendError(null);
+
+    try {
+      const res = await fetch("/api/connections/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId: lead.connectionId,
+          text: messageText.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setMessageSent(true);
+      onMessage(lead.id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to send message";
+      setSendError(msg);
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   const handleArchive = () => {
@@ -450,7 +480,7 @@ function LeadDetailDrawer({
                     <div className="flex items-center gap-3 w-full mt-2">
                       <button
                         type="button"
-                        onClick={() => { onClose(); router.push(`/provider/inbox?id=mock-lead-${lead.id}`); }}
+                        onClick={() => { onClose(); router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`); }}
                         className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -496,21 +526,47 @@ function LeadDetailDrawer({
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
                         rows={8}
-                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                        disabled={sendingMessage}
+                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                     </div>
+
+                    {/* Error message */}
+                    {sendError && (
+                      <div className="px-5 pb-3">
+                        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                          </svg>
+                          <span>{sendError}</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Send button */}
                     <div className="px-5 pb-5">
                       <button
                         type="button"
                         onClick={handleSendMessage}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+                        disabled={sendingMessage || !messageText.trim() || !lead.connectionId}
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                        </svg>
-                        Send Message
+                        {sendingMessage ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                            </svg>
+                            Send Message
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -950,13 +1006,18 @@ function migrateLeadsViewedData(providerProfileId: string): void {
 
 interface ConnectionWithProfile extends Connection {
   fromProfile?: Profile | null;
+  toProfile?: Profile | null;
+  /** For provider-initiated requests, family is in toProfile */
+  _familyProfile?: Profile | null;
 }
 
 function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: string): LeadDetail {
   const meta = conn.metadata as Record<string, unknown> | undefined;
   const thread = (meta?.thread as Array<{ from_profile_id: string; text: string; created_at: string }>) || [];
   const isArchived = meta?.archived === true;
-  const fromProfile = conn.fromProfile;
+  // For provider-initiated requests (type="request"), family is in toProfile
+  // For family-initiated inquiries (type="inquiry"), family is in fromProfile
+  const familyProfile = conn._familyProfile || conn.fromProfile;
 
   // Parse the message JSON for care details
   let careDetails: Record<string, unknown> = {};
@@ -966,17 +1027,24 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     careDetails = {};
   }
 
-  const firstName = (careDetails.seeker_first_name as string) || fromProfile?.display_name?.split(" ")[0] || "Unknown";
-  const lastName = (careDetails.seeker_last_name as string) || fromProfile?.display_name?.split(" ").slice(1).join(" ") || "";
+  // For provider-initiated requests, also check family profile metadata for care info
+  const familyMeta = (familyProfile?.metadata || {}) as Record<string, unknown>;
+  const isProviderInitiated = conn.type === "request" && meta?.provider_initiated;
+
+  const firstName = (careDetails.seeker_first_name as string) || familyProfile?.display_name?.split(" ")[0] || "Unknown";
+  const lastName = (careDetails.seeker_last_name as string) || familyProfile?.display_name?.split(" ").slice(1).join(" ") || "";
   const fullName = `${firstName} ${lastName}`.trim();
 
-  // Determine urgency from care details
+  // Determine urgency from care details or family profile metadata
   const urgencyMap: Record<string, Urgency> = {
     asap: "immediate",
     within_month: "within_1_month",
     researching: "exploring",
+    exploring: "exploring",
+    immediate: "immediate",
   };
-  const urgency = urgencyMap[careDetails.urgency as string] || "exploring";
+  const rawUrgency = (careDetails.urgency as string) || (familyMeta.timeline as string);
+  const urgency = urgencyMap[rawUrgency] || "exploring";
 
   // Determine status
   const hasProviderReply = thread.some((msg) => msg.from_profile_id === providerProfileId);
@@ -993,7 +1061,10 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
 
   // Build activity timeline
   const activity: ActivityEvent[] = [
-    { label: "Lead received", date: `${timeAgo(conn.created_at)} · Via Olera` },
+    {
+      label: isProviderInitiated ? "Connection accepted" : "Lead received",
+      date: `${timeAgo(conn.created_at)} · Via Olera`,
+    },
   ];
   for (const msg of thread) {
     if (msg.from_profile_id === providerProfileId) {
@@ -1030,15 +1101,15 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     name: fullName,
     initials: getInitials(fullName),
     subtitle: `For ${careRecipient.toLowerCase()}`,
-    location: fromProfile?.city && fromProfile?.state
-      ? `${fromProfile.city}, ${fromProfile.state}`
+    location: familyProfile?.city && familyProfile?.state
+      ? `${familyProfile.city}, ${familyProfile.state}`
       : "Location not specified",
     urgency,
     status,
     date: timeAgo(conn.created_at),
     isNew,
-    email: fromProfile?.email || undefined,
-    phone: fromProfile?.phone || undefined,
+    email: familyProfile?.email || undefined,
+    phone: familyProfile?.phone || undefined,
     careRecipient,
     additionalNotes: (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
     activity,
@@ -1072,28 +1143,66 @@ export default function ProviderLeadsPage() {
         const supabase = createClient();
         const profileId = providerProfile.id;
 
-        // Fetch connections where this provider is the recipient (to_profile_id)
-        const { data: connections, error } = await supabase
-          .from("connections")
-          .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type)")
-          .eq("to_profile_id", profileId)
-          .eq("type", "inquiry")
-          .in("status", ["pending", "accepted"])
-          .order("created_at", { ascending: false });
+        // Fetch TWO types of connections that should appear as leads:
+        // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
+        // 2. Provider-initiated requests (type="request") that were accepted by family
+        const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
+          // Query 1: Family-initiated inquiries (existing behavior)
+          supabase
+            .from("connections")
+            .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type)")
+            .eq("to_profile_id", profileId)
+            .eq("type", "inquiry")
+            .in("status", ["pending", "accepted"])
+            .order("created_at", { ascending: false }),
 
-        if (error) {
-          console.error("Failed to fetch leads:", error);
+          // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
+          supabase
+            .from("connections")
+            .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, metadata)")
+            .eq("from_profile_id", profileId)
+            .eq("type", "request")
+            .eq("status", "accepted")
+            .order("created_at", { ascending: false }),
+        ]);
+
+        if (inquiriesResult.error) {
+          console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
           setIsLoading(false);
           return;
         }
 
+        if (acceptedRequestsResult.error) {
+          console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
+          // Continue with just inquiries if this fails
+        }
+
+        // Combine and deduplicate connections
+        const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
+        const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
+          ...conn,
+          _familyProfile: conn.toProfile, // Mark family profile for mapping
+        }));
+
+        const allConnections = [...inquiries, ...acceptedRequests];
+        const uniqueConnections = allConnections.filter(
+          (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
+        );
+
         // Map connections to leads, filtering out hidden ones
-        const mappedLeads = (connections || [])
+        const mappedLeads = uniqueConnections
           .filter((conn) => {
             const meta = conn.metadata as Record<string, unknown> | undefined;
             return !meta?.hidden;
           })
-          .map((conn) => mapConnectionToLead(conn as ConnectionWithProfile, profileId));
+          .map((conn) => mapConnectionToLead(conn, profileId));
+
+        // Sort by created_at descending
+        mappedLeads.sort((a, b) => {
+          const connA = uniqueConnections.find((c) => c.id === a.id);
+          const connB = uniqueConnections.find((c) => c.id === b.id);
+          return new Date(connB?.created_at || 0).getTime() - new Date(connA?.created_at || 0).getTime();
+        });
 
         setLeads(mappedLeads);
       } catch (err) {

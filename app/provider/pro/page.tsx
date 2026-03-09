@@ -314,7 +314,7 @@ export default function OleraProPage() {
 
   // Membership state
   const status = membership?.status;
-  const isTrial = status === "trialing";
+  const isTrial = status === "trial" || status === "trialing";
   const isSubscribed = status === "active" || isTrial;
   const isCanceled = status === "canceled";
   const isPastDue = status === "past_due";

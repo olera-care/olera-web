@@ -140,19 +140,20 @@ function FilterChip({ label, icon, isActive, badgeCount, onClick }: FilterChipPr
       onClick={onClick}
       className={[
         // Mobile: compact pills | Desktop: roomier
-        "relative px-3 lg:px-5 py-2 lg:py-2.5 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap",
-        "transition-all duration-150 min-h-[36px] lg:min-h-[44px] flex items-center gap-1.5 lg:gap-2",
-        "bg-white border",
+        "relative px-3.5 lg:px-5 py-2.5 lg:py-2.5 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap",
+        "transition-all duration-200 ease-out min-h-[40px] lg:min-h-[44px] flex items-center gap-1.5 lg:gap-2",
+        "bg-white border shadow-sm",
+        "active:scale-[0.98] active:shadow-none",
         isActive
-          ? "text-gray-900 border-2 border-primary-400 shadow-sm"
-          : "text-gray-600 border-gray-200 hover:border-gray-300 lg:shadow-sm",
+          ? "text-gray-900 border-2 border-primary-400"
+          : "text-gray-600 border-gray-200/80 hover:border-gray-300 hover:shadow",
       ].join(" ")}
     >
       {icon}
       <span>{label}</span>
-      <ChevronDownIcon className={`w-3 lg:w-3.5 h-3 lg:h-3.5 ${isActive ? "text-gray-600" : "text-gray-400"}`} />
+      <ChevronDownIcon className={`w-3.5 h-3.5 transition-colors ${isActive ? "text-gray-500" : "text-gray-400"}`} />
       {badgeCount !== undefined && badgeCount > 0 && (
-        <span className="absolute -top-1 -right-1 w-[18px] h-[18px] lg:w-5 lg:h-5 bg-primary-600 text-white text-[9px] lg:text-[10px] font-bold rounded-full flex items-center justify-center">
+        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm">
           {badgeCount}
         </span>
       )}
@@ -488,10 +489,10 @@ export default function MatchesFilterBar({
                   closeAll();
                   setSortOpen(!sortOpen);
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap bg-white border border-gray-200 text-gray-700 hover:border-gray-300 shadow-sm transition-all min-h-[44px]"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap bg-white border border-gray-200/80 text-gray-600 hover:border-gray-300 hover:shadow shadow-sm transition-all duration-200 ease-out min-h-[44px] active:scale-[0.98] active:shadow-none"
               >
-                <span className="text-gray-400">Sort:</span>
-                <span>{SORT_OPTIONS.find((s) => s.id === sortBy)?.label}</span>
+                <span className="text-gray-400 font-normal">Sort:</span>
+                <span className="text-gray-700">{SORT_OPTIONS.find((s) => s.id === sortBy)?.label}</span>
                 <ChevronDownIcon className="w-3.5 h-3.5 text-gray-400" />
               </button>
             }
@@ -571,14 +572,12 @@ export default function MatchesFilterBar({
       </div>
 
       {/* Result count row */}
-      <div className="flex items-center justify-between mt-1">
-        <p className="text-[15px] lg:text-base text-gray-600">
-          <span className="font-display font-bold text-gray-900">{resultCount}</span>
+      <div className="flex items-center justify-between mt-2 lg:mt-3">
+        <p className="text-sm lg:text-[15px] text-gray-500">
+          <span className="font-semibold text-gray-800">{resultCount}</span>
           {" "}{resultCount === 1 ? "match" : "matches"}
-          {filters.location ? (
-            <span className="text-gray-500"> in {filters.location}</span>
-          ) : (
-            <span className="text-gray-500"> available</span>
+          {filters.location && (
+            <span> in <span className="text-gray-700">{filters.location}</span></span>
           )}
         </p>
 
@@ -587,7 +586,7 @@ export default function MatchesFilterBar({
           <button
             type="button"
             onClick={clearAllFilters}
-            className="lg:hidden text-sm font-medium text-primary-600 hover:text-primary-700"
+            className="lg:hidden text-sm font-medium text-primary-600 hover:text-primary-700 active:text-primary-800"
           >
             Clear all
           </button>

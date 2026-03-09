@@ -282,10 +282,10 @@ function ContactedRow({
   const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
 
   return (
-    <div className="flex items-center gap-3 py-3 px-4 bg-white rounded-xl border border-gray-100">
+    <div className="flex items-center gap-3 py-3 px-4 bg-white rounded-xl border border-gray-200/60 shadow-sm hover:shadow transition-shadow duration-200">
       {/* Avatar */}
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-white"
+        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-white shadow-sm"
         style={{ background: avatarGradient(displayName) }}
       >
         {initials}
@@ -299,24 +299,25 @@ function ContactedRow({
         )}
       </div>
 
-      {/* Timeline badge (smaller) */}
+      {/* Timeline badge (smaller, hidden on mobile) */}
       {timeline && (
-        <span className={`hidden sm:inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
-          <span className={`w-1 h-1 rounded-full ${timeline.dot}`} />
+        <span className={`hidden lg:inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${timeline.dot}`} />
           {timeline.label}
         </span>
       )}
 
       {/* Status */}
-      <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full ${
+      <div className={`flex items-center gap-1.5 text-[11px] lg:text-xs font-semibold px-2 lg:px-3 py-1.5 rounded-full shrink-0 ${
         isAccepted
-          ? "bg-green-50 text-green-700 border border-green-200"
-          : "bg-amber-50 text-amber-700 border border-amber-200"
+          ? "bg-green-50 text-green-700 border border-green-200/80"
+          : "bg-amber-50 text-amber-600 border border-amber-200/80"
       }`}>
         {isAccepted ? (
           <>
             <CheckCircleIcon className="w-3.5 h-3.5" />
-            <span>Connected</span>
+            <span className="hidden sm:inline">Connected</span>
+            <span className="sm:hidden">Done</span>
           </>
         ) : (
           <>
@@ -1567,22 +1568,25 @@ export default function ProviderMatchesPage() {
 
             {/* Already contacted - collapsible accordion */}
             {contactedFamilies.length > 0 && (
-              <div className="pt-6">
+              <div className="pt-8">
                 <button
                   type="button"
                   onClick={() => setContactedExpanded(!contactedExpanded)}
-                  className="w-full flex items-center justify-between py-3 px-4 bg-warm-50/50 hover:bg-warm-50 rounded-xl border border-warm-100/60 transition-colors"
+                  className="w-full flex items-center justify-between py-3.5 px-4 bg-gray-50/80 hover:bg-gray-100/80 rounded-xl border border-gray-200/60 transition-all duration-200 group"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-gray-600">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-white border border-gray-200/80 flex items-center justify-center shadow-sm">
+                      <CheckCircleIcon className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <span className="text-sm font-semibold text-gray-700">
                       Already contacted
                     </span>
-                    <span className="text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded-full border border-gray-200">
+                    <span className="text-xs font-semibold text-gray-500 bg-white px-2 py-0.5 rounded-full border border-gray-200/80 shadow-sm">
                       {contactedFamilies.length}
                     </span>
                   </div>
                   <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${contactedExpanded ? "rotate-180" : ""}`}
+                    className={`w-5 h-5 text-gray-400 group-hover:text-gray-500 transition-all duration-300 ease-out ${contactedExpanded ? "rotate-180" : ""}`}
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={2}

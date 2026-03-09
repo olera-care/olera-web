@@ -28,7 +28,6 @@ export default function EditGalleryModal({
 }: BaseEditModalProps) {
   const [images, setImages] = useState<string[]>(Array.isArray(metadata.images) ? metadata.images : []);
   const [profilePhoto, setProfilePhoto] = useState<string>(profile.image_url || "");
-  const [newUrl, setNewUrl] = useState("");
   const [uploading, setUploading] = useState<UploadingFile[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,14 +127,6 @@ export default function EditGalleryModal({
     }
     // Reset so the same file can be re-selected
     e.target.value = "";
-  }
-
-  function addImageUrl() {
-    const trimmed = newUrl.trim();
-    if (trimmed && !images.includes(trimmed)) {
-      setImages((prev) => [...prev, trimmed]);
-    }
-    setNewUrl("");
   }
 
   function removeImage(index: number) {
@@ -312,39 +303,6 @@ export default function EditGalleryModal({
           </div>
         )}
 
-        {/* URL fallback */}
-        <div>
-          <p className="text-xs font-medium text-warm-500 uppercase tracking-wide mb-2">
-            Or add image URL
-          </p>
-          <div className="space-y-1.5">
-            <label htmlFor="image-url" className="block text-base font-medium text-gray-700">Image URL</label>
-            <div className="relative">
-              <input
-                id="image-url"
-                type="url"
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="https://example.com/photo.jpg"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addImageUrl();
-                  }
-                }}
-                className="w-full pl-4 pr-16 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
-              />
-              <button
-                type="button"
-                onClick={addImageUrl}
-                disabled={!newUrl.trim()}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
 
         {error && (
           <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4" role="alert">

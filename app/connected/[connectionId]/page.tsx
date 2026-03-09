@@ -176,85 +176,107 @@ function ConnectedPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Section 1: Success Card */}
-      <section className="pt-12 pb-4">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_32px_rgba(0,0,0,0.06)] overflow-hidden max-w-lg mx-auto">
-            <div className="px-8 pt-10 pb-8 text-center">
-              {/* Circular image with animated brand teal ring */}
-              <div className="relative w-28 h-28 mx-auto mb-6">
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 112 112">
-                  {/* Track ring — light teal */}
-                  <circle cx="56" cy="56" r="52" fill="none" stroke="#e0f2f1" strokeWidth="3" />
-                  {/* Animated ring — brand teal */}
-                  <circle
-                    cx="56" cy="56" r="52" fill="none"
-                    stroke="#199087" strokeWidth="3" strokeLinecap="round"
-                    strokeDasharray="326.73" strokeDashoffset="0"
-                    className="animate-[draw_1s_ease-out_0.3s_both]"
-                    transform="rotate(-90 56 56)"
-                  />
-                </svg>
+      {/* Section 1: Warm hero with success card */}
+      <section className="relative overflow-hidden">
+        {/* Warm gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-vanilla-100 via-primary-50/40 to-gray-50" />
+        {/* Subtle decorative glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary-200/20 rounded-full blur-3xl" />
 
-                {/* Provider image or personalized initials */}
-                <div className="absolute inset-[6px] rounded-full overflow-hidden">
-                  {provider.imageUrl ? (
-                    <Image src={provider.imageUrl} alt={provider.name} fill className="object-cover" sizes="100px" />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{ background: avatarGradient(provider.name) }}
-                    >
-                      <span className="text-2xl font-bold text-white tracking-wide">{initials}</span>
-                    </div>
-                  )}
-                </div>
+        <div className="relative z-10 pt-16 sm:pt-20 pb-12 sm:pb-16">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 text-center">
+            {/* Circular image with animated brand teal ring */}
+            <div className="relative w-32 h-32 sm:w-36 sm:h-36 mx-auto mb-8">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 144 144">
+                {/* Track ring — light teal */}
+                <circle cx="72" cy="72" r="68" fill="none" stroke="#e0f2f1" strokeWidth="3" />
+                {/* Animated ring — brand teal */}
+                <circle
+                  cx="72" cy="72" r="68" fill="none"
+                  stroke="#199087" strokeWidth="3" strokeLinecap="round"
+                  strokeDasharray="427.26" strokeDashoffset="0"
+                  className="animate-[draw_1s_ease-out_0.3s_both]"
+                  transform="rotate(-90 72 72)"
+                />
+              </svg>
 
-                {/* Checkmark badge — brand teal */}
-                <div className="absolute -bottom-1 -right-1 w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center ring-[3px] ring-white shadow-sm">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Headline */}
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {loading && !provider.name ? "Connecting..." : "You're connected"}
-              </h1>
-
-              {/* Provider identity — category pill + location */}
-              <div className="flex items-center justify-center gap-2 flex-wrap mt-3 mb-2">
-                {category && (
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
-                    {category}
-                  </span>
-                )}
-                {location && (
-                  <span className="inline-flex items-center gap-1 text-sm text-gray-500">
-                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {location}
-                  </span>
+              {/* Provider image or personalized initials */}
+              <div className="absolute inset-[8px] rounded-full overflow-hidden shadow-lg">
+                {provider.imageUrl ? (
+                  <Image src={provider.imageUrl} alt={provider.name} fill className="object-cover" sizes="136px" />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center"
+                    style={{ background: avatarGradient(provider.name) }}
+                  >
+                    <span className="text-3xl sm:text-4xl font-bold text-white tracking-wide">{initials}</span>
+                  </div>
                 )}
               </div>
 
-              {/* Provider name (subtle) */}
-              <p className="text-sm text-gray-400 mb-6 truncate px-4">{provider.name}</p>
-
-              {/* CTA — brand teal */}
-              <Link
-                href={`/portal/inbox?id=${connectionId}`}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-2xl transition-all duration-200 shadow-[0_4px_16px_rgba(25,144,135,0.25)] hover:shadow-[0_6px_24px_rgba(25,144,135,0.35)]"
-              >
-                Start Messaging
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              {/* Checkmark badge — brand teal */}
+              <div className="absolute -bottom-1 -right-1 w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center ring-[3px] ring-vanilla-100 shadow-md">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
-              </Link>
+              </div>
             </div>
+
+            {/* Headline — serif display */}
+            <h1 className="font-serif text-display-sm sm:text-display-md text-gray-900 mb-3">
+              {loading && !provider.name ? "Connecting..." : "You\u2019re connected"}
+            </h1>
+
+            {/* Provider name — prominent */}
+            {provider.name && (
+              <p className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
+                with {provider.name}
+              </p>
+            )}
+
+            {/* Warm subtitle */}
+            <p className="text-base sm:text-lg text-gray-500 max-w-md mx-auto mb-5 leading-relaxed">
+              {provider.name
+                ? `We\u2019ve shared your profile. ${provider.name.split(" ")[0]} will be in touch soon.`
+                : "We\u2019ve shared your profile. They\u2019ll be in touch soon."}
+            </p>
+
+            {/* Provider identity — category pill + location */}
+            <div className="flex items-center justify-center gap-2.5 flex-wrap mb-8">
+              {category && (
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 bg-white/80 backdrop-blur-sm border border-primary-100 px-3.5 py-1.5 rounded-full shadow-xs">
+                  {category}
+                </span>
+              )}
+              {location && (
+                <span className="inline-flex items-center gap-1.5 text-sm text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-100 px-3.5 py-1.5 rounded-full shadow-xs">
+                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {location}
+                </span>
+              )}
+            </div>
+
+            {/* CTA — brand teal */}
+            <Link
+              href={`/portal/inbox?id=${connectionId}`}
+              className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-base rounded-2xl transition-all duration-200 shadow-lg shadow-primary-600/25 hover:shadow-xl hover:shadow-primary-600/30 hover:-translate-y-0.5"
+            >
+              Start Messaging
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
+
+            {/* Secondary link */}
+            <p className="mt-4 text-sm text-gray-400">
+              or{" "}
+              <Link href={`/provider/${provider.slug}`} className="text-primary-600 hover:text-primary-700 font-medium underline underline-offset-2 decoration-primary-200 hover:decoration-primary-400 transition-colors">
+                view their profile
+              </Link>
+            </p>
           </div>
         </div>
       </section>
@@ -268,7 +290,7 @@ function ConnectedPageContent() {
       {/* Ring draw animation */}
       <style jsx global>{`
         @keyframes draw {
-          from { stroke-dashoffset: 326.73; }
+          from { stroke-dashoffset: 427.26; }
           to { stroke-dashoffset: 0; }
         }
       `}</style>

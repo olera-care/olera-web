@@ -80,21 +80,21 @@ const config: Config = {
         "3xl": "0px 32px 64px -12px rgba(16, 24, 40, 0.14)",
       },
       colors: {
-        // Olera brand colors — Teal/Cyan palette (matches iOS OleraClean)
-        // iOS accent: #5AAEC4, accentBright: #06B6D4
+        // Olera brand colors — Duck Egg Blue palette
+        // Base: #96C8C8 — soft, warm teal
         primary: {
-          25: "#f0fdfa",
-          50: "#ecfeff",
-          100: "#cffafe",
-          200: "#a5f3fc",
-          300: "#67e8f9",
-          400: "#22d3ee",
-          500: "#06b6d4",
-          600: "#0891b2",
-          700: "#0e7490",
-          800: "#155e75",
-          900: "#164e63",
-          950: "#083344",
+          25: "#f4fafa",
+          50: "#edf7f7",
+          100: "#d8edec",
+          200: "#bee0e0",
+          300: "#96c8c8",
+          400: "#7ab8b8",
+          500: "#5fa3a3",
+          600: "#4d8a8a",
+          700: "#417272",
+          800: "#385e5e",
+          900: "#314f4f",
+          950: "#1a3030",
         },
         secondary: {
           25: "#f8f9fb",

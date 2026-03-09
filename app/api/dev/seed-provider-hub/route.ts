@@ -297,31 +297,33 @@ export async function POST() {
     }
 
     // ====================================================================
-    // 3. Seed reviews on provider profile
+    // 3. Seed DEMO reviews on provider profile
+    // NOTE: These are clearly marked as demo data and should only be shown
+    // with a "Demo" badge in the UI. Real reviews come from the reviews table.
     // ====================================================================
 
     const currentMeta = (providerProfile.metadata || {}) as Record<
       string,
       unknown
     >;
-    const existingReviews = currentMeta.reviews as unknown[] | undefined;
+    const existingDemoReviews = currentMeta.demo_reviews as unknown[] | undefined;
+    const existingOldReviews = currentMeta.reviews as unknown[] | undefined;
 
-    if (!existingReviews || existingReviews.length === 0) {
-      const avgRating =
-        Math.round(
-          (SEED_REVIEWS.reduce((sum, r) => sum + r.rating, 0) /
-            SEED_REVIEWS.length) *
-            10
-        ) / 10;
-
+    // Only seed if no demo_reviews AND no old-style reviews exist
+    if ((!existingDemoReviews || existingDemoReviews.length === 0) &&
+        (!existingOldReviews || existingOldReviews.length === 0)) {
       const { error: reviewError } = await db
         .from("business_profiles")
         .update({
           metadata: {
             ...currentMeta,
-            reviews: SEED_REVIEWS,
-            rating: avgRating,
-            review_count: SEED_REVIEWS.length,
+            // New fields: clearly separated demo data
+            demo_mode: true,
+            demo_reviews: SEED_REVIEWS,
+            // Remove deprecated fields if they exist
+            reviews: undefined,
+            rating: undefined,
+            review_count: undefined,
           },
         })
         .eq("id", providerId);

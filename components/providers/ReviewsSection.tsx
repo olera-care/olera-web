@@ -86,11 +86,13 @@ interface ReviewsSectionProps {
   providerSlug: string;
   providerName: string;
   mockReviews: MockReview[];
+  /** When true, shows a "Demo" badge to indicate these are example reviews, not real user reviews */
+  isDemoMode?: boolean;
 }
 
 // ── Component ──
 
-export default function ReviewsSection({ providerId, providerSlug, providerName, mockReviews }: ReviewsSectionProps) {
+export default function ReviewsSection({ providerId, providerSlug, providerName, mockReviews, isDemoMode = false }: ReviewsSectionProps) {
   const { user, account } = useAuth();
 
   // Data
@@ -277,9 +279,19 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
 
   // ── Render ──
 
+  // Check if we're showing demo reviews (no real reviews available)
+  const showingDemoReviews = isDemoMode && normalizedReal.length === 0 && normalizedMock.length > 0;
+
   return (
     <div className="py-8 border-t border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight mb-6">What families are saying</h2>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">What families are saying</h2>
+        {showingDemoReviews && (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            Demo
+          </span>
+        )}
+      </div>
 
       {hasReviews ? (
         <>

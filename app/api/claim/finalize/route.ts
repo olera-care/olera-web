@@ -179,6 +179,17 @@ export async function POST(request: Request) {
       profileSlug =
         provider.slug || generateProviderSlug(provider.provider_name, provider.state);
 
+      // Store Google metadata separately (read-only, external data)
+      // Real reviews will come from the reviews table, not metadata
+      const metadata: Record<string, unknown> = {};
+      if (provider.google_rating != null) {
+        metadata.google_metadata = {
+          rating: provider.google_rating,
+          place_id: provider.place_id || null,
+          last_synced: new Date().toISOString(),
+        };
+      }
+
       const { data: newProfile, error: insertErr } = await db
         .from("business_profiles")
         .insert({
@@ -198,8 +209,11 @@ export async function POST(request: Request) {
           zip: provider.zipcode?.toString() || null,
           claim_state: "claimed",
           verification_state: "verified",
-          source: "seeded",
+          // Real provider claimed from directory - NOT seeded test data
+          source: "claimed_from_directory",
           is_active: true,
+          // Store Google data in structured metadata (no mock reviews)
+          metadata: Object.keys(metadata).length > 0 ? metadata : null,
         })
         .select("id")
         .single();

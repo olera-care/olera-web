@@ -204,3 +204,30 @@ export function claimDecisionEmail(opts: {
     <div>${button("Contact support", "mailto:support@olera.care")}</div>
   `);
 }
+
+/** Email to provider when their identity verification is approved or rejected */
+export function verificationDecisionEmail(opts: {
+  providerName: string;
+  approved: boolean;
+  listingUrl: string;
+}): string {
+  if (opts.approved) {
+    return layout(`
+      <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is now verified!</h1>
+      <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+        Great news — <strong>${opts.providerName}</strong> has been verified on Olera.
+        Your profile now displays a verified badge, helping families trust your listing.
+      </p>
+      <div>${button("View your profile", opts.listingUrl)}</div>
+    `);
+  }
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verification needs attention</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      We were unable to verify the identity documents submitted for <strong>${opts.providerName}</strong>.
+      This may be due to unclear images or mismatched information. Please resubmit your documents or reach out for help.
+    </p>
+    <div>${button("Contact support", "mailto:support@olera.care")}</div>
+  `);
+}

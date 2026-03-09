@@ -493,3 +493,4 @@ export function normalizeReviews(
 
   return { reviews, averageRating };
 }
+

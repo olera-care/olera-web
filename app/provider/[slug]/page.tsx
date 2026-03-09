@@ -527,8 +527,8 @@ export default async function ProviderPage({
         unitText: meta.price_unit || "MONTH",
       },
     }),
-    ...(reviews.length > 0 && {
-      review: reviews.slice(0, 5).map((r) => ({
+    ...(reviewsToShow.length > 0 && {
+      review: reviewsToShow.slice(0, 5).map((r) => ({
         "@type": "Review",
         author: { "@type": "Person", name: r.name },
         reviewRating: {

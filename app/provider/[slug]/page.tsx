@@ -774,7 +774,7 @@ export default async function ProviderPage({
               {/* ── Care Services ── */}
               <div id="services" className="py-8 scroll-mt-20">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
-                <CareServicesList services={careServices} initialCount={9} />
+                <CareServicesList services={careServices} initialCount={6} />
               </div>
 
               {/* ── Staff Screening — hidden when no real data ── */}

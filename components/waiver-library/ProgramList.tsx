@@ -39,6 +39,7 @@ const SORT_OPTIONS: { value: SortOption; label: string; description: string }[] 
 
 export function ProgramList({ programs, stateId }: ProgramListProps) {
   const [sort, setSort] = useState<SortOption>("savings");
+  const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -50,7 +51,18 @@ export function ProgramList({ programs, stateId }: ProgramListProps) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const sorted = [...programs].sort((a, b) => {
+  const filtered = search.trim()
+    ? programs.filter((p) => {
+        const q = search.toLowerCase();
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.tagline.toLowerCase().includes(q) ||
+          p.id.toLowerCase().includes(q)
+        );
+      })
+    : programs;
+
+  const sorted = [...filtered].sort((a, b) => {
     switch (sort) {
       case "savings":
         return getMaxSavings(b.savingsRange) - getMaxSavings(a.savingsRange);
@@ -71,6 +83,19 @@ export function ProgramList({ programs, stateId }: ProgramListProps) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Available Programs</h2>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search programs..."
+              className="pl-9 pr-3 py-2 w-48 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
         <div className="relative" ref={ref}>
           <button
             onClick={() => setOpen(!open)}
@@ -110,9 +135,20 @@ export function ProgramList({ programs, stateId }: ProgramListProps) {
             </div>
           )}
         </div>
+        </div>
       </div>
 
-      {sorted.length <= 5 ? (
+      {sorted.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <p className="text-sm">No programs match &ldquo;{search}&rdquo;.</p>
+          <button
+            onClick={() => setSearch("")}
+            className="mt-2 text-primary-600 hover:text-primary-500 text-sm font-medium"
+          >
+            Clear search
+          </button>
+        </div>
+      ) : sorted.length <= 5 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sorted.map((program) => {
             const federal = isFederalProgram(program);

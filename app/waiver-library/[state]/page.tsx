@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const state = getStateById(stateId);
   if (!state || state.programs.length === 0) return {};
   return {
-    title: `${state.name} Benefits | Waiver Library | Olera`,
+    title: `${state.name} Benefits | Benefits Hub | Olera`,
     description: state.description,
   };
 }
@@ -39,7 +39,7 @@ export default async function StatePage({ params }: Props) {
           <Breadcrumb
             variant="dark"
             items={[
-              { label: "Waiver Library", href: "/waiver-library" },
+              { label: "Benefits Hub", href: "/waiver-library" },
               { label: state.name },
             ]}
           />

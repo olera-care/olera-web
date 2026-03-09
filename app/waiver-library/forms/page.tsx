@@ -4,7 +4,7 @@ import { allStates } from "@/data/waiver-library";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
 
 export const metadata: Metadata = {
-  title: "Forms & Documents | Waiver Library | Olera",
+  title: "Forms & Documents | Benefits Hub | Olera",
   description:
     "Browse and download official Medicaid waiver application forms and documents for every state.",
 };
@@ -17,7 +17,7 @@ export default function FormsHubPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           <Breadcrumb
             items={[
-              { label: "Waiver Library", href: "/waiver-library" },
+              { label: "Benefits Hub", href: "/waiver-library" },
               { label: "Forms & Documents" },
             ]}
           />

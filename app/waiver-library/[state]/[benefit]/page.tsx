@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const program = getProgramById(stateId, benefitId);
   if (!state || !program) return {};
   return {
-    title: `${program.name} | ${state.name} | Waiver Library | Olera`,
+    title: `${program.name} | ${state.name} | Benefits Hub | Olera`,
     description: program.tagline,
   };
 }
@@ -48,7 +48,7 @@ export default async function BenefitPage({ params }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           <Breadcrumb
             items={[
-              { label: "Waiver Library", href: "/waiver-library" },
+              { label: "Benefits Hub", href: "/waiver-library" },
               { label: state.name, href: `/waiver-library/${state.id}` },
               { label: program.shortName },
             ]}

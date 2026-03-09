@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const state = getStateById(stateId);
   if (!state) return {};
   return {
-    title: `${state.name} Forms & Documents | Waiver Library | Olera`,
+    title: `${state.name} Forms & Documents | Benefits Hub | Olera`,
     description: `Download all Medicaid waiver application forms and documents for ${state.name}.`,
   };
 }
@@ -39,7 +39,7 @@ export default async function StateFormsPage({ params }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
           <Breadcrumb
             items={[
-              { label: "Waiver Library", href: "/waiver-library" },
+              { label: "Benefits Hub", href: "/waiver-library" },
               { label: "Forms & Documents", href: "/waiver-library/forms" },
               { label: state.name },
             ]}

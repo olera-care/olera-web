@@ -1135,11 +1135,8 @@ export default function ProviderMatchesPage() {
           throw new Error(insertError.message);
         }
 
-        // Increment free_responses_used for free tier
-        if (
-          membership &&
-          (membership.status === "free" || membership.status === "trialing")
-        ) {
+        // Increment free_responses_used only for free tier (not trial)
+        if (membership && membership.status === "free") {
           const newCount = (membership.free_responses_used ?? 0) + 1;
           await supabase
             .from("memberships")

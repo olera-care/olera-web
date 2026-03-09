@@ -767,9 +767,7 @@ function ProviderOnboardingContent() {
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-              <span className="font-bold text-lg text-white">O</span>
-            </div>
+            <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
             <span className="text-xl font-bold text-gray-900">Olera</span>
           </Link>
           <Link
@@ -875,7 +873,7 @@ function ProviderOnboardingContent() {
                   </svg>
                 </div>
                 <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Organization</h2>
-                <p className="text-xs lg:text-base text-gray-500 leading-relaxed">
+                <p className="text-sm lg:text-base text-gray-500 leading-relaxed">
                   Assisted living, home care agency, memory care facility, and more
                 </p>
               </button>
@@ -892,7 +890,7 @@ function ProviderOnboardingContent() {
                   </svg>
                 </div>
                 <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Private Caregiver</h2>
-                <p className="text-xs lg:text-base text-gray-500 leading-relaxed">
+                <p className="text-sm lg:text-base text-gray-500 leading-relaxed">
                   Individual caregiver offering personal care services
                 </p>
               </button>

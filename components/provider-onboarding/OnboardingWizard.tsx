@@ -8,24 +8,24 @@ const WIZARD_STEPS = [
     id: "profile",
     target: "sidebar", // Points to Profile Completeness sidebar
     targetSelector: "[data-wizard-target='sidebar']",
-    title: "Update your profile",
-    description: "Add your details so families know who you are.",
+    title: "Complete your profile",
+    description: "A complete profile helps families find and trust you. Add photos, services, and pricing.",
     mobileDescription: "Your profile helps families learn about your care services and what makes you unique.",
   },
   {
     id: "matches",
     target: "matches", // Points to Matches nav item
     targetSelector: "[data-wizard-target='matches']",
-    title: "Find family matches",
-    description: "See families looking for care in your area.",
+    title: "Connect with families",
+    description: "Discover families actively searching for care in your area and reach out directly.",
     mobileDescription: "View and connect with families actively searching for care services like yours.",
   },
   {
     id: "engage",
     target: "engage", // Points to the engagement nav group (Inbox, Leads, Q&A, Reviews)
     targetSelector: "[data-wizard-target='engage']",
-    title: "Engage with families",
-    description: "Inbox, Leads, Q&A, and Reviews — all in one place.",
+    title: "Manage everything here",
+    description: "Messages, leads, questions, and reviews — all in one place.",
     mobileDescription: "Manage messages, respond to leads, answer questions, and collect reviews.",
     buttonText: "Get started",
   },
@@ -196,9 +196,10 @@ export default function OnboardingWizard({
 
         {/* Bottom Sheet */}
         <div
-          className={`fixed inset-x-0 bottom-0 z-50 transition-transform duration-300 ease-out ${
-            isVisible ? "translate-y-0" : "translate-y-full"
+          className={`fixed inset-x-0 bottom-0 z-50 transition-all duration-500 ${
+            isVisible ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
           }`}
+          style={{ transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)" }}
           role="dialog"
           aria-modal="true"
           aria-labelledby="wizard-title-mobile"
@@ -379,7 +380,7 @@ export default function OnboardingWizard({
         {/* Card */}
         <div className="relative bg-white rounded-xl shadow-lg border border-gray-200 p-5">
           {/* Title */}
-          <h3 id="wizard-title-desktop" className="text-base font-semibold text-gray-900 mb-1.5">
+          <h3 id="wizard-title-desktop" className="text-lg font-display font-semibold text-gray-900 mb-1.5">
             {currentStep.title}
           </h3>
 
@@ -396,18 +397,36 @@ export default function OnboardingWizard({
             {currentStep.buttonText || "Next"}
           </button>
 
-          {/* Step dots */}
-          <div className="flex items-center justify-center gap-1.5 mt-4">
-            {WIZARD_STEPS.map((_, i) => (
-              <div
-                key={i}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  i === step ? "bg-primary-600" : "bg-gray-200"
-                }`}
-                aria-label={`Step ${i + 1} of ${totalSteps}`}
-                aria-current={i === step ? "step" : undefined}
-              />
-            ))}
+          {/* Step dots + Skip */}
+          <div className="flex items-center justify-between mt-4">
+            {/* Skip link - only on non-last steps */}
+            {!isLastStep ? (
+              <button
+                onClick={onComplete}
+                className="text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Skip tour
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {/* Step dots */}
+            <div className="flex items-center gap-1.5">
+              {WIZARD_STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    i === step ? "bg-primary-600" : "bg-gray-200"
+                  }`}
+                  aria-label={`Step ${i + 1} of ${totalSteps}`}
+                  aria-current={i === step ? "step" : undefined}
+                />
+              ))}
+            </div>
+
+            {/* Empty div for flex spacing on last step */}
+            {!isLastStep ? <div /> : <div />}
           </div>
         </div>
       </div>

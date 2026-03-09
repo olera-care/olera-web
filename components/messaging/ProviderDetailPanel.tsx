@@ -33,10 +33,9 @@ export default function ProviderDetailPanel({
   const [images, setImages] = useState<string[]>([]);
   const [currentImage, setCurrentImage] = useState(0);
 
-  const profileHref =
-    (profile.type === "organization" || profile.type === "caregiver") && profile.slug
-      ? `/provider/${profile.slug}`
-      : `/profile/${profile.id}`;
+  // Only providers have public profile pages
+  const isProvider = profile.type === "organization" || profile.type === "caregiver";
+  const profileHref = isProvider && profile.slug ? `/provider/${profile.slug}` : null;
 
   // Fetch additional images from olera-providers if available
   useEffect(() => {
@@ -218,16 +217,18 @@ export default function ProviderDetailPanel({
           )}
         </div>
 
-        {/* View full profile link */}
-        <div className="px-[44px] pb-6">
-          <Link
-            href={profileHref}
-            target="_blank"
-            className="block w-full text-center py-3 text-[15px] font-semibold text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
-          >
-            View full profile
-          </Link>
-        </div>
+        {/* View full profile link - only for providers */}
+        {profileHref && (
+          <div className="px-[44px] pb-6">
+            <Link
+              href={profileHref}
+              target="_blank"
+              className="block w-full text-center py-3 text-[15px] font-semibold text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
+            >
+              View full profile
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

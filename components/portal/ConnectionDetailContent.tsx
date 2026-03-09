@@ -659,11 +659,9 @@ export default function ConnectionDetailContent({
   const initial = otherName.charAt(0).toUpperCase();
   const parsedMsg = connection ? parseMessage(connection.message) : null;
 
-  const profileHref = otherProfile
-    ? (otherProfile.type === "organization" || otherProfile.type === "caregiver") && otherProfile.slug
-      ? `/provider/${otherProfile.slug}`
-      : `/profile/${otherProfile.id}`
-    : "#";
+  // Only providers have clickable profile links - families don't have public profiles
+  const isOtherProvider = otherProfile?.type === "organization" || otherProfile?.type === "caregiver";
+  const profileHref = isOtherProvider && otherProfile?.slug ? `/provider/${otherProfile.slug}` : null;
 
   const categoryLabel = otherProfile?.category
     ? otherProfile.category
@@ -1118,17 +1116,19 @@ export default function ConnectionDetailContent({
                 {/* Profile link + inline contact */}
                 {otherProfile && !shouldBlur && (
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    <Link
-                      href={profileHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 min-h-[44px] px-2 -mx-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                    >
-                      View profile
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </Link>
+                    {profileHref && (
+                      <Link
+                        href={profileHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 min-h-[44px] px-2 -mx-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                      >
+                        View profile
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </Link>
+                    )}
                     {hasPhone && (
                       <a
                         href={`tel:${otherProfile.phone}`}

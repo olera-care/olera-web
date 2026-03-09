@@ -371,11 +371,9 @@ export default function ConversationPanel({
   const initialNotes = autoIntro || additionalNotes;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
 
-  const profileHref = otherProfile
-    ? (otherProfile.type === "organization" || otherProfile.type === "caregiver") && otherProfile.slug
-      ? `/provider/${otherProfile.slug}`
-      : `/profile/${otherProfile.id}`
-    : "#";
+  // Only providers have clickable profile links - families are not linked
+  const isProvider = otherProfile?.type === "organization" || otherProfile?.type === "caregiver";
+  const profileHref = isProvider && otherProfile?.slug ? `/provider/${otherProfile.slug}` : null;
 
   const showMessageInput =
     (connection.status === "pending" || connection.status === "accepted");
@@ -412,24 +410,45 @@ export default function ConversationPanel({
         )}
 
         {/* Avatar */}
-        <Link href={profileHref} className="shrink-0">
-          {imageUrl ? (
-            <Image src={imageUrl} alt={otherName} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
-          ) : (
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
-              style={{ background: avatarGradient(otherName) }}
-            >
-              {otherInitial}
-            </div>
-          )}
-        </Link>
+        {profileHref ? (
+          <Link href={profileHref} className="shrink-0">
+            {imageUrl ? (
+              <Image src={imageUrl} alt={otherName} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                style={{ background: avatarGradient(otherName) }}
+              >
+                {otherInitial}
+              </div>
+            )}
+          </Link>
+        ) : (
+          <div className="shrink-0">
+            {imageUrl ? (
+              <Image src={imageUrl} alt={otherName} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                style={{ background: avatarGradient(otherName) }}
+              >
+                {otherInitial}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
-            {otherName}
-          </Link>
+          {profileHref ? (
+            <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
+              {otherName}
+            </Link>
+          ) : (
+            <span className="text-lg font-display font-semibold text-gray-900 truncate block">
+              {otherName}
+            </span>
+          )}
           {otherProfile?.city || otherProfile?.state ? (
             <p className="text-sm text-gray-500 truncate">
               {[otherProfile.city, otherProfile.state].filter(Boolean).join(", ")}

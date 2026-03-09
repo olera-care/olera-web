@@ -5,14 +5,19 @@ import type { AdminUser } from "@/lib/types";
 /**
  * Creates a Supabase client with service role key (bypasses RLS).
  * Only use server-side in API routes.
+ * Cached as a module singleton to avoid repeated client instantiation.
  */
+let _serviceClient: ReturnType<typeof createClient> | null = null;
+
 export function getServiceClient() {
+  if (_serviceClient) return _serviceClient;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured");
   }
-  return createClient(url, serviceKey);
+  _serviceClient = createClient(url, serviceKey);
+  return _serviceClient;
 }
 
 /**

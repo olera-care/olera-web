@@ -39,7 +39,7 @@ export default function AdminOverviewPage() {
           fetch("/api/admin/team"),
           fetch("/api/admin/audit?limit=10"),
           fetch("/api/admin/images/stats"),
-          fetch("/api/admin/directory?tab=all&per_page=1"),
+          fetch("/api/admin/directory?tab=all&per_page=0&count_only=true"),
           fetch("/api/admin/questions?count_only=true"),
         ]);
 
@@ -76,14 +76,6 @@ export default function AdminOverviewPage() {
     fetchData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-lg text-gray-500">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="mb-8">
@@ -105,7 +97,7 @@ export default function AdminOverviewPage() {
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Pending Providers</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.pendingProviders ?? 0}
+              {loading ? <SkeletonNumber /> : stats?.pendingProviders ?? 0}
             </p>
             <p className="text-base text-gray-500">Awaiting review</p>
           </div>
@@ -114,7 +106,7 @@ export default function AdminOverviewPage() {
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Total Inquiries</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.totalInquiries ?? 0}
+              {loading ? <SkeletonNumber /> : stats?.totalInquiries ?? 0}
             </p>
             <p className="text-base text-gray-500">All connections</p>
           </div>
@@ -123,7 +115,7 @@ export default function AdminOverviewPage() {
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Q&A</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.totalQuestions?.toLocaleString() ?? 0}
+              {loading ? <SkeletonNumber /> : stats?.totalQuestions?.toLocaleString() ?? 0}
             </p>
             <p className="text-base text-gray-500">Questions submitted</p>
           </div>
@@ -132,7 +124,7 @@ export default function AdminOverviewPage() {
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Admin Team</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.adminCount ?? 0}
+              {loading ? <SkeletonNumber /> : stats?.adminCount ?? 0}
             </p>
             <p className="text-base text-gray-500">Active admins</p>
           </div>
@@ -141,7 +133,7 @@ export default function AdminOverviewPage() {
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Provider Directory</p>
             <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.totalProviders?.toLocaleString() ?? 0}
+              {loading ? <SkeletonNumber /> : stats?.totalProviders?.toLocaleString() ?? 0}
             </p>
             <p className="text-base text-gray-500">Total providers</p>
           </div>
@@ -153,7 +145,19 @@ export default function AdminOverviewPage() {
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Recent Activity
         </h2>
-        {auditLog.length === 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="px-6 py-4 flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="h-4 w-48 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-3 w-32 bg-gray-100 rounded animate-pulse" />
+                </div>
+                <div className="h-6 w-16 bg-gray-200 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : auditLog.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
             <p className="text-gray-500">No activity yet.</p>
           </div>
@@ -206,4 +210,10 @@ function getActionBadgeVariant(action: string): "verified" | "pending" | "defaul
   if (action.includes("approve")) return "verified";
   if (action.includes("reject")) return "pending";
   return "default";
+}
+
+function SkeletonNumber() {
+  return (
+    <span className="inline-block h-8 w-12 bg-gray-200 rounded animate-pulse" />
+  );
 }

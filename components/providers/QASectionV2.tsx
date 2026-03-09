@@ -263,37 +263,33 @@ export default function QASectionV2({
   return (
     <div>
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
-            Questions & Answers
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            {hasQuestions
-              ? `${answeredCount} answered${pendingCount > 0 ? ` · ${pendingCount} awaiting response` : ""}`
-              : `Ask ${providerName} a question`}
+      <div className="mb-5">
+        <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
+          Questions & Answers
+        </h2>
+        {hasQuestions && (
+          <p className="text-sm text-gray-400 mt-1">
+            {answeredCount > 0 ? `${answeredCount} answered` : ""}
+            {pendingCount > 0 ? `${answeredCount > 0 ? " · " : ""}${pendingCount} awaiting response` : ""}
           </p>
-        </div>
+        )}
       </div>
 
       {/* Ask a question form */}
-      <div className="bg-vanilla-50/50 rounded-2xl border border-warm-100/60 p-5 mb-6">
-        {/* Suggested pills */}
+      <div className="mb-8">
+        {/* Suggested pills — no label, just gentle prompts */}
         {suggestedQuestions.length > 0 && !inputValue && (
-          <div className="mb-4">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2.5">Suggested</p>
-            <div className="flex flex-wrap gap-2">
-              {suggestedQuestions.map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  onClick={() => setInputValue(q)}
-                  className="text-[13px] text-gray-600 px-3.5 py-2 bg-white border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-colors"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {suggestedQuestions.map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => setInputValue(q)}
+                className="text-[13px] text-gray-500 px-3.5 py-1.5 bg-gray-50 border border-gray-150 rounded-full hover:border-gray-300 hover:text-gray-700 hover:bg-gray-100/60 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+              >
+                {q}
+              </button>
+            ))}
           </div>
         )}
 
@@ -301,17 +297,17 @@ export default function QASectionV2({
         <textarea
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Type your question..."
-          rows={3}
+          placeholder={`Ask ${providerName} a question...`}
+          rows={2}
           maxLength={1000}
-          className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition-all"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:bg-white transition-all"
         />
 
         {/* Submit row */}
-        <div className="flex items-center justify-between mt-3 gap-4">
+        <div className="flex items-center justify-between mt-2.5 gap-4">
           <div className="text-sm flex-1 min-w-0">
             {submitStatus === "success" && (
-              <span className="text-primary-600 font-medium">Question posted! It will appear below.</span>
+              <span className="text-primary-600 font-medium">Question posted!</span>
             )}
             {submitStatus === "error" && (
               <span className="text-red-600">Failed to submit. Please try again.</span>
@@ -321,7 +317,7 @@ export default function QASectionV2({
             type="button"
             onClick={handleSubmit}
             disabled={!inputValue.trim() || submitting}
-            className="shrink-0 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl shadow-sm hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="shrink-0 px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
           >
             {submitting ? "Posting..." : "Post Question"}
           </button>
@@ -344,22 +340,18 @@ export default function QASectionV2({
               >
                 {/* Question */}
                 <div className="flex items-start gap-3">
-                  {/* Asker avatar with gradient */}
-                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(qa.asker_name || "Anonymous")} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-                    <span className="text-xs font-bold text-gray-600">
-                      {getInitials(qa.asker_name || "Anonymous")}
-                    </span>
-                  </div>
+                  {/* Asker avatar — gradient orb only */}
+                  <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient(qa.asker_name || "Anonymous")} shrink-0 shadow-sm`} />
 
                   <div className="flex-1 min-w-0">
                     {/* Asker name + time + more menu */}
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-900">
+                        <p className="text-[13px] font-medium text-gray-500">
                           {qa.asker_name || "Anonymous"}
                         </p>
                         {qa.created_at && (
-                          <span className="text-xs text-gray-400">· {timeAgo(qa.created_at)}</span>
+                          <span className="text-[12px] text-gray-400">· {timeAgo(qa.created_at)}</span>
                         )}
                       </div>
                       {/* More menu - only for question owner on pending questions */}
@@ -397,7 +389,7 @@ export default function QASectionV2({
                     </div>
 
                     {/* Question text */}
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <p className="text-[15px] text-gray-800 leading-relaxed">
                       {qa.question}
                     </p>
 
@@ -471,13 +463,9 @@ export default function QASectionV2({
           )}
         </div>
       ) : (
-        /* Empty state - matches ReviewsSection pattern */
-        <div className="text-center py-12 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
-          <svg className="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 0 1 .778-.332 48.294 48.294 0 0 0 5.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-          </svg>
-          <p className="text-gray-500 font-medium">No questions yet</p>
-          <p className="text-sm text-gray-400 mt-1">Be the first to ask {providerName} a question.</p>
+        /* Empty state — warm and inviting, not apologetic */
+        <div className="py-6">
+          <p className="text-sm text-gray-400">No questions yet — yours could be the first.</p>
         </div>
       )}
 

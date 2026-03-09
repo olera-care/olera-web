@@ -103,7 +103,7 @@ export default function WaiverLibraryPage() {
 
       {/* State grid */}
       <section id="states" className="py-4 md:py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-1 text-center">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
               Explore Benefits by State

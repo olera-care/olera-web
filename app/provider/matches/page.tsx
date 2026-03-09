@@ -10,10 +10,16 @@ import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
 import Select from "@/components/ui/Select";
+import MatchesFilterBar, {
+  type MatchesFilters,
+  DEFAULT_FILTERS,
+  SERVICE_OPTIONS,
+  PAYMENT_OPTIONS,
+} from "@/components/provider/matches/MatchesFilterBar";
+import MatchesFilterSheet, { type FilterSheetType } from "@/components/provider/matches/MatchesFilterSheet";
 
 // ── Types ──
 
-type TimelineFilter = "all" | "immediate" | "within_1_month" | "exploring";
 type SortOption = "best_match" | "most_recent" | "most_urgent";
 
 // ── Timeline config ──
@@ -24,13 +30,6 @@ const TIMELINE_CONFIG: Record<string, { label: string; dot: string; glow: string
   within_3_months: { label: "Within 3 months", dot: "bg-blue-400", glow: "glowBlue", border: "border-blue-200", text: "text-blue-600", bg: "bg-blue-50/50" },
   exploring: { label: "Exploring", dot: "bg-warm-300", glow: "glowWarm", border: "border-warm-200", text: "text-gray-500", bg: "bg-warm-50/50" },
 };
-
-const FILTER_TABS: { id: TimelineFilter; label: string }[] = [
-  { id: "all", label: "All matches" },
-  { id: "immediate", label: "Immediate" },
-  { id: "within_1_month", label: "Within 1 month" },
-  { id: "exploring", label: "Exploring" },
-];
 
 const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: "best_match", label: "Best match" },
@@ -1032,8 +1031,11 @@ export default function ProviderMatchesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
+  const [filters, setFilters] = useState<MatchesFilters>(DEFAULT_FILTERS);
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
+
+  // Mobile filter sheet state
+  const [filterSheetType, setFilterSheetType] = useState<FilterSheetType | null>(null);
 
   // Reach-out expansion state
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
@@ -1284,17 +1286,59 @@ export default function ProviderMatchesPage() {
 
   // Filter + sort
   const filteredFamilies = useMemo(() => {
-    const newF = families.filter((f) => !contactedIds.has(f.id));
+    let result = families.filter((f) => !contactedIds.has(f.id));
 
-    let filtered = newF;
-    if (activeFilter !== "all") {
-      filtered = newF.filter((f) => {
-        const meta = f.metadata as FamilyMetadata;
-        return meta?.timeline === activeFilter;
+    // Location filter
+    if (filters.location) {
+      result = result.filter((f) => {
+        const familyLocation = [f.city, f.state].filter(Boolean).join(", ");
+        return familyLocation.toLowerCase() === filters.location!.toLowerCase();
       });
     }
 
-    const sorted = [...filtered].sort((a, b) => {
+    // Services filter (OR logic - any match)
+    if (filters.services.length > 0) {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        const needs = meta?.care_needs || f.care_types || [];
+        // Normalize: check if any filter service matches any family need
+        return filters.services.some((filterService) => {
+          const filterLabel = SERVICE_OPTIONS.find((s) => s.id === filterService)?.label.toLowerCase();
+          return needs.some((need) => {
+            const needLower = need.toLowerCase();
+            return needLower.includes(filterLabel || filterService) ||
+                   (filterLabel && filterLabel.includes(needLower));
+          });
+        });
+      });
+    }
+
+    // Payment filter (OR logic - any match)
+    if (filters.payment.length > 0) {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        const methods = meta?.payment_methods || [];
+        return filters.payment.some((filterPayment) => {
+          const filterLabel = PAYMENT_OPTIONS.find((p) => p.id === filterPayment)?.label.toLowerCase();
+          return methods.some((method) => {
+            const methodLower = method.toLowerCase();
+            return methodLower.includes(filterLabel || filterPayment) ||
+                   (filterLabel && filterLabel.includes(methodLower));
+          });
+        });
+      });
+    }
+
+    // Timeline filter
+    if (filters.timeline !== "all") {
+      result = result.filter((f) => {
+        const meta = f.metadata as FamilyMetadata;
+        return meta?.timeline === filters.timeline;
+      });
+    }
+
+    // Sort
+    const sorted = [...result].sort((a, b) => {
       const metaA = a.metadata as FamilyMetadata;
       const metaB = b.metadata as FamilyMetadata;
 
@@ -1325,7 +1369,7 @@ export default function ProviderMatchesPage() {
     });
 
     return sorted;
-  }, [families, contactedIds, activeFilter, sortBy, providerCareTypes]);
+  }, [families, contactedIds, filters, sortBy, providerCareTypes]);
 
   const contactedFamilies = useMemo(
     () => families.filter((f) => contactedIds.has(f.id)),
@@ -1380,41 +1424,47 @@ export default function ProviderMatchesPage() {
         </p>
       </div>
 
-      {/* ── Filter tabs + Sort ── */}
-      <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
-        {/* Filter tabs - horizontal scroll on mobile */}
-        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 flex-1 scrollbar-hide">
-          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
-            {FILTER_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveFilter(tab.id)}
-                className={[
-                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center",
-                  activeFilter === tab.id
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-500 hover:text-gray-700",
-                ].join(" ")}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Desktop sort dropdown */}
-        <div className="hidden lg:flex items-center shrink-0">
-          <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-          <Select
-            options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
-            value={sortBy}
-            onChange={(val) => setSortBy(val as SortOption)}
-            size="sm"
-            className="w-40"
-          />
-        </div>
+      {/* ── Filter bar ── */}
+      <div className="mb-4 lg:mb-5">
+        <MatchesFilterBar
+          filters={filters}
+          onChange={setFilters}
+          resultCount={filteredFamilies.length}
+          providerLocation={
+            providerProfile
+              ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ") || null
+              : null
+          }
+          onOpenSheet={(type) => setFilterSheetType(type)}
+        />
       </div>
+
+      {/* ── Sort row (desktop) ── */}
+      <div className="hidden lg:flex items-center justify-end mb-4">
+        <span className="text-sm text-gray-400 mr-2">Sort by:</span>
+        <Select
+          options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
+          value={sortBy}
+          onChange={(val) => setSortBy(val as SortOption)}
+          size="sm"
+          className="w-40"
+        />
+      </div>
+
+      {/* ── Mobile filter sheet ── */}
+      <MatchesFilterSheet
+        isOpen={filterSheetType !== null}
+        onClose={() => setFilterSheetType(null)}
+        type={filterSheetType || "timeline"}
+        filters={filters}
+        onChange={setFilters}
+        resultCount={filteredFamilies.length}
+        providerLocation={
+          providerProfile
+            ? [providerProfile.city, providerProfile.state].filter(Boolean).join(", ") || null
+            : null
+        }
+      />
 
       {/* ── Content grid ── */}
       {families.length === 0 ? (
@@ -1433,10 +1483,10 @@ export default function ProviderMatchesPage() {
                   </svg>
                 </div>
                 <p className="text-[15px] font-display font-semibold text-gray-900 mb-1">
-                  No matches for this filter
+                  No matches for these filters
                 </p>
                 <p className="text-sm text-gray-500">
-                  Try &ldquo;All matches&rdquo; to see everyone.
+                  Try adjusting your filters to see more families.
                 </p>
               </div>
             ) : (

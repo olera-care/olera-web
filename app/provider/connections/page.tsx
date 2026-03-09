@@ -189,6 +189,8 @@ function LeadDetailDrawer({
   const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Generate pre-filled template from lead data
@@ -208,6 +210,8 @@ function LeadDetailDrawer({
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
+      setSendingMessage(false);
+      setSendError(null);
     }
   }, [isOpen]);
 
@@ -224,6 +228,8 @@ function LeadDetailDrawer({
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
+      setSendingMessage(false);
+      setSendError(null);
     }
   }, [lead]);
 
@@ -254,11 +260,35 @@ function LeadDetailDrawer({
     };
   }, [isOpen, onClose, showComposer, showArchive, showDeleteConfirm]);
 
-  const handleSendMessage = () => {
-    if (!lead) return;
-    // Message sending — no-op for mock leads
-    setMessageSent(true);
-    onMessage(lead.id);
+  const handleSendMessage = async () => {
+    if (!lead || !lead.connectionId || !messageText.trim()) return;
+
+    setSendingMessage(true);
+    setSendError(null);
+
+    try {
+      const res = await fetch("/api/connections/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId: lead.connectionId,
+          text: messageText.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setMessageSent(true);
+      onMessage(lead.id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to send message";
+      setSendError(msg);
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   const handleArchive = () => {
@@ -450,7 +480,7 @@ function LeadDetailDrawer({
                     <div className="flex items-center gap-3 w-full mt-2">
                       <button
                         type="button"
-                        onClick={() => { onClose(); router.push(`/provider/inbox?id=mock-lead-${lead.id}`); }}
+                        onClick={() => { onClose(); router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`); }}
                         className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -496,21 +526,47 @@ function LeadDetailDrawer({
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
                         rows={8}
-                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                        disabled={sendingMessage}
+                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                     </div>
+
+                    {/* Error message */}
+                    {sendError && (
+                      <div className="px-5 pb-3">
+                        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                          </svg>
+                          <span>{sendError}</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Send button */}
                     <div className="px-5 pb-5">
                       <button
                         type="button"
                         onClick={handleSendMessage}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+                        disabled={sendingMessage || !messageText.trim() || !lead.connectionId}
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                        </svg>
-                        Send Message
+                        {sendingMessage ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                            </svg>
+                            Send Message
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>

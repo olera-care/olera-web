@@ -231,3 +231,27 @@ export function verificationDecisionEmail(opts: {
     <div>${button("Contact support", "mailto:support@olera.care")}</div>
   `);
 }
+
+/** Email to provider when they receive a new review */
+export function newReviewEmail(opts: {
+  providerName: string;
+  reviewerName: string;
+  rating: number;
+  comment: string;
+  viewUrl: string;
+}): string {
+  // Generate star rating display
+  const stars = "★".repeat(opts.rating) + "☆".repeat(5 - opts.rating);
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You received a new review!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      <strong>${opts.reviewerName}</strong> left a review for <strong>${opts.providerName}</strong> on Olera.
+    </p>
+    <div style="background:#f9fafb;border-radius:12px;padding:20px;margin:0 0 24px;">
+      <p style="font-size:20px;color:#f59e0b;margin:0 0 12px;letter-spacing:2px;">${stars}</p>
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.6;">"${opts.comment}"</p>
+    </div>
+    <div>${button("View review", opts.viewUrl)}</div>
+  `);
+}

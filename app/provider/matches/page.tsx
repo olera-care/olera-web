@@ -9,18 +9,14 @@ import { canEngage, getFreeConnectionsRemaining, FREE_CONNECTION_LIMIT, isProfil
 import type { Profile, FamilyMetadata } from "@/lib/types";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
-import Select from "@/components/ui/Select";
 import MatchesFilterBar, {
   type MatchesFilters,
+  type SortOption,
   DEFAULT_FILTERS,
   SERVICE_OPTIONS,
   PAYMENT_OPTIONS,
 } from "@/components/provider/matches/MatchesFilterBar";
 import MatchesFilterSheet, { type FilterSheetType } from "@/components/provider/matches/MatchesFilterSheet";
-
-// ── Types ──
-
-type SortOption = "best_match" | "most_recent" | "most_urgent";
 
 // ── Timeline config ──
 
@@ -30,12 +26,6 @@ const TIMELINE_CONFIG: Record<string, { label: string; dot: string; glow: string
   within_3_months: { label: "Within 3 months", dot: "bg-blue-400", glow: "glowBlue", border: "border-blue-200", text: "text-blue-600", bg: "bg-blue-50/50" },
   exploring: { label: "Exploring", dot: "bg-warm-300", glow: "glowWarm", border: "border-warm-200", text: "text-gray-500", bg: "bg-warm-50/50" },
 };
-
-const SORT_OPTIONS: { id: SortOption; label: string }[] = [
-  { id: "best_match", label: "Best match" },
-  { id: "most_recent", label: "Most recent" },
-  { id: "most_urgent", label: "Most urgent" },
-];
 
 // ── Helpers ──
 
@@ -1429,6 +1419,8 @@ export default function ProviderMatchesPage() {
         <MatchesFilterBar
           filters={filters}
           onChange={setFilters}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
           resultCount={filteredFamilies.length}
           providerLocation={
             providerProfile
@@ -1436,18 +1428,6 @@ export default function ProviderMatchesPage() {
               : null
           }
           onOpenSheet={(type) => setFilterSheetType(type)}
-        />
-      </div>
-
-      {/* ── Sort row (desktop) ── */}
-      <div className="hidden lg:flex items-center justify-end mb-4">
-        <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-        <Select
-          options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
-          value={sortBy}
-          onChange={(val) => setSortBy(val as SortOption)}
-          size="sm"
-          className="w-40"
         />
       </div>
 

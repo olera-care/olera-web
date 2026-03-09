@@ -48,6 +48,14 @@ export const TIMELINE_OPTIONS = [
   { id: "exploring", label: "Exploring" },
 ] as const;
 
+export const SORT_OPTIONS = [
+  { id: "best_match", label: "Best match" },
+  { id: "most_recent", label: "Most recent" },
+  { id: "most_urgent", label: "Most urgent" },
+] as const;
+
+export type SortOption = typeof SORT_OPTIONS[number]["id"];
+
 // ── Icons ──
 
 function ChevronDownIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -157,6 +165,8 @@ function FilterChip({ label, icon, isActive, badgeCount, onClick }: FilterChipPr
 interface MatchesFilterBarProps {
   filters: MatchesFilters;
   onChange: (filters: MatchesFilters) => void;
+  sortBy: SortOption;
+  onSortChange: (sort: SortOption) => void;
   resultCount: number;
   providerLocation: string | null; // e.g., "Houston, TX"
   onOpenSheet?: (type: "location" | "services" | "payment" | "timeline") => void;
@@ -165,6 +175,8 @@ interface MatchesFilterBarProps {
 export default function MatchesFilterBar({
   filters,
   onChange,
+  sortBy,
+  onSortChange,
   resultCount,
   providerLocation,
   onOpenSheet,
@@ -174,12 +186,14 @@ export default function MatchesFilterBar({
   const [servicesOpen, setServicesOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
 
   const closeAll = useCallback(() => {
     setLocationOpen(false);
     setServicesOpen(false);
     setPaymentOpen(false);
     setTimelineOpen(false);
+    setSortOpen(false);
   }, []);
 
   // Check if any filters are active
@@ -442,6 +456,56 @@ export default function MatchesFilterBar({
                     onClick={() => {
                       onChange({ ...filters, timeline: opt.id });
                       setTimelineOpen(false);
+                    }}
+                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left hover:bg-gray-50 transition-colors ${
+                      isSelected ? "bg-primary-50 text-primary-700" : "text-gray-900"
+                    }`}
+                  >
+                    {isSelected && <CheckIcon className="w-4 h-4 text-primary-600 shrink-0" />}
+                    {!isSelected && <span className="w-4" />}
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Dropdown>
+
+          {/* Spacer to push sort to the right */}
+          <div className="flex-1" />
+
+          {/* Sort dropdown */}
+          <Dropdown
+            isOpen={sortOpen}
+            onOpenChange={(open) => {
+              if (open) closeAll();
+              setSortOpen(open);
+            }}
+            align="right"
+            trigger={
+              <button
+                type="button"
+                onClick={() => {
+                  closeAll();
+                  setSortOpen(!sortOpen);
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap bg-white border border-gray-200 text-gray-700 hover:border-gray-300 shadow-sm transition-all min-h-[44px]"
+              >
+                <span className="text-gray-400">Sort:</span>
+                <span>{SORT_OPTIONS.find((s) => s.id === sortBy)?.label}</span>
+                <ChevronDownIcon className="w-3.5 h-3.5 text-gray-400" />
+              </button>
+            }
+          >
+            <div className="px-2 py-1">
+              {SORT_OPTIONS.map((opt) => {
+                const isSelected = sortBy === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      onSortChange(opt.id);
+                      setSortOpen(false);
                     }}
                     className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-left hover:bg-gray-50 transition-colors ${
                       isSelected ? "bg-primary-50 text-primary-700" : "text-gray-900"

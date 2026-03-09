@@ -443,10 +443,10 @@ export default async function ProviderPage({
   const sectionItems: SectionItem[] = [];
   sectionItems.push({ id: "highlights", label: "Highlights" });
   sectionItems.push({ id: "services", label: "Services" });
+  sectionItems.push({ id: "qa", label: "Q&A" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
-  sectionItems.push({ id: "qa", label: "Q&A" });
   sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
@@ -796,6 +796,22 @@ export default async function ProviderPage({
                 </div>
               )}
 
+              {/* ── Customer Questions & Answers ── */}
+              <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
+                <QASectionV2
+                  providerId={profile.slug}
+                  providerName={profile.display_name}
+                  providerImage={images[0]}
+                  questions={answeredQuestions.map((q) => ({
+                    id: q.id,
+                    question: q.question,
+                    answer: q.answer,
+                    asker_name: q.asker_name,
+                    created_at: q.created_at,
+                  }))}
+                />
+              </div>
+
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
@@ -859,22 +875,6 @@ export default async function ProviderPage({
                   </p>
                 </div>
               )}
-
-              {/* ── Customer Questions & Answers ── */}
-              <div id="qa" className="py-8 scroll-mt-20 border-t border-gray-200">
-                <QASectionV2
-                  providerId={profile.slug}
-                  providerName={profile.display_name}
-                  providerImage={images[0]}
-                  questions={answeredQuestions.map((q) => ({
-                    id: q.id,
-                    question: q.question,
-                    answer: q.answer,
-                    asker_name: q.asker_name,
-                    created_at: q.created_at,
-                  }))}
-                />
-              </div>
 
               {/* ── Olera Score — hidden when no scores exist ── */}
               {hasOleraScore && (

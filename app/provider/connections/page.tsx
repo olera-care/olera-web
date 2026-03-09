@@ -950,13 +950,18 @@ function migrateLeadsViewedData(providerProfileId: string): void {
 
 interface ConnectionWithProfile extends Connection {
   fromProfile?: Profile | null;
+  toProfile?: Profile | null;
+  /** For provider-initiated requests, family is in toProfile */
+  _familyProfile?: Profile | null;
 }
 
 function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: string): LeadDetail {
   const meta = conn.metadata as Record<string, unknown> | undefined;
   const thread = (meta?.thread as Array<{ from_profile_id: string; text: string; created_at: string }>) || [];
   const isArchived = meta?.archived === true;
-  const fromProfile = conn.fromProfile;
+  // For provider-initiated requests (type="request"), family is in toProfile
+  // For family-initiated inquiries (type="inquiry"), family is in fromProfile
+  const familyProfile = conn._familyProfile || conn.fromProfile;
 
   // Parse the message JSON for care details
   let careDetails: Record<string, unknown> = {};
@@ -966,17 +971,24 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     careDetails = {};
   }
 
-  const firstName = (careDetails.seeker_first_name as string) || fromProfile?.display_name?.split(" ")[0] || "Unknown";
-  const lastName = (careDetails.seeker_last_name as string) || fromProfile?.display_name?.split(" ").slice(1).join(" ") || "";
+  // For provider-initiated requests, also check family profile metadata for care info
+  const familyMeta = (familyProfile?.metadata || {}) as Record<string, unknown>;
+  const isProviderInitiated = conn.type === "request" && meta?.provider_initiated;
+
+  const firstName = (careDetails.seeker_first_name as string) || familyProfile?.display_name?.split(" ")[0] || "Unknown";
+  const lastName = (careDetails.seeker_last_name as string) || familyProfile?.display_name?.split(" ").slice(1).join(" ") || "";
   const fullName = `${firstName} ${lastName}`.trim();
 
-  // Determine urgency from care details
+  // Determine urgency from care details or family profile metadata
   const urgencyMap: Record<string, Urgency> = {
     asap: "immediate",
     within_month: "within_1_month",
     researching: "exploring",
+    exploring: "exploring",
+    immediate: "immediate",
   };
-  const urgency = urgencyMap[careDetails.urgency as string] || "exploring";
+  const rawUrgency = (careDetails.urgency as string) || (familyMeta.timeline as string);
+  const urgency = urgencyMap[rawUrgency] || "exploring";
 
   // Determine status
   const hasProviderReply = thread.some((msg) => msg.from_profile_id === providerProfileId);
@@ -993,7 +1005,10 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
 
   // Build activity timeline
   const activity: ActivityEvent[] = [
-    { label: "Lead received", date: `${timeAgo(conn.created_at)} · Via Olera` },
+    {
+      label: isProviderInitiated ? "Connection accepted" : "Lead received",
+      date: `${timeAgo(conn.created_at)} · Via Olera`,
+    },
   ];
   for (const msg of thread) {
     if (msg.from_profile_id === providerProfileId) {
@@ -1030,15 +1045,15 @@ function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: str
     name: fullName,
     initials: getInitials(fullName),
     subtitle: `For ${careRecipient.toLowerCase()}`,
-    location: fromProfile?.city && fromProfile?.state
-      ? `${fromProfile.city}, ${fromProfile.state}`
+    location: familyProfile?.city && familyProfile?.state
+      ? `${familyProfile.city}, ${familyProfile.state}`
       : "Location not specified",
     urgency,
     status,
     date: timeAgo(conn.created_at),
     isNew,
-    email: fromProfile?.email || undefined,
-    phone: fromProfile?.phone || undefined,
+    email: familyProfile?.email || undefined,
+    phone: familyProfile?.phone || undefined,
     careRecipient,
     additionalNotes: (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
     activity,
@@ -1072,28 +1087,66 @@ export default function ProviderLeadsPage() {
         const supabase = createClient();
         const profileId = providerProfile.id;
 
-        // Fetch connections where this provider is the recipient (to_profile_id)
-        const { data: connections, error } = await supabase
-          .from("connections")
-          .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type)")
-          .eq("to_profile_id", profileId)
-          .eq("type", "inquiry")
-          .in("status", ["pending", "accepted"])
-          .order("created_at", { ascending: false });
+        // Fetch TWO types of connections that should appear as leads:
+        // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
+        // 2. Provider-initiated requests (type="request") that were accepted by family
+        const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
+          // Query 1: Family-initiated inquiries (existing behavior)
+          supabase
+            .from("connections")
+            .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type)")
+            .eq("to_profile_id", profileId)
+            .eq("type", "inquiry")
+            .in("status", ["pending", "accepted"])
+            .order("created_at", { ascending: false }),
 
-        if (error) {
-          console.error("Failed to fetch leads:", error);
+          // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
+          supabase
+            .from("connections")
+            .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, metadata)")
+            .eq("from_profile_id", profileId)
+            .eq("type", "request")
+            .eq("status", "accepted")
+            .order("created_at", { ascending: false }),
+        ]);
+
+        if (inquiriesResult.error) {
+          console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
           setIsLoading(false);
           return;
         }
 
+        if (acceptedRequestsResult.error) {
+          console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
+          // Continue with just inquiries if this fails
+        }
+
+        // Combine and deduplicate connections
+        const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
+        const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
+          ...conn,
+          _familyProfile: conn.toProfile, // Mark family profile for mapping
+        }));
+
+        const allConnections = [...inquiries, ...acceptedRequests];
+        const uniqueConnections = allConnections.filter(
+          (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
+        );
+
         // Map connections to leads, filtering out hidden ones
-        const mappedLeads = (connections || [])
+        const mappedLeads = uniqueConnections
           .filter((conn) => {
             const meta = conn.metadata as Record<string, unknown> | undefined;
             return !meta?.hidden;
           })
-          .map((conn) => mapConnectionToLead(conn as ConnectionWithProfile, profileId));
+          .map((conn) => mapConnectionToLead(conn, profileId));
+
+        // Sort by created_at descending
+        mappedLeads.sort((a, b) => {
+          const connA = uniqueConnections.find((c) => c.id === a.id);
+          const connB = uniqueConnections.find((c) => c.id === b.id);
+          return new Date(connB?.created_at || 0).getTime() - new Date(connA?.created_at || 0).getTime();
+        });
 
         setLeads(mappedLeads);
       } catch (err) {

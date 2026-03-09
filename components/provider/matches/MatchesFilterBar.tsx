@@ -260,7 +260,7 @@ export default function MatchesFilterBar({
       {/* Main filter row */}
       <div className="flex items-center justify-between gap-3">
         {/* Desktop: dropdown triggers */}
-        <div className="hidden lg:flex items-center gap-2.5">
+        <div className="hidden lg:flex items-center gap-2.5 flex-1">
           {/* Location */}
           <Dropdown
             isOpen={locationOpen}

@@ -71,8 +71,8 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
     if (syncedRef.current || restoredFromDb) return;
 
     if (!user) {
-      // Anonymous: cache intake data for post-auth restore
-      setBenefitsIntakeCache(answers, locationDisplay, result);
+      // Anonymous: cache intake data for post-auth restore (including care post preference)
+      setBenefitsIntakeCache(answers, locationDisplay, result, publishCarePost);
       syncedRef.current = true;
       return;
     }

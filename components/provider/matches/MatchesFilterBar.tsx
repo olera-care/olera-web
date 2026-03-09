@@ -504,12 +504,14 @@ export default function MatchesFilterBar({
       </div>
 
       {/* Result count row */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          <span className="font-semibold text-gray-700">{resultCount}</span>
+      <div className="flex items-center justify-between mt-1">
+        <p className="text-[15px] lg:text-base text-gray-600">
+          <span className="font-display font-bold text-gray-900">{resultCount}</span>
           {" "}{resultCount === 1 ? "match" : "matches"}
-          {filters.location && (
-            <span> found in <span className="font-medium text-gray-700">{filters.location}</span></span>
+          {filters.location ? (
+            <span className="text-gray-500"> in {filters.location}</span>
+          ) : (
+            <span className="text-gray-500"> available</span>
           )}
         </p>
 

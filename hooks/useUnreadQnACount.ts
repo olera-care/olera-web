@@ -102,5 +102,18 @@ export function useUnreadQnACount(providerSlug: string | null): number {
     return () => window.removeEventListener("olera:qna-new", newHandler);
   }, []);
 
+  // Cross-tab synchronization: update count when localStorage changes in another tab
+  useEffect(() => {
+    if (!providerSlug) return;
+    const cacheKey = `olera_qna_count_${providerSlug}`;
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === cacheKey && e.newValue !== null) {
+        setCount(parseInt(e.newValue, 10) || 0);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [providerSlug]);
+
   return count;
 }

@@ -7,13 +7,15 @@ interface CachedIntake {
   answers: BenefitsIntakeAnswers;
   locationDisplay: string;
   result?: BenefitsSearchResult;
+  publishCarePost?: boolean;
   cachedAt: string;
 }
 
 export function setBenefitsIntakeCache(
   answers: BenefitsIntakeAnswers,
   locationDisplay: string,
-  result?: BenefitsSearchResult
+  result?: BenefitsSearchResult,
+  publishCarePost?: boolean
 ): void {
   if (typeof window === "undefined") return;
 
@@ -21,6 +23,7 @@ export function setBenefitsIntakeCache(
     answers,
     locationDisplay,
     result,
+    publishCarePost,
     cachedAt: new Date().toISOString(),
   };
 

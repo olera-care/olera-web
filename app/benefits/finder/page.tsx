@@ -13,7 +13,7 @@ import type { BenefitsIntakeAnswers, BenefitsSearchResult } from "@/lib/types/be
 import type { FamilyMetadata } from "@/lib/types";
 
 export default function BenefitsFinderPage() {
-  const { pageState, result, errorMsg, reset, restoreResults } = useCareProfile();
+  const { pageState, result, errorMsg, reset, restoreResults, setPublishCarePost } = useCareProfile();
   const { user, activeProfile } = useAuth();
   const restoredRef = useRef(false);
 
@@ -45,9 +45,14 @@ export default function BenefitsFinderPage() {
     restoredRef.current = true;
     clearBenefitsIntakeCache();
 
+    // Restore the "Let providers find me" preference from cache
+    if (cached.publishCarePost !== undefined) {
+      setPublishCarePost(cached.publishCarePost);
+    }
+
     // fromDb: false → BenefitsResults sync useEffect will persist + sync
     restoreResults(cached.result, cached.answers, cached.locationDisplay);
-  }, [user, activeProfile, restoreResults]);
+  }, [user, activeProfile, restoreResults, setPublishCarePost]);
 
   // Results use full workspace width; intake is focused and centered
   if (pageState === "results" && result) {

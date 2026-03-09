@@ -79,10 +79,28 @@ export default function BenefitsIntakeForm() {
   }, [step, locationDisplay, answers.stateCode, answers.age]);
 
   // Set default for "publish care post" when arriving at step 5
+  // Skip if draft from step 5 exists (user already saw checkbox before auth redirect)
   const publishDefaultSet = useRef(false);
   useEffect(() => {
     if (step !== 5 || !user || !activeProfile || publishDefaultSet.current) return;
     publishDefaultSet.current = true;
+
+    // Check if there's a saved draft FROM step 5 - meaning user was on this step
+    // before auth redirect and their checkbox selection should be preserved
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem("olera-benefits-draft") : null;
+      if (raw) {
+        const draft = JSON.parse(raw);
+        if (draft.step === 5 && draft.publishCarePost !== undefined) {
+          // User was on step 5 before, their selection is already restored
+          return;
+        }
+      }
+    } catch {
+      // Ignore parse errors
+    }
+
+    // Set smart default based on existing care post status
     const meta = (activeProfile.metadata || {}) as FamilyMetadata;
     const isAlreadyActive = meta.care_post?.status === "active";
     setPublishCarePost(!isAlreadyActive);

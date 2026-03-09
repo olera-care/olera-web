@@ -131,16 +131,17 @@ function FilterChip({ label, icon, isActive, badgeCount, onClick }: FilterChipPr
       type="button"
       onClick={onClick}
       className={[
-        "relative px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap",
+        "relative px-4 lg:px-5 py-2.5 lg:py-3 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap",
         "transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-2",
+        "bg-white border shadow-sm",
         isActive
-          ? "bg-white text-gray-900 shadow-sm border-2 border-primary-400"
-          : "text-gray-500 hover:text-gray-700 border border-transparent",
+          ? "text-gray-900 border-2 border-primary-400"
+          : "text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow",
       ].join(" ")}
     >
       {icon}
       <span>{label}</span>
-      <ChevronDownIcon className="w-3.5 h-3.5 text-gray-400" />
+      <ChevronDownIcon className={`w-3.5 h-3.5 ${isActive ? "text-gray-600" : "text-gray-400"}`} />
       {badgeCount !== undefined && badgeCount > 0 && (
         <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
           {badgeCount}
@@ -240,7 +241,7 @@ export default function MatchesFilterBar({
       {/* Main filter row */}
       <div className="flex items-center justify-between gap-3">
         {/* Desktop: dropdown triggers */}
-        <div className="hidden lg:flex items-center gap-2 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
+        <div className="hidden lg:flex items-center gap-2.5">
           {/* Location */}
           <Dropdown
             isOpen={locationOpen}
@@ -453,7 +454,7 @@ export default function MatchesFilterBar({
 
         {/* Mobile: horizontal scroll filter chips */}
         <div className="lg:hidden overflow-x-auto -mx-4 px-4 scrollbar-hide flex-1">
-          <div className="flex gap-2 w-max bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
+          <div className="flex gap-2.5 w-max">
             {/* Location */}
             <FilterChip
               label={locationLabel}

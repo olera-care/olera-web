@@ -283,9 +283,9 @@ export default function InquiryButton({
       >
         {success ? (
           <div className="text-center py-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-50 to-primary-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
+            <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-5">
               <svg
-                className="w-8 h-8 text-primary-600"
+                className="w-7 h-7 text-primary-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -298,11 +298,8 @@ export default function InquiryButton({
                 />
               </svg>
             </div>
-            <p className="font-serif text-xl text-gray-900 mb-2">
-              You&apos;re connected!
-            </p>
-            <p className="text-base text-gray-500 leading-relaxed max-w-xs mx-auto">
-              We&apos;ve shared your profile with {providerName}. They&apos;ll be in touch soon.
+            <p className="font-serif text-xl text-gray-900">
+              You&apos;re connected with {providerName}
             </p>
           </div>
         ) : (

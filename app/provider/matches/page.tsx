@@ -265,6 +265,73 @@ function MatchesEmptyState() {
 }
 
 // ---------------------------------------------------------------------------
+// Contacted Row (condensed view for already contacted families)
+// ---------------------------------------------------------------------------
+
+function ContactedRow({
+  family,
+  isAccepted,
+}: {
+  family: Profile;
+  isAccepted: boolean;
+}) {
+  const displayName = family.display_name || "Family";
+  const initials = getInitials(displayName);
+  const locationStr = [family.city, family.state].filter(Boolean).join(", ");
+  const meta = family.metadata as FamilyMetadata;
+  const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
+
+  return (
+    <div className="flex items-center gap-3 py-3 px-4 bg-white rounded-xl border border-gray-100">
+      {/* Avatar */}
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold text-white"
+        style={{ background: avatarGradient(displayName) }}
+      >
+        {initials}
+      </div>
+
+      {/* Name + location */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-900 truncate">{displayName}</p>
+        {locationStr && (
+          <p className="text-xs text-gray-500 truncate">{locationStr}</p>
+        )}
+      </div>
+
+      {/* Timeline badge (smaller) */}
+      {timeline && (
+        <span className={`hidden sm:inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border ${timeline.border} ${timeline.text} ${timeline.bg}`}>
+          <span className={`w-1 h-1 rounded-full ${timeline.dot}`} />
+          {timeline.label}
+        </span>
+      )}
+
+      {/* Status */}
+      <div className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full ${
+        isAccepted
+          ? "bg-green-50 text-green-700 border border-green-200"
+          : "bg-amber-50 text-amber-700 border border-amber-200"
+      }`}>
+        {isAccepted ? (
+          <>
+            <CheckCircleIcon className="w-3.5 h-3.5" />
+            <span>Connected</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span>Pending</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Matches Sidebar (sticky — mirrors dashboard completeness sidebar)
 // ---------------------------------------------------------------------------
 
@@ -1037,6 +1104,9 @@ export default function ProviderMatchesPage() {
   // Mobile bottom sheet state
   const [reachOutSheetFamily, setReachOutSheetFamily] = useState<Profile | null>(null);
 
+  // Contacted section accordion (collapsed by default)
+  const [contactedExpanded, setContactedExpanded] = useState(false);
+
   const hasFullAccess = canEngage(
     providerProfile?.type,
     membership,
@@ -1495,27 +1565,49 @@ export default function ProviderMatchesPage() {
               ))
             )}
 
-            {/* Already contacted */}
+            {/* Already contacted - collapsible accordion */}
             {contactedFamilies.length > 0 && (
-              <div className="pt-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                  Already contacted &middot; {contactedFamilies.length}
-                </p>
-                <div className="space-y-5">
-                  {contactedFamilies.map((family) => (
-                    <FamilyCareCard
-                      key={family.id}
-                      family={family}
-                      hasFullAccess={hasFullAccess}
-                      fromProfileId={profileId!}
-                      providerCareTypes={providerCareTypes}
-                      freeRemaining={freeRemaining}
-                      contacted
-                      reachOutCount={reachOutCounts.get(family.id) || 0}
-                      providerProfile={providerProfile}
-                    />
-                  ))}
+              <div className="pt-6">
+                <button
+                  type="button"
+                  onClick={() => setContactedExpanded(!contactedExpanded)}
+                  className="w-full flex items-center justify-between py-3 px-4 bg-warm-50/50 hover:bg-warm-50 rounded-xl border border-warm-100/60 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-600">
+                      Already contacted
+                    </span>
+                    <span className="text-xs font-medium text-gray-400 bg-white px-2 py-0.5 rounded-full border border-gray-200">
+                      {contactedFamilies.length}
+                    </span>
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${contactedExpanded ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
 
+                {/* Expandable content */}
+                <div
+                  className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)]"
+                  style={{ gridTemplateRows: contactedExpanded ? "1fr" : "0fr" }}
+                >
+                  <div className="overflow-hidden">
+                    <div className="pt-3 space-y-2">
+                      {contactedFamilies.map((family) => (
+                        <ContactedRow
+                          key={family.id}
+                          family={family}
+                          isAccepted={respondedIds.has(family.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

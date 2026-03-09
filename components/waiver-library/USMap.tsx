@@ -41,7 +41,7 @@ const stateCentroids: Record<string, [number, number]> = {
   colorado:       [-105.5, 39.0],
   connecticut:    [-72.7, 41.6],
   delaware:       [-75.5, 39.0],
-  florida:        [-82.5, 28.1],
+  florida:        [-81.6, 28.8],
   georgia:        [-83.4, 32.7],
   hawaii:         [-155.5, 19.9],
   idaho:          [-114.5, 44.4],
@@ -85,8 +85,19 @@ const stateCentroids: Record<string, [number, number]> = {
   wyoming:        [-107.6, 43.0],
 };
 
-// States too small to show a label clearly on the map
-const hideLabel = new Set(["connecticut", "delaware", "rhode-island", "new-jersey", "maryland"]);
+// Small states get a dot + leader line to an external label (atlas style)
+// [dx, dy] offset in SVG units from centroid to label position
+// Stacked vertically on the right side, spaced evenly
+const smallStateOffsets: Record<string, [number, number]> = {
+  "new-hampshire":[38, -8],
+  "massachusetts":[34, -4],
+  "rhode-island": [36, 6],
+  "connecticut":  [34, 16],
+  "new-jersey":   [30, 10],
+  "delaware":     [32, 8],
+  "maryland":     [34, 18],
+  "hawaii":       [20, -12],
+};
 
 /** Parse "$X,XXX – $Y,YYY/year" → average of X and Y */
 function parseSavingsAverage(savingsRange: string): number {
@@ -186,7 +197,7 @@ export function USMap({ states }: USMapProps) {
         <ComposableMap
           projection="geoAlbersUsa"
           projectionConfig={{ scale: 1050 }}
-          viewBox="0 70 800 500"
+          viewBox="-20 20 880 620"
           style={{ width: "100%", height: "auto" }}
         >
           <Geographies geography={usStatesData}>
@@ -254,43 +265,74 @@ export function USMap({ states }: USMapProps) {
             }
           </Geographies>
 
-          {/* State labels: show program count badge on hover, abbreviation otherwise */}
+          {/* State labels */}
           {states.map((state) => {
             const centroid = stateCentroids[state.id];
-            if (!centroid || hideLabel.has(state.id)) return null;
+            if (!centroid) return null;
             const active = isActive(state.id);
-            const programCount = state.programs.length;
             const isHovered = hoveredId === state.id;
-            const showBadge = isHovered || (matchedIds && matchedIds.has(state.id));
+            const showBadge = matchedIds && matchedIds.has(state.id);
+            const isSmall = state.id in smallStateOffsets;
 
-            if (showBadge) {
+            // Small states: always dot + leader line + label (atlas style)
+            if (isSmall) {
+              const [dx, dy] = smallStateOffsets[state.id];
+              const isMatch = matchedIds && matchedIds.has(state.id);
+              const lineColor = active ? "#94a3b8" : "#d1d5db";
+              const labelColor = isMatch ? "#083344" : active ? "#4b5563" : "#9ca3af";
+              const label = isMatch ? state.name : state.abbreviation;
               return (
                 <Marker key={state.id} coordinates={centroid}>
-                  <circle
-                    r={9}
-                    fill="#ffffff"
-                    stroke="#0e7490"
-                    strokeWidth={1.5}
+                  <circle r={2.5} fill="#083344" style={{ pointerEvents: "none" }} />
+                  <line
+                    x1={2} y1={0} x2={dx - 2} y2={dy}
+                    stroke={lineColor}
+                    strokeWidth={0.4}
                     style={{ pointerEvents: "none" }}
                   />
                   <text
-                    textAnchor="middle"
+                    x={dx}
+                    y={dy}
+                    textAnchor="start"
                     dominantBaseline="central"
                     style={{
                       fontFamily: "Inter, system-ui, sans-serif",
-                      fontSize: "7px",
-                      fontWeight: 700,
-                      fill: "#0e7490",
+                      fontSize: isMatch ? "10px" : "9px",
+                      fontWeight: isMatch ? 700 : 600,
+                      fill: labelColor,
                       pointerEvents: "none",
                       userSelect: "none",
                     }}
                   >
-                    {programCount}
+                    {label}
                   </text>
                 </Marker>
               );
             }
 
+            // Regular states with search match: white name on state
+            if (showBadge) {
+              return (
+                <Marker key={state.id} coordinates={centroid}>
+                  <text
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      fontSize: "9px",
+                      fontWeight: 700,
+                      fill: "#ffffff",
+                      pointerEvents: "none",
+                      userSelect: "none",
+                    }}
+                  >
+                    {state.name}
+                  </text>
+                </Marker>
+              );
+            }
+
+            // Regular states: abbreviation
             return (
               <Marker key={state.id} coordinates={centroid}>
                 <text
@@ -298,7 +340,7 @@ export function USMap({ states }: USMapProps) {
                   dominantBaseline="central"
                   style={{
                     fontFamily: "Inter, system-ui, sans-serif",
-                    fontSize: "7px",
+                    fontSize: "9px",
                     fontWeight: 600,
                     fill: active ? "#ffffff" : "#9ca3af",
                     pointerEvents: "none",
@@ -347,8 +389,8 @@ export function USMap({ states }: USMapProps) {
       )}
 
       {/* Most explored states */}
-      <div className="mt-6">
-        <h3 className="text-xl md:text-2xl font-bold text-gray-900 font-display mb-4">Most explored states</h3>
+      <div className="-mt-28">
+        <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Most explored states</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {topStates.map((state) => (
             <Link
@@ -365,11 +407,11 @@ export function USMap({ states }: USMapProps) {
 
       {/* CTA Banner */}
       <div className="mt-10 -mx-4 sm:-mx-6 lg:-mx-8 rounded-2xl bg-primary-900 px-6 py-6 md:py-8 text-center">
-        <h3 className="text-2xl md:text-3xl font-semibold text-white font-display mb-2">Don&apos;t know where to start?</h3>
-        <p className="text-primary-200 mb-4">Answer a few quick questions and see every program you qualify for. Free, no signup required.</p>
+        <h3 className="text-3xl md:text-4xl font-semibold text-white font-serif mb-2">Don&apos;t know where to start?</h3>
+        <p className="text-primary-200 text-lg md:text-xl mb-4">Answer a few quick questions and see every program you qualify for. Free, no signup required.</p>
         <Link
           href="/benefits/finder"
-          className="group inline-flex items-center justify-center px-8 py-3.5 bg-white text-primary-900 font-semibold rounded-xl hover:bg-primary-50 transition-colors shadow-md"
+          className="group inline-flex items-center justify-center px-8 py-3.5 text-primary-900 font-semibold rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),inset_0_-2px_3px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),inset_0_-2px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] active:translate-y-0 transition-all duration-150 bg-white"
         >
           Check My Benefits
           <svg className="w-5 h-5 ml-2 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

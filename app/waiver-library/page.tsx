@@ -51,24 +51,23 @@ export default function WaiverLibraryPage() {
           priority
         />
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/45 to-black/30" />
 
         {/* Content — pinned to left so it never overlaps the right-side faces */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 flex items-center min-h-[360px] md:min-h-[420px]">
-          <div className="max-w-xl">
-            <h1 className="font-bold leading-tight font-display">
-              <span className="block text-4xl md:text-5xl lg:text-6xl">Save up to $10,000</span>
-              <span className="block text-4xl md:text-5xl lg:text-6xl">a Year</span>
-              <span className="block text-xl md:text-2xl lg:text-3xl text-primary-300 mt-1">in Senior Care Benefits</span>
+          <div className="max-w-2xl">
+            <h1 className="font-bold leading-none font-serif">
+              <span className="block text-3xl md:text-4xl lg:text-5xl">Save up to $10,000 a Year</span>
+              <span className="block text-xl md:text-2xl lg:text-3xl text-primary-300 mt-0.5">in Senior Care Benefits</span>
             </h1>
-            <p className="mt-3 text-lg md:text-xl text-gray-200">
+            <p className="mt-2 text-lg md:text-xl text-gray-200">
               Check what you qualify for in 2 minutes. Free, no signup required.
             </p>
-            <div className="mt-3 flex flex-col gap-2">
+            <div className="mt-2 flex flex-col gap-4">
               <div>
                 <Link
                   href="/benefits/finder"
-                  className="inline-flex items-center justify-center px-8 py-3.5 text-white font-semibold rounded-xl border border-primary-700/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-2px_3px_rgba(0,0,0,0.15),0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-2px_3px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] active:translate-y-0 transition-all duration-150"
+                  className="inline-flex items-center justify-center px-6 py-2.5 text-sm text-white font-semibold rounded-xl border border-primary-700/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-2px_3px_rgba(0,0,0,0.15),0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-2px_3px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] active:translate-y-0 transition-all duration-150"
                   style={{ background: "linear-gradient(to bottom, #22a3c3, #0e7490)" }}
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,9 +78,11 @@ export default function WaiverLibraryPage() {
               </div>
               <div className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 px-6 py-2">
                 <p className="text-white/90 text-sm">
-                  <span className="font-bold text-white">{totalPrograms} programs</span> across{" "}
-                  <span className="font-bold text-white">{allStates.length} states</span>.{" "}
-                  Over <span className="font-bold text-primary-300">${totalSavingsM}M</span> in potential savings.
+                  <span className="font-bold text-white">{totalPrograms} Programs</span>
+                  <span className="mx-2 text-white/50">|</span>
+                  <span className="font-bold text-white">{allStates.length} States</span>
+                  <span className="mx-2 text-white/50">|</span>
+                  <span className="font-bold text-primary-300">${totalSavingsM}M</span> Saved
                 </p>
               </div>
             </div>
@@ -111,17 +112,15 @@ export default function WaiverLibraryPage() {
 
       {/* State grid */}
       <section id="states" className="py-4 md:py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-1 text-center">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
               Explore Benefits by State
             </h2>
-            <p className="mt-1 text-gray-600">
-              Click your state to see available programs and estimated savings.
-            </p>
             <HeroStateSearch />
           </div>
-
+        </div>
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24">
           <USMap states={allStates} />
         </div>
       </section>

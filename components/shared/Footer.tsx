@@ -239,7 +239,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link href="/waiver-library" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
-                    Waiver Library
+                    Benefits Hub
                   </Link>
                 </li>
               </ul>

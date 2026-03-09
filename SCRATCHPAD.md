@@ -83,16 +83,16 @@
 
 ## Next Up
 
-1. **Verify research-and-press redirect** — sanity check item #12: next.config.ts may have conflicting redirect for live pages
-2. **Monitor forum content loss** — sanity check item #13: all discussions → `/community` may lose traffic
-3. **Gated provider portal page** — Esther building; sanity check item #1
-4. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-2. **Remove debug logging** from admin route after testing complete
-3. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
-3. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
-4. **Remaining ~2,992 providers without CSV descriptions**
-5. **Test Google OAuth end-to-end**
-6. **Community forum flagging** for admin moderation
+1. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+2. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
+3. **DNS cutover execution** — follow `docs/cutover-runbook.md`
+4. **Submit sitemap to GSC post-cutover** — Notion action item, do immediately after DNS switch
+5. **Gated provider portal page** — Esther building; sanity check item #1
+6. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+7. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+8. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
+9. **Remaining ~2,992 providers without CSV descriptions**
+10. **Test Google OAuth end-to-end**
 
 ---
 
@@ -130,6 +130,28 @@
 ---
 
 ## Session Log
+
+### 2026-03-09 (Session 44) — Notion Board Audit + Cutover Prep
+
+**Branch:** `scratchpad-session-43` (continuation)
+
+**What:** Audited the Notion "Web App Action Items/Roadmap" board, marking completed items and adding missing ones. Drafted XFive cutover memo.
+
+**Notion board updates (12 total):**
+- Marked 3 existing items as Done: Lighthouse audit, missing community metadata, forum redesign
+- Added 9 new Done items: OG/Twitter metadata, provider SEO (title tags + structured data + LCP), v1→v2 redirects (54), author pages, topic filter tabs, homepage geo-personalization, waiver library redesign, community removal, about/contact/team pages
+
+**Cutover prep:**
+- Drafted memo to XFive requesting: (1) spot check before cutover, (2) full export of Q&A data + user accounts from v1 database
+
+**Next up:**
+- Send XFive memo
+- Receive Q&A + user account export from XFive
+- Plan data migration into v2 Supabase
+- DNS cutover execution (per `docs/cutover-runbook.md`)
+- Submit sitemap to GSC post-cutover
+
+---
 
 ### 2026-03-08 (Session 43) — LCP Optimization + Notion Updates
 

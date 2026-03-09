@@ -35,7 +35,7 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
       href={`/provider/${provider.slug}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
+      className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200"
     >
       {/* Image */}
       <div className="relative w-full aspect-[16/10] bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
@@ -135,7 +135,7 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
 
         {/* Category + Location */}
         <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-          {careTypeLabel} · {provider.address}
+          {careTypeLabel}{provider.address ? ` · ${provider.address}` : ""}
         </p>
 
         {/* Highlights */}
@@ -156,7 +156,9 @@ export default function BrowseCard({ provider }: BrowseCardProps) {
         <div className="flex-1 min-h-2" />
 
         {/* Price */}
-        <p className="text-sm font-bold text-gray-900 mt-3">{provider.priceRange}</p>
+        {provider.priceRange && (
+          <p className="text-sm font-bold text-gray-900 mt-3">{provider.priceRange}</p>
+        )}
       </div>
     </Link>
   );

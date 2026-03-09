@@ -488,41 +488,42 @@ export default function MatchesFilterBar({
           </div>
         </div>
 
-        {/* Clear all + Result count (desktop) */}
-        <div className="hidden lg:flex items-center gap-4 shrink-0">
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearAllFilters}
-              className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Clear all
-            </button>
-          )}
-          <span className="text-sm text-gray-400">
-            {resultCount} {resultCount === 1 ? "match" : "matches"}
-          </span>
-        </div>
-      </div>
-
-      {/* Mobile: active filters summary + clear */}
-      {hasActiveFilters && (
-        <div className="lg:hidden flex items-center justify-between px-0.5">
-          <span className="text-sm text-gray-500">
-            {resultCount} {resultCount === 1 ? "match" : "matches"}
-          </span>
+        {/* Clear all (desktop) */}
+        {hasActiveFilters && (
           <button
             type="button"
             onClick={clearAllFilters}
-            className="text-sm font-medium text-primary-600 hover:text-primary-700"
+            className="hidden lg:flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {/* Result count row */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          <span className="font-semibold text-gray-700">{resultCount}</span>
+          {" "}{resultCount === 1 ? "match" : "matches"}
+          {filters.location && (
+            <span> found in <span className="font-medium text-gray-700">{filters.location}</span></span>
+          )}
+        </p>
+
+        {/* Clear all (mobile) */}
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="lg:hidden text-sm font-medium text-primary-600 hover:text-primary-700"
           >
             Clear all
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

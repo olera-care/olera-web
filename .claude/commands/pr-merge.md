@@ -106,6 +106,33 @@ next.config.ts
 app/provider/[slug]/page.tsx
 components/shared/FindCareMegaMenu.tsx
 components/providers/QASectionV2.tsx
+app/opengraph-image.tsx
+app/twitter-image.tsx
+```
+
+**SEO/Migration-Sensitive Files (v1→v2 transition):**
+
+> As of March 2026, extensive SEO and migration work has been done on staging
+> (canonicals, OG metadata, LCP optimization, permanent redirects, geo-personalization,
+> provider title tags, self-hosted fonts). PRs branched before this work are HIGH RISK
+> for silent regression. Always check these files even when git reports "no overlap."
+
+```
+app/waiver-library/page.tsx
+app/waiver-library/[state]/page.tsx
+app/waiver-library/[state]/[benefit]/page.tsx
+app/waiver-library/[state]/[benefit]/forms/page.tsx
+app/waiver-library/forms/page.tsx
+app/waiver-library/forms/[state]/page.tsx
+app/benefits/layout.tsx
+app/caregiver-support/layout.tsx
+app/research-and-press/layout.tsx
+app/about/page.tsx
+app/contact/page.tsx
+app/for-providers/page.tsx
+app/team/page.tsx
+app/privacy/page.tsx
+app/terms/page.tsx
 ```
 
 For each critical file that exists on the PR branch:
@@ -134,11 +161,19 @@ git show origin/<pr-branch>:<file> | grep -c "pattern"  # after merge
 **Indicators to check per file:**
 - `Footer.tsx`: "Find senior care by city" / "CityRow" / "popularCities"
 - `AuthProvider.tsx`: CACHE_TTL value, QUERY_TIMEOUT value
-- `page.tsx` (homepage): `/memory-care` vs `/browse?type=`
-- `layout.tsx`: GA4 measurement ID
+- `page.tsx` (homepage): `geoState` / `geoCity` / geo-personalization props
+- `layout.tsx`: GA4 measurement ID, `next/font` (self-hosted), DM_Serif_Display import
 - `middleware.ts`: V1_CATEGORY_SLUGS
-- `next.config.ts`: count of `permanent: true` redirects
+- `next.config.ts`: count of `permanent: true` redirects (baseline: 54 as of Mar 2026)
 - `Navbar.tsx`: olera-logo.png
+- `provider/[slug]/page.tsx`: `Promise.all` (parallel queries), v1-compatible title format
+- `opengraph-image.tsx` / `twitter-image.tsx`: file exists and exports default
+
+**SEO metadata indicators (check on any page that has metadata):**
+- `canonical` in metadata/generateMetadata (must not disappear)
+- `openGraph` in metadata/generateMetadata (must not disappear)
+- `twitter` in metadata/generateMetadata (must not disappear)
+- Title format should match SEO-optimized pattern, not generic/short titles
 
 If any indicator disappears between staging and the PR branch, flag as:
 **REGRESSION DETECTED: `<file>` would lose `<indicator>` after merge**

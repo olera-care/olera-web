@@ -10,6 +10,7 @@ interface OverviewStats {
   adminCount: number;
   imagesToReview: number;
   totalProviders: number;
+  totalQuestions: number;
 }
 
 interface AuditEntry {
@@ -32,13 +33,14 @@ export default function AdminOverviewPage() {
     async function fetchData() {
       setError(null);
       try {
-        const [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes] = await Promise.all([
+        const [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes] = await Promise.all([
           fetch("/api/admin/providers?status=pending&count_only=true"),
           fetch("/api/admin/leads?count_only=true"),
           fetch("/api/admin/team"),
           fetch("/api/admin/audit?limit=10"),
           fetch("/api/admin/images/stats"),
           fetch("/api/admin/directory?tab=all&per_page=1"),
+          fetch("/api/admin/questions?count_only=true"),
         ]);
 
         const pendingData = providersRes.ok ? await providersRes.json() : { count: 0 };
@@ -47,8 +49,9 @@ export default function AdminOverviewPage() {
         const auditData = auditRes.ok ? await auditRes.json() : { entries: [] };
         const imageStats = imageStatsRes.ok ? await imageStatsRes.json() : { needs_review: 0 };
         const directoryData = directoryRes.ok ? await directoryRes.json() : { total: 0 };
+        const questionsData = questionsRes.ok ? await questionsRes.json() : { count: 0 };
 
-        const anyFailed = [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes].some((r) => !r.ok);
+        const anyFailed = [providersRes, leadsRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes].some((r) => !r.ok);
         if (anyFailed) {
           setError("Some dashboard data failed to load. Numbers shown may be incomplete.");
         }
@@ -59,6 +62,7 @@ export default function AdminOverviewPage() {
           adminCount: teamData.admins?.length ?? 0,
           imagesToReview: imageStats.needs_review ?? 0,
           totalProviders: directoryData.total ?? 0,
+          totalQuestions: questionsData.count ?? 0,
         });
         setAuditLog(auditData.entries ?? []);
       } catch (err) {
@@ -96,7 +100,7 @@ export default function AdminOverviewPage() {
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <Link href="/admin/providers" className="block">
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Pending Providers</p>
@@ -113,6 +117,15 @@ export default function AdminOverviewPage() {
               {stats?.totalInquiries ?? 0}
             </p>
             <p className="text-base text-gray-500">All connections</p>
+          </div>
+        </Link>
+        <Link href="/admin/questions" className="block">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
+            <p className="text-base text-gray-500 mb-1">Q&A</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {stats?.totalQuestions?.toLocaleString() ?? 0}
+            </p>
+            <p className="text-base text-gray-500">Questions submitted</p>
           </div>
         </Link>
         <Link href="/admin/team" className="block">

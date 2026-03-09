@@ -131,6 +131,45 @@
 
 ## Session Log
 
+### 2026-03-09 (Session 45) — Bulk PR Merge + SEO Regression Prevention
+
+**Branch:** `focused-snyder` (worktree)
+
+**What:** Processed all 7 open PRs targeting staging, with special focus on preventing SEO regression from stale branches.
+
+**PRs merged (7 total):**
+- #187 — Update SCRATCHPAD for session 44 (direct merge)
+- #182 — Unify provider card structure (direct merge)
+- #184 — Refine provider onboarding UI (direct merge)
+- #185 — Fix care post publishing from benefit finder (direct merge)
+- #186 — Show accepted provider-initiated requests as leads (direct merge)
+- #189 — Waiver library redesign reconciled with SEO work (replaced stale #183)
+- #188 — Admin verification approval panel (rebased, then merged)
+
+**Key finding — PR #183 regression prevention:**
+- Branch was 23 commits behind staging, would have silently regressed:
+  - Self-hosted font → Google Fonts CDN (undoes LCP optimization)
+  - Geo-personalized homepage → removed
+  - 8 permanent redirects dropped (54 → 46)
+  - Provider page parallel queries → sequential
+  - Canonical URLs + OG metadata on 6 waiver pages → removed
+- Created reconciliation branch: rebased onto staging, resolved 6 waiver page conflicts preserving both UI redesign and SEO metadata
+- PR #188 also rebased (29 behind) to avoid Footer "Benefits Hub" → "Waiver Library" regression
+
+**Updated `/pr-merge` slash command (PR #190):**
+- Added SEO-sensitive file watchlist (waiver library, benefits, caregiver-support pages)
+- Added OG/Twitter image files to critical watchlist
+- New regression indicators: self-hosted fonts, geo-personalization, parallel queries, canonical/OG/twitter metadata presence
+- Redirect count baseline: 54 permanent redirects as of March 2026
+
+**Notion reports:**
+- Bulk merge report: PRs #182-#187
+- PR #188 merge report
+
+**Post-merge staging state:** `1fb1bc4` — all critical files verified intact
+
+---
+
 ### 2026-03-09 (Session 44) — Notion Board Audit + Cutover Prep
 
 **Branch:** `scratchpad-session-43` (continuation)

@@ -131,19 +131,20 @@ function FilterChip({ label, icon, isActive, badgeCount, onClick }: FilterChipPr
       type="button"
       onClick={onClick}
       className={[
-        "relative px-4 lg:px-5 py-2.5 lg:py-3 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap",
-        "transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center gap-2",
-        "bg-white border shadow-sm",
+        // Mobile: compact pills | Desktop: roomier
+        "relative px-3 lg:px-5 py-2 lg:py-2.5 rounded-full text-[13px] lg:text-sm font-medium whitespace-nowrap",
+        "transition-all duration-150 min-h-[36px] lg:min-h-[44px] flex items-center gap-1.5 lg:gap-2",
+        "bg-white border",
         isActive
-          ? "text-gray-900 border-2 border-primary-400"
-          : "text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow",
+          ? "text-gray-900 border-2 border-primary-400 shadow-sm"
+          : "text-gray-600 border-gray-200 hover:border-gray-300 lg:shadow-sm",
       ].join(" ")}
     >
       {icon}
       <span>{label}</span>
-      <ChevronDownIcon className={`w-3.5 h-3.5 ${isActive ? "text-gray-600" : "text-gray-400"}`} />
+      <ChevronDownIcon className={`w-3 lg:w-3.5 h-3 lg:h-3.5 ${isActive ? "text-gray-600" : "text-gray-400"}`} />
       {badgeCount !== undefined && badgeCount > 0 && (
-        <span className="absolute -top-1.5 -right-1 w-5 h-5 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+        <span className="absolute -top-1 -right-1 w-[18px] h-[18px] lg:w-5 lg:h-5 bg-primary-600 text-white text-[9px] lg:text-[10px] font-bold rounded-full flex items-center justify-center">
           {badgeCount}
         </span>
       )}
@@ -192,11 +193,15 @@ export default function MatchesFilterBar({
     onChange(DEFAULT_FILTERS);
   };
 
-  // Location label
-  const locationLabel = filters.location || providerLocation || "All locations";
+  // Location labels (short for mobile, full for desktop)
+  const fullLocation = filters.location || providerLocation || "All locations";
+  const shortLocation = fullLocation === "All locations"
+    ? "Location"
+    : fullLocation.split(",")[0]; // Just city name
 
-  // Timeline label
-  const timelineLabel = TIMELINE_OPTIONS.find((t) => t.id === filters.timeline)?.label || "All timelines";
+  // Timeline labels (short for mobile)
+  const fullTimeline = TIMELINE_OPTIONS.find((t) => t.id === filters.timeline)?.label || "All timelines";
+  const shortTimeline = filters.timeline === "all" ? "Timeline" : fullTimeline;
 
   // Services label
   const servicesLabel =
@@ -251,7 +256,7 @@ export default function MatchesFilterBar({
             }}
             trigger={
               <FilterChip
-                label={locationLabel}
+                label={fullLocation}
                 icon={<LocationIcon className="w-4 h-4 text-gray-400" />}
                 isActive={filters.location !== null}
                 onClick={() => {
@@ -415,7 +420,7 @@ export default function MatchesFilterBar({
             }}
             trigger={
               <FilterChip
-                label={timelineLabel}
+                label={fullTimeline}
                 isActive={filters.timeline !== "all"}
                 onClick={() => {
                   closeAll();
@@ -454,34 +459,32 @@ export default function MatchesFilterBar({
 
         {/* Mobile: horizontal scroll filter chips */}
         <div className="lg:hidden overflow-x-auto -mx-4 px-4 scrollbar-hide flex-1">
-          <div className="flex gap-2.5 w-max">
+          <div className="flex gap-2 w-max">
             {/* Location */}
             <FilterChip
-              label={locationLabel}
-              icon={<LocationIcon className="w-4 h-4 text-gray-400" />}
+              label={shortLocation}
+              icon={<LocationIcon className="w-3.5 h-3.5 text-gray-400" />}
               isActive={filters.location !== null}
               onClick={() => handleMobileClick("location")}
             />
 
             {/* Services */}
             <FilterChip
-              label={servicesLabel}
+              label={filters.services.length === 0 ? "Services" : `${filters.services.length} services`}
               isActive={filters.services.length > 0}
-              badgeCount={filters.services.length > 0 ? filters.services.length : undefined}
               onClick={() => handleMobileClick("services")}
             />
 
             {/* Payment */}
             <FilterChip
-              label={paymentLabel}
+              label={filters.payment.length === 0 ? "Payment" : `${filters.payment.length} selected`}
               isActive={filters.payment.length > 0}
-              badgeCount={filters.payment.length > 0 ? filters.payment.length : undefined}
               onClick={() => handleMobileClick("payment")}
             />
 
             {/* Timeline */}
             <FilterChip
-              label={timelineLabel}
+              label={shortTimeline}
               isActive={filters.timeline !== "all"}
               onClick={() => handleMobileClick("timeline")}
             />

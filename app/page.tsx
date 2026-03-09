@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import HeroSection from "@/components/home/HeroSection";
 import TopProvidersSection from "@/components/home/TopProvidersSection";
 import ExploreCareSection from "@/components/home/ExploreCareSection";
+import CommunitySection from "@/components/home/CommunitySection";
 import CTASection from "@/components/home/CTASection";
 import { US_STATES } from "@/lib/power-pages";
 
@@ -17,6 +18,7 @@ export default async function HomePage() {
       <HeroSection />
       <TopProvidersSection geoState={geoState} geoCity={geoCity} />
       <ExploreCareSection />
+      <CommunitySection />
       <CTASection />
     </div>
   );

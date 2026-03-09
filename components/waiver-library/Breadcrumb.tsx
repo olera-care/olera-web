@@ -8,14 +8,15 @@ interface BreadcrumbItem {
 interface BreadcrumbProps {
   items: BreadcrumbItem[];
   variant?: "light" | "dark";
+  centered?: boolean;
 }
 
-export function Breadcrumb({ items, variant = "light" }: BreadcrumbProps) {
+export function Breadcrumb({ items, variant = "light", centered = false }: BreadcrumbProps) {
   const isDark = variant === "dark";
 
   return (
     <nav aria-label="Breadcrumb">
-      <ol className={`flex items-center flex-wrap gap-1 text-sm ${isDark ? "text-white/70" : "text-gray-500"}`}>
+      <ol className={`flex items-center flex-wrap gap-1 text-sm ${isDark ? "text-white/70" : "text-gray-500"} ${centered ? "justify-center" : ""}`}>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (

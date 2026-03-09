@@ -48,7 +48,7 @@ export default async function StatePage({ params }: Props) {
           <Breadcrumb
             variant="dark"
             items={[
-              { label: "Waiver Library", href: "/waiver-library" },
+              { label: "Benefits Hub", href: "/waiver-library" },
               { label: state.name },
             ]}
           />

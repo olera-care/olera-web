@@ -70,3 +70,26 @@ The core error: **treating the plan as authoritative when the code told a differ
 **Lesson**: Git merge-base analysis detects *structural* conflicts (two people editing the same file). It cannot detect *semantic* regressions (a PR bringing back old versions of files that were improved after it branched). When a PR involves reverts, always compare actual file content against the target branch — not just commit history.
 
 ---
+
+### 2026-03-04: Notion MCP tool Cloudflare blocks + children schema mismatch
+
+**Symptom**: After creating one Notion page successfully (PR merge report), three consecutive attempts to create the notification test matrix page failed with Cloudflare "Sorry, you have been blocked" errors. Falling back to the raw Notion MCP tool also failed with a schema validation error.
+
+**Root Cause**: Two issues compounded:
+1. The Claude AI Notion tool (`mcp__claude_ai_Notion`) routes through Anthropic's proxy, which gets Cloudflare rate-limited after rapid successive calls. The first call succeeded; the next 3 within ~2 minutes were all blocked.
+2. The raw Notion tool (`mcp__notion__API-post-page`) accepts `children` typed as `items: { type: "string" }` in its MCP schema, but Notion's API actually expects JSON objects. Passing stringified JSON objects caused a 400 validation error.
+
+**Fix**: Used a 2-step approach with the raw Notion MCP tools:
+1. `mcp__notion__API-post-page` — create the page with just title + parent (no children)
+2. `mcp__notion__API-patch-block-children` — append content blocks as proper JSON objects in batches
+
+**Time to Resolution**: ~4 minutes (3 Cloudflare failures + 1 schema error + successful 2-step approach)
+
+**Prevention**:
+- When the Claude AI Notion tool is Cloudflare-blocked, immediately fall back to raw Notion MCP tools (`mcp__notion__API-*`) instead of retrying
+- For the raw tools: create page first (no children), then use `patch-block-children` to add content — this avoids the `children` schema issue on `post-page`
+- Space out rapid Notion calls when possible to avoid rate limiting
+
+**Lesson**: MCP tool schemas don't always match the underlying API's expectations. When a tool's schema says `string` for a field that semantically holds objects, test with a minimal call first. And when a proxy-based tool gets rate-limited, fall back to the direct integration immediately — don't retry the same blocked path.
+
+---

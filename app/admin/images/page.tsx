@@ -59,18 +59,25 @@ export default function AdminImagesPage() {
   const [detail, setDetail] = useState<ProviderDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/images?status=${filter}&limit=50`);
       if (res.ok) {
         const data = await res.json();
         setProviders(data.providers ?? []);
         setTotal(data.total ?? 0);
+      } else {
+        setError("Failed to load image data. Please try again.");
       }
     } catch (err) {
       console.error("Failed to fetch providers:", err);
+      setError("Failed to load image data. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -89,15 +96,19 @@ export default function AdminImagesPage() {
 
     setExpandedId(providerId);
     setDetailLoading(true);
+    setDetailError(null);
 
     try {
       const res = await fetch(`/api/admin/images/${providerId}`);
       if (res.ok) {
         const data = await res.json();
         setDetail(data);
+      } else {
+        setDetailError("Failed to load image details. Please try again.");
       }
     } catch (err) {
       console.error("Failed to fetch detail:", err);
+      setDetailError("Failed to load image details. Please check your connection.");
     } finally {
       setDetailLoading(false);
     }
@@ -105,6 +116,7 @@ export default function AdminImagesPage() {
 
   async function handleAction(providerId: string, action: string, imageUrl?: string, newType?: string) {
     setActionLoading(`${providerId}-${action}-${imageUrl || ""}`);
+    setActionError(null);
     try {
       const res = await fetch(`/api/admin/images/${providerId}`, {
         method: "PATCH",
@@ -112,16 +124,18 @@ export default function AdminImagesPage() {
         body: JSON.stringify({ action, image_url: imageUrl, new_type: newType }),
       });
       if (res.ok) {
-        // Refresh detail
         const detailRes = await fetch(`/api/admin/images/${providerId}`);
         if (detailRes.ok) {
           setDetail(await detailRes.json());
         }
-        // Refresh list
         fetchProviders();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error || "Action failed. Please try again.");
       }
     } catch (err) {
       console.error("Action failed:", err);
+      setActionError("Action failed. Please check your connection.");
     } finally {
       setActionLoading(null);
     }
@@ -164,6 +178,18 @@ export default function AdminImagesPage() {
           {total} providers
         </span>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -233,6 +259,11 @@ export default function AdminImagesPage() {
               {/* Detail panel */}
               {expandedId === provider.provider_id && (
                 <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+                  {detailError && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-3 text-sm text-red-700">
+                      {detailError}
+                    </div>
+                  )}
                   {detailLoading ? (
                     <p className="text-sm text-gray-500 py-4">Loading images...</p>
                   ) : detail && detail.images.length > 0 ? (

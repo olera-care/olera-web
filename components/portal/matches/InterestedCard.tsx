@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import type { InterestedProvider } from "@/hooks/useInterestedProviders";
@@ -218,16 +219,18 @@ export default function InterestedCard({
             You&apos;re connected!
           </h3>
           <p className="text-[14px] text-gray-500 leading-relaxed max-w-[360px] mx-auto mb-5">
-            Your details have been shared with this provider. They&apos;ll see your care post and can reply directly.
+            Your details have been shared with this provider. They&apos;ll see your care profile and can reply directly.
           </p>
 
           {/* Provider mini card */}
           <div className="inline-flex items-center gap-2.5 bg-white border border-gray-200/80 rounded-xl px-4 py-2.5 shadow-sm mb-5">
             {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={imageUrl}
                 alt={name}
+                width={36}
+                height={36}
+                sizes="36px"
                 className="w-9 h-9 rounded-lg object-cover shrink-0"
               />
             ) : (
@@ -244,7 +247,7 @@ export default function InterestedCard({
           {/* Go to inbox button */}
           <div className="mb-2.5">
             <Link
-              href="/portal/inbox"
+              href={`/portal/inbox?id=${item.id}`}
               className="inline-flex items-center justify-center gap-2 whitespace-nowrap px-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
             >
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -258,7 +261,7 @@ export default function InterestedCard({
           <button
             type="button"
             onClick={() => onDismiss?.(item.id)}
-            className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
+            className="min-h-[44px] px-3 text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
           >
             or keep reviewing providers
           </button>
@@ -288,10 +291,12 @@ export default function InterestedCard({
         {/* Header: avatar + type/name/location + new badge + time */}
         <div className="flex items-start gap-4">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt={name}
+              width={56}
+              height={56}
+              sizes="56px"
               className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-sm"
             />
           ) : (
@@ -495,7 +500,7 @@ export default function InterestedCard({
                   <Link
                     href={`/provider/${profileSlug}`}
                     target="_blank"
-                    className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-primary-600 hover:text-primary-700 transition-colors mb-6"
+                    className="inline-flex items-center gap-1.5 min-h-[44px] px-2 -mx-2 text-[14px] font-semibold text-primary-600 hover:text-primary-700 transition-colors mb-6"
                   >
                     View full profile
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -520,7 +525,7 @@ export default function InterestedCard({
                     </p>
                     {googleRating > 0 ? (
                       <div className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clipRule="evenodd" />
                         </svg>
                         <span className="text-[15px] font-semibold text-gray-900">{googleRating.toFixed(1)}</span>
@@ -573,7 +578,7 @@ export default function InterestedCard({
               type="button"
               onClick={() => onDecline?.(item.id)}
               disabled={isDeclining || isAccepting}
-              className="inline-flex items-center px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
+              className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
             >
               {isDeclining ? (
                 <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
@@ -585,7 +590,7 @@ export default function InterestedCard({
               type="button"
               onClick={() => onAccept?.(item.id)}
               disabled={isAccepting || isDeclining}
-              className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
+              className="group inline-flex items-center justify-center gap-2 min-h-[44px] pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 transition-all duration-200"
             >
               {isAccepting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -603,7 +608,7 @@ export default function InterestedCard({
           <button
             type="button"
             onClick={() => onReconsider(item.id)}
-            className="text-[13px] font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-4 py-2 transition-colors"
+            className="text-[14px] font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded-xl px-5 py-2.5 min-h-[44px] transition-colors"
           >
             Reconsider
           </button>
@@ -678,7 +683,7 @@ function DeclineFeedbackCard({
                 type="button"
                 onClick={() => toggleReason(reason)}
                 className={[
-                  "text-[14px] font-medium px-4 py-2 rounded-full border transition-all duration-150",
+                  "text-[14px] font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150",
                   isSelected
                     ? "border-gray-300 bg-gray-100 text-gray-800"
                     : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50",
@@ -696,7 +701,7 @@ function DeclineFeedbackCard({
         <button
           type="button"
           onClick={() => onUndo?.(item.id)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200"
+          className="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-5 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
@@ -706,7 +711,7 @@ function DeclineFeedbackCard({
         <button
           type="button"
           onClick={() => onDone?.(item.id, selectedReasons)}
-          className="px-5 py-2.5 rounded-xl text-[14px] font-semibold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.97] transition-all duration-200"
+          className="min-h-[44px] px-6 py-2.5 rounded-xl text-[14px] font-semibold text-white bg-gray-900 hover:bg-gray-800 active:scale-[0.97] transition-all duration-200"
         >
           Done
         </button>

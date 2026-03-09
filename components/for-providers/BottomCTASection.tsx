@@ -1,0 +1,102 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth/AuthProvider";
+
+const PREFILL_KEY = "olera_provider_search_prefill";
+
+export default function BottomCTASection() {
+  const { user, profiles, openAuth } = useAuth();
+  const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
+
+  // Check if user already has a provider profile
+  const hasProviderProfile = (profiles || []).some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
+
+  const handleGetStarted = () => {
+    const val = searchInput.trim();
+    if (val) {
+      const isZip = /^\d{5}$/.test(val);
+      try {
+        sessionStorage.setItem(
+          PREFILL_KEY,
+          JSON.stringify({
+            searchQuery: isZip ? "" : val,
+            locationQuery: isZip ? val : "",
+          }),
+        );
+      } catch {
+        /* sessionStorage unavailable */
+      }
+    }
+
+    // Determine the target URL
+    const targetUrl = hasProviderProfile
+      ? "/provider/onboarding?adding=true"
+      : "/provider/onboarding";
+
+    if (user) {
+      router.push(targetUrl);
+    } else {
+      // Include returnUrl so user is redirected after auth
+      openAuth({
+        intent: "provider",
+        deferred: {
+          action: "claim",
+          returnUrl: targetUrl,
+        },
+      });
+    }
+  };
+
+  return (
+    <section className="py-16 md:py-24 bg-white">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-gray-900 rounded-2xl px-6 sm:px-12 py-12 sm:py-16 text-center">
+          <h2 className="font-serif text-display-sm md:text-display-md font-bold text-white">
+            Ready to get started?
+          </h2>
+
+          {/* Search bar */}
+          <div className="mt-8 flex items-center justify-center gap-3 max-w-lg mx-auto">
+            <div className="relative flex-1">
+              <svg
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Business name or zip code"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleGetStarted();
+                }}
+                className="w-full pl-11 pr-4 py-3 rounded-lg border border-gray-600 bg-gray-800 text-base text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleGetStarted}
+              className="shrink-0 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors min-h-[44px]"
+            >
+              Get started
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

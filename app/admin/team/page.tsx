@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import type { AdminUser } from "@/lib/types";
 
 export default function AdminTeamPage() {
@@ -15,18 +16,24 @@ export default function AdminTeamPage() {
   const [addError, setAddError] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [removeLoading, setRemoveLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   const isMaster = currentAdmin?.role === "master_admin";
 
   const fetchAdmins = useCallback(async () => {
+    setError(null);
     try {
       const res = await fetch("/api/admin/team");
       if (res.ok) {
         const data = await res.json();
         setAdmins(data.admins ?? []);
+      } else {
+        setError("Failed to load team data. Please try again.");
       }
     } catch (err) {
       console.error("Failed to fetch admins:", err);
+      setError("Failed to load team data. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -68,6 +75,7 @@ export default function AdminTeamPage() {
     if (!confirm("Are you sure you want to remove this admin?")) return;
 
     setRemoveLoading(id);
+    setRemoveError(null);
     try {
       const res = await fetch("/api/admin/team", {
         method: "DELETE",
@@ -78,11 +86,11 @@ export default function AdminTeamPage() {
       if (res.ok) {
         await fetchAdmins();
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to remove admin");
+        const data = await res.json().catch(() => ({}));
+        setRemoveError(data.error || "Failed to remove admin. Please try again.");
       }
     } catch {
-      alert("Network error");
+      setRemoveError("Failed to remove admin. Please check your connection.");
     } finally {
       setRemoveLoading(null);
     }
@@ -108,6 +116,18 @@ export default function AdminTeamPage() {
           </button>
         )}
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {removeError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {removeError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -207,23 +227,16 @@ export default function AdminTeamPage() {
                 </p>
               </div>
               <div className="mb-4">
-                <label
-                  htmlFor="admin-role"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Role
-                </label>
-                <select
-                  id="admin-role"
+                <Select
+                  label="Role"
+                  options={[
+                    { value: "admin", label: "Admin" },
+                    { value: "master_admin", label: "Master Admin" },
+                  ]}
                   value={addRole}
-                  onChange={(e) =>
-                    setAddRole(e.target.value as "admin" | "master_admin")
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="master_admin">Master Admin</option>
-                </select>
+                  onChange={(val) => setAddRole(val as "admin" | "master_admin")}
+                  size="sm"
+                />
               </div>
               {addError && (
                 <p className="text-sm text-red-600 mb-4">{addError}</p>

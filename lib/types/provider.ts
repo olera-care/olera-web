@@ -7,6 +7,9 @@
  * Table: olera-providers (39,355+ records)
  */
 
+import { generateProviderSlug } from "@/lib/slugify";
+import type { BusinessProfile, ProfileCategory } from "@/lib/types";
+
 export interface Provider {
   provider_id: string;
   provider_name: string;
@@ -35,6 +38,7 @@ export interface Provider {
   deleted: boolean;
   deleted_at: string | null;
   hero_image_url: string | null;
+  slug: string | null; // Human-readable URL slug (populated via migration)
 }
 
 /**
@@ -299,7 +303,7 @@ export function toCardFormat(provider: Provider): ProviderCardData {
 
   return {
     id: provider.provider_id,
-    slug: provider.provider_id,
+    slug: provider.slug || generateProviderSlug(provider.provider_name, provider.state),
     name: provider.provider_name,
     image: cardImage,
     imageType,
@@ -317,6 +321,161 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     lat: provider.lat,
     lon: provider.lon,
   };
+}
+
+// ============================================================
+// BusinessProfile → ProviderCardData conversion
+// ============================================================
+
+/**
+ * Map ProfileCategory enum → display name used in ProviderCardData.primaryCategory
+ */
+const PROFILE_CATEGORY_DISPLAY: Record<ProfileCategory, string> = {
+  home_care_agency: "Home Care",
+  home_health_agency: "Home Health",
+  hospice_agency: "Hospice",
+  independent_living: "Independent Living",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+  inpatient_hospice: "Hospice",
+  rehab_facility: "Rehabilitation",
+  adult_day_care: "Adult Day Care",
+  wellness_center: "Wellness Center",
+  private_caregiver: "Private Caregiver",
+};
+
+/**
+ * Map Supabase provider_category (olera-providers) → ProfileCategory (business_profiles).
+ * Used in power-pages.ts to query business_profiles with the same category filter.
+ */
+export const SUPABASE_CAT_TO_PROFILE_CATEGORY: Record<string, ProfileCategory> = {
+  "Home Care (Non-medical)": "home_care_agency",
+  "Home Health Care": "home_health_agency",
+  "Assisted Living": "assisted_living",
+  "Memory Care": "memory_care",
+  "Nursing Home": "nursing_home",
+  "Independent Living": "independent_living",
+  "Hospice": "hospice_agency",
+};
+
+/**
+ * Map browse page care-type slugs → ProfileCategory.
+ * Used in BrowseClient / CityBrowseClient for client-side business_profiles queries.
+ */
+export const CARE_TYPE_SLUG_TO_PROFILE_CATEGORY: Record<string, ProfileCategory> = {
+  "home-care": "home_care_agency",
+  "home-health": "home_health_agency",
+  "assisted-living": "assisted_living",
+  "memory-care": "memory_care",
+  "nursing-homes": "nursing_home",
+  "independent-living": "independent_living",
+};
+
+/**
+ * Map ProfileCategory → Supabase provider_category display for highlights lookup.
+ */
+const PROFILE_CAT_TO_SUPABASE_CAT: Record<string, string> = {
+  home_care_agency: "Home Care (Non-medical)",
+  home_health_agency: "Home Health Care",
+  hospice_agency: "Hospice",
+  independent_living: "Independent Living",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+  nursing_home: "Nursing Home",
+};
+
+/**
+ * Convert a BusinessProfile → ProviderCardData for display in search results.
+ */
+export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardData {
+  const displayCategory = bp.category
+    ? PROFILE_CATEGORY_DISPLAY[bp.category]
+    : "Senior Care";
+
+  const supabaseCat = bp.category
+    ? PROFILE_CAT_TO_SUPABASE_CAT[bp.category] || ""
+    : "";
+
+  // Gallery images are stored in metadata.images (uploaded via provider dashboard)
+  const meta = bp.metadata as Record<string, unknown> | null;
+  const metaImages = Array.isArray(meta?.images) ? (meta.images as string[]) : [];
+  const primaryImage = bp.image_url || metaImages[0] || null;
+  const hasImage = !!primaryImage;
+
+  return {
+    id: bp.id,
+    slug: bp.slug,
+    name: bp.display_name,
+    image: primaryImage || getCategoryFallbackImage(supabaseCat, bp.id),
+    imageType: hasImage ? "photo" : "placeholder",
+    images: metaImages.length > 0 ? metaImages : (bp.image_url ? [bp.image_url] : []),
+    address: [bp.city, bp.state].filter(Boolean).join(", "),
+    rating: 0,
+    reviewCount: undefined,
+    priceRange: "Contact for pricing",
+    primaryCategory: displayCategory,
+    careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),
+    highlights: getHighlightsForCategory(supabaseCat),
+    acceptedPayments: [],
+    verified: bp.claim_state === "claimed",
+    description: bp.description?.slice(0, 200) || undefined,
+    lat: bp.lat,
+    lon: bp.lng,
+  };
+}
+
+/**
+ * Enrich BP cards with data from the seeded providers they replaced.
+ * When a provider claims their page, the BP may lack images/pricing/rating
+ * that exist on the original olera-providers record.
+ */
+export function enrichBpCards(
+  bpCards: ProviderCardData[],
+  seededCards: ProviderCardData[],
+  bpSourceIds: (string | null)[],
+): void {
+  const seededById = new Map(seededCards.map((c) => [c.id, c]));
+  const seededBySlug = new Map(seededCards.map((c) => [c.slug, c]));
+
+  for (let i = 0; i < bpCards.length; i++) {
+    const bp = bpCards[i];
+    // Match by source_provider_id first, then fall back to slug
+    const sourceId = bpSourceIds[i];
+    const seeded = (sourceId ? seededById.get(sourceId) : null) ?? seededBySlug.get(bp.slug);
+    if (!seeded) continue;
+
+    if (bp.imageType === "placeholder" && seeded.imageType !== "placeholder") {
+      bp.image = seeded.image;
+      bp.imageType = seeded.imageType;
+      if (seeded.images.length > 0) bp.images = seeded.images;
+    }
+    if (bp.priceRange === "Contact for pricing" && seeded.priceRange !== "Contact for pricing") {
+      bp.priceRange = seeded.priceRange;
+    }
+    if (bp.rating === 0 && seeded.rating > 0) {
+      bp.rating = seeded.rating;
+      bp.reviewCount = seeded.reviewCount;
+    }
+  }
+}
+
+/**
+ * Merge seeded provider cards with business_profile cards.
+ * If a BP has a source_provider_id matching a seeded card, the BP version wins.
+ */
+export function mergeProviderCards(
+  seededCards: ProviderCardData[],
+  bpCards: ProviderCardData[],
+  dedupeSourceIds: Set<string>,
+): ProviderCardData[] {
+  // Also deduplicate by slug so claimed BPs without source_provider_id
+  // don't appear alongside their seeded counterpart
+  const bpSlugs = new Set(bpCards.map((c) => c.slug));
+  const filtered = seededCards.filter(
+    (c) => !dedupeSourceIds.has(c.id) && !bpSlugs.has(c.slug)
+  );
+  return [...filtered, ...bpCards];
 }
 
 /**

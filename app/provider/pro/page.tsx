@@ -153,7 +153,7 @@ function BillingToggle({
       <button
         type="button"
         onClick={() => onChange("monthly")}
-        className={`px-4 py-2 text-sm font-medium rounded-[10px] transition-all duration-200 ${
+        className={`px-4 py-2.5 text-sm font-medium rounded-[10px] transition-all duration-200 min-h-[44px] flex items-center ${
           cycle === "monthly"
             ? "bg-white text-gray-900 shadow-sm"
             : "text-gray-500 hover:text-gray-700"
@@ -164,7 +164,7 @@ function BillingToggle({
       <button
         type="button"
         onClick={() => onChange("annual")}
-        className={`px-4 py-2 text-sm font-medium rounded-[10px] transition-all duration-200 flex items-center gap-1.5 ${
+        className={`px-4 py-2.5 text-sm font-medium rounded-[10px] transition-all duration-200 min-h-[44px] flex items-center gap-1.5 ${
           cycle === "annual"
             ? "bg-white text-gray-900 shadow-sm"
             : "text-gray-500 hover:text-gray-700"
@@ -304,30 +304,31 @@ export default function OleraProPage() {
 
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const [subscribing, setSubscribing] = useState(false);
+  const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
+
+  const subscribeErrorEl = subscribeError && (
+    <p className="text-sm text-red-600 mt-3">{subscribeError}</p>
+  );
   const [tableOpen, setTableOpen] = useState(true);
 
-  // Preview mode: cycle through views before Stripe is connected
-  // Remove this block once Stripe integration is live
-  const [previewStatus, setPreviewStatus] = useState<"free" | "active" | "canceled">("free");
-
-  // Membership state (preview overrides real status)
+  // Membership state
   const status = membership?.status;
-  const isSubscribed = previewStatus === "active" || (!previewStatus && status === "active");
-  const isTrial = previewStatus === "free" ? false : status === "trialing";
-  const isCanceled = previewStatus === "canceled" || (!previewStatus && status === "canceled");
-  const isPastDue = previewStatus ? false : status === "past_due";
+  const isTrial = status === "trial" || status === "trialing";
+  const isSubscribed = status === "active" || isTrial;
+  const isCanceled = status === "canceled";
+  const isPastDue = status === "past_due";
 
   // Trial days remaining
   const trialDaysLeft = membership?.trial_ends_at
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(membership.trial_ends_at).getTime() - Date.now()) /
-            (1000 * 60 * 60 * 24)
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(membership.trial_ends_at).getTime() - Date.now()) /
+              (1000 * 60 * 60 * 24)
+          )
         )
-      )
-    : null;
+      : null;
 
   // Next billing date
   const nextBillingDate = membership?.current_period_ends_at
@@ -347,6 +348,7 @@ export default function OleraProPage() {
 
   const handleSubscribe = async () => {
     setSubscribing(true);
+    setSubscribeError(null);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -357,6 +359,7 @@ export default function OleraProPage() {
       if (error) throw new Error(error);
       window.location.href = url;
     } catch {
+      setSubscribeError("Something went wrong. Please try again.");
       setSubscribing(false);
     }
   };
@@ -364,25 +367,6 @@ export default function OleraProPage() {
   // Loading
   if (isLoading) return <ProPageSkeleton />;
 
-  // Preview toggle — remove once Stripe integration is live
-  const previewToggle = (
-    <div className="fixed bottom-4 right-4 z-50 flex items-center gap-1 bg-white/90 backdrop-blur border border-gray-200 rounded-full px-1 py-1 shadow-lg">
-      {(["free", "active", "canceled"] as const).map((s) => (
-        <button
-          key={s}
-          type="button"
-          onClick={() => { setPreviewStatus(s); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-all ${
-            previewStatus === s
-              ? "bg-gray-900 text-white"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-        >
-          {s === "free" ? "Free" : s === "active" ? "Pro" : "Canceled"}
-        </button>
-      ))}
-    </div>
-  );
 
   // =====================================================================
   // Active Subscriber View
@@ -390,7 +374,7 @@ export default function OleraProPage() {
   if (isSubscribed) {
     return (
       <div className="min-h-screen bg-white">
-        {previewToggle}
+
         {/* ── HERO ── */}
         <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
@@ -571,7 +555,7 @@ export default function OleraProPage() {
 
     return (
       <div className="min-h-screen bg-white">
-        {previewToggle}
+
         {/* ── HERO ── */}
         <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
@@ -613,6 +597,7 @@ export default function OleraProPage() {
                   </>
                 )}
               </button>
+              {subscribeErrorEl}
             </div>
           </div>
         </section>
@@ -683,6 +668,7 @@ export default function OleraProPage() {
                     </>
                   )}
                 </button>
+                {subscribeErrorEl}
 
                 <p className="text-sm text-gray-400 mt-4">
                   Instant reactivation &middot; Cancel anytime
@@ -758,8 +744,9 @@ export default function OleraProPage() {
                   </>
                 )}
               </button>
+              {subscribeErrorEl}
               <p className="text-sm text-gray-400 mt-4">
-                $25/mo &middot; Instant reactivation
+                {billingCycle === "monthly" ? "$25/mo" : "$249/yr"} &middot; Instant reactivation
               </p>
             </div>
           </div>
@@ -776,7 +763,6 @@ export default function OleraProPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {previewToggle}
       {/* ── HERO SECTION ── */}
       <section className="pt-16 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
@@ -828,6 +814,7 @@ export default function OleraProPage() {
                 </>
               )}
             </button>
+            {subscribeErrorEl}
           </div>
         </div>
       </section>
@@ -898,6 +885,7 @@ export default function OleraProPage() {
                   </>
                 )}
               </button>
+              {subscribeErrorEl}
 
               <p className="text-sm text-gray-400 mt-4">
                 14-day free trial &middot; Cancel anytime &middot; No contracts
@@ -973,6 +961,7 @@ export default function OleraProPage() {
                 </>
               )}
             </button>
+            {subscribeErrorEl}
             <p className="text-sm text-gray-400 mt-4">
               14-day free trial &middot; Cancel anytime
             </p>

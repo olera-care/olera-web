@@ -13,7 +13,12 @@ import {
   PROVIDERS_TABLE,
   toCardFormat,
   type ProviderCardData,
+  businessProfileToCardFormat,
+  mergeProviderCards,
+  enrichBpCards,
+  CARE_TYPE_SLUG_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
+import type { BusinessProfile } from "@/lib/types";
 
 const BrowseMap = dynamic(() => import("@/components/browse/BrowseMap"), {
   ssr: false,
@@ -32,15 +37,6 @@ const careTypes = [
   { id: "memory-care", label: "Memory Care" },
   { id: "nursing-homes", label: "Nursing Homes" },
   { id: "independent-living", label: "Independent Living" },
-];
-
-const paymentTypeOptions = [
-  { value: "any", label: "Any Payment Type" },
-  { value: "Medicare", label: "Medicare" },
-  { value: "Medicaid", label: "Medicaid" },
-  { value: "Private Pay", label: "Private Pay" },
-  { value: "Long-term Insurance", label: "Long-term Care Insurance" },
-  { value: "Veterans Benefits", label: "VA Benefits" },
 ];
 
 const ratingOptions = [
@@ -75,7 +71,8 @@ function getCareTypeLabel(id: string): string {
   return ct?.label || "All Care Types";
 }
 
-const PROVIDERS_PER_PAGE = 24;
+const PROVIDERS_PER_PAGE_DESKTOP = 24;
+const PROVIDERS_PER_PAGE_MOBILE = 14;
 
 // Helper function to parse price for sorting
 function parsePrice(price: string): number {
@@ -107,16 +104,27 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
   const [searchLocation, setSearchLocation] = useState(initialLocation);
   const [locationInput, setLocationInput] = useState(initialLocation);
   const [selectedRating, setSelectedRating] = useState("any");
-  const [selectedPayment, setSelectedPayment] = useState("any");
   const [sortBy, setSortBy] = useState("recommended");
   const [hoveredProviderId, setHoveredProviderId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [providersPerPage, setProvidersPerPage] = useState(PROVIDERS_PER_PAGE_DESKTOP);
+
+  // Responsive page size
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 639px)");
+    const update = () => {
+      setProvidersPerPage(mql.matches ? PROVIDERS_PER_PAGE_MOBILE : PROVIDERS_PER_PAGE_DESKTOP);
+      setCurrentPage(1);
+    };
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
 
   // Dropdown states
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [showCareTypeDropdown, setShowCareTypeDropdown] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
-  const [showPaymentDropdown, setShowPaymentDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // Geolocation state
@@ -164,19 +172,61 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           }
         }
 
-        // Order by rating and limit
-        const { data, error } = await query
-          .order("google_rating", { ascending: false })
-          .limit(100)
-          .abortSignal(controller.signal);
+        // Build parallel business_profiles query
+        let bpQuery = supabase
+          .from("business_profiles")
+          .select("*")
+          .eq("claim_state", "claimed")
+          .eq("is_active", true)
+          .eq("type", "organization");
+
+        if (careType && careType !== "all") {
+          const profileCat = CARE_TYPE_SLUG_TO_PROFILE_CATEGORY[careType];
+          if (profileCat) {
+            bpQuery = bpQuery.eq("category", profileCat);
+          }
+        }
+
+        if (searchLocation) {
+          const trimmed = searchLocation.trim();
+          const cityStateMatch = trimmed.match(/^(.+),\s*([A-Z]{2})$/i);
+          if (cityStateMatch) {
+            const city = cityStateMatch[1].trim();
+            const state = cityStateMatch[2].toUpperCase();
+            bpQuery = bpQuery.ilike("city", `%${city}%`).eq("state", state);
+          } else if (/^[A-Z]{2}$/i.test(trimmed)) {
+            bpQuery = bpQuery.eq("state", trimmed.toUpperCase());
+          } else {
+            bpQuery = bpQuery.or(`city.ilike.%${trimmed}%,display_name.ilike.%${trimmed}%`);
+          }
+        }
+
+        bpQuery = bpQuery.order("created_at", { ascending: false }).limit(50);
+
+        // Run both queries in parallel
+        const [seededResult, bpResult] = await Promise.all([
+          query
+            .order("google_rating", { ascending: false })
+            .limit(100)
+            .abortSignal(controller.signal),
+          bpQuery.abortSignal(controller.signal),
+        ]);
 
         if (cancelled) return;
 
-        if (error) {
-          console.error("Browse fetch error:", error.message);
+        if (seededResult.error) {
+          console.error("Browse fetch error:", seededResult.error.message);
           setProviders([]);
         } else {
-          setProviders((data as SupabaseProvider[]).map(toCardFormat));
+          const seededCards = (seededResult.data as SupabaseProvider[]).map(toCardFormat);
+          const bpData = (bpResult.data as BusinessProfile[] | null) ?? [];
+          const bpCards = bpData.map(businessProfileToCardFormat);
+          const bpSourceIds = bpData.map((bp) => bp.source_provider_id);
+          const dedupeIds = new Set(
+            bpSourceIds.filter((id): id is string => id != null)
+          );
+          enrichBpCards(bpCards, seededCards, bpSourceIds);
+          setProviders(mergeProviderCards(seededCards, bpCards, dedupeIds));
         }
       } catch (err: unknown) {
         if (cancelled || (err instanceof DOMException && err.name === "AbortError")) return;
@@ -277,21 +327,24 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns when clicking outside (blur-before-close prevents scroll-to-footer)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest(".dropdown-container")) {
+        const active = document.activeElement;
+        if (active && active !== document.body) {
+          (active as HTMLElement).blur();
+        }
         setShowLocationDropdown(false);
         setLocationInput(searchLocation);
         setShowCareTypeDropdown(false);
         setShowRatingDropdown(false);
-        setShowPaymentDropdown(false);
         setShowSortDropdown(false);
       }
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [searchLocation]);
 
   // Filter and sort providers
@@ -301,10 +354,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     if (selectedRating !== "any") {
       const minRating = parseFloat(selectedRating);
       result = result.filter((p) => p.rating >= minRating);
-    }
-
-    if (selectedPayment !== "any") {
-      result = result.filter((p) => p.acceptedPayments?.includes(selectedPayment));
     }
 
     switch (sortBy) {
@@ -325,10 +374,10 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     }
 
     return result;
-  }, [providers, selectedRating, selectedPayment, sortBy]);
+  }, [providers, selectedRating, sortBy]);
 
   // Pagination with badge assignment (top 3 highest-rated in full result set)
-  const totalPages = Math.ceil(filteredProviders.length / PROVIDERS_PER_PAGE);
+  const totalPages = Math.ceil(filteredProviders.length / providersPerPage);
   const topRatedIds = useMemo(() => {
     return new Set(
       filteredProviders
@@ -338,24 +387,23 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     );
   }, [filteredProviders]);
   const paginatedProviders = useMemo(() => {
-    const startIndex = (currentPage - 1) * PROVIDERS_PER_PAGE;
+    const startIndex = (currentPage - 1) * providersPerPage;
     return filteredProviders
-      .slice(startIndex, startIndex + PROVIDERS_PER_PAGE)
+      .slice(startIndex, startIndex + providersPerPage)
       .map((p) => ({
         ...p,
         badge: topRatedIds.has(p.id) ? "Top Rated" : undefined,
       }));
-  }, [filteredProviders, currentPage, topRatedIds]);
+  }, [filteredProviders, currentPage, topRatedIds, providersPerPage]);
 
-  // Reset page when filters change
+  // Reset page when filters or location change
   useEffect(() => {
     setCurrentPage(1);
-  }, [careType, selectedRating, selectedPayment, sortBy]);
+  }, [careType, searchLocation, selectedRating, sortBy]);
 
   // Check if any filters are active
   const hasActiveFilters =
     selectedRating !== "any" ||
-    selectedPayment !== "any" ||
     sortBy !== "recommended";
 
   // Clear all filters
@@ -363,7 +411,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     setSearchLocation(DEFAULT_LOCATION);
     setLocationInput(DEFAULT_LOCATION);
     setSelectedRating("any");
-    setSelectedPayment("any");
     setSortBy("recommended");
   };
 
@@ -372,7 +419,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
     setShowLocationDropdown(false);
     setShowCareTypeDropdown(false);
     setShowRatingDropdown(false);
-    setShowPaymentDropdown(false);
     setShowSortDropdown(false);
   };
 
@@ -443,6 +489,20 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         type="text"
                         value={locationInput}
                         onChange={(e) => setLocationInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (cityResults.length > 0) {
+                              // Auto-select the first suggestion (Airbnb pattern)
+                              setSearchLocation(cityResults[0].full);
+                              setLocationInput(cityResults[0].full);
+                            } else if (locationInput.trim()) {
+                              // No matches but user typed something — keep current location
+                              setLocationInput(searchLocation);
+                            }
+                            setShowLocationDropdown(false);
+                          }
+                        }}
                         onFocus={preloadCities}
                         placeholder="City or ZIP code"
                         className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
@@ -486,7 +546,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                     </div>
                   )}
 
-                  {cityResults.map((loc) => (
+                  {cityResults.map((loc, index) => (
                     <button
                       key={loc.full}
                       type="button"
@@ -498,7 +558,9 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                       className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-gray-50 transition-colors ${
                         searchLocation === loc.full
                           ? "bg-primary-50 text-primary-700"
-                          : "text-gray-900"
+                          : index === 0 && locationInput.trim()
+                            ? "bg-gray-50 text-gray-900"
+                            : "text-gray-900"
                       }`}
                     >
                       <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -506,11 +568,15 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       <span className="font-medium">{loc.full}</span>
+                      {index === 0 && locationInput.trim() && (
+                        <span className="ml-auto text-xs text-gray-400">Enter</span>
+                      )}
                     </button>
                   ))}
-                  {cityResults.length === 0 && (
-                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                      No locations found
+                  {cityResults.length === 0 && locationInput.trim() && (
+                    <div className="px-4 py-3 text-center">
+                      <p className="text-sm text-gray-500">No locations found</p>
+                      <p className="text-xs text-gray-400 mt-1">Try a city name, state, or ZIP code</p>
                     </div>
                   )}
                 </div>
@@ -626,59 +692,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
               )}
             </div>
 
-            {/* Payment Dropdown */}
-            <div className="relative dropdown-container flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const opening = !showPaymentDropdown;
-                  closeAllDropdowns();
-                  setShowPaymentDropdown(opening);
-                }}
-                className={`flex items-center justify-between h-9 px-4 rounded-full text-sm font-medium transition-colors overflow-hidden ${
-                  selectedPayment !== "any"
-                    ? "bg-white text-gray-900 border-2 border-primary-400"
-                    : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400"
-                }`}
-              >
-                <span className="truncate">{selectedPayment === "any" ? "Payments" : selectedPayment}</span>
-                <svg
-                  className={`w-4 h-4 ml-2 flex-shrink-0 transition-transform ${showPaymentDropdown ? "rotate-180" : ""} ${selectedPayment !== "any" ? "text-gray-900" : "text-gray-400"}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {showPaymentDropdown && (
-                <div className="absolute left-0 top-[calc(100%+6px)] w-72 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-[100]">
-                  {paymentTypeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setSelectedPayment(option.value);
-                        setShowPaymentDropdown(false);
-                      }}
-                      className={`flex items-center gap-2 w-full px-3 py-1 text-left text-base hover:bg-gray-50 transition-colors whitespace-nowrap ${
-                        selectedPayment === option.value ? "text-gray-900 font-medium" : "text-gray-900"
-                      }`}
-                    >
-                      {selectedPayment === option.value ? (
-                        <svg className="w-5 h-5 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <span className="w-5" />
-                      )}
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Clear Filters */}
             <button
               onClick={clearFilters}
@@ -700,9 +713,9 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       </div>
 
       {/* Main Content - Split Layout */}
-      <div className="lg:mr-[45%]">
+      <div className="lg:flex">
         {/* Left Panel - Provider List */}
-        <div className="px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
+        <div className="flex-1 min-w-0 px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
           {/* Heading + Sort */}
           <div className="relative z-20">
             <div className="flex items-baseline justify-between gap-4 mb-6">
@@ -802,7 +815,7 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
                 currentPage={currentPage}
                 totalPages={totalPages}
                 totalItems={filteredProviders.length}
-                itemsPerPage={PROVIDERS_PER_PAGE}
+                itemsPerPage={providersPerPage}
                 onPageChange={setCurrentPage}
                 itemLabel="providers"
                 className="mt-6"
@@ -812,23 +825,25 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
             <EmptyState onClear={clearFilters} />
           )}
         </div>
-      </div>
 
-      {/* Right Panel - Fixed Map */}
-      <div
-        className="hidden lg:block fixed right-0 w-[45%] p-4 z-30"
-        style={{
-          top: navbarVisible ? "125px" : "61px",
-          height: navbarVisible ? "calc(100vh - 125px)" : "calc(100vh - 61px)",
-          transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1)",
-        }}
-      >
-        <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
-          <BrowseMap
-            providers={filteredProviders}
-            hoveredProviderId={hoveredProviderId}
-            onMarkerHover={setHoveredProviderId}
-          />
+        {/* Right Panel - Sticky Map */}
+        <div className="hidden lg:block w-[45%] flex-shrink-0">
+          <div
+            className="sticky p-4"
+            style={{
+              top: navbarVisible ? "125px" : "61px",
+              height: navbarVisible ? "calc(100vh - 125px)" : "calc(100vh - 61px)",
+              transition: "top 200ms cubic-bezier(0.33, 1, 0.68, 1), height 200ms cubic-bezier(0.33, 1, 0.68, 1)",
+            }}
+          >
+            <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-sm border border-gray-200 isolate">
+              <BrowseMap
+                providers={filteredProviders}
+                hoveredProviderId={hoveredProviderId}
+                onMarkerHover={setHoveredProviderId}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>

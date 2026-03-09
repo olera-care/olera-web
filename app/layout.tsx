@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/shared/Navbar";
 import ConditionalFooter from "@/components/shared/ConditionalFooter";
@@ -7,6 +8,13 @@ import AuthProvider from "@/components/auth/AuthProvider";
 import GlobalUnifiedAuthModal from "@/components/auth/GlobalUnifiedAuthModal";
 import { SavedProvidersProvider } from "@/hooks/use-saved-providers";
 import { NavbarProvider } from "@/components/shared/NavbarContext";
+
+const dmSerifDisplay = DM_Serif_Display({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-dm-serif-display",
+});
 
 const GA_MEASUREMENT_ID = "G-F2F7FG745B";
 
@@ -61,6 +69,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 // Organization JSON-LD for the entire site
 const organizationJsonLd = {
   "@context": "https://schema.org",
@@ -74,7 +88,9 @@ const organizationJsonLd = {
   contactPoint: {
     "@type": "ContactPoint",
     contactType: "customer service",
-    url: "https://olera.care/contact",
+    email: "support@olera.care",
+    telephone: "+1-979-243-9801",
+    url: "https://olera.care",
   },
   potentialAction: {
     "@type": "SearchAction",
@@ -92,8 +108,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={dmSerifDisplay.variable}>
       <head>
+        {/* ── Resource hints for faster external connections ── */}
+        {/* DM Serif Display is self-hosted via next/font — no external font CSS needed */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.lordicon.com" crossOrigin="anonymous" />
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="anonymous" />
+        )}
+
+        {/* DNS-prefetch for domains used on specific pages (browse, map) */}
+        <link rel="dns-prefetch" href="https://a.basemaps.cartocdn.com" />
+        <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+        <link rel="dns-prefetch" href="https://api.maptiler.com" />
+
         {/* GA4 — same property as v1.0 */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}

@@ -6,6 +6,7 @@ import ModalFooter from "@/components/provider-dashboard/edit-modals/ModalFooter
 import { saveProfile } from "@/components/provider-dashboard/edit-modals/save-profile";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import Input from "@/components/ui/Input";
+import Select from "@/components/ui/Select";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 
 // ── Options ──
@@ -104,7 +105,7 @@ export default function EditCarePostModal({
   );
 
   // Step 4: Additional info
-  const [aboutSituation, setAboutSituation] = useState(meta.about_situation || profile.description || "");
+  const [aboutSituation, setAboutSituation] = useState(profile.description || "");
   const [phone, setPhone] = useState(profile.phone || "");
 
   function toggleCareType(ct: string) {
@@ -119,7 +120,7 @@ export default function EditCarePostModal({
     );
   }
 
-  const hasChanges = true; // Always allow saving since we're editing a care post
+  const hasChanges = true; // Always allow saving since we're editing a care profile
 
   async function handleSave() {
     // If not last step, just advance
@@ -150,7 +151,6 @@ export default function EditCarePostModal({
           schedule_preference: schedule || undefined,
           timeline: timeline || undefined,
           payment_methods: paymentMethods.length > 0 ? paymentMethods : undefined,
-          about_situation: aboutSituation || undefined,
         },
         existingMetadata: (profile.metadata || {}) as Record<string, unknown>,
       });
@@ -170,7 +170,7 @@ export default function EditCarePostModal({
     <Modal
       isOpen
       onClose={onClose}
-      title="Edit care post"
+      title="Edit care profile"
       size="2xl"
       footer={
         <ModalFooter
@@ -196,23 +196,13 @@ export default function EditCarePostModal({
         {step === 1 && (
           <div className="space-y-5">
             {/* Who needs care */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Who needs care
-              </label>
-              <select
-                value={relationship}
-                onChange={(e) => setRelationship(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
-              >
-                <option value="">Select...</option>
-                {RELATIONSHIP_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              label="Who needs care"
+              options={RELATIONSHIP_OPTIONS}
+              value={relationship}
+              onChange={setRelationship}
+              placeholder="Select..."
+            />
 
             {/* Age */}
             <Input

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import Link from "next/link";
+import Image from "next/image";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
 import EditCareRequestModal from "./EditCareRequestModal";
@@ -148,8 +148,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
     <div className={isInbound ? "flex items-end gap-2.5" : "flex justify-end"}>
       {isInbound && (
         imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+          <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
         ) : (
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -173,10 +172,10 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
               {editable && (
                 <button
                   onClick={() => setEditOpen(true)}
-                  className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-white/15 transition-colors"
+                  className="ml-auto flex items-center gap-1.5 min-h-[44px] px-3 -mr-2 rounded-lg hover:bg-white/15 transition-colors"
                   aria-label="Edit care request"
                 >
-                  <svg className="w-3 h-3 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                   <span className="text-xs font-medium text-white/80">Edit</span>
@@ -371,11 +370,7 @@ export default function ConversationPanel({
   const initialNotes = autoIntro || additionalNotes;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
 
-  const profileHref = otherProfile
-    ? (otherProfile.type === "organization" || otherProfile.type === "caregiver") && otherProfile.slug
-      ? `/provider/${otherProfile.slug}`
-      : `/profile/${otherProfile.id}`
-    : "#";
+  // Names in conversation header are not clickable - use "View full profile" in details panel instead
 
   const showMessageInput =
     (connection.status === "pending" || connection.status === "accepted");
@@ -397,12 +392,12 @@ export default function ConversationPanel({
   return (
     <div className={`flex flex-col bg-white ${className}`}>
       {/* ── Header ── */}
-      <div className={`shrink-0 pl-6 ${detailOpen ? "pr-6" : "pr-[44px]"} h-[68px] border-b border-gray-200 flex items-center gap-3`}>
+      <div className={`shrink-0 pl-4 sm:pl-6 ${detailOpen ? "pr-4 sm:pr-6" : "pr-4 sm:pr-[44px]"} h-[68px] border-b border-gray-200 flex items-center gap-3`}>
         {/* Back button (mobile) */}
         {onBack && (
           <button
             onClick={onBack}
-            className="lg:hidden -ml-1 mr-1 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            className="lg:hidden -ml-2 mr-1 w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Back to conversations"
           >
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -412,10 +407,9 @@ export default function ConversationPanel({
         )}
 
         {/* Avatar */}
-        <Link href={profileHref} className="shrink-0">
+        <div className="shrink-0">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={otherName} className="w-10 h-10 rounded-full object-cover" />
+            <Image src={imageUrl} alt={otherName} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
           ) : (
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
@@ -424,13 +418,13 @@ export default function ConversationPanel({
               {otherInitial}
             </div>
           )}
-        </Link>
+        </div>
 
         {/* Name + status */}
         <div className="flex-1 min-w-0">
-          <Link href={profileHref} className="text-lg font-display font-semibold text-gray-900 hover:underline truncate block">
+          <span className="text-lg font-display font-semibold text-gray-900 truncate block">
             {otherName}
-          </Link>
+          </span>
           {otherProfile?.city || otherProfile?.state ? (
             <p className="text-sm text-gray-500 truncate">
               {[otherProfile.city, otherProfile.state].filter(Boolean).join(", ")}
@@ -452,7 +446,7 @@ export default function ConversationPanel({
       {/* ── Conversation thread ── */}
       <div
         ref={conversationRef}
-        className={`flex-1 overflow-y-auto pl-6 ${detailOpen ? "pr-6" : "pr-[44px]"} py-6 bg-white`}
+        className={`flex-1 min-h-0 overflow-y-auto px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-6 bg-white`}
       >
         <div className="space-y-4">
           {/* Care request card — structured summary of the initial inquiry */}
@@ -485,8 +479,7 @@ export default function ConversationPanel({
                 isInbound ? (
                   <div className="flex items-end gap-2.5 max-w-[70%]">
                     {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                      <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
                     ) : (
                       <div
                         className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -594,8 +587,7 @@ export default function ConversationPanel({
                     {!isOwn && (
                       isLastInGroup ? (
                         imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                          <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
                         ) : (
                           <div
                             className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -669,8 +661,7 @@ export default function ConversationPanel({
                     {/* Avatar — only show on last message in group */}
                     {isLastInGroup ? (
                       imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={imageUrl} alt={otherName} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                        <Image src={imageUrl} alt={otherName} width={28} height={28} className="w-7 h-7 rounded-full object-cover shrink-0" />
                       ) : (
                         <div
                           className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -722,7 +713,7 @@ export default function ConversationPanel({
       {showMessageInput && (
         <div className="shrink-0 border-t border-gray-200 bg-white">
           {/* Input area */}
-          <div className={`pl-6 ${detailOpen ? "pr-6" : "pr-[44px]"} py-4`}>
+          <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
             <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">
               <textarea
                 ref={messageInputRef}
@@ -748,13 +739,13 @@ export default function ConversationPanel({
                   type="button"
                   onClick={handleSendMessage}
                   disabled={sending || !messageText.trim()}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                  className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
                     messageText.trim()
                       ? "bg-primary-600 text-white hover:bg-primary-700"
                       : "bg-gray-200 text-gray-400"
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19V5m0 0l-7 7m7-7l7 7" />
                   </svg>
                 </button>

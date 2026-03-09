@@ -23,10 +23,15 @@ export type ProfileCategory =
 
 export type ClaimState = "unclaimed" | "pending" | "claimed" | "rejected";
 export type VerificationState = "unverified" | "pending" | "verified";
-export type ProfileSource = "seeded" | "user_created";
+// ProfileSource indicates how the profile was created:
+// - "seeded": Test/demo data from dev seeding scripts
+// - "user_created": User created their own profile from scratch
+// - "claimed_from_directory": Real provider claimed an existing directory listing
+export type ProfileSource = "seeded" | "user_created" | "claimed_from_directory";
 
-export type MembershipPlan = "free" | "pro";
+export type MembershipPlan = "free" | "pro" | "basic" | "professional" | "enterprise";
 export type MembershipStatus =
+  | "trial"
   | "trialing"
   | "active"
   | "past_due"
@@ -116,8 +121,49 @@ export interface Connection {
 }
 
 // ============================================================
+// Reviews
+// ============================================================
+
+export type ReviewStatus = "published" | "under_review" | "rejected" | "removed";
+
+export interface Review {
+  id: string;
+  provider_id: string;
+  account_id: string;
+  reviewer_name: string;
+  rating: number;
+  title: string | null;
+  comment: string;
+  relationship: string;
+  status: ReviewStatus;
+  created_at: string;
+  updated_at: string;
+  // Provider reply fields
+  provider_reply: string | null;
+  replied_at: string | null;
+  replied_by: string | null;
+}
+
+// ============================================================
 // Metadata Types (JSONB per profile type)
 // ============================================================
+
+/** Demo review structure - used only for test/demo profiles */
+export interface DemoReview {
+  name: string;
+  rating: number;
+  date: string;
+  comment: string;
+  relationship?: string;
+}
+
+/** Google Places data - external, read-only */
+export interface GoogleMetadata {
+  rating?: number;
+  review_count?: number;
+  place_id?: string;
+  last_synced?: string;
+}
 
 export interface OrganizationMetadata {
   license_number?: string;
@@ -130,12 +176,36 @@ export interface OrganizationMetadata {
   amenities?: string[];
   hours?: string;
   price_range?: string;
+
   // Verification fields
   verification_id_type?: string;
   verification_id_image?: string;
   verification_manager_photo?: string;
   verification_role?: string;
   verification_affiliation_image?: string;
+
+  // === Review Data Sources (clearly separated) ===
+
+  // Demo/test data - only shown on demo profiles, clearly labeled
+  demo_mode?: boolean;
+  demo_reviews?: DemoReview[];
+
+  // Google Places data (external, read-only)
+  google_metadata?: GoogleMetadata;
+
+  // Olera proprietary scores (admin/algorithm set)
+  community_score?: number;
+  value_score?: number;
+  info_score?: number;
+
+  // DEPRECATED: Old fields - should not be used for new profiles
+  // These exist for backwards compatibility with old seeded data
+  /** @deprecated Use demo_reviews instead */
+  reviews?: DemoReview[];
+  /** @deprecated Use google_metadata.rating or compute from reviews table */
+  rating?: number;
+  /** @deprecated Use reviews table count */
+  review_count?: number;
 }
 
 export interface CaregiverMetadata {
@@ -187,9 +257,11 @@ export interface FamilyMetadata {
 // ============================================================
 
 export interface DeferredAction {
-  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit";
+  action: "save" | "inquiry" | "apply" | "claim" | "create_profile" | "phone_reveal" | "connection_request" | "save_benefit" | "review" | "question";
   targetProfileId?: string;
   benefitProgramName?: string;
+  /** For question deferred action - preserve the question text */
+  questionText?: string;
   returnUrl: string;
   createdAt: string;
 }

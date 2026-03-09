@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 
 type SortOption = "relevance" | "closest" | "highest_rated";
 
@@ -25,17 +26,8 @@ export default function MatchSortBar({
   const currentLabel =
     SORT_OPTIONS.find((o) => o.value === sort)?.label ?? "Relevance";
 
-  // Close on outside click
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  // Close on outside click (blur-before-close prevents scroll-to-footer)
+  useClickOutside(ref, () => setOpen(false), open);
 
   return (
     <div ref={ref} className="relative">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import ImageGallery from "./ImageGallery";
 
 interface ProviderPhotoGridProps {
@@ -26,10 +27,12 @@ export default function ProviderPhotoGrid({ images, alt }: ProviderPhotoGridProp
       <div className="hidden md:block">
         {images.length === 1 && (
           <div className="relative rounded-2xl overflow-hidden h-80 lg:h-96">
-            <img
+            <Image
               src={images[0]}
               alt={alt}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="100vw"
             />
           </div>
         )}
@@ -37,19 +40,23 @@ export default function ProviderPhotoGrid({ images, alt }: ProviderPhotoGridProp
         {images.length >= 2 && images.length <= 4 && (
           <div className="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden h-80">
             <div className="col-span-2 relative">
-              <img
+              <Image
                 src={images[0]}
                 alt={`${alt} - Image 1`}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="66vw"
               />
             </div>
             <div className="grid grid-rows-2 gap-2">
               {images.slice(1, 3).map((img, index) => (
                 <div key={index} className="relative overflow-hidden">
-                  <img
+                  <Image
                     src={img}
                     alt={`${alt} - Image ${index + 2}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="33vw"
                   />
                 </div>
               ))}
@@ -64,18 +71,22 @@ export default function ProviderPhotoGrid({ images, alt }: ProviderPhotoGridProp
           <div className="relative">
             <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-96">
               <div className="col-span-2 row-span-2 relative">
-                <img
+                <Image
                   src={images[0]}
                   alt={`${alt} - Image 1`}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="50vw"
                 />
               </div>
               {images.slice(1, 5).map((img, index) => (
                 <div key={index} className="relative overflow-hidden">
-                  <img
+                  <Image
                     src={img}
                     alt={`${alt} - Image ${index + 2}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="25vw"
                   />
                 </div>
               ))}
@@ -115,11 +126,13 @@ export default function ProviderPhotoGrid({ images, alt }: ProviderPhotoGridProp
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {images.map((img, index) => (
-                <div key={index} className="rounded-xl overflow-hidden">
-                  <img
+                <div key={index} className="relative rounded-xl overflow-hidden aspect-[3/2]">
+                  <Image
                     src={img}
                     alt={`${alt} - Image ${index + 1}`}
-                    className="w-full h-auto object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 768px) 50vw, 100vw"
                   />
                 </div>
               ))}

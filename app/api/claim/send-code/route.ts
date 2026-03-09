@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
+import { sendEmail } from "@/lib/email";
+import { verificationCodeEmail } from "@/lib/email-templates";
+import { sendSMS, normalizeUSPhone, maskPhone } from "@/lib/twilio";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,29 +28,23 @@ function generateCode(): string {
 /**
  * POST /api/claim/send-code
  *
- * Sends a 6-digit verification code to the provider's email on file.
+ * Sends a 6-digit verification code via email or SMS.
+ * No authentication required — verification is tracked by claim_session UUID.
  *
- * Request body: { providerId: string }
- * Returns: { emailHint: string } or error
+ * Request body: { providerId: string, claimSession: string, method?: "email" | "sms" }
+ * Returns: { emailHint: string } or { phoneHint: string } or error
  */
 export async function POST(request: Request) {
   try {
-    // Authenticate
-    const supabase = await createServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { providerId } = body;
+    const { providerId, claimSession, method = "email" } = body;
 
     if (!providerId) {
       return NextResponse.json({ error: "Provider ID is required." }, { status: 400 });
+    }
+
+    if (!claimSession || !UUID_RE.test(claimSession)) {
+      return NextResponse.json({ error: "Valid claim session is required." }, { status: 400 });
     }
 
     const db = getAdminClient();
@@ -55,10 +52,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
     }
 
-    // Look up provider email
+    // Look up provider contact info
     const { data: provider, error: providerErr } = await db
       .from("olera-providers")
-      .select("email, provider_name")
+      .select("email, phone, provider_name")
       .eq("provider_id", providerId)
       .single();
 
@@ -66,36 +63,55 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Provider not found." }, { status: 404 });
     }
 
-    if (!provider.email) {
-      return NextResponse.json(
-        { error: "No email on file for this provider. Please use the 'No access to email' option." },
-        { status: 422 }
-      );
+    // Validate delivery method has a target
+    if (method === "sms") {
+      const normalized = provider.phone ? normalizeUSPhone(provider.phone) : null;
+      if (!normalized) {
+        return NextResponse.json(
+          { error: "No phone number on file for this provider. Please use email verification." },
+          { status: 422 }
+        );
+      }
+    } else {
+      if (!provider.email) {
+        return NextResponse.json(
+          { error: "No email on file for this provider. Please use the 'No access to email' option." },
+          { status: 422 }
+        );
+      }
     }
 
-    // Rate limit: max 3 codes per provider+user per hour
+    // Rate limit: progressive — 5 per 10 min, 10 per hour
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await db
-      .from("claim_verification_codes")
-      .select("id", { count: "exact", head: true })
-      .eq("provider_id", providerId)
-      .eq("user_id", user.id)
-      .gte("created_at", oneHourAgo);
 
-    if ((count ?? 0) >= 3) {
+    const [{ count: recentCount }, { count: hourlyCount }] = await Promise.all([
+      db.from("claim_verification_codes").select("id", { count: "exact", head: true })
+        .eq("provider_id", providerId).gte("created_at", tenMinAgo),
+      db.from("claim_verification_codes").select("id", { count: "exact", head: true })
+        .eq("provider_id", providerId).gte("created_at", oneHourAgo),
+    ]);
+
+    if ((recentCount ?? 0) >= 5) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please wait a few minutes before trying again." },
+        { status: 429 }
+      );
+    }
+    if ((hourlyCount ?? 0) >= 10) {
       return NextResponse.json(
         { error: "Too many attempts. Please try again in an hour." },
         { status: 429 }
       );
     }
 
-    // Generate code and store
+    // Generate code and store with claim_session
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
 
     const { error: insertErr } = await db.from("claim_verification_codes").insert({
       provider_id: providerId,
-      user_id: user.id,
+      claim_session: claimSession,
       code,
       expires_at: expiresAt,
     });
@@ -105,41 +121,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to generate code." }, { status: 500 });
     }
 
-    // Send email via Resend
-    const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
-      console.error("RESEND_API_KEY not configured");
-      return NextResponse.json({ error: "Email service not configured." }, { status: 500 });
+    // Send via chosen method
+    if (method === "sms") {
+      const phone = normalizeUSPhone(provider.phone!)!;
+      const { success, error: smsErr } = await sendSMS({
+        to: phone,
+        body: `Your Olera verification code is: ${code}. It expires in 10 minutes.`,
+      });
+
+      if (!success) {
+        console.error("SMS send error:", smsErr);
+        return NextResponse.json({ error: "Failed to send SMS." }, { status: 500 });
+      }
+
+      return NextResponse.json({ phoneHint: maskPhone(phone) });
     }
 
-    const resend = new Resend(resendApiKey);
-    const { error: emailErr } = await resend.emails.send({
-      from: "Olera <noreply@olera.care>",
-      to: provider.email,
+    // Default: email
+    const { success: emailSent, error: emailErrMsg } = await sendEmail({
+      to: provider.email!,
       subject: "Your Olera verification code",
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-          <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 8px;">Verify your organization</h1>
-          <p style="font-size: 16px; color: #6b7280; margin-bottom: 32px;">
-            Someone is trying to claim the page for <strong>${provider.provider_name}</strong> on Olera.
-            Use this code to complete verification:
-          </p>
-          <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 32px;">
-            <span style="font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #111827;">${code}</span>
-          </div>
-          <p style="font-size: 14px; color: #9ca3af;">
-            This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.
-          </p>
-        </div>
-      `,
+      html: verificationCodeEmail(provider.provider_name, code),
     });
 
-    if (emailErr) {
-      console.error("Resend email error:", emailErr);
+    if (!emailSent) {
+      console.error("Email send error:", emailErrMsg);
       return NextResponse.json({ error: "Failed to send email." }, { status: 500 });
     }
 
-    return NextResponse.json({ emailHint: maskEmail(provider.email) });
+    return NextResponse.json({ emailHint: maskEmail(provider.email!) });
   } catch (err) {
     console.error("Send code error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

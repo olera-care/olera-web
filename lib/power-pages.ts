@@ -11,7 +11,12 @@ import {
   toCardFormat,
   type ProviderCardData,
   getCategoryDisplayName,
+  businessProfileToCardFormat,
+  mergeProviderCards,
+  enrichBpCards,
+  SUPABASE_CAT_TO_PROFILE_CATEGORY,
 } from "@/lib/types/provider";
+import type { BusinessProfile } from "@/lib/types";
 
 // ============================================================
 // Category slug ↔ Supabase mapping
@@ -66,8 +71,10 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
 // Also handle these v1.0 slugs — redirect or alias to the primary slug
 export const CATEGORY_ALIASES: Record<string, string> = {
   "home-care-non-medical": "home-care",
+  "home-health": "home-health-care",                   // short form used in nav/browse filters
+  "nursing-homes": "nursing-home",                     // plural form used in nav/browse filters
   "senior-communities": "assisted-living",
-  "elder-law-attorney": "assisted-living",            // no DB match — redirect to closest
+  "elder-law-attorney": "assisted-living",             // no DB match — redirect to closest
   "financial-legal-other-services": "assisted-living", // no DB match — redirect to closest
 };
 
@@ -197,11 +204,49 @@ export async function fetchPowerPageData(opts: {
     .order("google_rating", { ascending: false, nullsFirst: false })
     .limit(limit);
 
-  const { data: providers, count } = await query;
+  // Build parallel business_profiles query for approved providers
+  const profileCategory = SUPABASE_CAT_TO_PROFILE_CATEGORY[category];
+  let bpQuery = profileCategory
+    ? supabase
+        .from("business_profiles")
+        .select("*", { count: "exact" })
+        .eq("claim_state", "claimed")
+        .eq("is_active", true)
+        .eq("type", "organization")
+        .eq("category", profileCategory)
+    : null;
 
+  if (bpQuery) {
+    if (stateAbbrev) bpQuery = bpQuery.eq("state", stateAbbrev);
+    if (city) bpQuery = bpQuery.ilike("city", city);
+    bpQuery = bpQuery.order("created_at", { ascending: false }).limit(limit);
+  }
+
+  // Run both queries in parallel
+  const [seededResult, bpResult] = await Promise.all([
+    query,
+    bpQuery ?? Promise.resolve({ data: null, count: 0 }),
+  ]);
+
+  const { data: providers, count } = seededResult;
   if (!providers) return null;
 
-  // Compute average prices
+  const bpProviders = (bpResult.data as BusinessProfile[] | null) ?? [];
+
+  // Convert and merge
+  const seededCards = (providers as Provider[]).map(toCardFormat);
+  const bpCards = bpProviders.map(businessProfileToCardFormat);
+  const bpSourceIds = bpProviders.map((bp) => bp.source_provider_id);
+  const dedupeSourceIds = new Set(
+    bpSourceIds.filter((id): id is string => id != null)
+  );
+
+  // Enrich BP cards with images/pricing/rating from the seeded providers they replace
+  enrichBpCards(bpCards, seededCards, bpSourceIds);
+
+  const mergedCards = mergeProviderCards(seededCards, bpCards, dedupeSourceIds);
+
+  // Compute average prices (from seeded providers only — BPs don't have pricing yet)
   const priced = (providers as Provider[]).filter((p) => p.lower_price && p.upper_price);
   const avgLowerPrice = priced.length > 0
     ? Math.round(priced.reduce((s, p) => s + (p.lower_price ?? 0), 0) / priced.length)
@@ -211,8 +256,8 @@ export async function fetchPowerPageData(opts: {
     : null;
 
   return {
-    providers: (providers as Provider[]).map(toCardFormat),
-    totalCount: count ?? providers.length,
+    providers: mergedCards,
+    totalCount: (count ?? providers.length) + (bpResult.count ?? 0),
     avgLowerPrice,
     avgUpperPrice,
   };

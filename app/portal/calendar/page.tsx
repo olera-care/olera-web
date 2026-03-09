@@ -431,7 +431,7 @@ function AppointmentCard({
             </a>
           )}
           <Link
-            href={`/portal/connections/${connection.id}`}
+            href={`/provider/connections`}
             className="text-xs text-primary-600 hover:text-primary-700 font-medium"
           >
             Details
@@ -525,7 +525,7 @@ function AppointmentCard({
               </a>
             )}
             <Link
-              href={`/portal/connections/${connection.id}`}
+              href={`/provider/connections`}
               className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 text-sm font-medium px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors"
             >
               View details

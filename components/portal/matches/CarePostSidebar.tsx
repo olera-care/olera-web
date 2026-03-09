@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import EditCarePostModal from "./EditCarePostModal";
 
@@ -159,7 +160,7 @@ export default function CarePostSidebar({
     }
   };
 
-  // ── No care post ──
+  // ── No care profile ──
   if (!hasPost) {
     return (
       <div className="sticky top-24">
@@ -172,14 +173,14 @@ export default function CarePostSidebar({
               Let providers find you
             </h4>
             <p className="text-[13px] text-gray-500 leading-relaxed mb-4">
-              Post your care need so qualified providers can reach out directly.
+              Share your care profile so qualified providers can reach out directly.
             </p>
             <button
               onClick={handlePublishAction}
               disabled={publishing}
               className="w-full py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold hover:from-primary-400 hover:to-primary-500 transition-all shadow-sm disabled:opacity-50"
             >
-              {publishing ? "Publishing..." : "Publish Care Post"}
+              {publishing ? "Publishing..." : "Publish Care Profile"}
             </button>
           </div>
         </div>
@@ -187,7 +188,7 @@ export default function CarePostSidebar({
     );
   }
 
-  // ── Active / Paused care post ──
+  // ── Active / Paused care profile ──
   return (
     <div className="sticky top-24 space-y-3">
       <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
@@ -196,7 +197,7 @@ export default function CarePostSidebar({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                Your Care Post
+                Your Care Profile
               </h4>
               {acceptingMatches ? (
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-50 border border-primary-100/60 text-[10px] font-semibold text-primary-600">
@@ -213,7 +214,7 @@ export default function CarePostSidebar({
             <button
               type="button"
               onClick={() => setEditModalOpen(true)}
-              className="text-[12px] font-medium text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
+              className="min-h-[44px] px-2 -mr-2 text-[12px] font-medium text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1"
             >
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
@@ -226,10 +227,12 @@ export default function CarePostSidebar({
           {/* Profile row */}
           <div className="flex items-center gap-3 mb-4">
             {activeProfile.image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={activeProfile.image_url}
                 alt=""
+                width={44}
+                height={44}
+                sizes="44px"
                 className="w-11 h-11 rounded-full object-cover border border-gray-100"
               />
             ) : (
@@ -304,8 +307,8 @@ export default function CarePostSidebar({
         {/* Actions section */}
         <div className="border-t border-gray-100 px-5 py-3.5 space-y-3">
           {/* Accepting new matches toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] text-gray-600">Accepting new matches</span>
+          <div className="flex items-center justify-between min-h-[44px]">
+            <span className="text-[14px] text-gray-600">Accepting new matches</span>
             <button
               type="button"
               role="switch"
@@ -313,14 +316,14 @@ export default function CarePostSidebar({
               onClick={handleToggleAccepting}
               disabled={deactivating || publishing}
               className={[
-                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50",
+                "relative inline-flex h-7 w-[52px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out disabled:opacity-50",
                 acceptingMatches ? "bg-primary-500" : "bg-gray-200",
               ].join(" ")}
             >
               <span
                 className={[
-                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
-                  acceptingMatches ? "translate-x-5" : "translate-x-0",
+                  "pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
+                  acceptingMatches ? "translate-x-6" : "translate-x-0",
                 ].join(" ")}
               />
             </button>
@@ -338,7 +341,7 @@ export default function CarePostSidebar({
                     <path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                   </svg>
                   <p className="text-[13px] text-gray-600 leading-relaxed">
-                    Your post is now visible. Providers can find and reach out to you.
+                    Your profile is now visible. Providers can find and reach out to you.
                   </p>
                 </div>
               )}
@@ -349,7 +352,7 @@ export default function CarePostSidebar({
                     <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                   <p className="text-[13px] text-gray-600 leading-relaxed">
-                    New providers won&apos;t see your post. Anyone who already reached out can still be reviewed.
+                    New providers won&apos;t see your profile. Anyone who already reached out can still be reviewed.
                   </p>
                 </div>
               )}
@@ -365,7 +368,7 @@ export default function CarePostSidebar({
               {showDeleteConfirm && (
                 <div className="rounded-xl border border-red-200/60 bg-red-50/30 px-4 py-4 mt-1 space-y-3">
                   <p className="text-[13px] text-gray-700 leading-relaxed">
-                    <span className="font-semibold text-gray-900">Remove your care post?</span>{" "}
+                    <span className="font-semibold text-gray-900">Remove your care profile?</span>{" "}
                     Providers will no longer be able to find or reach out to you. Existing conversations are not affected.
                   </p>
                   <p className="text-[13px] font-medium text-gray-600">
@@ -380,7 +383,7 @@ export default function CarePostSidebar({
                           type="button"
                           onClick={() => toggleDeleteReason(reason)}
                           className={[
-                            "text-[12px] font-medium px-3 py-1.5 rounded-full border transition-all duration-150",
+                            "text-[13px] font-medium px-4 py-2.5 min-h-[44px] rounded-full border transition-all duration-150",
                             isSelected
                               ? "border-gray-300 bg-gray-100 text-gray-800"
                               : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50",
@@ -398,17 +401,17 @@ export default function CarePostSidebar({
                         setShowDeleteConfirm(false);
                         setSelectedDeleteReasons([]);
                       }}
-                      className="flex-1 py-2 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="flex-1 min-h-[44px] py-2 rounded-lg border border-gray-200 bg-white text-[13px] font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                     >
-                      Keep post
+                      Keep profile
                     </button>
                     <button
                       type="button"
                       onClick={handleDeletePost}
                       disabled={deleting}
-                      className="flex-1 py-2 rounded-lg bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-2 rounded-lg bg-red-600 text-white text-[13px] font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
                     >
-                      {deleting ? "Removing..." : "Delete post"}
+                      {deleting ? "Removing..." : "Delete profile"}
                     </button>
                   </div>
                 </div>
@@ -420,9 +423,9 @@ export default function CarePostSidebar({
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="text-[13px] text-gray-400 hover:text-red-600 transition-colors"
+              className="min-h-[44px] px-2 -mx-2 text-[13px] text-gray-400 hover:text-red-600 transition-colors"
             >
-              Delete post
+              Delete profile
             </button>
           )}
         </div>
@@ -438,12 +441,12 @@ export default function CarePostSidebar({
         <p className="text-[13px] text-gray-600 leading-relaxed">
           {interestedCount > 0
             ? <>Take your time. There&apos;s <span className="font-semibold text-gray-800">no pressure</span> to respond immediately.</>
-            : <>Most providers respond within <span className="font-semibold text-gray-800">3–5 days</span> of seeing a matching post.</>
+            : <>Most providers respond within <span className="font-semibold text-gray-800">3–5 days</span> of seeing a matching profile.</>
           }
         </p>
       </div>
 
-      {/* Edit care post modal */}
+      {/* Edit care profile modal */}
       {editModalOpen && (
         <EditCarePostModal
           profile={activeProfile}

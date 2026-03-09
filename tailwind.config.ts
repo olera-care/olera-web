@@ -14,7 +14,7 @@ const config: Config = {
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
         serif: ['"New York"', '"Iowan Old Style"', 'Georgia', '"Times New Roman"', 'serif'],
-        display: ['"New York"', '"Iowan Old Style"', 'Georgia', '"Times New Roman"', 'serif'],
+        display: ['var(--font-dm-serif-display)', '"New York"', '"Iowan Old Style"', 'Georgia', '"Times New Roman"', 'serif'],
       },
       // Untitled UI Typography Scale
       fontSize: {

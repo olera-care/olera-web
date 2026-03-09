@@ -21,19 +21,25 @@ interface Provider {
 export default function AdminProvidersPage() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("pending");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetchProviders = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/admin/providers?status=${filter}`);
       if (res.ok) {
         const data = await res.json();
         setProviders(data.providers ?? []);
+      } else {
+        setError("Failed to load providers. Please try again.");
       }
     } catch (err) {
       console.error("Failed to fetch providers:", err);
+      setError("Failed to load providers. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -45,6 +51,7 @@ export default function AdminProvidersPage() {
 
   async function handleAction(id: string, action: "approve" | "reject") {
     setActionLoading(id);
+    setActionError(null);
     try {
       const res = await fetch(`/api/admin/providers/${id}`, {
         method: "PATCH",
@@ -52,11 +59,14 @@ export default function AdminProvidersPage() {
         body: JSON.stringify({ action }),
       });
       if (res.ok) {
-        // Remove from list or refresh
         setProviders((prev) => prev.filter((p) => p.id !== id));
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error || `Failed to ${action} provider. Please try again.`);
       }
     } catch (err) {
       console.error("Action failed:", err);
+      setActionError(`Failed to ${action} provider. Please check your connection.`);
     } finally {
       setActionLoading(null);
     }
@@ -95,6 +105,18 @@ export default function AdminProvidersPage() {
           </button>
         ))}
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {actionError}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

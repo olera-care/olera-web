@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { sendEmail } from "@/lib/email";
+import { connectionResponseEmail } from "@/lib/email-templates";
+import { sendLoopsEvent } from "@/lib/loops";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -10,7 +13,7 @@ function getAdminClient(): any {
   return createClient(url, serviceKey);
 }
 
-type Action = "archive" | "unarchive" | "delete" | "report";
+type Action = "accept" | "decline" | "archive" | "unarchive" | "delete" | "report";
 
 /**
  * POST /api/connections/manage
@@ -109,6 +112,102 @@ export async function POST(request: Request) {
       : connection.to_profile_id;
 
     switch (action) {
+      case "accept":
+      case "decline": {
+        const newStatus = action === "accept" ? "accepted" : "declined";
+        const { error: statusError } = await admin
+          .from("connections")
+          .update({ status: newStatus })
+          .eq("id", connectionId);
+
+        if (statusError) {
+          console.error(`[manage] ${action} error:`, statusError);
+          return NextResponse.json({ error: `Failed to ${action}` }, { status: 500 });
+        }
+
+        // Send email to the other party (fire-and-forget)
+        try {
+          // The family is the one who sent the request (from_profile_id)
+          // The provider is to_profile_id (the one accepting/declining)
+          const [{ data: familyBp }, { data: providerBp }] = await Promise.all([
+            admin
+              .from("business_profiles")
+              .select("email, display_name, account_id")
+              .eq("id", connection.from_profile_id)
+              .single(),
+            admin
+              .from("business_profiles")
+              .select("display_name")
+              .eq("id", connection.to_profile_id)
+              .single(),
+          ]);
+
+          // Look up family auth email via accounts table
+          let familyEmail = familyBp?.email;
+          if (!familyEmail && familyBp?.account_id) {
+            const { data: acct } = await admin
+              .from("accounts")
+              .select("user_id")
+              .eq("id", familyBp.account_id)
+              .single();
+            if (acct?.user_id) {
+              const { data: { user: authUser } } = await admin.auth.admin.getUserById(acct.user_id);
+              familyEmail = authUser?.email;
+            }
+          }
+
+          if (familyEmail) {
+            await sendEmail({
+              to: familyEmail,
+              subject: action === "accept"
+                ? `${providerBp?.display_name || "A provider"} accepted your inquiry on Olera`
+                : `Update on your care inquiry on Olera`,
+              html: connectionResponseEmail({
+                familyName: familyBp?.display_name || "there",
+                providerName: providerBp?.display_name || "The provider",
+                accepted: action === "accept",
+                viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
+              }),
+            });
+          }
+        } catch (emailErr) {
+          console.error(`[manage] ${action} email failed:`, emailErr);
+        }
+
+        // Loops event (fire-and-forget)
+        if (action === "accept") {
+          try {
+            const { data: seekerBp } = await admin
+              .from("business_profiles")
+              .select("account_id")
+              .eq("id", connection.from_profile_id)
+              .single();
+
+            if (seekerBp?.account_id) {
+              const { data: acct } = await admin
+                .from("accounts")
+                .select("user_id")
+                .eq("id", seekerBp.account_id)
+                .single();
+              if (acct?.user_id) {
+                const { data: { user: seekerAuth } } = await admin.auth.admin.getUserById(acct.user_id);
+                if (seekerAuth?.email) {
+                  await sendLoopsEvent({
+                    email: seekerAuth.email,
+                    eventName: "connection_accepted",
+                    audience: "seeker",
+                  });
+                }
+              }
+            }
+          } catch {
+            // Non-blocking
+          }
+        }
+
+        return NextResponse.json({ status: newStatus });
+      }
+
       case "archive": {
         // Store archive state in metadata — do NOT change status (DB CHECK constraint
         // only allows pending/accepted/declined/expired, not archived).

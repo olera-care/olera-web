@@ -116,6 +116,7 @@ function DashboardContent({
   refreshAccountData: () => Promise<void>;
 }) {
   const guided = useGuidedOnboarding(completeness);
+  const [showCompletenessSheet, setShowCompletenessSheet] = useState(false);
 
   const handleEdit = useCallback(
     (sectionId: SectionId) => setEditingSection(sectionId),
@@ -189,7 +190,7 @@ function DashboardContent({
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={guided.dismiss}
-              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors px-3 py-2 min-h-[44px] flex items-center"
             >
               Dismiss
             </button>
@@ -200,13 +201,27 @@ function DashboardContent({
                   setEditingSection(guided.firstIncompleteSection);
                 }
               }}
-              className="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
+              className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors min-h-[44px] flex items-center"
             >
               Get Started
             </button>
           </div>
         </div>
       )}
+
+      {/* Mobile progress banner - hidden on desktop */}
+      <MobileProgressBanner
+        completeness={completeness}
+        onTap={() => setShowCompletenessSheet(true)}
+      />
+
+      {/* Mobile completeness bottom sheet */}
+      <MobileCompletenessSheet
+        isOpen={showCompletenessSheet}
+        onClose={() => setShowCompletenessSheet(false)}
+        completeness={completeness}
+        lastUpdated={profile.updated_at}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Main content — staggered entrance */}
@@ -268,8 +283,8 @@ function DashboardContent({
           ))}
         </div>
 
-        {/* Sidebar */}
-        <div className="lg:col-span-1">
+        {/* Sidebar - hidden on mobile */}
+        <div className="hidden lg:block lg:col-span-1">
           <div
             className="sticky top-24"
             style={{
@@ -313,29 +328,30 @@ function DashboardHeader({ slug }: { slug: string | null }) {
   };
 
   return (
-    <div className="flex items-end justify-between mb-8">
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 lg:gap-4 mb-4 lg:mb-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 font-display">Dashboard</h1>
-        <p className="text-[15px] text-gray-500 mt-1">Manage your listing and track your profile</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 font-display">Dashboard</h1>
+        <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5 lg:mt-1">Manage your listing and track your profile</p>
       </div>
 
       {slug && (
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 lg:gap-3 w-full sm:w-auto">
           <Link
             href={`/provider/${slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-lg px-4 py-2 shadow-xs hover:bg-gray-50 transition-all duration-200"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl px-3 lg:px-4 py-2.5 shadow-xs hover:bg-gray-50 transition-all duration-200 min-h-[44px]"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            Public view
+            <span className="hidden sm:inline">Public view</span>
+            <span className="sm:hidden">View</span>
           </Link>
           <button
             onClick={handleShare}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg px-4 py-2 shadow-sm transition-all duration-200"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl px-3 lg:px-4 py-2.5 shadow-sm transition-all duration-200 min-h-[44px]"
           >
             {copied ? (
               <>
@@ -349,12 +365,219 @@ function DashboardHeader({ slug }: { slug: string | null }) {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                Share profile
+                <span className="hidden sm:inline">Share profile</span>
+                <span className="sm:hidden">Share</span>
               </>
             )}
           </button>
         </div>
       )}
     </div>
+  );
+}
+
+// ── Mobile progress banner (visible only on mobile) ──
+
+function MobileProgressBanner({
+  completeness,
+  onTap,
+}: {
+  completeness: ReturnType<typeof calculateProfileCompleteness>;
+  onTap: () => void;
+}) {
+  const completedCount = completeness.sections.filter(
+    (s) => s.percent >= 100
+  ).length;
+  const totalSections = completeness.sections.length;
+
+  return (
+    <button
+      type="button"
+      onClick={onTap}
+      className="lg:hidden w-full mb-5 bg-white rounded-xl border border-gray-200 px-4 py-3 text-left active:bg-gray-50 transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        {/* Progress ring */}
+        <div className="relative w-10 h-10 shrink-0">
+          <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="none" stroke="#f3f4f6" strokeWidth="3" />
+            <circle
+              cx="20" cy="20" r="16" fill="none"
+              stroke="#199087"
+              strokeWidth="3" strokeLinecap="round"
+              strokeDasharray={`${completeness.overall * 1.005} 100.5`}
+            />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-700">
+            {completeness.overall}%
+          </span>
+        </div>
+
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900">Profile completeness</p>
+          <p className="text-xs text-gray-500">{completedCount} of {totalSections} sections</p>
+        </div>
+
+        {/* Chevron */}
+        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </button>
+  );
+}
+
+// ── Mobile completeness bottom sheet ──
+
+function MobileCompletenessSheet({
+  isOpen,
+  onClose,
+  completeness,
+  lastUpdated,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  completeness: ReturnType<typeof calculateProfileCompleteness>;
+  lastUpdated: string;
+}) {
+  const formattedDate = new Date(lastUpdated).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const getStatusText = (percent: number): string => {
+    if (percent >= 100) return "ALL DONE!";
+    if (percent >= 76) return "NEARLY COMPLETE!";
+    if (percent >= 51) return "LOOKING GOOD!";
+    if (percent >= 26) return "ALMOST THERE!";
+    return "JUST GETTING STARTED";
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+        onClick={onClose}
+        style={{ animation: "fade-in 0.2s ease-out both" }}
+      />
+
+      {/* Sheet */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-50 lg:hidden bg-white rounded-t-3xl shadow-xl max-h-[85vh] overflow-y-auto"
+        style={{ animation: "slide-up 0.3s ease-out both" }}
+      >
+        {/* Handle */}
+        <div className="sticky top-0 bg-white pt-3 pb-2 px-6 border-b border-gray-100">
+          <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-display font-bold text-gray-900">
+              Profile completeness
+            </h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {/* Circular progress */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative w-28 h-28 mb-3">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#f3f4f6"
+                  strokeWidth="10"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="#199087"
+                  strokeWidth="10"
+                  strokeLinecap="round"
+                  strokeDasharray={`${completeness.overall * 2.64} 264`}
+                  className="transition-all duration-500"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-bold text-gray-900">{completeness.overall}%</span>
+              </div>
+            </div>
+            <p className="text-sm font-semibold tracking-wide uppercase text-gray-900 font-display">
+              {getStatusText(completeness.overall)}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Last updated: {formattedDate}
+            </p>
+          </div>
+
+          {/* Section checklist */}
+          <div className="space-y-1">
+            {completeness.sections.map((section) => {
+              const isComplete = section.percent >= 100;
+              return (
+                <a
+                  key={section.id}
+                  href={`#${section.id}`}
+                  onClick={onClose}
+                  className="flex items-center justify-between py-3 px-3 -mx-3 rounded-xl hover:bg-vanilla-50 active:bg-vanilla-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {isComplete ? (
+                      <div className="w-6 h-6 rounded-full bg-primary-600 flex items-center justify-center shrink-0">
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 shrink-0" />
+                    )}
+                    <span className={`text-[15px] ${isComplete ? "text-primary-600 font-medium" : "text-gray-700"}`}>
+                      {section.label}
+                    </span>
+                  </div>
+                  {!isComplete && (
+                    <span className="text-sm font-medium text-primary-600">
+                      {section.percent}%
+                    </span>
+                  )}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Safe area padding for iPhone */}
+        <div className="h-[env(safe-area-inset-bottom)]" />
+      </div>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slide-up {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
+    </>
   );
 }

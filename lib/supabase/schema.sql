@@ -339,3 +339,69 @@ create table public.claim_verification_codes (
 
 create index idx_claim_codes_provider_user
   on public.claim_verification_codes(provider_id, user_id);
+
+-- ============================================================
+-- CONTENT ARTICLES
+-- CMS table for caregiver support articles.
+-- See scripts/create-content-articles.sql for the full migration script.
+-- ============================================================
+
+create table public.content_articles (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  title text not null,
+  subtitle text default '',
+  excerpt text default '',
+  content_json jsonb default '{}',
+  content_html text default '',
+  cover_image_url text,
+  care_types text[] default '{}',
+  category text not null default 'guide',
+  author_name text not null default 'Olera Team',
+  author_role text default '',
+  author_avatar text,
+  status text not null default 'draft' check (status in ('draft','published','archived')),
+  featured boolean default false,
+  tags text[] default '{}',
+  reading_time text default '5 min',
+  -- SEO fields
+  meta_title text,
+  meta_description text,
+  og_title text,
+  og_description text,
+  og_image_url text,
+  canonical_url text,
+  noindex boolean default false,
+  structured_data_type text default 'Article',
+  focus_keyword text,
+  twitter_card_type text default 'summary_large_image',
+  -- Timestamps
+  published_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  created_by uuid references auth.users(id),
+  updated_by uuid references auth.users(id)
+);
+
+create index idx_content_articles_status on public.content_articles(status);
+create index idx_content_articles_slug on public.content_articles(slug);
+create index idx_content_articles_published_at on public.content_articles(published_at desc);
+create index idx_content_articles_category on public.content_articles(category);
+create index idx_content_articles_care_types on public.content_articles using gin(care_types);
+
+alter table public.content_articles enable row level security;
+
+create policy "Public can read published articles"
+  on public.content_articles
+  for select
+  using (status = 'published' and published_at is not null);
+
+create policy "Service role has full access"
+  on public.content_articles
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+create trigger content_articles_updated_at
+  before update on public.content_articles
+  for each row execute function public.update_updated_at();

@@ -4,10 +4,11 @@ import { useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { FamilyMetadata } from "@/lib/types";
-import Button from "@/components/ui/Button";
 import CarePostView from "@/components/portal/matches/CarePostView";
 import InterestedTabContent from "@/components/portal/matches/InterestedTabContent";
 import CarePostSidebar from "@/components/portal/matches/CarePostSidebar";
+import CareProfileControlsMobile from "@/components/portal/matches/CareProfileControlsMobile";
+import EditCarePostModal from "@/components/portal/matches/EditCarePostModal";
 import { useInterestedProviders } from "@/hooks/useInterestedProviders";
 
 export default function MatchesPage() {
@@ -35,31 +36,29 @@ function MatchesContent() {
     hasPost ? "active" : "default"
   );
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Dynamic subtitle based on state
   const subtitle = (() => {
     if (hasPost && totalInterested === 0) {
       return isActive
-        ? "Your care post is live — providers are looking."
-        : "Your care post is paused. Resume to get new matches.";
+        ? "Your care profile is live — providers are looking."
+        : "Your care profile is paused. Resume to get new matches.";
     }
     if (totalInterested > 0) {
       if (isActive) {
         return `${totalInterested} provider${totalInterested === 1 ? "" : "s"} interested in your care needs.`;
       }
       if (isPaused) {
-        return "Your post is paused, but you can still review matches.";
+        return "Your profile is paused, but you can still review matches.";
       }
       return "Review providers who reached out.";
     }
-    if (step === "review") return "Review your care post before publishing.";
+    if (step === "review") return "Review your care profile before publishing.";
     return "Discover providers or let them find you.";
   })();
 
-  const hasRequiredFields =
-    activeProfile?.care_types?.length && activeProfile?.state;
-
-  // Care Post handlers
+  // Care Profile handlers
   const handlePublish = useCallback(async () => {
     const res = await fetch("/api/care-post/publish", {
       method: "POST",
@@ -95,34 +94,7 @@ function MatchesContent() {
     }
   }, [refreshAccountData, totalInterested]);
 
-  // Profile guard
-  if (!hasRequiredFields) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-      <div className="px-8 py-6 h-full"><div>
-        <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-        <p className="text-[15px] text-gray-500 mt-1 mb-8">
-          Discover providers or let them find you.
-        </p>
-        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-          <span className="text-5xl mb-4 block">📋</span>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Complete your profile first
-          </h3>
-          <p className="text-sm text-gray-500 mb-6 max-w-[380px] mx-auto leading-relaxed">
-            We need your care type preferences and location to find providers
-            that match your needs.
-          </p>
-          <Link href="/portal/profile">
-            <Button size="sm">Complete profile</Button>
-          </Link>
-        </div>
-      </div></div>
-      </div>
-    );
-  }
-
-  // ── DEFAULT STATE — no care post and no interested providers ──
+  // ── DEFAULT STATE — no care profile and no interested providers ──
   if (step === "default" && !hasPost && totalInterested === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -161,20 +133,19 @@ function MatchesContent() {
                 Let providers find you
               </h3>
               <p className="text-[15px] text-gray-500 leading-relaxed max-w-[380px] mx-auto mb-7">
-                Publish a care post and qualified providers in your area will
-                reach out directly. We use your existing profile — it only takes
-                a moment.
+                Share your care profile and qualified providers in your area will
+                reach out directly. It only takes a moment.
               </p>
 
               <button
-                onClick={() => setStep("review")}
+                onClick={() => setEditModalOpen(true)}
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                Create your care post
+                Share your care profile
               </button>
             </div>
 
@@ -203,8 +174,8 @@ function MatchesContent() {
                 <div className="overflow-hidden">
                   <div className="px-8 pb-6 space-y-4 border-t border-warm-100/60 pt-4">
                     {[
-                      { num: 1, bold: "Create your care post", rest: "— we use your existing profile details" },
-                      { num: 2, bold: "Providers review", rest: "your post and reach out if they're a good fit" },
+                      { num: 1, bold: "Share your care profile", rest: "— we use your existing profile details" },
+                      { num: 2, bold: "Providers review", rest: "your profile and reach out if they're a good fit" },
                       { num: 3, bold: "You choose", rest: "— review their profiles and start a conversation" },
                     ].map((s) => (
                       <div key={s.num} className="flex items-start gap-3">
@@ -222,12 +193,25 @@ function MatchesContent() {
             </div>
           </div>
         </div>
+
+        {activeProfile && editModalOpen && (
+          <EditCarePostModal
+            profile={activeProfile}
+            userEmail={user?.email}
+            onClose={() => setEditModalOpen(false)}
+            onSaved={async () => {
+              setEditModalOpen(false);
+              await refreshAccountData();
+              setStep("review");
+            }}
+          />
+        )}
       </div>
       </div>
     );
   }
 
-  // ── REVIEW STATE — reviewing care post before publishing ──
+  // ── REVIEW STATE — reviewing care profile before publishing ──
   if (step === "review" && !hasPost) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
@@ -256,11 +240,136 @@ function MatchesContent() {
     );
   }
 
-  // ── WAITING STATE — care post exists (active/paused) but no providers yet ──
+  // ── WAITING STATE — care profile exists (active/paused) but no providers yet ──
   if (hasPost && totalInterested === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        {/* Mobile: Sticky controls bar */}
+        <div className="lg:hidden">
+          {activeProfile && (
+            <CareProfileControlsMobile
+              activeProfile={activeProfile}
+              userEmail={user?.email}
+              onPublish={handlePublish}
+              onDeactivate={handleDeactivate}
+              onDelete={handleDelete}
+              onEditProfile={() => setEditModalOpen(true)}
+            />
+          )}
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
+          <div className="mb-6">
+            <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
+            <p className="text-[15px] text-gray-500 mt-1">
+              {subtitle}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            {/* Left — waiting card */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+                <div className="px-8 pt-10 pb-8 text-center">
+                  {/* Animated dots */}
+                  <div className="flex items-center justify-center gap-2 mb-6">
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        className="w-3 h-3 rounded-full bg-primary-400"
+                        style={{
+                          animation: "waitingPulse 1.4s ease-in-out infinite",
+                          animationDelay: `${i * 0.2}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <style jsx>{`
+                    @keyframes waitingPulse {
+                      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+                      40% { opacity: 1; transform: scale(1); }
+                    }
+                  `}</style>
+
+                  <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
+                    Your profile is out there
+                  </h3>
+                  <p className="text-[15px] text-gray-500 leading-relaxed max-w-[420px] mx-auto">
+                    Providers in your area are reviewing profiles daily.
+                    We&apos;ll email you when someone reaches out.
+                  </p>
+                </div>
+
+                {/* Divider */}
+                <div className="mx-8 border-t border-gray-200/60" />
+
+                {/* Browse link */}
+                <div className="px-8 py-5">
+                  <Link
+                    href="/browse"
+                    className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                  >
+                    Browse providers while you wait
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Right — sidebar (desktop only) */}
+            <div className="hidden lg:block lg:col-span-1">
+              {activeProfile && (
+                <CarePostSidebar
+                  activeProfile={activeProfile}
+                  interestedCount={totalInterested}
+                  userEmail={user?.email}
+                  onPublish={handlePublish}
+                  onDeactivate={handleDeactivate}
+                  onDelete={handleDelete}
+                  onProfileUpdated={refreshAccountData}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Edit modal for mobile */}
+        {activeProfile && editModalOpen && (
+          <EditCarePostModal
+            profile={activeProfile}
+            userEmail={user?.email}
+            onClose={() => setEditModalOpen(false)}
+            onSaved={async () => {
+              setEditModalOpen(false);
+              await refreshAccountData();
+            }}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // ── ACTIVE STATE — providers interested (regardless of profile status), show grid ──
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+      {/* Mobile: Sticky controls bar - show whenever there are interested providers */}
+      <div className="lg:hidden">
+        {activeProfile && (
+          <CareProfileControlsMobile
+            activeProfile={activeProfile}
+            userEmail={user?.email}
+            onPublish={handlePublish}
+            onDeactivate={handleDeactivate}
+            onDelete={handleDelete}
+            onEditProfile={() => setEditModalOpen(true)}
+          />
+        )}
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
+        {/* Header */}
         <div className="mb-6">
           <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
           <p className="text-[15px] text-gray-500 mt-1">
@@ -268,118 +377,61 @@ function MatchesContent() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          {/* Left — waiting card */}
+        {/* Desktop: 2/3 + 1/3 grid */}
+        <div className="hidden lg:grid lg:grid-cols-3 gap-8 items-start">
+          {/* Main content — 2/3 */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-              <div className="px-8 pt-10 pb-8 text-center">
-                {/* Animated dots */}
-                <div className="flex items-center justify-center gap-2 mb-6">
-                  {[0, 1, 2].map((i) => (
-                    <span
-                      key={i}
-                      className="w-3 h-3 rounded-full bg-primary-400"
-                      style={{
-                        animation: "waitingPulse 1.4s ease-in-out infinite",
-                        animationDelay: `${i * 0.2}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-                <style jsx>{`
-                  @keyframes waitingPulse {
-                    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-                    40% { opacity: 1; transform: scale(1); }
-                  }
-                `}</style>
-
-                <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
-                  Your post is out there
-                </h3>
-                <p className="text-[15px] text-gray-500 leading-relaxed max-w-[420px] mx-auto">
-                  Providers in your area are reviewing posts daily.
-                  We&apos;ll email you when someone reaches out.
-                </p>
-              </div>
-
-              {/* Divider */}
-              <div className="mx-8 border-t border-gray-200/60" />
-
-              {/* Browse link */}
-              <div className="px-8 py-5">
-                <Link
-                  href="/browse"
-                  className="inline-flex items-center gap-1.5 text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Browse providers while you wait
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
+            {activeProfile && (
+              <InterestedTabContent
+                profileId={activeProfile.id}
+                hasCarePost={hasPost}
+                familyLat={activeProfile.lat}
+                familyLng={activeProfile.lng}
+                variant="desktop"
+              />
+            )}
           </div>
 
-          {/* Right — sidebar */}
+          {/* Sidebar — 1/3 */}
           <div className="lg:col-span-1">
             {activeProfile && (
               <CarePostSidebar
                 activeProfile={activeProfile}
                 interestedCount={totalInterested}
-                userEmail={user?.email}
                 onPublish={handlePublish}
                 onDeactivate={handleDeactivate}
                 onDelete={handleDelete}
-                onProfileUpdated={refreshAccountData}
               />
             )}
           </div>
         </div>
-      </div>
-      </div>
-    );
-  }
 
-  // ── ACTIVE STATE — providers interested (regardless of post status), show grid ──
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-display font-bold text-gray-900">Matches</h2>
-        <p className="text-[15px] text-gray-500 mt-1">
-          {subtitle}
-        </p>
-      </div>
-
-      {/* 2/3 + 1/3 grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        {/* Main content — 2/3 */}
-        <div className="lg:col-span-2">
+        {/* Mobile: Full-width compact cards */}
+        <div className="lg:hidden">
           {activeProfile && (
             <InterestedTabContent
               profileId={activeProfile.id}
               hasCarePost={hasPost}
               familyLat={activeProfile.lat}
               familyLng={activeProfile.lng}
-            />
-          )}
-        </div>
-
-        {/* Sidebar — 1/3 */}
-        <div className="lg:col-span-1">
-          {activeProfile && (
-            <CarePostSidebar
-              activeProfile={activeProfile}
-              interestedCount={totalInterested}
-              onPublish={handlePublish}
-              onDeactivate={handleDeactivate}
-              onDelete={handleDelete}
+              variant="mobile"
             />
           )}
         </div>
       </div>
-    </div>
+
+      {/* Edit modal for mobile */}
+      {activeProfile && editModalOpen && (
+        <EditCarePostModal
+          profile={activeProfile}
+          userEmail={user?.email}
+          onClose={() => setEditModalOpen(false)}
+          onSaved={async () => {
+            setEditModalOpen(false);
+            await refreshAccountData();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -89,9 +89,8 @@ export default function ConnectButton({
     "initiate_contact"
   );
 
-  // If on free tier, also check local count hasn't exceeded limit
-  const isFree =
-    membership?.status === "free" || membership?.status === "trialing";
+  // If on free tier (not trial/trialing), also check local count hasn't exceeded limit
+  const isFree = membership?.status === "free";
   const serverUsed = membership?.free_responses_used ?? 0;
   const hasEngageAccess = isFree
     ? serverUsed + localConnectionsMade < FREE_CONNECTION_LIMIT && serverAccess
@@ -150,11 +149,8 @@ export default function ConnectButton({
         throw new Error(insertError.message);
       }
 
-      // Increment free_responses_used for non-paid memberships
-      if (
-        membership &&
-        (membership.status === "free" || membership.status === "trialing")
-      ) {
+      // Increment free_responses_used only for free tier (not trial)
+      if (membership && membership.status === "free") {
         const newCount = (membership.free_responses_used ?? 0) + 1;
         await supabase
           .from("memberships")
@@ -353,7 +349,7 @@ export default function ConnectButton({
               others on Olera.
             </p>
             <Link
-              href="/portal/settings"
+              href="/provider/pro"
               className="inline-flex items-center justify-center w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors min-h-[44px]"
               onClick={closeModal}
             >

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
+import Image from "next/image";
 import Link from "next/link";
 import type { Connection, Profile } from "@/lib/types";
 
@@ -140,30 +142,53 @@ function searchConnections(connections: ConnectionWithProfile[], query: string, 
   });
 }
 
-type FilterOption = "all" | "pending" | "connected";
+/** Read-tracking key for localStorage - scoped by profile ID */
+function getInboxReadKey(profileId: string): string {
+  return `olera_inbox_read_${profileId}`;
+}
 
-const FILTER_LABELS: Record<FilterOption, string> = {
-  all: "All",
-  pending: "Pending",
-  connected: "Connected",
-};
+/** Migrate old unscoped key to new profile-scoped key (one-time) */
+function migrateInboxReadData(profileId: string): void {
+  const OLD_KEY = "olera_inbox_read";
+  const newKey = getInboxReadKey(profileId);
+  const migrationFlag = `olera_inbox_migrated_${profileId}`;
 
-/** Read-tracking key for localStorage */
-const READ_KEY = "olera_inbox_read";
-
-function getReadSet(): Set<string> {
   try {
-    const raw = localStorage.getItem(READ_KEY);
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      const existingNew = localStorage.getItem(newKey);
+      if (!existingNew) {
+        localStorage.setItem(newKey, oldData);
+      } else {
+        const oldIds: string[] = JSON.parse(oldData);
+        const newIds: string[] = JSON.parse(existingNew);
+        const merged = [...new Set([...oldIds, ...newIds])];
+        localStorage.setItem(newKey, JSON.stringify(merged));
+      }
+    }
+    localStorage.setItem(migrationFlag, "1");
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+function getReadSet(profileId: string): Set<string> {
+  try {
+    // Ensure migration runs before reading
+    migrateInboxReadData(profileId);
+    const raw = localStorage.getItem(getInboxReadKey(profileId));
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch {
     return new Set();
   }
 }
 
-function markAsRead(connectionId: string) {
-  const readSet = getReadSet();
+function markAsRead(connectionId: string, profileId: string) {
+  const readSet = getReadSet(profileId);
   readSet.add(connectionId);
-  localStorage.setItem(READ_KEY, JSON.stringify([...readSet]));
+  localStorage.setItem(getInboxReadKey(profileId), JSON.stringify([...readSet]));
   // Notify navbar badge hook to re-count
   window.dispatchEvent(new CustomEvent("olera:inbox-read"));
 }
@@ -188,27 +213,26 @@ export default function ConversationList({
   const [archiveOpen, setPastOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-  const [filterOption, setFilterOption] = useState<FilterOption>("all");
-  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const filterDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load read tracking from localStorage
+  // Load read tracking from localStorage (scoped by profile)
   useEffect(() => {
-    setReadIds(getReadSet());
-  }, []);
+    if (activeProfileId) {
+      setReadIds(getReadSet(activeProfileId));
+    }
+  }, [activeProfileId]);
 
   // Mark selected conversation as read
   useEffect(() => {
-    if (selectedId) {
-      markAsRead(selectedId);
+    if (selectedId && activeProfileId) {
+      markAsRead(selectedId, activeProfileId);
       setReadIds((prev) => new Set([...prev, selectedId]));
     }
-  }, [selectedId]);
+  }, [selectedId, activeProfileId]);
 
   // Track scroll for divider
   const handleScroll = useCallback(() => {
@@ -231,27 +255,13 @@ export default function ConversationList({
     }
   }, [searchOpen]);
 
-  // Close menu / dropdown on outside click
-  useEffect(() => {
-    if (!menuOpenId && !filterDropdownOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (menuOpenId && menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpenId(null);
-      }
-      if (filterDropdownOpen && filterDropdownRef.current && !filterDropdownRef.current.contains(e.target as Node)) {
-        setFilterDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpenId, filterDropdownOpen]);
+  // Close menu on outside click
+  useClickOutside(menuRef, () => setMenuOpenId(null), !!menuOpenId);
 
   // Apply filters
   const filtered = (() => {
     if (searchOpen) return searchConnections(getActiveConnections(connections), searchQuery, activeProfileId);
     let list = getActiveConnections(connections);
-    if (filterOption === "pending") list = list.filter((c) => c.status === "pending");
-    if (filterOption === "connected") list = list.filter((c) => c.status === "accepted");
     if (unreadOnly) list = list.filter((c) => !readIds.has(c.id));
     return list;
   })();
@@ -275,7 +285,7 @@ export default function ConversationList({
     const isReported = !!(conn.metadata as Record<string, unknown> | undefined)?.reported;
 
     return (
-      <div key={conn.id} className="pl-[28px] pr-3 py-0.5">
+      <div key={conn.id} className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5">
         <div
           className={`group relative rounded-xl transition-colors ${
             isMenuOpen ? "z-20" : ""
@@ -292,10 +302,12 @@ export default function ConversationList({
             {/* Avatar with unread indicator */}
             <div className="relative shrink-0 mt-0.5">
               {otherProfile?.image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={otherProfile.image_url}
                   alt={name}
+                  width={48}
+                  height={48}
+                  sizes="48px"
                   className="w-12 h-12 rounded-full object-cover border border-gray-200"
                 />
               ) : (
@@ -347,26 +359,26 @@ export default function ConversationList({
             </div>
           </button>
 
-          {/* Hover action menu */}
-          <div className={`absolute right-4 top-4 ${isMenuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"} transition-opacity`}>
+          {/* Action menu — always visible on mobile, hover-reveal on desktop */}
+          <div className={`absolute right-2 top-2 ${isMenuOpen ? "opacity-100" : "sm:opacity-0 sm:group-hover:opacity-100"} transition-opacity`}>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setMenuOpenId(isMenuOpen ? null : conn.id);
                 }}
-                className="p-1.5 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
+                className="w-11 h-11 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors"
                 aria-label="More actions"
               >
-                <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                 </svg>
               </button>
 
-              {/* Dropdown */}
+              {/* Dropdown - opens upward to avoid scroll clipping */}
               {isMenuOpen && (
                 <div
                   ref={menuRef}
-                  className="absolute right-0 top-full mt-1 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-10"
+                  className="absolute right-0 bottom-full mb-1 w-40 bg-white rounded-xl shadow-xl border border-gray-200 py-1 z-50"
                 >
                   {/* Active items: Archive + Report */}
                   {!isPast && onArchiveConnection && (
@@ -442,12 +454,12 @@ export default function ConversationList({
   if (loading) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-5">
+        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="pl-[28px] pr-3 py-0.5">
+            <div key={i} className="pl-0 sm:pl-[28px] pr-0 sm:pr-3 py-0.5">
               <div className="flex items-start gap-3.5 px-4 py-4 animate-pulse">
                 <div className="w-12 h-12 rounded-full bg-gray-100 shrink-0" />
                 <div className="flex-1 space-y-2.5 pt-1">
@@ -467,7 +479,7 @@ export default function ConversationList({
   if (connections.length === 0) {
     return (
       <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
-        <div className="pl-[44px] pr-5 py-5">
+        <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5">
           <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
@@ -501,12 +513,12 @@ export default function ConversationList({
   return (
     <div className={`flex flex-col border-r border-gray-200 bg-white ${className}`}>
       {/* Header */}
-      <div className={`shrink-0 transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
+      <div className={`shrink-0 relative z-10 bg-white transition-shadow duration-150 ${isScrolled ? "shadow-[0_1px_0_0_#e5e7eb]" : ""}`}>
         {/* Header — crossfade between default and search modes */}
         <div className="relative">
           {/* Default mode — title + search icon */}
           <div
-            className={`pl-[44px] pr-5 py-5 flex items-center justify-between transition-all duration-200 ease-out ${
+            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-5 flex items-center justify-between transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-0 -translate-y-1 pointer-events-none absolute inset-x-0 top-0"
                 : "opacity-100 translate-y-0"
@@ -515,10 +527,10 @@ export default function ConversationList({
             <h2 className="text-2xl font-display font-bold text-gray-900">Inbox</h2>
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="w-11 h-11 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 transition-colors"
               aria-label="Search messages"
             >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
@@ -526,7 +538,7 @@ export default function ConversationList({
 
           {/* Search mode */}
           <div
-            className={`pl-[44px] pr-5 py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
+            className={`pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-4 flex items-center gap-3 transition-all duration-200 ease-out ${
               searchOpen
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-1 pointer-events-none absolute inset-x-0 top-0"
@@ -547,9 +559,9 @@ export default function ConversationList({
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="p-0.5 rounded-full hover:bg-gray-200 transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
                 >
-                  <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -557,7 +569,7 @@ export default function ConversationList({
             </div>
             <button
               onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
-              className="text-sm font-medium text-gray-900 shrink-0"
+              className="min-h-[44px] px-3 text-sm font-medium text-gray-900 shrink-0"
             >
               Cancel
             </button>
@@ -570,58 +582,22 @@ export default function ConversationList({
             searchOpen ? "max-h-0 opacity-0" : "max-h-14 opacity-100"
           }`}
         >
-          <div className="pl-[44px] pr-5 pb-4 flex items-center gap-2.5">
-            {/* "All" dropdown pill */}
-            <div className="relative" ref={filterDropdownRef}>
-              <button
-                onClick={() => setFilterDropdownOpen((p) => !p)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                  filterOption !== "all" || unreadOnly
-                    ? "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-                    : "bg-gray-900 text-white"
-                }`}
-              >
-                {FILTER_LABELS[filterOption]}
-                <svg className={`w-3 h-3 transition-transform ${filterDropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {filterDropdownOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-40 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
-                  {(Object.keys(FILTER_LABELS) as FilterOption[]).map((key) => (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        setFilterOption(key);
-                        setUnreadOnly(false);
-                        setFilterDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                        filterOption === key
-                          ? "text-gray-900 font-semibold bg-gray-50"
-                          : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      {FILTER_LABELS[key]}
-                      {filterOption === key && (
-                        <svg className="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 flex items-center gap-2.5">
+            {/* "All" toggle pill */}
+            <button
+              onClick={() => setUnreadOnly(false)}
+              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                !unreadOnly
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              All
+            </button>
 
             {/* "Unread" toggle pill */}
             <button
-              onClick={() => {
-                setUnreadOnly((p) => {
-                  if (!p) setFilterOption("all");
-                  return !p;
-                });
-              }}
+              onClick={() => setUnreadOnly(true)}
               className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
                 unreadOnly
                   ? "bg-gray-900 text-white"
@@ -676,7 +652,7 @@ export default function ConversationList({
                   return !p;
                 });
               }}
-              className="w-full flex items-center justify-between pl-[44px] pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
+              className="w-full flex items-center justify-between pl-4 sm:pl-[44px] pr-4 sm:pr-5 py-3.5 mt-2 bg-gray-50/80 hover:bg-gray-100/80 transition-colors"
             >
               <span className="text-sm font-semibold text-gray-500">
                 Archived ({pastConnections.length || archivedCount})

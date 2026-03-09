@@ -24,19 +24,24 @@ interface Lead {
 export default function AdminLeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<TypeFilter>("all");
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const typeParam = filter !== "all" ? `&type=${filter}` : "";
       const res = await fetch(`/api/admin/leads?limit=100${typeParam}`);
       if (res.ok) {
         const data = await res.json();
         setLeads(data.connections ?? []);
+      } else {
+        setError("Failed to load leads. Please try again.");
       }
     } catch (err) {
       console.error("Failed to fetch leads:", err);
+      setError("Failed to load leads. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -79,6 +84,12 @@ export default function AdminLeadsPage() {
           </button>
         ))}
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

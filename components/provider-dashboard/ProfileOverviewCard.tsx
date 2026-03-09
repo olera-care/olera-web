@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Badge from "@/components/ui/Badge";
 import DashboardSectionCard from "./DashboardSectionCard";
@@ -58,59 +59,123 @@ export default function ProfileOverviewCard({
     >
       <div>
         {/* Provider identity */}
-        <div className="flex items-center gap-4 mb-5">
-          {/* Avatar / Logo */}
-          {profile.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.image_url}
-              alt={profile.display_name}
-              className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
-              <span className="text-xl font-display font-bold text-primary-700">
-                {initials}
-              </span>
+        <div className="mb-5">
+          {/* Mobile: stacked layout */}
+          <div className="sm:hidden">
+            {/* Top row: Avatar + Controls */}
+            <div className="flex items-start justify-between gap-4 mb-3">
+              {profile.image_url ? (
+                <Image
+                  src={profile.image_url}
+                  alt={profile.display_name}
+                  width={72}
+                  height={72}
+                  sizes="72px"
+                  className="w-[72px] h-[72px] rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
+                />
+              ) : (
+                <div className="w-[72px] h-[72px] rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+                  <span className="text-lg font-display font-bold text-primary-700">
+                    {initials}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 min-h-[44px]"
+                  aria-label="Edit profile overview"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                  </svg>
+                </button>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                  completionPercent >= 100
+                    ? "bg-success-50 text-success-700"
+                    : "bg-primary-50 text-primary-700"
+                }`}>
+                  {completionPercent}%
+                </span>
+              </div>
             </div>
-          )}
-
-          <div className="flex-1 min-w-0">
-            {profile.category && (
-              <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-1">
-                {formatCategory(profile.category)}
-              </p>
-            )}
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-gray-900 font-display truncate">
-                {profile.display_name}
-              </h2>
-              {isVerified && <Badge variant="verified">Verified</Badge>}
+            {/* Bottom: Provider info - full width */}
+            <div>
+              {profile.category && (
+                <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-1">
+                  {formatCategory(profile.category)}
+                </p>
+              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-xl font-bold text-gray-900 font-display">
+                  {profile.display_name}
+                </h2>
+                {isVerified && <Badge variant="verified">Verified</Badge>}
+              </div>
+              {location && (
+                <p className="text-[15px] text-gray-500 mt-1">{location}</p>
+              )}
             </div>
-            {location && (
-              <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>
-            )}
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              type="button"
-              onClick={onEdit}
-              className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
-              aria-label="Edit profile overview"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
-            </button>
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-              completionPercent >= 100
-                ? "bg-success-50 text-success-700"
-                : "bg-primary-50 text-primary-700"
-            }`}>
-              {completionPercent}%
-            </span>
+          {/* Desktop: horizontal layout */}
+          <div className="hidden sm:flex items-center gap-4">
+            {/* Avatar / Logo */}
+            {profile.image_url ? (
+              <Image
+                src={profile.image_url}
+                alt={profile.display_name}
+                width={80}
+                height={80}
+                sizes="80px"
+                className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-primary-100 ring-offset-2"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center shrink-0 shadow-sm shadow-primary-500/10 border border-primary-100/60">
+                <span className="text-xl font-display font-bold text-primary-700">
+                  {initials}
+                </span>
+              </div>
+            )}
+
+            <div className="flex-1 min-w-0">
+              {profile.category && (
+                <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-1">
+                  {formatCategory(profile.category)}
+                </p>
+              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-xl font-bold text-gray-900 font-display truncate">
+                  {profile.display_name}
+                </h2>
+                {isVerified && <Badge variant="verified">Verified</Badge>}
+              </div>
+              {location && (
+                <p className="text-[15px] text-gray-500 mt-0.5">{location}</p>
+              )}
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={onEdit}
+                className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-900 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all duration-200"
+                aria-label="Edit profile overview"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </button>
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+                completionPercent >= 100
+                  ? "bg-success-50 text-success-700"
+                  : "bg-primary-50 text-primary-700"
+              }`}>
+                {completionPercent}%
+              </span>
+            </div>
           </div>
         </div>
 

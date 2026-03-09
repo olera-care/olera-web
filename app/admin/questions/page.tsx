@@ -147,14 +147,29 @@ export default function AdminQuestionsPage() {
               {/* Header */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-semibold text-gray-900">{q.question}</p>
+                  <a
+                    href={`/provider/${q.provider_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-base font-semibold text-gray-900 hover:text-primary-600 hover:underline transition-colors"
+                  >
+                    {q.question}
+                  </a>
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                     <span>By {q.asker_name}</span>
                     {q.asker_email && <span>{q.asker_email}</span>}
                     <span>{new Date(q.created_at).toLocaleDateString()}</span>
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
-                    Provider: <span className="font-mono text-gray-500">{q.provider_id}</span>
+                    Provider:{" "}
+                    <a
+                      href={`/provider/${q.provider_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-gray-500 hover:text-primary-600 hover:underline"
+                    >
+                      {q.provider_id}
+                    </a>
                   </div>
                 </div>
                 <span className={`px-2.5 py-1 text-xs font-medium rounded-full flex-shrink-0 ${STATUS_COLORS[q.status] || "bg-gray-100 text-gray-600"}`}>

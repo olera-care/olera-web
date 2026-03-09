@@ -1,26 +1,28 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 import WizardNav from "@/components/ui/WizardNav";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
-type Step = "resume" | 1 | "search" | "verify" | 2 | 3 | 4 | 5;
+type Step = "resume" | 1 | "caregiver-coming-soon" | "search" | "verify" | 2 | 3 | 4 | 5;
 
 const TYPE_KEY = "olera_onboarding_provider_type";
 const DATA_KEY = "olera_provider_wizard_data";
 const STEP_KEY = "olera_onboarding_step";
 const SEARCH_KEY = "olera_onboarding_search";
-const CLAIM_KEY = "olera_onboarding_claim";
 const RESULTS_PER_PAGE = 6;
 
 const ORG_CATEGORIES: { value: string; label: string }[] = [
@@ -118,12 +120,18 @@ function ProviderOnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAdding = searchParams.get("adding") === "true";
-  const { user, account, profiles, isLoading, refreshAccountData } = useAuth();
+  const { user, account, profiles, isLoading, refreshAccountData, switchProfile } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [providerType, setProviderType] = useState<ProviderType | null>(null);
   const [data, setData] = useState<WizardData>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Track if we're still checking for landing page prefill (to avoid flashing step 1)
+  const [checkingPrefill, setCheckingPrefill] = useState(true);
+  // Caregiver coming-soon notify state
+  const [caregiverEmail, setCaregiverEmail] = useState(user?.email || "");
+  const [caregiverNotified, setCaregiverNotified] = useState(false);
+  const [caregiverNotifying, setCaregiverNotifying] = useState(false);
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Provider[]>([]);
@@ -133,10 +141,11 @@ function ProviderOnboardingContent() {
   const [searchError, setSearchError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Location dropdown state (single input drives both name + city search)
+  // Location input state (separate from name search)
+  const [locationQuery, setLocationQuery] = useState("");
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const locationDropdownRef = useRef<HTMLDivElement>(null);
-  const { results: cityResults, preload: preloadCities } = useCitySearch(searchQuery);
+  const { results: cityResults, preload: preloadCities } = useCitySearch(locationQuery);
 
   // Step 3 city picker state
   const [cityQuery, setCityQuery] = useState("");
@@ -144,25 +153,9 @@ function ProviderOnboardingContent() {
   const cityPickerRef = useRef<HTMLDivElement>(null);
   const { results: cityPickerResults, preload: preloadCityPicker } = useCitySearch(cityQuery);
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        locationDropdownRef.current &&
-        !locationDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowLocationDropdown(false);
-      }
-      if (
-        cityPickerRef.current &&
-        !cityPickerRef.current.contains(e.target as Node)
-      ) {
-        setShowCityPicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Close dropdowns on outside click (blur-before-close prevents scroll-to-footer)
+  useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
+  useClickOutside(cityPickerRef, () => setShowCityPicker(false));
 
   // Persist step + search query so resume works properly
   useEffect(() => {
@@ -184,17 +177,9 @@ function ProviderOnboardingContent() {
     }
   }, [searchQuery]);
 
-  // Dispute state
-  const [disputingId, setDisputingId] = useState<string | null>(null);
-  const [disputeName, setDisputeName] = useState("");
-  const [disputeRole, setDisputeRole] = useState("");
-  const [disputeReason, setDisputeReason] = useState("");
-  const [disputeSubmitting, setDisputeSubmitting] = useState(false);
-  const [disputeSuccess, setDisputeSuccess] = useState<string | null>(null);
-  const [disputeError, setDisputeError] = useState("");
-
   // Claim verification state
   const [claimingProvider, setClaimingProvider] = useState<Provider | null>(null);
+  const [claimSession] = useState(() => crypto.randomUUID());
   const [verifyCode, setVerifyCode] = useState("");
   const [verifyEmailHint, setVerifyEmailHint] = useState("");
   const [verifyNoEmail, setVerifyNoEmail] = useState(false);
@@ -220,7 +205,7 @@ function ProviderOnboardingContent() {
     }
 
     // If they already have a provider profile, redirect to hub
-    // (unless they're explicitly adding another profile via ?adding=true)
+    // (unless they're explicitly adding another profile, or claiming via ?claim=)
     const hasProviderProfile = (profiles || []).some(
       (p) => p.type === "organization" || p.type === "caregiver"
     );
@@ -236,13 +221,25 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
+
       } catch {
         // localStorage unavailable
       }
     }
 
-    // Check for a previously started session
+    // Check if coming from landing page with search prefill
+    // If so, skip resume detection — the prefill useEffect will handle routing
+    try {
+      const hasPrefill = sessionStorage.getItem("olera_provider_search_prefill");
+      if (hasPrefill) {
+        // Don't show resume screen — let prefill handler take over
+        return;
+      }
+    } catch {
+      // sessionStorage unavailable
+    }
+
+    // Check for a previously started session (only if no prefill)
     try {
       const savedType = localStorage.getItem(TYPE_KEY) as ProviderType | null;
       if (savedType === "organization" || savedType === "caregiver") {
@@ -262,24 +259,125 @@ function ProviderOnboardingContent() {
         } catch {
           // ignore
         }
-        // Restore claimed provider so verify step can resume
-        try {
-          const savedClaim = localStorage.getItem(CLAIM_KEY);
-          if (savedClaim) {
-            const parsed = JSON.parse(savedClaim);
-            if (parsed?.provider_id && parsed?.provider_name) {
-              setClaimingProvider(parsed as Provider);
-            }
-          }
-        } catch {
-          // ignore corrupt data
-        }
         setStep("resume");
       }
     } catch {
       // localStorage unavailable
     }
   }, [user, profiles, isLoading, isAdding, router]);
+
+  // Read landing-page prefill from sessionStorage (set by /for-providers CTA buttons)
+  // If prefill exists, auto-select organization and skip directly to search step
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    if (isLoading || !user) return; // Wait for auth to settle
+
+    try {
+      const raw = sessionStorage.getItem("olera_provider_search_prefill");
+      if (!raw) {
+        // No prefill — done checking, show normal flow
+        setCheckingPrefill(false);
+        return;
+      }
+      sessionStorage.removeItem("olera_provider_search_prefill");
+      prefillApplied.current = true;
+
+      const { searchQuery: sq, locationQuery: lq } = JSON.parse(raw);
+      if (sq) setSearchQuery(sq);
+      if (lq) setLocationQuery(lq);
+
+      // Auto-select organization and skip to search step if we have prefill
+      if (sq || lq) {
+        setProviderType("organization");
+        try {
+          localStorage.setItem(TYPE_KEY, "organization");
+        } catch {
+          // localStorage unavailable
+        }
+        setStep("search");
+        setCheckingPrefill(false); // Done checking, now on search step
+
+        // Auto-execute search after a tick so state settles
+        setTimeout(() => {
+          setSearching(true);
+          setSearchError("");
+          setCurrentPage(1);
+
+          // Trigger the search programmatically
+          const doSearch = async () => {
+            const name = sq || "";
+            const loc = lq || "";
+
+            try {
+              const supabase = (await import("@/lib/supabase/client")).createClient();
+
+              let query = supabase
+                .from("olera-providers")
+                .select("*")
+                .not("deleted", "is", true);
+
+              if (name) {
+                query = query.ilike("provider_name", `%${name}%`);
+              }
+
+              if (loc) {
+                const parts = loc.split(",").map((s: string) => s.trim());
+                if (parts.length >= 2 && parts[1].length <= 3) {
+                  query = query.ilike("city", `%${parts[0]}%`);
+                  query = query.ilike("state", `%${parts[1]}%`);
+                } else {
+                  query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+                }
+              }
+
+              const { data: providers, error: providerErr } = await query.limit(20);
+
+              if (providerErr) {
+                setSearchError(`Search failed: ${providerErr.message}`);
+                setSearchResults([]);
+              } else {
+                const results = (providers as Provider[]) || [];
+                setSearchResults(results);
+
+                if (results.length > 0) {
+                  const ids = results.map((p) => p.provider_id);
+                  const { data: claimed } = await supabase
+                    .from("business_profiles")
+                    .select("source_provider_id")
+                    .in("source_provider_id", ids)
+                    .in("claim_state", ["claimed", "pending"]);
+
+                  const claimedSet = new Set<string>(
+                    (claimed || [])
+                      .map((r: { source_provider_id: string | null }) => r.source_provider_id)
+                      .filter((id): id is string => !!id)
+                  );
+                  setClaimedIds(claimedSet);
+                } else {
+                  setClaimedIds(new Set());
+                }
+              }
+            } catch {
+              setSearchError("Search failed. Please try again.");
+              setSearchResults([]);
+            } finally {
+              setHasSearched(true);
+              setSearching(false);
+            }
+          };
+
+          doSearch();
+        }, 0);
+      } else {
+        // Prefill existed but was empty — done checking
+        setCheckingPrefill(false);
+      }
+    } catch {
+      // sessionStorage unavailable or corrupt
+      setCheckingPrefill(false);
+    }
+  }, [isLoading, user]);
 
   const update = (key: keyof WizardData, value: string | string[]) => {
     setData((prev) => {
@@ -311,7 +409,17 @@ function ProviderOnboardingContent() {
 
   const handleStep1Next = () => {
     if (!providerType) return;
-    setStep(providerType === "organization" ? "search" : 2);
+    if (providerType === "organization") {
+      setStep("search");
+      // Auto-search if prefilled values exist
+      if (searchQuery.trim() || locationQuery.trim()) {
+        setTimeout(() => {
+          handleSearch({ preventDefault: () => {} } as React.FormEvent);
+        }, 0);
+      }
+    } else {
+      setStep(2);
+    }
   };
 
   const handleResume = () => {
@@ -328,11 +436,9 @@ function ProviderOnboardingContent() {
       // For org flow: if they were on step 2-5, go there directly.
       if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
         setStep(savedStep);
-      } else if (savedStep === "verify" && claimingProvider) {
-        // Resume directly to verify — the claimed provider was restored from localStorage.
-        // OTP code is NOT persisted (time-sensitive), so user will need to request a new code.
-        setStep("verify");
       } else {
+        // "verify" step can't resume (claimingProvider not persisted, claimSession not available).
+        // Fall through to search — user can re-initiate claim from search results.
         // Default: go to search. If there's a saved query, auto-search.
         setStep("search");
         if (searchQuery.trim()) {
@@ -343,12 +449,8 @@ function ProviderOnboardingContent() {
         }
       }
     } else {
-      // Caregiver flow: go to saved step or default to step 2
-      if (savedStep === 2 || savedStep === 3 || savedStep === 4 || savedStep === 5) {
-        setStep(savedStep);
-      } else {
-        setStep(2);
-      }
+      // Caregiver flow is disabled — send to Coming Soon
+      setStep("caregiver-coming-soon");
     }
   };
 
@@ -358,7 +460,7 @@ function ProviderOnboardingContent() {
       localStorage.removeItem(DATA_KEY);
       localStorage.removeItem(STEP_KEY);
       localStorage.removeItem(SEARCH_KEY);
-      localStorage.removeItem(CLAIM_KEY);
+
     } catch {
       // localStorage unavailable
     }
@@ -385,7 +487,7 @@ function ProviderOnboardingContent() {
       const res = await fetch("/api/claim/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ providerId: provider.provider_id }),
+        body: JSON.stringify({ providerId: provider.provider_id, claimSession }),
       });
       const result = await res.json();
       if (!res.ok) {
@@ -417,6 +519,7 @@ function ProviderOnboardingContent() {
         body: JSON.stringify({
           providerId: claimingProvider.provider_id,
           code: verifyCode,
+          claimSession,
         }),
       });
       const result = await res.json();
@@ -431,7 +534,6 @@ function ProviderOnboardingContent() {
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
       } catch {
         // localStorage unavailable
       }
@@ -474,8 +576,10 @@ function ProviderOnboardingContent() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const q = searchQuery.trim();
-    if (!q || !isSupabaseConfigured()) return;
+    const name = searchQuery.trim();
+    const loc = locationQuery.trim();
+    if (!name && !loc) return;
+    if (!isSupabaseConfigured()) return;
     setSearching(true);
     setSearchError("");
     setShowLocationDropdown(false);
@@ -487,18 +591,24 @@ function ProviderOnboardingContent() {
       let query = supabase
         .from("olera-providers")
         .select("*")
-        .eq("deleted", false);
+        .not("deleted", "is", true);
 
-      // Detect "City, ST" format (e.g. "Houston, TX")
-      const parts = q.split(",").map((s: string) => s.trim());
-      if (parts.length >= 2 && parts[1].length <= 3) {
-        query = query.ilike("city", `%${parts[0]}%`);
-        query = query.ilike("state", `%${parts[1]}%`);
-      } else {
-        // General search: match name, city, or state
-        query = query.or(
-          `provider_name.ilike.%${q}%,city.ilike.%${q}%,state.ilike.%${q}%`
-        );
+      // Apply name filter if provided
+      if (name) {
+        query = query.ilike("provider_name", `%${name}%`);
+      }
+
+      // Apply location filter if provided
+      if (loc) {
+        const parts = loc.split(",").map((s: string) => s.trim());
+        if (parts.length >= 2 && parts[1].length <= 3) {
+          // "Houston, TX" format → city AND state
+          query = query.ilike("city", `%${parts[0]}%`);
+          query = query.ilike("state", `%${parts[1]}%`);
+        } else {
+          // Single term → match city or state
+          query = query.or(`city.ilike.%${loc}%,state.ilike.%${loc}%`);
+        }
       }
 
       const { data: providers, error: providerErr } = await query.limit(20);
@@ -536,39 +646,6 @@ function ProviderOnboardingContent() {
     } finally {
       setHasSearched(true);
       setSearching(false);
-    }
-  };
-
-  const handleDisputeSubmit = async (provider: Provider) => {
-    if (!disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()) return;
-    setDisputeSubmitting(true);
-    setDisputeError("");
-
-    try {
-      const res = await fetch("/api/disputes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          provider_name: provider.provider_name,
-          claimant_name: disputeName,
-          claimant_role: disputeRole,
-          reason: disputeReason,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        setDisputeError(err.error || "Failed to submit dispute. Please try again.");
-        return;
-      }
-
-      setDisputeSuccess(provider.provider_id);
-      setDisputingId(null);
-    } catch {
-      setDisputeError("Something went wrong. Please try again.");
-    } finally {
-      setDisputeSubmitting(false);
     }
   };
 
@@ -614,23 +691,32 @@ function ProviderOnboardingContent() {
         }),
       });
 
+      const result = await res.json();
+
       if (!res.ok) {
-        const err = await res.json();
-        setSubmitError(err.error || "Failed to create profile. Please try again.");
+        setSubmitError(result.error || "Failed to create profile. Please try again.");
         return;
       }
+
+      const { profileId } = result;
 
       try {
         localStorage.removeItem(TYPE_KEY);
         localStorage.removeItem(DATA_KEY);
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem(SEARCH_KEY);
-        localStorage.removeItem(CLAIM_KEY);
+
       } catch {
         // localStorage unavailable (SSR or private mode)
       }
 
       await refreshAccountData();
+
+      // When adding a new profile, switch to it before navigating
+      if (isAdding && profileId) {
+        switchProfile(profileId);
+      }
+
       router.replace("/provider");
     } catch {
       setSubmitError("Something went wrong. Please try again.");
@@ -642,21 +728,29 @@ function ProviderOnboardingContent() {
   const displayName =
     account?.display_name || user?.email?.split("@")[0] || "back";
 
-  // WizardNav step mapping — org: 6 steps, caregiver: 5 steps
+  // WizardNav step mapping — org flow: 6 steps
   const isOrg = providerType === "organization";
-  const wizardTotal = isOrg ? 6 : 5;
-  const wizardCurrentMap: Record<string, number> = isOrg
-    ? { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 }
-    : { "1": 1, "2": 2, "3": 3, "4": 4, "5": 5 };
+  const wizardTotal = 6;
+  const wizardCurrentMap: Record<string, number> = { "1": 1, search: 2, verify: 2, "2": 3, "3": 4, "4": 5, "5": 6 };
   const wizardCurrentStep = wizardCurrentMap[String(step)] ?? 1;
-  const showWizardNav = step !== "resume";
+  const showWizardNav = step !== "resume" && step !== "caregiver-coming-soon";
 
-  if (isLoading) {
+  // Show loading while auth is loading or while checking for landing page prefill
+  if (isLoading || checkingPrefill) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  // Prevent flash: if user already has a provider profile and isn't adding another,
+  // render nothing while the useEffect redirect fires.
+  const hasProviderProfile = (profiles || []).some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
+  if (hasProviderProfile && !isAdding) {
+    return null;
   }
 
   const showResultsBg = step === "search" && hasSearched;
@@ -673,9 +767,7 @@ function ProviderOnboardingContent() {
       <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary-600">
-              <span className="font-bold text-lg text-white">O</span>
-            </div>
+            <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
             <span className="text-xl font-bold text-gray-900">Olera</span>
           </Link>
           <Link
@@ -692,8 +784,8 @@ function ProviderOnboardingContent() {
         {/* ── Resume screen ── */}
         {step === "resume" && (
           <div className="w-full max-w-lg">
-            <div className="text-center mb-10">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-8 lg:mb-10">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Welcome back, {displayName}
               </h1>
               <p className="text-gray-500 mt-3 text-base">
@@ -756,32 +848,32 @@ function ProviderOnboardingContent() {
         {/* ── Step 1: Choose provider type ── */}
         {step === 1 && (
           <div className="w-full max-w-2xl pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 How would you describe yourself?
               </h1>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-5">
               {/* Organization */}
               <button
                 type="button"
                 onClick={() => handleSelectType("organization")}
-                className={`group flex flex-col items-center text-center p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
+                className={`group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
                   providerType === "organization"
                     ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
                     : "border-gray-200 hover:border-primary-400 hover:shadow-md"
                 }`}
               >
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200 ${
+                <div className={`w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200 ${
                   providerType === "organization" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
                 }`}>
-                  <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-7 h-7 lg:w-10 lg:h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Organization</h2>
-                <p className="text-base text-gray-500 leading-relaxed">
+                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Organization</h2>
+                <p className="text-sm lg:text-base text-gray-500 leading-relaxed">
                   Assisted living, home care agency, memory care facility, and more
                 </p>
               </button>
@@ -789,26 +881,112 @@ function ProviderOnboardingContent() {
               {/* Private Caregiver */}
               <button
                 type="button"
-                onClick={() => handleSelectType("caregiver")}
-                className={`group flex flex-col items-center text-center p-10 rounded-2xl border-2 transition-all duration-200 cursor-pointer bg-white ${
-                  providerType === "caregiver"
-                    ? "border-primary-500 ring-2 ring-primary-100 shadow-md"
-                    : "border-gray-200 hover:border-primary-400 hover:shadow-md"
-                }`}
+                onClick={() => setStep("caregiver-coming-soon")}
+                className="group flex flex-col items-center text-center p-4 lg:p-10 rounded-2xl border-2 border-gray-200 hover:border-primary-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white"
               >
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-200 ${
-                  providerType === "caregiver" ? "bg-primary-100" : "bg-primary-50 group-hover:bg-primary-100"
-                }`}>
-                  <svg className="w-10 h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 lg:w-20 lg:h-20 rounded-xl lg:rounded-2xl bg-primary-50 group-hover:bg-primary-100 flex items-center justify-center mb-3 lg:mb-6 transition-colors duration-200">
+                  <svg className="w-7 h-7 lg:w-10 lg:h-10 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Private Caregiver</h2>
-                <p className="text-base text-gray-500 leading-relaxed">
-                  Individual caregiver offering personal care services to families
+                <h2 className="text-base lg:text-xl font-semibold text-gray-900 mb-1 lg:mb-2">Private Caregiver</h2>
+                <p className="text-sm lg:text-base text-gray-500 leading-relaxed">
+                  Individual caregiver offering personal care services
                 </p>
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ── Caregiver Coming Soon ── */}
+        {step === "caregiver-coming-soon" && (
+          <div className="flex flex-col items-center justify-center text-center min-h-[60vh] w-full max-w-md mx-auto px-4">
+            {/* Icon */}
+            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-50 flex items-center justify-center mb-5 lg:mb-6">
+              <svg className="w-8 h-8 lg:w-9 lg:h-9 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+
+            {/* Badge */}
+            <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider text-primary-600 border border-primary-200 mb-4 lg:mb-5">
+              Coming Soon
+            </span>
+
+            {/* Heading */}
+            <h1 className="text-2xl lg:text-3xl font-display font-bold text-gray-900 tracking-tight mb-2 lg:mb-3">
+              Private Caregiver
+            </h1>
+
+            <p className="text-sm lg:text-base text-gray-500 max-w-sm leading-relaxed mb-6 lg:mb-8">
+              Individual caregiver onboarding is coming soon. Get notified when it launches.
+            </p>
+
+            {/* Notify form */}
+            {!caregiverNotified ? (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!caregiverEmail.trim()) return;
+                  setCaregiverNotifying(true);
+                  try {
+                    if (isSupabaseConfigured()) {
+                      const supabase = createClient();
+                      const { error } = await supabase.from("feature_waitlist").upsert(
+                        { feature: "caregiver_onboarding", email: caregiverEmail.trim(), profile_id: null },
+                        { onConflict: "feature,email" },
+                      );
+                      if (error) throw error;
+                    }
+                    setCaregiverNotified(true);
+                  } catch {
+                    alert("Something went wrong. Please try again.");
+                  } finally {
+                    setCaregiverNotifying(false);
+                  }
+                }}
+                className="w-full max-w-sm mb-3"
+              >
+                <div className="flex items-center border border-gray-200 rounded-xl bg-white overflow-hidden">
+                  <input
+                    type="email"
+                    value={caregiverEmail}
+                    onChange={(e) => setCaregiverEmail(e.target.value)}
+                    placeholder="Your email"
+                    required
+                    className="flex-1 px-4 py-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={caregiverNotifying}
+                    className="px-5 py-2.5 mr-1.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
+                  >
+                    {caregiverNotifying ? "..." : "Notify me"}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-400 mt-2.5">
+                  We&apos;ll send one email when caregiver onboarding launches. No spam.
+                </p>
+              </form>
+            ) : (
+              <div className="mb-8">
+                <p className="text-sm text-primary-600 font-medium">
+                  You&apos;re on the list. We&apos;ll let you know!
+                </p>
+              </div>
+            )}
+
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors mt-4"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Back
+            </button>
           </div>
         )}
 
@@ -818,82 +996,100 @@ function ProviderOnboardingContent() {
             {/* ── State A: Initial search form ── */}
             {!hasSearched && (
               <div className="w-full max-w-xl mx-auto pb-24">
-                <div className="text-center mb-14">
-                  <h1 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight">
+                <div className="text-center mb-8 lg:mb-14">
+                  <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                     Find your organization
                   </h1>
-                  <p className="text-gray-500 mt-6 text-xl leading-relaxed">
+                  <p className="text-gray-500 mt-4 lg:mt-6 text-base lg:text-xl leading-relaxed">
                     Let&apos;s check if we already have a listing for you.
                   </p>
                 </div>
 
-                {/* Single search bar with location dropdown on focus */}
+                {/* Two-field search: Location + Name */}
                 <form onSubmit={handleSearch}>
-                  <div ref={locationDropdownRef} className="relative">
-                    <div className="flex items-center rounded-2xl shadow-sm ring-1 ring-gray-200 bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:shadow-md transition-all">
-                      <div className="pl-5 flex items-center pointer-events-none shrink-0">
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg ring-1 ring-gray-200/80 p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                    {/* Location input with dropdown — first on mobile */}
+                    <div ref={locationDropdownRef} className="relative flex-1">
+                      <div className={`flex items-center px-4 py-3 bg-gray-50 rounded-xl border transition-colors ${
+                        showLocationDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                      }`}>
+                        <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
+                        <input
+                          type="text"
+                          aria-label="City or state"
+                          value={locationQuery}
+                          onChange={(e) => {
+                            setLocationQuery(e.target.value);
+                            setShowLocationDropdown(true);
+                          }}
+                          onFocus={() => {
+                            preloadCities();
+                            setShowLocationDropdown(true);
+                          }}
+                          placeholder="City or state"
+                          className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                        />
                       </div>
-                      <input
-                        type="text"
-                        aria-label="Search by name or location"
-                        value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setShowLocationDropdown(true);
-                        }}
-                        onFocus={() => {
-                          preloadCities();
-                          setShowLocationDropdown(true);
-                        }}
-                        placeholder="Search by name or location…"
-                        className="w-full px-4 text-lg bg-transparent border-none outline-none placeholder-gray-400"
-                        style={{ paddingTop: '20px', paddingBottom: '20px' }}
-                      />
-                      <div className="pr-3 shrink-0">
-                        <button
-                          type="submit"
-                          disabled={searching || !searchQuery.trim()}
-                          className="px-7 py-3.5 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                        >
-                          {searching ? (
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            "Search"
+
+                      {/* Location suggestions dropdown */}
+                      {showLocationDropdown && cityResults.length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                          {!locationQuery.trim() && (
+                            <div className="px-4 pt-1 pb-2">
+                              <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                            </div>
                           )}
-                        </button>
-                      </div>
+                          {cityResults.map((loc) => (
+                            <button
+                              key={loc.full}
+                              type="button"
+                              onClick={() => {
+                                setLocationQuery(loc.full);
+                                setShowLocationDropdown(false);
+                              }}
+                              className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
+                            >
+                              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="font-medium text-gray-700">{loc.full}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Location suggestions dropdown */}
-                    {showLocationDropdown && cityResults.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                        {!searchQuery.trim() && (
-                          <div className="px-4 pt-1 pb-2">
-                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                          </div>
-                        )}
-                        {cityResults.map((loc) => (
-                          <button
-                            key={loc.full}
-                            type="button"
-                            onClick={() => {
-                              setSearchQuery(loc.full);
-                              setShowLocationDropdown(false);
-                            }}
-                            className="flex items-center gap-3 w-full px-4 py-3 text-left text-base hover:bg-gray-50 transition-colors"
-                          >
-                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span className="font-medium text-gray-700">{loc.full}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px h-8 bg-gray-200 shrink-0" />
+
+                    {/* Name input */}
+                    <div className="flex items-center flex-1 px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100 transition-colors">
+                      <input
+                        type="text"
+                        aria-label="Organization name"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Organization name"
+                        className="w-full bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-base"
+                      />
+                    </div>
+
+                    {/* Search button */}
+                    <button
+                      type="submit"
+                      disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
+                      className="px-7 py-3 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all sm:shrink-0"
+                    >
+                      {searching ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                      ) : (
+                        "Search"
+                      )}
+                    </button>
                   </div>
 
                   {searchError && (
@@ -901,12 +1097,12 @@ function ProviderOnboardingContent() {
                   )}
                 </form>
 
-                <p className="text-center mt-4 text-[15px] text-gray-400">
+                <p className="text-center mt-6 text-base text-gray-500">
                   or{" "}
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                    className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
                   >
                     create a new account
                   </button>
@@ -920,76 +1116,99 @@ function ProviderOnboardingContent() {
               <div className="w-full pb-24">
                 {/* Sticky search bar */}
                 <div className="sticky top-[65px] z-40 bg-vanilla-100/95 backdrop-blur-sm border-b border-gray-200/60 px-4">
-                  <div className="max-w-2xl mx-auto py-4">
+                  <div className="max-w-2xl mx-auto py-3">
                     <form onSubmit={handleSearch}>
-                      <div ref={locationDropdownRef} className="relative">
-                        <div className="flex items-center rounded-xl bg-white ring-1 ring-gray-200 focus-within:ring-2 focus-within:ring-primary-500 transition-all shadow-sm">
-                          <div className="pl-4 flex items-center pointer-events-none shrink-0">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      <div className="bg-white rounded-xl shadow-sm ring-1 ring-gray-200/80 p-2.5 flex items-center gap-2.5">
+                        {/* Location input with dropdown — first */}
+                        <div ref={locationDropdownRef} className="relative flex-1 min-w-0">
+                          <div className={`flex items-center px-3.5 py-2.5 bg-gray-50 rounded-lg border transition-colors ${
+                            showLocationDropdown ? "border-primary-400 ring-1 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+                          }`}>
+                            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
+                            <input
+                              type="text"
+                              aria-label="City or state"
+                              value={locationQuery}
+                              onChange={(e) => {
+                                setLocationQuery(e.target.value);
+                                setShowLocationDropdown(true);
+                              }}
+                              onFocus={() => {
+                                preloadCities();
+                                setShowLocationDropdown(true);
+                              }}
+                              placeholder="City or state"
+                              className="w-full ml-2.5 bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
+                            />
                           </div>
+
+                          {/* Location suggestions dropdown */}
+                          {showLocationDropdown && cityResults.length > 0 && (
+                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
+                              {!locationQuery.trim() && (
+                                <div className="px-4 pt-1 pb-2">
+                                  <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
+                                </div>
+                              )}
+                              {cityResults.map((loc) => (
+                                <button
+                                  key={loc.full}
+                                  type="button"
+                                  onClick={() => {
+                                    setLocationQuery(loc.full);
+                                    setShowLocationDropdown(false);
+                                  }}
+                                  className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition-colors"
+                                >
+                                  <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  <span className="font-medium text-gray-700">{loc.full}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Divider */}
+                        <div className="w-px h-7 bg-gray-200 shrink-0" />
+
+                        {/* Name input */}
+                        <div className="flex items-center flex-1 min-w-0 px-3.5 py-2.5 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 focus-within:border-primary-400 focus-within:ring-1 focus-within:ring-primary-100 transition-colors">
                           <input
                             type="text"
-                            aria-label="Search by name or location"
+                            aria-label="Organization name"
                             value={searchQuery}
-                            onChange={(e) => {
-                              setSearchQuery(e.target.value);
-                              setShowLocationDropdown(true);
-                            }}
-                            onFocus={() => {
-                              preloadCities();
-                              setShowLocationDropdown(true);
-                            }}
-                            placeholder="Search by name or location…"
-                            className="flex-1 px-3 py-3 text-base bg-transparent border-none outline-none placeholder-gray-400"
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Organization name"
+                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0"
                           />
-                          <div className="pr-1.5 shrink-0">
-                            <button
-                              type="submit"
-                              disabled={searching || !searchQuery.trim()}
-                              className="px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                            >
-                              {searching ? (
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              ) : (
-                                "Search"
-                              )}
-                            </button>
-                          </div>
                         </div>
-                        {/* Location suggestions dropdown */}
-                        {showLocationDropdown && cityResults.length > 0 && (
-                          <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl ring-1 ring-gray-200 py-2 z-50 max-h-[280px] overflow-y-auto">
-                            {!searchQuery.trim() && (
-                              <div className="px-4 pt-1 pb-2">
-                                <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Popular cities</span>
-                              </div>
-                            )}
-                            {cityResults.map((loc) => (
-                              <button
-                                key={loc.full}
-                                type="button"
-                                onClick={() => {
-                                  setSearchQuery(loc.full);
-                                  setShowLocationDropdown(false);
-                                }}
-                                className="flex items-center gap-3 w-full px-4 py-2.5 text-left text-base hover:bg-gray-50 transition-colors"
-                              >
-                                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                <span className="font-medium text-gray-700">{loc.full}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
+
+                        {/* Search button — icon only to save space */}
+                        <button
+                          type="submit"
+                          disabled={searching || (!searchQuery.trim() && !locationQuery.trim())}
+                          className="w-11 h-11 flex items-center justify-center text-white bg-primary-600 rounded-lg hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                          aria-label="Search"
+                        >
+                          {searching ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                          )}
+                        </button>
                       </div>
                     </form>
-                    <div className="mt-3">
+                    <div className="mt-2.5">
                       <p className="text-sm text-gray-500">
-                        {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} for &ldquo;{searchQuery}&rdquo;
+                        {searchResults.length} result{searchResults.length !== 1 ? "s" : ""}{searchQuery.trim() || locationQuery.trim() ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
                       </p>
                     </div>
                   </div>
@@ -1003,8 +1222,6 @@ function ProviderOnboardingContent() {
                       const address = formatAddress(provider);
                       const highlights = getProviderHighlights(provider);
                       const isClaimed = claimedIds.has(provider.provider_id);
-                      const isDisputing = disputingId === provider.provider_id;
-                      const isDisputeSuccess = disputeSuccess === provider.provider_id;
 
                       return (
                         <div
@@ -1015,10 +1232,12 @@ function ProviderOnboardingContent() {
                             {/* Image */}
                             <div className="w-40 min-h-[160px] shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 relative">
                               {image ? (
-                                <img
+                                <Image
                                   src={image}
                                   alt={provider.provider_name}
-                                  className="absolute inset-0 w-full h-full object-cover"
+                                  fill
+                                  className="object-cover"
+                                  sizes="160px"
                                 />
                               ) : (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -1076,102 +1295,45 @@ function ProviderOnboardingContent() {
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      setClaimingProvider(provider);
+                                      // Cache provider data for instant UI on claim page
                                       try {
-                                        localStorage.setItem(CLAIM_KEY, JSON.stringify({
-                                          provider_id: provider.provider_id,
-                                          provider_name: provider.provider_name,
-                                        }));
-                                      } catch { /* localStorage unavailable */ }
-                                      setStep("verify");
-                                      handleSendVerificationCode(provider);
+                                        sessionStorage.setItem(
+                                          "olera_claim_provider_cache",
+                                          JSON.stringify({
+                                            provider_id: provider.provider_id,
+                                            provider_name: provider.provider_name,
+                                            provider_images: provider.provider_images,
+                                            address: provider.address,
+                                            city: provider.city,
+                                            state: provider.state,
+                                            slug: provider.slug,
+                                          })
+                                        );
+                                      } catch {}
+                                      router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}`);
                                     }}
-                                    className="px-5 py-2.5 text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
+                                    className="px-4 sm:px-5 py-2.5 text-sm sm:text-base font-semibold text-primary-600 rounded-xl ring-1 ring-primary-200 hover:ring-primary-300 hover:bg-primary-50 transition-all"
                                   >
-                                    Claim this page &rarr;
+                                    <span className="sm:hidden">Claim &rarr;</span>
+                                    <span className="hidden sm:inline">Claim this page &rarr;</span>
                                   </button>
                                 </div>
                               )}
 
-                              {/* Action — claimed (dispute) */}
-                              {isClaimed && !isDisputeSuccess && (
+                              {/* Action — claimed (dispute) → redirects to onboard page */}
+                              {isClaimed && (
                                 <div className="mt-1">
-                                  {!isDisputing ? (
-                                    <div className="flex justify-end">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setDisputingId(provider.provider_id);
-                                          setDisputeName("");
-                                          setDisputeRole("");
-                                          setDisputeReason("");
-                                          setDisputeError("");
-                                        }}
-                                        className="text-base font-medium text-gray-500 hover:text-gray-700 transition-colors"
-                                      >
-                                        Dispute ownership
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <div className="mt-3 pt-4 border-t border-gray-100 space-y-3">
-                                      <p className="text-base font-semibold text-gray-700">Tell us about your claim</p>
-                                      <input
-                                        type="text"
-                                        value={disputeName}
-                                        onChange={(e) => setDisputeName(e.target.value)}
-                                        placeholder="Your name"
-                                        className="w-full px-4 py-3 text-base rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 transition-all"
-                                      />
-                                      <input
-                                        type="text"
-                                        value={disputeRole}
-                                        onChange={(e) => setDisputeRole(e.target.value)}
-                                        placeholder="Your role (e.g. Owner, Administrator)"
-                                        className="w-full px-4 py-3 text-base rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 transition-all"
-                                      />
-                                      <textarea
-                                        value={disputeReason}
-                                        onChange={(e) => setDisputeReason(e.target.value)}
-                                        placeholder="Why do you believe you are the owner of this listing?"
-                                        rows={3}
-                                        className="w-full px-4 py-3 text-base rounded-xl ring-1 ring-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 placeholder-gray-400 resize-none transition-all"
-                                      />
-                                      {disputeError && (
-                                        <p className="text-sm text-red-600">{disputeError}</p>
-                                      )}
-                                      <div className="flex items-center justify-between gap-3">
-                                        <button
-                                          type="button"
-                                          onClick={() => setDisputingId(null)}
-                                          className="text-base text-gray-500 hover:text-gray-700 transition-colors"
-                                        >
-                                          Cancel
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() => handleDisputeSubmit(provider)}
-                                          disabled={disputeSubmitting || !disputeName.trim() || !disputeRole.trim() || !disputeReason.trim()}
-                                          className="px-5 py-2.5 text-base font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                                        >
-                                          {disputeSubmitting ? "Submitting…" : "Submit dispute"}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Dispute success */}
-                              {isClaimed && isDisputeSuccess && (
-                                <div className="mt-3 pt-4 border-t border-gray-100 flex items-start gap-2.5">
-                                  <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                    </svg>
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        router.push(`/provider/${provider.slug || provider.provider_id}/onboard?provider_id=${provider.provider_id}&state=already-claimed`);
+                                      }}
+                                      className="text-base font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                                    >
+                                      Dispute ownership
+                                    </button>
                                   </div>
-                                  <p className="text-base text-gray-500 leading-relaxed">
-                                    We&apos;ve received your dispute. Our team will review it within 2–3 business days.
-                                  </p>
                                 </div>
                               )}
                             </div>
@@ -1218,27 +1380,36 @@ function ProviderOnboardingContent() {
 
             {/* ── State C: No results ── */}
             {hasSearched && searchResults.length === 0 && (
-              <div className="w-full max-w-xl mx-auto text-center pb-24">
-                <div className="w-16 h-16 rounded-full bg-vanilla-100 ring-1 ring-gray-200 flex items-center justify-center mx-auto mb-8">
-                  <svg className="w-7 h-7 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="w-full max-w-md mx-auto text-center pb-24">
+                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
 
-                <h2 className="text-4xl sm:text-5xl font-display font-bold text-gray-900 tracking-tight mb-4">
+                <h2 className="text-2xl font-display font-semibold text-gray-900 mb-2">
                   No matches found
                 </h2>
-                <p className="text-gray-500 text-lg leading-relaxed mb-6">
-                  We couldn&apos;t find any listings for &ldquo;{searchQuery}&rdquo;
+                <p className="text-gray-500 text-base leading-relaxed mb-8">
+                  We couldn&apos;t find any listings{(searchQuery.trim() || locationQuery.trim()) ? <> for {[searchQuery.trim(), locationQuery.trim()].filter(Boolean).join(" in ")}</> : ""}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() => setHasSearched(false)}
-                  className="text-[15px] font-medium text-gray-600 hover:text-gray-900 underline underline-offset-4 transition-colors"
-                >
-                  Try a different search
-                </button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setHasSearched(false)}
+                    className="px-6 py-2.5 text-sm font-semibold text-gray-700 bg-white rounded-lg border border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                  >
+                    Try a different search
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="px-6 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 transition-colors"
+                  >
+                    Create new listing
+                  </button>
+                </div>
               </div>
             )}
           </>
@@ -1255,10 +1426,10 @@ function ProviderOnboardingContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight mb-4">
+                <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight mb-4">
                   Request submitted
                 </h1>
-                <p className="text-gray-500 text-lg leading-relaxed max-w-sm mx-auto">
+                <p className="text-gray-500 text-base lg:text-lg leading-relaxed max-w-sm mx-auto">
                   We&apos;ve received your request to claim <strong className="text-gray-700">{claimingProvider.provider_name}</strong>.
                   Our team will review it and get back to you within 2–3 business days.
                 </p>
@@ -1267,29 +1438,29 @@ function ProviderOnboardingContent() {
               /* ── Verification form ── */
               <div>
                 {/* Header — icon + title + subtitle */}
-                <div className="text-center mb-10">
-                  <div className="w-16 h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-6">
-                    <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="text-center mb-8 lg:mb-10">
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-5 lg:mb-6">
+                    <svg className="w-7 h-7 lg:w-8 lg:h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+                  <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                     Verify your organization
                   </h1>
                   {verifySending ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">Sending verification code…</p>
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">Sending verification code…</p>
                   ) : verifyNoEmail ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">
                       We don&apos;t have an email on file for <strong className="text-gray-600">{claimingProvider.provider_name}</strong>.
                       <br />Please submit a request below.
                     </p>
                   ) : verifyEmailHint ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">
                       We sent a 6-digit code to <strong className="text-gray-600">{verifyEmailHint}</strong>.
                       <br />Enter it below to verify you represent {claimingProvider.provider_name}.
                     </p>
                   ) : verifyError ? (
-                    <p className="text-gray-500 mt-4 text-lg leading-relaxed">
+                    <p className="text-gray-500 mt-3 lg:mt-4 text-base lg:text-lg leading-relaxed">
                       There was an issue sending the code. Please try again.
                     </p>
                   ) : null}
@@ -1390,31 +1561,21 @@ function ProviderOnboardingContent() {
                       required
                     />
 
-                    <div className="space-y-1.5">
-                      <label htmlFor="no-access-role" className="block text-base font-medium text-gray-700">
-                        Your role
-                      </label>
-                      <div className="relative">
-                        <select
-                          id="no-access-role"
-                          value={noAccessReason}
-                          onChange={(e) => setNoAccessReason(e.target.value)}
-                          className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                        >
-                          <option value="">Select your role…</option>
-                          <option value="Owner">Owner</option>
-                          <option value="Administrator">Administrator</option>
-                          <option value="Executive Director">Executive Director</option>
-                          <option value="Office Manager">Office Manager</option>
-                          <option value="Marketing / Communications">Marketing / Communications</option>
-                          <option value="Staff Member">Staff Member</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </div>
+                    <Select
+                      label="Your role"
+                      options={[
+                        { value: "Owner", label: "Owner" },
+                        { value: "Administrator", label: "Administrator" },
+                        { value: "Executive Director", label: "Executive Director" },
+                        { value: "Office Manager", label: "Office Manager" },
+                        { value: "Marketing / Communications", label: "Marketing / Communications" },
+                        { value: "Staff Member", label: "Staff Member" },
+                        { value: "Other", label: "Other" },
+                      ]}
+                      value={noAccessReason}
+                      onChange={setNoAccessReason}
+                      placeholder="Select your role..."
+                    />
 
                     <Input
                       label="Organization email"
@@ -1461,62 +1622,34 @@ function ProviderOnboardingContent() {
         {/* ── Step 2: About ── */}
         {step === 2 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
-                {providerType === "organization"
-                  ? "Tell us about your organization"
-                  : "What\u2019s your name?"}
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
+                Tell us about your organization
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
-                {providerType === "organization"
-                  ? "This is what families will see on your public profile."
-                  : "This is how families will find you on Olera."}
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
+                This is what families will see on your public profile.
               </p>
             </div>
 
             <div className="space-y-5">
               <Input
-                label={
-                  providerType === "organization"
-                    ? "Organization name"
-                    : "Your name"
-                }
+                label="Organization name"
                 value={data.displayName}
                 onChange={(e) =>
                   update("displayName", (e.target as HTMLInputElement).value)
                 }
                 required
-                placeholder={
-                  providerType === "organization"
-                    ? "e.g. Sunrise Senior Living"
-                    : "e.g. Maria Garcia"
-                }
+                placeholder="e.g. Sunrise Senior Living"
               />
 
               {providerType === "organization" && (
-                <div className="space-y-1.5">
-                  <label htmlFor="org-type" className="block text-base font-medium text-gray-700">
-                    Organization type
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="org-type"
-                      value={data.category}
-                      onChange={(e) => update("category", e.target.value)}
-                      className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent min-h-[44px]"
-                    >
-                      <option value="">Select a type</option>
-                      {ORG_CATEGORIES.map((cat) => (
-                        <option key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
-                    <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                <Select
+                  label="Organization type"
+                  options={ORG_CATEGORIES}
+                  value={data.category}
+                  onChange={(val) => update("category", val)}
+                  placeholder="Select a type"
+                />
               )}
 
             </div>
@@ -1526,11 +1659,11 @@ function ProviderOnboardingContent() {
         {/* ── Step 3: Location ── */}
         {step === 3 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Where are you located?
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 Families search by location — this helps them find you.
               </p>
             </div>
@@ -1621,11 +1754,11 @@ function ProviderOnboardingContent() {
         {/* ── Step 4: Contact ── */}
         {step === 4 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 How can families reach you?
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
                 Give families a way to connect with you.
               </p>
             </div>
@@ -1669,12 +1802,12 @@ function ProviderOnboardingContent() {
         {/* ── Step 5: Services + Review + Submit ── */}
         {step === 5 && (
           <div className="w-full max-w-lg pb-24">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-display font-bold text-gray-900 tracking-tight">
+            <div className="text-center mb-6 lg:mb-8">
+              <h1 className="text-2xl lg:text-4xl font-display font-bold text-gray-900 tracking-tight">
                 Services offered
               </h1>
-              <p className="text-gray-500 mt-3 text-base">
-                Select the care types you provide. You can always update these later.
+              <p className="text-gray-500 mt-2 lg:mt-3 text-base">
+                Select at least one care type you provide. You can always update these later.
               </p>
             </div>
 
@@ -1726,14 +1859,9 @@ function ProviderOnboardingContent() {
               {/* Card content */}
               <div className="p-5">
                 {/* Category label */}
-                {providerType === "organization" && data.category && (
+                {data.category && (
                   <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
                     {ORG_CATEGORIES.find((c) => c.value === data.category)?.label || data.category}
-                  </p>
-                )}
-                {providerType === "caregiver" && (
-                  <p className="text-xs font-medium text-primary-600 uppercase tracking-wide mb-1">
-                    Private Caregiver
                   </p>
                 )}
 
@@ -1831,7 +1959,7 @@ function ProviderOnboardingContent() {
                   setNoAccessSuccess(false);
                 }
               : step === 2
-              ? () => setStep(isOrg ? "search" : 1)
+              ? () => setStep("search")
               : step === 3
               ? () => setStep(2)
               : step === 4
@@ -1872,13 +2000,13 @@ function ProviderOnboardingContent() {
               : step === "verify"
               ? verifyCode.length !== 6 || verifyChecking
               : step === 2
-              ? !data.displayName.trim()
+              ? !data.displayName.trim() || (providerType === "organization" && !data.category)
               : step === 3
               ? !data.city.trim()
               : step === 4
-              ? !data.phone.trim() || !data.email.trim()
+              ? !data.phone.trim() || data.phone.replace(/\D/g, "").length < 10 || !data.email.trim() || !/\S+@\S+\.\S+/.test(data.email)
               : step === 5
-              ? !data.displayName.trim() || submitting
+              ? !data.displayName.trim() || data.careTypes.length === 0 || submitting
               : false
           }
           nextLoading={

@@ -173,14 +173,14 @@ export default function BrowseByCareTypeSection() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide md:grid md:grid-cols-6 md:gap-3 md:overflow-visible md:pb-0">
           {careCategories.map((category) => {
             const isSelected = selectedCategory === category.id;
             return (
               <button
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`rounded-xl border transition-all duration-200 px-3 py-3 flex items-center justify-center gap-2 ${
+                className={`flex-shrink-0 md:flex-shrink rounded-xl border transition-all duration-200 px-3 py-3 flex items-center justify-center gap-2 ${
                   isSelected
                     ? "border-primary-500 bg-primary-50 shadow-sm"
                     : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"

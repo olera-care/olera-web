@@ -32,7 +32,7 @@ export interface Resource {
   content?: string;
   coverImage: string;
   careTypes: CareTypeId[];     // Can belong to multiple care types
-  category: ResourceCategory;
+  category: string;            // Topic-based: costs-and-benefits, getting-started, etc.
   author: ResourceAuthor;
   publishedAt: string;
   updatedAt?: string;

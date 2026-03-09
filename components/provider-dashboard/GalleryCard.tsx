@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ExtendedMetadata } from "@/lib/profile-completeness";
 import DashboardSectionCard from "./DashboardSectionCard";
 
@@ -41,13 +42,15 @@ export default function GalleryCard({
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
           {images.map((src, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={src}
-              alt={`Gallery photo ${i + 1}`}
-              className="rounded-lg object-cover aspect-square w-full shadow-xs hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
-            />
+            <div key={i} className="relative aspect-square">
+              <Image
+                src={src}
+                alt={`Gallery photo ${i + 1}`}
+                fill
+                sizes="(max-width: 640px) 33vw, 25vw"
+                className="rounded-lg object-cover shadow-xs hover:scale-[1.02] transition-transform duration-300 cursor-pointer"
+              />
+            </div>
           ))}
           {/* Add more */}
           <button

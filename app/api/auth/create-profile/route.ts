@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -245,41 +246,78 @@ export async function POST(request: Request) {
         });
       }
     } else {
-      // Create family profile
-      const slug = generateSlug(displayName, city || "", state || "");
-
-      const { data: newProfile, error: insertErr } = await db
+      // Family profile — check if a baseline one already exists (created by ensure-account)
+      const { data: existingFamilyProfile } = await db
         .from("business_profiles")
-        .insert({
-          account_id: accountId,
-          slug,
-          type: "family",
-          display_name: displayName,
-          city: city || null,
-          state: state || null,
-          zip: zip || null,
-          care_types: careNeeds || careTypes || [],
-          claim_state: "claimed",
-          verification_state: "unverified",
-          source: "user_created",
-          is_active: true,
-          metadata: {
-            visible_to_families: visibleToFamilies ?? true,
-            visible_to_providers: visibleToProviders ?? true,
-          },
-        })
         .select("id")
-        .single();
+        .eq("account_id", accountId)
+        .eq("type", "family")
+        .limit(1)
+        .maybeSingle();
 
-      if (insertErr) {
-        console.error("Create family profile error:", insertErr);
-        return NextResponse.json(
-          { error: `Failed to create profile: ${insertErr.message}` },
-          { status: 500 }
-        );
+      if (existingFamilyProfile) {
+        // Update the existing baseline family profile with the user's info
+        const { error: updateErr } = await db
+          .from("business_profiles")
+          .update({
+            display_name: displayName,
+            city: city || null,
+            state: state || null,
+            zip: zip || null,
+            care_types: careNeeds || careTypes || [],
+            metadata: {
+              visible_to_families: visibleToFamilies ?? true,
+              visible_to_providers: visibleToProviders ?? true,
+            },
+          })
+          .eq("id", existingFamilyProfile.id);
+
+        if (updateErr) {
+          console.error("Update family profile error:", updateErr);
+          return NextResponse.json(
+            { error: `Failed to update profile: ${updateErr.message}` },
+            { status: 500 }
+          );
+        }
+
+        profileId = existingFamilyProfile.id;
+      } else {
+        // No existing family profile — create one
+        const slug = generateSlug(displayName, city || "", state || "");
+
+        const { data: newProfile, error: insertErr } = await db
+          .from("business_profiles")
+          .insert({
+            account_id: accountId,
+            slug,
+            type: "family",
+            display_name: displayName,
+            city: city || null,
+            state: state || null,
+            zip: zip || null,
+            care_types: careNeeds || careTypes || [],
+            claim_state: "claimed",
+            verification_state: "unverified",
+            source: "user_created",
+            is_active: true,
+            metadata: {
+              visible_to_families: visibleToFamilies ?? true,
+              visible_to_providers: visibleToProviders ?? true,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (insertErr) {
+          console.error("Create family profile error:", insertErr);
+          return NextResponse.json(
+            { error: `Failed to create profile: ${insertErr.message}` },
+            { status: 500 }
+          );
+        }
+
+        profileId = newProfile.id;
       }
-
-      profileId = newProfile.id;
     }
 
     // Update account: mark onboarding complete + set active profile
@@ -301,6 +339,33 @@ export async function POST(request: Request) {
     if (updateErr) {
       console.error("Update account error:", updateErr);
       // Profile was created — don't fail the whole request
+    }
+
+    // Loops: onboarding completed
+    try {
+      const profileType = intent === "provider"
+        ? (providerType === "caregiver" ? "caregiver" : "organization")
+        : "family";
+      const providerName = intent === "provider"
+        ? (orgName || displayName)
+        : displayName;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      await sendLoopsEvent({
+        email: user.email || "",
+        eventName: "onboarding_completed",
+        audience: intent === "provider" ? "provider" : "seeker",
+        eventProperties: {
+          intent,
+          profileType,
+          provider_name: providerName,
+          profile_link: `${siteUrl}/portal/profile`,
+          city: city || "",
+          state: state || "",
+          care_type: careTypes?.[0] || "",
+        },
+      });
+    } catch {
+      // Non-blocking
     }
 
     return NextResponse.json({ profileId });

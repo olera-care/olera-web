@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { canEngage } from "@/lib/membership";
@@ -343,13 +344,16 @@ export default function ConnectionDetailContent({
 
     setResponding(true);
     try {
-      const supabase = createClient();
-      const { error: updateError } = await supabase
-        .from("connections")
-        .update({ status: newStatus })
-        .eq("id", connection.id);
-
-      if (updateError) throw new Error(updateError.message);
+      const action = newStatus === "accepted" ? "accept" : newStatus === "declined" ? "decline" : "archive";
+      const res = await fetch("/api/connections/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connectionId: connection.id, action }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to ${action}`);
+      }
       setConnection((prev) =>
         prev ? { ...prev, status: newStatus } : null
       );
@@ -655,11 +659,9 @@ export default function ConnectionDetailContent({
   const initial = otherName.charAt(0).toUpperCase();
   const parsedMsg = connection ? parseMessage(connection.message) : null;
 
-  const profileHref = otherProfile
-    ? (otherProfile.type === "organization" || otherProfile.type === "caregiver") && otherProfile.slug
-      ? `/provider/${otherProfile.slug}`
-      : `/profile/${otherProfile.id}`
-    : "#";
+  // Only providers have clickable profile links - families don't have public profiles
+  const isOtherProvider = otherProfile?.type === "organization" || otherProfile?.type === "caregiver";
+  const profileHref = isOtherProvider && otherProfile?.slug ? `/provider/${otherProfile.slug}` : null;
 
   const categoryLabel = otherProfile?.category
     ? otherProfile.category
@@ -946,16 +948,16 @@ export default function ConnectionDetailContent({
             type="button"
             onClick={handleSendMessage}
             disabled={sending || !hasText}
-            className={`shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
+            className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
               hasText
                 ? "bg-primary-600 text-white hover:bg-primary-700"
                 : "bg-gray-100 text-gray-400"
             } disabled:cursor-not-allowed`}
           >
             {sending ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
             )}
           </button>
         </div>
@@ -996,7 +998,7 @@ export default function ConnectionDetailContent({
                 setMessageText(prefix);
                 requestAnimationFrame(() => messageInputRef.current?.focus());
               }}
-              className="flex-[2] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+              className="flex-[2] min-h-[44px] px-3 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
             >
               Share Your Availability
             </button>
@@ -1004,7 +1006,7 @@ export default function ConnectionDetailContent({
               type="button"
               onClick={handleCancelNextStep}
               disabled={actionLoading}
-              className="flex-1 px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 min-h-[44px] px-3 py-2 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               {actionLoading ? "..." : "Decline"}
             </button>
@@ -1024,14 +1026,14 @@ export default function ConnectionDetailContent({
       {/* Optional header bar */}
       {showHeader && (
         <div className="px-7 py-5 border-b border-gray-200 flex items-center justify-between shrink-0">
-          <h3 className="text-lg font-semibold text-gray-900">Connection</h3>
+          <h3 className="text-lg font-display font-semibold text-gray-900">Connection</h3>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+            className="w-11 h-11 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
             aria-label="Close"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -1062,10 +1064,12 @@ export default function ConnectionDetailContent({
               {/* Avatar */}
               <div className="shrink-0">
                 {imageUrl && !shouldBlur ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={imageUrl}
                     alt={otherName}
+                    width={56}
+                    height={56}
+                    sizes="56px"
                     className="w-14 h-14 rounded-xl object-cover"
                   />
                 ) : (
@@ -1100,10 +1104,10 @@ export default function ConnectionDetailContent({
                     <button
                       type="button"
                       onClick={onClose}
-                      className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+                      className="w-11 h-11 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors"
                       aria-label="Close"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -1112,32 +1116,34 @@ export default function ConnectionDetailContent({
                 {/* Profile link + inline contact */}
                 {otherProfile && !shouldBlur && (
                   <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                    <Link
-                      href={profileHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-                    >
-                      View profile
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </Link>
+                    {profileHref && (
+                      <Link
+                        href={profileHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 min-h-[44px] px-2 -mx-2 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                      >
+                        View profile
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </Link>
+                    )}
                     {hasPhone && (
                       <a
                         href={`tel:${otherProfile.phone}`}
-                        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+                        className="inline-flex items-center gap-1.5 min-h-[44px] px-2 -mx-2 text-sm text-gray-500 hover:text-primary-600 transition-colors"
                       >
-                        <PhoneIcon className="w-3.5 h-3.5" />
+                        <PhoneIcon className="w-4 h-4" />
                         {otherProfile.phone}
                       </a>
                     )}
                     {hasEmail && (
                       <a
                         href={`mailto:${otherProfile.email}`}
-                        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary-600 transition-colors"
+                        className="inline-flex items-center gap-1.5 min-h-[44px] px-2 -mx-2 text-sm text-gray-500 hover:text-primary-600 transition-colors"
                       >
-                        <EmailIcon className="w-3.5 h-3.5" />
+                        <EmailIcon className="w-4 h-4" />
                         {otherProfile.email}
                       </a>
                     )}
@@ -1211,7 +1217,7 @@ export default function ConnectionDetailContent({
                     type="button"
                     onClick={() => { setNextStepConfirm(null); setNextStepNote(""); }}
                     disabled={nextStepSending}
-                    className="flex-1 py-2 text-xs font-medium text-gray-600 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="flex-1 min-h-[44px] py-2 text-xs font-medium text-gray-600 border border-gray-200 bg-white rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -1219,7 +1225,7 @@ export default function ConnectionDetailContent({
                     type="button"
                     onClick={() => handleNextStepRequest(nextStepConfirm)}
                     disabled={nextStepSending}
-                    className="flex-1 py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
+                    className="flex-1 min-h-[44px] py-2 text-xs font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                   >
                     {nextStepSending ? "Sending..." : "Send Request"}
                   </button>
@@ -1271,7 +1277,7 @@ export default function ConnectionDetailContent({
                         type="button"
                         onClick={() => setConfirmCancelNextStep(false)}
                         disabled={actionLoading}
-                        className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="flex-1 min-h-[44px] py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                       >
                         Keep it
                       </button>
@@ -1279,7 +1285,7 @@ export default function ConnectionDetailContent({
                         type="button"
                         onClick={handleCancelNextStep}
                         disabled={actionLoading}
-                        className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
+                        className="flex-1 min-h-[44px] py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
                       >
                         {actionLoading ? "..." : "Cancel request"}
                       </button>
@@ -1301,7 +1307,7 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={() => setConfirmAction(null)}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -1309,17 +1315,17 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={handleEndConnection}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
                     >
                       {actionLoading ? "..." : "End Connection"}
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-between py-1">
+                <div className="flex items-center justify-between min-h-[44px]">
                   <div
                     onClick={() => setConfirmAction("end")}
-                    className="flex items-center gap-1.5 cursor-pointer"
+                    className="flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                     <span className="text-xs text-gray-500">End connection</span>
@@ -1390,7 +1396,7 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={() => setConfirmAction(null)}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -1398,7 +1404,7 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={handleHideInline}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
                     >
                       {actionLoading ? "..." : "Remove"}
                     </button>
@@ -1407,7 +1413,7 @@ export default function ConnectionDetailContent({
               ) : (
                 <div
                   onClick={() => setConfirmAction("remove")}
-                  className="flex items-center gap-1.5 cursor-pointer py-1"
+                  className="flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                   <span className="text-xs text-gray-500">Remove from list</span>
@@ -1431,7 +1437,7 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={() => setConfirmAction(null)}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -1439,7 +1445,7 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={handleWithdraw}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
                     >
                       {actionLoading ? "..." : "Withdraw"}
                     </button>
@@ -1448,7 +1454,7 @@ export default function ConnectionDetailContent({
               ) : (
                 <div
                   onClick={() => setConfirmAction("withdraw")}
-                  className="flex items-center gap-1.5 cursor-pointer py-1"
+                  className="flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                   <span className="text-xs text-gray-500">Withdraw request</span>
@@ -1472,7 +1478,7 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={() => setConfirmAction(null)}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-medium text-gray-600 border border-gray-200 bg-white rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -1480,7 +1486,7 @@ export default function ConnectionDetailContent({
                       type="button"
                       onClick={handleHideInline}
                       disabled={actionLoading}
-                      className="flex-1 py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
+                      className="flex-1 min-h-[44px] py-1.5 text-[11px] font-semibold text-white bg-red-800 rounded-md hover:bg-red-900 transition-colors disabled:opacity-50"
                     >
                       {actionLoading ? "..." : "Remove"}
                     </button>
@@ -1514,7 +1520,7 @@ export default function ConnectionDetailContent({
                   )}
                   <div
                     onClick={() => setConfirmAction("remove")}
-                    className="flex items-center gap-1.5 cursor-pointer py-1"
+                    className="flex items-center gap-1.5 cursor-pointer min-h-[44px]"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
                     <span className="text-xs text-gray-500">Remove from list</span>

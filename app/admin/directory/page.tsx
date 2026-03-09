@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Badge from "@/components/ui/Badge";
 import Pagination from "@/components/ui/Pagination";
+import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
 import type { DirectoryListItem } from "@/lib/types";
 
@@ -120,27 +121,21 @@ export default function AdminDirectoryPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
-        <select
+        <Select
+          options={[{ value: "", label: "All Categories" }, ...PROVIDER_CATEGORIES.map(cat => ({ value: cat, label: cat }))]}
           value={category}
-          onChange={(e) => handleCategoryChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">All Categories</option>
-          {PROVIDER_CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+          onChange={handleCategoryChange}
+          size="sm"
+          className="w-48"
+        />
 
-        <select
+        <Select
+          options={[{ value: "", label: "All States" }, ...US_STATES.map(st => ({ value: st, label: st }))]}
           value={stateFilter}
-          onChange={(e) => handleStateChange(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-        >
-          <option value="">All States</option>
-          {US_STATES.map((st) => (
-            <option key={st} value={st}>{st}</option>
-          ))}
-        </select>
+          onChange={handleStateChange}
+          size="sm"
+          className="w-36"
+        />
       </div>
 
       {/* Tabs */}

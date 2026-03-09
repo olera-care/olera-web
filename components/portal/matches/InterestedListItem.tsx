@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import type { InterestedProvider } from "@/hooks/useInterestedProviders";
 
@@ -44,10 +45,12 @@ export default function InterestedListItem({
         {/* Avatar */}
         <div className="relative shrink-0">
           {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={imageUrl}
               alt={name}
+              width={40}
+              height={40}
+              sizes="40px"
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : (

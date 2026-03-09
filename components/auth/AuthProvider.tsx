@@ -352,6 +352,36 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         if (cancelled) return;
 
         if (data) {
+          // If account exists but no family profile, ensure one gets created
+          const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
+          if (!hasFamilyProfile) {
+            try {
+              await fetch("/api/auth/ensure-account", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              if (cancelled) return;
+              // Re-fetch to pick up the new family profile
+              const refreshed = await fetchAccountData(userId);
+              if (cancelled) return;
+              if (refreshed) {
+                cacheAuthData(userId, refreshed);
+                setState((prev) => ({
+                  ...prev,
+                  account: refreshed.account,
+                  activeProfile: refreshed.activeProfile,
+                  profiles: refreshed.profiles,
+                  membership: refreshed.membership,
+                  isLoading: false,
+                  fetchError: false,
+                }));
+                console.timeEnd("[olera] init");
+                return;
+              }
+            } catch {
+              // Best-effort — continue with what we have
+            }
+          }
           cacheAuthData(userId, data);
           setState((prev) => ({
             ...prev,
@@ -362,11 +392,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             isLoading: false,
             fetchError: false,
           }));
-        } else if (!hasCachedData) {
-          setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
         } else {
-          // Had cache, fetch returned null (edge case) — stop loading
-          setState((prev) => ({ ...prev, isLoading: false }));
+          // No account found — ensure one exists (creates account + family profile)
+          try {
+            await fetch("/api/auth/ensure-account", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+            });
+            if (cancelled) return;
+            // Re-fetch now that account + family profile exist
+            const retryData = await fetchAccountData(userId);
+            if (cancelled) return;
+            if (retryData) {
+              cacheAuthData(userId, retryData);
+              setState((prev) => ({
+                ...prev,
+                account: retryData.account,
+                activeProfile: retryData.activeProfile,
+                profiles: retryData.profiles,
+                membership: retryData.membership,
+                isLoading: false,
+                fetchError: false,
+              }));
+            } else {
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+            }
+          } catch {
+            if (cancelled) return;
+            setState((prev) => ({ ...prev, isLoading: false, fetchError: !hasCachedData }));
+          }
         }
       } catch (err) {
         console.error("[olera] init fetch failed:", err);
@@ -407,6 +461,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
         // Set user + any cached data immediately
         const cached = getCachedAuthData(userId);
+        const hasCachedData = !!cached?.account;
         setState((prev) => ({
           ...prev,
           user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
@@ -414,7 +469,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           activeProfile: cached?.activeProfile ?? prev.activeProfile,
           profiles: cached?.profiles ?? prev.profiles,
           membership: cached?.membership ?? prev.membership,
-          isLoading: false,
+          // Only mark as "done loading" if we have cached data — otherwise
+          // keep loading until the background fetch completes to avoid
+          // showing empty states that flash to populated states.
+          isLoading: !hasCachedData && !prev.account,
           fetchError: false,
         }));
 
@@ -443,18 +501,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               activeProfile: data.activeProfile,
               profiles: data.profiles,
               membership: data.membership,
+              isLoading: false,
               fetchError: false,
             }));
           } else if (!cached?.account) {
-            setState((prev) => ({ ...prev, fetchError: true }));
+            setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+          } else {
+            // Had cache, fetch returned nothing — keep cache, stop loading
+            setState((prev) => ({ ...prev, isLoading: false }));
           }
         } catch (err) {
           // Timeout or network error — don't retry, just use cache
           console.error("[olera] SIGNED_IN fetch failed:", err);
           if (cancelled || versionRef.current !== version) return;
-          if (!cached?.account) {
-            setState((prev) => ({ ...prev, fetchError: true }));
-          }
+          setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
         }
       }
 
@@ -515,7 +575,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // to the wizard instead of re-opening the modal.
       const hasStartedProviderOnboarding = (() => {
         try {
-          return !!localStorage.getItem("olera_onboarding_provider_type");
+          return !!localStorage.getItem("olera_onboarding_provider_type")
+            || !!localStorage.getItem("olera_provider_intent_started");
         } catch {
           return false;
         }

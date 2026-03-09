@@ -3,7 +3,48 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { MOCK_LEADS, persistMockMessage, type LeadDetail } from "@/lib/mock/provider-leads";
+import Select from "@/components/ui/Select";
+import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { Connection, Profile } from "@/lib/types";
+
+// ── Lead types (previously from mock file) ──
+
+interface ActivityEvent {
+  label: string;
+  date: string;
+}
+
+interface LeadDetail {
+  id: string;
+  name: string;
+  initials: string;
+  subtitle: string;
+  location: string;
+  urgency: Urgency;
+  status: LeadStatus;
+  date: string;
+  isNew: boolean;
+  email?: string;
+  phone?: string;
+  contactPreference?: ContactMethod;
+  careRecipient?: string;
+  careRecipientName?: string;
+  careType?: string[];
+  careNeeds?: string[];
+  livingSituation?: string;
+  schedulePreference?: string;
+  careLocation?: string;
+  languagePreference?: string;
+  insuranceType?: string;
+  benefits?: string[];
+  additionalNotes?: string;
+  activity?: ActivityEvent[];
+  archivedDate?: string;
+  archiveReason?: string;
+  messagedAt?: string;
+  connectionId?: string; // Link to actual connection
+}
 
 // ── Types ──
 
@@ -85,7 +126,7 @@ function CollapsibleSection({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150"
+        className="w-full flex items-center justify-between px-4 lg:px-6 py-4 text-left hover:bg-gray-50/50 transition-colors duration-150 min-h-[48px]"
       >
         <span className="text-[15px] font-semibold text-gray-900">{title}</span>
         <svg
@@ -106,7 +147,7 @@ function CollapsibleSection({
       >
         <div className="overflow-hidden">
           <div
-            className={`px-6 pb-5 transition-[opacity,transform] ${
+            className={`px-4 lg:px-6 pb-5 transition-[opacity,transform] ${
               isOpen
                 ? "duration-300 delay-100 opacity-100 translate-y-0"
                 : "duration-200 opacity-0 translate-y-1"
@@ -148,6 +189,8 @@ function LeadDetailDrawer({
   const [archived, setArchived] = useState(false);
   const [restored, setRestored] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Generate pre-filled template from lead data
@@ -167,6 +210,8 @@ function LeadDetailDrawer({
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
+      setSendingMessage(false);
+      setSendError(null);
     }
   }, [isOpen]);
 
@@ -183,6 +228,8 @@ function LeadDetailDrawer({
       setArchived(false);
       setRestored(false);
       setShowDeleteConfirm(false);
+      setSendingMessage(false);
+      setSendError(null);
     }
   }, [lead]);
 
@@ -213,14 +260,35 @@ function LeadDetailDrawer({
     };
   }, [isOpen, onClose, showComposer, showArchive, showDeleteConfirm]);
 
-  const handleSendMessage = () => {
-    if (!lead) return;
-    // Persist the message to localStorage so the inbox can show it
-    if (messageText.trim()) {
-      persistMockMessage(lead.id, messageText, "provider");
+  const handleSendMessage = async () => {
+    if (!lead || !lead.connectionId || !messageText.trim()) return;
+
+    setSendingMessage(true);
+    setSendError(null);
+
+    try {
+      const res = await fetch("/api/connections/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId: lead.connectionId,
+          text: messageText.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setMessageSent(true);
+      onMessage(lead.id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to send message";
+      setSendError(msg);
+    } finally {
+      setSendingMessage(false);
     }
-    setMessageSent(true);
-    onMessage(lead.id);
   };
 
   const handleArchive = () => {
@@ -267,39 +335,50 @@ function LeadDetailDrawer({
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 top-16 z-30 bg-black/50 transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        className={`fixed inset-0 z-30 bg-black/50 transition-opacity duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
       />
 
-      {/* Drawer panel */}
+      {/* Bottom sheet on mobile, side drawer on desktop */}
       <div
-        className={`fixed top-16 right-0 z-40 h-[calc(100vh-64px)] w-[640px] max-w-[calc(100vw-24px)] bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed z-40 bg-white shadow-2xl flex flex-col will-change-transform transition-transform duration-300 ease-out
+          /* Mobile: bottom sheet */
+          inset-x-0 bottom-0 max-h-[90vh] rounded-t-3xl
+          /* Desktop: side drawer */
+          lg:inset-y-0 lg:top-16 lg:right-0 lg:left-auto lg:bottom-auto lg:w-[640px] lg:max-w-[calc(100vw-24px)] lg:h-[calc(100dvh-64px)] lg:max-h-none lg:rounded-none
+          ${isOpen
+            ? "translate-y-0 lg:translate-x-0"
+            : "translate-y-full lg:translate-y-0 lg:translate-x-full"
+          }`}
       >
+        {/* Mobile drag handle */}
+        <div className="lg:hidden pt-3 pb-2 flex justify-center shrink-0">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+
         {/* ── Fixed header ── */}
         <div className="shrink-0 border-b border-gray-100">
           {/* Lead identity + close button */}
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-start gap-4">
-              {/* Close button — top right */}
+          <div className="px-4 lg:px-6 pt-2 lg:pt-6 pb-4">
+            <div className="flex items-start gap-3 lg:gap-4">
+              {/* Close button — desktop only, top right */}
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute right-6 top-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
+                className="hidden lg:flex absolute right-6 top-6 w-8 h-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-colors duration-150"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div className={`w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
-                <span className="text-sm font-bold text-gray-500">{lead.initials}</span>
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
+                <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2.5">
-                  <h2 className="text-xl font-display font-bold text-gray-900 tracking-tight truncate">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg lg:text-xl font-display font-bold text-gray-900 tracking-tight truncate">
                     {lead.name}
                   </h2>
                   {lead.isNew && (
@@ -308,22 +387,39 @@ function LeadDetailDrawer({
                     </span>
                   )}
                 </div>
-                <p className="text-[15px] text-gray-500 mt-0.5">{lead.subtitle}</p>
+                <p className="text-sm lg:text-[15px] text-gray-500 mt-0.5">{lead.subtitle}</p>
               </div>
+              {/* Mobile close button - top right */}
+              <button
+                type="button"
+                onClick={onClose}
+                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            {/* Context pills */}
-            <div className="flex flex-wrap items-center gap-2 mt-4">
+            {/* Context pills - horizontal scroll on mobile */}
+            <div className="flex items-center gap-2 mt-3 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide">
               {/* Urgency or Archived badge */}
               {lead.status === "archived" ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-500">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-500 whitespace-nowrap shrink-0">
                   <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
                   </svg>
                   Archived
                 </span>
               ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 ${
+                lead.urgency === "immediate"
+                  ? "bg-red-50 text-red-700 border border-red-100"
+                  : lead.urgency === "within_1_month"
+                  ? "bg-amber-50 text-amber-700 border border-amber-100"
+                  : "bg-blue-50 text-blue-700 border border-blue-100"
+              }`}>
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   lead.urgency === "immediate" ? "bg-red-400" : lead.urgency === "within_1_month" ? "bg-amber-400" : "bg-blue-400"
                 }`} />
@@ -331,7 +427,7 @@ function LeadDetailDrawer({
               </span>
               )}
               {/* Location */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
                 <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
@@ -339,7 +435,7 @@ function LeadDetailDrawer({
                 {lead.location}
               </span>
               {/* Date */}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
                 <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
@@ -347,7 +443,7 @@ function LeadDetailDrawer({
               </span>
               {/* Contact preference */}
               {lead.contactPreference && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-[13px] font-medium text-gray-600">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gray-50 border border-gray-100 text-xs font-medium text-gray-600 whitespace-nowrap shrink-0">
                   <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     {lead.contactPreference === "phone" ? (
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
@@ -367,7 +463,7 @@ function LeadDetailDrawer({
 
           {/* ── Inline message composer / persistent sent state ── */}
           {(showComposer || lead.messagedAt) && (
-            <div className="px-6 pt-5 pb-2">
+            <div className="px-4 lg:px-6 pt-5 pb-2">
               <div className={`rounded-2xl overflow-hidden ${(messageSent || lead.messagedAt) ? "border border-primary-100/60 bg-primary-50/30" : "border border-gray-200 bg-white shadow-sm"}`}>
                 {(messageSent || lead.messagedAt) ? (
                   /* ── Persistent confirmation state with actions ── */
@@ -384,7 +480,7 @@ function LeadDetailDrawer({
                     <div className="flex items-center gap-3 w-full mt-2">
                       <button
                         type="button"
-                        onClick={() => { onClose(); router.push(`/provider/inbox?id=mock-lead-${lead.id}`); }}
+                        onClick={() => { onClose(); router.push(`/provider/inbox?id=${lead.connectionId || lead.id}`); }}
                         className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-primary-200 bg-white text-[14px] font-semibold text-primary-600 hover:bg-primary-50 hover:border-primary-300 transition-all duration-150 active:scale-[0.98]"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -430,21 +526,47 @@ function LeadDetailDrawer({
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
                         rows={8}
-                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-[15px] text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                        disabled={sendingMessage}
+                        className="w-full rounded-xl border border-primary-200 bg-primary-50/20 px-4 py-3.5 text-base text-gray-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
                       />
                     </div>
+
+                    {/* Error message */}
+                    {sendError && (
+                      <div className="px-5 pb-3">
+                        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                          </svg>
+                          <span>{sendError}</span>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Send button */}
                     <div className="px-5 pb-5">
                       <button
                         type="button"
                         onClick={handleSendMessage}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+                        disabled={sendingMessage || !messageText.trim() || !lead.connectionId}
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
-                        </svg>
-                        Send Message
+                        {sendingMessage ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                            </svg>
+                            Send Message
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -455,7 +577,7 @@ function LeadDetailDrawer({
 
           {/* ── Archived banner ── */}
           {lead.status === "archived" && lead.archivedDate && (
-            <div className="px-6 pt-5 pb-2">
+            <div className="px-4 lg:px-6 pt-5 pb-2">
               <div className="flex items-start gap-3.5 rounded-2xl bg-gray-50 border border-gray-100 px-5 py-4">
                 <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -475,7 +597,7 @@ function LeadDetailDrawer({
           {/* 1. Contact Information — 2-column with copy buttons */}
           {(lead.email || lead.phone) ? (
             <CollapsibleSection title="Contact Information">
-              <div className="grid grid-cols-2 gap-x-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
                 {/* Email */}
                 <div>
                   <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Email</p>
@@ -569,7 +691,7 @@ function LeadDetailDrawer({
           {/* 3. Living Situation — 2-column grid */}
           <CollapsibleSection title="Living Situation">
             {(lead.livingSituation || lead.schedulePreference || lead.careLocation || lead.languagePreference) ? (
-              <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
                 <div>
                   <p className="text-[12px] text-gray-400 font-semibold uppercase tracking-wider mb-2">Living situation</p>
                   <p className="text-[15px] text-gray-800">{lead.livingSituation || <span className="text-gray-400 italic">Not provided</span>}</p>
@@ -660,9 +782,9 @@ function LeadDetailDrawer({
         {/* ── Fixed footer ── */}
         {lead.status === "archived" ? (
           /* Archived lead footer — Delete + Restore */
-          <div className="shrink-0 border-t border-gray-100">
+          <div className="shrink-0 border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
             {restored ? (
-              <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
+              <div className="px-4 lg:px-6 py-6 lg:py-8 flex flex-col items-center justify-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
@@ -672,7 +794,7 @@ function LeadDetailDrawer({
                 <p className="text-[13px] text-gray-500">Moved back to active leads</p>
               </div>
             ) : showDeleteConfirm ? (
-              <div className="px-6 py-5">
+              <div className="px-4 lg:px-6 py-4 lg:py-5">
                 <div className="rounded-2xl border border-red-200 bg-red-50/50 px-5 py-5">
                   <div className="flex items-start gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
@@ -704,11 +826,11 @@ function LeadDetailDrawer({
                 </div>
               </div>
             ) : (
-              <div className="px-6 py-4 flex items-center gap-3">
+              <div className="px-4 lg:px-6 py-4 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+                  className="inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl border border-gray-200 text-sm lg:text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
@@ -718,21 +840,21 @@ function LeadDetailDrawer({
                 <button
                   type="button"
                   onClick={handleRestore}
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
                   </svg>
-                  Restore Lead
+                  Restore
                 </button>
               </div>
             )}
           </div>
         ) : (showComposer || (lead.messagedAt && !showArchive)) ? null : showArchive ? (
           /* Archive reason selector */
-          <div className="shrink-0 border-t border-gray-100">
+          <div className="shrink-0 border-t border-gray-100 pb-[env(safe-area-inset-bottom)]">
             {archived ? (
-              <div className="px-6 py-8 flex flex-col items-center justify-center gap-3">
+              <div className="px-4 lg:px-6 py-6 lg:py-8 flex flex-col items-center justify-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-600 flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
@@ -741,7 +863,7 @@ function LeadDetailDrawer({
                 <p className="text-[15px] font-semibold text-gray-900">Lead archived</p>
               </div>
             ) : (
-              <div className="px-6 py-5">
+              <div className="px-4 lg:px-6 py-4 lg:py-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[15px] font-semibold text-gray-900">Why are you archiving?</h3>
                   <button
@@ -786,7 +908,7 @@ function LeadDetailDrawer({
                     onChange={(e) => setArchiveOtherText(e.target.value)}
                     placeholder="Tell us more (optional)"
                     rows={2}
-                    className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
+                    className="w-full mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent transition-all duration-150"
                   />
                 )}
                 {archiveReason && (
@@ -803,11 +925,11 @@ function LeadDetailDrawer({
           </div>
         ) : (
           /* Default footer buttons — active leads */
-          <div className="shrink-0 border-t border-gray-100 px-6 py-4 flex items-center gap-3">
+          <div className="shrink-0 border-t border-gray-100 px-4 lg:px-6 py-4 flex items-center gap-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <button
               type="button"
               onClick={() => setShowArchive(true)}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl border border-gray-200 text-sm lg:text-[15px] font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
@@ -817,12 +939,12 @@ function LeadDetailDrawer({
             <button
               type="button"
               onClick={() => { setShowComposer(true); scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" }); }}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98]"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-3 rounded-xl bg-primary-600 text-sm lg:text-[15px] font-semibold text-white shadow-sm hover:bg-primary-700 transition-all duration-150 active:scale-[0.98] min-h-[48px]"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
               </svg>
-              Send Message
+              Message
             </button>
           </div>
         )}
@@ -831,21 +953,274 @@ function LeadDetailDrawer({
   );
 }
 
+// ── Helpers for mapping connections to leads ──
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return `${Math.floor(diffDays / 30)}mo ago`;
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
+/** Migrate old unscoped leads key to new profile-scoped key (one-time) */
+function migrateLeadsViewedData(providerProfileId: string): void {
+  const OLD_KEY = "olera_leads_viewed";
+  const newKey = `olera_leads_viewed_${providerProfileId}`;
+  const migrationFlag = `olera_leads_migrated_${providerProfileId}`;
+
+  try {
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const oldData = localStorage.getItem(OLD_KEY);
+    if (oldData) {
+      const existingNew = localStorage.getItem(newKey);
+      if (!existingNew) {
+        localStorage.setItem(newKey, oldData);
+      } else {
+        const oldIds: string[] = JSON.parse(oldData);
+        const newIds: string[] = JSON.parse(existingNew);
+        const merged = [...new Set([...oldIds, ...newIds])];
+        localStorage.setItem(newKey, JSON.stringify(merged));
+      }
+    }
+    localStorage.setItem(migrationFlag, "1");
+  } catch {
+    // localStorage unavailable
+  }
+}
+
+interface ConnectionWithProfile extends Connection {
+  fromProfile?: Profile | null;
+  toProfile?: Profile | null;
+  /** For provider-initiated requests, family is in toProfile */
+  _familyProfile?: Profile | null;
+}
+
+function mapConnectionToLead(conn: ConnectionWithProfile, providerProfileId: string): LeadDetail {
+  const meta = conn.metadata as Record<string, unknown> | undefined;
+  const thread = (meta?.thread as Array<{ from_profile_id: string; text: string; created_at: string }>) || [];
+  const isArchived = meta?.archived === true;
+  // For provider-initiated requests (type="request"), family is in toProfile
+  // For family-initiated inquiries (type="inquiry"), family is in fromProfile
+  const familyProfile = conn._familyProfile || conn.fromProfile;
+
+  // Parse the message JSON for care details
+  let careDetails: Record<string, unknown> = {};
+  try {
+    careDetails = conn.message ? JSON.parse(conn.message) : {};
+  } catch {
+    careDetails = {};
+  }
+
+  // For provider-initiated requests, also check family profile metadata for care info
+  const familyMeta = (familyProfile?.metadata || {}) as Record<string, unknown>;
+  const isProviderInitiated = conn.type === "request" && meta?.provider_initiated;
+
+  const firstName = (careDetails.seeker_first_name as string) || familyProfile?.display_name?.split(" ")[0] || "Unknown";
+  const lastName = (careDetails.seeker_last_name as string) || familyProfile?.display_name?.split(" ").slice(1).join(" ") || "";
+  const fullName = `${firstName} ${lastName}`.trim();
+
+  // Determine urgency from care details or family profile metadata
+  const urgencyMap: Record<string, Urgency> = {
+    asap: "immediate",
+    within_month: "within_1_month",
+    researching: "exploring",
+    exploring: "exploring",
+    immediate: "immediate",
+  };
+  const rawUrgency = (careDetails.urgency as string) || (familyMeta.timeline as string);
+  const urgency = urgencyMap[rawUrgency] || "exploring";
+
+  // Determine status
+  const hasProviderReply = thread.some((msg) => msg.from_profile_id === providerProfileId);
+  let status: LeadStatus = "new";
+  if (isArchived) {
+    status = "archived";
+  } else if (hasProviderReply) {
+    status = "replied";
+  } else if (conn.status === "pending" && thread.length === 0) {
+    status = "new";
+  } else {
+    status = "no_reply";
+  }
+
+  // Build activity timeline
+  const activity: ActivityEvent[] = [
+    {
+      label: isProviderInitiated ? "Connection accepted" : "Lead received",
+      date: `${timeAgo(conn.created_at)} · Via Olera`,
+    },
+  ];
+  for (const msg of thread) {
+    if (msg.from_profile_id === providerProfileId) {
+      activity.push({ label: "You sent a message", date: timeAgo(msg.created_at) });
+    } else {
+      activity.push({ label: "Family responded", date: timeAgo(msg.created_at) });
+    }
+  }
+
+  // Care recipient info
+  const careRecipientMap: Record<string, string> = {
+    parent: "Parent",
+    spouse: "Spouse",
+    self: "Self",
+    other: "Family member",
+  };
+  const careRecipient = careRecipientMap[careDetails.care_recipient as string] || "Family member";
+
+  // Check if this is a "new" lead (not viewed yet) - scoped by provider profile
+  let isNew = false;
+  try {
+    // Migrate old data on first access
+    migrateLeadsViewedData(providerProfileId);
+    const leadsKey = `olera_leads_viewed_${providerProfileId}`;
+    const viewedIds = JSON.parse(localStorage.getItem(leadsKey) || "[]");
+    isNew = !viewedIds.includes(conn.id) && status !== "archived" && status !== "replied";
+  } catch {
+    isNew = status === "new";
+  }
+
+  return {
+    id: conn.id,
+    connectionId: conn.id,
+    name: fullName,
+    initials: getInitials(fullName),
+    subtitle: `For ${careRecipient.toLowerCase()}`,
+    location: familyProfile?.city && familyProfile?.state
+      ? `${familyProfile.city}, ${familyProfile.state}`
+      : "Location not specified",
+    urgency,
+    status,
+    date: timeAgo(conn.created_at),
+    isNew,
+    email: familyProfile?.email || undefined,
+    phone: familyProfile?.phone || undefined,
+    careRecipient,
+    additionalNotes: (careDetails.additional_notes as string) || (meta?.auto_intro as string) || undefined,
+    activity,
+  };
+}
+
 // ── Page ──
 
 export default function ProviderLeadsPage() {
+  const providerProfile = useProviderProfile();
   const [activeFilter, setActiveFilter] = useState<TimelineFilter>("all");
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
-  const [leads, setLeads] = useState<LeadDetail[]>(MOCK_LEADS);
+  const [leads, setLeads] = useState<LeadDetail[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const fetchedRef = useRef(false);
 
-  // Broadcast new-leads count to Navbar badge and persist to localStorage
+  // Fetch leads (connections) from Supabase
+  useEffect(() => {
+    if (!providerProfile || fetchedRef.current) return;
+    if (!isSupabaseConfigured()) {
+      setIsLoading(false);
+      return;
+    }
+
+    fetchedRef.current = true;
+
+    (async () => {
+      try {
+        const supabase = createClient();
+        const profileId = providerProfile.id;
+
+        // Fetch TWO types of connections that should appear as leads:
+        // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
+        // 2. Provider-initiated requests (type="request") that were accepted by family
+        const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
+          // Query 1: Family-initiated inquiries (existing behavior)
+          supabase
+            .from("connections")
+            .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type)")
+            .eq("to_profile_id", profileId)
+            .eq("type", "inquiry")
+            .in("status", ["pending", "accepted"])
+            .order("created_at", { ascending: false }),
+
+          // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
+          supabase
+            .from("connections")
+            .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, metadata)")
+            .eq("from_profile_id", profileId)
+            .eq("type", "request")
+            .eq("status", "accepted")
+            .order("created_at", { ascending: false }),
+        ]);
+
+        if (inquiriesResult.error) {
+          console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (acceptedRequestsResult.error) {
+          console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
+          // Continue with just inquiries if this fails
+        }
+
+        // Combine and deduplicate connections
+        const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
+        const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
+          ...conn,
+          _familyProfile: conn.toProfile, // Mark family profile for mapping
+        }));
+
+        const allConnections = [...inquiries, ...acceptedRequests];
+        const uniqueConnections = allConnections.filter(
+          (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
+        );
+
+        // Map connections to leads, filtering out hidden ones
+        const mappedLeads = uniqueConnections
+          .filter((conn) => {
+            const meta = conn.metadata as Record<string, unknown> | undefined;
+            return !meta?.hidden;
+          })
+          .map((conn) => mapConnectionToLead(conn, profileId));
+
+        // Sort by created_at descending
+        mappedLeads.sort((a, b) => {
+          const connA = uniqueConnections.find((c) => c.id === a.id);
+          const connB = uniqueConnections.find((c) => c.id === b.id);
+          return new Date(connB?.created_at || 0).getTime() - new Date(connA?.created_at || 0).getTime();
+        });
+
+        setLeads(mappedLeads);
+      } catch (err) {
+        console.error("Failed to fetch leads:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [providerProfile]);
+
+  // Broadcast new-leads count to Navbar badge and persist to localStorage (profile-scoped)
   const newLeadsCount = useMemo(() => leads.filter((l) => l.isNew).length, [leads]);
   useEffect(() => {
-    try { localStorage.setItem("olera_leads_new_count", String(newLeadsCount)); } catch { /* */ }
-    window.dispatchEvent(new CustomEvent("olera:leads-count", { detail: newLeadsCount }));
-  }, [newLeadsCount]);
+    if (!providerProfile) return;
+    const countKey = `olera_leads_new_count_${providerProfile.id}`;
+    try { localStorage.setItem(countKey, String(newLeadsCount)); } catch { /* */ }
+    window.dispatchEvent(new CustomEvent("olera:leads-count", { detail: { count: newLeadsCount, profileId: providerProfile.id } }));
+  }, [newLeadsCount, providerProfile]);
 
   // Derive selectedLead from current leads so it stays in sync after archive/restore
   const selectedLead = useMemo(
@@ -856,13 +1231,24 @@ export default function ProviderLeadsPage() {
   const openDrawer = useCallback((lead: LeadDetail) => {
     setSelectedLeadId(lead.id);
     setIsDrawerOpen(true);
-    // Clear "New" badge once viewed
-    if (lead.isNew) {
+    // Clear "New" badge once viewed and persist to localStorage
+    if (lead.isNew && providerProfile) {
       setLeads((prev) =>
         prev.map((l) => (l.id === lead.id ? { ...l, isNew: false } : l))
       );
+      // Persist viewed status to localStorage (scoped by provider profile)
+      try {
+        const leadsKey = `olera_leads_viewed_${providerProfile.id}`;
+        const viewedIds: string[] = JSON.parse(localStorage.getItem(leadsKey) || "[]");
+        if (!viewedIds.includes(lead.id)) {
+          viewedIds.push(lead.id);
+          localStorage.setItem(leadsKey, JSON.stringify(viewedIds));
+        }
+      } catch {
+        // localStorage unavailable
+      }
     }
-  }, []);
+  }, [providerProfile]);
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false);
@@ -921,122 +1307,196 @@ export default function ProviderLeadsPage() {
     }
   }, [activeFilter, leads]);
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 w-32 bg-warm-100 rounded-lg mb-2" />
+            <div className="h-4 w-72 bg-warm-50 rounded mb-8" />
+            <div className="h-12 w-full max-w-md bg-vanilla-50 border border-warm-100/60 rounded-xl mb-5" />
+            <div className="space-y-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-2xl border border-warm-100/60 p-5">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-warm-100 shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-5 w-32 bg-warm-100 rounded mb-2" />
+                      <div className="h-3 w-48 bg-warm-50 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ── Page header ── */}
-      <div className="mb-8">
-        <h1 className="text-[28px] font-display font-bold text-gray-900 tracking-tight">
+      <div className="mb-5 lg:mb-8">
+        <h1 className="text-2xl lg:text-[28px] font-display font-bold text-gray-900 tracking-tight">
           Leads
         </h1>
-        <p className="text-[15px] text-gray-500 mt-1.5 leading-relaxed">
+        <p className="text-sm lg:text-[15px] text-gray-500 mt-1 lg:mt-1.5 leading-relaxed">
           Families who found you and connected.
         </p>
       </div>
 
       {/* ── Filter tabs + Sort ── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
-        <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl">
-          {FILTER_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveFilter(tab.id)}
-              className={[
-                "px-5 py-2.5 rounded-[10px] text-sm font-semibold whitespace-nowrap transition-all duration-150",
-                activeFilter === tab.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div className="flex items-center justify-between gap-3 mb-4 lg:mb-5">
+        {/* Filter tabs - horizontal scroll on mobile */}
+        <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 flex-1 scrollbar-hide">
+          <div className="flex gap-0.5 bg-vanilla-50 border border-warm-100/60 p-0.5 rounded-xl w-max">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveFilter(tab.id)}
+                className={[
+                  "px-3.5 lg:px-5 py-2 lg:py-2.5 rounded-[10px] text-[13px] lg:text-sm font-semibold whitespace-nowrap transition-all duration-150 min-h-[40px] lg:min-h-[44px] flex items-center",
+                  activeFilter === tab.id
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700",
+                ].join(" ")}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="relative shrink-0 flex items-center">
+        {/* Desktop sort dropdown */}
+        <div className="hidden lg:flex items-center shrink-0">
           <span className="text-sm text-gray-400 mr-2">Sort by:</span>
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              aria-label="Sort leads"
-              className="text-sm font-semibold text-gray-700 border border-gray-200 rounded-xl pl-3.5 pr-8 py-2.5 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 bg-white"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <svg className="w-4 h-4 text-gray-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </div>
+          <Select
+            options={SORT_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
+            value={sortBy}
+            onChange={(val) => setSortBy(val as SortOption)}
+            size="sm"
+            className="w-40"
+          />
         </div>
       </div>
 
-      {/* ── Leads table ── */}
+      {/* ── Leads list ── */}
       {filteredLeads.length > 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
-          {/* Table header */}
-          <div className="grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 px-8 py-4 border-b border-gray-100">
-            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Name</span>
-            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Location</span>
-            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Urgency</span>
-            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Status</span>
-            <span className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">Date</span>
-            <span />
+          {/* Table header - desktop only */}
+          <div className="hidden lg:grid grid-cols-[2.5fr_1fr_1.1fr_1fr_0.8fr] gap-8 px-8 py-3.5 border-b border-gray-200/80 bg-gray-50/40">
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Name</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Location</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Urgency</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</span>
+            <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Date</span>
           </div>
 
-          {/* Table rows */}
+          {/* Lead rows */}
           {filteredLeads.map((lead, idx) => (
             <div
               key={lead.id}
               onClick={() => openDrawer(lead)}
               className={[
-                "group grid grid-cols-[2.5fr_1.2fr_1.2fr_1fr_0.8fr_0.7fr] gap-6 items-center px-8 py-4 transition-colors duration-100 hover:bg-vanilla-50/40 cursor-pointer",
-                idx < filteredLeads.length - 1 ? "border-b border-gray-100/80" : "",
+                "group transition-colors duration-150 cursor-pointer",
+                "lg:hover:bg-vanilla-50/80",
+                idx < filteredLeads.length - 1 ? "border-b border-gray-100 lg:border-gray-200/60" : "",
               ].join(" ")}
             >
-              {/* Name */}
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className={`w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0`}>
-                  <span className="text-xs font-bold text-gray-500">{lead.initials}</span>
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2.5">
-                    <p className="text-base font-semibold text-gray-900 truncate">{lead.name}</p>
-                    {lead.isNew && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
-                        New
-                      </span>
-                    )}
+              {/* Mobile card layout - redesigned for clarity */}
+              <div className="lg:hidden px-4 py-4 active:bg-vanilla-50/60">
+                <div className="flex items-start gap-3.5">
+                  {/* Avatar */}
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center ring-2 ring-white shadow-sm shrink-0`}>
+                    <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
                   </div>
-                  <p className="text-sm text-gray-500 truncate mt-0.5">{lead.subtitle}</p>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {/* Name row */}
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="text-[15px] font-semibold text-gray-900 truncate">{lead.name}</h3>
+                      {lead.isNew && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
+                          New
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Subtitle */}
+                    <p className="text-sm text-gray-500 mb-2">{lead.subtitle}</p>
+
+                    {/* Meta row - pills */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${
+                        lead.urgency === "immediate"
+                          ? "bg-red-50 text-red-700"
+                          : lead.urgency === "within_1_month"
+                          ? "bg-amber-50 text-amber-700"
+                          : "bg-blue-50 text-blue-700"
+                      }`}>
+                        {URGENCY_LABELS[lead.urgency]}
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-xs font-medium text-gray-600">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        {lead.location}
+                      </span>
+                      <span className="text-xs text-gray-400">{lead.date}</span>
+                    </div>
+                  </div>
+
+                  {/* Chevron */}
+                  <svg className="w-5 h-5 text-gray-300 shrink-0 mt-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
                 </div>
               </div>
 
-              {/* Location */}
-              <span className="text-[14px] font-medium text-gray-500">{lead.location}</span>
+              {/* Desktop table layout */}
+              <div className="hidden lg:grid grid-cols-[2.5fr_1fr_1.1fr_1fr_0.8fr] gap-8 items-center px-8 py-5">
+                {/* Name */}
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(lead.name)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
+                    <span className="text-sm font-bold text-gray-600">{lead.initials}</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5">
+                      <p className="text-[15px] font-semibold text-gray-900 truncate">{lead.name}</p>
+                      {lead.isNew && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold tracking-wide bg-primary-50 text-primary-600 border border-primary-100/50 shrink-0">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[13px] text-gray-500 truncate mt-0.5">{lead.subtitle}</p>
+                  </div>
+                </div>
 
-              {/* Urgency */}
-              <span className="text-[14px] font-medium text-gray-500">{URGENCY_LABELS[lead.urgency]}</span>
+                {/* Location */}
+                <span className="text-[14px] text-gray-500">{lead.location}</span>
 
-              {/* Status */}
-              <span className="text-[14px] font-medium text-gray-500">{STATUS_LABELS[lead.status]}</span>
+                {/* Urgency */}
+                <span className="text-[14px] font-medium text-gray-700">{URGENCY_LABELS[lead.urgency]}</span>
 
-              {/* Date */}
-              <span className="text-[14px] font-medium text-gray-500">{lead.date}</span>
+                {/* Status */}
+                <span className="text-[14px] text-gray-600">{STATUS_LABELS[lead.status]}</span>
 
-              {/* Action */}
-              <button
-                type="button"
-                onClick={() => openDrawer(lead)}
-                className="text-sm font-semibold text-primary-600 border border-primary-200 rounded-lg px-4 py-2.5 hover:bg-primary-50 hover:border-primary-300 hover:shadow-sm transition-all duration-150 active:scale-[0.97]"
-              >
-                View
-              </button>
+                {/* Date */}
+                <div className="flex items-center justify-between">
+                  <span className="text-[14px] text-gray-400">{lead.date}</span>
+                  {/* Chevron - appears on hover */}
+                  <svg className="w-5 h-5 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-150 -mr-1" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </div>
+              </div>
             </div>
           ))}
         </div>

@@ -17,10 +17,25 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const providerId = searchParams.get("provider_id");
+    const countOnly = searchParams.get("count_only") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
     const db = getServiceClient();
+
+    // Fast path: return only the count (used by admin dashboard overview)
+    if (countOnly) {
+      let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
+      if (status) countQuery = countQuery.eq("status", status);
+      if (providerId) countQuery = countQuery.eq("provider_id", providerId);
+      const { count, error } = await countQuery;
+      if (error) {
+        console.error("Admin questions count error:", error);
+        return NextResponse.json({ error: "Failed to count questions" }, { status: 500 });
+      }
+      return NextResponse.json({ count: count ?? 0 });
+    }
+
     let query = db
       .from("provider_questions")
       .select("*", { count: "exact" })

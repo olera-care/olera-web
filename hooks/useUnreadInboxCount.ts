@@ -4,34 +4,40 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /**
- * Migrate old unscoped localStorage key to new profile-scoped key.
- * Only runs once per profile key.
+ * Migrate old unscoped localStorage key to new profile-scoped keys.
+ * Runs once per individual profile ID to ensure all profiles get the old data.
  */
-function migrateInboxReadData(profileKey: string): void {
+function migrateInboxReadData(profileIds: string[]): void {
   const OLD_KEY = "olera_inbox_read";
-  const newKey = `olera_inbox_read_${profileKey}`;
-  const migrationFlag = `olera_inbox_migrated_${profileKey}`;
 
   try {
-    // Skip if already migrated
-    if (localStorage.getItem(migrationFlag)) return;
-
     const oldData = localStorage.getItem(OLD_KEY);
-    if (oldData) {
+    if (!oldData) return;
+
+    const oldIds: string[] = JSON.parse(oldData);
+    if (oldIds.length === 0) return;
+
+    // Migrate to EACH individual profile key (not a joined key)
+    for (const profileId of profileIds) {
+      const newKey = `olera_inbox_read_${profileId}`;
+      const migrationFlag = `olera_inbox_migrated_${profileId}`;
+
+      // Skip if already migrated for this profile
+      if (localStorage.getItem(migrationFlag)) continue;
+
       const existingNew = localStorage.getItem(newKey);
       if (!existingNew) {
         // Migrate old data to new key
         localStorage.setItem(newKey, oldData);
       } else {
         // Merge old and new data
-        const oldIds: string[] = JSON.parse(oldData);
         const newIds: string[] = JSON.parse(existingNew);
         const merged = [...new Set([...oldIds, ...newIds])];
         localStorage.setItem(newKey, JSON.stringify(merged));
       }
+      // Mark as migrated for this profile
+      localStorage.setItem(migrationFlag, "1");
     }
-    // Mark as migrated (don't delete old key yet - other profiles may need it)
-    localStorage.setItem(migrationFlag, "1");
   } catch {
     // localStorage unavailable
   }
@@ -43,10 +49,10 @@ function migrateInboxReadData(profileKey: string): void {
  * excludes hidden (soft-deleted) ones, checks against profile-scoped localStorage,
  * and returns the count.
  *
- * Falls back to mock connection IDs when Supabase has no real connections.
- *
- * Listens for "olera:inbox-read" custom events so the count updates
- * immediately when a conversation is opened in the inbox.
+ * Features:
+ * - Listens for "olera:inbox-read" custom events for immediate updates
+ * - Listens for "storage" events for cross-tab synchronization
+ * - Migrates old unscoped localStorage data to profile-scoped keys
  */
 export function useUnreadInboxCount(profileIds: string[]): number {
   const [count, setCount] = useState(0);
@@ -55,13 +61,13 @@ export function useUnreadInboxCount(profileIds: string[]): number {
   // Stable key for deps — avoids re-running on every render when array ref changes
   const profileKey = profileIds.join(",");
 
-  // Migrate old data on first run
+  // Migrate old data on first run - now migrates to each individual profile key
   useEffect(() => {
-    if (profileKey && !migratedRef.current) {
-      migrateInboxReadData(profileKey);
+    if (profileIds.length > 0 && !migratedRef.current) {
+      migrateInboxReadData(profileIds);
       migratedRef.current = true;
     }
-  }, [profileKey]);
+  }, [profileIds, profileKey]);
 
   const recount = useCallback(() => {
     if (!profileKey) return;
@@ -161,6 +167,18 @@ export function useUnreadInboxCount(profileIds: string[]): number {
       window.removeEventListener("olera:inbox-read", handler);
       window.removeEventListener("olera:connection-created", handler);
     };
+  }, [recount]);
+
+  // Cross-tab synchronization: re-count when localStorage changes in another tab
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      // Only re-count if an inbox read key was changed
+      if (e.key?.startsWith("olera_inbox_read_")) {
+        recount();
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, [recount]);
 
   return count;

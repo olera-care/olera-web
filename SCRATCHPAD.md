@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+- **DNS Cutover v1.0 → v2.0** (branch: `peaceful-wiles`) — IN PROGRESS
+  - Pre-flight checks complete, ready for Phase 2 (Cloudflare DNS)
+  - Provider slug migration done (008 + 009): 477/500 top GSC pages passing
+  - Auth config updated: Supabase Site URL → olera.care
+  - Cutover runbook published to Notion
+
 - **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — DONE ✅
   - PRs #165-171 all merged to staging
 
@@ -130,6 +136,32 @@
 ---
 
 ## Session Log
+
+### 2026-03-10 (Session 46) — DNS Cutover: Provider Slug Fix + Pre-flight
+
+**Branch:** `peaceful-wiles` (worktree)
+
+**What:** Discovered critical provider slug mismatch between v1.0 and v2.0, fixed it, then completed all cutover pre-flight checks.
+
+**Critical discovery:** v2.0's slug migration (007) generated `{name}-{state}` slugs, but v1.0 used a progressive algorithm: name-only → +state if duplicate → +city if still duplicate. Result: ~60% of provider URLs would have 404'd after cutover.
+
+**Fix:**
+- `008_fix_provider_slugs_v1_compat.sql` — Regenerated all 39K+ slugs using v1.0's algorithm
+- `009_patch_v1_slug_mismatches.sql` — Patched 38 top-traffic edge cases (renamed providers, special chars, franchise ambiguity) using `DO $$ EXCEPTION WHEN unique_violation` pattern
+
+**Validation:** Tested all 500 top GSC provider pages → 477/500 pass (95.4%). 23 failures: 20 already 404 on v1.0 (deleted providers), 3 slug conflicts (low traffic).
+
+**Pre-flight completed:**
+- All key pages return 200 (homepage, power pages, browse, articles, privacy, terms)
+- All redirects working (provider/sign-up, state abbreviations, provider-portal)
+- Auth config: Supabase Site URL updated to olera.care, Google OAuth confirmed
+- Care inquiry flow tested: Slack + email notifications working
+
+**Files created:** `supabase/migrations/008_fix_provider_slugs_v1_compat.sql`, `supabase/migrations/009_patch_v1_slug_mismatches.sql`
+
+**Status:** Ready for Phase 2 (Cloudflare DNS) → Phase 3 (alias swap)
+
+---
 
 ### 2026-03-09 (Session 45) — Bulk PR Merge + SEO Regression Prevention
 

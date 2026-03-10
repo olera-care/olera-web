@@ -40,6 +40,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ count: count ?? 0 });
     }
 
+    const needsEmail = searchParams.get("needs_email") === "true";
+
     // Fetch connections with joined profile names
     let query = db
       .from("connections")
@@ -48,15 +50,17 @@ export async function GET(request: NextRequest) {
         type,
         status,
         message,
+        metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, source_provider_id)
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (status) query = query.eq("status", status);
     if (type) query = query.eq("type", type);
+    if (needsEmail) query = query.eq("metadata->>needs_provider_email", "true");
 
     const { data: connections, error } = await query;
 

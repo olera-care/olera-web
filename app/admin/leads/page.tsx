@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 
-type TypeFilter = "all" | "inquiry" | "application" | "invitation";
+type TypeFilter = "all" | "inquiry" | "application" | "invitation" | "needs_email";
 
 interface ConnectionProfile {
   id: string;
   display_name: string;
   type: string;
+  source_provider_id?: string;
 }
 
 interface Lead {
@@ -16,6 +18,7 @@ interface Lead {
   type: string;
   status: string;
   message: string | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   from_profile: ConnectionProfile | null;
   to_profile: ConnectionProfile | null;
@@ -31,8 +34,9 @@ export default function AdminLeadsPage() {
     setLoading(true);
     setError(null);
     try {
-      const typeParam = filter !== "all" ? `&type=${filter}` : "";
-      const res = await fetch(`/api/admin/leads?limit=100${typeParam}`);
+      const needsEmailParam = filter === "needs_email" ? "&needs_email=true" : "";
+      const typeParam = filter !== "all" && filter !== "needs_email" ? `&type=${filter}` : "";
+      const res = await fetch(`/api/admin/leads?limit=100${typeParam}${needsEmailParam}`);
       if (res.ok) {
         const data = await res.json();
         setLeads(data.connections ?? []);
@@ -53,6 +57,7 @@ export default function AdminLeadsPage() {
 
   const tabs: { label: string; value: TypeFilter }[] = [
     { label: "All", value: "all" },
+    { label: "Needs Email", value: "needs_email" },
     { label: "Inquiries", value: "inquiry" },
     { label: "Applications", value: "application" },
     { label: "Invitations", value: "invitation" },
@@ -111,11 +116,15 @@ export default function AdminLeadsPage() {
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-gray-50">
+                {leads.map((lead) => {
+                  const needsEmail = lead.metadata?.needs_provider_email === true;
+                  const providerEditorId = lead.to_profile?.source_provider_id;
+                  return (
+                  <tr key={lead.id} className={`hover:bg-gray-50 ${needsEmail ? "bg-amber-50" : ""}`}>
                     <td className="px-6 py-4">
                       <p className="text-sm font-medium text-gray-900">
                         {lead.from_profile?.display_name ?? "Unknown"}
@@ -128,9 +137,16 @@ export default function AdminLeadsPage() {
                       <p className="text-sm font-medium text-gray-900">
                         {lead.to_profile?.display_name ?? "Unknown"}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {lead.to_profile?.type ?? "—"}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-gray-500">
+                          {lead.to_profile?.type ?? "—"}
+                        </p>
+                        {needsEmail && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                            No email
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                       {lead.message || "—"}
@@ -146,8 +162,19 @@ export default function AdminLeadsPage() {
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {new Date(lead.created_at).toLocaleDateString()}
                     </td>
+                    <td className="px-6 py-4">
+                      {needsEmail && providerEditorId && (
+                        <Link
+                          href={`/admin/directory/${providerEditorId}`}
+                          className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+                        >
+                          Add Email
+                        </Link>
+                      )}
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

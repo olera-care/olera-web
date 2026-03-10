@@ -29,14 +29,12 @@ function formatCategory(cat: string | null): string {
 /** Deterministic gradient from provider name for personalized avatar fallback */
 function avatarGradient(name: string): string {
   const gradients = [
-    "linear-gradient(135deg, #0ea5e9, #6366f1)",
-    "linear-gradient(135deg, #14b8a6, #0ea5e9)",
-    "linear-gradient(135deg, #8b5cf6, #ec4899)",
-    "linear-gradient(135deg, #f59e0b, #ef4444)",
-    "linear-gradient(135deg, #10b981, #14b8a6)",
-    "linear-gradient(135deg, #199087, #0ea5e9)",
-    "linear-gradient(135deg, #ec4899, #f43f5e)",
+    "linear-gradient(135deg, #0891b2, #0ea5e9)",
+    "linear-gradient(135deg, #14b8a6, #0891b2)",
+    "linear-gradient(135deg, #199087, #14b8a6)",
+    "linear-gradient(135deg, #0e7490, #0ea5e9)",
     "linear-gradient(135deg, #0891b2, #2dd4bf)",
+    "linear-gradient(135deg, #199087, #0ea5e9)",
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -176,85 +174,74 @@ function ConnectedPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Section 1: Success Card */}
-      <section className="pt-12 pb-4">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_32px_rgba(0,0,0,0.06)] overflow-hidden max-w-lg mx-auto">
-            <div className="px-8 pt-10 pb-8 text-center">
-              {/* Circular image with animated brand teal ring */}
-              <div className="relative w-28 h-28 mx-auto mb-6">
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 112 112">
-                  {/* Track ring — light teal */}
-                  <circle cx="56" cy="56" r="52" fill="none" stroke="#e0f2f1" strokeWidth="3" />
-                  {/* Animated ring — brand teal */}
-                  <circle
-                    cx="56" cy="56" r="52" fill="none"
-                    stroke="#199087" strokeWidth="3" strokeLinecap="round"
-                    strokeDasharray="326.73" strokeDashoffset="0"
-                    className="animate-[draw_1s_ease-out_0.3s_both]"
-                    transform="rotate(-90 56 56)"
-                  />
-                </svg>
+      {/* Section 1: Warm hero with success card */}
+      <section className="relative overflow-hidden">
+        {/* Warm gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-vanilla-100 via-primary-50/40 to-gray-50" />
+        {/* Subtle decorative glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary-200/20 rounded-full blur-3xl" />
 
-                {/* Provider image or personalized initials */}
-                <div className="absolute inset-[6px] rounded-full overflow-hidden">
-                  {provider.imageUrl ? (
-                    <Image src={provider.imageUrl} alt={provider.name} fill className="object-cover" sizes="100px" />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{ background: avatarGradient(provider.name) }}
-                    >
-                      <span className="text-2xl font-bold text-white tracking-wide">{initials}</span>
-                    </div>
-                  )}
-                </div>
+        <div className="relative z-10 pt-20 sm:pt-28 pb-16 sm:pb-20">
+          <div className="max-w-lg mx-auto px-4 sm:px-6 text-center">
+            {/* Avatar with animated ring */}
+            <div className="relative w-28 h-28 mx-auto mb-10">
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 112 112">
+                <circle cx="56" cy="56" r="52" fill="none" stroke="#e0f2f1" strokeWidth="2.5" />
+                <circle
+                  cx="56" cy="56" r="52" fill="none"
+                  stroke="#199087" strokeWidth="2.5" strokeLinecap="round"
+                  strokeDasharray="326.73" strokeDashoffset="0"
+                  className="animate-[draw_1s_ease-out_0.3s_both]"
+                  transform="rotate(-90 56 56)"
+                />
+              </svg>
 
-                {/* Checkmark badge — brand teal */}
-                <div className="absolute -bottom-1 -right-1 w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center ring-[3px] ring-white shadow-sm">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Headline */}
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {loading && !provider.name ? "Connecting..." : "You're connected"}
-              </h1>
-
-              {/* Provider identity — category pill + location */}
-              <div className="flex items-center justify-center gap-2 flex-wrap mt-3 mb-2">
-                {category && (
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-primary-700 bg-primary-50 px-3 py-1 rounded-full">
-                    {category}
-                  </span>
-                )}
-                {location && (
-                  <span className="inline-flex items-center gap-1 text-sm text-gray-500">
-                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {location}
-                  </span>
+              <div className="absolute inset-[6px] rounded-full overflow-hidden">
+                {provider.imageUrl ? (
+                  <Image src={provider.imageUrl} alt={provider.name} fill className="object-cover" sizes="100px" />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center"
+                    style={{ background: avatarGradient(provider.name) }}
+                  >
+                    <span className="text-2xl font-bold text-white tracking-wide">{initials}</span>
+                  </div>
                 )}
               </div>
 
-              {/* Provider name (subtle) */}
-              <p className="text-sm text-gray-400 mb-6 truncate px-4">{provider.name}</p>
-
-              {/* CTA — brand teal */}
-              <Link
-                href={`/portal/inbox?id=${connectionId}`}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-2xl transition-all duration-200 shadow-[0_4px_16px_rgba(25,144,135,0.25)] hover:shadow-[0_6px_24px_rgba(25,144,135,0.35)]"
-              >
-                Start Messaging
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center ring-[3px] ring-vanilla-100">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
-              </Link>
+              </div>
             </div>
+
+            {/* Headline */}
+            <h1 className="font-serif text-display-sm sm:text-display-md text-gray-900 mb-2">
+              {loading && !provider.name
+                ? "Connecting\u2026"
+                : provider.name
+                  ? `You\u2019re connected with ${provider.name}`
+                  : "You\u2019re connected"}
+            </h1>
+
+            {/* Metadata — single quiet line */}
+            {(category || location) && (
+              <p className="text-sm text-gray-400 mb-10">
+                {[category, location].filter(Boolean).join(" \u00B7 ")}
+              </p>
+            )}
+
+            {/* CTA */}
+            <Link
+              href={`/portal/inbox?id=${connectionId}`}
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-[15px] rounded-xl transition-all duration-200 shadow-md shadow-primary-600/20 hover:shadow-lg hover:shadow-primary-600/25"
+            >
+              Start Messaging
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
           </div>
         </div>
       </section>

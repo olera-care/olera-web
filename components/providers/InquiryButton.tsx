@@ -282,10 +282,10 @@ export default function InquiryButton({
         size="md"
       >
         {success ? (
-          <div className="text-center py-4">
-            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-6">
+            <div className="w-14 h-14 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-5">
               <svg
-                className="w-8 h-8 text-primary-600"
+                className="w-7 h-7 text-primary-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -293,16 +293,13 @@ export default function InquiryButton({
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   d="M5 13l4 4L19 7"
                 />
               </svg>
             </div>
-            <p className="text-lg text-gray-900 mb-1">
-              Your profile has been shared!
-            </p>
-            <p className="text-base text-gray-600">
-              {providerName} can now see your profile and respond to you.
+            <p className="font-serif text-xl text-gray-900">
+              You&apos;re connected with {providerName}
             </p>
           </div>
         ) : (

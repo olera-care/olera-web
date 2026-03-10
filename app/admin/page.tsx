@@ -12,6 +12,7 @@ interface OverviewStats {
   imagesToReview: number;
   totalProviders: number;
   totalQuestions: number;
+  totalReviews: number;
 }
 
 interface AuditEntry {
@@ -34,7 +35,7 @@ export default function AdminOverviewPage() {
     async function fetchData() {
       setError(null);
       try {
-        const [providersRes, leadsRes, needsEmailRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes] = await Promise.all([
+        const [providersRes, leadsRes, needsEmailRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes, reviewsRes] = await Promise.all([
           fetch("/api/admin/providers?status=pending&count_only=true"),
           fetch("/api/admin/leads?count_only=true"),
           fetch("/api/admin/leads?needs_email=true&count_only=true"),
@@ -43,6 +44,7 @@ export default function AdminOverviewPage() {
           fetch("/api/admin/images/stats"),
           fetch("/api/admin/directory?tab=all&per_page=1"),
           fetch("/api/admin/questions?count_only=true"),
+          fetch("/api/admin/reviews?status=all&limit=1"),
         ]);
 
         const pendingData = providersRes.ok ? await providersRes.json() : { count: 0 };
@@ -53,8 +55,9 @@ export default function AdminOverviewPage() {
         const imageStats = imageStatsRes.ok ? await imageStatsRes.json() : { needs_review: 0 };
         const directoryData = directoryRes.ok ? await directoryRes.json() : { total: 0 };
         const questionsData = questionsRes.ok ? await questionsRes.json() : { count: 0 };
+        const reviewsData = reviewsRes.ok ? await reviewsRes.json() : { count: 0 };
 
-        const anyFailed = [providersRes, leadsRes, needsEmailRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes].some((r) => !r.ok);
+        const anyFailed = [providersRes, leadsRes, needsEmailRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes, reviewsRes].some((r) => !r.ok);
         if (anyFailed) {
           setError("Some dashboard data failed to load. Numbers shown may be incomplete.");
         }
@@ -67,6 +70,7 @@ export default function AdminOverviewPage() {
           imagesToReview: imageStats.needs_review ?? 0,
           totalProviders: directoryData.total ?? 0,
           totalQuestions: questionsData.count ?? 0,
+          totalReviews: reviewsData.count ?? 0,
         });
         setAuditLog(auditData.entries ?? []);
       } catch (err) {
@@ -150,6 +154,15 @@ export default function AdminOverviewPage() {
             <p className="text-base text-gray-500">Active admins</p>
           </div>
         </Link>
+        <Link href="/admin/reviews" className="block">
+          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
+            <p className="text-base text-gray-500 mb-1">Reviews</p>
+            <p className="text-3xl font-bold text-gray-900 mb-1">
+              {stats?.totalReviews?.toLocaleString() ?? 0}
+            </p>
+            <p className="text-base text-gray-500">Total reviews</p>
+          </div>
+        </Link>
         <Link href="/admin/directory" className="block">
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Provider Directory</p>
@@ -198,6 +211,9 @@ function formatAction(action: string, targetType: string): string {
   const actionLabels: Record<string, string> = {
     approve_provider: "Approved a provider",
     reject_provider: "Rejected a provider",
+    approve_review: "Published a review",
+    reject_review: "Rejected a review",
+    remove_review: "Removed a review",
     add_admin: "Added an admin",
     remove_admin: "Removed an admin",
     update_directory_provider: "Updated a directory provider",

@@ -29,13 +29,19 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Failed to fetch reviews:", error);
-      return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to fetch reviews", debug: { message: error.message, code: error.code, hint: error.hint } },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ reviews: reviews ?? [] });
   } catch (err) {
     console.error("Reviews GET error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error", debug: String(err) },
+      { status: 500 }
+    );
   }
 }
 

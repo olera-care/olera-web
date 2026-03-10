@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import { sendEmail } from "@/lib/email";
+import { connectionRequestEmail } from "@/lib/email-templates";
 
 const EDITABLE_FIELDS = new Set([
   "provider_name",
@@ -188,6 +190,117 @@ export async function PATCH(
           changed_fields: changedFields,
         },
       });
+    }
+
+    // If email was added (empty → non-empty), send deferred lead notifications
+    const emailAdded = "email" in updates
+      && updates.email
+      && !current.email;
+
+    if (emailAdded) {
+      try {
+        const newEmail = updates.email as string;
+        console.log("[deferred-email] Email added for provider:", providerId, "→", newEmail);
+
+        // Sync email to business_profiles so future connections aren't flagged
+        const { error: syncErr } = await db
+          .from("business_profiles")
+          .update({ email: newEmail })
+          .eq("source_provider_id", providerId);
+        console.log("[deferred-email] business_profiles sync:", syncErr ? `ERROR: ${syncErr.message}` : "OK");
+
+        // Find pending connections flagged as needing provider email
+        const { data: bp, error: bpErr } = await db
+          .from("business_profiles")
+          .select("id")
+          .eq("source_provider_id", providerId)
+          .limit(1)
+          .single();
+        console.log("[deferred-email] business_profile lookup:", bp?.id ?? "NOT FOUND", bpErr?.message ?? "");
+
+        if (bp) {
+          const { data: flaggedConnections, error: connErr } = await db
+            .from("connections")
+            .select("id, message, from_profile:business_profiles!connections_from_profile_id_fkey(display_name)")
+            .eq("to_profile_id", bp.id)
+            .eq("status", "pending")
+            .contains("metadata", { needs_provider_email: true });
+          console.log("[deferred-email] flagged connections:", flaggedConnections?.length ?? 0, connErr?.message ?? "");
+
+          if (flaggedConnections && flaggedConnections.length > 0) {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            const careTypeMap: Record<string, string> = {
+              home_care: "Home Care",
+              home_health: "Home Health Care",
+              assisted_living: "Assisted Living",
+              memory_care: "Memory Care",
+            };
+
+            for (const conn of flaggedConnections) {
+              try {
+                // Parse intent data from message
+                let careType: string | null = null;
+                let additionalNotes: string | null = null;
+                let familyName = "A family";
+                try {
+                  const msg = JSON.parse(conn.message || "{}");
+                  careType = msg.care_type ? (careTypeMap[msg.care_type] || msg.care_type) : null;
+                  additionalNotes = msg.additional_notes || null;
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const fromProfile = (conn as any).from_profile as { display_name: string } | null;
+                  familyName = fromProfile?.display_name || `${msg.seeker_first_name || ""} ${msg.seeker_last_name || ""}`.trim() || "A family";
+                } catch { /* use defaults */ }
+
+                await sendEmail({
+                  to: newEmail,
+                  subject: `New care inquiry from ${familyName} on Olera`,
+                  html: connectionRequestEmail({
+                    providerName: current.provider_name || "Provider",
+                    familyName,
+                    careType,
+                    message: additionalNotes,
+                    viewUrl: `${siteUrl}/provider/connections`,
+                  }),
+                });
+
+                // Clear the flag on this connection
+                const { data: connData } = await db
+                  .from("connections")
+                  .select("metadata")
+                  .eq("id", conn.id)
+                  .single();
+
+                if (connData?.metadata) {
+                  const meta = connData.metadata as Record<string, unknown>;
+                  delete meta.needs_provider_email;
+                  meta.email_sent_at = new Date().toISOString();
+                  await db
+                    .from("connections")
+                    .update({ metadata: meta })
+                    .eq("id", conn.id);
+                }
+              } catch (emailErr) {
+                console.error(`Failed to send deferred lead email for connection ${conn.id}:`, emailErr);
+              }
+            }
+
+            await logAuditAction({
+              adminUserId: adminUser.id,
+              action: "deferred_lead_emails_sent",
+              targetType: "directory_provider",
+              targetId: providerId,
+              details: {
+                provider_name: current.provider_name,
+                email: newEmail,
+                connections_notified: flaggedConnections.length,
+              },
+            });
+          }
+        }
+      } catch (deferredErr) {
+        // Non-blocking — the provider update succeeded, deferred emails are best-effort
+        console.error("Failed to send deferred lead notifications:", deferredErr);
+      }
     }
 
     return NextResponse.json({ success: true });

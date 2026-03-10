@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail } from "@/lib/email";
 import { connectionRequestEmail, connectionSentEmail } from "@/lib/email-templates";
-import { sendSlackAlert, slackNewLead } from "@/lib/slack";
+import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
 
@@ -316,6 +316,30 @@ export async function POST(request: Request) {
       seeker_last_name: lastName,
     });
 
+    // 6a. Look up provider email (used for metadata flag + notification)
+    let providerEmail: string | null = null;
+    let providerDisplayName: string | null = null;
+    try {
+      const { data: bp } = await db
+        .from("business_profiles")
+        .select("email, display_name")
+        .eq("id", toProfileId)
+        .single();
+      providerEmail = bp?.email || null;
+      providerDisplayName = bp?.display_name || null;
+
+      if (!providerEmail) {
+        const { data: ios } = await db
+          .from("olera-providers")
+          .select("email")
+          .eq("provider_id", providerId)
+          .single();
+        providerEmail = ios?.email || null;
+      }
+    } catch {
+      // Non-blocking
+    }
+
     // 6. Build auto-intro message from profile + intent data
     let autoIntro: string | null = null;
     try {
@@ -341,6 +365,7 @@ export async function POST(request: Request) {
     // 7. Build connection metadata with auto-intro and provider auto-reply
     const connectionMetadata: Record<string, unknown> = {};
     if (autoIntro) connectionMetadata.auto_intro = autoIntro;
+    if (!providerEmail) connectionMetadata.needs_provider_email = true;
 
     // Seed an automatic reply from the provider so the seeker has an
     // unread message in their inbox immediately after connecting.
@@ -401,24 +426,6 @@ export async function POST(request: Request) {
 
     // 9b. Email notification to provider (fire-and-forget)
     try {
-      // Look up provider email from business_profiles or olera-providers
-      const { data: providerProfile } = await db
-        .from("business_profiles")
-        .select("email, display_name")
-        .eq("id", toProfileId)
-        .single();
-
-      let providerEmail = providerProfile?.email;
-      if (!providerEmail) {
-        // Fall back to olera-providers table
-        const { data: iosProvider } = await db
-          .from("olera-providers")
-          .select("email")
-          .eq("provider_id", providerId)
-          .single();
-        providerEmail = iosProvider?.email;
-      }
-
       if (providerEmail) {
         const careTypeMap: Record<string, string> = {
           home_care: "Home Care",
@@ -431,7 +438,7 @@ export async function POST(request: Request) {
           to: providerEmail,
           subject: `New care inquiry from ${firstName || "a family"} on Olera`,
           html: connectionRequestEmail({
-            providerName: providerProfile?.display_name || providerName,
+            providerName: providerDisplayName || providerName,
             familyName: account.display_name || "A family",
             careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
             message: intentData?.additionalNotes || null,
@@ -504,7 +511,28 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // 9e. Loops: new lead event (fire-and-forget)
+    // 9e. Slack alert for missing provider email (fire-and-forget)
+    if (!providerEmail) {
+      try {
+        const careTypeMap3: Record<string, string> = {
+          home_care: "Home Care",
+          home_health: "Home Health Care",
+          assisted_living: "Assisted Living",
+          memory_care: "Memory Care",
+        };
+        const missingAlert = slackMissingEmail({
+          familyName: account.display_name || "A family",
+          providerName,
+          providerId,
+          careType: intentData?.careType ? (careTypeMap3[intentData.careType] || intentData.careType) : null,
+        });
+        await sendSlackAlert(missingAlert.text, missingAlert.blocks);
+      } catch {
+        // Non-blocking
+      }
+    }
+
+    // 9f. Loops: new lead event (fire-and-forget)
     try {
       await sendLoopsEvent({
         email: user.email || "",

@@ -125,6 +125,41 @@ export function slackDispute(opts: {
   };
 }
 
+export function slackMissingEmail(opts: {
+  familyName: string;
+  providerName: string;
+  providerId: string;
+  careType: string | null;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  return {
+    text: `Missing email: ${opts.providerName} — new lead from ${opts.familyName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📧 Missing Provider Email", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Family:*\n${opts.familyName}` },
+          ...(opts.careType
+            ? [{ type: "mrkdwn", text: `*Care Type:*\n${opts.careType}` }]
+            : []),
+          { type: "mrkdwn", text: `*Action:*\nAdd email to send lead notification` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/admin/directory/${opts.providerId}|Add email in admin>` },
+        ],
+      },
+    ],
+  };
+}
+
 export function slackProviderAction(opts: {
   providerName: string;
   action: "approved" | "rejected";

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createServerClient } from "@supabase/ssr";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { newReviewEmail } from "@/lib/email-templates";
@@ -20,13 +19,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Use anon client for public reads — avoids dependency on SUPABASE_SERVICE_ROLE_KEY
-    // RLS policy "Public can read published reviews" allows this
-    const db = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { cookies: { getAll: () => [], setAll: () => {} } }
-    );
+    const db = getServiceClient();
     const { data: reviews, error } = await db
       .from("reviews")
       .select("id, provider_id, account_id, reviewer_name, rating, title, comment, relationship, status, created_at, updated_at, provider_reply, replied_at")

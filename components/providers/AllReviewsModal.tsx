@@ -465,12 +465,12 @@ export function normalizeReviews(
     rating: r.rating,
     date: new Date(r.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }),
     comment: r.comment,
-    relationship: r.relationship,
+    relationship: r.relationship ?? undefined,
     title: r.title,
     isMock: false,
     providerReply: r.provider_reply,
     repliedAt: r.replied_at,
-    accountId: r.account_id,
+    accountId: r.account_id ?? undefined,
   }));
 
   const normalizedMock: DisplayReview[] = mockReviews.map((r, i) => ({

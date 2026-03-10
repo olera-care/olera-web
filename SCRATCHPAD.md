@@ -10,10 +10,11 @@
 - **DNS Cutover v1.0 → v2.0** (branch: `peaceful-wiles`) — DONE ✅
   - olera.care now serving v2.0 Next.js app via Vercel
   - Provider slug migration done (008 + 009): 477/500 top GSC pages passing
-  - Sitemap fixed: `/sitemap.xml` → dynamic API route (static metadata files can't query Supabase)
+  - Sitemap fixed: `/sitemap.xml` → sitemap index + dynamic API shards
   - OG image replaced: shutterstock caregiver photo (1200x630)
-  - GSC sitemap submitted: 4,943 pages discovered (shard 0)
-  - PRs merged to main: #216 (sitemap error handling), #217 (API sitemap + OG image + rewrite)
+  - GSC sitemap submitted: 4,943 pages in shard 0 (provider shards auto-discovered via index)
+  - Reviews API hotfix: GET switched to anon client (was 5xx from service key dependency)
+  - All PRs merged, main ↔ staging fully synced
 
 - **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — DONE ✅
   - PRs #165-171 all merged to staging
@@ -91,16 +92,16 @@
 
 ## Next Up
 
-1. **Submit provider sitemap shards to GSC** — `/api/sitemap?shard=1` through `?shard=4` (39K+ providers)
+1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
 2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
 3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
 4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
-5. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-6. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-7. **Gated provider portal page** — Esther building; sanity check item #1
-8. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-9. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
-10. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
+5. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
+6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+7. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
+8. **Gated provider portal page** — Esther building; sanity check item #1
+9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 
 ---
 
@@ -162,9 +163,16 @@
 
 **OG image:** Replaced dynamic teal gradient (`opengraph-image.tsx`) with static shutterstock photo (`opengraph-image.jpg`, 1200x630)
 
-**GSC:** Sitemap submitted, 4,943 pages discovered (shard 0). Provider shards 1-4 not yet submitted.
+**GSC:** Sitemap submitted, 4,943 pages discovered (shard 0). Sitemap index now auto-discovers provider shards.
 
-**Files modified:** `app/api/sitemap/route.ts` (new), `next.config.ts`, `app/sitemap.ts`, `app/opengraph-image.jpg` (new), `app/twitter-image.jpg` (new), `app/opengraph-image.tsx` (deleted), `app/twitter-image.tsx` (deleted)
+**Post-cutover:**
+- Merged Esther's 6 PRs to staging (#206-#208, #213-#215): auth fixes + error handling
+- Added sitemap index (#220): `/sitemap.xml` → sitemapindex pointing to all shards
+- Hotfix (#221): `/api/reviews` GET was 5xx (174 errors/5min) — switched from service role to anon client
+- Synced main ↔ staging (#223 staging→main, #224 main→staging) — both branches now aligned
+- PR #219 (waiver library redesign by Chantel) on hold pending cleanup of `package.json.tmp` + `.mcp.json`
+
+**Files modified:** `app/api/sitemap/route.ts`, `app/api/reviews/route.ts`, `next.config.ts`, `app/sitemap.ts`, `app/opengraph-image.jpg` (new), `app/twitter-image.jpg` (new), `app/opengraph-image.tsx` (deleted), `app/twitter-image.tsx` (deleted)
 
 ---
 

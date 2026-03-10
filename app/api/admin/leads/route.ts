@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
     const db = getServiceClient();
+    const needsEmail = searchParams.get("needs_email") === "true";
 
     if (countOnly) {
       let countQuery = db
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
 
       if (status) countQuery = countQuery.eq("status", status);
       if (type) countQuery = countQuery.eq("type", type);
+      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
 
       const { count } = await countQuery;
       return NextResponse.json({ count: count ?? 0 });
@@ -48,15 +50,17 @@ export async function GET(request: NextRequest) {
         type,
         status,
         message,
+        metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id)
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (status) query = query.eq("status", status);
     if (type) query = query.eq("type", type);
+    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
 
     const { data: connections, error } = await query;
 

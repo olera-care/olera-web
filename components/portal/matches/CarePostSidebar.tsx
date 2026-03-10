@@ -45,6 +45,7 @@ export default function CarePostSidebar({
   const [selectedDeleteReasons, setSelectedDeleteReasons] = useState<string[]>([]);
   const [deleting, setDeleting] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Sync acceptingMatches with external isActive changes
   useEffect(() => {
@@ -102,8 +103,11 @@ export default function CarePostSidebar({
 
   const handlePublishAction = useCallback(async () => {
     setPublishing(true);
+    setActionError(null);
     try {
       await onPublish();
+    } catch {
+      setActionError("Couldn't publish. Please try again.");
     } finally {
       setPublishing(false);
     }
@@ -111,8 +115,11 @@ export default function CarePostSidebar({
 
   const handleDeactivateAction = useCallback(async () => {
     setDeactivating(true);
+    setActionError(null);
     try {
       await onDeactivate();
+    } catch {
+      setActionError("Couldn't pause. Please try again.");
     } finally {
       setDeactivating(false);
     }
@@ -139,6 +146,13 @@ export default function CarePostSidebar({
     return () => clearTimeout(timer);
   }, [toggleMessage]);
 
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = setTimeout(() => setActionError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [actionError]);
+
   const toggleDeleteReason = (reason: string) => {
     setSelectedDeleteReasons((prev) =>
       prev.includes(reason) ? prev.filter((r) => r !== reason) : [...prev, reason]
@@ -147,16 +161,19 @@ export default function CarePostSidebar({
 
   const handleDeletePost = async () => {
     setDeleting(true);
+    setActionError(null);
     try {
       if (onDelete) {
         await onDelete(selectedDeleteReasons);
       } else {
         await onDeactivate();
       }
-    } finally {
-      setDeleting(false);
       setShowDeleteConfirm(false);
       setSelectedDeleteReasons([]);
+    } catch {
+      setActionError("Couldn't delete. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -353,6 +370,18 @@ export default function CarePostSidebar({
                   </svg>
                   <p className="text-[13px] text-gray-600 leading-relaxed">
                     New providers won&apos;t see your profile. Anyone who already reached out can still be reviewed.
+                  </p>
+                </div>
+              )}
+              {actionError && (
+                <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-rose-50/60 border border-rose-100/50 mt-1">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-500 shrink-0 mt-0.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <p className="text-[13px] text-gray-600 leading-relaxed">
+                    {actionError}
                   </p>
                 </div>
               )}

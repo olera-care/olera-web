@@ -107,6 +107,13 @@ export default function PostAuthOnboarding({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => setError(""), 4000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   // Form data
   const [intent, setIntent] = useState<"family" | "provider" | null>(
     initialIntent as "family" | "provider" | null
@@ -162,12 +169,17 @@ export default function PostAuthOnboarding({
       // Ensure account exists before navigating (DB trigger may not have fired)
       if (!account?.id) {
         try {
-          await fetch("/api/auth/ensure-account", {
+          const res = await fetch("/api/auth/ensure-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
+          if (!res.ok) {
+            setError("Couldn't set up your account. Please try again.");
+            return;
+          }
         } catch {
-          // Best-effort; the onboarding wizard will retry if needed
+          setError("Couldn't set up your account. Please try again.");
+          return;
         }
       }
       // Persist provider intent so the modal doesn't reopen if onboarding is abandoned

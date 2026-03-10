@@ -8,7 +8,6 @@ interface OverviewStats {
   pendingProviders: number;
   totalInquiries: number;
   needsEmailCount: number;
-  adminCount: number;
   imagesToReview: number;
   totalProviders: number;
   totalQuestions: number;
@@ -35,11 +34,10 @@ export default function AdminOverviewPage() {
     async function fetchData() {
       setError(null);
       try {
-        const [providersRes, leadsRes, needsEmailRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes, reviewsRes] = await Promise.all([
+        const [providersRes, leadsRes, needsEmailRes, auditRes, imageStatsRes, directoryRes, questionsRes, reviewsRes] = await Promise.all([
           fetch("/api/admin/providers?status=pending&count_only=true"),
           fetch("/api/admin/leads?count_only=true"),
           fetch("/api/admin/leads?needs_email=true&count_only=true"),
-          fetch("/api/admin/team"),
           fetch("/api/admin/audit?limit=10"),
           fetch("/api/admin/images/stats"),
           fetch("/api/admin/directory?tab=all&per_page=1"),
@@ -50,14 +48,13 @@ export default function AdminOverviewPage() {
         const pendingData = providersRes.ok ? await providersRes.json() : { count: 0 };
         const leadsData = leadsRes.ok ? await leadsRes.json() : { count: 0 };
         const needsEmailData = needsEmailRes.ok ? await needsEmailRes.json() : { count: 0 };
-        const teamData = teamRes.ok ? await teamRes.json() : { admins: [] };
         const auditData = auditRes.ok ? await auditRes.json() : { entries: [] };
         const imageStats = imageStatsRes.ok ? await imageStatsRes.json() : { needs_review: 0 };
         const directoryData = directoryRes.ok ? await directoryRes.json() : { total: 0 };
         const questionsData = questionsRes.ok ? await questionsRes.json() : { count: 0 };
         const reviewsData = reviewsRes.ok ? await reviewsRes.json() : { count: 0 };
 
-        const anyFailed = [providersRes, leadsRes, needsEmailRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes, reviewsRes].some((r) => !r.ok);
+        const anyFailed = [providersRes, leadsRes, needsEmailRes, auditRes, imageStatsRes, directoryRes, questionsRes, reviewsRes].some((r) => !r.ok);
         if (anyFailed) {
           setError("Some dashboard data failed to load. Numbers shown may be incomplete.");
         }
@@ -66,7 +63,6 @@ export default function AdminOverviewPage() {
           pendingProviders: pendingData.count ?? 0,
           totalInquiries: leadsData.count ?? 0,
           needsEmailCount: needsEmailData.count ?? 0,
-          adminCount: teamData.admins?.length ?? 0,
           imagesToReview: imageStats.needs_review ?? 0,
           totalProviders: directoryData.total ?? 0,
           totalQuestions: questionsData.count ?? 0,
@@ -143,15 +139,6 @@ export default function AdminOverviewPage() {
               {stats?.totalQuestions?.toLocaleString() ?? 0}
             </p>
             <p className="text-base text-gray-500">Questions submitted</p>
-          </div>
-        </Link>
-        <Link href="/admin/team" className="block">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
-            <p className="text-base text-gray-500 mb-1">Admin Team</p>
-            <p className="text-3xl font-bold text-gray-900 mb-1">
-              {stats?.adminCount ?? 0}
-            </p>
-            <p className="text-base text-gray-500">Active admins</p>
           </div>
         </Link>
         <Link href="/admin/reviews" className="block">

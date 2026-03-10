@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useClickOutside } from "@/hooks/use-click-outside";
 import Pill from "@/components/providers/connection-card/Pill";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -22,6 +22,9 @@ import type {
   MedicaidStatus,
   IntakeStep,
 } from "@/lib/types/benefits";
+import VoiceMicButton from "./VoiceMicButton";
+import type { VoiceParseResult } from "@/lib/benefits/voice-intent-parser";
+import { zipToState } from "@/lib/benefits/zip-lookup";
 
 // US state name → abbreviation for geolocation reverse-geocode
 const stateAbbreviations: Record<string, string> = {
@@ -259,6 +262,60 @@ export default function BenefitsIntakeForm() {
     });
   }
 
+  // ─── Voice input handler ─────────────────────────────────────────────────
+
+  const handleVoiceResult = useCallback(
+    (result: VoiceParseResult) => {
+      switch (result.type) {
+        case "zipCode": {
+          const zip = result.value;
+          const stateCode = zipToState(zip);
+          setLocationInputLocal(zip);
+          setLocationDisplay(zip);
+          setSelectedStateCode(stateCode);
+          updateAnswers({ zipCode: zip, stateCode });
+          if (stateCode) goToStep(1);
+          break;
+        }
+        case "age": {
+          const age = result.value;
+          setAgeInput(String(age));
+          updateAnswers({ age });
+          goToStep(2);
+          break;
+        }
+        case "carePreference":
+          updateAnswers({ carePreference: result.value });
+          goToStep(3);
+          break;
+        case "primaryNeeds":
+          // Additive: merge voice results with existing selections
+          updateAnswers({
+            primaryNeeds: Array.from(
+              new Set([...answers.primaryNeeds, ...result.value])
+            ),
+          });
+          // Don't auto-advance — user might want to add more via tap
+          break;
+        case "incomeRange":
+          updateAnswers({ incomeRange: result.value });
+          goToStep(5);
+          break;
+        case "medicaidStatus":
+          updateAnswers({ medicaidStatus: result.value });
+          break;
+        case "navigation":
+          if (result.value === "back") handleBack();
+          else if (result.value === "skip" && step < 5) goToStep((step + 1) as IntakeStep);
+          break;
+        case "unknown":
+          // Handled by VoiceMicButton (shows clarification)
+          break;
+      }
+    },
+    [answers.primaryNeeds, step, updateAnswers, goToStep, setLocationDisplay]
+  );
+
   return (
     <div className="w-full">
       {/* Step content — keyed to animate on step change */}
@@ -273,52 +330,55 @@ export default function BenefitsIntakeForm() {
       {/* Step 0: Smart Location Input */}
       {step === 0 && (
         <div className="relative mb-4" ref={locationDropdownRef}>
-          <div
-            className={`flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
-              showLocationDropdown
-                ? "border-gray-400 ring-2 ring-gray-100"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-            onClick={() => {
-              setShowLocationDropdown(true);
-              locationInputRef.current?.focus();
-            }}
-          >
-            <svg
-              className="w-5 h-5 text-gray-400 flex-shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex-1 flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
+                showLocationDropdown
+                  ? "border-gray-400 ring-2 ring-gray-100"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+              onClick={() => {
+                setShowLocationDropdown(true);
+                locationInputRef.current?.focus();
+              }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              <svg
+                className="w-5 h-5 text-gray-400 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <input
+                ref={locationInputRef}
+                type="text"
+                value={locationInput}
+                onChange={(e) => {
+                  setLocationInput(e.target.value);
+                  setSelectedStateCode(null);
+                  setShowLocationDropdown(true);
+                }}
+                onFocus={() => {
+                  setShowLocationDropdown(true);
+                  preloadCities();
+                }}
+                placeholder="City or ZIP code"
+                className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
               />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <input
-              ref={locationInputRef}
-              type="text"
-              value={locationInput}
-              onChange={(e) => {
-                setLocationInput(e.target.value);
-                setSelectedStateCode(null);
-                setShowLocationDropdown(true);
-              }}
-              onFocus={() => {
-                setShowLocationDropdown(true);
-                preloadCities();
-              }}
-              placeholder="City or ZIP code"
-              className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
-            />
+            </div>
+            <VoiceMicButton step={0} onResult={handleVoiceResult} />
           </div>
 
           {/* Location Dropdown */}
@@ -410,31 +470,37 @@ export default function BenefitsIntakeForm() {
       {/* Step 1: Age */}
       {step === 1 && (
         <div className="mb-4">
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength={3}
-            value={ageInput}
-            onChange={(e) => setAgeInput(e.target.value.replace(/\D/g, ""))}
-            placeholder="e.g. 72"
-            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-lg text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-colors"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={3}
+              value={ageInput}
+              onChange={(e) => setAgeInput(e.target.value.replace(/\D/g, ""))}
+              placeholder="e.g. 72"
+              className="flex-1 px-4 py-3.5 rounded-xl border border-gray-200 text-lg text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-colors"
+            />
+            <VoiceMicButton step={1} onResult={handleVoiceResult} />
+          </div>
         </div>
       )}
 
       {/* Step 2: Care preference */}
       {step === 2 && (
-        <div className="flex flex-col gap-2.5 mb-4">
-          {(Object.entries(CARE_PREFERENCES) as [CarePreference, { displayTitle: string; icon: string }][]).map(
-            ([key, val]) => (
-              <Pill
-                key={key}
-                label={`${val.icon} ${val.displayTitle}`}
-                selected={answers.carePreference === key}
-                onClick={() => updateAnswers({ carePreference: key })}
-              />
-            )
-          )}
+        <div className="mb-4">
+          <VoiceMicButton step={2} onResult={handleVoiceResult} className="mb-3" />
+          <div className="flex flex-col gap-2.5">
+            {(Object.entries(CARE_PREFERENCES) as [CarePreference, { displayTitle: string; icon: string }][]).map(
+              ([key, val]) => (
+                <Pill
+                  key={key}
+                  label={`${val.icon} ${val.displayTitle}`}
+                  selected={answers.carePreference === key}
+                  onClick={() => updateAnswers({ carePreference: key })}
+                />
+              )
+            )}
+          </div>
         </div>
       )}
 
@@ -442,6 +508,7 @@ export default function BenefitsIntakeForm() {
       {step === 3 && (
         <>
           <p className="text-xs text-gray-400 mb-3">Select all that apply</p>
+          <VoiceMicButton step={3} onResult={handleVoiceResult} className="mb-3" />
           <div className="flex flex-wrap gap-2.5 mb-4">
             {(Object.entries(PRIMARY_NEEDS) as [PrimaryNeed, { displayTitle: string; icon: string }][]).map(
               ([key, val]) => (
@@ -459,23 +526,27 @@ export default function BenefitsIntakeForm() {
 
       {/* Step 4: Income range */}
       {step === 4 && (
-        <div className="flex flex-col gap-2.5 mb-4">
-          {(Object.entries(INCOME_RANGES) as [IncomeRange, { displayTitle: string }][]).map(
-            ([key, val]) => (
-              <Pill
-                key={key}
-                label={val.displayTitle}
-                selected={answers.incomeRange === key}
-                onClick={() => updateAnswers({ incomeRange: key })}
-              />
-            )
-          )}
+        <div className="mb-4">
+          <VoiceMicButton step={4} onResult={handleVoiceResult} className="mb-3" />
+          <div className="flex flex-col gap-2.5">
+            {(Object.entries(INCOME_RANGES) as [IncomeRange, { displayTitle: string }][]).map(
+              ([key, val]) => (
+                <Pill
+                  key={key}
+                  label={val.displayTitle}
+                  selected={answers.incomeRange === key}
+                  onClick={() => updateAnswers({ incomeRange: key })}
+                />
+              )
+            )}
+          </div>
         </div>
       )}
 
       {/* Step 5: Medicaid status */}
       {step === 5 && (
         <>
+        <VoiceMicButton step={5} onResult={handleVoiceResult} className="mb-3" />
         <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
             ([key, val]) => (

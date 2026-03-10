@@ -718,6 +718,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           profiles: data.profiles,
           membership: data.membership,
           fetchError: false,
+          isLoading: false,
         }));
       }
     } catch (err) {

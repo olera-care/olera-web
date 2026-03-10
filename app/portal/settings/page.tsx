@@ -137,7 +137,7 @@ export default function SettingsPage() {
       } else if (editingField === "password") {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(
           user?.email || "",
-          { redirectTo: `${window.location.origin}/auth/callback` }
+          { redirectTo: `${window.location.origin}/auth/reset-password` }
         );
         if (resetError) throw resetError;
         setFieldSuccess("Password reset email sent.");

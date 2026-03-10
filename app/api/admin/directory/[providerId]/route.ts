@@ -200,28 +200,32 @@ export async function PATCH(
     if (emailAdded) {
       try {
         const newEmail = updates.email as string;
+        console.log("[deferred-email] Email added for provider:", providerId, "→", newEmail);
 
         // Sync email to business_profiles so future connections aren't flagged
-        await db
+        const { error: syncErr } = await db
           .from("business_profiles")
           .update({ email: newEmail })
           .eq("source_provider_id", providerId);
+        console.log("[deferred-email] business_profiles sync:", syncErr ? `ERROR: ${syncErr.message}` : "OK");
 
         // Find pending connections flagged as needing provider email
-        const { data: bp } = await db
+        const { data: bp, error: bpErr } = await db
           .from("business_profiles")
           .select("id")
           .eq("source_provider_id", providerId)
           .limit(1)
           .single();
+        console.log("[deferred-email] business_profile lookup:", bp?.id ?? "NOT FOUND", bpErr?.message ?? "");
 
         if (bp) {
-          const { data: flaggedConnections } = await db
+          const { data: flaggedConnections, error: connErr } = await db
             .from("connections")
             .select("id, message, from_profile:business_profiles!connections_from_profile_id_fkey(display_name)")
             .eq("to_profile_id", bp.id)
             .eq("status", "pending")
-            .eq("metadata->>needs_provider_email", "true");
+            .contains("metadata", { needs_provider_email: true });
+          console.log("[deferred-email] flagged connections:", flaggedConnections?.length ?? 0, connErr?.message ?? "");
 
           if (flaggedConnections && flaggedConnections.length > 0) {
             const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";

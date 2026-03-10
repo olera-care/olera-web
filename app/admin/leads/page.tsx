@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 
@@ -25,10 +26,12 @@ interface Lead {
 }
 
 export default function AdminLeadsPage() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as TypeFilter) || "all";
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<TypeFilter>("all");
+  const [filter, setFilter] = useState<TypeFilter>(initialTab);
 
   const fetchLeads = useCallback(async () => {
     setLoading(true);

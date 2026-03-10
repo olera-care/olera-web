@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     if (status) query = query.eq("status", status);
     if (type) query = query.eq("type", type);
-    if (needsEmail) query = query.eq("metadata->>needs_provider_email", "true");
+    if (needsEmail) query = query.contains("metadata", { needs_provider_email: true });
 
     const { data: connections, error } = await query;
 

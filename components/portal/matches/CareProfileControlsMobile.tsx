@@ -39,7 +39,15 @@ export default function CareProfileControlsMobile({
     []
   );
   const [deleting, setDeleting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = setTimeout(() => setActionError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [actionError]);
 
   // Sync acceptingMatches with external isActive changes
   useEffect(() => {
@@ -62,8 +70,11 @@ export default function CareProfileControlsMobile({
 
   const handlePublishAction = useCallback(async () => {
     setPublishing(true);
+    setActionError(null);
     try {
       await onPublish();
+    } catch {
+      setActionError("Couldn't publish. Please try again.");
     } finally {
       setPublishing(false);
     }
@@ -71,8 +82,11 @@ export default function CareProfileControlsMobile({
 
   const handleDeactivateAction = useCallback(async () => {
     setDeactivating(true);
+    setActionError(null);
     try {
       await onDeactivate();
+    } catch {
+      setActionError("Couldn't pause. Please try again.");
     } finally {
       setDeactivating(false);
     }
@@ -98,16 +112,19 @@ export default function CareProfileControlsMobile({
 
   const handleDeletePost = async () => {
     setDeleting(true);
+    setActionError(null);
     try {
       if (onDelete) {
         await onDelete(selectedDeleteReasons);
       } else {
         await onDeactivate();
       }
-    } finally {
-      setDeleting(false);
       setShowDeleteConfirm(false);
       setSelectedDeleteReasons([]);
+    } catch {
+      setActionError("Couldn't delete. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -115,6 +132,14 @@ export default function CareProfileControlsMobile({
     <>
       {/* Sticky control bar - positioned below navbar */}
       <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-warm-100/60 px-4 py-2.5">
+        {/* Inline error message */}
+        {actionError && (
+          <div className="mb-2 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
+            <p className="text-[12px] text-rose-600 font-medium text-center">
+              {actionError}
+            </p>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           {/* Left: Label + status badge */}
           <div className="flex items-center gap-2">

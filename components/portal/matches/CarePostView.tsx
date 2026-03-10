@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
@@ -67,6 +67,14 @@ export default function CarePostView({
   );
   const [publishing, setPublishing] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = setTimeout(() => setActionError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [actionError]);
 
   const { percentage } = useProfileCompleteness(activeProfile, userEmail);
 
@@ -127,9 +135,12 @@ export default function CarePostView({
 
   const handlePublish = async () => {
     setPublishing(true);
+    setActionError(null);
     try {
       await onPublish();
       setStep("active");
+    } catch {
+      setActionError("Couldn't publish. Please try again.");
     } finally {
       setPublishing(false);
     }
@@ -137,9 +148,12 @@ export default function CarePostView({
 
   const handleDeactivate = async () => {
     setDeactivating(true);
+    setActionError(null);
     try {
       await onDeactivate();
       setStep("empty");
+    } catch {
+      setActionError("Couldn't deactivate. Please try again.");
     } finally {
       setDeactivating(false);
     }
@@ -341,6 +355,11 @@ export default function CarePostView({
                   Complete all required fields to publish
                 </p>
               )}
+              {actionError && (
+                <p className="text-xs text-rose-600 font-medium text-center mb-2.5">
+                  {actionError}
+                </p>
+              )}
               <Button
                 size="sm"
                 onClick={handlePublish}
@@ -447,19 +466,26 @@ export default function CarePostView({
           </div>
 
           {/* Edit / Deactivate buttons */}
-          <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex gap-2.5 rounded-b-2xl">
-            <Link href="/portal/profile" className="flex-1">
-              <button className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                <PencilIcon /> Edit profile
+          <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+            {actionError && (
+              <p className="text-xs text-rose-600 font-medium text-center mb-2.5">
+                {actionError}
+              </p>
+            )}
+            <div className="flex gap-2.5">
+              <Link href="/portal/profile" className="flex-1">
+                <button className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                  <PencilIcon /> Edit profile
+                </button>
+              </Link>
+              <button
+                onClick={handleDeactivate}
+                disabled={deactivating}
+                className="px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-red-800 hover:bg-red-50 transition-colors disabled:opacity-50"
+              >
+                {deactivating ? "..." : "Deactivate"}
               </button>
-            </Link>
-            <button
-              onClick={handleDeactivate}
-              disabled={deactivating}
-              className="px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm font-medium text-red-800 hover:bg-red-50 transition-colors disabled:opacity-50"
-            >
-              {deactivating ? "..." : "Deactivate"}
-            </button>
+            </div>
           </div>
         </div>
       </div>

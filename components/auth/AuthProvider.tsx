@@ -664,8 +664,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Clears local state and navigates immediately,
-   * then fires the Supabase signOut in the background.
+   * Sign out. Navigates first, then clears local state.
+   * This prevents the brief "flash" of loading skeletons on the current page
+   * before navigation completes.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
@@ -682,8 +683,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         /* ignore */
       }
       versionRef.current++;
-      setState({ ...EMPTY_STATE });
+      // Navigate BEFORE clearing state to avoid flash of loading skeleton
+      // on the current page when user becomes null
       onComplete?.();
+      setState({ ...EMPTY_STATE });
       // Fire-and-forget — session invalidation happens in the background
       const supabase = createClient();
       supabase.auth.signOut().catch((err) => {
@@ -718,6 +721,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           profiles: data.profiles,
           membership: data.membership,
           fetchError: false,
+          isLoading: false,
         }));
       }
     } catch (err) {

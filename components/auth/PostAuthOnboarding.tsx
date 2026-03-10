@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth, type AuthFlowIntent, type AuthFlowProviderType } from "@/components/auth/AuthProvider";
-import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { getDeferredAction } from "@/lib/deferred-action";
 import type { Profile, ProfileCategory } from "@/lib/types";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
@@ -107,6 +107,13 @@ export default function PostAuthOnboarding({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => setError(""), 4000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   // Form data
   const [intent, setIntent] = useState<"family" | "provider" | null>(
     initialIntent as "family" | "provider" | null
@@ -162,12 +169,17 @@ export default function PostAuthOnboarding({
       // Ensure account exists before navigating (DB trigger may not have fired)
       if (!account?.id) {
         try {
-          await fetch("/api/auth/ensure-account", {
+          const res = await fetch("/api/auth/ensure-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
+          if (!res.ok) {
+            setError("Couldn't set up your account. Please try again.");
+            return;
+          }
         } catch {
-          // Best-effort; the onboarding wizard will retry if needed
+          setError("Couldn't set up your account. Please try again.");
+          return;
         }
       }
       // Persist provider intent so the modal doesn't reopen if onboarding is abandoned
@@ -309,10 +321,10 @@ export default function PostAuthOnboarding({
       // Refresh auth context to pick up the new profile
       await refreshAccountData();
 
-      // Handle deferred action
+      // Handle deferred action — redirect to returnUrl if set.
+      // Don't clear here; the target page clears after processing the action.
       const deferred = getDeferredAction();
       if (deferred?.returnUrl) {
-        clearDeferredAction();
         router.push(deferred.returnUrl);
         onComplete();
         return;

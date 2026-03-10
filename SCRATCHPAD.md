@@ -7,11 +7,13 @@
 
 ## Current Focus
 
-- **DNS Cutover v1.0 → v2.0** (branch: `peaceful-wiles`) — IN PROGRESS
-  - Pre-flight checks complete, ready for Phase 2 (Cloudflare DNS)
+- **DNS Cutover v1.0 → v2.0** (branch: `peaceful-wiles`) — DONE ✅
+  - olera.care now serving v2.0 Next.js app via Vercel
   - Provider slug migration done (008 + 009): 477/500 top GSC pages passing
-  - Auth config updated: Supabase Site URL → olera.care
-  - Cutover runbook published to Notion
+  - Sitemap fixed: `/sitemap.xml` → dynamic API route (static metadata files can't query Supabase)
+  - OG image replaced: shutterstock caregiver photo (1200x630)
+  - GSC sitemap submitted: 4,943 pages discovered (shard 0)
+  - PRs merged to main: #216 (sitemap error handling), #217 (API sitemap + OG image + rewrite)
 
 - **Migration Quick Wins + SEO + Traffic Recovery** (branch: `stellar-stonebraker`) — DONE ✅
   - PRs #165-171 all merged to staging
@@ -89,16 +91,16 @@
 
 ## Next Up
 
-1. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-2. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-3. **DNS cutover execution** — follow `docs/cutover-runbook.md`
-4. **Submit sitemap to GSC post-cutover** — Notion action item, do immediately after DNS switch
-5. **Gated provider portal page** — Esther building; sanity check item #1
-6. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-7. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
-8. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
-9. **Remaining ~2,992 providers without CSV descriptions**
-10. **Test Google OAuth end-to-end**
+1. **Submit provider sitemap shards to GSC** — `/api/sitemap?shard=1` through `?shard=4` (39K+ providers)
+2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
+3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
+4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
+5. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+6. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
+7. **Gated provider portal page** — Esther building; sanity check item #1
+8. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+9. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+10. **Add `hero_image_url` column to `olera-providers`** — needs Supabase migration
 
 ---
 
@@ -122,6 +124,9 @@
 | 2026-02-26 | Only TJ can merge to main/staging | Rulesets + merge-admins team. Prevents uncontrolled merges |
 | 2026-02-26 | Content regression checks beyond git merge-base | Revert→re-apply cycles make commit topology misleading |
 | 2026-02-26 | PR merge reports go to Notion | Automated reports for audit trail and team visibility |
+| 2026-03-10 | Dynamic API route for sitemap, not metadata file | `app/sitemap.ts` is statically generated at build time — Supabase queries fail, empty result cached permanently. `app/api/sitemap/route.ts` with `force-dynamic` works correctly |
+| 2026-03-10 | Rewrite `/sitemap.xml` → `/api/sitemap` | `app/[category]` dynamic route catches `sitemap.xml` as a category slug → 404. Rewrite in `next.config.ts` bypasses the route conflict |
+| 2026-03-10 | Static OG image over dynamic ImageResponse | Shutterstock photo looks better than teal gradient text; static `.jpg` is simpler and faster |
 | 2026-02-21 | Server-side pagination for directory | 36K+ records — must use Supabase `.range()` |
 
 ---
@@ -136,6 +141,32 @@
 ---
 
 ## Session Log
+
+### 2026-03-10 (Session 47) — DNS Cutover Execution + Sitemap Fix + OG Image
+
+**Branch:** `peaceful-wiles` (worktree)
+
+**What:** Executed the full v1.0 → v2.0 DNS cutover, fixed broken sitemap, replaced OG image, submitted sitemap to GSC.
+
+**Cutover steps:**
+1. Removed `olera.care` + `www.olera.care` from v1.0 Vercel project (`olera`) via dashboard
+2. Added both domains to v2.0 project (`olera-web`) — `www` redirects to apex
+3. Verified all 4 domains green in Vercel, homepage loading v2.0
+4. Validated 477/500 top GSC provider pages (same 23 failures as pre-cutover)
+
+**Sitemap fix (root cause: static metadata + route conflict):**
+- `app/sitemap.ts` is statically generated at build time → Supabase queries fail → empty XML cached
+- `app/[category]` dynamic route catches `/sitemap.xml` as a category slug → 404
+- Fix: Created `app/api/sitemap/route.ts` (force-dynamic) + rewrite in `next.config.ts`
+- PR #216 (error handling) + PR #217 (API route + OG + rewrite) merged to main
+
+**OG image:** Replaced dynamic teal gradient (`opengraph-image.tsx`) with static shutterstock photo (`opengraph-image.jpg`, 1200x630)
+
+**GSC:** Sitemap submitted, 4,943 pages discovered (shard 0). Provider shards 1-4 not yet submitted.
+
+**Files modified:** `app/api/sitemap/route.ts` (new), `next.config.ts`, `app/sitemap.ts`, `app/opengraph-image.jpg` (new), `app/twitter-image.jpg` (new), `app/opengraph-image.tsx` (deleted), `app/twitter-image.tsx` (deleted)
+
+---
 
 ### 2026-03-10 (Session 46) — DNS Cutover: Provider Slug Fix + Pre-flight
 

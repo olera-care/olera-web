@@ -43,6 +43,14 @@ function ProviderInboxContent() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
   const [archivedCount, setArchivedCount] = useState(0);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Auto-dismiss action error after 4 seconds
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = setTimeout(() => setActionError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [actionError]);
 
   const managedOpsRef = useRef(new Map<string, "expect_absent" | "expect_present">());
   const profileCacheRef = useRef(new Map<string, Profile>());
@@ -401,6 +409,7 @@ function ProviderInboxContent() {
       );
     } catch (err) {
       console.error("[provider/inbox] report failed:", err);
+      setActionError("Couldn't submit report. Please try again.");
     }
   }, [manageConnection]);
 
@@ -421,6 +430,7 @@ function ProviderInboxContent() {
       );
     } catch (err) {
       console.error("[provider/inbox] archive failed:", err);
+      setActionError("Couldn't archive conversation. Please try again.");
     }
   }, [manageConnection]);
 
@@ -437,6 +447,7 @@ function ProviderInboxContent() {
       );
     } catch (err) {
       console.error("[provider/inbox] unarchive failed:", err);
+      setActionError("Couldn't restore conversation. Please try again.");
     }
   }, [manageConnection]);
 
@@ -448,6 +459,7 @@ function ProviderInboxContent() {
       setConnections((prev) => prev.filter((c) => c.id !== connectionId));
     } catch (err) {
       console.error("[provider/inbox] delete failed:", err);
+      setActionError("Couldn't delete conversation. Please try again.");
     }
   }, [manageConnection]);
 
@@ -456,6 +468,11 @@ function ProviderInboxContent() {
 
   return (
     <div className="h-[calc(100dvh-64px)] bg-white">
+      {actionError && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-rose-50/95 border border-rose-100/60 shadow-sm">
+          <p className="text-[13px] text-rose-600 font-medium">{actionError}</p>
+        </div>
+      )}
       <div className="h-full flex">
         <ConversationList
           connections={connections}

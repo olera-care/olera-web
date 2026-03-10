@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -16,6 +16,14 @@ export default function SettingsPage() {
   const meta = (activeProfile?.metadata || {}) as FamilyMetadata;
   const notifPrefs = meta.notification_prefs || {};
   const [optimisticNotifs, setOptimisticNotifs] = useState<Record<string, boolean>>({});
+  const [notifError, setNotifError] = useState<string | null>(null);
+
+  // Auto-dismiss notification error after 4 seconds
+  useEffect(() => {
+    if (!notifError) return;
+    const timer = setTimeout(() => setNotifError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [notifError]);
 
   /** Returns the display value for a notification toggle (optimistic → server → default) */
   const getNotifOn = useCallback(
@@ -87,6 +95,8 @@ export default function SettingsPage() {
             .eq("id", activeProfile.id);
 
           await refreshAccountData();
+        } catch {
+          setNotifError("Couldn't update notification settings. Please try again.");
         } finally {
           // Clear optimistic override — server data is now canonical
           setOptimisticNotifs((prev) => {
@@ -226,6 +236,11 @@ export default function SettingsPage() {
       {/* ── Notifications ── */}
       <div className="p-6">
         <h3 className="text-lg font-display font-bold text-gray-900 mb-5">Notifications</h3>
+        {notifError && (
+          <div className="mb-4 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
+            <p className="text-[13px] text-rose-600 font-medium">{notifError}</p>
+          </div>
+        )}
         <div className="divide-y divide-gray-50">
           <NotificationRow
             title="Connection updates"

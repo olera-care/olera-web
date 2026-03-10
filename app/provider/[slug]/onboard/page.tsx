@@ -40,12 +40,20 @@ export default function ProviderOnboardPage() {
   const [session, setSession] = useState<ClaimSessionData | null>(null);
   const [tokenEmailHint, setTokenEmailHint] = useState<string | null>(null);
   const [actionCardState, setActionCardState] = useState<ActionCardState>("verify-form");
+  const [tokenError, setTokenError] = useState<string | null>(null);
   const initRef = useRef(false);
   const finalizeRef = useRef(false);
   const tokenValidatedRef = useRef(false);
 
   // Get claimSession ID for API calls
   const claimSession = session?.sessionId || "";
+
+  // Auto-dismiss token error after 4 seconds
+  useEffect(() => {
+    if (!tokenError) return;
+    const timer = setTimeout(() => setTokenError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [tokenError]);
 
   // Fetch provider on mount
   useEffect(() => {
@@ -173,6 +181,7 @@ export default function ProviderOnboardPage() {
           setActionCardState("already-claimed");
         } else {
           console.warn("Token validation failed:", result.error);
+          setTokenError("This verification link has expired. Please verify your email below.");
           setActionCardState("verify-form");
         }
         setStep("dashboard");
@@ -194,6 +203,7 @@ export default function ProviderOnboardPage() {
       }
     } catch (err) {
       console.error("Token validation error:", err);
+      setTokenError("Couldn't validate link. Please verify your email below.");
       setActionCardState("verify-form");
       setStep("dashboard");
     }
@@ -376,12 +386,19 @@ export default function ProviderOnboardPage() {
   if (!provider || !session) return null;
 
   return (
-    <SmartDashboardShell
-      provider={provider}
-      claimSession={claimSession}
-      onVerificationComplete={handleVerificationComplete}
-      initialActionState={actionCardState}
-      preVerifiedEmail={tokenEmailHint || undefined}
-    />
+    <>
+      {tokenError && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-rose-50/95 border border-rose-100/60 shadow-sm">
+          <p className="text-[13px] text-rose-600 font-medium">{tokenError}</p>
+        </div>
+      )}
+      <SmartDashboardShell
+        provider={provider}
+        claimSession={claimSession}
+        onVerificationComplete={handleVerificationComplete}
+        initialActionState={actionCardState}
+        preVerifiedEmail={tokenEmailHint || undefined}
+      />
+    </>
   );
 }

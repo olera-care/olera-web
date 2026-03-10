@@ -87,13 +87,14 @@ export default function SettingsPage() {
             [key]: { ...(currentPrefs[key] || {}), [channel]: newValue },
           };
 
-          await supabase
+          const { error } = await supabase
             .from("business_profiles")
             .update({
               metadata: { ...currentMeta, notification_prefs: updatedPrefs },
             })
             .eq("id", activeProfile.id);
 
+          if (error) throw error;
           await refreshAccountData();
         } catch {
           setNotifError("Couldn't update notification settings. Please try again.");

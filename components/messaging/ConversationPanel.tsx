@@ -284,6 +284,14 @@ export default function ConversationPanel({
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const [messageText, setMessageText] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  // Auto-dismiss send error after 4 seconds
+  useEffect(() => {
+    if (!sendError) return;
+    const timer = setTimeout(() => setSendError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [sendError]);
 
   // Reset message text when switching conversations
   useEffect(() => {
@@ -333,7 +341,7 @@ export default function ConversationPanel({
         });
       });
     } catch {
-      // Silent fail — could add error toast later
+      setSendError("Couldn't send message. Please try again.");
     } finally {
       setSending(false);
     }
@@ -712,6 +720,12 @@ export default function ConversationPanel({
       {/* ── Response time hint + Message input ── */}
       {showMessageInput && (
         <div className="shrink-0 border-t border-gray-200 bg-white">
+          {/* Send error */}
+          {sendError && (
+            <div className="mx-4 sm:mx-6 mt-3 px-3 py-2 rounded-lg bg-rose-50/80 border border-rose-100/60">
+              <p className="text-[13px] text-rose-600 font-medium text-center">{sendError}</p>
+            </div>
+          )}
           {/* Input area */}
           <div className={`px-4 sm:pl-6 ${detailOpen ? "sm:pr-6" : "sm:pr-[44px]"} py-4`}>
             <div className="border border-gray-300 rounded-2xl focus-within:border-gray-400 focus-within:shadow-sm transition-all overflow-hidden">

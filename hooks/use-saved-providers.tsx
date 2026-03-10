@@ -39,6 +39,8 @@ interface SavedProvidersContextValue {
   savedProviders: SavedProviderEntry[];
   /** True after the initial data load (anon + DB) has settled */
   hasInitialized: boolean;
+  /** Error message from last save/unsave operation */
+  saveError: string | null;
 }
 
 const SavedProvidersContext = createContext<SavedProvidersContextValue | null>(
@@ -63,9 +65,18 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
   // Authenticated saves — keyed by original provider ID (iOS slug or UUID)
   const [dbSaveIds, setDbSaveIds] = useState<Set<string>>(new Set());
   const [dbSaves, setDbSaves] = useState<SavedProviderEntry[]>([]);
+  // Error state for save/unsave operations
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const migrationDone = useRef(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Auto-dismiss save error after 4 seconds
+  useEffect(() => {
+    if (!saveError) return;
+    const timer = setTimeout(() => setSaveError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [saveError]);
 
   // Reset initialization flag on auth transitions so the Navbar
   // doesn't misinterpret DB-load count changes as user-initiated saves
@@ -233,7 +244,11 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ providerId: provider.providerId }),
-          }).catch((err) => console.error("Unsave error:", err));
+          })
+            .then((res) => {
+              if (!res.ok) setSaveError("Couldn't unsave. Please try again.");
+            })
+            .catch(() => setSaveError("Couldn't unsave. Please try again."));
         } else {
           // Anonymous unsave
           removeAnonSave(provider.providerId);
@@ -273,7 +288,11 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
                 rating: provider.rating,
               },
             }),
-          }).catch((err) => console.error("Save error:", err));
+          })
+            .then((res) => {
+              if (!res.ok) setSaveError("Couldn't save. Please try again.");
+            })
+            .catch(() => setSaveError("Couldn't save. Please try again."));
         } else {
           // Anonymous save
           const added = addAnonSave({
@@ -312,7 +331,7 @@ export function SavedProvidersProvider({ children }: { children: ReactNode }) {
 
   return (
     <SavedProvidersContext.Provider
-      value={{ isSaved, toggleSave, savedCount, anonSaves, savedProviders, hasInitialized }}
+      value={{ isSaved, toggleSave, savedCount, anonSaves, savedProviders, hasInitialized, saveError }}
     >
       {children}
     </SavedProvidersContext.Provider>

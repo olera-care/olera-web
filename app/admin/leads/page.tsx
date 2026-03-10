@@ -11,6 +11,7 @@ interface ConnectionProfile {
   id: string;
   display_name: string;
   type: string;
+  slug?: string;
   source_provider_id?: string;
 }
 
@@ -23,6 +24,83 @@ interface Lead {
   created_at: string;
   from_profile: ConnectionProfile | null;
   to_profile: ConnectionProfile | null;
+}
+
+function InlineEmailInput({
+  lead,
+  onEmailAdded,
+}: {
+  lead: Lead;
+  onEmailAdded: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || !lead.to_profile?.id) return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/leads/add-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileId: lead.to_profile.id,
+          email: email.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setSuccess(true);
+        setTimeout(() => onEmailAdded(), 1500);
+        if (data.emailsSent > 0) {
+          setError(null);
+        }
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to save");
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (success) {
+    return (
+      <span className="text-xs font-medium text-green-600">
+        Saved & notified
+      </span>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <input
+        type="email"
+        placeholder="provider@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-44 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+        disabled={saving}
+        required
+      />
+      <button
+        type="submit"
+        disabled={saving || !email.trim()}
+        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors disabled:opacity-50"
+      >
+        {saving ? "..." : "Save"}
+      </button>
+      {error && <span className="text-xs text-red-600">{error}</span>}
+    </form>
+  );
 }
 
 export default function AdminLeadsPage() {
@@ -115,7 +193,6 @@ export default function AdminLeadsPage() {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">From</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">To</th>
-                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Message</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
@@ -126,6 +203,7 @@ export default function AdminLeadsPage() {
                 {leads.map((lead) => {
                   const needsEmail = lead.metadata?.needs_provider_email === true;
                   const providerEditorId = lead.to_profile?.source_provider_id;
+                  const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
                   return (
                   <tr key={lead.id} className={`hover:bg-gray-50 ${needsEmail ? "bg-amber-50" : ""}`}>
                     <td className="px-6 py-4">
@@ -139,6 +217,10 @@ export default function AdminLeadsPage() {
                     <td className="px-6 py-4">
                       {providerEditorId ? (
                         <Link href={`/admin/directory/${providerEditorId}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
+                          {lead.to_profile?.display_name ?? "Unknown"}
+                        </Link>
+                      ) : providerSlug ? (
+                        <Link href={`/provider/${providerSlug}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline" target="_blank">
                           {lead.to_profile?.display_name ?? "Unknown"}
                         </Link>
                       ) : (
@@ -157,9 +239,6 @@ export default function AdminLeadsPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
-                      {lead.message || "—"}
-                    </td>
                     <td className="px-6 py-4">
                       <Badge variant="default">{lead.type}</Badge>
                     </td>
@@ -172,14 +251,9 @@ export default function AdminLeadsPage() {
                       {new Date(lead.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
-                      {needsEmail && providerEditorId && (
-                        <Link
-                          href={`/admin/directory/${providerEditorId}`}
-                          className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-                        >
-                          Add Email
-                        </Link>
-                      )}
+                      {needsEmail ? (
+                        <InlineEmailInput lead={lead} onEmailAdded={fetchLeads} />
+                      ) : null}
                     </td>
                   </tr>
                   );

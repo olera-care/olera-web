@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, source_provider_id)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id)
       `)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1);

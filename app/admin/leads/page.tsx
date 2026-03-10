@@ -137,9 +137,15 @@ export default function AdminLeadsPage() {
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-gray-900">
-                        {lead.to_profile?.display_name ?? "Unknown"}
-                      </p>
+                      {providerEditorId ? (
+                        <Link href={`/admin/directory/${providerEditorId}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
+                          {lead.to_profile?.display_name ?? "Unknown"}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-medium text-gray-900">
+                          {lead.to_profile?.display_name ?? "Unknown"}
+                        </p>
+                      )}
                       <div className="flex items-center gap-2">
                         <p className="text-xs text-gray-500">
                           {lead.to_profile?.type ?? "—"}

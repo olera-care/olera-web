@@ -37,7 +37,7 @@ export default function AdminOverviewPage() {
         const [providersRes, leadsRes, needsEmailRes, teamRes, auditRes, imageStatsRes, directoryRes, questionsRes] = await Promise.all([
           fetch("/api/admin/providers?status=pending&count_only=true"),
           fetch("/api/admin/leads?count_only=true"),
-          fetch("/api/admin/leads?needs_email=true&limit=0"),
+          fetch("/api/admin/leads?needs_email=true&count_only=true"),
           fetch("/api/admin/team"),
           fetch("/api/admin/audit?limit=10"),
           fetch("/api/admin/images/stats"),
@@ -47,7 +47,7 @@ export default function AdminOverviewPage() {
 
         const pendingData = providersRes.ok ? await providersRes.json() : { count: 0 };
         const leadsData = leadsRes.ok ? await leadsRes.json() : { count: 0 };
-        const needsEmailData = needsEmailRes.ok ? await needsEmailRes.json() : { connections: [] };
+        const needsEmailData = needsEmailRes.ok ? await needsEmailRes.json() : { count: 0 };
         const teamData = teamRes.ok ? await teamRes.json() : { admins: [] };
         const auditData = auditRes.ok ? await auditRes.json() : { entries: [] };
         const imageStats = imageStatsRes.ok ? await imageStatsRes.json() : { needs_review: 0 };
@@ -62,7 +62,7 @@ export default function AdminOverviewPage() {
         setStats({
           pendingProviders: pendingData.count ?? 0,
           totalInquiries: leadsData.count ?? 0,
-          needsEmailCount: needsEmailData.connections?.length ?? 0,
+          needsEmailCount: needsEmailData.count ?? 0,
           adminCount: teamData.admins?.length ?? 0,
           imagesToReview: imageStats.needs_review ?? 0,
           totalProviders: directoryData.total ?? 0,

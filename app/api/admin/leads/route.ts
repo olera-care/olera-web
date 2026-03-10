@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
     const db = getServiceClient();
+    const needsEmail = searchParams.get("needs_email") === "true";
 
     if (countOnly) {
       let countQuery = db
@@ -35,12 +36,11 @@ export async function GET(request: NextRequest) {
 
       if (status) countQuery = countQuery.eq("status", status);
       if (type) countQuery = countQuery.eq("type", type);
+      if (needsEmail) countQuery = countQuery.contains("metadata", { needs_provider_email: true });
 
       const { count } = await countQuery;
       return NextResponse.json({ count: count ?? 0 });
     }
-
-    const needsEmail = searchParams.get("needs_email") === "true";
 
     // Fetch connections with joined profile names
     let query = db

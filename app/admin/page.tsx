@@ -104,7 +104,7 @@ export default function AdminOverviewPage() {
       )}
 
       {/* Stats grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Link href="/admin/providers" className="block">
           <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-primary-200 transition-colors">
             <p className="text-base text-gray-500 mb-1">Pending Providers</p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import InterestedCard from "@/components/portal/matches/InterestedCard";
 import InterestedCardCompact from "@/components/portal/matches/InterestedCardCompact";
 import {
@@ -31,6 +31,14 @@ export default function InterestedTabContent({
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [acceptedId, setAcceptedId] = useState<string | null>(null);
   const [declinedConfirmId, setDeclinedConfirmId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Auto-dismiss error after 4 seconds
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = setTimeout(() => setActionError(null), 4000);
+    return () => clearTimeout(timer);
+  }, [actionError]);
 
   // ── Expand card (also marks as viewed) ──
   const handleExpand = useCallback(
@@ -77,6 +85,7 @@ export default function InterestedTabContent({
   const handleAccept = useCallback(
     async (id: string) => {
       setAcceptingId(id);
+      setActionError(null);
       try {
         const res = await fetch("/api/connections/respond-interest", {
           method: "POST",
@@ -84,7 +93,7 @@ export default function InterestedTabContent({
           body: JSON.stringify({ connectionId: id, action: "accept" }),
         });
         if (!res.ok) {
-          console.error("[InterestedTab] accept API failed");
+          setActionError("Couldn't start conversation. Please try again.");
           return;
         }
 
@@ -92,7 +101,7 @@ export default function InterestedTabContent({
         setAcceptedId(id);
         setExpandedCardId(null);
       } catch {
-        console.error("[InterestedTab] accept API error");
+        setActionError("Couldn't start conversation. Please try again.");
       } finally {
         setAcceptingId(null);
       }
@@ -113,6 +122,7 @@ export default function InterestedTabContent({
   const handleDecline = useCallback(
     async (id: string) => {
       setDecliningId(id);
+      setActionError(null);
       try {
         const res = await fetch("/api/connections/respond-interest", {
           method: "POST",
@@ -120,7 +130,7 @@ export default function InterestedTabContent({
           body: JSON.stringify({ connectionId: id, action: "decline" }),
         });
         if (!res.ok) {
-          console.error("[InterestedTab] decline API failed");
+          setActionError("Couldn't decline. Please try again.");
           return;
         }
 
@@ -128,7 +138,7 @@ export default function InterestedTabContent({
         setDeclinedConfirmId(id);
         setExpandedCardId(null);
       } catch {
-        console.error("[InterestedTab] decline API error");
+        setActionError("Couldn't decline. Please try again.");
       } finally {
         setDecliningId(null);
       }
@@ -183,22 +193,30 @@ export default function InterestedTabContent({
 
   const handleReconsider = useCallback(
     async (id: string) => {
-      const res = await fetch("/api/connections/respond-interest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId: id, action: "reconsider" }),
-      });
-      if (!res.ok) return;
+      setActionError(null);
+      try {
+        const res = await fetch("/api/connections/respond-interest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ connectionId: id, action: "reconsider" }),
+        });
+        if (!res.ok) {
+          setActionError("Couldn't reconsider. Please try again.");
+          return;
+        }
 
-      // Optimistic update: move back to pending
-      const item = declined.find((c) => c.id === id);
-      if (item) {
-        const meta = (item.metadata || {}) as Record<string, unknown>;
-        const { declined_at, ...restMeta } = meta as Record<string, unknown> & { declined_at?: unknown };
-        updateLocal(id, {
-          status: "pending",
-          metadata: { ...restMeta, viewed: true },
-        } as Partial<InterestedProvider>);
+        // Optimistic update: move back to pending
+        const item = declined.find((c) => c.id === id);
+        if (item) {
+          const meta = (item.metadata || {}) as Record<string, unknown>;
+          const { declined_at, ...restMeta } = meta as Record<string, unknown> & { declined_at?: unknown };
+          updateLocal(id, {
+            status: "pending",
+            metadata: { ...restMeta, viewed: true },
+          } as Partial<InterestedProvider>);
+        }
+      } catch {
+        setActionError("Couldn't reconsider. Please try again.");
       }
     },
     [declined, updateLocal]
@@ -322,6 +340,15 @@ export default function InterestedTabContent({
   if (variant === "mobile") {
     return (
       <div>
+        {/* Error message */}
+        {actionError && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-rose-50/80 border border-rose-100/60">
+            <p className="text-[13px] text-rose-600 font-medium text-center">
+              {actionError}
+            </p>
+          </div>
+        )}
+
         {/* Pending cards */}
         {pending.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden mb-5">
@@ -394,6 +421,15 @@ export default function InterestedTabContent({
   // ── Desktop card list ──
   return (
     <div>
+      {/* Error message */}
+      {actionError && (
+        <div className="mb-5 px-4 py-3 rounded-xl bg-rose-50/80 border border-rose-100/60">
+          <p className="text-[13px] text-rose-600 font-medium text-center">
+            {actionError}
+          </p>
+        </div>
+      )}
+
       {/* Pending cards */}
       {pending.length > 0 && (
         <div className="space-y-5 mb-6">

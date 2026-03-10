@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
+import { sendEmail } from "@/lib/email";
+import { newReviewEmail } from "@/lib/email-templates";
+import { sendLoopsEvent } from "@/lib/loops";
 
 /**
  * GET /api/reviews?provider_id=xxx
@@ -130,6 +133,57 @@ export async function POST(request: NextRequest) {
       }
       console.error("Failed to create review:", error);
       return NextResponse.json({ error: "Failed to submit review" }, { status: 500 });
+    }
+
+    // Send email notification to provider (fire-and-forget)
+    try {
+      // Look up provider profile and their account
+      const { data: provider } = await db
+        .from("business_profiles")
+        .select("id, display_name, slug, account_id")
+        .eq("id", provider_id)
+        .single();
+
+      if (provider?.account_id) {
+        const { data: providerAccount } = await db
+          .from("accounts")
+          .select("user_id")
+          .eq("id", provider.account_id)
+          .single();
+
+        if (providerAccount?.user_id) {
+          const { data: authUser } = await db.auth.admin.getUserById(providerAccount.user_id);
+          const providerEmail = authUser?.user?.email;
+
+          if (providerEmail) {
+            const viewUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/reviews`;
+            await sendEmail({
+              to: providerEmail,
+              subject: `New review for ${provider.display_name || "your listing"}`,
+              html: newReviewEmail({
+                providerName: provider.display_name || "Your organization",
+                reviewerName,
+                rating,
+                comment: comment.trim().slice(0, 200) + (comment.trim().length > 200 ? "..." : ""),
+                viewUrl,
+              }),
+            });
+            await sendLoopsEvent({
+              email: providerEmail,
+              eventName: "review_received",
+              audience: "provider",
+              eventProperties: {
+                providerName: provider.display_name || "",
+                rating,
+                reviewerName,
+              },
+            });
+          }
+        }
+      }
+    } catch (notifyErr) {
+      // Non-blocking - log but don't fail the request
+      console.error("Failed to send review notification:", notifyErr);
     }
 
     return NextResponse.json({ review: newReview }, { status: 201 });

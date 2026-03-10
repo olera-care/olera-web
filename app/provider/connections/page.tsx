@@ -1213,12 +1213,14 @@ export default function ProviderLeadsPage() {
     })();
   }, [providerProfile]);
 
-  // Broadcast new-leads count to Navbar badge and persist to localStorage
+  // Broadcast new-leads count to Navbar badge and persist to localStorage (profile-scoped)
   const newLeadsCount = useMemo(() => leads.filter((l) => l.isNew).length, [leads]);
   useEffect(() => {
-    try { localStorage.setItem("olera_leads_new_count", String(newLeadsCount)); } catch { /* */ }
-    window.dispatchEvent(new CustomEvent("olera:leads-count", { detail: newLeadsCount }));
-  }, [newLeadsCount]);
+    if (!providerProfile) return;
+    const countKey = `olera_leads_new_count_${providerProfile.id}`;
+    try { localStorage.setItem(countKey, String(newLeadsCount)); } catch { /* */ }
+    window.dispatchEvent(new CustomEvent("olera:leads-count", { detail: { count: newLeadsCount, profileId: providerProfile.id } }));
+  }, [newLeadsCount, providerProfile]);
 
   // Derive selectedLead from current leads so it stays in sync after archive/restore
   const selectedLead = useMemo(

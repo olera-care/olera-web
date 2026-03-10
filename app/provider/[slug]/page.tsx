@@ -382,19 +382,34 @@ export default async function ProviderPage({
 
   const pricingDetails = meta?.pricing_details || [];
   const staffScreening = meta?.staff_screening;
-  const reviews = meta?.reviews || [];
+
+  // === Review Data Sources (properly separated) ===
+  // 1. Real reviews come from the reviews table (realReviewCount from DB query above)
+  // 2. Demo reviews are for testing only (clearly marked in UI)
+  // 3. Google rating is external data (read-only)
+  const isDemoProfile = meta?.demo_mode === true;
+  // Support both new demo_reviews and legacy reviews field for backwards compatibility
+  const demoReviews = meta?.demo_reviews || meta?.reviews || [];
+  // Only use demo reviews if the profile is in demo mode OR it's a seeded profile
+  // Real providers (claimed_from_directory) should not show demo reviews
+  const shouldShowDemoReviews = isDemoProfile || profile.source === "seeded";
+  const reviewsToShow = shouldShowDemoReviews ? demoReviews : [];
 
   // Use real review count from database for CTA display
   const reviewCount = realReviewCount;
 
-  // Olera Score: use community_score if available, otherwise rating
+  // Google rating (external, read-only) - stored in google_metadata
+  const googleRating = meta?.google_metadata?.rating ?? null;
+
+  // Olera Score: prioritize community_score, then fall back to rating (for legacy data)
+  // For claimed profiles with no reviews, don't show a rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
 
   // --- Boolean flags for real data availability ---
   const hasRating = rating != null;
   const hasPriceRange = priceRange != null;
   const hasStaff = staff != null;
-  const hasReviews = reviews.length > 0;
+  const hasReviews = reviewsToShow.length > 0 || realReviewCount > 0;
   const hasOleraScore = oleraScore != null;
   const hasStaffScreening = staffScreening != null &&
     (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
@@ -512,8 +527,8 @@ export default async function ProviderPage({
         unitText: meta.price_unit || "MONTH",
       },
     }),
-    ...(reviews.length > 0 && {
-      review: reviews.slice(0, 5).map((r) => ({
+    ...(reviewsToShow.length > 0 && {
+      review: reviewsToShow.slice(0, 5).map((r) => ({
         "@type": "Review",
         author: { "@type": "Person", name: r.name },
         reviewRating: {
@@ -921,7 +936,8 @@ export default async function ProviderPage({
                 providerId={profile.slug}
                 providerSlug={profile.slug}
                 providerName={profile.display_name}
-                mockReviews={reviews}
+                mockReviews={reviewsToShow}
+                isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
               />
 
               {/* ── Facility Manager — hidden when no staff data ── */}

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
+import { markAllReviewsAsRead } from "@/hooks/useUnreadReviewsCount";
 import type { Review } from "@/lib/types";
 
 // Calculate stats from reviews
@@ -1184,6 +1185,12 @@ export default function ProviderReviewsPage() {
 
         setReviews(fetchedReviews);
         setStats(data.stats || calculateStats(fetchedReviews));
+
+        // Mark all reviews as read to clear the badge
+        if (fetchedReviews.length > 0 && providerProfile?.id) {
+          const reviewIds = fetchedReviews.map((r: Review) => r.id);
+          markAllReviewsAsRead(reviewIds, providerProfile.id);
+        }
       } catch (err) {
         console.error("Failed to fetch reviews:", err);
         // Show empty state on error

@@ -5,6 +5,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 import type { Review } from "@/lib/types";
 import ReviewModal from "@/components/providers/ReviewModal";
+import AllReviewsModal, { normalizeReviews } from "@/components/providers/AllReviewsModal";
 
 // ── Icons ──
 
@@ -20,26 +21,18 @@ function StarIcon({ className, filled = true }: { className?: string; filled?: b
   );
 }
 
-function ChevronDownIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  );
-}
-
-function ChevronUpIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-    </svg>
-  );
-}
-
 function MoreIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 20 20">
       <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
   );
 }
@@ -54,30 +47,8 @@ interface MockReview {
   relationship?: string;
 }
 
-interface DisplayReview {
-  id: string;
-  name: string;
-  rating: number;
-  date: string;
-  comment: string;
-  relationship?: string;
-  title?: string | null;
-  isMock: boolean;
-  providerReply?: string | null;
-  repliedAt?: string | null;
-  accountId?: string;
-}
-
-type SortOption = "helpful" | "recent" | "highest" | "lowest";
-
-const SORT_LABELS: Record<SortOption, string> = {
-  helpful: "Most Helpful",
-  recent: "Most Recent",
-  highest: "Highest Rated",
-  lowest: "Lowest Rated",
-};
-
 const INITIAL_VISIBLE = 4;
+const TRUNCATE_LENGTH = 150;
 
 // ── Props ──
 
@@ -86,11 +57,19 @@ interface ReviewsSectionProps {
   providerSlug: string;
   providerName: string;
   mockReviews: MockReview[];
+  /** When true, shows a "Demo" badge to indicate these are example reviews, not real user reviews */
+  isDemoMode?: boolean;
 }
 
 // ── Component ──
 
-export default function ReviewsSection({ providerId, providerSlug, providerName, mockReviews }: ReviewsSectionProps) {
+export default function ReviewsSection({
+  providerId,
+  providerSlug,
+  providerName,
+  mockReviews,
+  isDemoMode = false,
+}: ReviewsSectionProps) {
   const { user, account } = useAuth();
 
   // Data
@@ -98,22 +77,22 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
   const [loading, setLoading] = useState(true);
 
   // UI state
-  const [expanded, setExpanded] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>("helpful");
-  const [sortOpen, setSortOpen] = useState(false);
-  const [expandedReviewIds, setExpandedReviewIds] = useState<Set<string>>(new Set());
+  const [allReviewsModalOpen, setAllReviewsModalOpen] = useState(false);
+  const [scrollToReviewId, setScrollToReviewId] = useState<string | null>(null);
 
-  // Review modal
+  // Write review modal
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   // Edit review state
-  const [editingReview, setEditingReview] = useState<DisplayReview | null>(null);
+  const [editingReview, setEditingReview] = useState<{
+    id: string;
+    rating: number;
+    comment: string;
+  } | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editComment, setEditComment] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
-  const sortRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // ── Fetch real reviews ──
@@ -147,19 +126,6 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
     }
   }, [user, providerId]);
 
-  // ── Close sort dropdown on outside click ──
-
-  useEffect(() => {
-    if (!sortOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
-        setSortOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [sortOpen]);
-
   // ── Close more menu on outside click ──
 
   useEffect(() => {
@@ -173,70 +139,23 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
     return () => document.removeEventListener("mousedown", handleClick);
   }, [openMenuId]);
 
-  // ── Merge + sort reviews ──
+  // ── Normalize reviews ──
 
-  const normalizedMock: DisplayReview[] = mockReviews.map((r, i) => ({
-    id: `mock-${i}`,
-    name: r.name,
-    rating: r.rating,
-    date: r.date,
-    comment: r.comment,
-    relationship: r.relationship,
-    title: null,
-    isMock: true,
-  }));
+  const { reviews: allReviews, averageRating } = normalizeReviews(realReviews, mockReviews);
+  const visibleReviews = allReviews.slice(0, INITIAL_VISIBLE);
+  const hasMore = allReviews.length > INITIAL_VISIBLE;
+  const hasReviews = allReviews.length > 0;
+  const reviewCount = allReviews.length;
 
-  const normalizedReal: DisplayReview[] = realReviews.map((r) => ({
-    id: r.id,
-    name: r.reviewer_name,
-    rating: r.rating,
-    date: new Date(r.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }),
-    comment: r.comment,
-    relationship: r.relationship,
-    title: r.title,
-    isMock: false,
-    providerReply: r.provider_reply,
-    repliedAt: r.replied_at,
-    accountId: r.account_id,
-  }));
+  // Check if showing demo reviews
+  const showingDemoReviews = isDemoMode && realReviews.length === 0 && mockReviews.length > 0;
 
-  // Real reviews take priority; fall back to mock
-  const allReviews = normalizedReal.length > 0 ? normalizedReal : normalizedMock;
+  // ── Handle "Show more" on individual review ──
 
-  function sortReviews(reviews: DisplayReview[]): DisplayReview[] {
-    const sorted = [...reviews];
-    switch (sortBy) {
-      case "recent":
-        return sorted.sort((a, b) => {
-          if (a.isMock && b.isMock) return 0;
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-      case "highest":
-        return sorted.sort((a, b) => b.rating - a.rating);
-      case "lowest":
-        return sorted.sort((a, b) => a.rating - b.rating);
-      case "helpful":
-      default:
-        return sorted; // original order
-    }
-  }
-
-  const sortedReviews = sortReviews(allReviews);
-  const visibleReviews = expanded ? sortedReviews : sortedReviews.slice(0, INITIAL_VISIBLE);
-  const hasMore = sortedReviews.length > INITIAL_VISIBLE;
-  const hasReviews = sortedReviews.length > 0;
-  const reviewCount = sortedReviews.length;
-
-  // ── Toggle read more per review ──
-
-  function toggleExpandReview(id: string) {
-    setExpandedReviewIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
+  const handleShowMore = (reviewId: string) => {
+    setScrollToReviewId(reviewId);
+    setAllReviewsModalOpen(true);
+  };
 
   // ── Handle edit review submit ──
 
@@ -279,58 +198,53 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
 
   return (
     <div className="py-8 border-t border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight mb-6">What families are saying</h2>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
+          What families are saying
+        </h2>
+        {showingDemoReviews && (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            Demo
+          </span>
+        )}
+      </div>
 
       {hasReviews ? (
         <>
-          {/* Sort + count bar */}
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm text-gray-500">{reviewCount} review{reviewCount !== 1 ? "s" : ""}</span>
-            <div className="relative" ref={sortRef}>
-              <button
-                onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-1.5 text-sm text-gray-700 font-medium border border-gray-200 rounded-xl px-3 py-2 hover:bg-gray-50 transition-colors"
-              >
-                Sort by: {SORT_LABELS[sortBy]}
-                <ChevronDownIcon className="w-4 h-4" />
-              </button>
-              {sortOpen && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-lg py-1 z-10 min-w-[180px] animate-slide-down">
-                  {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => { setSortBy(option); setSortOpen(false); }}
-                      className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
-                        sortBy === option
-                          ? "text-primary-600 font-medium bg-primary-50"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {SORT_LABELS[option]}
-                    </button>
-                  ))}
-                </div>
-              )}
+          {/* Rating summary bar */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-2xl font-bold text-gray-900">{averageRating.toFixed(1)}</span>
+              <StarIcon className="w-5 h-5 text-primary-500" />
             </div>
+            <span className="text-sm text-gray-500">
+              {reviewCount} review{reviewCount !== 1 ? "s" : ""}
+            </span>
           </div>
 
-          {/* Reviews grid */}
+          {/* Reviews grid — 2 columns on desktop, clean cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {visibleReviews.map((review) => {
-              const isLong = review.comment.length > 180;
-              const isExpanded = expandedReviewIds.has(review.id);
-              const displayComment = isLong && !isExpanded
-                ? review.comment.slice(0, 180).trimEnd() + "..."
+              const isLong = review.comment.length > TRUNCATE_LENGTH;
+              const displayComment = isLong
+                ? review.comment.slice(0, TRUNCATE_LENGTH).trimEnd() + "..."
                 : review.comment;
               const isOwner = !review.isMock && account && review.accountId === account.id;
 
               return (
-                <div key={review.id} className="group/review shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 bg-white">
+                <div
+                  key={review.id}
+                  className="group/review shadow-sm hover:shadow-md transition-shadow rounded-2xl p-5 bg-white"
+                >
+                  {/* Header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                         <span className="text-xs font-semibold text-gray-600">
-                          {review.name.split(" ").map((n) => n[0]).join("")}
+                          {review.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
                         </span>
                       </div>
                       <div>
@@ -348,7 +262,9 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
                         <div className="relative" ref={openMenuId === review.id ? menuRef : null}>
                           <button
                             type="button"
-                            onClick={() => setOpenMenuId(openMenuId === review.id ? null : review.id)}
+                            onClick={() =>
+                              setOpenMenuId(openMenuId === review.id ? null : review.id)
+                            }
                             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 lg:opacity-0 lg:group-hover/review:opacity-100 hover:text-gray-600 hover:bg-gray-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-all"
                             aria-label="More options"
                           >
@@ -360,15 +276,29 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setEditingReview(review);
+                                  setEditingReview({
+                                    id: review.id,
+                                    rating: review.rating,
+                                    comment: review.comment,
+                                  });
                                   setEditRating(review.rating);
                                   setEditComment(review.comment);
                                   setOpenMenuId(null);
                                 }}
                                 className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
                               >
-                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                <svg
+                                  className="w-4 h-4 text-gray-500"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth={1.5}
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                  />
                                 </svg>
                                 Edit review
                               </button>
@@ -378,64 +308,74 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
                       )}
                     </div>
                   </div>
+
+                  {/* Relationship */}
                   {review.relationship && (
                     <p className="text-xs text-gray-400 mb-2">{review.relationship}</p>
                   )}
+
+                  {/* Title */}
                   {review.title && (
                     <p className="text-sm font-semibold text-gray-900 mb-1">{review.title}</p>
                   )}
+
+                  {/* Comment — truncated, "Show more" opens modal */}
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    {displayComment}{" "}
+                    {displayComment}
                     {isLong && (
-                      <button
-                        onClick={() => toggleExpandReview(review.id)}
-                        className="text-primary-600 font-medium"
-                      >
-                        {isExpanded ? "show less" : "read more"}
-                      </button>
+                      <>
+                        {" "}
+                        <button
+                          onClick={() => handleShowMore(review.id)}
+                          className="text-gray-900 font-semibold underline underline-offset-2 hover:text-primary-600 transition-colors"
+                        >
+                          Show more
+                        </button>
+                      </>
                     )}
                   </p>
-                  {/* Provider response */}
+
+                  {/* Provider reply indicator — just a subtle hint, full reply in modal */}
                   {review.providerReply && (
-                    <div className="mt-4 pl-4 border-l-2 border-primary-100 bg-primary-50/30 rounded-r-lg p-3">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-xs font-semibold text-primary-600">Provider Response</span>
-                        {review.repliedAt && (
-                          <span className="text-xs text-gray-400">
-                            {new Date(review.repliedAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-700 leading-relaxed">{review.providerReply}</p>
-                    </div>
+                    <button
+                      onClick={() => handleShowMore(review.id)}
+                      className="mt-3 flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                        />
+                      </svg>
+                      Provider responded
+                    </button>
                   )}
                 </div>
               );
             })}
           </div>
 
-          {/* Show more / Show less + Add review */}
+          {/* Footer actions */}
           <div className="flex items-center justify-between mt-5">
-            <div>
-              {hasMore && !expanded && (
-                <button
-                  onClick={() => setExpanded(true)}
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1"
-                >
-                  Show more
-                  <ChevronDownIcon className="w-4 h-4" />
-                </button>
-              )}
-              {hasMore && expanded && (
-                <button
-                  onClick={() => setExpanded(false)}
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700 flex items-center gap-1"
-                >
-                  Show less
-                  <ChevronUpIcon className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+            {/* Show all reviews button */}
+            {hasMore ? (
+              <button
+                onClick={() => {
+                  setScrollToReviewId(null);
+                  setAllReviewsModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 underline underline-offset-2 hover:text-primary-600 transition-colors"
+              >
+                Show all {reviewCount} reviews
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {/* Add review button */}
             <button
               onClick={() => setReviewModalOpen(true)}
               className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
@@ -449,7 +389,9 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
         <div className="text-center py-12 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
           <StarIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" filled={false} />
           <p className="text-gray-500 font-medium">No reviews yet.</p>
-          <p className="text-sm text-gray-400 mt-1 mb-4">Be the first to share your experience with this provider.</p>
+          <p className="text-sm text-gray-400 mt-1 mb-4">
+            Be the first to share your experience with this provider.
+          </p>
           <button
             onClick={() => setReviewModalOpen(true)}
             className="px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-xl hover:bg-primary-50 transition-colors"
@@ -459,7 +401,22 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
         </div>
       )}
 
-      {/* Review Modal */}
+      {/* All Reviews Modal */}
+      <AllReviewsModal
+        isOpen={allReviewsModalOpen}
+        onClose={() => {
+          setAllReviewsModalOpen(false);
+          setScrollToReviewId(null);
+        }}
+        providerName={providerName}
+        reviews={allReviews}
+        averageRating={averageRating}
+        scrollToReviewId={scrollToReviewId}
+        isDemoMode={showingDemoReviews}
+        onWriteReview={() => setReviewModalOpen(true)}
+      />
+
+      {/* Write Review Modal */}
       <ReviewModal
         isOpen={reviewModalOpen}
         onClose={() => setReviewModalOpen(false)}
@@ -485,7 +442,10 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
             aria-labelledby="edit-review-title"
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl shadow-2xl max-w-lg mx-auto p-6"
           >
-            <h3 id="edit-review-title" className="text-lg font-display font-bold text-gray-900 mb-4">
+            <h3
+              id="edit-review-title"
+              className="text-lg font-display font-bold text-gray-900 mb-4"
+            >
               Edit your review
             </h3>
 
@@ -536,7 +496,12 @@ export default function ReviewsSection({ providerId, providerSlug, providerName,
               <button
                 type="button"
                 onClick={handleEditSubmit}
-                disabled={!editComment.trim() || (editComment.trim() === editingReview.comment && editRating === editingReview.rating) || editSubmitting}
+                disabled={
+                  !editComment.trim() ||
+                  (editComment.trim() === editingReview.comment &&
+                    editRating === editingReview.rating) ||
+                  editSubmitting
+                }
                 className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-xl shadow-sm hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {editSubmitting ? "Saving..." : "Save changes"}

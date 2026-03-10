@@ -32,10 +32,45 @@ function xmlEntry(url: string, priority: number, changefreq: string) {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const shard = parseInt(searchParams.get("shard") ?? "0", 10);
-
-  const entries: string[] = [];
+  const shardParam = searchParams.get("shard");
   const supabase = getSupabaseClient();
+
+  // No shard param → return sitemap index pointing to all shards
+  if (shardParam === null) {
+    let providerShards = 4; // default
+    if (supabase) {
+      try {
+        const { count } = await supabase
+          .from("olera-providers")
+          .select("provider_id", { count: "exact", head: true })
+          .or("deleted.is.null,deleted.eq.false");
+        if (count) {
+          providerShards = Math.ceil(count / 10_000);
+        }
+      } catch (err) {
+        console.error("[api/sitemap] count error:", err);
+      }
+    }
+
+    const shardEntries: string[] = [];
+    for (let i = 0; i <= providerShards; i++) {
+      shardEntries.push(
+        `  <sitemap>\n    <loc>${SITE_URL}/api/sitemap?shard=${i}</loc>\n    <lastmod>${new Date().toISOString().split("T")[0]}</lastmod>\n  </sitemap>`
+      );
+    }
+
+    const indexXml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${shardEntries.join("\n")}\n</sitemapindex>`;
+
+    return new NextResponse(indexXml, {
+      headers: {
+        "Content-Type": "application/xml",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+      },
+    });
+  }
+
+  const shard = parseInt(shardParam, 10);
+  const entries: string[] = [];
 
   try {
     if (shard === 0) {

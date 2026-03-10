@@ -129,12 +129,12 @@ export type ReviewStatus = "published" | "under_review" | "rejected" | "removed"
 export interface Review {
   id: string;
   provider_id: string;
-  account_id: string;
+  account_id: string | null;
   reviewer_name: string;
   rating: number;
   title: string | null;
   comment: string;
-  relationship: string;
+  relationship: string | null;
   status: ReviewStatus;
   created_at: string;
   updated_at: string;
@@ -142,6 +142,8 @@ export interface Review {
   provider_reply: string | null;
   replied_at: string | null;
   replied_by: string | null;
+  // Migration tracking
+  migration_source?: string | null;
 }
 
 // ============================================================

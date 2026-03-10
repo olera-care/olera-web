@@ -27,6 +27,7 @@ async function getSupabaseClient() {
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
+    console.warn("[sitemap] Missing Supabase env vars");
     return null;
   }
 
@@ -43,20 +44,23 @@ async function getSupabaseClient() {
 }
 
 export async function generateSitemaps() {
-  const supabase = await getSupabaseClient();
-  if (!supabase) return [{ id: 0 }];
+  try {
+    const supabase = await getSupabaseClient();
+    if (!supabase) return [{ id: 0 }];
 
-  // Count total providers to determine shard count
-  const { count } = await supabase
-    .from("olera-providers")
-    .select("provider_id", { count: "exact", head: true })
-    .or("deleted.is.null,deleted.eq.false");
+    const { count } = await supabase
+      .from("olera-providers")
+      .select("provider_id", { count: "exact", head: true })
+      .or("deleted.is.null,deleted.eq.false");
 
-  const providerCount = count ?? 0;
-  const providerShards = Math.ceil(providerCount / PROVIDER_BATCH_SIZE);
+    const providerCount = count ?? 0;
+    const providerShards = Math.ceil(providerCount / PROVIDER_BATCH_SIZE);
 
-  // Shard 0 = static + power pages + content, Shard 1+ = providers
-  return Array.from({ length: 1 + providerShards }, (_, i) => ({ id: i }));
+    return Array.from({ length: 1 + providerShards }, (_, i) => ({ id: i }));
+  } catch (err) {
+    console.error("[sitemap] generateSitemaps error:", err);
+    return [{ id: 0 }];
+  }
 }
 
 export default async function sitemap({
@@ -64,198 +68,221 @@ export default async function sitemap({
 }: {
   id: number;
 }): Promise<MetadataRoute.Sitemap> {
-  const supabase = await getSupabaseClient();
+  try {
+    const supabase = await getSupabaseClient();
 
-  // ── Shard 0: Static + power pages + content + waiver library ──
-  if (id === 0) {
-    const entries: MetadataRoute.Sitemap = [];
+    // ── Shard 0: Static + power pages + content + waiver library ──
+    if (id === 0) {
+      const entries: MetadataRoute.Sitemap = [];
 
-    // Static pages
-    const staticPages = [
-      { path: "/", priority: 1.0, changeFrequency: "daily" as const },
-      { path: "/browse", priority: 0.9, changeFrequency: "daily" as const },
-      { path: "/browse/providers", priority: 0.8, changeFrequency: "daily" as const },
-      { path: "/browse/caregivers", priority: 0.8, changeFrequency: "daily" as const },
-      { path: "/browse/families", priority: 0.8, changeFrequency: "daily" as const },
-      { path: "/for-providers", priority: 0.8, changeFrequency: "weekly" as const },
-      { path: "/benefits", priority: 0.7, changeFrequency: "weekly" as const },
-      { path: "/benefits/finder", priority: 0.7, changeFrequency: "weekly" as const },
-      { path: "/community", priority: 0.6, changeFrequency: "weekly" as const },
-      { path: "/caregiver-support", priority: 0.6, changeFrequency: "weekly" as const },
-      { path: "/research-and-press", priority: 0.6, changeFrequency: "weekly" as const },
-      { path: "/team", priority: 0.7, changeFrequency: "monthly" as const },
-      { path: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
-      { path: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
-      { path: "/waiver-library", priority: 0.6, changeFrequency: "monthly" as const },
-      { path: "/waiver-library/forms", priority: 0.5, changeFrequency: "monthly" as const },
-    ];
+      // Static pages
+      const staticPages = [
+        { path: "/", priority: 1.0, changeFrequency: "daily" as const },
+        { path: "/browse", priority: 0.9, changeFrequency: "daily" as const },
+        { path: "/browse/providers", priority: 0.8, changeFrequency: "daily" as const },
+        { path: "/browse/caregivers", priority: 0.8, changeFrequency: "daily" as const },
+        { path: "/browse/families", priority: 0.8, changeFrequency: "daily" as const },
+        { path: "/for-providers", priority: 0.8, changeFrequency: "weekly" as const },
+        { path: "/benefits", priority: 0.7, changeFrequency: "weekly" as const },
+        { path: "/benefits/finder", priority: 0.7, changeFrequency: "weekly" as const },
+        { path: "/community", priority: 0.6, changeFrequency: "weekly" as const },
+        { path: "/caregiver-support", priority: 0.6, changeFrequency: "weekly" as const },
+        { path: "/research-and-press", priority: 0.6, changeFrequency: "weekly" as const },
+        { path: "/team", priority: 0.7, changeFrequency: "monthly" as const },
+        { path: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
+        { path: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
+        { path: "/waiver-library", priority: 0.6, changeFrequency: "monthly" as const },
+        { path: "/waiver-library/forms", priority: 0.5, changeFrequency: "monthly" as const },
+      ];
 
-    for (const page of staticPages) {
-      entries.push({
-        url: `${SITE_URL}${page.path}`,
-        lastModified: new Date(),
-        changeFrequency: page.changeFrequency,
-        priority: page.priority,
-      });
-    }
-
-    // Waiver library pages (static data)
-    for (const state of allStates) {
-      entries.push({
-        url: `${SITE_URL}/waiver-library/${state.id}`,
-        lastModified: new Date(),
-        changeFrequency: "monthly",
-        priority: 0.5,
-      });
-      entries.push({
-        url: `${SITE_URL}/waiver-library/forms/${state.id}`,
-        lastModified: new Date(),
-        changeFrequency: "monthly",
-        priority: 0.4,
-      });
-      for (const program of state.programs) {
+      for (const page of staticPages) {
         entries.push({
-          url: `${SITE_URL}/waiver-library/${state.id}/${program.id}`,
+          url: `${SITE_URL}${page.path}`,
           lastModified: new Date(),
-          changeFrequency: "monthly",
-          priority: 0.5,
+          changeFrequency: page.changeFrequency,
+          priority: page.priority,
         });
-        if (program.forms.length > 0) {
+      }
+
+      // Waiver library pages (static data)
+      try {
+        for (const state of allStates) {
           entries.push({
-            url: `${SITE_URL}/waiver-library/${state.id}/${program.id}/forms`,
+            url: `${SITE_URL}/waiver-library/${state.id}`,
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.5,
+          });
+          entries.push({
+            url: `${SITE_URL}/waiver-library/forms/${state.id}`,
             lastModified: new Date(),
             changeFrequency: "monthly",
             priority: 0.4,
           });
+          for (const program of state.programs ?? []) {
+            entries.push({
+              url: `${SITE_URL}/waiver-library/${state.id}/${program.id}`,
+              lastModified: new Date(),
+              changeFrequency: "monthly",
+              priority: 0.5,
+            });
+            if (program.forms?.length > 0) {
+              entries.push({
+                url: `${SITE_URL}/waiver-library/${state.id}/${program.id}/forms`,
+                lastModified: new Date(),
+                changeFrequency: "monthly",
+                priority: 0.4,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("[sitemap] waiver library error:", err);
+      }
+
+      // Content articles (caregiver-support + research-and-press)
+      if (supabase) {
+        try {
+          const { data: articles } = await supabase
+            .from("content_articles")
+            .select("slug, section, published_at")
+            .eq("status", "published")
+            .not("published_at", "is", null);
+
+          if (articles) {
+            for (const article of articles) {
+              const section = article.section || "caregiver-support";
+              entries.push({
+                url: `${SITE_URL}/${section}/${article.slug}`,
+                lastModified: article.published_at
+                  ? new Date(article.published_at)
+                  : new Date(),
+                changeFrequency: "monthly",
+                priority: 0.6,
+              });
+            }
+          }
+        } catch (err) {
+          console.error("[sitemap] articles error:", err);
         }
       }
+
+      // Power pages (category / state / city)
+      if (supabase) {
+        try {
+          for (const cat of CATEGORY_CONFIGS) {
+            entries.push({
+              url: `${SITE_URL}/${cat.slug}`,
+              lastModified: new Date(),
+              changeFrequency: "weekly",
+              priority: 0.8,
+            });
+
+            const { data: geoCombos } = await supabase
+              .from("olera-providers")
+              .select("state, city")
+              .eq("provider_category", cat.dbValue)
+              .or("deleted.is.null,deleted.eq.false")
+              .not("state", "is", null)
+              .not("city", "is", null);
+
+            if (geoCombos) {
+              const stateSet = new Set<string>();
+              const citySet = new Set<string>();
+
+              for (const row of geoCombos) {
+                const st = row.state as string;
+                const ct = row.city as string;
+                stateSet.add(st);
+                citySet.add(`${st}::${ct}`);
+              }
+
+              for (const abbr of stateSet) {
+                entries.push({
+                  url: `${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}`,
+                  lastModified: new Date(),
+                  changeFrequency: "weekly",
+                  priority: 0.75,
+                });
+              }
+
+              for (const key of citySet) {
+                const [abbr, city] = key.split("::");
+                entries.push({
+                  url: `${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}/${cityToSlug(city)}`,
+                  lastModified: new Date(),
+                  changeFrequency: "weekly",
+                  priority: 0.7,
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.error("[sitemap] power pages error:", err);
+        }
+      }
+
+      console.log(`[sitemap] shard 0: ${entries.length} entries`);
+      return entries;
     }
 
-    // Content articles (caregiver-support + research-and-press)
-    if (supabase) {
-      const { data: articles } = await supabase
-        .from("content_articles")
-        .select("slug, section, published_at")
-        .eq("status", "published")
-        .not("published_at", "is", null);
+    // ── Shard 1+: Provider pages (batched) ──
+    const providerShard = id - 1;
+    const entries: MetadataRoute.Sitemap = [];
 
-      if (articles) {
-        for (const article of articles) {
-          const section = article.section || "caregiver-support";
+    if (supabase) {
+      const offset = providerShard * PROVIDER_BATCH_SIZE;
+      const { data: providers } = await supabase
+        .from("olera-providers")
+        .select("provider_id, slug")
+        .or("deleted.is.null,deleted.eq.false")
+        .range(offset, offset + PROVIDER_BATCH_SIZE - 1);
+
+      if (providers) {
+        for (const provider of providers) {
           entries.push({
-            url: `${SITE_URL}/${section}/${article.slug}`,
-            lastModified: article.published_at
-              ? new Date(article.published_at)
-              : new Date(),
-            changeFrequency: "monthly",
-            priority: 0.6,
+            url: `${SITE_URL}/provider/${provider.slug || provider.provider_id}`,
+            lastModified: new Date(),
+            changeFrequency: "weekly",
+            priority: 0.7,
           });
         }
       }
-    }
 
-    // Power pages (category / state / city)
-    if (supabase) {
-      for (const cat of CATEGORY_CONFIGS) {
-        entries.push({
-          url: `${SITE_URL}/${cat.slug}`,
-          lastModified: new Date(),
-          changeFrequency: "weekly",
-          priority: 0.8,
-        });
+      // Include claimed business_profiles in first provider shard only
+      if (providerShard === 0) {
+        try {
+          const { data: claimedProfiles } = await supabase
+            .from("business_profiles")
+            .select("slug")
+            .in("type", ["organization", "caregiver"])
+            .eq("is_active", true);
 
-        const { data: geoCombos } = await supabase
-          .from("olera-providers")
-          .select("state, city")
-          .eq("provider_category", cat.dbValue)
-          .or("deleted.is.null,deleted.eq.false")
-          .not("state", "is", null)
-          .not("city", "is", null);
-
-        if (geoCombos) {
-          const stateSet = new Set<string>();
-          const citySet = new Set<string>();
-
-          for (const row of geoCombos) {
-            const st = row.state as string;
-            const ct = row.city as string;
-            stateSet.add(st);
-            citySet.add(`${st}::${ct}`);
+          if (claimedProfiles) {
+            const existingSlugs = new Set(
+              entries.map((e) => e.url.split("/provider/")[1])
+            );
+            for (const profile of claimedProfiles) {
+              if (!existingSlugs.has(profile.slug)) {
+                entries.push({
+                  url: `${SITE_URL}/provider/${profile.slug}`,
+                  lastModified: new Date(),
+                  changeFrequency: "weekly",
+                  priority: 0.7,
+                });
+              }
+            }
           }
-
-          for (const abbr of stateSet) {
-            entries.push({
-              url: `${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}`,
-              lastModified: new Date(),
-              changeFrequency: "weekly",
-              priority: 0.75,
-            });
-          }
-
-          for (const key of citySet) {
-            const [abbr, city] = key.split("::");
-            entries.push({
-              url: `${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}/${cityToSlug(city)}`,
-              lastModified: new Date(),
-              changeFrequency: "weekly",
-              priority: 0.7,
-            });
-          }
+        } catch (err) {
+          console.error("[sitemap] business_profiles error:", err);
         }
       }
     }
 
+    console.log(`[sitemap] shard ${id}: ${entries.length} entries`);
     return entries;
+  } catch (err) {
+    console.error("[sitemap] fatal error in shard", id, ":", err);
+    return [];
   }
-
-  // ── Shard 1+: Provider pages (batched) ──
-  const providerShard = id - 1; // shard 1 = offset 0, shard 2 = offset 10000, etc.
-  const entries: MetadataRoute.Sitemap = [];
-
-  if (supabase) {
-    const offset = providerShard * PROVIDER_BATCH_SIZE;
-    const { data: providers } = await supabase
-      .from("olera-providers")
-      .select("provider_id, slug")
-      .or("deleted.is.null,deleted.eq.false")
-      .range(offset, offset + PROVIDER_BATCH_SIZE - 1);
-
-    if (providers) {
-      for (const provider of providers) {
-        entries.push({
-          url: `${SITE_URL}/provider/${provider.slug || provider.provider_id}`,
-          lastModified: new Date(),
-          changeFrequency: "weekly",
-          priority: 0.7,
-        });
-      }
-    }
-
-    // Include claimed business_profiles in first provider shard only
-    if (providerShard === 0) {
-      const { data: claimedProfiles } = await supabase
-        .from("business_profiles")
-        .select("slug")
-        .in("type", ["organization", "caregiver"])
-        .eq("is_active", true);
-
-      if (claimedProfiles) {
-        const existingSlugs = new Set(
-          entries.map((e) => e.url.split("/provider/")[1])
-        );
-        for (const profile of claimedProfiles) {
-          if (!existingSlugs.has(profile.slug)) {
-            entries.push({
-              url: `${SITE_URL}/provider/${profile.slug}`,
-              lastModified: new Date(),
-              changeFrequency: "weekly",
-              priority: 0.7,
-            });
-          }
-        }
-      }
-    }
-  }
-
-  return entries;
 }

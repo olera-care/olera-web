@@ -116,6 +116,14 @@ const nextConfig: NextConfig = {
       { source: "/sign-out", destination: "/", permanent: true },
     ];
   },
+
+  // Rewrites for sitemap (the [category] dynamic route shadows /sitemap.xml)
+  async rewrites() {
+    return [
+      { source: "/sitemap.xml", destination: "/api/sitemap" },
+      { source: "/sitemap-index.xml", destination: "/api/sitemap" },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -120,8 +120,8 @@ const nextConfig: NextConfig = {
   // Rewrites for sitemap (the [category] dynamic route shadows /sitemap.xml)
   async rewrites() {
     return [
-      { source: "/sitemap.xml", destination: "/api/sitemap?shard=0" },
-      { source: "/sitemap-index.xml", destination: "/api/sitemap?shard=0" },
+      { source: "/sitemap.xml", destination: "/api/sitemap" },
+      { source: "/sitemap-index.xml", destination: "/api/sitemap" },
     ];
   },
 };

@@ -114,7 +114,10 @@ export default function PostAuthOnboarding({
   const [providerType, setProviderType] = useState<"organization" | "caregiver" | null>(
     initialProviderType as "organization" | "caregiver" | null
   );
-  const [displayName, setDisplayName] = useState(claimProfile?.display_name || "");
+  // Prefill name from claim profile, or from account (collected during auth)
+  const [displayName, setDisplayName] = useState(
+    claimProfile?.display_name || account?.display_name || ""
+  );
   const [city, setCity] = useState(claimProfile?.city || "");
   const [state, setState] = useState(claimProfile?.state || "");
   const [careTypes, setCareTypes] = useState<string[]>(claimProfile?.care_types || []);
@@ -135,6 +138,13 @@ export default function PostAuthOnboarding({
       setProviderType("organization");
     }
   }, [claimProfile]);
+
+  // Prefill name from account when it loads (if not already set)
+  useEffect(() => {
+    if (account?.display_name && !displayName && !claimProfile?.display_name) {
+      setDisplayName(account.display_name);
+    }
+  }, [account?.display_name, displayName, claimProfile?.display_name]);
 
   // ──────────────────────────────────────────────────────────
   // Progress computation

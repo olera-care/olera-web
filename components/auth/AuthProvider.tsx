@@ -494,6 +494,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           if (cancelled || versionRef.current !== version) return;
 
           if (data) {
+            // Check if account exists but no family profile
+            const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
+            if (!hasFamilyProfile) {
+              try {
+                await fetch("/api/auth/ensure-account", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                });
+                if (cancelled || versionRef.current !== version) return;
+                // Re-fetch to pick up the new family profile
+                const refreshed = await fetchAccountData(userId);
+                if (cancelled || versionRef.current !== version) return;
+                if (refreshed) {
+                  cacheAuthData(userId, refreshed);
+                  setState((prev) => ({
+                    ...prev,
+                    account: refreshed.account,
+                    activeProfile: refreshed.activeProfile,
+                    profiles: refreshed.profiles,
+                    membership: refreshed.membership,
+                    isLoading: false,
+                    fetchError: false,
+                  }));
+                  return;
+                }
+              } catch {
+                // Best-effort — continue with what we have
+              }
+            }
             cacheAuthData(userId, data);
             setState((prev) => ({
               ...prev,
@@ -504,11 +533,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               isLoading: false,
               fetchError: false,
             }));
-          } else if (!cached?.account) {
-            setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
           } else {
-            // Had cache, fetch returned nothing — keep cache, stop loading
-            setState((prev) => ({ ...prev, isLoading: false }));
+            // No account found — ensure one exists (creates account + family profile)
+            try {
+              await fetch("/api/auth/ensure-account", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              if (cancelled || versionRef.current !== version) return;
+              // Re-fetch now that account + family profile exist
+              const retryData = await fetchAccountData(userId);
+              if (cancelled || versionRef.current !== version) return;
+              if (retryData) {
+                cacheAuthData(userId, retryData);
+                setState((prev) => ({
+                  ...prev,
+                  account: retryData.account,
+                  activeProfile: retryData.activeProfile,
+                  profiles: retryData.profiles,
+                  membership: retryData.membership,
+                  isLoading: false,
+                  fetchError: false,
+                }));
+              } else {
+                setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+              }
+            } catch {
+              if (cancelled || versionRef.current !== version) return;
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+            }
           }
         } catch (err) {
           // Timeout or network error — don't retry, just use cache
@@ -582,7 +635,22 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         }
       })();
 
-      if (intent === "provider" || hasStartedProviderOnboarding) {
+      // If user explicitly chose "family" intent, clear any stale provider state
+      // so they don't get routed back to provider onboarding
+      if (intent === "family") {
+        try {
+          localStorage.removeItem("olera_onboarding_provider_type");
+          localStorage.removeItem("olera_provider_intent_started");
+          localStorage.removeItem("olera_provider_wizard_data");
+          localStorage.removeItem("olera_onboarding_step");
+        } catch {
+          // localStorage unavailable
+        }
+      }
+
+      // Only route to provider onboarding if that's their intent, or they were in the middle
+      // of provider onboarding (but NOT if they explicitly chose family)
+      if (intent === "provider" || (intent !== "family" && hasStartedProviderOnboarding)) {
         router.push("/provider/onboarding");
         return;
       }

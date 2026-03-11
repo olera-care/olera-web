@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const state = getStateById(stateId);
   const program = getProgramById(stateId, benefitId);
   if (!state || !program) return {};
-  const title = `${program.name} | ${state.name} | Waiver Library | Olera`;
+  const title = `${program.name} | ${state.name} | Benefits Hub | Olera`;
   const description = `${program.tagline} Learn about eligibility, benefits, and how to apply for ${program.shortName} in ${state.name}.`;
   return {
     title,
@@ -180,9 +180,9 @@ export default async function BenefitPage({ params }: Props) {
                   <div className="mt-3 pt-3 border-t border-gray-200">
                     <Link
                       href="/benefits/finder"
-                      className="inline-flex items-center text-xs font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg hover:bg-primary-100 transition-colors"
                     >
-                      <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                       Check if you qualify
@@ -194,10 +194,10 @@ export default async function BenefitPage({ params }: Props) {
                     {program.forms.length > 0 ? (
                       <Link
                         href={`/waiver-library/${state.id}/${program.id}/forms`}
-                        className="inline-flex items-center text-xs font-medium text-primary-600 hover:text-primary-500 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg hover:bg-primary-100 transition-colors"
                       >
-                        <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                         </svg>
                         Download forms ({program.forms.length})
                       </Link>
@@ -208,11 +208,11 @@ export default async function BenefitPage({ params }: Props) {
                 )}
                 {step.step === 3 && (
                   <div className="mt-3 pt-3 border-t border-gray-200">
-                    <span className="inline-flex items-center text-xs text-gray-500">
-                      <svg className="w-3.5 h-3.5 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-lg">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Typical processing: 30–90 days
+                      Typical processing: 30-90 days
                     </span>
                   </div>
                 )}
@@ -271,62 +271,49 @@ export default async function BenefitPage({ params }: Props) {
       )}
 
       {/* Helpful Resources */}
-      <section className="py-4 md:py-5 bg-vanilla-50">
+      <section className="py-4 md:py-5 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Helpful Resources</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/benefits/finder"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-gray-300 transition-all group"
+              className="bg-vanilla-50 rounded-xl border border-gray-200 p-5 hover:border-primary-300 hover:shadow-md transition-all group"
             >
-              <div className="w-9 h-9 bg-primary-100 rounded-lg flex items-center justify-center mb-3">
-                <svg className="w-4.5 h-4.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-gray-900 text-sm group-hover:text-primary-600 transition-colors">Benefits Finder</h3>
-              <p className="mt-1 text-xs text-gray-500">Check what you qualify for in 2 minutes</p>
+              <p className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">Benefits Finder</p>
+              <p className="text-sm text-gray-500 mt-1">Check what programs you qualify for</p>
             </Link>
-
-            <Link
-              href={`/waiver-library/${state.id}`}
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-gray-300 transition-all group"
-            >
-              <div className="w-9 h-9 bg-secondary-100 rounded-lg flex items-center justify-center mb-3">
-                <svg className="w-4.5 h-4.5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-900 text-sm group-hover:text-primary-600 transition-colors">All {state.name} Programs</h3>
-              <p className="mt-1 text-xs text-gray-500">Browse all {state.programs.length} programs in your state</p>
-            </Link>
-
-            <Link
-              href={`/waiver-library/forms/${state.id}`}
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-gray-300 transition-all group"
-            >
-              <div className="w-9 h-9 bg-warning-100 rounded-lg flex items-center justify-center mb-3">
-                <svg className="w-4.5 h-4.5 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-gray-900 text-sm group-hover:text-primary-600 transition-colors">Forms &amp; Documents</h3>
-              <p className="mt-1 text-xs text-gray-500">Download {state.name} application forms</p>
-            </Link>
-
+            {program.forms.length > 0 && (
+              <Link
+                href={`/waiver-library/${state.id}/${program.id}/forms`}
+                className="bg-vanilla-50 rounded-xl border border-gray-200 p-5 hover:border-primary-300 hover:shadow-md transition-all group"
+              >
+                <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mb-3">
+                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">Forms & Documents</p>
+                <p className="text-sm text-gray-500 mt-1">Download application forms for this program</p>
+              </Link>
+            )}
             <a
               href="https://www.medicaid.gov"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md hover:border-gray-300 transition-all group"
+              className="bg-vanilla-50 rounded-xl border border-gray-200 p-5 hover:border-primary-300 hover:shadow-md transition-all group"
             >
-              <div className="w-9 h-9 bg-success-100 rounded-lg flex items-center justify-center mb-3">
-                <svg className="w-4.5 h-4.5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center mb-3">
+                <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-gray-900 text-sm group-hover:text-primary-600 transition-colors">Medicaid.gov</h3>
-              <p className="mt-1 text-xs text-gray-500">Official federal Medicaid resource center</p>
+              <p className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">Medicaid.gov</p>
+              <p className="text-sm text-gray-500 mt-1">Official federal Medicaid information</p>
             </a>
           </div>
         </div>

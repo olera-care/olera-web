@@ -505,7 +505,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               fetchError: false,
             }));
           } else if (!cached?.account) {
-            setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+            // No account found — ensure one exists (creates account + family profile)
+            // This is critical for email OTP signups where init() ran before session existed
+            try {
+              await fetch("/api/auth/ensure-account", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              if (cancelled || versionRef.current !== version) return;
+              // Re-fetch now that account + family profile exist
+              const retryData = await fetchAccountData(userId);
+              if (cancelled || versionRef.current !== version) return;
+              if (retryData) {
+                cacheAuthData(userId, retryData);
+                setState((prev) => ({
+                  ...prev,
+                  account: retryData.account,
+                  activeProfile: retryData.activeProfile,
+                  profiles: retryData.profiles,
+                  membership: retryData.membership,
+                  isLoading: false,
+                  fetchError: false,
+                }));
+              } else {
+                setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+              }
+            } catch {
+              if (cancelled || versionRef.current !== version) return;
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+            }
           } else {
             // Had cache, fetch returned nothing — keep cache, stop loading
             setState((prev) => ({ ...prev, isLoading: false }));

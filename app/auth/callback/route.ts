@@ -69,15 +69,32 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (!existing) {
-        await admin.from("accounts").insert({
+        // Create account
+        const displayName =
+          data.user.user_metadata?.full_name ||
+          data.user.user_metadata?.name ||
+          data.user.email?.split("@")[0] ||
+          "";
+
+        const { data: newAccount } = await admin.from("accounts").insert({
           user_id: data.user.id,
-          display_name:
-            data.user.user_metadata?.full_name ||
-            data.user.user_metadata?.name ||
-            data.user.email?.split("@")[0] ||
-            "",
+          display_name: displayName,
           onboarding_completed: false,
-        });
+        }).select("id").single();
+
+        // Create family profile (every user gets one)
+        if (newAccount) {
+          await admin.from("business_profiles").insert({
+            account_id: newAccount.id,
+            slug: `family-${newAccount.id.slice(0, 8)}`,
+            type: "family",
+            display_name: displayName || "My Family",
+            claim_state: "claimed",
+            verification_state: "unverified",
+            source: "user_created",
+            metadata: {},
+          });
+        }
 
         // Loops: new account created
         try {
@@ -95,6 +112,34 @@ export async function GET(request: NextRequest) {
           });
         } catch {
           // Non-blocking
+        }
+      } else {
+        // Account exists — ensure family profile exists (handles edge cases)
+        const { data: existingFamily } = await admin
+          .from("business_profiles")
+          .select("id")
+          .eq("account_id", existing.id)
+          .eq("type", "family")
+          .limit(1)
+          .maybeSingle();
+
+        if (!existingFamily) {
+          const displayName =
+            data.user.user_metadata?.full_name ||
+            data.user.user_metadata?.name ||
+            data.user.email?.split("@")[0] ||
+            "My Family";
+
+          await admin.from("business_profiles").insert({
+            account_id: existing.id,
+            slug: `family-${existing.id.slice(0, 8)}`,
+            type: "family",
+            display_name: displayName,
+            claim_state: "claimed",
+            verification_state: "unverified",
+            source: "user_created",
+            metadata: {},
+          });
         }
       }
     }

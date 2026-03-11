@@ -494,6 +494,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           if (cancelled || versionRef.current !== version) return;
 
           if (data) {
+            // Check if account exists but no family profile (DB trigger created account only)
+            const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
+            if (!hasFamilyProfile) {
+              try {
+                await fetch("/api/auth/ensure-account", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                });
+                if (cancelled || versionRef.current !== version) return;
+                // Re-fetch to pick up the new family profile
+                const refreshed = await fetchAccountData(userId);
+                if (cancelled || versionRef.current !== version) return;
+                if (refreshed) {
+                  cacheAuthData(userId, refreshed);
+                  setState((prev) => ({
+                    ...prev,
+                    account: refreshed.account,
+                    activeProfile: refreshed.activeProfile,
+                    profiles: refreshed.profiles,
+                    membership: refreshed.membership,
+                    isLoading: false,
+                    fetchError: false,
+                  }));
+                  return;
+                }
+              } catch {
+                // Best-effort — continue with what we have
+              }
+            }
             cacheAuthData(userId, data);
             setState((prev) => ({
               ...prev,

@@ -98,9 +98,12 @@ export default function Navbar() {
   // Reviews count
   const reviewsCount = useUnreadReviewsCount(activeProviderId);
   // Check localStorage synchronously on client (SSR-safe with typeof check)
+  // Only show "Provider Hub" if user has progressed past step 1 (actually started filling out profile)
+  // This prevents showing it to users who just peeked at provider onboarding
   const [hasAttemptedOnboarding, setHasAttemptedOnboarding] = useState(() => {
     if (typeof window !== "undefined") {
-      return !!localStorage.getItem("olera_onboarding_provider_type");
+      // olera_provider_wizard_data is only set when user starts filling out the profile form (step 2+)
+      return !!localStorage.getItem("olera_provider_wizard_data");
     }
     return false;
   });

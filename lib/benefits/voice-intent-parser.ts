@@ -22,7 +22,7 @@ export type VoiceParseResult =
   | { type: "primaryNeeds"; value: PrimaryNeed[]; confidence: ParseConfidence }
   | { type: "incomeRange"; value: IncomeRange; confidence: ParseConfidence }
   | { type: "medicaidStatus"; value: MedicaidStatus; confidence: ParseConfidence }
-  | { type: "navigation"; value: "back" | "skip"; confidence: "exact" }
+  | { type: "navigation"; value: "back" | "skip" | "continue"; confidence: "exact" }
   | { type: "unknown"; clarification: string };
 
 // ─── Spoken digit map ───────────────────────────────────────────────────────
@@ -70,6 +70,13 @@ function parseNavigation(text: string): VoiceParseResult | null {
   }
   if (text.includes("skip") || text === "next" || text === "pass") {
     return { type: "navigation", value: "skip", confidence: "exact" };
+  }
+  // "Done" / "that's it" / "continue" / "that's all" — used by guided voice mode
+  if (
+    text === "done" || text === "i'm done" || text.includes("that's it") ||
+    text.includes("that's all") || text === "continue" || text === "move on"
+  ) {
+    return { type: "navigation", value: "continue", confidence: "exact" };
   }
   return null;
 }
@@ -543,7 +550,9 @@ export function getConfirmationMessage(result: VoiceParseResult): string | null 
       }
       break;
     case "navigation":
-      return result.value === "back" ? "Going back." : "Skipping ahead.";
+      if (result.value === "back") return "Going back.";
+      if (result.value === "continue") return "Moving on.";
+      return "Skipping ahead.";
     case "unknown":
       return null;
   }

@@ -12,6 +12,8 @@ import { createEmptyIntakeAnswers } from "@/lib/types/benefits";
 
 export type PageState = "intake" | "loading" | "results" | "error";
 
+export type VoiceMode = "off" | "guided";
+
 export interface BenefitsState {
   answers: BenefitsIntakeAnswers;
   step: IntakeStep;
@@ -26,6 +28,8 @@ export interface BenefitsState {
   restoredFromDb: boolean;
   /** Whether to auto-publish care post after benefits search */
   publishCarePost: boolean;
+  /** Voice mode: "off" = manual form, "guided" = conversational voice flow */
+  voiceMode: VoiceMode;
 }
 
 export interface BenefitsActions {
@@ -35,6 +39,7 @@ export interface BenefitsActions {
   submit: () => Promise<void>;
   reset: () => void;
   setPublishCarePost: (value: boolean) => void;
+  setVoiceMode: (mode: VoiceMode) => void;
   /** Hydrate state from external data (DB or session cache). */
   restoreResults: (
     result: BenefitsSearchResult,
@@ -53,6 +58,7 @@ interface StoredDraft {
   locationDisplay: string;
   step: IntakeStep;
   publishCarePost?: boolean;
+  voiceMode?: VoiceMode;
   savedAt: number;
 }
 
@@ -75,10 +81,10 @@ function loadDraft(): StoredDraft | null {
   }
 }
 
-function saveDraft(answers: BenefitsIntakeAnswers, locationDisplay: string, step: IntakeStep, publishCarePost: boolean) {
+function saveDraft(answers: BenefitsIntakeAnswers, locationDisplay: string, step: IntakeStep, publishCarePost: boolean, voiceMode: VoiceMode) {
   if (typeof window === "undefined") return;
   try {
-    const draft: StoredDraft = { answers, locationDisplay, step, publishCarePost, savedAt: Date.now() };
+    const draft: StoredDraft = { answers, locationDisplay, step, publishCarePost, voiceMode, savedAt: Date.now() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
   } catch {
     // Storage full or unavailable — silently ignore
@@ -109,6 +115,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
   const [previewCount, setPreviewCount] = useState<number | null>(null);
   const [restoredFromDb, setRestoredFromDb] = useState(false);
   const [publishCarePost, setPublishCarePost] = useState(true); // Default checked to encourage profile sharing
+  const [voiceMode, setVoiceMode] = useState<VoiceMode>("off");
   const initialized = useRef(false);
   const previewAbort = useRef<AbortController | null>(null);
 
@@ -125,6 +132,9 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
       if (draft.publishCarePost !== undefined) {
         setPublishCarePost(draft.publishCarePost);
       }
+      if (draft.voiceMode) {
+        setVoiceMode(draft.voiceMode);
+      }
     }
   }, []);
 
@@ -132,9 +142,9 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
   useEffect(() => {
     if (!initialized.current) return;
     if (pageState === "intake") {
-      saveDraft(answers, locationDisplay, step, publishCarePost);
+      saveDraft(answers, locationDisplay, step, publishCarePost, voiceMode);
     }
-  }, [answers, locationDisplay, step, pageState, publishCarePost]);
+  }, [answers, locationDisplay, step, pageState, publishCarePost, voiceMode]);
 
   // ── Live eligibility preview (debounced) ─────────────────────────────
   useEffect(() => {
@@ -224,6 +234,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     setPreviewCount(null);
     setRestoredFromDb(false);
     setPublishCarePost(false);
+    setVoiceMode("off");
     setPageState("intake");
     clearDraft();
   }, []);
@@ -256,6 +267,7 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     previewCount,
     restoredFromDb,
     publishCarePost,
+    voiceMode,
     // Actions
     updateAnswers,
     setLocationDisplay,
@@ -264,5 +276,6 @@ export function useBenefitsState(): BenefitsState & BenefitsActions {
     reset,
     restoreResults,
     setPublishCarePost,
+    setVoiceMode,
   };
 }

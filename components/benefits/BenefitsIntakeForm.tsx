@@ -7,6 +7,7 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { FamilyMetadata } from "@/lib/types";
+import type { VoiceMode } from "@/hooks/use-benefits-state";
 import {
   INTAKE_STEPS,
   TOTAL_INTAKE_STEPS,
@@ -23,6 +24,8 @@ import type {
   IntakeStep,
 } from "@/lib/types/benefits";
 import VoiceMicButton from "./VoiceMicButton";
+import VoiceModeSelection from "./VoiceModeSelection";
+import GuidedVoicePrompt, { GUIDED_CONFIRMATIONS } from "./GuidedVoicePrompt";
 import type { VoiceParseResult } from "@/lib/benefits/voice-intent-parser";
 import { zipToState } from "@/lib/benefits/zip-lookup";
 import { preloadFullCityData } from "@/lib/us-city-search";
@@ -47,12 +50,14 @@ export default function BenefitsIntakeForm() {
     answers,
     step,
     locationDisplay,
+    voiceMode,
     updateAnswers,
     setLocationDisplay,
     goToStep,
     submit,
     publishCarePost,
     setPublishCarePost,
+    setVoiceMode,
   } = useCareProfile();
   const { user, activeProfile, openAuth } = useAuth();
 
@@ -66,9 +71,16 @@ export default function BenefitsIntakeForm() {
   );
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [isGeolocating, setIsGeolocating] = useState(false);
+  /** Whether the user has chosen a mode yet (false = show mode selection) */
+  const [modeChosen, setModeChosen] = useState(false);
+  /** Guided voice: confirmation text to display */
+  const [guidedConfirmation, setGuidedConfirmation] = useState<string | null>(null);
+  /** Guided voice: whether mic should auto-start */
+  const [guidedAutoStart, setGuidedAutoStart] = useState(false);
 
   const locationInputRef = useRef<HTMLInputElement>(null);
   const locationDropdownRef = useRef<HTMLDivElement>(null);
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
 
@@ -78,6 +90,20 @@ export default function BenefitsIntakeForm() {
   }, [step]);
 
   const stepInfo = INTAKE_STEPS[step];
+
+  // If voice mode was restored from draft, mark mode as chosen
+  useEffect(() => {
+    if (voiceMode === "guided" && !modeChosen) {
+      setModeChosen(true);
+    }
+  }, [voiceMode, modeChosen]);
+
+  // Also mark mode as chosen if user has progressed past step 0
+  useEffect(() => {
+    if (step > 0 && !modeChosen) {
+      setModeChosen(true);
+    }
+  }, [step, modeChosen]);
 
   // ─── Sync local state from context (e.g. sidebar navigation) ────────────
   // When step changes externally (sidebar click), re-derive local inputs
@@ -117,6 +143,13 @@ export default function BenefitsIntakeForm() {
 
   // Close dropdown when clicking outside (blur-before-close prevents scroll-to-footer)
   useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
+
+  // Cleanup auto-advance timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+    };
+  }, []);
 
   // ─── Location helpers ───────────────────────────────────────────────────
 
@@ -268,6 +301,24 @@ export default function BenefitsIntakeForm() {
     });
   }
 
+  // ─── Mode selection handler ─────────────────────────────────────────────
+
+  function handleModeSelect(mode: VoiceMode) {
+    setVoiceMode(mode);
+    setModeChosen(true);
+    if (mode === "guided") {
+      setGuidedAutoStart(true);
+    }
+  }
+
+  function exitGuidedMode() {
+    setVoiceMode("off");
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+  }
+
   // ─── Voice input handler ─────────────────────────────────────────────────
 
   const handleVoiceResult = useCallback(
@@ -324,6 +375,7 @@ export default function BenefitsIntakeForm() {
         case "navigation":
           if (result.value === "back") handleBack();
           else if (result.value === "skip" && step < 5) goToStep((step + 1) as IntakeStep);
+          else if (result.value === "continue" && step < 5) goToStep((step + 1) as IntakeStep);
           break;
         case "unknown":
           // Handled by VoiceMicButton (shows clarification)
@@ -332,6 +384,346 @@ export default function BenefitsIntakeForm() {
     },
     [answers.primaryNeeds, step, updateAnswers, goToStep, setLocationDisplay]
   );
+
+  // ─── Guided voice: result handler with auto-advance ──────────────────────
+
+  const handleGuidedVoiceResult = useCallback(
+    (result: VoiceParseResult) => {
+      // Build guided confirmation text
+      let confirmDetail = "";
+      switch (result.type) {
+        case "zipCode":
+          confirmDetail = result.value;
+          break;
+        case "location":
+          confirmDetail = result.city
+            ? `${result.city}, ${result.stateCode}`
+            : result.stateCode;
+          break;
+        case "age":
+          confirmDetail = String(result.value);
+          break;
+        case "carePreference":
+          switch (result.value) {
+            case "stayHome": confirmDetail = "Staying at home"; break;
+            case "exploringFacility": confirmDetail = "Exploring facilities"; break;
+            case "unsure": confirmDetail = "Not sure yet"; break;
+          }
+          break;
+        case "primaryNeeds": {
+          const names = result.value.map((n) =>
+            n.replace(/([A-Z])/g, " $1").toLowerCase().trim()
+          );
+          confirmDetail = names.join(" and ");
+          break;
+        }
+        case "incomeRange":
+          confirmDetail = "";
+          break;
+        case "medicaidStatus":
+          confirmDetail = "";
+          break;
+      }
+
+      // Show guided confirmation
+      const confirmFn = GUIDED_CONFIRMATIONS[step];
+      if (confirmFn) {
+        setGuidedConfirmation(confirmFn(confirmDetail));
+      }
+
+      // Apply the result to state (same logic as manual)
+      handleVoiceResult(result);
+
+      // For needs step, don't auto-advance (user says "done" to advance)
+      // For navigation "continue", the handleVoiceResult already advances
+      if (result.type === "primaryNeeds" || result.type === "navigation") {
+        return;
+      }
+
+      // Auto-advance after 1.5s (except final step)
+      if (step < 5 && result.type !== "unknown") {
+        if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = setTimeout(() => {
+          setGuidedConfirmation(null);
+          setGuidedAutoStart(true);
+          // The step was already advanced by handleVoiceResult
+          // Just need to trigger auto-start for the next step
+        }, 1500);
+      }
+
+      // Final step — auto-submit after confirmation
+      if (step === 5 && result.type === "medicaidStatus") {
+        if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = setTimeout(() => {
+          handleNext();
+        }, 2000);
+      }
+    },
+    [step, handleVoiceResult, handleNext]
+  );
+
+  // Reset guided state when step changes
+  useEffect(() => {
+    setGuidedConfirmation(null);
+  }, [step]);
+
+  // ─── Mode selection screen ──────────────────────────────────────────────
+
+  if (!modeChosen && step === 0) {
+    return <VoiceModeSelection onSelect={handleModeSelect} />;
+  }
+
+  // ─── Guided voice mode layout ──────────────────────────────────────────
+
+  if (voiceMode === "guided") {
+    return (
+      <div className="w-full">
+        {/* Guided prompt */}
+        <GuidedVoicePrompt step={step} confirmation={guidedConfirmation} />
+
+        {/* Large centered mic */}
+        <div className="flex justify-center my-6">
+          <VoiceMicButton
+            step={step}
+            onResult={handleGuidedVoiceResult}
+            guided
+            autoStart={guidedAutoStart}
+          />
+        </div>
+
+        {/* Form inputs below (read-only feel but still tappable) */}
+        <div className="border-t border-gray-100 pt-5 mt-2">
+          <p className="text-xs text-gray-400 mb-3">Or tap to select</p>
+
+          {/* Step 0: Location */}
+          {step === 0 && (
+            <div className="relative" ref={locationDropdownRef}>
+              <div
+                className={`flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
+                  showLocationDropdown
+                    ? "border-gray-400 ring-2 ring-gray-100"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => {
+                  setShowLocationDropdown(true);
+                  locationInputRef.current?.focus();
+                }}
+              >
+                <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <input
+                  ref={locationInputRef}
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => {
+                    setLocationInput(e.target.value);
+                    setSelectedStateCode(null);
+                    setShowLocationDropdown(true);
+                  }}
+                  onFocus={() => {
+                    setShowLocationDropdown(true);
+                    preloadCities();
+                  }}
+                  placeholder="City or ZIP code"
+                  className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
+                />
+              </div>
+
+              {showLocationDropdown && (
+                <div className="absolute left-0 top-[calc(100%+8px)] w-full bg-white rounded-xl shadow-xl border border-gray-200 py-3 z-50 max-h-[340px] overflow-y-auto">
+                  <div className="px-3 pb-3">
+                    <button
+                      type="button"
+                      onClick={detectLocation}
+                      disabled={isGeolocating}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 min-h-[44px] bg-primary-50 hover:bg-primary-100 border border-primary-200 rounded-lg text-primary-700 font-medium transition-colors disabled:opacity-60"
+                    >
+                      {isGeolocating ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
+                        </svg>
+                      )}
+                      <span>{isGeolocating ? "Detecting location..." : "Use my current location"}</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-3 px-4 py-1">
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <span className="text-xs text-gray-400 font-medium">or search</span>
+                    <div className="flex-1 h-px bg-gray-200" />
+                  </div>
+                  {!locationInput.trim() && cityResults.length > 0 && (
+                    <div className="px-4 pt-2 pb-1">
+                      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Popular cities</span>
+                    </div>
+                  )}
+                  {cityResults.length > 0 ? (
+                    cityResults.map((loc) => (
+                      <button
+                        key={loc.full}
+                        type="button"
+                        onClick={() => selectLocation(loc.full, loc.state)}
+                        className={`flex items-center gap-3 w-full px-4 py-2.5 min-h-[44px] text-left hover:bg-gray-50 transition-colors ${
+                          locationInput === loc.full ? "bg-primary-50 text-primary-700" : "text-gray-900"
+                        }`}
+                      >
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="font-medium">{loc.full}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-gray-500 text-center">No locations found</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 1: Age */}
+          {step === 1 && (
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={3}
+              value={ageInput}
+              onChange={(e) => setAgeInput(e.target.value.replace(/\D/g, ""))}
+              placeholder="e.g. 72"
+              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-lg text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-colors"
+            />
+          )}
+
+          {/* Step 2: Care preference */}
+          {step === 2 && (
+            <div className="flex flex-col gap-2.5">
+              {(Object.entries(CARE_PREFERENCES) as [CarePreference, { displayTitle: string; icon: string }][]).map(
+                ([key, val]) => (
+                  <Pill
+                    key={key}
+                    label={`${val.icon} ${val.displayTitle}`}
+                    selected={answers.carePreference === key}
+                    onClick={() => updateAnswers({ carePreference: key })}
+                  />
+                )
+              )}
+            </div>
+          )}
+
+          {/* Step 3: Primary needs */}
+          {step === 3 && (
+            <>
+              <p className="text-xs text-gray-400 mb-3">Select all that apply</p>
+              <div className="flex flex-wrap gap-2.5">
+                {(Object.entries(PRIMARY_NEEDS) as [PrimaryNeed, { displayTitle: string; icon: string }][]).map(
+                  ([key, val]) => (
+                    <Pill
+                      key={key}
+                      label={`${val.icon} ${val.displayTitle}`}
+                      selected={answers.primaryNeeds.includes(key)}
+                      onClick={() => toggleNeed(key)}
+                    />
+                  )
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Step 4: Income range */}
+          {step === 4 && (
+            <div className="flex flex-col gap-2.5">
+              {(Object.entries(INCOME_RANGES) as [IncomeRange, { displayTitle: string }][]).map(
+                ([key, val]) => (
+                  <Pill
+                    key={key}
+                    label={val.displayTitle}
+                    selected={answers.incomeRange === key}
+                    onClick={() => updateAnswers({ incomeRange: key })}
+                  />
+                )
+              )}
+            </div>
+          )}
+
+          {/* Step 5: Medicaid */}
+          {step === 5 && (
+            <>
+              <div className="flex flex-col gap-2.5">
+                {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
+                  ([key, val]) => (
+                    <Pill
+                      key={key}
+                      label={val.displayTitle}
+                      selected={answers.medicaidStatus === key}
+                      onClick={() => updateAnswers({ medicaidStatus: key })}
+                    />
+                  )
+                )}
+              </div>
+
+              <label className="flex items-start gap-3 mt-4 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={publishCarePost}
+                  onChange={(e) => setPublishCarePost(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 shrink-0 accent-gray-900"
+                />
+                <div className="min-w-0">
+                  <span className="text-sm font-medium text-gray-700 leading-tight block">
+                    Let providers find me
+                  </span>
+                  <span className="text-xs text-gray-400 leading-relaxed block mt-0.5">
+                    Share your care profile so providers in your area can reach out.
+                    {!user && " (requires sign-in)"}
+                  </span>
+                </div>
+              </label>
+            </>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between mt-8">
+          <div className="flex items-center gap-4">
+            {step > 0 && (
+              <button
+                onClick={handleBack}
+                className="text-sm text-gray-400 cursor-pointer bg-transparent border-none hover:text-gray-600 transition-colors font-medium min-h-[44px]"
+              >
+                Back
+              </button>
+            )}
+            <button
+              onClick={exitGuidedMode}
+              className="text-sm text-gray-400 cursor-pointer bg-transparent border-none hover:text-gray-600 transition-colors min-h-[44px]"
+            >
+              Switch to form
+            </button>
+          </div>
+          <button
+            onClick={handleNext}
+            disabled={!canProceed()}
+            className={`px-10 py-3 border-none rounded-full text-sm font-medium cursor-pointer transition-all duration-200 min-h-[44px] ${
+              canProceed()
+                ? "bg-gray-900 text-white hover:bg-gray-800"
+                : "bg-gray-100 text-gray-300 cursor-default"
+            }`}
+          >
+            {step === 5 ? "Find my benefits" : "Continue"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Manual form layout (original) ─────────────────────────────────────
 
   return (
     <div className="w-full">

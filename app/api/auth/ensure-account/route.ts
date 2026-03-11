@@ -108,6 +108,28 @@ export async function POST(request: Request) {
         if (profileError) {
           console.error("Error creating family profile (existing account):", profileError.message, profileError.code);
         }
+
+        // Send welcome email for fresh signups where DB trigger created the account
+        // No family profile = first time seeing this account = fresh signup
+        try {
+          const fullName = (existingAccount as Account).display_name
+            || user.user_metadata?.full_name
+            || user.user_metadata?.name
+            || "";
+          const nameParts = fullName.trim().split(/\s+/);
+          await sendLoopsEvent({
+            email: user.email || "",
+            eventName: "user_signup",
+            audience: "seeker",
+            eventProperties: { source: "web_v2" },
+            contactProperties: {
+              firstName: nameParts[0] || "",
+              lastName: nameParts.slice(1).join(" ") || "",
+            },
+          });
+        } catch {
+          // Non-blocking
+        }
       }
 
       // If requested, mark onboarding as complete (used when skipping popup for users with deferred actions or existing profiles)

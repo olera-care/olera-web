@@ -49,11 +49,24 @@ export async function POST(request: Request) {
 
     // Parse optional body
     let displayName = "";
+    let markOnboardingComplete = false;
     try {
       const body = await request.json();
       displayName = body.display_name || "";
+      markOnboardingComplete = body.mark_onboarding_complete === true;
     } catch {
       // No body or invalid JSON - that's fine
+    }
+
+    // Use auth metadata for display name if available
+    // Google OAuth: full_name or name
+    // Email signup: display_name
+    const authName = user.user_metadata?.display_name
+      || user.user_metadata?.full_name
+      || user.user_metadata?.name
+      || "";
+    if (!displayName && authName) {
+      displayName = authName;
     }
 
     // Try admin client first (bypasses RLS), fall back to authenticated client
@@ -90,6 +103,15 @@ export async function POST(request: Request) {
         });
       }
 
+      // If requested, mark onboarding as complete (used when skipping popup for users with deferred actions or existing profiles)
+      if (markOnboardingComplete && !(existingAccount as Account).onboarding_completed) {
+        await dbClient
+          .from("accounts")
+          .update({ onboarding_completed: true })
+          .eq("id", acctId);
+        return NextResponse.json({ account: { ...existingAccount, onboarding_completed: true } as Account });
+      }
+
       return NextResponse.json({ account: existingAccount as Account });
     }
 
@@ -106,7 +128,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         display_name: displayName || user.email?.split("@")[0] || "",
-        onboarding_completed: false,
+        onboarding_completed: markOnboardingComplete,
       })
       .select()
       .single();

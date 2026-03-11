@@ -195,6 +195,21 @@ export default function PostAuthOnboarding({
     setStep("profile-info");
   };
 
+  // Handle "No thanks, just browsing" dismissal
+  // Mark onboarding complete so popup doesn't show again
+  const handleDismiss = async () => {
+    try {
+      await fetch("/api/auth/ensure-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mark_onboarding_complete: true }),
+      });
+    } catch {
+      // Best effort — still close the modal
+    }
+    onComplete();
+  };
+
   // ──────────────────────────────────────────────────────────
   // Profile Info Validation
   // ──────────────────────────────────────────────────────────
@@ -368,36 +383,37 @@ export default function PostAuthOnboarding({
 
       {/* ─── Intent Selection ─── */}
       {step === "intent" && (
-        <div key="intent" className="animate-step-enter space-y-4 sm:space-y-5">
+        <div key="intent" className="animate-step-enter">
           {/* Different content for new users vs adding a profile */}
           {isAddingProfile ? (
             <>
               {/* Adding a profile - user already has family account */}
-              <div className="text-center mb-1 sm:mb-2">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Add a profile</h2>
-                <p className="text-sm sm:text-base text-gray-500 mt-1.5 sm:mt-2">
-                  Would you like to list your care services?
-                </p>
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-secondary-100 to-secondary-200 flex items-center justify-center shadow-sm">
+                  <svg className="w-7 h-7 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                </div>
+                <h2 className="font-display text-2xl sm:text-[28px] text-gray-900 tracking-tight">
+                  Add a provider profile?
+                </h2>
               </div>
 
               <button
                 type="button"
                 onClick={() => handleIntentSelect("provider")}
-                className="w-full text-left p-4 sm:p-5 rounded-2xl border-2 border-secondary-200 bg-secondary-50/40 hover:border-secondary-400 hover:bg-secondary-50/60 hover:shadow-md active:scale-[0.98] transition-all duration-200"
+                className="group w-full p-5 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100/80 border border-secondary-200/60 hover:border-secondary-300 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
               >
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-secondary-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 sm:w-7 sm:h-7 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                      <svg className="w-6 h-6 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                    </div>
+                    <span className="text-lg font-semibold text-gray-900">Yes, list my business</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">Yes, add my business</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
-                      List your services and connect with families
-                    </p>
-                  </div>
-                  <svg className="w-5 h-5 text-secondary-400 flex-shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-secondary-400 group-hover:text-secondary-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -405,60 +421,77 @@ export default function PostAuthOnboarding({
 
               <button
                 type="button"
-                onClick={onComplete}
-                className="w-full text-center py-3 text-sm sm:text-base text-gray-500 hover:text-gray-700 transition-colors"
+                onClick={handleDismiss}
+                className="w-full text-center py-4 mt-3 text-[15px] text-gray-400 hover:text-gray-600 transition-colors"
               >
-                No thanks, just browsing
+                Not right now
               </button>
             </>
           ) : (
             <>
-              {/* New user onboarding - original flow */}
-              <div className="text-center mb-1 sm:mb-2">
-                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">What brings you to Olera?</h2>
-                <p className="text-sm sm:text-base text-gray-500 mt-1.5 sm:mt-2">
-                  Tell us a bit about yourself so we can personalize your experience.
-                </p>
+              {/* New user onboarding - welcoming flow */}
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center shadow-sm">
+                  <svg className="w-7 h-7 text-primary-600" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 3C7.5 3 4 6 4 10c0 3 2 5 4 6v3l4-2 4 2v-3c2-1 4-3 4-6 0-4-3.5-7-8-7z" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="9" cy="10" r="1" fill="currentColor"/>
+                    <circle cx="15" cy="10" r="1" fill="currentColor"/>
+                    <path d="M9 13s1.5 2 3 2 3-2 3-2" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <h2 className="font-display text-2xl sm:text-[28px] text-gray-900 tracking-tight">
+                  Welcome to Olera
+                </h2>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => handleIntentSelect("family")}
+                  className="group w-full p-5 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/80 border border-primary-200/60 hover:border-primary-300 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </div>
+                      <span className="text-lg font-semibold text-gray-900">Find care</span>
+                    </div>
+                    <svg className="w-5 h-5 text-primary-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleIntentSelect("provider")}
+                  className="group w-full p-5 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100/80 border border-secondary-200/60 hover:border-secondary-300 hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                      <span className="text-lg font-semibold text-gray-900">List my business</span>
+                    </div>
+                    <svg className="w-5 h-5 text-secondary-400 group-hover:text-secondary-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
               </div>
 
               <button
                 type="button"
-                onClick={() => handleIntentSelect("family")}
-                className="w-full text-left p-4 sm:p-5 rounded-2xl border-2 border-gray-100 shadow-xs hover:border-primary-300 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
+                onClick={handleDismiss}
+                className="w-full text-center py-4 mt-4 text-[15px] text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 sm:w-7 sm:h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">I&apos;m looking for care</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
-                      Find care providers for yourself or a loved one
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleIntentSelect("provider")}
-                className="w-full text-left p-4 sm:p-5 rounded-2xl border-2 border-gray-100 shadow-xs hover:border-secondary-300 hover:shadow-sm hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200"
-              >
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-secondary-50 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 sm:w-7 sm:h-7 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">I&apos;m a care provider</h3>
-                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
-                      List your services and connect with families
-                    </p>
-                  </div>
-                </div>
+                I&apos;ll explore first
               </button>
             </>
           )}

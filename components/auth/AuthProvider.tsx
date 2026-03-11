@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
-import { setDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { setDeferredAction, clearDeferredAction, getDeferredAction } from "@/lib/deferred-action";
 
 export type AuthModalView = "sign-in" | "sign-up";
 
@@ -570,6 +570,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // sessionStorage unavailable
       }
 
+      // Check for deferred actions (inquiry, save, benefit finder, etc.)
+      // If user was mid-flow, skip popup — the action will enrich their profile
+      const deferredAction = getDeferredAction();
+      if (deferredAction) {
+        // Silently mark onboarding complete — deferred action flow handles profile data
+        fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mark_onboarding_complete: true }),
+        }).catch(() => {});
+        return;
+      }
+
+      // Check if user already has a provider profile
+      // This shouldn't happen often, but fixes data inconsistency if it does
+      const hasProviderProfile = state.profiles.some(
+        (p) => p.type === "organization" || p.type === "caregiver"
+      );
+      if (hasProviderProfile) {
+        // Mark onboarding complete and route to provider dashboard
+        fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mark_onboarding_complete: true }),
+        }).catch(() => {});
+        router.push("/provider");
+        return;
+      }
+
       // If the user was in the middle of provider onboarding (intent saved from auth,
       // or they already completed Step 1 and saved their provider type), redirect them
       // to the wizard instead of re-opening the modal.
@@ -587,7 +616,19 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Family or unknown intent — open the post-auth onboarding modal
+      // Check if user has a family intent from a CTA (e.g., benefits finder)
+      // Skip popup — they already indicated they're a family user
+      if (intent === "family") {
+        fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mark_onboarding_complete: true }),
+        }).catch(() => {});
+        return;
+      }
+
+      // Blank-slate signup with no context — show onboarding popup once
+      // to ask family vs provider intent
       setUnifiedAuthOptions({
         intent,
         providerType,

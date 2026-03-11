@@ -93,14 +93,21 @@ export async function POST(request: Request) {
 
       if (!existingFamilyProfile) {
         const name = (existingAccount as Account).display_name || user.email?.split("@")[0] || "My Family";
-        await dbClient.from("business_profiles").insert({
+        const { error: profileError } = await dbClient.from("business_profiles").insert({
           account_id: acctId,
           slug: `family-${acctId.slice(0, 8)}`,
           type: "family",
           display_name: name,
+          care_types: [],
           claim_state: "claimed",
-          visibility: false,
+          verification_state: "unverified",
+          source: "user_created",
+          is_active: true,
+          metadata: {},
         });
+        if (profileError) {
+          console.error("Error creating family profile (existing account):", profileError.message, profileError.code);
+        }
       }
 
       // If requested, mark onboarding as complete (used when skipping popup for users with deferred actions or existing profiles)
@@ -194,14 +201,21 @@ export async function POST(request: Request) {
 
     if (!existingFamily) {
       const familyDisplayName = displayName || user.email?.split("@")[0] || "My Family";
-      await dbClient.from("business_profiles").insert({
+      const { error: profileError } = await dbClient.from("business_profiles").insert({
         account_id: accountId,
         slug: `family-${accountId.slice(0, 8)}`,
         type: "family",
         display_name: familyDisplayName,
+        care_types: [],
         claim_state: "claimed",
-        visibility: false,
+        verification_state: "unverified",
+        source: "user_created",
+        is_active: true,
+        metadata: {},
       });
+      if (profileError) {
+        console.error("Error creating family profile (new account):", profileError.message, profileError.code);
+      }
     }
 
     return NextResponse.json({ account: newAccount as Account });

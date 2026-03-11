@@ -130,8 +130,12 @@ export async function POST(request: Request) {
         slug: `family-${accountId.slice(0, 8)}`,
         type: "family",
         display_name: user.email?.split("@")[0] || "My Family",
+        care_types: [],
         claim_state: "claimed",
-        visibility: false,
+        verification_state: "unverified",
+        source: "user_created",
+        is_active: true,
+        metadata: {},
       });
     }
 

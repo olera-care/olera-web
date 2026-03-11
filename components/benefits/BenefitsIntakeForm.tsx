@@ -346,6 +346,7 @@ export default function BenefitsIntakeForm() {
 
       {/* Step 0: Smart Location Input */}
       {step === 0 && (
+        <>
         <div className="relative mb-4" ref={locationDropdownRef}>
             <div
               className={`flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
@@ -394,7 +395,6 @@ export default function BenefitsIntakeForm() {
                 className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
               />
             </div>
-            <VoiceMicButton step={0} onResult={handleVoiceResult} className="mt-2" />
 
           {/* Location Dropdown */}
           {showLocationDropdown && (
@@ -480,30 +480,29 @@ export default function BenefitsIntakeForm() {
             </div>
           )}
         </div>
+        <VoiceMicButton step={0} onResult={handleVoiceResult} className="mt-3" />
+        </>
       )}
 
       {/* Step 1: Age */}
       {step === 1 && (
         <div className="mb-4">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={3}
-              value={ageInput}
-              onChange={(e) => setAgeInput(e.target.value.replace(/\D/g, ""))}
-              placeholder="e.g. 72"
-              className="flex-1 px-4 py-3.5 rounded-xl border border-gray-200 text-lg text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-colors"
-            />
-            <VoiceMicButton step={1} onResult={handleVoiceResult} />
-          </div>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={3}
+            value={ageInput}
+            onChange={(e) => setAgeInput(e.target.value.replace(/\D/g, ""))}
+            placeholder="e.g. 72"
+            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-lg text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-100 transition-colors"
+          />
+          <VoiceMicButton step={1} onResult={handleVoiceResult} className="mt-3" />
         </div>
       )}
 
       {/* Step 2: Care preference */}
       {step === 2 && (
         <div className="mb-4">
-          <VoiceMicButton step={2} onResult={handleVoiceResult} className="mb-3" />
           <div className="flex flex-col gap-2.5">
             {(Object.entries(CARE_PREFERENCES) as [CarePreference, { displayTitle: string; icon: string }][]).map(
               ([key, val]) => (
@@ -516,6 +515,7 @@ export default function BenefitsIntakeForm() {
               )
             )}
           </div>
+          <VoiceMicButton step={2} onResult={handleVoiceResult} className="mt-3" />
         </div>
       )}
 
@@ -523,7 +523,6 @@ export default function BenefitsIntakeForm() {
       {step === 3 && (
         <>
           <p className="text-xs text-gray-400 mb-3">Select all that apply</p>
-          <VoiceMicButton step={3} onResult={handleVoiceResult} className="mb-3" />
           <div className="flex flex-wrap gap-2.5 mb-4">
             {(Object.entries(PRIMARY_NEEDS) as [PrimaryNeed, { displayTitle: string; icon: string }][]).map(
               ([key, val]) => (
@@ -536,13 +535,13 @@ export default function BenefitsIntakeForm() {
               )
             )}
           </div>
+          <VoiceMicButton step={3} onResult={handleVoiceResult} className="mt-1" />
         </>
       )}
 
       {/* Step 4: Income range */}
       {step === 4 && (
         <div className="mb-4">
-          <VoiceMicButton step={4} onResult={handleVoiceResult} className="mb-3" />
           <div className="flex flex-col gap-2.5">
             {(Object.entries(INCOME_RANGES) as [IncomeRange, { displayTitle: string }][]).map(
               ([key, val]) => (
@@ -555,13 +554,13 @@ export default function BenefitsIntakeForm() {
               )
             )}
           </div>
+          <VoiceMicButton step={4} onResult={handleVoiceResult} className="mt-3" />
         </div>
       )}
 
       {/* Step 5: Medicaid status */}
       {step === 5 && (
         <>
-        <VoiceMicButton step={5} onResult={handleVoiceResult} className="mb-3" />
         <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
             ([key, val]) => (
@@ -574,6 +573,7 @@ export default function BenefitsIntakeForm() {
             )
           )}
         </div>
+        <VoiceMicButton step={5} onResult={handleVoiceResult} className="mt-3" />
 
         {/* Let providers find me — shown to everyone, auth required at submit */}
         <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">

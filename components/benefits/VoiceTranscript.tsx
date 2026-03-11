@@ -40,25 +40,25 @@ export default function VoiceTranscript({
 
   return (
     <div
-      className="mt-3 min-h-[2rem]"
+      className="mt-2 min-h-[1.5rem] text-center"
       aria-live="polite"
       aria-atomic="true"
     >
       {/* Listening transcript */}
       {isListening && transcript && (
-        <p className="text-sm text-gray-500 italic animate-pulse">
+        <p className="text-sm text-gray-500 italic">
           &ldquo;{transcript}&rdquo;
         </p>
       )}
 
       {/* Listening but no speech yet */}
       {isListening && !transcript && (
-        <p className="text-sm text-gray-400 italic">Listening...</p>
+        <p className="text-sm text-gray-400">Listening...</p>
       )}
 
       {/* Confirmation (successful parse) */}
       {!isListening && confirmation && visible && (
-        <p className="text-sm text-green-700 font-medium">
+        <p className="text-sm text-primary-700 font-medium">
           {confirmation}
         </p>
       )}
@@ -72,7 +72,7 @@ export default function VoiceTranscript({
 
       {/* Clarification (failed parse) */}
       {!isListening && clarification && (
-        <div className="flex items-start gap-2">
+        <div className="flex items-center justify-center gap-2">
           <p className="text-sm text-gray-500">
             &ldquo;{transcript}&rdquo;
           </p>
@@ -82,7 +82,7 @@ export default function VoiceTranscript({
         </div>
       )}
 
-      {/* Error — only show if no parsed result (confirmation or clarification) */}
+      {/* Error — only show if no parsed result */}
       {error && !confirmation && !clarification && (
         <p className="text-sm text-red-600">{error}</p>
       )}

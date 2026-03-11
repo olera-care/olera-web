@@ -109,87 +109,69 @@ export default function VoiceMicButton({
   const isDisabled = permissionState === "denied";
 
   return (
-    <div className={className}>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={handleClick}
-          disabled={isDisabled}
-          aria-label={isListening ? "Stop listening" : "Speak your answer"}
-          aria-pressed={isListening}
-          className={`
-            relative flex items-center justify-center w-10 h-10 rounded-full
-            transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-            ${isListening
-              ? "bg-red-50 text-red-600 focus-visible:ring-red-400"
-              : isDisabled
-                ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 focus-visible:ring-gray-400 cursor-pointer"
-            }
-          `}
-          title={
-            isDisabled
-              ? "Microphone access blocked — enable in browser settings"
-              : isListening
-                ? "Tap to stop"
-                : "Speak your answer"
+    <div className={`flex flex-col items-center ${className}`}>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isDisabled}
+        aria-label={isListening ? "Stop listening" : "Speak your answer"}
+        aria-pressed={isListening}
+        className={`
+          relative flex items-center justify-center gap-2 px-4 py-2 rounded-full
+          min-h-[40px] text-sm font-medium
+          transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+          ${isListening
+            ? "bg-primary-50 border border-primary-200 text-primary-700 focus-visible:ring-primary-400"
+            : isDisabled
+              ? "bg-gray-50 border border-gray-100 text-gray-300 cursor-not-allowed"
+              : "bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-600 hover:border-gray-300 focus-visible:ring-gray-400 cursor-pointer"
           }
+        `}
+      >
+        {/* Mic icon */}
+        <svg
+          className={`w-4 h-4 ${isListening ? "animate-pulse" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
         >
-          {/* Pulse rings when listening */}
-          {isListening && (
+          {isDisabled ? (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 19L5 5m0 0l14 14M12 18.75a6 6 0 01-6-6v-1.5m12 1.5a6 6 0 01-.75 2.906M12 1.5a3 3 0 00-3 3v6.75"
+            />
+          ) : (
             <>
-              <span className="absolute inset-0 rounded-full bg-red-200 animate-ping opacity-20 motion-reduce:hidden" />
-              <span className="absolute inset-[-4px] rounded-full border-2 border-red-300 animate-pulse motion-reduce:hidden" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 1.5a3 3 0 00-3 3v7.5a3 3 0 006 0V4.5a3 3 0 00-3-3z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 10.5a7.5 7.5 0 01-15 0"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 18.75V22.5"
+              />
             </>
           )}
+        </svg>
 
-          {/* Mic icon */}
-          <svg
-            className="w-5 h-5 relative z-10"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-          >
-            {isDisabled ? (
-              // Mic off icon
-              <>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 19L5 5m0 0l14 14M12 18.75a6 6 0 01-6-6v-1.5m12 1.5a6 6 0 01-.75 2.906M12 1.5a3 3 0 00-3 3v6.75"
-                />
-              </>
-            ) : (
-              // Mic icon
-              <>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 1.5a3 3 0 00-3 3v7.5a3 3 0 006 0V4.5a3 3 0 00-3-3z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19.5 10.5a7.5 7.5 0 01-15 0"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 18.75V22.5"
-                />
-              </>
-            )}
-          </svg>
-        </button>
+        <span>{isListening ? "Listening..." : "Speak"}</span>
+      </button>
 
-        {/* Privacy note (first use only) */}
-        {showPrivacyNote && (
-          <span className="text-xs text-gray-400 animate-fade-in">
-            Audio is processed to understand your answer and is not stored.
-          </span>
-        )}
-      </div>
+      {/* Privacy note (first use only) */}
+      {showPrivacyNote && (
+        <p className="mt-1.5 text-xs text-gray-400 text-center animate-fade-in">
+          Audio is processed on-device and is not stored.
+        </p>
+      )}
 
       {/* Transcript display */}
       <VoiceTranscript

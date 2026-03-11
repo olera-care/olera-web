@@ -116,13 +116,45 @@ export default function ReviewsSection({
   }, [fetchReviews]);
 
   // ── Detect deferred action (returning from auth) ──
+  // If review data was saved, auto-submit it
 
   useEffect(() => {
     if (!user) return;
     const deferred = getDeferredAction();
     if (deferred?.action === "review" && deferred?.targetProfileId === providerId) {
       clearDeferredAction();
-      setReviewModalOpen(true);
+
+      // If review data exists, auto-submit
+      if (deferred.reviewData) {
+        const { rating, comment, title, relationship } = deferred.reviewData;
+        (async () => {
+          try {
+            const res = await fetch("/api/reviews", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                provider_id: providerId,
+                rating,
+                comment,
+                title: title || undefined,
+                relationship: relationship || undefined,
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.review) {
+                setRealReviews((prev) => [data.review, ...prev]);
+              }
+            }
+          } catch {
+            // Silently fail - user can retry manually
+          }
+        })();
+      } else {
+        // Legacy fallback - open modal
+        setReviewModalOpen(true);
+      }
     }
   }, [user, providerId]);
 

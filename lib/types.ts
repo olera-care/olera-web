@@ -264,6 +264,13 @@ export interface DeferredAction {
   benefitProgramName?: string;
   /** For question deferred action - preserve the question text */
   questionText?: string;
+  /** For review deferred action - preserve the review data */
+  reviewData?: {
+    rating: number;
+    comment: string;
+    title?: string;
+    relationship?: string;
+  };
   returnUrl: string;
   createdAt: string;
 }

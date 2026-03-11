@@ -49,11 +49,24 @@ export async function POST(request: Request) {
 
     // Parse optional body
     let displayName = "";
+    let markOnboardingComplete = false;
     try {
       const body = await request.json();
       displayName = body.display_name || "";
+      markOnboardingComplete = body.mark_onboarding_complete === true;
     } catch {
       // No body or invalid JSON - that's fine
+    }
+
+    // Use auth metadata for display name if available
+    // Google OAuth: full_name or name
+    // Email signup: display_name
+    const authName = user.user_metadata?.display_name
+      || user.user_metadata?.full_name
+      || user.user_metadata?.name
+      || "";
+    if (!displayName && authName) {
+      displayName = authName;
     }
 
     // Try admin client first (bypasses RLS), fall back to authenticated client
@@ -80,14 +93,52 @@ export async function POST(request: Request) {
 
       if (!existingFamilyProfile) {
         const name = (existingAccount as Account).display_name || user.email?.split("@")[0] || "My Family";
-        await dbClient.from("business_profiles").insert({
+        const { error: profileError } = await dbClient.from("business_profiles").insert({
           account_id: acctId,
           slug: `family-${acctId.slice(0, 8)}`,
           type: "family",
           display_name: name,
+          care_types: [],
           claim_state: "claimed",
-          visibility: false,
+          verification_state: "unverified",
+          source: "user_created",
+          is_active: true,
+          metadata: {},
         });
+        if (profileError) {
+          console.error("Error creating family profile (existing account):", profileError.message, profileError.code);
+        }
+
+        // Send welcome email for fresh signups where DB trigger created the account
+        // No family profile = first time seeing this account = fresh signup
+        try {
+          const fullName = (existingAccount as Account).display_name
+            || user.user_metadata?.full_name
+            || user.user_metadata?.name
+            || "";
+          const nameParts = fullName.trim().split(/\s+/);
+          await sendLoopsEvent({
+            email: user.email || "",
+            eventName: "user_signup",
+            audience: "seeker",
+            eventProperties: { source: "web_v2" },
+            contactProperties: {
+              firstName: nameParts[0] || "",
+              lastName: nameParts.slice(1).join(" ") || "",
+            },
+          });
+        } catch {
+          // Non-blocking
+        }
+      }
+
+      // If requested, mark onboarding as complete (used when skipping popup for users with deferred actions or existing profiles)
+      if (markOnboardingComplete && !(existingAccount as Account).onboarding_completed) {
+        await dbClient
+          .from("accounts")
+          .update({ onboarding_completed: true })
+          .eq("id", acctId);
+        return NextResponse.json({ account: { ...existingAccount, onboarding_completed: true } as Account });
       }
 
       return NextResponse.json({ account: existingAccount as Account });
@@ -106,7 +157,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: user.id,
         display_name: displayName || user.email?.split("@")[0] || "",
-        onboarding_completed: false,
+        onboarding_completed: markOnboardingComplete,
       })
       .select()
       .single();
@@ -172,14 +223,21 @@ export async function POST(request: Request) {
 
     if (!existingFamily) {
       const familyDisplayName = displayName || user.email?.split("@")[0] || "My Family";
-      await dbClient.from("business_profiles").insert({
+      const { error: profileError } = await dbClient.from("business_profiles").insert({
         account_id: accountId,
         slug: `family-${accountId.slice(0, 8)}`,
         type: "family",
         display_name: familyDisplayName,
+        care_types: [],
         claim_state: "claimed",
-        visibility: false,
+        verification_state: "unverified",
+        source: "user_created",
+        is_active: true,
+        metadata: {},
       });
+      if (profileError) {
+        console.error("Error creating family profile (new account):", profileError.message, profileError.code);
+      }
     }
 
     return NextResponse.json({ account: newAccount as Account });

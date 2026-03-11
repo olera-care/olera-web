@@ -494,6 +494,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           if (cancelled || versionRef.current !== version) return;
 
           if (data) {
+            // Check if account exists but no family profile
+            const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
+            if (!hasFamilyProfile) {
+              try {
+                await fetch("/api/auth/ensure-account", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                });
+                if (cancelled || versionRef.current !== version) return;
+                // Re-fetch to pick up the new family profile
+                const refreshed = await fetchAccountData(userId);
+                if (cancelled || versionRef.current !== version) return;
+                if (refreshed) {
+                  cacheAuthData(userId, refreshed);
+                  setState((prev) => ({
+                    ...prev,
+                    account: refreshed.account,
+                    activeProfile: refreshed.activeProfile,
+                    profiles: refreshed.profiles,
+                    membership: refreshed.membership,
+                    isLoading: false,
+                    fetchError: false,
+                  }));
+                  return;
+                }
+              } catch {
+                // Best-effort — continue with what we have
+              }
+            }
             cacheAuthData(userId, data);
             setState((prev) => ({
               ...prev,
@@ -504,11 +533,35 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               isLoading: false,
               fetchError: false,
             }));
-          } else if (!cached?.account) {
-            setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
           } else {
-            // Had cache, fetch returned nothing — keep cache, stop loading
-            setState((prev) => ({ ...prev, isLoading: false }));
+            // No account found — ensure one exists (creates account + family profile)
+            try {
+              await fetch("/api/auth/ensure-account", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              if (cancelled || versionRef.current !== version) return;
+              // Re-fetch now that account + family profile exist
+              const retryData = await fetchAccountData(userId);
+              if (cancelled || versionRef.current !== version) return;
+              if (retryData) {
+                cacheAuthData(userId, retryData);
+                setState((prev) => ({
+                  ...prev,
+                  account: retryData.account,
+                  activeProfile: retryData.activeProfile,
+                  profiles: retryData.profiles,
+                  membership: retryData.membership,
+                  isLoading: false,
+                  fetchError: false,
+                }));
+              } else {
+                setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+              }
+            } catch {
+              if (cancelled || versionRef.current !== version) return;
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+            }
           }
         } catch (err) {
           // Timeout or network error — don't retry, just use cache
@@ -570,19 +623,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // sessionStorage unavailable
       }
 
-      // If the user was in the middle of provider onboarding (intent saved from auth,
-      // or they already completed Step 1 and saved their provider type), redirect them
-      // to the wizard instead of re-opening the modal.
-      const hasStartedProviderOnboarding = (() => {
-        try {
-          return !!localStorage.getItem("olera_onboarding_provider_type")
-            || !!localStorage.getItem("olera_provider_intent_started");
-        } catch {
-          return false;
-        }
-      })();
-
-      if (intent === "provider" || hasStartedProviderOnboarding) {
+      // Only route to provider onboarding if that's their explicit intent
+      // (from the current auth flow, stored in sessionStorage)
+      if (intent === "provider") {
         router.push("/provider/onboarding");
         return;
       }
@@ -664,9 +707,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Navigates first, then clears local state.
-   * This prevents the brief "flash" of loading skeletons on the current page
-   * before navigation completes.
+   * Sign out. Clears local state and navigates immediately,
+   * then fires the Supabase signOut in the background.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
@@ -683,10 +725,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         /* ignore */
       }
       versionRef.current++;
-      // Navigate BEFORE clearing state to avoid flash of loading skeleton
-      // on the current page when user becomes null
-      onComplete?.();
       setState({ ...EMPTY_STATE });
+      onComplete?.();
       // Fire-and-forget — session invalidation happens in the background
       const supabase = createClient();
       supabase.auth.signOut().catch((err) => {
@@ -721,7 +761,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           profiles: data.profiles,
           membership: data.membership,
           fetchError: false,
-          isLoading: false,
         }));
       }
     } catch (err) {

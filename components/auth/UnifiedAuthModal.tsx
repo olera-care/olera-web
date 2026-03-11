@@ -33,7 +33,7 @@ export default function UnifiedAuthModal({
   options = {},
 }: UnifiedAuthModalProps) {
   const router = useRouter();
-  const { user, account, refreshAccountData } = useAuth();
+  const { user, account, profiles, refreshAccountData } = useAuth();
 
   // Determine initial step
   const getInitialStep = useCallback((): AuthStep => {
@@ -493,6 +493,11 @@ export default function UnifiedAuthModal({
       return;
     }
 
+    // Check if user already has a provider profile (from cache)
+    const hasProviderProfile = (profiles || []).some(
+      (p) => p.type === "organization" || p.type === "caregiver"
+    );
+
     // New signups always need onboarding
     if (otpContext === "signup") {
       if (options.intent === "provider") {
@@ -504,10 +509,15 @@ export default function UnifiedAuthModal({
       return;
     }
 
-    // Provider intent — route to onboarding wizard
+    // Provider intent — route based on whether they have a profile
     if (options.intent === "provider") {
       onClose();
-      router.push("/provider/onboarding");
+      // If they already have a provider profile, go straight to hub
+      if (hasProviderProfile) {
+        router.push("/provider");
+      } else {
+        router.push("/provider/onboarding");
+      }
       return;
     }
 

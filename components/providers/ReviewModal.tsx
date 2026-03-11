@@ -107,12 +107,18 @@ export default function ReviewModal({
       return;
     }
 
-    // Auth-on-submit
+    // Auth-on-submit - save review data so it auto-submits after auth
     if (!user) {
       setDeferredAction({
         action: "review",
         targetProfileId: providerId,
         returnUrl: `/provider/${providerSlug}`,
+        reviewData: {
+          rating,
+          comment: comment.trim(),
+          title: title.trim() || undefined,
+          relationship: relationship || undefined,
+        },
       });
       openAuth({
         defaultMode: "sign-up",

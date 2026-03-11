@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
-import { setDeferredAction, clearDeferredAction, getDeferredAction } from "@/lib/deferred-action";
+import { setDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type AuthModalView = "sign-in" | "sign-up";
 
@@ -494,7 +494,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           if (cancelled || versionRef.current !== version) return;
 
           if (data) {
-            // Check if account exists but no family profile (DB trigger created account only)
+            // Check if account exists but no family profile
             const hasFamilyProfile = data.profiles.some((p) => p.type === "family");
             if (!hasFamilyProfile) {
               try {
@@ -533,9 +533,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               isLoading: false,
               fetchError: false,
             }));
-          } else if (!cached?.account) {
+          } else {
             // No account found — ensure one exists (creates account + family profile)
-            // This is critical for email OTP signups where init() ran before session existed
             try {
               await fetch("/api/auth/ensure-account", {
                 method: "POST",
@@ -557,15 +556,12 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                   fetchError: false,
                 }));
               } else {
-                setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+                setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
               }
             } catch {
               if (cancelled || versionRef.current !== version) return;
-              setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
             }
-          } else {
-            // Had cache, fetch returned nothing — keep cache, stop loading
-            setState((prev) => ({ ...prev, isLoading: false }));
           }
         } catch (err) {
           // Timeout or network error — don't retry, just use cache
@@ -627,65 +623,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // sessionStorage unavailable
       }
 
-      // Check for deferred actions (inquiry, save, benefit finder, etc.)
-      // If user was mid-flow, skip popup — the action will enrich their profile
-      const deferredAction = getDeferredAction();
-      if (deferredAction) {
-        // Silently mark onboarding complete — deferred action flow handles profile data
-        fetch("/api/auth/ensure-account", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mark_onboarding_complete: true }),
-        }).catch(() => {});
-        return;
-      }
-
-      // Check if user already has a provider profile
-      // This shouldn't happen often, but fixes data inconsistency if it does
-      const hasProviderProfile = state.profiles.some(
-        (p) => p.type === "organization" || p.type === "caregiver"
-      );
-      if (hasProviderProfile) {
-        // Mark onboarding complete and route to provider dashboard
-        fetch("/api/auth/ensure-account", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mark_onboarding_complete: true }),
-        }).catch(() => {});
-        router.push("/provider");
-        return;
-      }
-
-      // If the user was in the middle of provider onboarding (intent saved from auth,
-      // or they already completed Step 1 and saved their provider type), redirect them
-      // to the wizard instead of re-opening the modal.
-      const hasStartedProviderOnboarding = (() => {
-        try {
-          return !!localStorage.getItem("olera_onboarding_provider_type")
-            || !!localStorage.getItem("olera_provider_intent_started");
-        } catch {
-          return false;
-        }
-      })();
-
-      if (intent === "provider" || hasStartedProviderOnboarding) {
+      // Only route to provider onboarding if that's their explicit intent
+      // (from the current auth flow, stored in sessionStorage)
+      if (intent === "provider") {
         router.push("/provider/onboarding");
         return;
       }
 
-      // Check if user has a family intent from a CTA (e.g., benefits finder)
-      // Skip popup — they already indicated they're a family user
-      if (intent === "family") {
-        fetch("/api/auth/ensure-account", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mark_onboarding_complete: true }),
-        }).catch(() => {});
-        return;
-      }
-
-      // Blank-slate signup with no context — show onboarding popup once
-      // to ask family vs provider intent
+      // Family or unknown intent — open the post-auth onboarding modal
       setUnifiedAuthOptions({
         intent,
         providerType,
@@ -762,9 +707,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Navigates first, then clears local state.
-   * This prevents the brief "flash" of loading skeletons on the current page
-   * before navigation completes.
+   * Sign out. Clears local state and navigates immediately,
+   * then fires the Supabase signOut in the background.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
@@ -781,10 +725,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         /* ignore */
       }
       versionRef.current++;
-      // Navigate BEFORE clearing state to avoid flash of loading skeleton
-      // on the current page when user becomes null
-      onComplete?.();
       setState({ ...EMPTY_STATE });
+      onComplete?.();
       // Fire-and-forget — session invalidation happens in the background
       const supabase = createClient();
       supabase.auth.signOut().catch((err) => {
@@ -819,7 +761,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           profiles: data.profiles,
           membership: data.membership,
           fetchError: false,
-          isLoading: false,
         }));
       }
     } catch (err) {

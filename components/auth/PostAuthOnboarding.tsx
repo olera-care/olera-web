@@ -121,7 +121,10 @@ export default function PostAuthOnboarding({
   const [providerType, setProviderType] = useState<"organization" | "caregiver" | null>(
     initialProviderType as "organization" | "caregiver" | null
   );
-  const [displayName, setDisplayName] = useState(claimProfile?.display_name || "");
+  // Prefill name from claim profile, or from account (collected during auth)
+  const [displayName, setDisplayName] = useState(
+    claimProfile?.display_name || account?.display_name || ""
+  );
   const [city, setCity] = useState(claimProfile?.city || "");
   const [state, setState] = useState(claimProfile?.state || "");
   const [careTypes, setCareTypes] = useState<string[]>(claimProfile?.care_types || []);
@@ -142,6 +145,13 @@ export default function PostAuthOnboarding({
       setProviderType("organization");
     }
   }, [claimProfile]);
+
+  // Prefill name from account when it loads (if not already set)
+  useEffect(() => {
+    if (account?.display_name && !displayName && !claimProfile?.display_name) {
+      setDisplayName(account.display_name);
+    }
+  }, [account?.display_name, displayName, claimProfile?.display_name]);
 
   // ──────────────────────────────────────────────────────────
   // Progress computation
@@ -182,8 +192,6 @@ export default function PostAuthOnboarding({
           return;
         }
       }
-      // Persist provider intent so the modal doesn't reopen if onboarding is abandoned
-      try { localStorage.setItem("olera_provider_intent_started", "true"); } catch { /* noop */ }
       onComplete(); // closes modal
       const hasProviderProfile = (profiles || []).some(
         (p) => p.type === "organization" || p.type === "caregiver"
@@ -216,7 +224,8 @@ export default function PostAuthOnboarding({
 
   const isProfileInfoValid = (): boolean => {
     if (intent === "family") {
-      return displayName.trim().length > 0;
+      // No requirements for family - any info helps recommendations but nothing is blocking
+      return true;
     }
     // Provider
     return displayName.trim().length > 0 && careTypes.length > 0;
@@ -503,7 +512,7 @@ export default function PostAuthOnboarding({
         <div key="profile-info" className="animate-step-enter space-y-5">
           <div className="text-center mb-2">
             <h2 className="text-2xl font-semibold text-gray-900">
-              {intent === "family" ? "Tell us about yourself" : "Set up your profile"}
+              {intent === "family" ? "Help us find care near you" : "Set up your profile"}
             </h2>
           </div>
 
@@ -537,14 +546,17 @@ export default function PostAuthOnboarding({
             </div>
           )}
 
-          <Input
-            label={intent === "provider" && providerType === "organization" ? "Organization name" : "Your name"}
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)}
-            placeholder={intent === "provider" && providerType === "organization" ? "e.g., Sunrise Senior Living" : "First and last name"}
-            required
-          />
+          {/* Name field - only for providers (families already provided name during auth) */}
+          {intent === "provider" && (
+            <Input
+              label={providerType === "organization" ? "Organization name" : "Your name"}
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)}
+              placeholder={providerType === "organization" ? "e.g., Sunrise Senior Living" : "First and last name"}
+              required
+            />
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <Input

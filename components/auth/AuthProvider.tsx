@@ -623,34 +623,9 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         // sessionStorage unavailable
       }
 
-      // If the user was in the middle of provider onboarding (intent saved from auth,
-      // or they already completed Step 1 and saved their provider type), redirect them
-      // to the wizard instead of re-opening the modal.
-      const hasStartedProviderOnboarding = (() => {
-        try {
-          return !!localStorage.getItem("olera_onboarding_provider_type")
-            || !!localStorage.getItem("olera_provider_intent_started");
-        } catch {
-          return false;
-        }
-      })();
-
-      // If user explicitly chose "family" intent, clear any stale provider state
-      // so they don't get routed back to provider onboarding
-      if (intent === "family") {
-        try {
-          localStorage.removeItem("olera_onboarding_provider_type");
-          localStorage.removeItem("olera_provider_intent_started");
-          localStorage.removeItem("olera_provider_wizard_data");
-          localStorage.removeItem("olera_onboarding_step");
-        } catch {
-          // localStorage unavailable
-        }
-      }
-
-      // Only route to provider onboarding if that's their intent, or they were in the middle
-      // of provider onboarding (but NOT if they explicitly chose family)
-      if (intent === "provider" || (intent !== "family" && hasStartedProviderOnboarding)) {
+      // Only route to provider onboarding if that's their explicit intent
+      // (from the current auth flow, stored in sessionStorage)
+      if (intent === "provider") {
         router.push("/provider/onboarding");
         return;
       }

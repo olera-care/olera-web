@@ -181,12 +181,9 @@ export default function Navbar() {
       router.push("/provider");
       return;
     }
-    if (user) {
-      router.push("/provider/onboarding");
-    } else {
-      router.push("/for-providers");
-    }
-  }, [user, profiles, openAuth, router]);
+    // Always route to marketing page — let them click "Get Started" there
+    router.push("/for-providers");
+  }, [profiles, router]);
 
   // Track scroll position for navbar background
   useEffect(() => {

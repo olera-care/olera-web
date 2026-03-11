@@ -64,6 +64,9 @@ export function useSpeechRecognition(
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stoppingRef = useRef(false);
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hadResultsRef = useRef(false);
 
   // Detect engine on mount
   useEffect(() => {
@@ -99,6 +102,9 @@ export function useSpeechRecognition(
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
       }
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+      }
     };
   }, []);
 
@@ -126,6 +132,14 @@ export function useSpeechRecognition(
 
   const start = useCallback(() => {
     setError(null);
+
+    // Clear any pending retry
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    retryCountRef.current = 0;
+    hadResultsRef.current = false;
 
     const currentEngine = getSpeechEngine();
     if (currentEngine === "none") {
@@ -160,6 +174,7 @@ export function useSpeechRecognition(
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      hadResultsRef.current = true;
       let interim = "";
       let final = "";
 
@@ -193,6 +208,14 @@ export function useSpeechRecognition(
           // Not a real error — user just didn't speak. Silence timeout handles this.
           break;
         case "audio-capture":
+          // If we already captured speech, suppress — we got what we needed
+          if (hadResultsRef.current) break;
+          // Auto-retry once after a short delay (browser needs time to release mic)
+          if (retryCountRef.current < 1) {
+            retryCountRef.current++;
+            retryTimerRef.current = setTimeout(() => start(), 500);
+            return; // Skip setIsListening(false) — onend will handle it
+          }
           setError("Microphone is busy or unavailable. Close other apps using the mic and try again.");
           break;
         case "network":
@@ -226,6 +249,10 @@ export function useSpeechRecognition(
 
   const stop = useCallback(() => {
     clearSilenceTimer();
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
     if (recognitionRef.current && !stoppingRef.current) {
       stoppingRef.current = true;
       try {

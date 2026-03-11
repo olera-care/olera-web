@@ -82,8 +82,8 @@ export default function VoiceTranscript({
         </div>
       )}
 
-      {/* Error */}
-      {error && (
+      {/* Error — only show if no parsed result (confirmation or clarification) */}
+      {error && !confirmation && !clarification && (
         <p className="text-sm text-red-600">{error}</p>
       )}
     </div>

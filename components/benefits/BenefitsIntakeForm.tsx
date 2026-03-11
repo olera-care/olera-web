@@ -25,6 +25,7 @@ import type {
 import VoiceMicButton from "./VoiceMicButton";
 import type { VoiceParseResult } from "@/lib/benefits/voice-intent-parser";
 import { zipToState } from "@/lib/benefits/zip-lookup";
+import { preloadFullCityData } from "@/lib/us-city-search";
 
 // US state name → abbreviation for geolocation reverse-geocode
 const stateAbbreviations: Record<string, string> = {
@@ -70,6 +71,11 @@ export default function BenefitsIntakeForm() {
   const locationDropdownRef = useRef<HTMLDivElement>(null);
 
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
+
+  // Preload full city data on location step (needed for voice city search)
+  useEffect(() => {
+    if (step === 0) preloadFullCityData();
+  }, [step]);
 
   const stepInfo = INTAKE_STEPS[step];
 
@@ -277,6 +283,17 @@ export default function BenefitsIntakeForm() {
           if (stateCode) goToStep(1);
           break;
         }
+        case "location": {
+          const display = result.city
+            ? `${result.city}, ${result.stateCode}`
+            : result.stateCode;
+          setLocationInputLocal(display);
+          setLocationDisplay(display);
+          setSelectedStateCode(result.stateCode);
+          updateAnswers({ zipCode: null, stateCode: result.stateCode });
+          goToStep(1);
+          break;
+        }
         case "age": {
           const age = result.value;
           setAgeInput(String(age));
@@ -330,9 +347,8 @@ export default function BenefitsIntakeForm() {
       {/* Step 0: Smart Location Input */}
       {step === 0 && (
         <div className="relative mb-4" ref={locationDropdownRef}>
-          <div className="flex items-center gap-2">
             <div
-              className={`flex-1 flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
+              className={`flex items-center px-4 py-3.5 bg-white rounded-xl border transition-colors cursor-text ${
                 showLocationDropdown
                   ? "border-gray-400 ring-2 ring-gray-100"
                   : "border-gray-200 hover:border-gray-300"
@@ -378,8 +394,7 @@ export default function BenefitsIntakeForm() {
                 className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-0 text-base"
               />
             </div>
-            <VoiceMicButton step={0} onResult={handleVoiceResult} />
-          </div>
+            <VoiceMicButton step={0} onResult={handleVoiceResult} className="mt-2" />
 
           {/* Location Dropdown */}
           {showLocationDropdown && (

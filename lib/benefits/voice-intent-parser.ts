@@ -8,6 +8,7 @@ import type {
   IncomeRange,
   MedicaidStatus,
 } from "@/lib/types/benefits";
+import { searchCities } from "@/lib/us-city-search";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -15,6 +16,7 @@ export type ParseConfidence = "exact" | "fuzzy" | "unknown";
 
 export type VoiceParseResult =
   | { type: "zipCode"; value: string; confidence: ParseConfidence }
+  | { type: "location"; city: string; stateCode: string; confidence: ParseConfidence }
   | { type: "age"; value: number; confidence: ParseConfidence }
   | { type: "carePreference"; value: CarePreference; confidence: ParseConfidence }
   | { type: "primaryNeeds"; value: PrimaryNeed[]; confidence: ParseConfidence }
@@ -72,6 +74,33 @@ function parseNavigation(text: string): VoiceParseResult | null {
   return null;
 }
 
+// ─── State names + location helpers ─────────────────────────────────────────
+
+const STATE_NAMES: Record<string, string> = {
+  alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR",
+  california: "CA", colorado: "CO", connecticut: "CT", delaware: "DE",
+  florida: "FL", georgia: "GA", hawaii: "HI", idaho: "ID",
+  illinois: "IL", indiana: "IN", iowa: "IA", kansas: "KS",
+  kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD",
+  massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS",
+  missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV",
+  "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY",
+  "north carolina": "NC", "north dakota": "ND", ohio: "OH", oklahoma: "OK",
+  oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC",
+  "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT",
+  vermont: "VT", virginia: "VA", washington: "WA", "west virginia": "WV",
+  wisconsin: "WI", wyoming: "WY", "district of columbia": "DC",
+};
+
+const STATE_ABBREVS = new Set(Object.values(STATE_NAMES));
+
+const LOCATION_FILLER = [
+  "i live in", "i'm in", "i am in", "i'm from", "i am from",
+  "we live in", "we're in", "we are in", "my location is",
+  "i'm located in", "i am located in", "located in", "i reside in",
+  "my zip code is", "my zip is", "zip code", "zip",
+];
+
 // ─── Step 0: ZIP Code / City parsing ────────────────────────────────────────
 
 function parseZipCode(text: string): VoiceParseResult {
@@ -93,6 +122,91 @@ function parseZipCode(text: string): VoiceParseResult {
   }
   if (digits.length === 5) {
     return { type: "zipCode", value: digits, confidence: "exact" };
+  }
+
+  // Try city + state extraction
+  return parseCityState(text);
+}
+
+function parseCityState(text: string): VoiceParseResult {
+  // Strip filler phrases
+  let cleaned = text;
+  for (const filler of LOCATION_FILLER) {
+    cleaned = cleaned.replace(filler, "").trim();
+  }
+  if (!cleaned) {
+    return { type: "unknown", clarification: CLARIFICATIONS[0] };
+  }
+
+  // Try to extract state from the end (check 2-word states first, then 1-word)
+  let stateCode: string | null = null;
+  let cityPart = cleaned;
+  const words = cleaned.split(/\s+/);
+
+  // Check last two words for multi-word states (e.g. "new york", "north carolina")
+  if (words.length >= 2) {
+    const lastTwo = words.slice(-2).join(" ");
+    if (STATE_NAMES[lastTwo]) {
+      stateCode = STATE_NAMES[lastTwo];
+      cityPart = words.slice(0, -2).join(" ");
+    }
+  }
+
+  // Check last word for single-word states (e.g. "texas", "maryland")
+  if (!stateCode && words.length >= 1) {
+    const lastWord = words[words.length - 1];
+    if (STATE_NAMES[lastWord]) {
+      stateCode = STATE_NAMES[lastWord];
+      cityPart = words.slice(0, -1).join(" ");
+    }
+    // Also check 2-letter abbreviations (e.g. "tx", "md")
+    if (!stateCode && lastWord.length === 2) {
+      const upper = lastWord.toUpperCase();
+      if (STATE_ABBREVS.has(upper)) {
+        stateCode = upper;
+        cityPart = words.slice(0, -1).join(" ");
+      }
+    }
+  }
+
+  // Search for the city using existing city search infrastructure
+  const query = cityPart || cleaned;
+  const results = searchCities(query, 5);
+
+  if (results.length > 0) {
+    // If we extracted a state, prefer a match in that state
+    if (stateCode) {
+      const stateMatch = results.find((r) => r.state === stateCode);
+      if (stateMatch) {
+        return {
+          type: "location",
+          city: stateMatch.city,
+          stateCode: stateMatch.state,
+          confidence: "exact",
+        };
+      }
+    }
+    // Use top result
+    const top = results[0];
+    return {
+      type: "location",
+      city: top.city,
+      stateCode: top.state,
+      confidence: "fuzzy",
+    };
+  }
+
+  // If we at least have a state code, return it with the city text as-is
+  if (stateCode) {
+    const titleCity = cityPart
+      ? cityPart.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+      : "";
+    return {
+      type: "location",
+      city: titleCity,
+      stateCode,
+      confidence: "fuzzy",
+    };
   }
 
   return { type: "unknown", clarification: CLARIFICATIONS[0] };
@@ -401,6 +515,10 @@ export function getConfirmationMessage(result: VoiceParseResult): string | null 
   switch (result.type) {
     case "zipCode":
       return `ZIP code ${result.value}, got it.`;
+    case "location":
+      return result.city
+        ? `${result.city}, ${result.stateCode} — got it.`
+        : `${result.stateCode} — got it.`;
     case "age":
       return `${result.value} years old, got it.`;
     case "carePreference":

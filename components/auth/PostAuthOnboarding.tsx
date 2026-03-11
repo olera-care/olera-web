@@ -197,8 +197,8 @@ export default function PostAuthOnboarding({
 
   const isProfileInfoValid = (): boolean => {
     if (intent === "family") {
-      // Family needs location for recommendations (care types optional - can filter later)
-      return city.trim().length > 0 || state.trim().length > 0;
+      // No requirements for family - any info helps recommendations but nothing is blocking
+      return true;
     }
     // Provider
     return displayName.trim().length > 0 && careTypes.length > 0;

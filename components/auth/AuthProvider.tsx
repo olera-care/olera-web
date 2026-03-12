@@ -723,7 +723,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [configured, fetchAccountData]);
+  }, [configured, fetchAccountData, router]);
 
   // Detect authenticated users who haven't completed onboarding and auto-open
   useEffect(() => {

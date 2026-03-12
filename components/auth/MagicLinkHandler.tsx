@@ -45,14 +45,19 @@ export default function MagicLinkHandler() {
         const refreshToken = hashParams.get("refresh_token");
         const type = hashParams.get("type");
 
-        // Only handle magiclink type
-        if (type !== "magiclink" || !accessToken) {
+        // Handle magic link auth types:
+        // - "magiclink" = existing user signing in
+        // - "signup" = new user created via magic link
+        // - "email" = email verification
+        const validTypes = ["magiclink", "signup", "email"];
+        if (!accessToken || (type && !validTypes.includes(type))) {
+          console.log("[MagicLinkHandler] Skipping - invalid type or no token:", { type, hasToken: !!accessToken });
           setProcessing(false);
           hasProcessed.current = false;
           return;
         }
 
-        console.log("[MagicLinkHandler] Processing magic link tokens...");
+        console.log("[MagicLinkHandler] Processing auth tokens, type:", type);
 
         // Set the session
         const supabase = createClient();

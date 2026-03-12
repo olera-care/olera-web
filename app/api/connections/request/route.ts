@@ -340,6 +340,10 @@ async function handleGuestConnection({
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     // Use environment-aware URL so magic links work in preview/staging deployments
     const siteUrl = getSiteUrl();
+    console.log("[magic-link] VERCEL_ENV:", process.env.VERCEL_ENV);
+    console.log("[magic-link] VERCEL_URL:", process.env.VERCEL_URL);
+    console.log("[magic-link] NEXT_PUBLIC_SITE_URL:", process.env.NEXT_PUBLIC_SITE_URL);
+    console.log("[magic-link] Resolved siteUrl:", siteUrl);
 
     const careTypeMap: Record<string, string> = {
       home_care: "Home Care",

@@ -7,6 +7,7 @@ import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail } fro
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
+import { getSiteUrl } from "@/lib/site-url";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -337,7 +338,8 @@ async function handleGuestConnection({
     const { createClient: createAdminAuthClient } = await import("@supabase/supabase-js");
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+    // Use environment-aware URL so magic links work in preview/staging deployments
+    const siteUrl = getSiteUrl();
 
     const careTypeMap: Record<string, string> = {
       home_care: "Home Care",
@@ -411,7 +413,7 @@ async function handleGuestConnection({
           familyName: firstName || "A family",
           careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
           message: intentData?.additionalNotes || null,
-          viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
+          viewUrl: `${getSiteUrl()}/provider/connections`,
         }),
       });
     }
@@ -441,10 +443,9 @@ async function handleGuestConnection({
     if (providerPhone) {
       const normalized = normalizeUSPhone(providerPhone);
       if (normalized) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
         await sendSMS({
           to: normalized,
-          body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/provider/connections`,
+          body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
         });
       }
     }
@@ -954,7 +955,7 @@ export async function POST(request: Request) {
             familyName: firstName || "there",
             providerName,
             careType: intentData?.careType ? (careTypeMap0[intentData.careType] || intentData.careType) : null,
-            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/inbox?id=${newConnection.id}`,
+            viewUrl: `${getSiteUrl()}/portal/inbox?id=${newConnection.id}`,
           }),
         });
       }
@@ -980,7 +981,7 @@ export async function POST(request: Request) {
             familyName: account.display_name || "A family",
             careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
             message: intentData?.additionalNotes || null,
-            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
+            viewUrl: `${getSiteUrl()}/provider/connections`,
           }),
         });
       }
@@ -1015,10 +1016,9 @@ export async function POST(request: Request) {
         const normalized = normalizeUSPhone(providerPhone);
         console.log("[sms] Normalized:", normalized, "from raw:", providerPhone);
         if (normalized) {
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           const result = await sendSMS({
             to: normalized,
-            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/provider/connections`,
+            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
           });
           console.log("[sms] Send result:", JSON.stringify(result));
         } else {

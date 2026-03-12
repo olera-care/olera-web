@@ -63,6 +63,29 @@
   - Item #1 (gated provider portal page) assigned to Esther
   - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
 
+- **Senior Benefits Finder Voice Input** (branch: `guided-voice-sbf`, was `peaceful-hawking`) — IN PROGRESS
+  - Plan: `plans/benefits-voice-input-plan.md`
+  - Phases 1-4 complete (hook, parser, components, form integration)
+  - **Phase 5 (2026-03-10):** Mic reliability + city parsing + UI redesign
+    - Fixed `audio-capture` mic errors: auto-retry (1 silent retry, 500ms delay), suppress error if speech was captured
+    - Added city+state voice parsing via existing 18K city search infra ("I live in Katy Texas" → Katy, TX)
+    - Fixed VoiceTranscript showing error + clarification simultaneously (mutually exclusive now)
+    - Redesigned voice button: bare 40x40 gray circle → centered labeled pill ("Speak") with teal listening state
+    - Moved voice below primary input/options on all 6 steps (consistent placement)
+    - Commits: `b50eae6` (bug fixes + city parsing), `84f4bb9` (UI redesign)
+  - **Phase 6 (2026-03-11):** Guided voice mode — conversational intake experience
+    - Mode selection screen before step 0: "Talk through it" vs "Fill it out myself"
+    - Guided mode: warm conversational prompts per step, large 80px pulsing mic, auto-start
+    - Auto-advance: confirmation text → 1.5s pause → next step with mic auto-restart
+    - Needs step (multi-select): requires "done"/"that's it" to advance (new navigation intents)
+    - "Switch to form" link exits guided mode at current step
+    - voiceMode persisted in localStorage draft for page reload recovery
+    - Files modified: `use-benefits-state.ts`, `care-profile-context.tsx`, `voice-intent-parser.ts`, `VoiceMicButton.tsx`, `BenefitsIntakeForm.tsx`
+    - Files created: `VoiceModeSelection.tsx`, `GuidedVoicePrompt.tsx`
+    - Commit: `b97a9b6`
+  - Remaining: unit tests, Deepgram fallback (Firefox/iOS Safari), edge case polish, QA guided flow
+  - Pushed to origin, PR not yet created
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -128,6 +151,15 @@
 | 2026-03-10 | Dynamic API route for sitemap, not metadata file | `app/sitemap.ts` is statically generated at build time — Supabase queries fail, empty result cached permanently. `app/api/sitemap/route.ts` with `force-dynamic` works correctly |
 | 2026-03-10 | Rewrite `/sitemap.xml` → `/api/sitemap` | `app/[category]` dynamic route catches `sitemap.xml` as a category slug → 404. Rewrite in `next.config.ts` bypasses the route conflict |
 | 2026-03-10 | Static OG image over dynamic ImageResponse | Shutterstock photo looks better than teal gradient text; static `.jpg` is simpler and faster |
+| 2026-03-10 | Web Speech API + Deepgram fallback for voice | Web Speech API is free and covers ~75% of traffic (Chrome/Edge). Deepgram at $0.008/min covers Firefox + iOS Safari. Cheaper and simpler than a single paid provider for all traffic |
+| 2026-03-10 | Keyword parser over LLM for voice interpretation | iOS VoiceIntentParser uses keyword matching and handles all edge cases. No need for Claude API — deterministic, instant, zero cost. LLM can be added later for Plan C conversational mode |
+| 2026-03-10 | Mic per step, not separate voice mode | Keeps voice as an enhancement to the existing form. Users can mix voice and tap freely. Lower engineering cost than a full voice overlay (Plan B) |
+| 2026-03-10 | Voice on all 6 steps, not just text inputs | Even pill-select steps (care preference, needs, income, Medicaid) benefit from voice — "help with bathing and cooking" is natural speech that maps cleanly to pills |
+| 2026-03-10 | Labeled pill over bare icon for voice button | Bare 40x40 gray circle has zero affordance — users won't discover it. Labeled pill with "Speak" text is discoverable without being pushy |
+| 2026-03-10 | Teal listening state over red | Red = error/danger in every mental model. Teal (brand color) signals "active" with calm confidence |
+| 2026-03-10 | Voice below options, not above | Voice is a secondary input method. Below the primary interaction (input/pills) communicates "or you can speak" without competing with the primary path |
+| 2026-03-10 | City search over ZIP-only for voice | Users naturally say "I live in Katy Texas" not "seven seven four four nine". Reuse existing 18K city search infra with state name extraction. ZIP still works if spoken |
+| 2026-03-10 | Auto-retry on audio-capture mic error | Chrome's Web Speech API flakes on mic access — abort→start race condition. One silent 500ms retry resolves most transient failures |
 | 2026-02-21 | Server-side pagination for directory | 36K+ records — must use Supabase `.range()` |
 
 ---
@@ -142,6 +174,40 @@
 ---
 
 ## Session Log
+
+### 2026-03-10 (Session 48) — Senior Benefits Finder Voice Input (Phases 1-4)
+
+**Branch:** `peaceful-hawking` (worktree)
+
+**What:** Added voice input to the 6-step Benefits Finder intake form. Ported the iOS VoiceIntentParser keyword maps to TypeScript. Built speech recognition hook, mic button component, and wired into the existing form.
+
+**Exploration & Research:**
+- Read full Notion task: "Senior Benefits Finder Web Voice Input Integration" (P1)
+- Explored iOS codebase (`OleraClean`): SpeechRecognitionManager, VoiceIntentParser, VoiceIntakeViewModel, VoiceMicButton, VoiceOrb, FoundationModelService
+- Researched 8 voice APIs: Web Speech API, Deepgram, ElevenLabs Scribe, OpenAI Whisper, Google Cloud STT, AssemblyAI, Azure Speech, Picovoice Cheetah
+- Proposed 3 plans: (A) Mic per step, (B) Voice overlay with TTS, (C) Conversational assistant with LLM
+- TJ approved Plan A with evolution path to Plan B
+
+**Implementation (Phases 1-4):**
+1. `types/speech-recognition.d.ts` — Web Speech API TypeScript declarations
+2. `hooks/use-speech-recognition.ts` — Unified hook: start/stop/transcript/error/permissionState. Detects Web Speech API support, handles permission flow, auto-stops on 10s silence
+3. `lib/benefits/voice-intent-parser.ts` — Full port of iOS VoiceIntentParser: ZIP (regex + spoken digits), age (compound spoken numbers), care preference (20+ keywords), primary needs (7 categories, multi-select), income (bracket detection with spoken amounts), Medicaid (negation-first checking). Returns typed parse result with confidence + clarification prompts
+4. `components/benefits/VoiceMicButton.tsx` — 40x40 mic button, 3 states (idle/listening/disabled), pulse animation, first-use privacy note, processes transcript on stop
+5. `components/benefits/VoiceTranscript.tsx` — Real-time transcript, confirmation messages, clarification prompts, aria-live for screen readers
+6. `components/benefits/BenefitsIntakeForm.tsx` — Wired mic buttons into all 6 steps. Steps 0-1: mic inline with input. Steps 2-5: mic above pills. Voice results auto-map to form state and auto-advance (except primary needs — additive, no auto-advance). ZIP voice uses `zipToState()` for immediate state code resolution
+
+**Build status:** TypeScript compiles clean. Pre-existing waiver-library prerender failures (unrelated).
+
+**Remaining tasks:**
+- Task 4: Parser unit tests (vitest)
+- Task 8: City name voice handling (search city list from spoken name)
+- Tasks 9-10: Deepgram WebSocket fallback for Firefox/iOS Safari
+- Tasks 12-15: Polish (mobile, accessibility, error recovery)
+
+**Files created:** `hooks/use-speech-recognition.ts`, `lib/benefits/voice-intent-parser.ts`, `components/benefits/VoiceMicButton.tsx`, `components/benefits/VoiceTranscript.tsx`, `types/speech-recognition.d.ts`, `plans/benefits-voice-input-plan.md`
+**Files modified:** `components/benefits/BenefitsIntakeForm.tsx`, `.env.example`
+
+---
 
 ### 2026-03-10 (Session 47) — DNS Cutover Execution + Sitemap Fix + OG Image
 

@@ -281,6 +281,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
+      // Dispatch event so inbox pages can refresh without manual reload
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
       // Redirect to post-connection success page if callback provided
       // Do this BEFORE state transitions so the redirect is instant
       if (data.connectionId && onConnectionCreated) {

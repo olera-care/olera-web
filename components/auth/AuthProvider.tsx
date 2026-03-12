@@ -630,13 +630,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Family or unknown intent — open the post-auth onboarding modal
-      setUnifiedAuthOptions({
-        intent,
-        providerType,
-        startAtPostAuth: true,
-      });
-      setIsUnifiedAuthOpen(true);
+      // Family users: no popup needed — they can browse and connect without onboarding
+      // The connection API marks onboarding_completed=true when they connect
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isLoading, state.user, state.account]);

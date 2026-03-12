@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const STORAGE_KEY = "olera-doc-checklist";
 
 const CHECKLIST_CATEGORIES = [
   {
@@ -47,6 +49,30 @@ const CHECKLIST_CATEGORIES = [
 
 export function DocumentChecklist() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [loaded, setLoaded] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        setChecked(new Set(JSON.parse(saved)));
+      }
+    } catch {
+      // ignore
+    }
+    setLoaded(true);
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    if (!loaded) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
+    } catch {
+      // ignore
+    }
+  }, [checked, loaded]);
 
   function toggle(item: string) {
     setChecked((prev) => {

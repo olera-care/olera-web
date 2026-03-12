@@ -355,8 +355,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               }
 
               // Redirect to inbox (or stored destination)
+              // Use window.location for a hard redirect to ensure navigation completes
+              // (router.replace can be interrupted by React re-renders)
               console.log("[olera] Redirecting to:", redirectTo);
-              router.replace(redirectTo);
+              window.location.replace(redirectTo);
               return; // Exit init - we're redirecting
             }
           }
@@ -723,7 +725,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [configured, fetchAccountData, router]);
+  }, [configured, fetchAccountData]);
 
   // Detect authenticated users who haven't completed onboarding and auto-open
   useEffect(() => {

@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     // 1. Get user's account
     const { data: account } = await db
       .from("accounts")
-      .select("id, display_name, active_profile_id")
+      .select("id, display_name, active_profile_id, onboarding_completed")
       .eq("user_id", user.id)
       .single();
 
@@ -103,6 +103,14 @@ export async function POST(request: Request) {
 
     if (existingFamily) {
       fromProfileId = existingFamily.id;
+
+      // Mark onboarding complete if not already (connection = onboarded)
+      if (!account.onboarding_completed) {
+        await db
+          .from("accounts")
+          .update({ onboarding_completed: true })
+          .eq("id", account.id);
+      }
     } else {
       const displayName =
         account.display_name || user.email?.split("@")[0] || "Family";

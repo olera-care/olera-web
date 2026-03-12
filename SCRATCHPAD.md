@@ -63,6 +63,13 @@
   - Item #1 (gated provider portal page) assigned to Esther
   - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
 
+- **Guest Connection Flow (Remove Auth Gate)** (branch: `feature/remove-auth-gate-connection-flow`) — IN PROGRESS (Esther)
+  - Magic link approach: collect email inline → fire lead → send magic link for account creation
+  - Migration 018 run on Supabase (claim_token, nullable account_id, guest_email)
+  - Supabase redirect URLs + Vercel NEXT_PUBLIC_SITE_URL configured
+  - Branch has merge conflicts with #232/#234 — needs reconciliation before merge
+  - 10 commits, 19 files changed (+2,409 / -226)
+
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
 
@@ -92,14 +99,14 @@
 
 ## Next Up
 
-1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
-2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
-4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
-5. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
-6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-7. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-8. **Gated provider portal page** — Esther building; sanity check item #1
+1. **Reconcile Esther's guest connection branch** with #232/#234 — conflicts in AuthProvider.tsx, membership.ts, pro/page.tsx
+2. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
+3. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
+4. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
+5. **Monitor GSC for 404 spikes** — check over next few days post-cutover
+6. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
+7. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+8. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
 9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
 10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 
@@ -128,6 +135,8 @@
 | 2026-03-10 | Dynamic API route for sitemap, not metadata file | `app/sitemap.ts` is statically generated at build time — Supabase queries fail, empty result cached permanently. `app/api/sitemap/route.ts` with `force-dynamic` works correctly |
 | 2026-03-10 | Rewrite `/sitemap.xml` → `/api/sitemap` | `app/[category]` dynamic route catches `sitemap.xml` as a category slug → 404. Rewrite in `next.config.ts` bypasses the route conflict |
 | 2026-03-10 | Static OG image over dynamic ImageResponse | Shutterstock photo looks better than teal gradient text; static `.jpg` is simpler and faster |
+| 2026-03-11 | Remove auth gate for family connections (magic link approach) | Traffic flowing but no connect requests — auth wall killing conversion. Collect email inline, fire lead immediately, send magic link for optional account creation. Logan approved. |
+| 2026-03-11 | Remove paywall entirely — all features free | Startup should focus on usage before gating. `canEngage()` always returns true. Can re-add later. |
 | 2026-02-21 | Server-side pagination for directory | 36K+ records — must use Supabase `.range()` |
 
 ---
@@ -142,6 +151,30 @@
 ---
 
 ## Session Log
+
+### 2026-03-11 (Session 48) — PR Merges + Unblock Guest Connection Flow
+
+**Branch:** `sunny-pike`
+
+**What:** Merged Esther's 2 PRs to staging, then unblocked her guest connection flow (remove auth gate) by configuring Supabase + Vercel + running migration.
+
+**PRs merged:**
+- #232 — Remove paywall completely, all users have full access (3 files, +90/-930)
+- #234 — Fix: Remove onboarding popup for family users + fix inbox refresh (3 files, +14/-8)
+- #219 — Skipped (Chantel's waiver library, still needs cleanup)
+
+**Guest connection flow unblock (Esther's `feature/remove-auth-gate-connection-flow`):**
+- Verified Supabase redirect URLs already present (3 inbox URLs)
+- Added Vercel `NEXT_PUBLIC_SITE_URL` = `https://olera.care` for Production environment (Preview was already set)
+- Ran migration 018 on Supabase: `claim_token` UUID, nullable `account_id`, `guest_email` on connections
+- Reviewed Esther's 10-commit branch: EmailCapture component, guest connection API, claim-profiles API, guest-inbox API, middleware guest token bypass
+- Flagged merge conflicts: AuthProvider.tsx (#234 removed onboarding popup, her branch re-adds with claim token skip), membership.ts + pro/page.tsx (#232 gutted paywall, her branch has old version)
+
+**Notion reports:** PR #232 and #234 merge reports published to PR Merge Reports folder
+
+**Staging:** `b5b2248` — all critical files verified intact post-merge
+
+---
 
 ### 2026-03-10 (Session 47) — DNS Cutover Execution + Sitemap Fix + OG Image
 

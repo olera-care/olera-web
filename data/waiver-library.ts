@@ -46,11 +46,13 @@ const alabamaPrograms: WaiverProgram[] = [
       "Income below $987/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-361-4491 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alabama-medicaid-application", name: "Alabama Medicaid Application", description: "Official Alabama Medicaid application. Apply online or download a printable form.", url: "https://www.medicaid.alabama.gov/content/4.0_programs/4.2_apply.aspx" },
+    ],
   },
   {
     id: "elderly-and-disabled-e-d-medicaid-waiver",
@@ -65,11 +67,14 @@ const alabamaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-361-4491 to learn about E&D eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alabama-medicaid-application", name: "Alabama Medicaid Application", description: "Official Alabama Medicaid application, required for waiver enrollment.", url: "https://www.medicaid.alabama.gov/content/4.0_programs/4.2_apply.aspx" },
+      { id: "alabama-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.medicaid.alabama.gov/content/4.0_programs/4.2_apply.aspx" },
+    ],
   },
   {
     id: "home-delivered-meals-e-d-waiver-component",
@@ -84,11 +89,13 @@ const alabamaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-361-4491 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alabama-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -107,11 +114,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Income below $3071/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (800) 478-6065 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-medicaid-application", name: "Alaska Medicaid Application", description: "Official Alaska Medicaid application. Apply online or download a printable form.", url: "https://health.alaska.gov/dpa/Pages/medicaid/default.aspx" },
+    ],
   },
   {
     id: "alaskans-living-independently-waiver-ali",
@@ -126,11 +135,14 @@ const alaskaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (800) 478-6065 to learn about ALI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-medicaid-application", name: "Alaska Medicaid Application", description: "Official Alaska Medicaid application, required for waiver enrollment.", url: "https://health.alaska.gov/dpa/Pages/medicaid/default.aspx" },
+      { id: "alaska-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://health.alaska.gov/dpa/Pages/medicaid/default.aspx" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -145,11 +157,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (800) 478-6065 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://health.alaska.gov/dpa/Pages/medicaid/default.aspx" },
+    ],
   },
   {
     id: "alaska-snap-food-stamps",
@@ -163,11 +177,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-478-7778 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-snap-application", name: "Alaska SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://health.alaska.gov/dpa/Pages/fstamps/default.aspx" },
+    ],
   },
   {
     id: "alaska-senior-medicare-advisory-network",
@@ -180,11 +196,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-468-0616 to learn about Alaska Senior Medicare eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-medicaid-application", name: "Alaska Medicaid Application", description: "Official Alaska Medicaid application. Apply online or download a printable form.", url: "https://health.alaska.gov/dpa/Pages/medicaid/default.aspx" },
+    ],
   },
   {
     id: "energy-assistance-program",
@@ -198,11 +216,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Income below $2800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-478-7326 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-energy-application", name: "Alaska Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://health.alaska.gov/dpa/Pages/hap/default.aspx" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -215,11 +235,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-678-7713 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals-seniorcare",
@@ -233,11 +255,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (800) 478-6065 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -251,11 +275,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Income below $3000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-478-6065 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "alaska-legal-services-corporation-senior-legal-hotline",
@@ -269,11 +295,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-478-2572 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "senior-property-tax-exemption",
@@ -286,11 +314,13 @@ const alaskaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call your state agency to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "alaska-property-tax-application", name: "Alaska Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://health.alaska.gov/dpa/Pages/medicaid/default.aspx" },
+    ],
   },
 ];
 
@@ -309,11 +339,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Income below $1255/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-432-7587 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-medicaid-application", name: "Arizona Medicaid Application", description: "Official Arizona Medicaid application. Apply online or download a printable form.", url: "https://www.healthearizonaplus.gov" },
+    ],
   },
   {
     id: "arizona-long-term-care-system-altcs",
@@ -328,11 +360,14 @@ const arizonaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-621-6880 to learn about ALTCS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-medicaid-application", name: "Arizona Medicaid Application", description: "Official Arizona Medicaid application, required for waiver enrollment.", url: "https://www.healthearizonaplus.gov" },
+      { id: "arizona-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.healthearizonaplus.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs-qmb-slmb-qi",
@@ -346,11 +381,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Income below $1600/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-432-7587 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.healthearizonaplus.gov" },
+    ],
   },
   {
     id: "nutrition-assistance-program",
@@ -364,11 +401,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Income below $2070/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-352-3878 to learn about Nutrition Assistance Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-medicaid-application", name: "Arizona Medicaid Application", description: "Official Arizona Medicaid application. Apply online or download a printable form.", url: "https://www.healthearizonaplus.gov" },
+    ],
   },
   {
     id: "arizona-senior-health-insurance-assistance-program-ship",
@@ -381,11 +420,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-432-4040 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -399,11 +440,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Income below $2950/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-622-6800 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-energy-application", name: "Arizona Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://des.az.gov/services/basic-needs/shelter-housing/utility-assistance" },
+    ],
   },
   {
     id: "senior-property-valuation-protection-option",
@@ -416,11 +459,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-602-716-6975 to learn about Senior Property Valuation eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-medicaid-application", name: "Arizona Medicaid Application", description: "Official Arizona Medicaid application. Apply online or download a printable form.", url: "https://www.healthearizonaplus.gov" },
+    ],
   },
   {
     id: "arizona-long-term-care-ombudsman-program",
@@ -433,11 +478,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-767-2382 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -452,11 +499,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-621-6880 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "arizona-family-caregiver-support-program",
@@ -470,11 +519,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Income below $3500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-737-2367 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "arizona-senior-legal-helpline",
@@ -488,11 +539,13 @@ const arizonaPrograms: WaiverProgram[] = [
       "Income below $3000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-844-677-5325 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arizona-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -512,11 +565,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-482-8988 to learn about AABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-medicaid-application", name: "Arkansas Medicaid Application", description: "Official Arkansas Medicaid application. Apply online or download a printable form.", url: "https://access.arkansas.gov" },
+    ],
   },
   {
     id: "medicare-savings-program",
@@ -530,11 +585,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Income below $1043/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-482-8988 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://access.arkansas.gov" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -548,11 +605,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Income below $1948/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-482-8988 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-snap-application", name: "Arkansas SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://access.arkansas.gov" },
+    ],
   },
   {
     id: "ark-choices-program-waiver",
@@ -567,11 +626,14 @@ const arkansasPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-482-8988 to learn about ARK Choices Program Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-medicaid-application", name: "Arkansas Medicaid Application", description: "Official Arkansas Medicaid application, required for waiver enrollment.", url: "https://access.arkansas.gov" },
+      { id: "arkansas-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://access.arkansas.gov" },
+    ],
   },
   {
     id: "senior-health-insurance-information-program-shiip",
@@ -584,11 +646,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-852-5494 to learn about SHIIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -603,11 +667,14 @@ const arkansasPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-482-8988 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://access.arkansas.gov" },
+      { id: "arkansas-medicaid-application", name: "Arkansas Medicaid Application", description: "Medicaid eligibility may be required. Apply through Arkansas's portal.", url: "https://access.arkansas.gov" },
+    ],
   },
   {
     id: "liheap-low-income-home-energy-assistance-program",
@@ -621,11 +688,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Income below $3106/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-482-8988 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-energy-application", name: "Arkansas Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://humanservices.arkansas.gov/divisions/county-operations/lieap/" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -638,11 +707,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-582-4887 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -656,11 +727,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Income below $3106/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-581-0752 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -674,11 +747,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Income below $3106/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-581-0752 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "area-agency-on-aging-legal-services",
@@ -692,11 +767,13 @@ const arkansasPrograms: WaiverProgram[] = [
       "Income below $3106/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-581-0752 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "arkansas-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -715,11 +792,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $1801/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-5555 to learn about Medi-Cal for Aged and Disabled eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-medicaid-application", name: "California Medicaid Application", description: "Official California Medicaid application. Apply online or download a printable form.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "in-home-supportive-services-ihss",
@@ -732,11 +811,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-5555 to learn about IHSS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-medicaid-application", name: "California Medicaid Application", description: "Official California Medicaid application. Apply online or download a printable form.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "california-medicare-savings-programs",
@@ -749,11 +830,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $1762/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-5555 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "multipurpose-senior-services-program-mssp",
@@ -767,11 +850,14 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $1801/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-510-2020 to learn about MSSP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "california-ssi-supplement", name: "California SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "calfresh-food-benefits-for-seniors",
@@ -784,11 +870,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $1580/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-847-3663 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-snap-application", name: "California SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.getcalfresh.org" },
+    ],
   },
   {
     id: "ssi-ssp-cash-assistance",
@@ -802,11 +890,14 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-772-1213 to learn about SSI/SSP Cash Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "california-ssi-supplement", name: "California SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "hicap-medicare-counseling",
@@ -819,11 +910,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-434-0222 to learn about HICAP Medicare Counseling eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "california-assisted-living-waiver-alw",
@@ -836,11 +929,14 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $1801/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-5555 to learn about ALW eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-medicaid-application", name: "California Medicaid Application", description: "Official California Medicaid application, required for waiver enrollment.", url: "https://www.coveredca.com/apply" },
+      { id: "california-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "california-liheap-energy-assistance",
@@ -853,11 +949,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $1928/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-675-6623 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-energy-application", name: "California Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.csd.ca.gov/Pages/LIHEAP.aspx" },
+    ],
   },
   {
     id: "california-caregiver-resource-centers",
@@ -870,11 +968,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Age 18 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-445-8106 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "california-pace-programs",
@@ -887,11 +987,14 @@ const californiaPrograms: WaiverProgram[] = [
       "Age 55 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-510-2020 to learn about California PACE Programs eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.coveredca.com/apply" },
+      { id: "california-medicaid-application", name: "California Medicaid Application", description: "Medicaid eligibility may be required. Apply through California's portal.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "property-tax-postponement-program",
@@ -905,11 +1008,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $4599/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-952-5661 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-property-tax-application", name: "California Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "california-home-delivered-meals",
@@ -922,11 +1027,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-510-2020 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "250-california-working-disabled-program",
@@ -940,11 +1047,14 @@ const californiaPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-5555 to learn about 250% California Working eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-medicaid-application", name: "California Medicaid Application", description: "Official California Medicaid application, required for waiver enrollment.", url: "https://www.coveredca.com/apply" },
+      { id: "california-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.coveredca.com/apply" },
+    ],
   },
   {
     id: "california-weatherization-assistance-program",
@@ -957,11 +1067,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $2570/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-675-6623 to learn about Weatherization eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-energy-application", name: "California Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.csd.ca.gov/Pages/LIHEAP.aspx" },
+    ],
   },
   {
     id: "california-long-term-care-ombudsman",
@@ -974,11 +1086,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-231-4024 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "california-senior-legal-services",
@@ -991,11 +1105,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-510-2020 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "senior-community-service-employment-program-scsep",
@@ -1009,11 +1125,13 @@ const californiaPrograms: WaiverProgram[] = [
       "Income below $1580/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-510-2020 to learn about SCSEP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "california-scsep-application", name: "Senior Employment Program Application", description: "Apply for part-time community service job training for low-income seniors aged 55+.", url: "https://www.dol.gov/agencies/eta/seniors" },
+    ],
   },
 ];
 
@@ -1033,11 +1151,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-medicaid-application", name: "Colorado Medicaid Application", description: "Official Colorado Medicaid application. Apply online or download a printable form.", url: "https://www.healthfirstcolorado.com/apply-now/" },
+    ],
   },
   {
     id: "elderly-blind-and-disabled-ebd-waiver",
@@ -1053,11 +1173,14 @@ const coloradoPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about EBD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-medicaid-application", name: "Colorado Medicaid Application", description: "Official Colorado Medicaid application, required for waiver enrollment.", url: "https://www.healthfirstcolorado.com/apply-now/" },
+      { id: "colorado-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.healthfirstcolorado.com/apply-now/" },
+    ],
   },
   {
     id: "medicare-buy-in-programs-qmb-slmb-qi",
@@ -1072,11 +1195,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about Medicare Buy-In Programs eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.healthfirstcolorado.com/apply-now/" },
+    ],
   },
   {
     id: "colorado-snap-supplemental-nutrition-assistance-program",
@@ -1090,11 +1215,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-snap-application", name: "Colorado SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://peak-colorado.state.co.us" },
+    ],
   },
   {
     id: "colorado-state-health-insurance-assistance-program-ship",
@@ -1107,11 +1234,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-696-7213 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "colorado-pace-program",
@@ -1127,11 +1256,14 @@ const coloradoPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about Colorado PACE Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.healthfirstcolorado.com/apply-now/" },
+      { id: "colorado-medicaid-application", name: "Colorado Medicaid Application", description: "Medicaid eligibility may be required. Apply through Colorado's portal.", url: "https://www.healthfirstcolorado.com/apply-now/" },
+    ],
   },
   {
     id: "colorado-energy-assistance-program-leap",
@@ -1145,11 +1277,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Income below $2825/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about LEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-energy-application", name: "Colorado Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://cdhs.colorado.gov/leap" },
+    ],
   },
   {
     id: "senior-property-tax-exemption-ptex",
@@ -1163,11 +1297,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Income below $16241/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about PTEX eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-property-tax-application", name: "Colorado Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://www.healthfirstcolorado.com/apply-now/" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -1180,11 +1316,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-667-8747 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -1198,11 +1336,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Income below $2901/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -1216,11 +1356,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Income below $2825/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "colorado-legal-services-for-seniors",
@@ -1234,11 +1376,13 @@ const coloradoPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-221-3943 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "colorado-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -1257,11 +1401,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $1370/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-552-4105 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-medicaid-application", name: "Connecticut Medicaid Application", description: "Official Connecticut Medicaid application. Apply online or download a printable form.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "medicare-savings-program-qmb-slmb-qi",
@@ -1275,11 +1421,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $1400/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-552-4105 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "connecticut-home-care-program-for-elders-chcpe-waiver",
@@ -1294,11 +1442,14 @@ const connecticutPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-552-4105 to learn about CHCPE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-medicaid-application", name: "Connecticut Medicaid Application", description: "Official Connecticut Medicaid application, required for waiver enrollment.", url: "https://www.connect.ct.gov" },
+      { id: "connecticut-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -1312,11 +1463,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-424-1230 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-snap-application", name: "Connecticut SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "connecticut-state-ssi-supplement",
@@ -1331,11 +1484,14 @@ const connecticutPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-552-4105 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "connecticut-ssi-supplement", name: "Connecticut SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "connecticut-pace-program",
@@ -1351,11 +1507,14 @@ const connecticutPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-860-450-7223 to learn about Connecticut PACE Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.connect.ct.gov" },
+      { id: "connecticut-medicaid-application", name: "Connecticut Medicaid Application", description: "Medicaid eligibility may be required. Apply through Connecticut's portal.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "connecticut-property-tax-relief-for-seniors",
@@ -1369,11 +1528,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $33000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-860-297-5962 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-property-tax-application", name: "Connecticut Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "connpace-connecticut-pharmaceutical-assistance",
@@ -1387,11 +1548,14 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $33000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-551-3891 to learn about ConnPace (Connecticut eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.connect.ct.gov" },
+      { id: "connecticut-medicaid-application", name: "Connecticut Medicaid Application", description: "Medicaid eligibility may be required. Apply through Connecticut's portal.", url: "https://www.connect.ct.gov" },
+    ],
   },
   {
     id: "connecticut-energy-assistance-program-ceap",
@@ -1405,11 +1569,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $2800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-842-1508 to learn about CEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-energy-application", name: "Connecticut Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://portal.ct.gov/DSS/Economic-Security/Winter-Heating-Assistance" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program-connecticut",
@@ -1422,11 +1588,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-994-9422 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "connecticut-health-insurance-assistance-program-ship",
@@ -1439,11 +1607,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-994-9422 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "connecticut-home-delivered-meals-program",
@@ -1457,11 +1627,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-994-9422 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "senior-legal-services-elder-law-hotlines",
@@ -1475,11 +1647,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-296-1467 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -1492,11 +1666,13 @@ const connecticutPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-994-9422 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "connecticut-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
 ];
 
@@ -1516,11 +1692,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-852-9089 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-medicaid-application", name: "Delaware Medicaid Application", description: "Official Delaware Medicaid application. Apply online or download a printable form.", url: "https://dhss.delaware.gov/dhss/dmma/medicaid.html" },
+    ],
   },
   {
     id: "diamond-state-health-plan-plus-long-term-care-community-serv",
@@ -1535,11 +1713,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-278-8898 to learn about Diamond State Health Plan eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-medicaid-application", name: "Delaware Medicaid Application", description: "Official Delaware Medicaid application. Apply online or download a printable form.", url: "https://dhss.delaware.gov/dhss/dmma/medicaid.html" },
+    ],
   },
   {
     id: "medicare-savings-program-qmb-slmb-qi",
@@ -1553,11 +1733,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Income below $994/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-852-9089 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://dhss.delaware.gov/dhss/dmma/medicaid.html" },
+    ],
   },
   {
     id: "food-stamp-program-snap",
@@ -1571,11 +1753,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Income below $2081/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-852-9089 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-snap-application", name: "Delaware SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dhss.delaware.gov/dhss/dss/foodstamps.html" },
+    ],
   },
   {
     id: "delaware-energy-assistance-program",
@@ -1589,11 +1773,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Income below $2820/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-292-9511 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-energy-application", name: "Delaware Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dhss.delaware.gov/dhss/dss/liheap.html" },
+    ],
   },
   {
     id: "delaware-ship-medicare-counseling",
@@ -1606,11 +1792,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-852-9089 to learn about Delaware SHIP Medicare eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "delaware-long-term-care-ombudsman-program",
@@ -1623,11 +1811,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-441-6611 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "delaware-home-delivered-meals",
@@ -1641,11 +1831,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Income below $2820/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-441-6611 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program-delaware",
@@ -1659,11 +1851,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Income below $36000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-441-6611 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "delaware-legal-help-link-for-seniors",
@@ -1677,11 +1871,13 @@ const delawarePrograms: WaiverProgram[] = [
       "Income below $3000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-441-6611 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "delaware-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -1700,11 +1896,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Income below $1149/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-963-5337 to learn about MEDS-AD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-medicaid-application", name: "Florida Medicaid Application", description: "Official Florida Medicaid application. Apply online or download a printable form.", url: "https://www.myflfamilies.com/services/public-assistance/medicaid" },
+    ],
   },
   {
     id: "statewide-medicaid-managed-care-long-term-care-smmc-ltc",
@@ -1719,11 +1917,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-963-5337 to learn about SMMC-LTC eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-medicaid-application", name: "Florida Medicaid Application", description: "Official Florida Medicaid application. Apply online or download a printable form.", url: "https://www.myflfamilies.com/services/public-assistance/medicaid" },
+    ],
   },
   {
     id: "medicare-savings-program-qmb-slmb-qi",
@@ -1737,11 +1937,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Income below $1308/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-963-5337 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.myflfamilies.com/services/public-assistance/medicaid" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -1755,11 +1957,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-762-2237 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-snap-application", name: "Florida SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.myflfamilies.com/services/public-assistance/snap" },
+    ],
   },
   {
     id: "shine-serving-health-insurance-needs-of-elders",
@@ -1772,11 +1976,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-963-5337 to learn about SHINE (Serving Health eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -1789,11 +1995,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-963-5337 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -1807,11 +2015,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Income below $2800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-674-6327 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-energy-application", name: "Florida Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.myflfamilies.com/services/public-assistance/liheap" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -1824,11 +2034,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-831-0404 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -1841,11 +2053,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-963-5337 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "legal-services-for-seniors",
@@ -1859,11 +2073,13 @@ const floridaPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-963-5337 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "florida-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -1882,11 +2098,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Income below $994/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-423-4746 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-medicaid-application", name: "Georgia Medicaid Application", description: "Official Georgia Medicaid application. Apply online or download a printable form.", url: "https://gateway.ga.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -1901,11 +2119,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-423-4746 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://gateway.ga.gov" },
+    ],
   },
   {
     id: "elderly-and-disabled-waiver-program-edwp",
@@ -1921,11 +2141,14 @@ const georgiaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-552-4464 to learn about EDWP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-medicaid-application", name: "Georgia Medicaid Application", description: "Official Georgia Medicaid application, required for waiver enrollment.", url: "https://gateway.ga.gov" },
+      { id: "georgia-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://gateway.ga.gov" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -1939,11 +2162,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Income below $1982/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-423-4746 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-snap-application", name: "Georgia SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://gateway.ga.gov" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -1957,11 +2182,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Income below $3090/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-674-6327 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-energy-application", name: "Georgia Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dfcs.georgia.gov/services/low-income-home-energy-assistance-program" },
+    ],
   },
   {
     id: "home-delivered-meals-georgia-elderly-nutrition-program",
@@ -1974,11 +2201,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-552-4464 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "georgia-family-caregiver-support-program",
@@ -1992,11 +2221,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Income below $3465/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-552-4464 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "georgia-senior-medicare-patrol-gsmp",
@@ -2009,11 +2240,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-552-4464 to learn about GSMP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-smp-referral", name: "Senior Medicare Patrol Volunteer/Referral Form", description: "Report suspected Medicare fraud, errors, or abuse, or volunteer as a counselor.", url: "https://www.smpresource.org" },
+    ],
   },
   {
     id: "georgia-legal-services-program-senior-services",
@@ -2027,11 +2260,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Income below $2496/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-833-457-7529 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "georgia-long-term-care-ombudsman-program",
@@ -2044,11 +2279,13 @@ const georgiaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-552-4464 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "georgia-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
 ];
 
@@ -2067,11 +2304,13 @@ const hawaiiPrograms: WaiverProgram[] = [
       "Income below $1500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-321-4848 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "hawaii-medicaid-application", name: "Hawaii Medicaid Application", description: "Official Hawaii Medicaid application. Apply online or download a printable form.", url: "https://medquest.hawaii.gov" },
+    ],
   },
   {
     id: "home-and-community-based-services-hcbs-waiver",
@@ -2086,11 +2325,14 @@ const hawaiiPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-321-4848 to learn about HCBS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "hawaii-medicaid-application", name: "Hawaii Medicaid Application", description: "Official Hawaii Medicaid application, required for waiver enrollment.", url: "https://medquest.hawaii.gov" },
+      { id: "hawaii-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://medquest.hawaii.gov" },
+    ],
   },
   {
     id: "assistance-to-the-aged-blind-and-disabled-aabd",
@@ -2104,11 +2346,13 @@ const hawaiiPrograms: WaiverProgram[] = [
       "Income below $510/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-808-586-5230 to learn about AABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "hawaii-medicaid-application", name: "Hawaii Medicaid Application", description: "Official Hawaii Medicaid application. Apply online or download a printable form.", url: "https://medquest.hawaii.gov" },
+    ],
   },
 ];
 
@@ -2128,11 +2372,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-456-1231 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-medicaid-application", name: "Idaho Medicaid Application", description: "Official Idaho Medicaid application. Apply online or download a printable form.", url: "https://idalink.idaho.gov" },
+    ],
   },
   {
     id: "aged-and-disabled-a-d-waiver",
@@ -2147,11 +2393,14 @@ const idahoPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-456-1231 to learn about A&D eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-medicaid-application", name: "Idaho Medicaid Application", description: "Official Idaho Medicaid application, required for waiver enrollment.", url: "https://idalink.idaho.gov" },
+      { id: "idaho-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://idalink.idaho.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -2165,11 +2414,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Income below $1603/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-456-1231 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://idalink.idaho.gov" },
+    ],
   },
   {
     id: "idaho-supplemental-nutrition-assistance-program-snap",
@@ -2183,11 +2434,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-456-1231 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-snap-application", name: "Idaho SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://idalink.idaho.gov" },
+    ],
   },
   {
     id: "idaho-senior-health-insurance-assistance-program-ship",
@@ -2200,11 +2453,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-247-4422 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -2218,11 +2473,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Income below $3090/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-456-1231 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-energy-application", name: "Idaho Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/low-income-home-energy-assistance-program" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -2235,11 +2492,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-7990 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -2253,11 +2512,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Income below $3090/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-7990 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -2271,11 +2532,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Income below $3090/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-7990 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "idaho-legal-aid-services",
@@ -2289,11 +2552,13 @@ const idahoPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-208-746-7541 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "idaho-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -2313,11 +2578,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-843-6154 to learn about AABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-medicaid-application", name: "Illinois Medicaid Application", description: "Official Illinois Medicaid application. Apply online or download a printable form.", url: "https://abe.illinois.gov/abe/access/" },
+    ],
   },
   {
     id: "hcbs-medicaid-waiver-programs",
@@ -2333,11 +2600,14 @@ const illinoisPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-843-6154 to learn about HCBS Medicaid Waiver Programs eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-medicaid-application", name: "Illinois Medicaid Application", description: "Official Illinois Medicaid application, required for waiver enrollment.", url: "https://abe.illinois.gov/abe/access/" },
+      { id: "illinois-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://abe.illinois.gov/abe/access/" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -2351,11 +2621,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Income below $1304/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-843-6154 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://abe.illinois.gov/abe/access/" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -2369,11 +2641,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-843-6154 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-snap-application", name: "Illinois SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://abe.illinois.gov/abe/access/" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -2389,11 +2663,14 @@ const illinoisPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-8966 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://abe.illinois.gov/abe/access/" },
+      { id: "illinois-medicaid-application", name: "Illinois Medicaid Application", description: "Medicaid eligibility may be required. Apply through Illinois's portal.", url: "https://abe.illinois.gov/abe/access/" },
+    ],
   },
   {
     id: "aid-to-the-aged-blind-and-disabled-aabd-cash-assistance",
@@ -2408,11 +2685,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-843-6154 to learn about AABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-medicaid-application", name: "Illinois Medicaid Application", description: "Official Illinois Medicaid application. Apply online or download a printable form.", url: "https://abe.illinois.gov/abe/access/" },
+    ],
   },
   {
     id: "liheap-low-income-home-energy-assistance-program",
@@ -2426,11 +2705,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-411-9276 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-energy-application", name: "Illinois Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www2.illinois.gov/dceo/CommunityServices/HomeWeatherization/Pages/default.aspx" },
+    ],
   },
   {
     id: "senior-citizens-property-tax-freeze",
@@ -2444,11 +2725,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Income below $75000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call your state agency to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-property-tax-application", name: "Illinois Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://abe.illinois.gov/abe/access/" },
+    ],
   },
   {
     id: "illinois-ship-senior-health-insurance-program",
@@ -2461,11 +2744,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-548-9034 to learn about Illinois SHIP (Senior Health eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -2478,11 +2763,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-8966 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "community-care-program-home-delivered-meals",
@@ -2495,11 +2782,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-8966 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "senior-legal-hotline",
@@ -2513,11 +2802,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-342-7898 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -2530,11 +2821,13 @@ const illinoisPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-8966 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "illinois-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -2554,11 +2847,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-403-0864 to learn about Indiana PathWays for Aging eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-medicaid-application", name: "Indiana Medicaid Application", description: "Official Indiana Medicaid application. Apply online or download a printable form.", url: "https://fssabenefits.in.gov" },
+    ],
   },
   {
     id: "pathways-for-aging-waiver",
@@ -2573,11 +2868,14 @@ const indianaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-403-0864 to learn about PathWays for Aging Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-medicaid-application", name: "Indiana Medicaid Application", description: "Official Indiana Medicaid application, required for waiver enrollment.", url: "https://fssabenefits.in.gov" },
+      { id: "indiana-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://fssabenefits.in.gov" },
+    ],
   },
   {
     id: "hoosier-rx-medicare-savings-programs",
@@ -2591,11 +2889,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Income below $1407/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-403-0864 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://fssabenefits.in.gov" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -2609,11 +2909,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-403-0864 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-snap-application", name: "Indiana SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://fssabenefits.in.gov" },
+    ],
   },
   {
     id: "indiana-senior-health-insurance-assistance-program-ship",
@@ -2626,11 +2928,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-452-4800 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "indiana-energy-assistance-program-ieap",
@@ -2644,11 +2948,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Income below $3092/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-403-0864 to learn about IEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-energy-application", name: "Indiana Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.in.gov/ihcda/homeowners-and-renters/energy-assistance-program/" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program-nfcsp",
@@ -2662,11 +2968,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Income below $3092/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-677-7913 to learn about NFCSP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "indiana-long-term-care-ombudsman-program",
@@ -2679,11 +2987,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-677-7913 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -2697,11 +3007,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-677-7913 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "indiana-legal-services-for-seniors",
@@ -2715,11 +3027,13 @@ const indianaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-986-3150 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "indiana-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -2739,11 +3053,13 @@ const iowaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-338-8366 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "iowa-medicaid-application", name: "Iowa Medicaid Application", description: "Official Iowa Medicaid application. Apply online or download a printable form.", url: "https://dhsservices.iowa.gov" },
+    ],
   },
   {
     id: "nursing-home-medicaid",
@@ -2758,11 +3074,13 @@ const iowaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-338-8366 to learn about Nursing Home Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "iowa-medicaid-application", name: "Iowa Medicaid Application", description: "Official Iowa Medicaid application. Apply online or download a printable form.", url: "https://dhsservices.iowa.gov" },
+    ],
   },
   {
     id: "elderly-waiver-program-hcbs-waiver",
@@ -2777,11 +3095,14 @@ const iowaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-338-8366 to learn about Elderly Waiver Program (HCBS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "iowa-medicaid-application", name: "Iowa Medicaid Application", description: "Official Iowa Medicaid application, required for waiver enrollment.", url: "https://dhsservices.iowa.gov" },
+      { id: "iowa-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://dhsservices.iowa.gov" },
+    ],
   },
 ];
 
@@ -2800,11 +3121,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-792-4884 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-medicaid-application", name: "Kansas Medicaid Application", description: "Official Kansas Medicaid application. Apply online or download a printable form.", url: "https://www.kancare.ks.gov/consumers/apply-for-kancare" },
+    ],
   },
   {
     id: "home-and-community-based-services-for-the-frail-elderly-waiv",
@@ -2819,11 +3142,14 @@ const kansasPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-792-4884 to learn about Home and Community Based eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-medicaid-application", name: "Kansas Medicaid Application", description: "Official Kansas Medicaid application, required for waiver enrollment.", url: "https://www.kancare.ks.gov/consumers/apply-for-kancare" },
+      { id: "kansas-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.kancare.ks.gov/consumers/apply-for-kancare" },
+    ],
   },
   {
     id: "kancare-medicare-buy-in-programs",
@@ -2838,11 +3164,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-792-4884 to learn about KanCare Medicare Buy-In eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.kancare.ks.gov/consumers/apply-for-kancare" },
+    ],
   },
   {
     id: "kansas-food-assistance-program",
@@ -2856,11 +3184,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Income below $1922/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-369-4777 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-snap-application", name: "Kansas SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -2875,11 +3205,14 @@ const kansasPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-792-4884 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.kancare.ks.gov/consumers/apply-for-kancare" },
+      { id: "kansas-medicaid-application", name: "Kansas Medicaid Application", description: "Medicaid eligibility may be required. Apply through Kansas's portal.", url: "https://www.kancare.ks.gov/consumers/apply-for-kancare" },
+    ],
   },
   {
     id: "senior-health-insurance-counseling-for-kansas",
@@ -2892,11 +3225,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-860-5260 to learn about Senior Health Insurance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "low-income-energy-assistance-program",
@@ -2910,11 +3245,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Income below $3091/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-562-2434 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-energy-application", name: "Kansas Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.dcf.ks.gov/services/ees/Pages/Energy/EnergyAssistance.aspx" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -2928,11 +3265,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Income below $3091/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-432-3535 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -2945,11 +3284,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-842-0078 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -2963,11 +3304,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Income below $3091/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-432-3535 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "legal-assistance-for-older-kansans",
@@ -2981,11 +3324,13 @@ const kansasPrograms: WaiverProgram[] = [
       "Income below $3091/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-723-6218 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kansas-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -3004,11 +3349,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Income below $235/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-306-8959 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-medicaid-application", name: "Kentucky Medicaid Application", description: "Official Kentucky Medicaid application. Apply online or download a printable form.", url: "https://kynect.ky.gov" },
+    ],
   },
   {
     id: "home-and-community-based-hcb-waiver",
@@ -3023,11 +3370,14 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-306-8959 to learn about HCB eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-medicaid-application", name: "Kentucky Medicaid Application", description: "Official Kentucky Medicaid application, required for waiver enrollment.", url: "https://kynect.ky.gov" },
+      { id: "kentucky-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://kynect.ky.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs-qmb-slmb-qi",
@@ -3041,11 +3391,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Income below $1400/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-306-8959 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://kynect.ky.gov" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -3059,11 +3411,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-480-4846 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-snap-application", name: "Kentucky SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://kynect.ky.gov" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -3078,11 +3432,14 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-306-8959 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://kynect.ky.gov" },
+      { id: "kentucky-medicaid-application", name: "Kentucky Medicaid Application", description: "Medicaid eligibility may be required. Apply through Kentucky's portal.", url: "https://kynect.ky.gov" },
+    ],
   },
   {
     id: "kentucky-ship-state-health-insurance-assistance-program",
@@ -3095,11 +3452,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-293-7447 to learn about Kentucky SHIP (State Health eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -3113,11 +3472,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Income below $2470/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-456-3452 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-energy-application", name: "Kentucky Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://chfrankfort.org/liheap/" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program-nfcsp",
@@ -3131,11 +3492,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Income below $2470/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-372-2991 to learn about NFCSP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "kentucky-long-term-care-ombudsman-program",
@@ -3148,11 +3511,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-372-2991 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals-dail",
@@ -3166,11 +3531,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Income below $2470/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-372-2991 to learn about DAIL eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "area-agency-on-aging-legal-services",
@@ -3184,11 +3551,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Income below $2470/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-372-2991 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "ky-property-tax-homestead-exemption",
@@ -3203,11 +3572,13 @@ const kentuckyPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-502-564-5731 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "kentucky-property-tax-application", name: "Kentucky Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://kynect.ky.gov" },
+    ],
   },
 ];
 
@@ -3226,11 +3597,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-342-6207 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-medicaid-application", name: "Louisiana Medicaid Application", description: "Official Louisiana Medicaid application. Apply online or download a printable form.", url: "https://www.healthcare.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -3245,11 +3618,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-342-6207 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.healthcare.gov" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -3263,11 +3638,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-997-1119 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-snap-application", name: "Louisiana SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://cafe-cp.dcfs.la.gov" },
+    ],
   },
   {
     id: "adult-day-health-care-waiver",
@@ -3282,11 +3659,14 @@ const louisianaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-783-5553 to learn about Adult Day Health Care Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-medicaid-application", name: "Louisiana Medicaid Application", description: "Official Louisiana Medicaid application, required for waiver enrollment.", url: "https://www.healthcare.gov" },
+      { id: "louisiana-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.healthcare.gov" },
+    ],
   },
   {
     id: "liheap-low-income-home-energy-assistance-program",
@@ -3300,11 +3680,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Income below $2794/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-548-3474 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-energy-application", name: "Louisiana Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.doa.la.gov/doa/lcle/liheap/" },
+    ],
   },
   {
     id: "louisiana-senior-health-insurance-information-program-la-shi",
@@ -3317,11 +3699,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-433-2442 to learn about LA SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "home-delivered-meals-nutrition-program",
@@ -3335,11 +3719,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Income below $2794/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-783-5553 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -3353,11 +3739,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Income below $2794/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-783-5553 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -3370,11 +3758,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-7449 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "louisiana-legal-services",
@@ -3388,11 +3778,13 @@ const louisianaPrograms: WaiverProgram[] = [
       "Income below $1920/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-256-4417 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "louisiana-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -3412,11 +3804,13 @@ const mainePrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-690-5582 to learn about MaineCare Aged, Blind, and eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-medicaid-application", name: "Maine Medicaid Application", description: "Official Maine Medicaid application. Apply online or download a printable form.", url: "https://www.mymaineconnection.gov" },
+    ],
   },
   {
     id: "mainecare-elderly-and-adults-with-disabilities-waiver",
@@ -3431,11 +3825,14 @@ const mainePrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-690-5582 to learn about MaineCare Elderly and Adults eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-medicaid-application", name: "Maine Medicaid Application", description: "Official Maine Medicaid application, required for waiver enrollment.", url: "https://www.mymaineconnection.gov" },
+      { id: "maine-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.mymaineconnection.gov" },
+    ],
   },
   {
     id: "mainecare-medicare-savings-programs",
@@ -3449,11 +3846,13 @@ const mainePrograms: WaiverProgram[] = [
       "Income below $2413/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-690-5582 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.mymaineconnection.gov" },
+    ],
   },
   {
     id: "maine-snap",
@@ -3467,11 +3866,13 @@ const mainePrograms: WaiverProgram[] = [
       "Income below $1924/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-690-5582 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-snap-application", name: "Maine SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.mymaineconnection.gov" },
+    ],
   },
   {
     id: "maine-senior-health-insurance-assistance-program-ship",
@@ -3484,11 +3885,13 @@ const mainePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-262-2237 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "maine-heating-assistance-liheap",
@@ -3502,11 +3905,13 @@ const mainePrograms: WaiverProgram[] = [
       "Income below $2400/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-452-8259 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-energy-application", name: "Maine Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.mainehousing.org/programs-services/energy/energy-home" },
+    ],
   },
   {
     id: "maine-state-ssi-supplement",
@@ -3521,11 +3926,14 @@ const mainePrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-772-1213 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "maine-ssi-supplement", name: "Maine SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://www.mymaineconnection.gov" },
+    ],
   },
   {
     id: "maine-long-term-care-ombudsman-program",
@@ -3538,11 +3946,13 @@ const mainePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-499-9291 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "maine-property-tax-stabilization-for-seniors",
@@ -3556,11 +3966,13 @@ const mainePrograms: WaiverProgram[] = [
       "Income below $40000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-207-626-8400 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-property-tax-application", name: "Maine Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://www.mymaineconnection.gov" },
+    ],
   },
   {
     id: "maine-home-delivered-meals",
@@ -3574,11 +3986,13 @@ const mainePrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-353-2123 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "legal-services-for-maine-s-elders",
@@ -3592,11 +4006,13 @@ const mainePrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-750-5353 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "maine-family-caregiver-support-program",
@@ -3610,11 +4026,13 @@ const mainePrograms: WaiverProgram[] = [
       "Income below $2400/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-353-2123 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maine-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -3633,11 +4051,13 @@ const marylandPrograms: WaiverProgram[] = [
       "Income below $350/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-637-6334 to learn about Maryland Medical Assistance - eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maryland-medicaid-application", name: "Maryland Medicaid Application", description: "Official Maryland Medicaid application. Apply online or download a printable form.", url: "https://www.marylandhealthconnection.gov" },
+    ],
   },
   {
     id: "maryland-medical-assistance-nursing-home-medicaid",
@@ -3650,11 +4070,13 @@ const marylandPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-637-6334 to learn about Maryland Medical Assistance - eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maryland-medicaid-application", name: "Maryland Medicaid Application", description: "Official Maryland Medicaid application. Apply online or download a printable form.", url: "https://www.marylandhealthconnection.gov" },
+    ],
   },
   {
     id: "maryland-medical-assistance-medically-needy-pathway",
@@ -3668,11 +4090,13 @@ const marylandPrograms: WaiverProgram[] = [
       "Income below $350/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-637-6334 to learn about Maryland Medical Assistance - eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maryland-medicaid-application", name: "Maryland Medicaid Application", description: "Official Maryland Medicaid application. Apply online or download a printable form.", url: "https://www.marylandhealthconnection.gov" },
+    ],
   },
   {
     id: "maryland-hcbs-waivers-medicaid-waiver-programs",
@@ -3687,11 +4111,14 @@ const marylandPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-844-253-8694 to learn about Maryland HCBS Waivers - eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maryland-medicaid-application", name: "Maryland Medicaid Application", description: "Official Maryland Medicaid application, required for waiver enrollment.", url: "https://www.marylandhealthconnection.gov" },
+      { id: "maryland-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.marylandhealthconnection.gov" },
+    ],
   },
   {
     id: "maryland-eid-program-employed-individuals-with-disabilities",
@@ -3705,11 +4132,13 @@ const marylandPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-637-6334 to learn about Maryland EID Program - eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "maryland-medicaid-application", name: "Maryland Medicaid Application", description: "Official Maryland Medicaid application. Apply online or download a printable form.", url: "https://www.marylandhealthconnection.gov" },
+    ],
   },
 ];
 
@@ -3728,11 +4157,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $1305/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-841-2900 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-medicaid-application", name: "Massachusetts Medicaid Application", description: "Official Massachusetts Medicaid application. Apply online or download a printable form.", url: "https://www.mahealthconnector.org" },
+    ],
   },
   {
     id: "frail-elder-waiver-few",
@@ -3747,11 +4178,14 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-841-2900 to learn about FEW eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-medicaid-application", name: "Massachusetts Medicaid Application", description: "Official Massachusetts Medicaid application, required for waiver enrollment.", url: "https://www.mahealthconnector.org" },
+      { id: "massachusetts-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.mahealthconnector.org" },
+    ],
   },
   {
     id: "masshealth-buy-in-qmb-slmb-qi",
@@ -3765,11 +4199,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $1305/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-841-2900 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.mahealthconnector.org" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -3783,11 +4219,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $2174/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-382-2363 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-snap-application", name: "Massachusetts SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dtaconnect.eohhs.mass.gov" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -3802,11 +4240,14 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-841-2900 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.mahealthconnector.org" },
+      { id: "massachusetts-medicaid-application", name: "Massachusetts Medicaid Application", description: "Medicaid eligibility may be required. Apply through Massachusetts's portal.", url: "https://www.mahealthconnector.org" },
+    ],
   },
   {
     id: "liheap-low-income-home-energy-assistance-program",
@@ -3820,11 +4261,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $3838/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-642-4276 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-energy-application", name: "Massachusetts Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.mass.gov/info-details/how-to-apply-for-fuel-assistance" },
+    ],
   },
   {
     id: "masshealth-senior-pharmacy-program-spap",
@@ -3839,11 +4282,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-841-2900 to learn about SPAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-pharmacy-application", name: "Massachusetts Prescription Assistance Application", description: "Apply for state pharmaceutical assistance to help cover prescription drug costs.", url: "https://www.mahealthconnector.org" },
+    ],
   },
   {
     id: "ship-state-health-insurance-assistance-program",
@@ -3856,11 +4301,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-243-4636 to learn about SHIP (State Health Insurance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "clause-41c-senior-circuit-breaker-tax-credit",
@@ -3874,11 +4321,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $66000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-617-887-6367 to learn about Clause 41C Senior Circuit eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-property-tax-application", name: "Massachusetts Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://www.mahealthconnector.org" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -3891,11 +4340,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-243-4636 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "state-supplement-to-ssi",
@@ -3909,11 +4360,14 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $1086/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-848-1751 to learn about State Supplement to SSI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "massachusetts-ssi-supplement", name: "Massachusetts SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://www.mahealthconnector.org" },
+    ],
   },
   {
     id: "home-delivered-meals-via-elder-affairs-nutrition-program",
@@ -3927,11 +4381,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $2174/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-243-4636 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "legal-services-for-elders-via-elder-law-projects",
@@ -3945,11 +4401,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $2174/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-243-4636 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -3963,11 +4421,13 @@ const massachusettsPrograms: WaiverProgram[] = [
       "Income below $3838/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-243-4636 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "massachusetts-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -3987,11 +4447,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-789-5610 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-medicaid-application", name: "Michigan Medicaid Application", description: "Official Michigan Medicaid application. Apply online or download a printable form.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "mi-choice-waiver-program",
@@ -4006,11 +4468,14 @@ const michiganPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-789-5610 to learn about MI Choice Waiver Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-medicaid-application", name: "Michigan Medicaid Application", description: "Official Michigan Medicaid application, required for waiver enrollment.", url: "https://newmibridges.michigan.gov" },
+      { id: "michigan-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "medicare-savings-program",
@@ -4024,11 +4489,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Income below $1305/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-789-5610 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "food-assistance-program",
@@ -4042,11 +4509,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Income below $1763/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-275-6424 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-snap-application", name: "Michigan SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "michigan-pace",
@@ -4061,11 +4530,14 @@ const michiganPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-789-5610 to learn about Michigan PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://newmibridges.michigan.gov" },
+      { id: "michigan-medicaid-application", name: "Michigan Medicaid Application", description: "Medicaid eligibility may be required. Apply through Michigan's portal.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "michigan-ship",
@@ -4078,11 +4550,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-803-7174 to learn about Michigan SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "state-emergency-relief",
@@ -4096,11 +4570,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Income below $1763/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-275-6424 to learn about State Emergency Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-medicaid-application", name: "Michigan Medicaid Application", description: "Official Michigan Medicaid application. Apply online or download a printable form.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -4114,11 +4590,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Income below $1763/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-463-3387 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "property-tax-credit-for-seniors",
@@ -4132,11 +4610,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Income below $1763/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-517-636-4486 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-property-tax-application", name: "Michigan Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -4149,11 +4629,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-485-9390 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -4167,11 +4649,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Income below $1763/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-463-3387 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "state-ssi-supplement",
@@ -4186,11 +4670,14 @@ const michiganPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-275-6424 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "michigan-ssi-supplement", name: "Michigan SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://newmibridges.michigan.gov" },
+    ],
   },
   {
     id: "area-agency-on-aging-legal-services",
@@ -4204,11 +4691,13 @@ const michiganPrograms: WaiverProgram[] = [
       "Income below $1763/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-463-3387 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "michigan-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -4228,11 +4717,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3739 to learn about MA eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-medicaid-application", name: "Minnesota Medicaid Application", description: "Official Minnesota Medicaid application. Apply online or download a printable form.", url: "https://mnbenefits.mn.gov" },
+    ],
   },
   {
     id: "elderly-waiver-ew",
@@ -4247,11 +4738,14 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3739 to learn about EW eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-medicaid-application", name: "Minnesota Medicaid Application", description: "Official Minnesota Medicaid application, required for waiver enrollment.", url: "https://mnbenefits.mn.gov" },
+      { id: "minnesota-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://mnbenefits.mn.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -4265,11 +4759,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Income below $1305/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3739 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://mnbenefits.mn.gov" },
+    ],
   },
   {
     id: "minnesota-supplemental-nutrition-assistance-program-snap",
@@ -4283,11 +4779,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Income below $1924/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-328-6399 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-snap-application", name: "Minnesota SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://mnbenefits.mn.gov" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -4303,11 +4801,14 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3739 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://mnbenefits.mn.gov" },
+      { id: "minnesota-medicaid-application", name: "Minnesota Medicaid Application", description: "Medicaid eligibility may be required. Apply through Minnesota's portal.", url: "https://mnbenefits.mn.gov" },
+    ],
   },
   {
     id: "senior-health-insurance-assistance-program-ship",
@@ -4320,11 +4821,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3739 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "minnesota-supplemental-aid-msa",
@@ -4340,11 +4843,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3739 to learn about MSA eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-medicaid-application", name: "Minnesota Medicaid Application", description: "Official Minnesota Medicaid application. Apply online or download a printable form.", url: "https://mnbenefits.mn.gov" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -4358,11 +4863,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Income below $2829/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3710 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-energy-application", name: "Minnesota Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://mn.gov/commerce/consumers/consumer-assistance/energy-assistance/" },
+    ],
   },
   {
     id: "minnesota-property-tax-refund-ptf-for-seniors",
@@ -4376,11 +4883,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Income below $65000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3666 to learn about PTF eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-property-tax-application", name: "Minnesota Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://mnbenefits.mn.gov" },
+    ],
   },
   {
     id: "minnesota-long-term-care-ombudsman-program",
@@ -4393,11 +4902,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-3506 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "senior-nutrition-home-delivered-meals",
@@ -4411,11 +4922,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Income below $2829/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-678-4438 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -4429,11 +4942,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Income below $2829/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-678-4438 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "senior-legal-helpline",
@@ -4447,11 +4962,13 @@ const minnesotaPrograms: WaiverProgram[] = [
       "Income below $2798/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-360-3456 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "minnesota-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -4470,11 +4987,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-421-2408 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-medicaid-application", name: "Mississippi Medicaid Application", description: "Official Mississippi Medicaid application. Apply online or download a printable form.", url: "https://www.medicaid.ms.gov/apply/" },
+    ],
   },
   {
     id: "elderly-and-disabled-waiver",
@@ -4489,11 +5008,14 @@ const mississippiPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-421-2408 to learn about Elderly and Disabled Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-medicaid-application", name: "Mississippi Medicaid Application", description: "Official Mississippi Medicaid application, required for waiver enrollment.", url: "https://www.medicaid.ms.gov/apply/" },
+      { id: "mississippi-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.medicaid.ms.gov/apply/" },
+    ],
   },
   {
     id: "medicare-savings-program",
@@ -4508,11 +5030,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-421-2408 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.medicaid.ms.gov/apply/" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -4526,11 +5050,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Income below $1981/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-948-3050 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-snap-application", name: "Mississippi SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.mdhs.ms.gov/economic-assistance/snap/" },
+    ],
   },
   {
     id: "liheap-low-income-home-energy-assistance-program",
@@ -4544,11 +5070,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Income below $2783/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-421-0762 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-energy-application", name: "Mississippi Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.mdhs.ms.gov/economic-assistance/liheap/" },
+    ],
   },
   {
     id: "mississippi-ship-state-health-insurance-assistance-program",
@@ -4561,11 +5089,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-421-2109 to learn about Mississippi SHIP (State eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "mississippi-home-delivered-meals",
@@ -4579,11 +5109,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Income below $2783/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-948-2400 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -4597,11 +5129,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Income below $2783/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-948-2400 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "mississippi-long-term-care-ombudsman-program",
@@ -4614,11 +5148,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-949-8454 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "mississippi-legal-services-senior-program",
@@ -4632,11 +5168,13 @@ const mississippiPrograms: WaiverProgram[] = [
       "Income below $2783/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-498-1804 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "mississippi-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -4656,11 +5194,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-2161 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-medicaid-application", name: "Missouri Medicaid Application", description: "Official Missouri Medicaid application. Apply online or download a printable form.", url: "https://mydss.mo.gov" },
+    ],
   },
   {
     id: "aged-and-disabled-waiver-adw",
@@ -4675,11 +5215,14 @@ const missouriPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-235-5503 to learn about ADW eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-medicaid-application", name: "Missouri Medicaid Application", description: "Official Missouri Medicaid application, required for waiver enrollment.", url: "https://mydss.mo.gov" },
+      { id: "missouri-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://mydss.mo.gov" },
+    ],
   },
   {
     id: "mo-healthnet-medicare-savings-programs",
@@ -4693,11 +5236,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Income below $1407/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-2161 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://mydss.mo.gov" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -4711,11 +5256,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Income below $1992/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-823-3142 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-snap-application", name: "Missouri SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://mydss.mo.gov" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -4731,11 +5278,14 @@ const missouriPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-235-5503 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://mydss.mo.gov" },
+      { id: "missouri-medicaid-application", name: "Missouri Medicaid Application", description: "Medicaid eligibility may be required. Apply through Missouri's portal.", url: "https://mydss.mo.gov" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -4749,11 +5299,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Income below $2800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-1260 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-energy-application", name: "Missouri Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://mydss.mo.gov/utility-assistance" },
+    ],
   },
   {
     id: "missouri-connecting-to-medicare-ship",
@@ -4766,11 +5318,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-395-5997 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "missouri-property-tax-credit",
@@ -4784,11 +5338,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Income below $30000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-877-6881 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-property-tax-application", name: "Missouri Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://mydss.mo.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -4801,11 +5357,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-392-0210 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "senior-home-delivered-meals",
@@ -4819,11 +5377,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Income below $1690/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-235-5503 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -4837,11 +5397,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Income below $36000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-835-5462 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "missouri-legal-services-for-seniors",
@@ -4855,11 +5417,13 @@ const missouriPrograms: WaiverProgram[] = [
       "Income below $1875/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-255-0056 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "missouri-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -4878,11 +5442,13 @@ const montanaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-8312 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "montana-medicaid-application", name: "Montana Medicaid Application", description: "Official Montana Medicaid application. Apply online or download a printable form.", url: "https://apply.mt.gov" },
+    ],
   },
   {
     id: "big-sky-waiver-program",
@@ -4897,11 +5463,14 @@ const montanaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-8312 to learn about Big Sky Waiver Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "montana-medicaid-application", name: "Montana Medicaid Application", description: "Official Montana Medicaid application, required for waiver enrollment.", url: "https://apply.mt.gov" },
+      { id: "montana-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://apply.mt.gov" },
+    ],
   },
   {
     id: "montana-medicaid-for-workers-with-disabilities",
@@ -4915,11 +5484,13 @@ const montanaPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-8312 to learn about Montana Medicaid for Workers eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "montana-medicaid-application", name: "Montana Medicaid Application", description: "Official Montana Medicaid application. Apply online or download a printable form.", url: "https://apply.mt.gov" },
+    ],
   },
 ];
 
@@ -4939,11 +5510,14 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-430-3244 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-medicaid-application", name: "Nebraska Medicaid Application", description: "Official Nebraska Medicaid application, required for waiver enrollment.", url: "https://dhhs.ne.gov/Pages/Medicaid-Applications.aspx" },
+      { id: "nebraska-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://dhhs.ne.gov/Pages/Medicaid-Applications.aspx" },
+    ],
   },
   {
     id: "nebraska-aged-and-disabled-waiver-hcbs",
@@ -4958,11 +5532,14 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-430-3244 to learn about Nebraska Aged and Disabled eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-medicaid-application", name: "Nebraska Medicaid Application", description: "Official Nebraska Medicaid application, required for waiver enrollment.", url: "https://dhhs.ne.gov/Pages/Medicaid-Applications.aspx" },
+      { id: "nebraska-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://dhhs.ne.gov/Pages/Medicaid-Applications.aspx" },
+    ],
   },
   {
     id: "nebraska-medicare-savings-programs",
@@ -4976,11 +5553,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Income below $1304/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-430-3244 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://dhhs.ne.gov/Pages/Medicaid-Applications.aspx" },
+    ],
   },
   {
     id: "nebraska-supplemental-nutrition-assistance-program-snap",
@@ -4994,11 +5573,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Income below $1982/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-430-3244 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-snap-application", name: "Nebraska SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dhhs.ne.gov/Pages/SNAP.aspx" },
+    ],
   },
   {
     id: "nebraska-senior-health-insurance-assistance-ship",
@@ -5011,11 +5592,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-234-7119 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "nebraska-family-caregiver-support-program",
@@ -5029,11 +5612,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Income below $3675/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-430-3244 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "nebraska-low-income-home-energy-assistance-program-liheap",
@@ -5047,11 +5632,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Income below $2794/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-430-3244 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-energy-application", name: "Nebraska Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dhhs.ne.gov/Pages/Energy-Assistance.aspx" },
+    ],
   },
   {
     id: "nebraska-long-term-care-ombudsman-program",
@@ -5064,11 +5651,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-621-6595 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "nebraska-home-delivered-meals-through-aging-services",
@@ -5082,11 +5671,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Income below $2350/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-430-3244 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "nebraska-legal-aid-for-seniors",
@@ -5100,11 +5691,13 @@ const nebraskaPrograms: WaiverProgram[] = [
       "Income below $2350/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-250-2016 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nebraska-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -5123,11 +5716,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-992-0900 to learn about MAABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-medicaid-application", name: "Nevada Medicaid Application", description: "Official Nevada Medicaid application. Apply online or download a printable form.", url: "https://dwss.nv.gov/Medical/Apply/" },
+    ],
   },
   {
     id: "home-and-community-based-services-hcbs-frail-elderly-waiver",
@@ -5142,11 +5737,14 @@ const nevadaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-992-0900 to learn about HCBS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-medicaid-application", name: "Nevada Medicaid Application", description: "Official Nevada Medicaid application, required for waiver enrollment.", url: "https://dwss.nv.gov/Medical/Apply/" },
+      { id: "nevada-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://dwss.nv.gov/Medical/Apply/" },
+    ],
   },
   {
     id: "medicare-savings-programs-qmb-slmb-qi",
@@ -5160,11 +5758,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-992-0900 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://dwss.nv.gov/Medical/Apply/" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -5178,11 +5778,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Income below $1952/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-992-0900 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-snap-application", name: "Nevada SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dwss.nv.gov/SNAP/" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -5198,11 +5800,14 @@ const nevadaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-992-0900 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://dwss.nv.gov/Medical/Apply/" },
+      { id: "nevada-medicaid-application", name: "Nevada Medicaid Application", description: "Medicaid eligibility may be required. Apply through Nevada's portal.", url: "https://dwss.nv.gov/Medical/Apply/" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -5216,11 +5821,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Income below $2800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-674-3278 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-energy-application", name: "Nevada Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dwss.nv.gov/Energy/" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -5233,11 +5840,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-992-5750 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "nevada-senior-medicare-patrol-ship",
@@ -5250,11 +5859,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-343-4276 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "nevada-long-term-care-ombudsman-program",
@@ -5267,11 +5878,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-546-4783 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals-nevada-senior-services",
@@ -5284,11 +5897,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-992-5750 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "nevada-legal-services-for-seniors",
@@ -5302,11 +5917,13 @@ const nevadaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-862-2952 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "nevada-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -5325,11 +5942,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Income below $2901/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-844-275-3447 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-medicaid-application", name: "New Hampshire Medicaid Application", description: "Official New Hampshire Medicaid application. Apply online or download a printable form.", url: "https://nheasy.nh.gov" },
+    ],
   },
   {
     id: "choices-for-independence-waiver",
@@ -5344,11 +5963,14 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-844-275-3447 to learn about Choices for Independence eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-medicaid-application", name: "New Hampshire Medicaid Application", description: "Official New Hampshire Medicaid application, required for waiver enrollment.", url: "https://nheasy.nh.gov" },
+      { id: "new-hampshire-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://nheasy.nh.gov" },
+    ],
   },
   {
     id: "medicare-savings-program",
@@ -5362,11 +5984,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Income below $1400/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-842-8992 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://nheasy.nh.gov" },
+    ],
   },
   {
     id: "snap-nutrition-assistance",
@@ -5380,11 +6004,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Income below $1920/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-852-3345 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-snap-application", name: "New Hampshire SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://nheasy.nh.gov" },
+    ],
   },
   {
     id: "liheap",
@@ -5398,11 +6024,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Income below $2800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-852-3345 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-energy-application", name: "New Hampshire Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.nh.gov/osi/energy/programs/fuel-assistance.htm" },
+    ],
   },
   {
     id: "shine",
@@ -5415,11 +6043,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-842-8992 to learn about SHINE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "elderly-exemption-property-tax-credit",
@@ -5433,11 +6063,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Income below $3750/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-603-271-2194 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-property-tax-application", name: "New Hampshire Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://nheasy.nh.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -5450,11 +6082,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-949-0470 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -5467,11 +6101,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-634-9378 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -5485,11 +6121,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Income below $3000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-634-9378 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "legal-assistance-for-seniors",
@@ -5503,11 +6141,13 @@ const newHampshirePrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-639-5290 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-hampshire-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -5526,11 +6166,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Income below $998/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-701-0710 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-medicaid-application", name: "New Jersey Medicaid Application", description: "Official New Jersey Medicaid application. Apply online or download a printable form.", url: "https://www.njfamilycare.org/default.aspx" },
+    ],
   },
   {
     id: "nj-familycare-managed-long-term-services-and-supports-mltss-",
@@ -5545,11 +6187,14 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-701-0710 to learn about MLTSS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-medicaid-application", name: "New Jersey Medicaid Application", description: "Official New Jersey Medicaid application, required for waiver enrollment.", url: "https://www.njfamilycare.org/default.aspx" },
+      { id: "new-jersey-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.njfamilycare.org/default.aspx" },
+    ],
   },
   {
     id: "nj-familycare-medicare-savings-programs",
@@ -5564,11 +6209,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-701-0710 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.njfamilycare.org/default.aspx" },
+    ],
   },
   {
     id: "nj-snap-supplemental-nutrition-assistance-program",
@@ -5582,11 +6229,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Income below $1990/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-687-9512 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-snap-application", name: "New Jersey SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.njhelps.org" },
+    ],
   },
   {
     id: "paad-pharmaceutical-assistance-to-the-aged-and-disabled",
@@ -5601,11 +6250,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-882-7537 to learn about PAAD (Pharmaceutical eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-medicaid-application", name: "New Jersey Medicaid Application", description: "Official New Jersey Medicaid application. Apply online or download a printable form.", url: "https://www.njfamilycare.org/default.aspx" },
+    ],
   },
   {
     id: "nj-liheap-low-income-home-energy-assistance-program",
@@ -5619,11 +6270,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Income below $2824/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-510-3102 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-energy-application", name: "New Jersey Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.nj.gov/dca/divisions/dhcr/offices/liheap.html" },
+    ],
   },
   {
     id: "new-jersey-pace-program-of-all-inclusive-care-for-the-elderl",
@@ -5638,11 +6291,14 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-561-4646 to learn about New Jersey PACE (Program of eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.njfamilycare.org/default.aspx" },
+      { id: "new-jersey-medicaid-application", name: "New Jersey Medicaid Application", description: "Medicaid eligibility may be required. Apply through New Jersey's portal.", url: "https://www.njfamilycare.org/default.aspx" },
+    ],
   },
   {
     id: "new-jersey-ship-state-health-insurance-assistance-program",
@@ -5655,11 +6311,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-792-8820 to learn about New Jersey SHIP (State Health eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "new-jersey-senior-freeze-property-tax-reimbursement",
@@ -5673,11 +6331,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Income below $157000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-882-6597 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-property-tax-application", name: "New Jersey Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://www.njfamilycare.org/default.aspx" },
+    ],
   },
   {
     id: "new-jersey-family-caregiver-support-program",
@@ -5691,11 +6351,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Income below $36000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-222-3737 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "new-jersey-long-term-care-ombudsman-program",
@@ -5708,11 +6370,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-582-6995 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "new-jersey-home-delivered-meals",
@@ -5725,11 +6389,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-222-3737 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "new-jersey-ssi-state-supplement",
@@ -5744,11 +6410,14 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-772-1213 to learn about New Jersey SSI State eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "new-jersey-ssi-supplement", name: "New Jersey SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://www.njfamilycare.org/default.aspx" },
+    ],
   },
   {
     id: "new-jersey-senior-legal-services",
@@ -5762,11 +6431,13 @@ const newJerseyPrograms: WaiverProgram[] = [
       "Income below $30000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-576-5529 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-jersey-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -5785,11 +6456,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Income below $2901/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-283-4465 to learn about Centennial Care Aged, Blind, eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-medicaid-application", name: "New Mexico Medicaid Application", description: "Official New Mexico Medicaid application. Apply online or download a printable form.", url: "https://www.yes.state.nm.us" },
+    ],
   },
   {
     id: "qualified-medicare-beneficiary-qmb",
@@ -5804,11 +6477,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-283-4465 to learn about QMB eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.yes.state.nm.us" },
+    ],
   },
   {
     id: "centennial-care-home-and-community-based-services-waiver",
@@ -5823,11 +6498,14 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-400-0936 to learn about Centennial Care Home and eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-medicaid-application", name: "New Mexico Medicaid Application", description: "Official New Mexico Medicaid application, required for waiver enrollment.", url: "https://www.yes.state.nm.us" },
+      { id: "new-mexico-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.yes.state.nm.us" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -5841,11 +6519,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-328-2656 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-snap-application", name: "New Mexico SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.yes.state.nm.us" },
+    ],
   },
   {
     id: "new-mexico-senior-health-insurance-assistance-program-ship",
@@ -5858,11 +6538,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-432-2080 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "new-mexico-long-term-care-ombudsman-program",
@@ -5875,11 +6557,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-543-4636 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -5893,11 +6577,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Income below $3090/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-432-3647 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-energy-application", name: "New Mexico Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.hsd.state.nm.us/LookingForAssistance/Low-Income-Home-Energy-Assistance/" },
+    ],
   },
   {
     id: "new-mexico-home-delivered-meals",
@@ -5910,11 +6596,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-463-3035 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "new-mexico-legal-aid-senior-services",
@@ -5928,11 +6616,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-833-545-4357 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "new-mexico-family-caregiver-support-program",
@@ -5946,11 +6636,13 @@ const newMexicoPrograms: WaiverProgram[] = [
       "Income below $36000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-463-3035 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-mexico-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -5969,11 +6661,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Income below $1800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-2831 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-medicaid-application", name: "New York Medicaid Application", description: "Official New York Medicaid application. Apply online or download a printable form.", url: "https://nystateofhealth.ny.gov" },
+    ],
   },
   {
     id: "medicare-savings-program-qmb-slmb-qi",
@@ -5987,11 +6681,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Income below $1800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-2831 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://nystateofhealth.ny.gov" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -6004,11 +6700,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3009 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-snap-application", name: "New York SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://mybenefits.ny.gov" },
+    ],
   },
   {
     id: "elderly-pharmaceutical-insurance-coverage-epic",
@@ -6022,11 +6720,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Income below $1800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-332-3742 to learn about EPIC eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-pharmacy-application", name: "New York Prescription Assistance Application", description: "Apply for state pharmaceutical assistance to help cover prescription drug costs.", url: "https://nystateofhealth.ny.gov" },
+    ],
   },
   {
     id: "home-and-community-based-services-hcbs-waiver",
@@ -6041,11 +6741,14 @@ const newYorkPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-2831 to learn about HCBS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-medicaid-application", name: "New York Medicaid Application", description: "Official New York Medicaid application, required for waiver enrollment.", url: "https://nystateofhealth.ny.gov" },
+      { id: "new-york-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://nystateofhealth.ny.gov" },
+    ],
   },
   {
     id: "health-insurance-information-counseling-and-assistance-progr",
@@ -6058,11 +6761,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-701-0501 to learn about HIICAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -6075,11 +6780,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3009 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-energy-application", name: "New York Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://otda.ny.gov/programs/heap/" },
+    ],
   },
   {
     id: "state-supplemental-security-income-ssi-supplement",
@@ -6093,11 +6800,14 @@ const newYorkPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3009 to learn about SSI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "new-york-ssi-supplement", name: "New York SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://nystateofhealth.ny.gov" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -6111,11 +6821,14 @@ const newYorkPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-541-2831 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://nystateofhealth.ny.gov" },
+      { id: "new-york-medicaid-application", name: "New York Medicaid Application", description: "Medicaid eligibility may be required. Apply through New York's portal.", url: "https://nystateofhealth.ny.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -6128,11 +6841,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-844-753-3765 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "older-americans-act-nutrition-program-meals-on-wheels",
@@ -6145,11 +6860,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3009 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "property-tax-relief-for-seniors",
@@ -6162,11 +6879,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-518-457-2898 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-property-tax-application", name: "New York Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://nystateofhealth.ny.gov" },
+    ],
   },
   {
     id: "senior-legal-services",
@@ -6179,11 +6898,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3009 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "caregiver-resource-center",
@@ -6196,11 +6917,13 @@ const newYorkPrograms: WaiverProgram[] = [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3009 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "new-york-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -6219,11 +6942,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Income below $1305/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-662-7030 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-medicaid-application", name: "North Carolina Medicaid Application", description: "Official North Carolina Medicaid application. Apply online or download a printable form.", url: "https://epass.nc.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -6238,11 +6963,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-662-7030 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://epass.nc.gov" },
+    ],
   },
   {
     id: "food-and-nutrition-services-snap",
@@ -6256,11 +6983,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Income below $1924/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-662-7030 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-snap-application", name: "North Carolina SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://epass.nc.gov" },
+    ],
   },
   {
     id: "community-alternatives-program-for-disabled-adults-cap-da",
@@ -6276,11 +7005,14 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-662-7030 to learn about CAP/DA eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-medicaid-application", name: "North Carolina Medicaid Application", description: "Official North Carolina Medicaid application, required for waiver enrollment.", url: "https://epass.nc.gov" },
+      { id: "north-carolina-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://epass.nc.gov" },
+    ],
   },
   {
     id: "senior-health-insurance-information-program-shiip",
@@ -6293,11 +7025,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-408-1212 to learn about SHIIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -6313,11 +7047,14 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-662-7030 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://epass.nc.gov" },
+      { id: "north-carolina-medicaid-application", name: "North Carolina Medicaid Application", description: "Medicaid eligibility may be required. Apply through North Carolina's portal.", url: "https://epass.nc.gov" },
+    ],
   },
   {
     id: "low-income-energy-assistance-program-lieap",
@@ -6331,11 +7068,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Income below $2400/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-662-7030 to learn about LIEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-energy-application", name: "North Carolina Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.ncdhhs.gov/assistance/low-income-services/low-income-energy-assistance" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -6349,11 +7088,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Income below $3000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-219-5262 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -6366,11 +7107,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-732-2607 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals-eat-right-to-age-well",
@@ -6384,11 +7127,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-219-5262 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "special-assistance-state-ssi-supplement",
@@ -6403,11 +7148,14 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-662-7030 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "north-carolina-ssi-supplement", name: "North Carolina SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://epass.nc.gov" },
+    ],
   },
   {
     id: "legal-aid-of-north-carolina-senior-legal-services",
@@ -6421,11 +7169,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-219-5262 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "circuit-breaker-property-tax-deferral",
@@ -6439,11 +7189,13 @@ const northCarolinaPrograms: WaiverProgram[] = [
       "Income below $31500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-252-3052 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-carolina-property-tax-application", name: "North Carolina Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://epass.nc.gov" },
+    ],
   },
 ];
 
@@ -6462,11 +7214,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Income below $1200/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-844-854-4825 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-medicaid-application", name: "North Dakota Medicaid Application", description: "Official North Dakota Medicaid application. Apply online or download a printable form.", url: "https://www.applyforhelp.nd.gov" },
+    ],
   },
   {
     id: "home-and-community-based-services-hcbs-waiver",
@@ -6481,11 +7235,14 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-755-2719 to learn about HCBS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-medicaid-application", name: "North Dakota Medicaid Application", description: "Official North Dakota Medicaid application, required for waiver enrollment.", url: "https://www.applyforhelp.nd.gov" },
+      { id: "north-dakota-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.applyforhelp.nd.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -6499,11 +7256,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Income below $1300/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-844-854-4825 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.applyforhelp.nd.gov" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -6517,11 +7276,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-293-9377 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-snap-application", name: "North Dakota SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.applyforhelp.nd.gov" },
+    ],
   },
   {
     id: "liheap-low-income-home-energy-assistance-program",
@@ -6535,11 +7296,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Income below $2825/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-634-5263 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-energy-application", name: "North Dakota Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.applyforhelp.nd.gov" },
+    ],
   },
   {
     id: "senior-medicare-patrol-smp",
@@ -6552,11 +7315,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-308-8947 to learn about SMP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-smp-referral", name: "Senior Medicare Patrol Volunteer/Referral Form", description: "Report suspected Medicare fraud, errors, or abuse, or volunteer as a counselor.", url: "https://www.smpresource.org" },
+    ],
   },
   {
     id: "legal-services-of-north-dakota-senior-legal-helpline",
@@ -6570,11 +7335,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-634-5269 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -6587,11 +7354,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-755-2719 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -6604,11 +7373,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-663-7157 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "senior-dining-services-home-delivered-meals",
@@ -6621,11 +7392,13 @@ const northDakotaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-755-2719 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "north-dakota-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -6644,11 +7417,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Income below $994/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-324-8680 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-medicaid-application", name: "Ohio Medicaid Application", description: "Official Ohio Medicaid application. Apply online or download a printable form.", url: "https://benefits.ohio.gov" },
+    ],
   },
   {
     id: "passport-waiver",
@@ -6663,11 +7438,14 @@ const ohioPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-243-5678 to learn about PASSPORT Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "ohio-ssi-supplement", name: "Ohio SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://benefits.ohio.gov" },
+    ],
   },
   {
     id: "medicare-premium-assistance-programs",
@@ -6682,11 +7460,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-324-8680 to learn about Medicare Premium Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://benefits.ohio.gov" },
+    ],
   },
   {
     id: "ohio-snap",
@@ -6700,11 +7480,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-244-0061 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-snap-application", name: "Ohio SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://benefits.ohio.gov" },
+    ],
   },
   {
     id: "mycare-ohio-pace",
@@ -6720,11 +7502,14 @@ const ohioPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-324-8680 to learn about MyCare Ohio PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://benefits.ohio.gov" },
+      { id: "ohio-medicaid-application", name: "Ohio Medicaid Application", description: "Medicaid eligibility may be required. Apply through Ohio's portal.", url: "https://benefits.ohio.gov" },
+    ],
   },
   {
     id: "ohio-senior-health-insurance-information-program-oshiip",
@@ -6737,11 +7522,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-686-1578 to learn about OSHIIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "liheap",
@@ -6755,11 +7542,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Income below $3092/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-282-0880 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-energy-application", name: "Ohio Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://development.ohio.gov/individual/energy-assistance/home-energy-assistance-program" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -6773,11 +7562,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Income below $3092/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-243-5678 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -6790,11 +7581,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-282-1206 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "homestead-exemption",
@@ -6807,11 +7600,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-857-0060 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-property-tax-application", name: "Ohio Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://benefits.ohio.gov" },
+    ],
   },
   {
     id: "home-delivered-meals-golden-buckeye-nutrition-program",
@@ -6825,11 +7620,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-243-5678 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "ohio-legal-services-for-seniors",
@@ -6843,11 +7640,13 @@ const ohioPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-367-3777 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "ohio-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -6867,11 +7666,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-987-7707 to learn about SoonerCare Aged Blind and eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-medicaid-application", name: "Oklahoma Medicaid Application", description: "Official Oklahoma Medicaid application. Apply online or download a printable form.", url: "https://www.oklahoma.gov/ohca/individuals/apply" },
+    ],
   },
   {
     id: "advantage-waiver-program",
@@ -6886,11 +7687,14 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-435-4711 to learn about ADvantage Waiver Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-medicaid-application", name: "Oklahoma Medicaid Application", description: "Official Oklahoma Medicaid application, required for waiver enrollment.", url: "https://www.oklahoma.gov/ohca/individuals/apply" },
+      { id: "oklahoma-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.oklahoma.gov/ohca/individuals/apply" },
+    ],
   },
   {
     id: "soonercare-medicare-savings-programs",
@@ -6905,11 +7709,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-987-7707 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.oklahoma.gov/ohca/individuals/apply" },
+    ],
   },
   {
     id: "snap-food-benefits",
@@ -6923,11 +7729,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-435-4711 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-snap-application", name: "Oklahoma SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.oklahoma.gov/okdhs/services/snap" },
+    ],
   },
   {
     id: "oklahoma-senior-health-insurance-assistance-program-ship",
@@ -6940,11 +7748,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-522-0078 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -6958,11 +7768,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Income below $2490/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-658-4889 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-energy-application", name: "Oklahoma Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.oklahoma.gov/okdhs/services/cap/liheap" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -6976,11 +7788,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Income below $3120/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-211-2112 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -6993,11 +7807,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-678-4566 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "commodity-supplemental-food-program-csfp-and-home-delivered-",
@@ -7011,11 +7827,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-234-7260 to learn about CSFP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-snap-application", name: "Oklahoma SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.oklahoma.gov/okdhs/services/snap" },
+    ],
   },
   {
     id: "legal-aid-services-of-oklahoma-senior-legal-hotline",
@@ -7029,11 +7847,13 @@ const oklahomaPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-222-5297 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oklahoma-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -7053,11 +7873,14 @@ const oregonPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-273-0557 to learn about APD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oregon-medicaid-application", name: "Oregon Medicaid Application", description: "Official Oregon Medicaid application, required for waiver enrollment.", url: "https://one.oregon.gov" },
+      { id: "oregon-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://one.oregon.gov" },
+    ],
   },
   {
     id: "oregon-project-independence-medicaid-opi-m",
@@ -7071,11 +7894,13 @@ const oregonPrograms: WaiverProgram[] = [
       "Income below $4800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-273-0557 to learn about OPI-M eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oregon-medicaid-application", name: "Oregon Medicaid Application", description: "Official Oregon Medicaid application. Apply online or download a printable form.", url: "https://one.oregon.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -7088,11 +7913,13 @@ const oregonPrograms: WaiverProgram[] = [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-273-0557 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "oregon-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -7111,11 +7938,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $988/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-692-7462 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-medicaid-application", name: "Pennsylvania Medicaid Application", description: "Official Pennsylvania Medicaid application. Apply online or download a printable form.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "community-healthchoices",
@@ -7130,11 +7959,14 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-692-7462 to learn about Community HealthChoices eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-medicaid-application", name: "Pennsylvania Medicaid Application", description: "Official Pennsylvania Medicaid application, required for waiver enrollment.", url: "https://www.compass.state.pa.us" },
+      { id: "pennsylvania-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -7148,11 +7980,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $1400/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-692-7462 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "snap",
@@ -7166,11 +8000,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-692-7462 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-snap-application", name: "Pennsylvania SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "pennsylvania-life-program-pace",
@@ -7185,11 +8021,14 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-692-7462 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.compass.state.pa.us" },
+      { id: "pennsylvania-medicaid-application", name: "Pennsylvania Medicaid Application", description: "Medicaid eligibility may be required. Apply through Pennsylvania's portal.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "pharmaceutical-assistance-contract-for-the-elderly-pace",
@@ -7203,11 +8042,14 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $3350/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-225-7223 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.compass.state.pa.us" },
+      { id: "pennsylvania-medicaid-application", name: "Pennsylvania Medicaid Application", description: "Medicaid eligibility may be required. Apply through Pennsylvania's portal.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "liheap",
@@ -7221,11 +8063,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-557-2555 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-energy-application", name: "Pennsylvania Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "pennsylvania-ship",
@@ -7238,11 +8082,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-783-7067 to learn about Pennsylvania SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "property-tax-rent-rebate-program",
@@ -7256,11 +8102,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $16000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-222-9190 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-property-tax-application", name: "Pennsylvania Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -7273,11 +8121,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-783-8048 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -7291,11 +8141,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-753-8827 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -7309,11 +8161,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $3000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-717-783-1550 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "state-ssi-supplement",
@@ -7328,11 +8182,14 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-692-7462 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "pennsylvania-ssi-supplement", name: "Pennsylvania SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://www.compass.state.pa.us" },
+    ],
   },
   {
     id: "pennsylvania-legal-aid-network-senior-legal-services",
@@ -7346,11 +8203,13 @@ const pennsylvaniaPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-327-9250 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "pennsylvania-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -7370,11 +8229,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-697-4347 to learn about EAD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-medicaid-application", name: "Rhode Island Medicaid Application", description: "Official Rhode Island Medicaid application. Apply online or download a printable form.", url: "https://healthyrhode.ri.gov" },
+    ],
   },
   {
     id: "long-term-services-and-supports-ltss-waiver",
@@ -7389,11 +8250,14 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-697-4347 to learn about LTSS eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-medicaid-application", name: "Rhode Island Medicaid Application", description: "Official Rhode Island Medicaid application, required for waiver enrollment.", url: "https://healthyrhode.ri.gov" },
+      { id: "rhode-island-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://healthyrhode.ri.gov" },
+    ],
   },
   {
     id: "rhode-island-medicare-savings-program",
@@ -7407,11 +8271,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Income below $1304/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-697-4347 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://healthyrhode.ri.gov" },
+    ],
   },
   {
     id: "rhode-island-snap",
@@ -7425,11 +8291,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Income below $1924/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-697-4347 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-snap-application", name: "Rhode Island SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://healthyrhode.ri.gov" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -7444,11 +8312,14 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-697-4347 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://healthyrhode.ri.gov" },
+      { id: "rhode-island-medicaid-application", name: "Rhode Island Medicaid Application", description: "Medicaid eligibility may be required. Apply through Rhode Island's portal.", url: "https://healthyrhode.ri.gov" },
+    ],
   },
   {
     id: "rhode-island-liheap",
@@ -7462,11 +8333,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Income below $3333/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-851-1660 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-energy-application", name: "Rhode Island Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dhs.ri.gov/programs-and-services/energy-assistance-programs" },
+    ],
   },
   {
     id: "rhode-island-state-ssi-supplement",
@@ -7481,11 +8354,14 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-697-4347 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "rhode-island-ssi-supplement", name: "Rhode Island SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://healthyrhode.ri.gov" },
+    ],
   },
   {
     id: "rhode-island-ship",
@@ -7498,11 +8374,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-462-9702 to learn about Rhode Island SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "rhode-island-property-tax-relief-for-seniors",
@@ -7516,11 +8394,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Income below $35750/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-401-574-8970 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-property-tax-application", name: "Rhode Island Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://healthyrhode.ri.gov" },
+    ],
   },
   {
     id: "rhode-island-long-term-care-ombudsman-program",
@@ -7533,11 +8413,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-401-462-4444 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "meals-on-wheels-rhode-island",
@@ -7551,11 +8433,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Income below $1924/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-401-331-2829 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "rhode-island-family-caregiver-support-program",
@@ -7569,11 +8453,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Income below $3333/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-292-2600 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "rhode-island-legal-services-senior-law-project",
@@ -7587,11 +8473,13 @@ const rhodeIslandPrograms: WaiverProgram[] = [
       "Income below $1924/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-499-1979 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "rhode-island-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -7610,11 +8498,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Income below $1305/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (888) 549-0820 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-medicaid-application", name: "South Carolina Medicaid Application", description: "Official South Carolina Medicaid application. Apply online or download a printable form.", url: "https://apply.scdhhs.gov" },
+    ],
   },
   {
     id: "community-choices-waiver",
@@ -7629,11 +8519,14 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (888) 549-0820 to learn about Community Choices Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-medicaid-application", name: "South Carolina Medicaid Application", description: "Official South Carolina Medicaid application, required for waiver enrollment.", url: "https://apply.scdhhs.gov" },
+      { id: "south-carolina-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://apply.scdhhs.gov" },
+    ],
   },
   {
     id: "healthy-connections-medicare-savings-programs",
@@ -7647,11 +8540,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Income below $1305/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (888) 549-0820 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://apply.scdhhs.gov" },
+    ],
   },
   {
     id: "snap-supplemental-nutrition-assistance-program",
@@ -7665,11 +8560,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-476-3663 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-snap-application", name: "South Carolina SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dss.sc.gov/assistance/snap/" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -7684,11 +8581,14 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call (888) 549-0820 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://apply.scdhhs.gov" },
+      { id: "south-carolina-medicaid-application", name: "South Carolina Medicaid Application", description: "Medicaid eligibility may be required. Apply through South Carolina's portal.", url: "https://apply.scdhhs.gov" },
+    ],
   },
   {
     id: "south-carolina-ship",
@@ -7701,11 +8601,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-949-1003 to learn about South Carolina SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "liheap-low-income-home-energy-assistance-program",
@@ -7719,11 +8621,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Income below $2800/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-675-6623 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-energy-application", name: "South Carolina Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dss.sc.gov/assistance/liheap/" },
+    ],
   },
   {
     id: "south-carolina-long-term-care-ombudsman-program",
@@ -7736,11 +8640,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-616-1762 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals-sc-department-on-aging",
@@ -7754,11 +8660,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-616-1762 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -7772,11 +8680,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Income below $3000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-616-1762 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "south-carolina-legal-services-senior-legal-services",
@@ -7790,11 +8700,13 @@ const southCarolinaPrograms: WaiverProgram[] = [
       "Income below $2200/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-346-5592 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-carolina-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -7813,11 +8725,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-305-3064 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-medicaid-application", name: "South Dakota Medicaid Application", description: "Official South Dakota Medicaid application. Apply online or download a printable form.", url: "https://dss.sd.gov/medicaid/eligibility/apply.aspx" },
+    ],
   },
   {
     id: "hope-waiver",
@@ -7832,11 +8746,14 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-305-3064 to learn about HOPE Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-medicaid-application", name: "South Dakota Medicaid Application", description: "Official South Dakota Medicaid application, required for waiver enrollment.", url: "https://dss.sd.gov/medicaid/eligibility/apply.aspx" },
+      { id: "south-dakota-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://dss.sd.gov/medicaid/eligibility/apply.aspx" },
+    ],
   },
   {
     id: "medicare-savings-program",
@@ -7850,11 +8767,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-305-3064 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://dss.sd.gov/medicaid/eligibility/apply.aspx" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -7868,11 +8787,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Income below $1981/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-382-2180 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-snap-application", name: "South Dakota SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dss.sd.gov/economic-assistance/snap/" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -7886,11 +8807,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Income below $2798/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-605-773-4225 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-energy-application", name: "South Dakota Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dss.sd.gov/economic-assistance/energy-assistance/" },
+    ],
   },
   {
     id: "south-dakota-senior-health-insurance-assistance-program-ship",
@@ -7903,11 +8826,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-748-3447 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -7920,11 +8845,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-748-3447 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -7937,11 +8864,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-748-3447 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -7954,11 +8883,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-748-3447 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "senior-legal-services",
@@ -7972,11 +8903,13 @@ const southDakotaPrograms: WaiverProgram[] = [
       "Income below $2798/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-658-3529 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "south-dakota-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -7996,11 +8929,14 @@ const tennesseePrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3145 to learn about TennCare CHOICES in Long-Term eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-medicaid-application", name: "Tennessee Medicaid Application", description: "Official Tennessee Medicaid application, required for waiver enrollment.", url: "https://www.tn.gov/tenncare/members/apply.html" },
+      { id: "tennessee-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.tn.gov/tenncare/members/apply.html" },
+    ],
   },
   {
     id: "tenncare-medicare-savings-programs",
@@ -8014,11 +8950,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Income below $1605/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-235-6847 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.tn.gov/tenncare/members/apply.html" },
+    ],
   },
   {
     id: "tenncare-choices-hcbs-waiver",
@@ -8033,11 +8971,14 @@ const tennesseePrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-342-3145 to learn about TennCare CHOICES HCBS Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-medicaid-application", name: "Tennessee Medicaid Application", description: "Official Tennessee Medicaid application, required for waiver enrollment.", url: "https://www.tn.gov/tenncare/members/apply.html" },
+      { id: "tennessee-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.tn.gov/tenncare/members/apply.html" },
+    ],
   },
   {
     id: "tennessee-snap-supplemental-nutrition-assistance-program",
@@ -8051,11 +8992,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-311-4287 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-snap-application", name: "Tennessee SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://fabenefits.tn.gov" },
+    ],
   },
   {
     id: "tennessee-state-health-insurance-assistance-program-ship",
@@ -8068,11 +9011,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-801-0795 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "tennessee-liheap-low-income-home-energy-assistance-program",
@@ -8086,11 +9031,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Income below $3092/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-674-6327 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-energy-application", name: "Tennessee Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.tn.gov/humanservices/for-families/supplemental-nutrition-assistance-program-snap/liheap.html" },
+    ],
   },
   {
     id: "tennessee-long-term-care-ombudsman-program",
@@ -8103,11 +9050,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-848-6540 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "tennessee-home-delivered-meals",
@@ -8121,11 +9070,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-836-4752 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "tennessee-family-caregiver-support-program",
@@ -8139,11 +9090,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-836-4752 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "tennessee-senior-legal-services",
@@ -8157,11 +9110,13 @@ const tennesseePrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-836-4752 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "tennessee-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -8180,11 +9135,14 @@ const texasPrograms: WaiverProgram[] = [
       "Income below $2901/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-782-6440 to learn about STAR+PLUS Home and eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Official Texas Medicaid application, required for waiver enrollment.", url: "https://www.yourtexasbenefits.com" },
+      { id: "texas-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.yourtexasbenefits.com" },
+    ],
   },
   {
     id: "texas-medicare-savings-programs",
@@ -8197,11 +9155,13 @@ const texasPrograms: WaiverProgram[] = [
       "Income below $1781/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.yourtexasbenefits.com" },
+    ],
   },
   {
     id: "texas-snap-food-benefits",
@@ -8214,11 +9174,13 @@ const texasPrograms: WaiverProgram[] = [
       "Income below $1580/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 2-1-1 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-snap-application", name: "Texas SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.yourtexasbenefits.com" },
+    ],
   },
   {
     id: "texas-medicaid-for-the-elderly-and-people-with-disabilities",
@@ -8232,11 +9194,13 @@ const texasPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Texas Medicaid for the eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Official Texas Medicaid application. Apply online or download a printable form.", url: "https://www.yourtexasbenefits.com" },
+    ],
   },
   {
     id: "texas-ship-medicare-counseling",
@@ -8249,11 +9213,13 @@ const texasPrograms: WaiverProgram[] = [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Texas SHIP Medicare Counseling eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "texas-comprehensive-energy-assistance-program-ceap-liheap",
@@ -8266,11 +9232,13 @@ const texasPrograms: WaiverProgram[] = [
       "Income below $1928/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 2-1-1 to learn about CEAP/LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-energy-application", name: "Texas Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.tdhca.state.tx.us/community-affairs/ceap/" },
+    ],
   },
   {
     id: "primary-home-care-community-care",
@@ -8283,11 +9251,14 @@ const texasPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Primary Home Care (Community eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Official Texas Medicaid application, required for waiver enrollment.", url: "https://www.yourtexasbenefits.com" },
+      { id: "texas-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.yourtexasbenefits.com" },
+    ],
   },
   {
     id: "texas-respite-care-services",
@@ -8300,11 +9271,13 @@ const texasPrograms: WaiverProgram[] = [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Respite Care eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "texas-meals-on-wheels",
@@ -8317,11 +9290,13 @@ const texasPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "texas-pace-programs",
@@ -8334,11 +9309,14 @@ const texasPrograms: WaiverProgram[] = [
       "Age 55 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 512-487-3450 to learn about Texas PACE Programs eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.yourtexasbenefits.com" },
+      { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Medicaid eligibility may be required. Apply through Texas's portal.", url: "https://www.yourtexasbenefits.com" },
+    ],
   },
   {
     id: "texas-long-term-care-ombudsman",
@@ -8351,11 +9329,13 @@ const texasPrograms: WaiverProgram[] = [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-2412 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "texas-weatherization-assistance-program",
@@ -8368,11 +9348,13 @@ const texasPrograms: WaiverProgram[] = [
       "Income below $2570/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 2-1-1 to learn about Weatherization eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-energy-application", name: "Texas Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.tdhca.state.tx.us/community-affairs/ceap/" },
+    ],
   },
   {
     id: "texas-legal-services-for-seniors",
@@ -8385,11 +9367,13 @@ const texasPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "texas-senior-companion-program",
@@ -8402,11 +9386,13 @@ const texasPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about Texas Senior Companion Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-scsep-application", name: "Senior Employment Program Application", description: "Apply for part-time community service job training for low-income seniors aged 55+.", url: "https://www.dol.gov/agencies/eta/seniors" },
+    ],
   },
   {
     id: "senior-community-service-employment-program-scsep",
@@ -8420,11 +9406,13 @@ const texasPrograms: WaiverProgram[] = [
       "Income below $1580/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-252-9240 to learn about SCSEP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "texas-scsep-application", name: "Senior Employment Program Application", description: "Apply for part-time community service job training for low-income seniors aged 55+.", url: "https://www.dol.gov/agencies/eta/seniors" },
+    ],
   },
 ];
 
@@ -8443,11 +9431,13 @@ const utahPrograms: WaiverProgram[] = [
       "Income below $1255/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-801-538-6155 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "utah-medicaid-application", name: "Utah Medicaid Application", description: "Official Utah Medicaid application. Apply online or download a printable form.", url: "https://jobs.utah.gov/mycase/" },
+    ],
   },
   {
     id: "aging-waiver-home-and-community-based-services",
@@ -8462,11 +9452,14 @@ const utahPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-801-538-3910 to learn about Aging Waiver (Home and eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "utah-medicaid-application", name: "Utah Medicaid Application", description: "Official Utah Medicaid application, required for waiver enrollment.", url: "https://jobs.utah.gov/mycase/" },
+      { id: "utah-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://jobs.utah.gov/mycase/" },
+    ],
   },
   {
     id: "medicaid-expansion",
@@ -8479,11 +9472,13 @@ const utahPrograms: WaiverProgram[] = [
       "Income below $1467/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-801-538-6155 to learn about Medicaid Expansion eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "utah-medicaid-application", name: "Utah Medicaid Application", description: "Official Utah Medicaid application. Apply online or download a printable form.", url: "https://jobs.utah.gov/mycase/" },
+    ],
   },
   {
     id: "new-choices-waiver",
@@ -8497,11 +9492,14 @@ const utahPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-801-538-6155 to learn about New Choices Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "utah-medicaid-application", name: "Utah Medicaid Application", description: "Official Utah Medicaid application, required for waiver enrollment.", url: "https://jobs.utah.gov/mycase/" },
+      { id: "utah-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://jobs.utah.gov/mycase/" },
+    ],
   },
   {
     id: "physical-disabilities-waiver",
@@ -8516,11 +9514,14 @@ const utahPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-801-538-6155 to learn about Physical Disabilities Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "utah-medicaid-application", name: "Utah Medicaid Application", description: "Official Utah Medicaid application, required for waiver enrollment.", url: "https://jobs.utah.gov/mycase/" },
+      { id: "utah-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://jobs.utah.gov/mycase/" },
+    ],
   },
 ];
 
@@ -8540,11 +9541,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 855-899-9600 to learn about MABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-medicaid-application", name: "Vermont Medicaid Application", description: "Official Vermont Medicaid application. Apply online or download a printable form.", url: "https://vermontbenefits.gov" },
+    ],
   },
   {
     id: "choices-for-care-hcbs-waiver",
@@ -8559,11 +9562,14 @@ const vermontPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 855-899-9600 to learn about Choices for Care HCBS Waiver eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-medicaid-application", name: "Vermont Medicaid Application", description: "Official Vermont Medicaid application, required for waiver enrollment.", url: "https://vermontbenefits.gov" },
+      { id: "vermont-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://vermontbenefits.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs-qmb-slmb-qi",
@@ -8577,11 +9583,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Income below $1333/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 855-899-9600 to learn about QMB/SLMB/QI eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://vermontbenefits.gov" },
+    ],
   },
   {
     id: "3squares-vermont-snap",
@@ -8595,11 +9603,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Income below $1924/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-479-6151 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-snap-application", name: "Vermont SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dcf.vermont.gov/benefits/3SquaresVT" },
+    ],
   },
   {
     id: "state-ssi-supplement-essential-person-benefit",
@@ -8614,11 +9624,14 @@ const vermontPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-479-6151 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "vermont-ssi-supplement", name: "Vermont SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://vermontbenefits.gov" },
+    ],
   },
   {
     id: "general-assistance-fuel",
@@ -8632,11 +9645,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Income below $3095/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-649-5774 to learn about General Assistance Fuel eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-medicaid-application", name: "Vermont Medicaid Application", description: "Official Vermont Medicaid application. Apply online or download a printable form.", url: "https://vermontbenefits.gov" },
+    ],
   },
   {
     id: "property-tax-adjustment-renter-property-tax-credit",
@@ -8650,11 +9665,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Income below $47000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 802-828-2865 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-property-tax-application", name: "Vermont Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://vermontbenefits.gov" },
+    ],
   },
   {
     id: "health-care-navigator-ship",
@@ -8667,11 +9684,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-642-5116 to learn about SHIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -8684,11 +9703,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-745-2255 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -8702,11 +9723,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Income below $3095/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-642-5116 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "legal-services-for-older-vermonters",
@@ -8720,11 +9743,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Income below $3095/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-642-5116 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -8737,11 +9762,13 @@ const vermontPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-642-5116 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "vermont-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -8760,11 +9787,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Income below $1781/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-242-8282 to learn about ABD eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-medicaid-application", name: "Virginia Medicaid Application", description: "Official Virginia Medicaid application. Apply online or download a printable form.", url: "https://commonhelp.virginia.gov" },
+    ],
   },
   {
     id: "medicare-savings-programs-qmb-slmb-qi",
@@ -8778,11 +9807,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Income below $1781/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-242-8282 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://commonhelp.virginia.gov" },
+    ],
   },
   {
     id: "commonwealth-coordinated-care-plus-ccc-plus-waiver",
@@ -8797,11 +9828,14 @@ const virginiaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-242-8282 to learn about Commonwealth Coordinated Care eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-medicaid-application", name: "Virginia Medicaid Application", description: "Official Virginia Medicaid application, required for waiver enrollment.", url: "https://commonhelp.virginia.gov" },
+      { id: "virginia-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://commonhelp.virginia.gov" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -8815,11 +9849,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Income below $1980/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-552-3431 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-snap-application", name: "Virginia SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://commonhelp.virginia.gov" },
+    ],
   },
   {
     id: "program-of-all-inclusive-care-for-the-elderly-pace",
@@ -8835,11 +9871,14 @@ const virginiaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-242-8282 to learn about PACE eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://commonhelp.virginia.gov" },
+      { id: "virginia-medicaid-application", name: "Virginia Medicaid Application", description: "Medicaid eligibility may be required. Apply through Virginia's portal.", url: "https://commonhelp.virginia.gov" },
+    ],
   },
   {
     id: "virginia-insurance-counseling-and-assistance-program-vicap",
@@ -8852,11 +9891,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-552-3402 to learn about VICAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "low-income-home-energy-assistance-program-liheap",
@@ -8870,11 +9911,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Income below $2355/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-552-3431 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-energy-application", name: "Virginia Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.dss.virginia.gov/benefit/ea/" },
+    ],
   },
   {
     id: "virginia-family-caregiver-support-program",
@@ -8888,11 +9931,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Income below $32500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-552-3402 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "virginia-long-term-care-ombudsman-program",
@@ -8905,11 +9950,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-552-3402 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "virginia-home-delivered-meals-program",
@@ -8922,11 +9969,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-552-3402 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "virginia-property-tax-exemption-for-elderly-disabled",
@@ -8940,11 +9989,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Income below $50000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-804-367-8500 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-property-tax-application", name: "Virginia Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://commonhelp.virginia.gov" },
+    ],
   },
   {
     id: "virginia-senior-citizens-law-project",
@@ -8958,11 +10009,13 @@ const virginiaPrograms: WaiverProgram[] = [
       "Income below $2355/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-868-3434 to learn about Virginia Senior Citizens Law eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "virginia-medicaid-application", name: "Virginia Medicaid Application", description: "Official Virginia Medicaid application. Apply online or download a printable form.", url: "https://commonhelp.virginia.gov" },
+    ],
   },
 ];
 
@@ -8981,11 +10034,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-562-3022 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-medicaid-application", name: "Washington Medicaid Application", description: "Official Washington Medicaid application. Apply online or download a printable form.", url: "https://www.washingtonconnection.org" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -8999,11 +10054,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-562-3022 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.washingtonconnection.org" },
+    ],
   },
   {
     id: "basic-food-program",
@@ -9017,11 +10074,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Income below $2212/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-501-2233 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-snap-application", name: "Washington SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.washingtonconnection.org" },
+    ],
   },
   {
     id: "tailored-supports-for-older-adults",
@@ -9035,11 +10094,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Income below $2901/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-855-643-0659 to learn about Tailored Supports for Older eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-medicaid-application", name: "Washington Medicaid Application", description: "Official Washington Medicaid application. Apply online or download a printable form.", url: "https://www.washingtonconnection.org" },
+    ],
   },
   {
     id: "washington-state-health-insurance-assistance-program",
@@ -9052,11 +10113,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-562-6900 to learn about Washington State Health eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-medicaid-application", name: "Washington Medicaid Application", description: "Official Washington Medicaid application. Apply online or download a printable form.", url: "https://www.washingtonconnection.org" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -9069,11 +10132,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-562-6028 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "washington-energy-assistance-program",
@@ -9087,11 +10152,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Income below $3095/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-374-6371 to learn about Energy Assistance eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-energy-application", name: "Washington Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.commerce.wa.gov/growing-the-economy/energy/low-income-home-energy-assistance/" },
+    ],
   },
   {
     id: "senior-legal-services",
@@ -9105,11 +10172,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Income below $2350/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-888-201-1014 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "family-caregiver-support-program",
@@ -9122,11 +10191,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-789-1903 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -9139,11 +10210,13 @@ const washingtonPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-422-3263 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "washington-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -9162,11 +10235,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-598-5820 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-medicaid-application", name: "West Virginia Medicaid Application", description: "Official West Virginia Medicaid application. Apply online or download a printable form.", url: "https://dhhr.wv.gov/bms/Pages/Apply-For-Medicaid.aspx" },
+    ],
   },
   {
     id: "aged-and-disabled-waiver-adw",
@@ -9181,11 +10256,14 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-304-558-3317 to learn about ADW eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-medicaid-application", name: "West Virginia Medicaid Application", description: "Official West Virginia Medicaid application, required for waiver enrollment.", url: "https://dhhr.wv.gov/bms/Pages/Apply-For-Medicaid.aspx" },
+      { id: "west-virginia-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://dhhr.wv.gov/bms/Pages/Apply-For-Medicaid.aspx" },
+    ],
   },
   {
     id: "medicare-savings-program",
@@ -9199,11 +10277,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-598-5820 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://dhhr.wv.gov/bms/Pages/Apply-For-Medicaid.aspx" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -9217,11 +10297,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Income below $1922/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-877-211-0030 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-snap-application", name: "West Virginia SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dhhr.wv.gov/bcf/Services/Pages/SNAP.aspx" },
+    ],
   },
   {
     id: "low-income-energy-assistance-program-lieap",
@@ -9235,11 +10317,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Income below $2811/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-642-8589 to learn about LIEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-energy-application", name: "West Virginia Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dhhr.wv.gov/bcf/Services/Pages/LIEAP.aspx" },
+    ],
   },
   {
     id: "west-virginia-senior-medicare-patrol-smp",
@@ -9252,11 +10336,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-561-4406 to learn about SMP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-smp-referral", name: "Senior Medicare Patrol Volunteer/Referral Form", description: "Report suspected Medicare fraud, errors, or abuse, or volunteer as a counselor.", url: "https://www.smpresource.org" },
+    ],
   },
   {
     id: "west-virginia-long-term-care-ombudsman-program",
@@ -9269,11 +10355,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-352-6513 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -9286,11 +10374,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-352-6513 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -9303,11 +10393,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-332-6338 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "legal-services-senior-legal-services",
@@ -9321,11 +10413,13 @@ const westVirginiaPrograms: WaiverProgram[] = [
       "Income below $2070/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-866-662-9311 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "west-virginia-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -9344,11 +10438,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $1050/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-3002 to learn about Medicaid for the Elderly, eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-medicaid-application", name: "Wisconsin Medicaid Application", description: "Official Wisconsin Medicaid application. Apply online or download a printable form.", url: "https://access.wisconsin.gov" },
+    ],
   },
   {
     id: "family-care-iris-and-partnership-waivers",
@@ -9363,11 +10459,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-3002 to learn about Family Care IRIS and eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -9381,11 +10479,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $1300/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-3002 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://access.wisconsin.gov" },
+    ],
   },
   {
     id: "foodshare",
@@ -9399,11 +10499,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $1981/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-3002 to learn about SNAP/Food eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-snap-application", name: "Wisconsin SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://access.wisconsin.gov" },
+    ],
   },
   {
     id: "wisconsin-pace-program",
@@ -9419,11 +10521,14 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-3002 to learn about Wisconsin PACE Program eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://access.wisconsin.gov" },
+      { id: "wisconsin-medicaid-application", name: "Wisconsin Medicaid Application", description: "Medicaid eligibility may be required. Apply through Wisconsin's portal.", url: "https://access.wisconsin.gov" },
+    ],
   },
   {
     id: "wisconsin-ship-senior-health-insurance-assistance-program",
@@ -9436,11 +10541,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-242-1060 to learn about Wisconsin SHIP (Senior Health eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "wisconsin-seniorcare",
@@ -9454,11 +10561,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $2825/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-657-2030 to learn about Wisconsin SeniorCare eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-pharmacy-application", name: "Wisconsin Prescription Assistance Application", description: "Apply for state pharmaceutical assistance to help cover prescription drug costs.", url: "https://access.wisconsin.gov" },
+    ],
   },
   {
     id: "wisconsin-home-energy-assistance-program-wheap",
@@ -9472,11 +10581,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $2620/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-3002 to learn about WHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-energy-application", name: "Wisconsin Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://energyandhousing.wi.gov/Pages/AgenciesAndAssistance/EnergyAssistance.aspx" },
+    ],
   },
   {
     id: "wisconsin-property-tax-relief-circuit-breaker-credit",
@@ -9490,11 +10601,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $25000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-608-266-2772 to learn about Property Tax Relief eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-property-tax-application", name: "Wisconsin Senior Property Tax Relief Application", description: "Apply for property tax exemptions, deferrals, or credits available to qualifying seniors.", url: "https://access.wisconsin.gov" },
+    ],
   },
   {
     id: "wisconsin-long-term-care-ombudsman-program",
@@ -9507,11 +10620,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-236-8550 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "wisconsin-home-delivered-meals",
@@ -9525,11 +10640,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $2500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-8253 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "wisconsin-state-ssi-supplement",
@@ -9544,11 +10661,14 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Must meet disability requirements",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-3002 to learn about SSI Supplement eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "federal-ssi-application", name: "SSI Application (Federal)", description: "Apply for Supplemental Security Income through the Social Security Administration.", url: "https://www.ssa.gov/benefits/ssi/" },
+      { id: "wisconsin-ssi-supplement", name: "Wisconsin SSI State Supplement", description: "State supplement is typically automatic once SSI is approved. Contact your local office to confirm.", url: "https://access.wisconsin.gov" },
+    ],
   },
   {
     id: "wisconsin-judicare-legal-services-for-seniors",
@@ -9562,11 +10682,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $2000/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-472-1638 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "wisconsin-family-caregiver-support-program",
@@ -9580,11 +10702,13 @@ const wisconsinPrograms: WaiverProgram[] = [
       "Income below $3500/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-362-8253 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wisconsin-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 
@@ -9603,11 +10727,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-251-1264 to learn about ABD Medicaid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-medicaid-application", name: "Wyoming Medicaid Application", description: "Official Wyoming Medicaid application. Apply online or download a printable form.", url: "https://dfs.wyo.gov/assistance-programs/medicaid/" },
+    ],
   },
   {
     id: "community-choice-waiver-ccw",
@@ -9622,11 +10748,14 @@ const wyomingPrograms: WaiverProgram[] = [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-251-1264 to learn about CCW eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-medicaid-application", name: "Wyoming Medicaid Application", description: "Official Wyoming Medicaid application, required for waiver enrollment.", url: "https://dfs.wyo.gov/assistance-programs/medicaid/" },
+      { id: "wyoming-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://dfs.wyo.gov/assistance-programs/medicaid/" },
+    ],
   },
   {
     id: "medicare-savings-programs",
@@ -9640,11 +10769,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Income below $967/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-251-1264 to learn about Medicare Savings eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://dfs.wyo.gov/assistance-programs/medicaid/" },
+    ],
   },
   {
     id: "supplemental-nutrition-assistance-program-snap",
@@ -9658,11 +10789,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Income below $1984/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-457-3659 to learn about SNAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-snap-application", name: "Wyoming SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://dfs.wyo.gov/assistance-programs/snap/" },
+    ],
   },
   {
     id: "low-income-energy-assistance-program-liheap",
@@ -9676,11 +10809,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Income below $3092/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-669-5477 to learn about LIHEAP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-energy-application", name: "Wyoming Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://dfs.wyo.gov/assistance-programs/liheap/" },
+    ],
   },
   {
     id: "senior-health-insurance-information-program-shiip",
@@ -9693,11 +10828,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-438-5768 to learn about SHIIP eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
   },
   {
     id: "long-term-care-ombudsman-program",
@@ -9710,11 +10847,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Age 65 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-445-7070 to learn about LTC Ombudsman eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
   },
   {
     id: "wyoming-legal-services-for-the-elderly",
@@ -9728,11 +10867,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Income below $2350/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-836-6222 to learn about Senior Legal Aid eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "home-delivered-meals",
@@ -9745,11 +10886,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-445-7070 to learn about Home Meals eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
   {
     id: "national-family-caregiver-support-program",
@@ -9762,11 +10905,13 @@ const wyomingPrograms: WaiverProgram[] = [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Contact the program", description: "Call 1-800-445-7070 to learn about Caregiver Support eligibility and request an application." },
+      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
       { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
       { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
     ],
-    forms: [],
+    forms: [
+      { id: "wyoming-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
   },
 ];
 

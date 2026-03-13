@@ -5,8 +5,6 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 import Pill from "@/components/providers/connection-card/Pill";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useCareProfile } from "@/lib/benefits/care-profile-context";
-import { useAuth } from "@/components/auth/AuthProvider";
-import type { FamilyMetadata } from "@/lib/types";
 import {
   INTAKE_STEPS,
   TOTAL_INTAKE_STEPS,
@@ -47,10 +45,7 @@ export default function BenefitsIntakeForm() {
     setLocationDisplay,
     goToStep,
     submit,
-    publishCarePost,
-    setPublishCarePost,
   } = useCareProfile();
-  const { user, activeProfile } = useAuth();
 
   // ─── Local UI state (not shared via context) ────────────────────────────
   const [locationInput, setLocationInputLocal] = useState(locationDisplay);
@@ -77,34 +72,6 @@ export default function BenefitsIntakeForm() {
     setSelectedStateCode(answers.stateCode);
     setAgeInput(answers.age ? String(answers.age) : "");
   }, [step, locationDisplay, answers.stateCode, answers.age]);
-
-  // Set default for "publish care post" when arriving at step 5
-  // Skip if draft from step 5 exists (user already saw checkbox before auth redirect)
-  const publishDefaultSet = useRef(false);
-  useEffect(() => {
-    if (step !== 5 || !user || !activeProfile || publishDefaultSet.current) return;
-    publishDefaultSet.current = true;
-
-    // Check if there's a saved draft FROM step 5 - meaning user was on this step
-    // before auth redirect and their checkbox selection should be preserved
-    try {
-      const raw = typeof window !== "undefined" ? localStorage.getItem("olera-benefits-draft") : null;
-      if (raw) {
-        const draft = JSON.parse(raw);
-        if (draft.step === 5 && draft.publishCarePost !== undefined) {
-          // User was on step 5 before, their selection is already restored
-          return;
-        }
-      }
-    } catch {
-      // Ignore parse errors
-    }
-
-    // Set smart default based on existing care post status
-    const meta = (activeProfile.metadata || {}) as FamilyMetadata;
-    const isAlreadyActive = meta.care_post?.status === "active";
-    setPublishCarePost(!isAlreadyActive);
-  }, [step, user, activeProfile, setPublishCarePost]);
 
   // Close dropdown when clicking outside (blur-before-close prevents scroll-to-footer)
   useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
@@ -468,7 +435,6 @@ export default function BenefitsIntakeForm() {
 
       {/* Step 5: Medicaid status */}
       {step === 5 && (
-        <>
         <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
             ([key, val]) => (
@@ -481,26 +447,6 @@ export default function BenefitsIntakeForm() {
             )
           )}
         </div>
-
-        {/* Let providers find me — shown to everyone, auth required at submit */}
-        <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={publishCarePost}
-            onChange={(e) => setPublishCarePost(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400 shrink-0 accent-gray-900"
-          />
-          <div className="min-w-0">
-            <span className="text-sm font-medium text-gray-700 leading-tight block">
-              Let providers find me
-            </span>
-            <span className="text-xs text-gray-400 leading-relaxed block mt-0.5">
-              Share your care profile so providers in your area can reach out.
-              {!user && " (requires sign-in)"}
-            </span>
-          </div>
-        </label>
-        </>
       )}
       </div>{/* end animate-step-in wrapper */}
 

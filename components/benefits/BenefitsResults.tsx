@@ -89,11 +89,14 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   const [matchesCardDismissed, setMatchesCardDismissed] = useState(false);
   const [matchesCardConfirmed, setMatchesCardConfirmed] = useState(false);
   const [matchesActivating, setMatchesActivating] = useState(false);
+  const [matchesError, setMatchesError] = useState<string | null>(null);
 
   // Determine if user should see Matches invitation card
   const profileMeta = activeProfile?.metadata as FamilyMetadata | undefined;
   const hasActiveMatches = profileMeta?.care_post?.status === "active";
-  const showMatchesCard = user && activeProfile && !hasActiveMatches && !matchesCardDismissed;
+  // Show card if: signed in, has profile, no active Matches (unless showing confirmation), not dismissed
+  const showMatchesCard = user && activeProfile && !matchesCardDismissed &&
+    (!hasActiveMatches || matchesCardConfirmed);
 
   // Get city from location display (step 1 location data)
   // locationDisplay is typically "City, ST" format
@@ -226,6 +229,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   async function handleActivateMatches() {
     if (matchesActivating) return;
     setMatchesActivating(true);
+    setMatchesError(null);
 
     try {
       const res = await fetch("/api/care-post/activate-matches", {
@@ -238,10 +242,12 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
         setMatchesCardConfirmed(true);
         await refreshAccountData();
       } else {
-        console.error("[olera] Matches activation failed");
+        const data = await res.json().catch(() => ({}));
+        setMatchesError(data.error || "Something went wrong. Please try again.");
       }
     } catch (err) {
       console.error("[olera] Matches activation error:", err);
+      setMatchesError("Something went wrong. Please try again.");
     } finally {
       setMatchesActivating(false);
     }
@@ -355,10 +361,13 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                 <h3 className="font-display text-display-xs font-medium text-gray-900 mb-1">
                   Now let care providers find you
                 </h3>
-                <p className="text-sm text-gray-600 mt-3 leading-relaxed max-w-xl">
+                <p className="text-sm text-gray-600 mt-4 leading-relaxed max-w-xl">
                   You&apos;ve already told us everything we need. We&apos;ll share your care profile with
                   qualified providers in {cityDisplay} — they reach out, and you decide who to talk to.
                 </p>
+                {matchesError && (
+                  <p className="text-sm text-red-600 mt-4">{matchesError}</p>
+                )}
                 <div className="flex flex-wrap items-center gap-3 mt-6">
                   <button
                     onClick={handleActivateMatches}

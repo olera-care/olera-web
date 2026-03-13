@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { generateUniqueSlugFromName } from "@/lib/slug";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -8,15 +9,6 @@ function getAdminClient(): any {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) return null;
   return createClient(url, serviceKey);
-}
-
-function generateSlug(name: string): string {
-  const base = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-  const suffix = Math.random().toString(36).substring(2, 6);
-  return `family-${base}-${suffix}`;
 }
 
 /**
@@ -171,7 +163,7 @@ export async function POST(request: Request) {
       fromProfileId = family.id;
     } else {
       const displayName = user.email?.split("@")[0] || "Family";
-      const slug = generateSlug(displayName);
+      const slug = await generateUniqueSlugFromName(db, displayName);
       const { data: newProfile, error: profileError } = await db
         .from("business_profiles")
         .insert({

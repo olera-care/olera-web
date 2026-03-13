@@ -3,6 +3,8 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account } from "@/lib/types";
 import { sendLoopsEvent } from "@/lib/loops";
+import { generateUniqueSlugFromName } from "@/lib/slug";
+import { sanitizeDisplayName } from "@/lib/validation";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -71,6 +73,9 @@ export async function POST(request: Request) {
       displayName = authName;
     }
 
+    // Sanitize display name (trim, enforce max length, fallback)
+    const sanitizedName = sanitizeDisplayName(displayName, user.email?.split("@")[0] || "User");
+
     // Try admin client first (bypasses RLS), fall back to authenticated client
     const adminClient = getAdminClient();
     const dbClient = adminClient || supabase;
@@ -94,12 +99,13 @@ export async function POST(request: Request) {
         .maybeSingle();
 
       if (!existingFamilyProfile) {
-        const name = (existingAccount as Account).display_name || user.email?.split("@")[0] || "My Family";
+        const familyName = sanitizeDisplayName((existingAccount as Account).display_name, user.email?.split("@")[0] || "My Family");
+        const familySlug = await generateUniqueSlugFromName(dbClient, familyName);
         const { data: newFamilyProfile, error: profileError } = await dbClient.from("business_profiles").insert({
           account_id: acctId,
-          slug: `family-${acctId.slice(0, 8)}`,
+          slug: familySlug,
           type: "family",
-          display_name: name,
+          display_name: familyName,
           care_types: [],
           claim_state: "claimed",
           verification_state: "unverified",
@@ -196,7 +202,7 @@ export async function POST(request: Request) {
       .from("accounts")
       .insert({
         user_id: user.id,
-        display_name: displayName || user.email?.split("@")[0] || "",
+        display_name: sanitizedName,
         onboarding_completed: markOnboardingComplete,
       })
       .select()
@@ -234,8 +240,8 @@ export async function POST(request: Request) {
 
     // Loops: new account created (fire-and-forget)
     try {
-      const fullName = displayName || user.user_metadata?.full_name || user.user_metadata?.name || "";
-      const nameParts = fullName.trim().split(/\s+/);
+      const fullName = sanitizedName;
+      const nameParts = fullName.split(/\s+/);
       await sendLoopsEvent({
         email: user.email || "",
         eventName: "user_signup",
@@ -262,12 +268,12 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (!existingFamily) {
-      const familyDisplayName = displayName || user.email?.split("@")[0] || "My Family";
+      const familySlug = await generateUniqueSlugFromName(dbClient, sanitizedName);
       const { data: newFamilyProfile, error: profileError } = await dbClient.from("business_profiles").insert({
         account_id: accountId,
-        slug: `family-${accountId.slice(0, 8)}`,
+        slug: familySlug,
         type: "family",
-        display_name: familyDisplayName,
+        display_name: sanitizedName,
         care_types: [],
         claim_state: "claimed",
         verification_state: "unverified",

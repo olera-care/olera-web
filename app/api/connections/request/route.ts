@@ -8,6 +8,7 @@ import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
+import { generateUniqueSlugFromName } from "@/lib/slug";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -643,7 +644,7 @@ export async function POST(request: Request) {
     } else {
       const displayName =
         account.display_name || user.email?.split("@")[0] || "Family";
-      const slug = generateSlug(displayName);
+      const slug = await generateUniqueSlugFromName(db, displayName);
 
       const { data: newProfile, error: profileError } = await db
         .from("business_profiles")

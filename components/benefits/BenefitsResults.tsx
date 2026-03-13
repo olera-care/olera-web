@@ -90,6 +90,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   const [matchesCardConfirmed, setMatchesCardConfirmed] = useState(false);
   const [matchesActivating, setMatchesActivating] = useState(false);
   const [matchesError, setMatchesError] = useState<string | null>(null);
+  const [syncInProgress, setSyncInProgress] = useState(false);
 
   // Determine if user should see Matches invitation card
   const profileMeta = activeProfile?.metadata as FamilyMetadata | undefined;
@@ -115,10 +116,14 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
 
     if (!activeProfile) return; // wait for profile to load
     syncedRef.current = true;
+    setSyncInProgress(true);
 
     (async () => {
       try {
-        if (!isSupabaseConfigured()) return;
+        if (!isSupabaseConfigured()) {
+          setSyncInProgress(false);
+          return;
+        }
         const supabase = createClient();
 
         // 1. Persist full results to metadata.benefits_results
@@ -177,6 +182,8 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
         }
       } catch (err) {
         console.error("[olera] Benefits persist/sync failed:", err);
+      } finally {
+        setSyncInProgress(false);
       }
     })();
   }, [user, activeProfile, answers, locationDisplay, result, restoredFromDb, publishCarePost, refreshAccountData]);
@@ -385,10 +392,15 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                 <div className="flex flex-wrap items-center gap-3 mt-4">
                   <button
                     onClick={handleActivateMatches}
-                    disabled={matchesActivating}
+                    disabled={matchesActivating || syncInProgress}
                     className="inline-flex items-center gap-2 px-6 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-full text-sm font-medium border-none cursor-pointer hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {matchesActivating ? (
+                    {syncInProgress ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Saving results...
+                      </>
+                    ) : matchesActivating ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Activating...

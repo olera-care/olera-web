@@ -83,6 +83,20 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
   const [showAll, setShowAll] = useState(false);
   const [showChecklist, setShowChecklist] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  // Expand everything for print
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onBefore = () => setIsPrinting(true);
+    const onAfter = () => setIsPrinting(false);
+    window.addEventListener("beforeprint", onBefore);
+    window.addEventListener("afterprint", onAfter);
+    return () => {
+      window.removeEventListener("beforeprint", onBefore);
+      window.removeEventListener("afterprint", onAfter);
+    };
+  }, []);
 
   const { reset, answers, locationDisplay, restoredFromDb, publishCarePost } = useCareProfile();
   const { user, account, activeProfile, refreshAccountData } = useAuth();
@@ -193,7 +207,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
 
   // For progressive reveal: skip the first program (shown as hero)
   const remainingPrograms = filteredPrograms.slice(1);
-  const visiblePrograms = showAll ? remainingPrograms : remainingPrograms.slice(0, INITIAL_VISIBLE);
+  const visiblePrograms = (showAll || isPrinting) ? remainingPrograms : remainingPrograms.slice(0, INITIAL_VISIBLE);
   const hiddenCount = remainingPrograms.length - visiblePrograms.length;
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
@@ -372,7 +386,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
           </span>
         </button>
 
-        {showChecklist && (
+        {(showChecklist || isPrinting) && (
           <div className="mt-4 animate-fade-in">
             <DocumentChecklist />
           </div>

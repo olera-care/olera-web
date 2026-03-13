@@ -51,9 +51,11 @@ const CARE_TYPES = [
   "Rehabilitation",
 ];
 
-// SessionStorage keys for browse page banner
+// SessionStorage keys for browse page banners
 const MATCHES_ACTIVATED_KEY = "olera_matches_activated";
 const MATCHES_CITY_KEY = "olera_matches_city";
+const WELCOME_BANNER_KEY = "olera_welcome_banner";
+const WELCOME_CITY_KEY = "olera_welcome_city";
 
 // ============================================================
 // Progress Indicator
@@ -98,7 +100,9 @@ export default function PostAuthOnboarding({
 }: PostAuthOnboardingProps) {
   const router = useRouter();
   const { user, account, activeProfile, profiles, refreshAccountData } = useAuth();
-  const isAddingProfile = !!activeProfile;
+  // Only show "Add profile" flow if user has COMPLETED onboarding before.
+  // New users have activeProfile (auto-created family) but onboarding_completed = false.
+  const isAddingProfile = !!activeProfile && account?.onboarding_completed === true;
 
   // Determine starting step
   const getInitialStep = useCallback((): OnboardingStep => {
@@ -230,6 +234,30 @@ export default function PostAuthOnboarding({
     } catch {
       // Best effort — still close the modal
     }
+    onComplete();
+  };
+
+  // Handle "I'll explore first" - navigate to browse with welcome banner
+  const handleExploreFirst = async () => {
+    try {
+      await fetch("/api/auth/ensure-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mark_onboarding_complete: true }),
+      });
+    } catch {
+      // Best effort
+    }
+
+    // Set welcome banner flags
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(WELCOME_BANNER_KEY, "true");
+      if (city) {
+        sessionStorage.setItem(WELCOME_CITY_KEY, city);
+      }
+    }
+
+    router.push("/browse");
     onComplete();
   };
 
@@ -403,7 +431,7 @@ export default function PostAuthOnboarding({
           sessionStorage.setItem(MATCHES_ACTIVATED_KEY, "true");
           sessionStorage.setItem(MATCHES_CITY_KEY, city || "your area");
         }
-        console.log("[onboarding] Matches activated successfully");
+        // Matches activated successfully
       } else {
         const errorData = await activateRes.json().catch(() => ({}));
         console.error("[onboarding] Activate matches failed:", activateRes.status, errorData);
@@ -444,6 +472,14 @@ export default function PostAuthOnboarding({
       await refreshAccountData();
     } catch {
       console.error("Failed to refresh account data, continuing...");
+    }
+
+    // Set welcome banner flags for browse page
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(WELCOME_BANNER_KEY, "true");
+      if (city) {
+        sessionStorage.setItem(WELCOME_CITY_KEY, city);
+      }
     }
 
     // Handle deferred action if exists
@@ -630,7 +666,7 @@ export default function PostAuthOnboarding({
 
               <button
                 type="button"
-                onClick={handleDismiss}
+                onClick={handleExploreFirst}
                 className="w-full text-center py-4 mt-4 text-[15px] text-gray-400 hover:text-gray-600 transition-colors"
               >
                 I&apos;ll explore first

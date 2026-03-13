@@ -114,11 +114,12 @@ export default function CarePostView({
   const scheduleDisplay = meta.schedule_preference || null;
 
   // Fields for review & active views
+  // No fields are required — families can publish with any amount of data
   const reviewFields = [
-    { label: "Care type", value: careTypeDisplay, required: true },
+    { label: "Care type", value: careTypeDisplay },
     { label: "Care for", value: relationshipDisplay },
-    { label: "Location", value: profileLocation, required: true },
-    { label: "Timeline", value: timelineDisplay, required: true },
+    { label: "Location", value: profileLocation },
+    { label: "Timeline", value: timelineDisplay },
     { label: "Payment", value: paymentDisplay },
     { label: "Notes", value: notesDisplay },
     { label: "Phone", value: activeProfile.phone },
@@ -272,11 +273,6 @@ export default function CarePostView({
                   <div className="flex-1">
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-gray-400">{f.label}</span>
-                      {f.required && (
-                        <span className="text-[9px] text-amber-600 font-bold">
-                          REQUIRED
-                        </span>
-                      )}
                     </div>
                     <p
                       className={[
@@ -350,11 +346,6 @@ export default function CarePostView({
 
             {/* Actions */}
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-              {!reviewFields.filter((f) => f.required).every((f) => f.value) && (
-                <p className="text-xs text-amber-600 font-medium text-center mb-2.5">
-                  Complete all required fields to publish
-                </p>
-              )}
               {actionError && (
                 <p className="text-xs text-rose-600 font-medium text-center mb-2.5">
                   {actionError}
@@ -364,7 +355,6 @@ export default function CarePostView({
                 size="sm"
                 onClick={handlePublish}
                 loading={publishing}
-                disabled={!reviewFields.filter((f) => f.required).every((f) => f.value)}
                 className="w-full"
               >
                 Publish

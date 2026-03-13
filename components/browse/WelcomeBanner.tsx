@@ -138,7 +138,7 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
           }}
         />
 
-        <div className="flex items-center justify-between gap-4 pl-5 pr-4 py-3.5">
+        <div className="flex items-center justify-between gap-4 px-5 py-3.5">
           {/* Left: Icon + Message */}
           <div className="flex items-center gap-3.5 min-w-0 flex-1">
             {/* Icon with glow effect */}
@@ -168,8 +168,16 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
             </div>
           </div>
 
-          {/* Right: CTA + Dismiss */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Right: CTA + Dismiss text */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Not now
+            </button>
+
             <Link
               href="/portal/matches"
               onClick={handleDismiss}
@@ -192,23 +200,6 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
-
-            <button
-              type="button"
-              onClick={handleDismiss}
-              className="
-                p-2 rounded-xl
-                text-gray-400 hover:text-gray-600
-                hover:bg-gray-100
-                active:scale-95
-                transition-all duration-150
-              "
-              aria-label="Dismiss"
-            >
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>

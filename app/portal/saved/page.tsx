@@ -171,35 +171,62 @@ export default function PortalSavedPage() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 px-4">
-          <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-5">
-            <svg
-              className="w-7 h-7 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
+        <div className="flex items-center justify-center py-12 sm:py-16">
+          <div className="relative w-full max-w-md">
+            {/* Premium card */}
+            <div className="relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden">
+              {/* Subtle gradient accent at top */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600" />
+
+              <div className="px-8 py-10 sm:px-10 sm:py-12 text-center">
+                {/* Icon with glow effect */}
+                <div className="relative inline-flex mb-6">
+                  <div className="absolute inset-0 bg-primary-400/20 rounded-2xl blur-xl scale-150" />
+                  <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/25">
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Headline */}
+                <h2 className="text-xl font-display font-bold text-gray-900 mb-2">
+                  Find providers you love
+                </h2>
+
+                {/* Description */}
+                <p className="text-[15px] text-gray-500 leading-relaxed mb-8 max-w-sm mx-auto">
+                  Browse care providers in your area and save your favorites here for easy comparison.
+                </p>
+
+                {/* CTA Button */}
+                <Link
+                  href="/browse"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-primary-600/25 hover:shadow-lg hover:shadow-primary-600/30 active:scale-[0.98]"
+                >
+                  Start browsing
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+
+                {/* Hint text */}
+                <p className="text-xs text-gray-400 mt-5">
+                  Tap the heart icon on any provider to save them
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-[15px] font-display font-medium text-gray-900 mb-1">
-            No saved providers yet
-          </p>
-          <p className="text-sm text-gray-500 mb-6 max-w-md text-center leading-relaxed">
-            When you find a provider you like, tap the heart icon to save them
-            here for easy comparison later.
-          </p>
-          <Link
-            href="/browse"
-            className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
-          >
-            Browse providers
-          </Link>
         </div>
       )}
     </div>

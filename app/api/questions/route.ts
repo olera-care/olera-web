@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
+import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -94,6 +95,49 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Failed to create question:", error);
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
+    }
+
+    // Slack notifications (fire-and-forget)
+    try {
+      // Look up provider name and email
+      const { data: provider } = await db
+        .from("business_profiles")
+        .select("id, display_name, email")
+        .eq("slug", provider_id)
+        .single();
+
+      const providerName = provider?.display_name || provider_id;
+
+      // Check iOS profiles for email if business_profiles has none
+      let providerEmail = provider?.email || null;
+      if (!providerEmail && provider?.id) {
+        const { data: ios } = await db
+          .from("ios_provider_profiles")
+          .select("email")
+          .eq("provider_id", provider.id)
+          .single();
+        providerEmail = ios?.email || null;
+      }
+
+      const { text, blocks } = slackQuestionAsked({
+        askerName: askerName,
+        providerName,
+        question: question.trim(),
+        providerSlug: provider_id,
+      });
+      sendSlackAlert(text, blocks);
+
+      if (!providerEmail) {
+        const missing = slackQuestionMissingEmail({
+          askerName: askerName,
+          providerName,
+          providerId: provider?.id || provider_id,
+          question: question.trim(),
+        });
+        sendSlackAlert(missing.text, missing.blocks);
+      }
+    } catch (slackErr) {
+      console.error("Slack notification failed:", slackErr);
     }
 
     return NextResponse.json({ question: newQuestion }, { status: 201 });

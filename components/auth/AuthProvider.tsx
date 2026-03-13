@@ -643,11 +643,11 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Family users with NO deferred action: show onboarding popup
+      // New users with NO deferred action: show onboarding popup
       // This handles Google OAuth signups and main nav signups
+      // Don't pass intent — let them choose "Find care" vs "List my business"
       openAuth({
         startAtPostAuth: true,
-        intent: "family",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

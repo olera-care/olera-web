@@ -919,64 +919,32 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   // Uses sessionStorage to ensure it only triggers once per session.
   useEffect(() => {
     // Skip if loading or missing data
-    if (state.isLoading || !state.user || !state.account) {
-      console.log("[olera] post-auth check: skipping - loading or no user/account", {
-        isLoading: state.isLoading,
-        hasUser: !!state.user,
-        hasAccount: !!state.account,
-      });
-      return;
-    }
+    if (state.isLoading || !state.user || !state.account) return;
 
     // Only trigger if onboarding is explicitly incomplete
-    if (state.account.onboarding_completed !== false) {
-      console.log("[olera] post-auth check: skipping - onboarding_completed is not false", {
-        onboarding_completed: state.account.onboarding_completed,
-      });
-      return;
-    }
+    if (state.account.onboarding_completed !== false) return;
 
     // Skip if modal is already open
-    if (isUnifiedAuthOpen) {
-      console.log("[olera] post-auth check: skipping - modal already open");
-      return;
-    }
+    if (isUnifiedAuthOpen) return;
 
     // Check if account was created within the last 5 minutes (OAuth redirect)
     const createdAt = state.account.created_at;
-    if (!createdAt) {
-      console.log("[olera] post-auth check: skipping - no created_at");
-      return;
-    }
+    if (!createdAt) return;
     const accountAge = Date.now() - new Date(createdAt).getTime();
     const FIVE_MINUTES = 5 * 60 * 1000;
-    console.log("[olera] post-auth check: account age", {
-      createdAt,
-      accountAgeMs: accountAge,
-      accountAgeMinutes: accountAge / 60000,
-      withinFiveMinutes: accountAge <= FIVE_MINUTES,
-    });
-    if (accountAge > FIVE_MINUTES) {
-      console.log("[olera] post-auth check: skipping - account older than 5 minutes");
-      return;
-    }
+    if (accountAge > FIVE_MINUTES) return;
 
     // Use sessionStorage to only trigger once per session
     const triggeredKey = "olera_post_auth_triggered";
     try {
-      if (sessionStorage.getItem(triggeredKey)) {
-        console.log("[olera] post-auth check: skipping - already triggered this session");
-        return;
-      }
+      if (sessionStorage.getItem(triggeredKey)) return;
       sessionStorage.setItem(triggeredKey, "true");
     } catch {
       // sessionStorage unavailable
-      console.log("[olera] post-auth check: skipping - sessionStorage unavailable");
       return;
     }
 
     // Open the modal at the post-auth onboarding step
-    console.log("[olera] post-auth check: OPENING MODAL with startAtPostAuth");
     openAuth({ startAtPostAuth: true });
   }, [state.isLoading, state.user, state.account, isUnifiedAuthOpen, openAuth]);
 

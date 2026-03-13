@@ -431,7 +431,7 @@ export default function PostAuthOnboarding({
           sessionStorage.setItem(MATCHES_ACTIVATED_KEY, "true");
           sessionStorage.setItem(MATCHES_CITY_KEY, city || "your area");
         }
-        console.log("[onboarding] Matches activated successfully");
+        // Matches activated successfully
       } else {
         const errorData = await activateRes.json().catch(() => ({}));
         console.error("[onboarding] Activate matches failed:", activateRes.status, errorData);

@@ -714,17 +714,17 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
         </div>
       </div>
 
-      {/* Banners - Below filter bar, above content */}
-      <WelcomeBanner
-        providerCount={filteredProviders.length}
-        locationCity={searchLocation}
-      />
-      <MatchesActivatedBanner />
-
       {/* Main Content - Split Layout */}
       <div className="lg:flex">
         {/* Left Panel - Provider List */}
         <div className="flex-1 min-w-0 px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
+          {/* Banners - Inside left panel, above heading */}
+          <WelcomeBanner
+            providerCount={filteredProviders.length}
+            locationCity={searchLocation}
+          />
+          <MatchesActivatedBanner />
+
           {/* Heading + Sort */}
           <div className="relative z-20">
             <div className="flex items-baseline justify-between gap-4 mb-6">

@@ -100,7 +100,9 @@ export default function PostAuthOnboarding({
 }: PostAuthOnboardingProps) {
   const router = useRouter();
   const { user, account, activeProfile, profiles, refreshAccountData } = useAuth();
-  const isAddingProfile = !!activeProfile;
+  // Only show "Add profile" flow if user has COMPLETED onboarding before.
+  // New users have activeProfile (auto-created family) but onboarding_completed = false.
+  const isAddingProfile = !!activeProfile && account?.onboarding_completed === true;
 
   // Determine starting step
   const getInitialStep = useCallback((): OnboardingStep => {

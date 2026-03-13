@@ -26,19 +26,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
-      {/* Top section — persistent across all states */}
-      <CardTopSection
-        priceRange={priceRange}
-        oleraScore={oleraScore}
-        reviewCount={reviewCount}
-        responseTime={responseTime}
-        hideResponseTime={false}
-      />
-
-      {/* Divider */}
-      <div className="h-px bg-gray-200" />
-
-      {/* Middle section — state-dependent */}
+      {/* Main content */}
       <div className="px-5 py-5">
         {hook.cardState === "loading" && (
           <div className="animate-pulse space-y-3">

@@ -472,3 +472,23 @@
            hover:shadow-md transition-shadow duration-200;
   }
 }
+
+/* ─── Print styles for Benefits Results ──────────────────────────── */
+@media print {
+  /* Hide navigation, sidebar, and interactive elements */
+  header, nav, footer,
+  [aria-label="Care Profile"],
+  [role="toolbar"] { display: none !important; }
+
+  /* Remove layout constraints */
+  body { background: white !important; }
+  .max-w-5xl { max-width: none !important; }
+  .lg\:gap-20 { gap: 0 !important; }
+  .py-10, .lg\:py-16 { padding-top: 1rem !important; padding-bottom: 0 !important; }
+
+  /* Expand all accordion cards */
+  .grid-rows-collapse { grid-template-rows: 1fr !important; }
+
+  /* Page breaks */
+  .print\:break-before { break-before: page; }
+}

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { questionConfirmationEmail } from "@/lib/email-templates";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -239,6 +241,39 @@ export async function PATCH(request: NextRequest) {
       if (updateError) {
         console.error("Failed to enrich question:", updateError);
         return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+      }
+
+      // Send confirmation email (fire-and-forget)
+      if (updates.asker_email && updated?.question) {
+        try {
+          // Look up provider name + slug for the email
+          const { data: q } = await db
+            .from("provider_questions")
+            .select("provider_id")
+            .eq("id", id)
+            .single();
+
+          const providerSlug = q?.provider_id || "";
+          const { data: provider } = await db
+            .from("business_profiles")
+            .select("display_name")
+            .eq("slug", providerSlug)
+            .single();
+
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          sendEmail({
+            to: updates.asker_email,
+            subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
+            html: questionConfirmationEmail({
+              askerName: updates.asker_name || "there",
+              providerName: provider?.display_name || "the provider",
+              question: updated.question,
+              providerUrl: `${siteUrl}/provider/${providerSlug}`,
+            }),
+          });
+        } catch (emailErr) {
+          console.error("Question confirmation email failed:", emailErr);
+        }
       }
 
       return NextResponse.json({ question: updated });

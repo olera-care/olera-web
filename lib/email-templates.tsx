@@ -283,6 +283,25 @@ export function newReviewEmail(opts: {
   `);
 }
 
+/** Confirmation email to guest after they enrich a Q&A question with their email */
+export function questionConfirmationEmail(opts: {
+  askerName: string;
+  providerName: string;
+  question: string;
+  providerUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your question was posted</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.askerName}, your question to <strong>${opts.providerName}</strong> is live on Olera. We'll email you when they respond.
+    </p>
+    <div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">${opts.question}</p>
+    </div>
+    <div>${button("View on Olera", opts.providerUrl)}</div>
+  `);
+}
+
 /** Email to family when their Matches profile goes live */
 export function matchesLiveEmail(opts: {
   familyName: string;

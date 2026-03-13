@@ -373,8 +373,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                   Now let care providers find you
                 </h3>
                 <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-xl">
-                  You&apos;ve already told us everything we need. We&apos;ll share your care profile with
-                  qualified providers in {cityDisplay} — they reach out, and you decide who to talk to.
+                  Qualified providers in {cityDisplay} will reach out. You choose who to talk to.
                 </p>
                 {matchesError && (
                   <div className="mt-3">

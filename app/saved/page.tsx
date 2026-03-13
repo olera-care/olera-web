@@ -37,6 +37,7 @@ export default function SavedProvidersPage() {
   const { user, openAuth } = useAuth();
   const { savedProviders } = useSavedProviders();
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
+  const [showToast, setShowToast] = useState(false);
 
   async function handleShare() {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -53,7 +54,11 @@ export default function SavedProvidersPage() {
     try {
       await navigator.clipboard.writeText(url);
       setShareLabel("copied");
-      setTimeout(() => setShareLabel("share"), 2000);
+      setShowToast(true);
+      setTimeout(() => {
+        setShareLabel("share");
+        setShowToast(false);
+      }, 2500);
     } catch {
       // Clipboard not available
     }
@@ -61,6 +66,21 @@ export default function SavedProvidersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast notification */}
+      <div
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ${
+          showToast
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-2 pointer-events-none"
+        }`}
+      >
+        <div className="flex items-center gap-2 px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-xl shadow-lg">
+          <svg className="w-4 h-4 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Link copied to clipboard
+        </div>
+      </div>
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-10">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-6">

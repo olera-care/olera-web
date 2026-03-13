@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { sendLoopsEvent } from "@/lib/loops";
+import { generateUniqueSlugFromName } from "@/lib/slug";
+import { sanitizeDisplayName, validateReturnUrl } from "@/lib/validation";
 
 /**
  * GET /auth/callback
@@ -16,7 +18,8 @@ import { sendLoopsEvent } from "@/lib/loops";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  // Validate next parameter to prevent open redirect attacks
+  const next = validateReturnUrl(searchParams.get("next"), "/");
 
   if (!code) {
     return NextResponse.redirect(`${origin}${next}`);
@@ -70,11 +73,12 @@ export async function GET(request: NextRequest) {
 
       if (!existing) {
         // Create account
-        const displayName =
+        const rawName =
           data.user.user_metadata?.full_name ||
           data.user.user_metadata?.name ||
           data.user.email?.split("@")[0] ||
           "";
+        const displayName = sanitizeDisplayName(rawName, "User");
 
         const { data: newAccount } = await admin.from("accounts").insert({
           user_id: data.user.id,
@@ -84,11 +88,12 @@ export async function GET(request: NextRequest) {
 
         // Create family profile (every user gets one)
         if (newAccount) {
+          const familySlug = await generateUniqueSlugFromName(admin, displayName);
           await admin.from("business_profiles").insert({
             account_id: newAccount.id,
-            slug: `family-${newAccount.id.slice(0, 8)}`,
+            slug: familySlug,
             type: "family",
-            display_name: displayName || "My Family",
+            display_name: displayName,
             claim_state: "claimed",
             verification_state: "unverified",
             source: "user_created",
@@ -124,17 +129,19 @@ export async function GET(request: NextRequest) {
           .maybeSingle();
 
         if (!existingFamily) {
-          const displayName =
+          const rawName =
             data.user.user_metadata?.full_name ||
             data.user.user_metadata?.name ||
             data.user.email?.split("@")[0] ||
-            "My Family";
+            "";
+          const familyDisplayName = sanitizeDisplayName(rawName, "My Family");
 
+          const familySlug = await generateUniqueSlugFromName(admin, familyDisplayName);
           await admin.from("business_profiles").insert({
             account_id: existing.id,
-            slug: `family-${existing.id.slice(0, 8)}`,
+            slug: familySlug,
             type: "family",
-            display_name: displayName,
+            display_name: familyDisplayName,
             claim_state: "claimed",
             verification_state: "unverified",
             source: "user_created",

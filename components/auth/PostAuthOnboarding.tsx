@@ -14,7 +14,7 @@ import Select from "@/components/ui/Select";
 // Types
 // ============================================================
 
-type OnboardingStep = "intent" | "profile-info" | "org-search" | "complete";
+type OnboardingStep = "intent" | "profile-info" | "matches-invite" | "org-search" | "complete";
 
 interface PostAuthOnboardingProps {
   intent: AuthFlowIntent;
@@ -50,6 +50,10 @@ const CARE_TYPES = [
   "Adult Day Care",
   "Rehabilitation",
 ];
+
+// SessionStorage keys for browse page banner
+const MATCHES_ACTIVATED_KEY = "olera_matches_activated";
+const MATCHES_CITY_KEY = "olera_matches_city";
 
 // ============================================================
 // Progress Indicator
@@ -104,15 +108,7 @@ export default function PostAuthOnboarding({
   }, [initialIntent, claimProfile]);
 
   const [step, setStep] = useState<OnboardingStep>(getInitialStep);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Auto-dismiss error after 4 seconds
-  useEffect(() => {
-    if (!error) return;
-    const timer = setTimeout(() => setError(""), 4000);
-    return () => clearTimeout(timer);
-  }, [error]);
 
   // Form data
   const [intent, setIntent] = useState<"family" | "provider" | null>(
@@ -159,13 +155,18 @@ export default function PostAuthOnboarding({
 
   const hasIntentStep = !initialIntent && !claimProfile;
   const hasOrgSearch = intent === "provider" && providerType === "organization" && !claimedProfile;
-  const totalSteps = (hasIntentStep ? 1 : 0) + 1 + (hasOrgSearch ? 1 : 0);
+  // New family accounts get the matches-invite step
+  const hasMatchesInvite = intent === "family" && !isAddingProfile && !account?.onboarding_completed;
+
+  const totalSteps = (hasIntentStep ? 1 : 0) + 1 + (hasMatchesInvite ? 1 : 0) + (hasOrgSearch ? 1 : 0);
 
   const currentStepIndex =
     step === "intent"
       ? 0
       : step === "profile-info"
       ? hasIntentStep ? 1 : 0
+      : step === "matches-invite"
+      ? hasIntentStep ? 2 : 1
       : step === "org-search"
       ? hasIntentStep ? 2 : 1
       : 0;
@@ -179,17 +180,13 @@ export default function PostAuthOnboarding({
       // Ensure account exists before navigating (DB trigger may not have fired)
       if (!account?.id) {
         try {
-          const res = await fetch("/api/auth/ensure-account", {
+          await fetch("/api/auth/ensure-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
           });
-          if (!res.ok) {
-            setError("Couldn't set up your account. Please try again.");
-            return;
-          }
         } catch {
-          setError("Couldn't set up your account. Please try again.");
-          return;
+          // Best effort — continue anyway
+          console.error("Failed to ensure account, continuing...");
         }
       }
       onComplete(); // closes modal
@@ -239,6 +236,9 @@ export default function PostAuthOnboarding({
     if (intent === "provider" && providerType === "organization" && !claimedProfile) {
       setSearchQuery(displayName);
       setStep("org-search");
+    } else if (intent === "family" && !isAddingProfile && !account?.onboarding_completed) {
+      // New family accounts go to matches-invite step
+      setStep("matches-invite");
     } else {
       handleSubmit();
     }
@@ -289,20 +289,13 @@ export default function PostAuthOnboarding({
   };
 
   // ──────────────────────────────────────────────────────────
-  // Submit Profile
+  // Non-blocking profile creation helper
   // ──────────────────────────────────────────────────────────
 
-  const handleSubmit = async (
+  const createProfileBestEffort = async (
     claimProfileOverride?: Profile | null,
     claimIdOverride?: string | null
-  ) => {
-    if (!user) {
-      setError("Session not found. Please close this dialog and try again.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-
+  ): Promise<boolean> => {
     try {
       // Ensure account exists first
       if (!account?.id) {
@@ -313,8 +306,8 @@ export default function PostAuthOnboarding({
         });
 
         if (!ensureRes.ok) {
-          const errorData = await ensureRes.json().catch(() => ({}));
-          throw new Error(errorData.error || "Failed to set up account");
+          console.error("Failed to ensure account, continuing...");
+          // Continue anyway — profile creation might still work if account exists
         }
       }
 
@@ -339,40 +332,165 @@ export default function PostAuthOnboarding({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to create profile");
+        console.error("Profile creation failed:", errorData.error || "Unknown error");
+        return false;
       }
 
-      // Refresh auth context to pick up the new profile
+      return true;
+    } catch (err) {
+      console.error("Profile creation error:", err);
+      return false;
+    }
+  };
+
+  // ──────────────────────────────────────────────────────────
+  // Matches Invite Handlers
+  // ──────────────────────────────────────────────────────────
+
+  const handleMatchesOptIn = async () => {
+    if (!user) {
+      // No user session — just navigate to browse
+      router.push("/browse");
+      onComplete();
+      return;
+    }
+
+    setLoading(true);
+
+    // Step 1: Create profile (best-effort)
+    await createProfileBestEffort();
+
+    // Step 2: Refresh account data to get the new profile
+    try {
       await refreshAccountData();
+    } catch {
+      console.error("Failed to refresh account data, continuing...");
+    }
 
-      // Handle deferred action — redirect to returnUrl if set.
-      // Don't clear here; the target page clears after processing the action.
-      const deferred = getDeferredAction();
-      if (deferred?.returnUrl) {
-        router.push(deferred.returnUrl);
-        onComplete();
-        return;
+    // Step 3: Call activate-matches (best-effort)
+    try {
+      const activateRes = await fetch("/api/care-post/activate-matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: city || undefined,
+          state: state || undefined,
+          primaryNeeds: [], // Onboarding uses careTypes, not primaryNeeds
+        }),
+      });
+
+      if (activateRes.ok) {
+        // Set banner flags for browse page
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(MATCHES_ACTIVATED_KEY, "true");
+          sessionStorage.setItem(MATCHES_CITY_KEY, city || "your area");
+        }
+      } else {
+        console.error("Activate matches failed, user can activate later from Matches tab");
       }
+    } catch (err) {
+      console.error("Activate matches error:", err);
+      // Continue to browse — user can activate later
+    }
 
-      // Route based on intent
-      if (intent === "family" && !isAddingProfile) {
+    // Step 4: Handle deferred action if exists
+    const deferred = getDeferredAction();
+    if (deferred?.returnUrl) {
+      router.push(deferred.returnUrl);
+      onComplete();
+      return;
+    }
+
+    // Step 5: Navigate to browse page
+    router.push("/browse");
+    onComplete();
+  };
+
+  const handleMatchesSkip = async () => {
+    if (!user) {
+      router.push("/browse");
+      onComplete();
+      return;
+    }
+
+    setLoading(true);
+
+    // Create profile (best-effort) but don't activate matches
+    await createProfileBestEffort();
+
+    // Refresh account data (best-effort)
+    try {
+      await refreshAccountData();
+    } catch {
+      console.error("Failed to refresh account data, continuing...");
+    }
+
+    // Handle deferred action if exists
+    const deferred = getDeferredAction();
+    if (deferred?.returnUrl) {
+      router.push(deferred.returnUrl);
+      onComplete();
+      return;
+    }
+
+    // Navigate to browse page
+    router.push("/browse");
+    onComplete();
+  };
+
+  // ──────────────────────────────────────────────────────────
+  // Submit Profile (for providers and legacy flows)
+  // ──────────────────────────────────────────────────────────
+
+  const handleSubmit = async (
+    claimProfileOverride?: Profile | null,
+    claimIdOverride?: string | null
+  ) => {
+    if (!user) {
+      // No user session — just navigate forward
+      if (intent === "family") {
         router.push("/browse");
-      } else if (intent === "provider" && !isAddingProfile) {
+      } else if (intent === "provider") {
         router.push("/provider");
       } else {
         router.push("/portal");
       }
-
       onComplete();
-    } catch (err: unknown) {
-      const message =
-        err && typeof err === "object" && "message" in err
-          ? (err as { message: string }).message
-          : String(err);
-      console.error("Post-auth onboarding error:", message, err);
-      setError(`Something went wrong: ${message}`);
-      setLoading(false);
+      return;
     }
+
+    setLoading(true);
+
+    // Create profile (best-effort)
+    const profileCreated = await createProfileBestEffort(claimProfileOverride, claimIdOverride);
+
+    if (profileCreated) {
+      // Refresh auth context to pick up the new profile (best-effort)
+      try {
+        await refreshAccountData();
+      } catch {
+        console.error("Failed to refresh account data, continuing...");
+      }
+    }
+
+    // Handle deferred action — redirect to returnUrl if set.
+    const deferred = getDeferredAction();
+    if (deferred?.returnUrl) {
+      router.push(deferred.returnUrl);
+      onComplete();
+      return;
+    }
+
+    // Route based on intent — always navigate forward
+    if (intent === "family" && !isAddingProfile) {
+      router.push("/browse");
+    } else if (intent === "provider" && !isAddingProfile) {
+      router.push("/provider");
+    } else {
+      router.push("/portal");
+    }
+
+    onComplete();
   };
 
   // ──────────────────────────────────────────────────────────
@@ -383,12 +501,6 @@ export default function PostAuthOnboarding({
     <div>
       {/* Progress indicator */}
       <StepProgress current={currentStepIndex} total={totalSteps} />
-
-      {error && (
-        <div className="mb-5 bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm" role="alert">
-          {error}
-        </div>
-      )}
 
       {/* ─── Intent Selection ─── */}
       {step === "intent" && (
@@ -546,17 +658,22 @@ export default function PostAuthOnboarding({
             </div>
           )}
 
-          {/* Name field - only for providers (families already provided name during auth) */}
-          {intent === "provider" && (
-            <Input
-              label={providerType === "organization" ? "Organization name" : "Your name"}
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)}
-              placeholder={providerType === "organization" ? "e.g., Sunrise Senior Living" : "First and last name"}
-              required
-            />
-          )}
+          {/* Name field */}
+          <Input
+            label={
+              intent === "provider" && providerType === "organization"
+                ? "Organization name"
+                : "Your name"
+            }
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName((e.target as HTMLInputElement).value)}
+            placeholder={
+              intent === "provider" && providerType === "organization"
+                ? "e.g., Sunrise Senior Living"
+                : "First and last name"
+            }
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -624,6 +741,8 @@ export default function PostAuthOnboarding({
             >
               {intent === "provider" && providerType === "organization" && !claimedProfile
                 ? "Continue"
+                : intent === "family" && !isAddingProfile && !account?.onboarding_completed
+                ? "Continue"
                 : "Complete setup"}
             </Button>
           </div>
@@ -631,7 +750,7 @@ export default function PostAuthOnboarding({
           {!initialIntent && (
             <button
               type="button"
-              onClick={() => { setStep("intent"); setError(""); }}
+              onClick={() => { setStep("intent"); }}
               className="w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -640,6 +759,59 @@ export default function PostAuthOnboarding({
               Back
             </button>
           )}
+        </div>
+      )}
+
+      {/* ─── Matches Invite (Step 3 for new family accounts) ─── */}
+      {step === "matches-invite" && (
+        <div key="matches-invite" className="animate-step-enter">
+          <div className="text-center mb-8">
+            <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center shadow-sm">
+              <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
+            <h2 className="font-display text-2xl sm:text-[28px] text-gray-900 tracking-tight">
+              Want providers to come to you?
+            </h2>
+            <p className="text-gray-500 mt-3 text-[15px] leading-relaxed">
+              Qualified providers in {city || "your area"} will reach out directly. You choose who to talk to.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              type="button"
+              onClick={handleMatchesOptIn}
+              disabled={loading}
+              loading={loading}
+              fullWidth
+              size="lg"
+            >
+              Yes, let providers find me
+            </Button>
+
+            <button
+              type="button"
+              onClick={handleMatchesSkip}
+              disabled={loading}
+              className="w-full text-center py-4 text-[15px] text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
+            >
+              I&apos;ll browse on my own
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => { setStep("profile-info"); }}
+            disabled={loading}
+            className="w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1 mt-4 disabled:opacity-50"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
         </div>
       )}
 
@@ -721,7 +893,7 @@ export default function PostAuthOnboarding({
 
           <button
             type="button"
-            onClick={() => { setStep("profile-info"); setError(""); setHasSearched(false); }}
+            onClick={() => { setStep("profile-info"); setHasSearched(false); }}
             className="w-full text-center text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center gap-1"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

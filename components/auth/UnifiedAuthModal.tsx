@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth, type OpenAuthOptions } from "@/components/auth/AuthProvider";
+import { validateReturnUrl } from "@/lib/validation";
 import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -488,8 +489,9 @@ export default function UnifiedAuthModal({
     // Deferred returnUrl — skip PostAuth entirely and redirect.
     // Used by the claim page to return after auth (verification-first flow).
     if (options.deferred?.returnUrl) {
+      const safeReturnUrl = validateReturnUrl(options.deferred.returnUrl, "/browse");
       onClose();
-      router.push(options.deferred.returnUrl);
+      router.push(safeReturnUrl);
       return;
     }
 

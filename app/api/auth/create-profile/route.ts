@@ -3,6 +3,8 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Account, Profile, ProfileCategory, Membership } from "@/lib/types";
 import { sendLoopsEvent } from "@/lib/loops";
+import { generateUniqueSlug } from "@/lib/slug";
+import { validateDisplayName, sanitizeCareTypes } from "@/lib/validation";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -16,17 +18,6 @@ function getAdminClient() {
     return null;
   }
   return createClient(url, serviceKey);
-}
-
-function generateSlug(name: string, city: string, state: string): string {
-  const parts = [name, city, state].filter(Boolean);
-  const slug = parts
-    .join(" ")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const suffix = Math.random().toString(36).substring(2, 6);
-  return `${slug}-${suffix}`;
 }
 
 /**
@@ -90,12 +81,26 @@ export async function POST(request: Request) {
     } = body;
 
     // Validate required fields
-    if (!intent || !displayName?.trim()) {
+    if (!intent) {
       return NextResponse.json(
-        { error: "Intent and display name are required." },
+        { error: "Intent is required." },
         { status: 400 }
       );
     }
+
+    // Validate and sanitize display name
+    const nameValidation = validateDisplayName(displayName);
+    if (!nameValidation.valid) {
+      return NextResponse.json(
+        { error: nameValidation.error },
+        { status: 400 }
+      );
+    }
+    const sanitizedDisplayName = nameValidation.value;
+
+    // Sanitize care types arrays (filter invalid values, default to empty array)
+    const sanitizedCareTypes = sanitizeCareTypes(careTypes);
+    const sanitizedCareNeeds = sanitizeCareTypes(careNeeds);
 
     // Use admin client to bypass RLS, fall back to authenticated client
     const adminClient = getAdminClient();
@@ -123,45 +128,79 @@ export async function POST(request: Request) {
 
       if (claimedProfileId) {
         // Claiming an existing seeded profile
-        const { data: existing } = await db
+        // First, check if profile exists and is available for claiming
+        const { data: existing, error: fetchErr } = await db
           .from("business_profiles")
-          .select("display_name, city, state, zip, care_types, description, phone")
+          .select("account_id, display_name, city, state, zip, care_types, description, phone")
           .eq("id", claimedProfileId)
-          .single<Profile>();
+          .single<Profile & { account_id: string | null }>();
 
-        const claimUpdate: Record<string, unknown> = {
-          account_id: accountId,
-          claim_state: "pending",
-        };
-
-        if (!existing?.display_name?.trim() && (orgName || displayName))
-          claimUpdate.display_name = orgName || displayName;
-        if (!existing?.city && city) claimUpdate.city = city;
-        if (!existing?.state && state) claimUpdate.state = state;
-        if (!existing?.zip && zip) claimUpdate.zip = zip;
-        if ((!existing?.care_types || existing.care_types.length === 0) && careTypes.length > 0)
-          claimUpdate.care_types = careTypes;
-        if (!existing?.description?.trim() && description) claimUpdate.description = description;
-        if (!existing?.phone && phone) claimUpdate.phone = phone;
-
-        const { error: claimErr } = await db
-          .from("business_profiles")
-          .update(claimUpdate)
-          .eq("id", claimedProfileId);
-
-        if (claimErr) {
-          console.error("Claim profile error:", claimErr);
+        if (fetchErr || !existing) {
           return NextResponse.json(
-            { error: `Failed to claim profile: ${claimErr.message}` },
-            { status: 500 }
+            { error: "Profile not found" },
+            { status: 404 }
           );
         }
 
-        profileId = claimedProfileId;
+        // Check if already claimed by someone else
+        if (existing.account_id && existing.account_id !== accountId) {
+          return NextResponse.json(
+            { error: "This profile has already been claimed" },
+            { status: 409 }
+          );
+        }
+
+        // If already claimed by this user, just use it
+        if (existing.account_id === accountId) {
+          profileId = claimedProfileId;
+        } else {
+          // Atomic claim: only update if account_id is still NULL
+          const claimUpdate: Record<string, unknown> = {
+            account_id: accountId,
+            claim_state: "pending",
+          };
+
+          if (!existing.display_name?.trim() && (orgName || sanitizedDisplayName))
+            claimUpdate.display_name = orgName?.trim().slice(0, 100) || sanitizedDisplayName;
+          if (!existing.city && city) claimUpdate.city = city;
+          if (!existing.state && state) claimUpdate.state = state;
+          if (!existing.zip && zip) claimUpdate.zip = zip;
+          if ((!existing.care_types || existing.care_types.length === 0) && sanitizedCareTypes.length > 0)
+            claimUpdate.care_types = sanitizedCareTypes;
+          if (!existing.description?.trim() && description) claimUpdate.description = description;
+          if (!existing.phone && phone) claimUpdate.phone = phone;
+
+          // Use .is("account_id", null) to ensure atomic claim (race condition protection)
+          const { data: claimResult, error: claimErr } = await db
+            .from("business_profiles")
+            .update(claimUpdate)
+            .eq("id", claimedProfileId)
+            .is("account_id", null)
+            .select("id")
+            .maybeSingle();
+
+          if (claimErr) {
+            console.error("Claim profile error:", claimErr);
+            return NextResponse.json(
+              { error: `Failed to claim profile: ${claimErr.message}` },
+              { status: 500 }
+            );
+          }
+
+          // If no rows were updated, someone else claimed it between our check and update
+          if (!claimResult) {
+            return NextResponse.json(
+              { error: "This profile has already been claimed" },
+              { status: 409 }
+            );
+          }
+
+          profileId = claimedProfileId;
+        }
       } else {
         // Create new provider profile
-        const name = providerType === "organization" ? (orgName || displayName) : displayName;
-        const slug = generateSlug(name, city || "", state || "");
+        const name = providerType === "organization" ? (orgName?.trim().slice(0, 100) || sanitizedDisplayName) : sanitizedDisplayName;
+        const slug = await generateUniqueSlug(db, name, city || "", state || "");
 
         const { data: newProfile, error: insertErr } = await db
           .from("business_profiles")
@@ -176,7 +215,7 @@ export async function POST(request: Request) {
             city: city || null,
             state: state || null,
             zip: zip || null,
-            care_types: careTypes,
+            care_types: sanitizedCareTypes,
             claim_state: "pending",
             verification_state: "unverified",
             source: "user_created",
@@ -208,11 +247,19 @@ export async function POST(request: Request) {
         .limit(1);
 
       if (!existingMembership || existingMembership.length === 0) {
-        await db.from("memberships").insert({
+        const { error: membershipErr } = await db.from("memberships").insert({
           account_id: accountId,
           plan: "free",
           status: "free",
         });
+
+        if (membershipErr) {
+          console.error("Create membership error:", membershipErr);
+          return NextResponse.json(
+            { error: `Failed to create membership: ${membershipErr.message}` },
+            { status: 500 }
+          );
+        }
       }
 
       // Auto-create a baseline family profile so the Family Portal is always accessible.
@@ -226,12 +273,12 @@ export async function POST(request: Request) {
         .maybeSingle();
 
       if (!existingFamilyProfile) {
-        const familySlug = generateSlug(displayName, city || "", state || "");
+        const familySlug = await generateUniqueSlug(db, sanitizedDisplayName, city || "", state || "");
         await db.from("business_profiles").insert({
           account_id: accountId,
           slug: familySlug,
           type: "family",
-          display_name: displayName,
+          display_name: sanitizedDisplayName,
           city: city || null,
           state: state || null,
           care_types: [],
@@ -260,11 +307,11 @@ export async function POST(request: Request) {
         const { error: updateErr } = await db
           .from("business_profiles")
           .update({
-            display_name: displayName,
+            display_name: sanitizedDisplayName,
             city: city || null,
             state: state || null,
             zip: zip || null,
-            care_types: careNeeds || careTypes || [],
+            care_types: sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes,
             metadata: {
               visible_to_families: visibleToFamilies ?? true,
               visible_to_providers: visibleToProviders ?? true,
@@ -283,7 +330,7 @@ export async function POST(request: Request) {
         profileId = existingFamilyProfile.id;
       } else {
         // No existing family profile — create one
-        const slug = generateSlug(displayName, city || "", state || "");
+        const slug = await generateUniqueSlug(db, sanitizedDisplayName, city || "", state || "");
 
         const { data: newProfile, error: insertErr } = await db
           .from("business_profiles")
@@ -291,11 +338,11 @@ export async function POST(request: Request) {
             account_id: accountId,
             slug,
             type: "family",
-            display_name: displayName,
+            display_name: sanitizedDisplayName,
             city: city || null,
             state: state || null,
             zip: zip || null,
-            care_types: careNeeds || careTypes || [],
+            care_types: sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes,
             claim_state: "claimed",
             verification_state: "unverified",
             source: "user_created",
@@ -325,7 +372,7 @@ export async function POST(request: Request) {
       onboarding_completed: true,
     };
     if (!account.display_name) {
-      accountUpdate.display_name = displayName;
+      accountUpdate.display_name = sanitizedDisplayName;
     }
     if (!isAddingProfile) {
       accountUpdate.active_profile_id = profileId;
@@ -347,8 +394,8 @@ export async function POST(request: Request) {
         ? (providerType === "caregiver" ? "caregiver" : "organization")
         : "family";
       const providerName = intent === "provider"
-        ? (orgName || displayName)
-        : displayName;
+        ? (orgName?.trim().slice(0, 100) || sanitizedDisplayName)
+        : sanitizedDisplayName;
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
       await sendLoopsEvent({
         email: user.email || "",
@@ -361,7 +408,7 @@ export async function POST(request: Request) {
           profile_link: `${siteUrl}/portal/profile`,
           city: city || "",
           state: state || "",
-          care_type: careTypes?.[0] || "",
+          care_type: sanitizedCareTypes[0] || "",
         },
       });
     } catch {

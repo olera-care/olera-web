@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { matchesLiveEmail } from "@/lib/email-templates";
 import { PRIMARY_NEEDS, type PrimaryNeed } from "@/lib/types/benefits";
+import { generateUniqueSlug } from "@/lib/slug";
+import { sanitizeDisplayName } from "@/lib/validation";
 
 /**
  * Creates a Supabase admin client with service role key.
@@ -17,17 +19,6 @@ function getAdminClient() {
     return null;
   }
   return createClient(url, serviceKey);
-}
-
-function generateSlug(name: string, city: string, state: string): string {
-  const parts = [name, city, state].filter(Boolean);
-  const slug = parts
-    .join(" ")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const suffix = Math.random().toString(36).substring(2, 6);
-  return `${slug}-${suffix}`;
 }
 
 /**
@@ -127,9 +118,10 @@ export async function POST(request: Request) {
 
     // Step 3: If no family profile exists, create one
     if (!profileId) {
-      const displayName = account.display_name || user.user_metadata?.full_name || "Family";
+      const rawName = account.display_name || user.user_metadata?.full_name || "";
+      const displayName = sanitizeDisplayName(rawName, "Family");
       const careTypes = mapNeedsToCareTypes(primaryNeeds);
-      const slug = generateSlug(displayName, city || "", state || "");
+      const slug = await generateUniqueSlug(db, displayName, city || "", state || "");
 
       const { data: newProfile, error: insertErr } = await db
         .from("business_profiles")

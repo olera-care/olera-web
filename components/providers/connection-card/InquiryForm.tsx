@@ -12,6 +12,8 @@ interface InquiryFormProps {
   }) => void;
   submitting?: boolean;
   error?: string;
+  initialEmail?: string;
+  initialName?: string;
 }
 
 export default function InquiryForm({
@@ -19,9 +21,11 @@ export default function InquiryForm({
   onSubmit,
   submitting,
   error,
+  initialEmail = "",
+  initialName = "",
 }: InquiryFormProps) {
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState(initialEmail);
+  const [fullName, setFullName] = useState(initialName);
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");

@@ -115,10 +115,10 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
         }
       `}
     >
-      <div className="relative bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-lg overflow-hidden">
+      <div className="relative bg-gradient-to-r from-primary-50 via-white to-primary-50 border border-primary-200 rounded-xl shadow-sm overflow-hidden">
         {/* Progress bar for auto-dismiss - shrinks from left to right */}
         <div
-          className="absolute bottom-0 left-0 h-1 bg-primary-400/70 transition-[width] ease-linear rounded-bl-xl"
+          className="absolute bottom-0 left-0 h-1 bg-primary-500 transition-[width] ease-linear rounded-bl-xl"
           style={{
             width: progressStarted ? '0%' : '100%',
             transitionDuration: progressStarted ? `${AUTO_DISMISS_MS}ms` : '0ms',
@@ -129,8 +129,8 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
           {/* Left: Message */}
           <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Icon */}
-            <div className="flex w-9 h-9 rounded-lg bg-primary-500/20 items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24">
+            <div className="flex w-9 h-9 rounded-lg bg-primary-100 items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-primary-600" fill="none" viewBox="0 0 24 24">
                 <path
                   stroke="currentColor"
                   strokeWidth={2}
@@ -143,10 +143,10 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
 
             {/* Text */}
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-white truncate">
+              <p className="text-[15px] font-semibold text-gray-900 truncate">
                 {welcomeGreeting}
               </p>
-              <p className="text-sm text-gray-300 truncate">
+              <p className="text-sm text-gray-600 truncate">
                 {browsingContext}
               </p>
             </div>
@@ -161,7 +161,7 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
                 inline-flex items-center gap-1.5
                 px-4 py-2
                 rounded-lg
-                bg-primary-500 hover:bg-primary-400
+                bg-primary-600 hover:bg-primary-700
                 text-sm font-medium text-white
                 active:scale-[0.97]
                 transition-all duration-150
@@ -179,8 +179,8 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
               onClick={handleDismiss}
               className="
                 p-1.5 rounded-lg
-                text-gray-400 hover:text-white
-                hover:bg-white/10
+                text-gray-400 hover:text-gray-600
+                hover:bg-gray-100
                 active:scale-90
                 transition-all duration-150
               "

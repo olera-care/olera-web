@@ -22,7 +22,7 @@ export default function SaveResultsBanner() {
       defaultMode: "sign-up",
       intent: "family",
       headline: "Sign in to get matched",
-      subline: "We'll save your results and connect you with qualified providers in your area.",
+      subline: "Save your results and connect with providers in your area.",
     });
   }
 

@@ -72,19 +72,7 @@ function MatchesPromoBanner({
       {/* Accent left border */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
 
-      {/* Dismiss X */}
-      <button
-        type="button"
-        onClick={handleDismiss}
-        className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors z-10"
-        aria-label="Dismiss"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      <div className="flex items-center gap-4 px-5 py-4 pr-12">
+      <div className="flex items-center gap-4 px-5 py-4">
         {/* Icon with glow effect */}
         <div className="relative flex-shrink-0 hidden sm:block">
           <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
@@ -119,22 +107,31 @@ function MatchesPromoBanner({
           </p>
         </div>
 
-        {/* CTA Button */}
-        <Link
-          href="/matches"
-          className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] whitespace-nowrap flex-shrink-0"
-        >
-          Set up profile
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
+        {/* CTA Buttons */}
+        <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Not now
+          </button>
+          <Link
+            href="/portal/matches"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] whitespace-nowrap"
+          >
+            Set up profile
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
       </div>
 
       {/* Mobile CTA - full width below content */}
-      <div className="sm:hidden px-5 pb-4">
+      <div className="sm:hidden px-5 pb-4 flex flex-col gap-3">
         <Link
-          href="/matches"
+          href="/portal/matches"
           className="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25"
         >
           Set up my care profile
@@ -142,6 +139,13 @@ function MatchesPromoBanner({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
+        <button
+          type="button"
+          onClick={handleDismiss}
+          className="text-sm text-gray-500 hover:text-gray-700 transition-colors text-center"
+        >
+          Not now
+        </button>
       </div>
     </div>
   );

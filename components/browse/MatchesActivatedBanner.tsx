@@ -77,16 +77,16 @@ export default function MatchesActivatedBanner() {
         hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)]
         transition-shadow duration-300
       ">
-        {/* Success accent left border */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-green-600 rounded-l-2xl" />
+        {/* Primary color accent left border */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
 
-        <div className="flex items-center justify-between gap-4 pl-5 pr-4 py-3.5">
+        <div className="flex items-center justify-between gap-4 px-5 py-3.5">
           {/* Left: Icon + Message */}
           <div className="flex items-center gap-3.5 min-w-0 flex-1">
             {/* Success icon with glow effect */}
             <div className="relative flex-shrink-0">
-              <div className="absolute inset-0 bg-emerald-400/20 rounded-xl blur-md" />
-              <div className="relative flex w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 items-center justify-center shadow-sm">
+              <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
+              <div className="relative flex w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 items-center justify-center shadow-sm">
                 <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
                   <path
                     stroke="currentColor"
@@ -110,8 +110,16 @@ export default function MatchesActivatedBanner() {
             </div>
           </div>
 
-          {/* Right: CTA + Dismiss */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Right: CTA + Dismiss text */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Not now
+            </button>
+
             <Link
               href="/portal/matches"
               onClick={handleDismiss}
@@ -119,11 +127,11 @@ export default function MatchesActivatedBanner() {
                 inline-flex items-center gap-1.5
                 px-4 py-2
                 rounded-xl
-                bg-gradient-to-r from-emerald-600 to-green-700
-                hover:from-emerald-700 hover:to-green-800
+                bg-gradient-to-r from-primary-600 to-primary-700
+                hover:from-primary-700 hover:to-primary-800
                 text-sm font-semibold text-white
-                shadow-sm shadow-emerald-600/25
-                hover:shadow-md hover:shadow-emerald-600/30
+                shadow-sm shadow-primary-600/25
+                hover:shadow-md hover:shadow-primary-600/30
                 active:scale-[0.98]
                 transition-all duration-200
                 whitespace-nowrap
@@ -134,23 +142,6 @@ export default function MatchesActivatedBanner() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
-
-            <button
-              type="button"
-              onClick={handleDismiss}
-              className="
-                p-2 rounded-xl
-                text-gray-400 hover:text-gray-600
-                hover:bg-gray-100
-                active:scale-95
-                transition-all duration-150
-              "
-              aria-label="Dismiss"
-            >
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
           </div>
         </div>
       </div>

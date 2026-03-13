@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { VoiceMode } from "@/hooks/use-benefits-state";
 
 interface VoiceModeSelectionProps {
@@ -7,6 +8,15 @@ interface VoiceModeSelectionProps {
 }
 
 export default function VoiceModeSelection({ onSelect }: VoiceModeSelectionProps) {
+  const [speechAvailable, setSpeechAvailable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const available =
+      typeof window !== "undefined" &&
+      !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    setSpeechAvailable(available);
+  }, []);
+
   return (
     <div className="w-full animate-step-in">
       <h2 className="font-display text-display-sm font-medium text-gray-900 mb-2 leading-snug tracking-tight">
@@ -17,13 +27,22 @@ export default function VoiceModeSelection({ onSelect }: VoiceModeSelectionProps
       </p>
 
       <div className="flex flex-col gap-3">
-        {/* Talk through it */}
+        {/* Talk through it — only enabled when speech recognition is available */}
         <button
           type="button"
-          onClick={() => onSelect("guided")}
-          className="group flex items-start gap-4 w-full p-5 rounded-2xl border border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm transition-all text-left cursor-pointer"
+          onClick={() => speechAvailable && onSelect("guided")}
+          disabled={speechAvailable === false}
+          className={`group flex items-start gap-4 w-full p-5 rounded-2xl border transition-all text-left ${
+            speechAvailable === false
+              ? "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
+              : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm cursor-pointer"
+          }`}
         >
-          <span className="flex items-center justify-center w-11 h-11 rounded-full bg-primary-50 text-primary-600 flex-shrink-0 mt-0.5">
+          <span className={`flex items-center justify-center w-11 h-11 rounded-full flex-shrink-0 mt-0.5 ${
+            speechAvailable === false
+              ? "bg-gray-100 text-gray-400"
+              : "bg-primary-50 text-primary-600"
+          }`}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 1.5a3 3 0 00-3 3v7.5a3 3 0 006 0V4.5a3 3 0 00-3-3z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5a7.5 7.5 0 01-15 0" />
@@ -33,7 +52,9 @@ export default function VoiceModeSelection({ onSelect }: VoiceModeSelectionProps
           <div className="min-w-0">
             <span className="text-base font-medium text-gray-900 block">Talk through it</span>
             <span className="text-sm text-gray-500 block mt-0.5">
-              Answer a few questions by voice — like talking to a care advisor.
+              {speechAvailable === false
+                ? "Voice input requires Chrome or Edge browser."
+                : "Answer a few questions by voice — like talking to a care advisor."}
             </span>
           </div>
         </button>

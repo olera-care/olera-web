@@ -92,11 +92,19 @@ export default function BenefitsIntakeForm() {
   const stepInfo = INTAKE_STEPS[step];
 
   // If voice mode was restored from draft, mark mode as chosen
+  // Also exit guided mode if speech recognition is unavailable
   useEffect(() => {
     if (voiceMode === "guided" && !modeChosen) {
+      const speechAvailable =
+        typeof window !== "undefined" &&
+        !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+      if (!speechAvailable) {
+        setVoiceMode("off");
+        return;
+      }
       setModeChosen(true);
     }
-  }, [voiceMode, modeChosen]);
+  }, [voiceMode, modeChosen, setVoiceMode]);
 
   // Also mark mode as chosen if user has progressed past step 0
   useEffect(() => {

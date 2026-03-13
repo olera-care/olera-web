@@ -50,7 +50,7 @@ export default function BenefitsIntakeForm() {
     publishCarePost,
     setPublishCarePost,
   } = useCareProfile();
-  const { user, activeProfile, openAuth } = useAuth();
+  const { user, activeProfile } = useAuth();
 
   // ─── Local UI state (not shared via context) ────────────────────────────
   const [locationInput, setLocationInputLocal] = useState(locationDisplay);
@@ -217,14 +217,7 @@ export default function BenefitsIntakeForm() {
     if (step < 5) {
       goToStep((step + 1) as IntakeStep);
     } else {
-      // Final step — auth gate before submitting
-      if (!user) {
-        // Prompt sign-in, preserving wizard state in React context
-        openAuth({ defaultMode: "sign-up", intent: "family" });
-        return;
-      }
-
-      // Submit with all answers flushed
+      // Final step — submit (auth no longer required; results page handles soft auth prompt)
       updateAnswers({
         stateCode: selectedStateCode,
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,

@@ -16,6 +16,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { FamilyMetadata } from "@/lib/types";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
+import SaveResultsBanner from "./SaveResultsBanner";
 
 interface BenefitsResultsProps {
   result: BenefitsSearchResult;
@@ -212,6 +213,9 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
 
   return (
     <div className="w-full">
+      {/* Soft auth banner for anonymous users */}
+      <SaveResultsBanner />
+
       {/* Header — serif with match count + share */}
       <div className="mb-8">
         <div className="flex items-baseline justify-between gap-4">

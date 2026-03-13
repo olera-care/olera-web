@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { BENEFIT_CATEGORIES } from "@/lib/types/benefits";
 import type {
   BenefitsSearchResult,
@@ -17,6 +18,23 @@ import type { FamilyMetadata } from "@/lib/types";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
 import SaveResultsBanner from "./SaveResultsBanner";
+
+// ── Success illustration for confirmation state ──
+function MatchesSuccessIllustration({ className = "w-12 h-12" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="20" fill="#199087" fillOpacity="0.12" />
+      <circle cx="24" cy="24" r="14" fill="white" />
+      <path
+        d="M17 24L21.5 28.5L31 19"
+        stroke="#199087"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 interface BenefitsResultsProps {
   result: BenefitsSearchResult;
@@ -66,6 +84,20 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   const { user, activeProfile, refreshAccountData } = useAuth();
   const { isSaved, toggleSave } = useSavedBenefits();
   const syncedRef = useRef(false);
+
+  // Matches invitation card state
+  const [matchesCardDismissed, setMatchesCardDismissed] = useState(false);
+  const [matchesCardConfirmed, setMatchesCardConfirmed] = useState(false);
+  const [matchesActivating, setMatchesActivating] = useState(false);
+
+  // Determine if user should see Matches invitation card
+  const profileMeta = activeProfile?.metadata as FamilyMetadata | undefined;
+  const hasActiveMatches = profileMeta?.care_post?.status === "active";
+  const showMatchesCard = user && activeProfile && !hasActiveMatches && !matchesCardDismissed;
+
+  // Get city from location display (step 1 location data)
+  // locationDisplay is typically "City, ST" format
+  const cityDisplay = locationDisplay?.split(",")[0]?.trim() || "your area";
 
   // Persist results to DB + sync intake answers to profile fields
   useEffect(() => {
@@ -190,6 +222,40 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
     }
   }
 
+  // Activate Matches profile
+  async function handleActivateMatches() {
+    if (matchesActivating) return;
+    setMatchesActivating(true);
+
+    try {
+      const res = await fetch("/api/care-post/activate-matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city: cityDisplay }),
+      });
+
+      if (res.ok) {
+        setMatchesCardConfirmed(true);
+        await refreshAccountData();
+      } else {
+        console.error("[olera] Matches activation failed");
+      }
+    } catch (err) {
+      console.error("[olera] Matches activation error:", err);
+    } finally {
+      setMatchesActivating(false);
+    }
+  }
+
+  function handleDismissMatchesCard() {
+    setMatchesCardDismissed(true);
+  }
+
+  function handleMatchesCardDone() {
+    setMatchesCardDismissed(true);
+    setMatchesCardConfirmed(false);
+  }
+
   // Empty state
   if (matchedPrograms.length === 0 && !localAAA) {
     return (
@@ -250,6 +316,74 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
       {localAAA && (
         <div className="mb-10">
           <AAACard agency={localAAA} />
+        </div>
+      )}
+
+      {/* Matches invitation card — for signed-in users without active Matches */}
+      {showMatchesCard && (
+        <div className="mb-10">
+          <div className="border border-vanilla-300 bg-vanilla-100 rounded-2xl p-6 lg:p-8">
+            {matchesCardConfirmed ? (
+              /* ── Confirmation state ── */
+              <div className="flex flex-col items-center text-center py-2">
+                <MatchesSuccessIllustration className="w-14 h-14 mb-4" />
+                <h3 className="font-display text-display-xs font-medium text-gray-900 mb-2">
+                  Your profile is live in {cityDisplay}
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-md mb-5">
+                  Providers in your area can now find you. We&apos;ll email you the moment someone reaches out.
+                </p>
+                <Link
+                  href="/portal/matches"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mb-3"
+                >
+                  View your Matches profile &rarr;
+                </Link>
+                <button
+                  onClick={handleMatchesCardDone}
+                  className="text-sm font-medium text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              /* ── Invitation state ── */
+              <>
+                <p className="text-xs font-medium text-gray-400 mb-3 tracking-widest uppercase">
+                  Let providers find you
+                </p>
+                <h3 className="font-display text-display-xs font-medium text-gray-900 mb-1">
+                  Now let care providers find you
+                </h3>
+                <p className="text-sm text-gray-600 mt-3 leading-relaxed max-w-xl">
+                  You&apos;ve already told us everything we need. We&apos;ll share your care profile with
+                  qualified providers in {cityDisplay} — they reach out, and you decide who to talk to.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 mt-6">
+                  <button
+                    onClick={handleActivateMatches}
+                    disabled={matchesActivating}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-full text-sm font-medium border-none cursor-pointer hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {matchesActivating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Activating...
+                      </>
+                    ) : (
+                      "Yes, let providers find me"
+                    )}
+                  </button>
+                  <button
+                    onClick={handleDismissMatchesCard}
+                    className="inline-flex items-center min-h-[44px] px-2 text-sm font-medium text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer transition-colors"
+                  >
+                    No thanks
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 

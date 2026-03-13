@@ -83,8 +83,30 @@
     - Files modified: `use-benefits-state.ts`, `care-profile-context.tsx`, `voice-intent-parser.ts`, `VoiceMicButton.tsx`, `BenefitsIntakeForm.tsx`
     - Files created: `VoiceModeSelection.tsx`, `GuidedVoicePrompt.tsx`
     - Commit: `b97a9b6`
+  - **Phase 7 (2026-03-13):** TTS narration, auth gate, browser guard, UX polish
+    - Added TTS audio narration via Web Speech Synthesis API (`use-speech-synthesis.ts`)
+      - Narrates each guided prompt aloud, mic auto-starts after speech finishes
+      - Voice selection: prefers premium/Google voices, falls back to local English
+      - Rate 0.95, pitch 1.02 (warm + clear), matches iOS `VoiceSynthesisManager` pattern
+      - "Speaking" indicator in GuidedVoicePrompt, VoiceMicButton suppresses auto-start during TTS
+      - Final step: "Thanks, that's everything. Let me find what's available." → auto-submit
+    - Disabled guided voice option on unsupported browsers (Firefox/Safari)
+      - `VoiceModeSelection` checks `SpeechRecognition` availability, disables with message
+      - Safety net: auto-exits guided mode on draft restore if speech unavailable
+    - Removed auth gate from intake submit — results now shown to everyone
+      - Auth only triggered on bookmark/save (already handled by `useSavedBenefits`)
+      - Added "Create a free account" nudge on results page (non-blocking, inline)
+    - Reordered mode selection: "Fill it out myself" first (primary), "Talk through it" second
+    - Fixed worktree `.git` pointer (repo moved from `Desktop/olera-web` to `Desktop/Claude Screenshots/olera-web` then back)
+    - Commits: `fb7d8d5`, `aee4553`, `1734e76`, `5291c18`
   - Remaining: unit tests, Deepgram fallback (Firefox/iOS Safari), edge case polish, QA guided flow
   - Pushed to origin, PR not yet created
+
+- **Senior Benefits Finder Results Redesign** (branch: TBD) — PLANNED
+  - Inspired by Chantel's Lovable prototype: personalized header, financial impact dashboard,
+    match confidence bars, master document checklist, step-by-step "How to Apply",
+    spend-down calculator, prioritized action plan, print/PDF optimization
+  - Plan to be created next session
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -132,6 +154,10 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-13 | Form-first, voice-second in mode selection | Most users expect a form; voice is a differentiator but shouldn't be the default path |
+| 2026-03-13 | Auth gate on bookmark only, not on results | Let users see value first → higher conversion. Bookmark is the natural auth moment |
+| 2026-03-13 | Web Speech Synthesis API for TTS (no external service) | Free, built into all browsers, zero latency, no API key. Good enough for intake prompts |
+| 2026-03-13 | Borrow Chantel's results page ideas, not her code | Her Lovable prototype has great UX patterns (financial impact, action plan, print) but needs to be rebuilt in our stack |
 | 2026-03-05 | Flat `/provider/{slug}` URL is correct | v1.0 already used flat canonical URLs — no SEO trade-off in migration |
 | 2026-03-05 | Gated provider portal → Esther | `/provider-portal/provider/{slug}/*` needs smart landing page, not just redirect. Critical for provider email funnel |
 | 2026-03-02 | 16:9 primary featured image, 4 featured articles | 3:2 and 4:3 were too tall — pushed article grid below fold. 4 featured (1 large + 3 small) fills the right column without blank space |

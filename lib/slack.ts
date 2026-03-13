@@ -160,6 +160,84 @@ export function slackMissingEmail(opts: {
   };
 }
 
+export function slackQuestionAsked(opts: {
+  askerName: string;
+  providerName: string;
+  question: string;
+  providerSlug: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const truncated = opts.question.length > 150 ? opts.question.slice(0, 147) + "..." : opts.question;
+  return {
+    text: `New question on ${opts.providerName} from ${opts.askerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "❓ New Question Asked", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Asked by:*\n${opts.askerName}` },
+        ],
+      },
+      {
+        type: "section",
+        text: { type: "mrkdwn", text: `*Question:*\n${truncated}` },
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/provider/${opts.providerSlug}|View provider page>` },
+        ],
+      },
+    ],
+  };
+}
+
+export function slackQuestionMissingEmail(opts: {
+  askerName: string;
+  providerName: string;
+  providerId: string;
+  question: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  const truncated = opts.question.length > 150 ? opts.question.slice(0, 147) + "..." : opts.question;
+  return {
+    text: `Question asked on ${opts.providerName} but provider has no email`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📧 Question Asked — No Provider Email", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Asked by:*\n${opts.askerName}` },
+        ],
+      },
+      {
+        type: "section",
+        text: { type: "mrkdwn", text: `*Question:*\n${truncated}` },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Action:*\nAdd email so provider can be notified` },
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          { type: "mrkdwn", text: `<${siteUrl}/admin/directory/${opts.providerId}|Add email in admin>` },
+        ],
+      },
+    ],
+  };
+}
+
 export function slackProviderAction(opts: {
   providerName: string;
   action: "approved" | "rejected";

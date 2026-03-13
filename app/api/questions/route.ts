@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
+import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
+import { sendEmail } from "@/lib/email";
+import { questionConfirmationEmail } from "@/lib/email-templates";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -44,20 +47,22 @@ export async function GET(request: NextRequest) {
  * POST /api/questions
  *
  * Submit a question on a provider page.
- * Requires authentication.
- * Body: { provider_id, question }
+ * Supports both authenticated users and guests.
+ * Guests must provide asker_name + asker_email in body.
+ * Body: { provider_id, question, asker_name?, asker_email?, honeypot? }
  */
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { provider_id, question } = body;
+    const { provider_id, question, asker_name: guestName, asker_email: guestEmail, honeypot } = body;
+
+    // Honeypot — bots fill this hidden field; silently succeed without creating anything
+    if (honeypot) {
+      return NextResponse.json({ question: { id: "ok", question, asker_name: guestName || "Guest", status: "pending", created_at: new Date().toISOString() } }, { status: 201 });
+    }
 
     if (!provider_id || !question) {
       return NextResponse.json({ error: "provider_id and question are required" }, { status: 400 });
@@ -67,15 +72,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Question must be under 1000 characters" }, { status: 400 });
     }
 
-    // Get user's display name from profile
+    // Determine asker identity: authenticated user or anonymous guest
     const db = getServiceClient();
-    const { data: profile } = await db
-      .from("business_profiles")
-      .select("display_name")
-      .eq("user_id", user.id)
-      .single();
+    let askerName: string;
+    let askerEmail: string | null;
+    let askerUserId: string | null;
 
-    const askerName = profile?.display_name || user.email?.split("@")[0] || "Anonymous";
+    if (user) {
+      // Authenticated user — get display name from profile
+      const { data: profile } = await db
+        .from("business_profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+
+      askerName = profile?.display_name || user.email?.split("@")[0] || "Anonymous";
+      askerEmail = user.email || null;
+      askerUserId = user.id;
+    } else {
+      // Guest — question fires immediately, name/email optional (added via PATCH later)
+      // If guest provided name/email inline, use them
+      const normalizedEmail = guestEmail?.trim().toLowerCase() || null;
+
+      if (normalizedEmail) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(normalizedEmail)) {
+          return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
+        }
+
+        // Rate limiting: 5 questions per email per hour
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { data: recentQuestions } = await db
+          .from("provider_questions")
+          .select("id")
+          .eq("asker_email", normalizedEmail)
+          .gte("created_at", oneHourAgo);
+
+        if (recentQuestions && recentQuestions.length >= 5) {
+          return NextResponse.json({ error: "Too many questions. Please try again later." }, { status: 429 });
+        }
+      }
+
+      askerName = guestName?.trim() || "Anonymous";
+      askerEmail = normalizedEmail;
+      askerUserId = null;
+    }
 
     const { data: newQuestion, error } = await db
       .from("provider_questions")
@@ -83,10 +124,10 @@ export async function POST(request: NextRequest) {
         provider_id,
         question: question.trim(),
         asker_name: askerName,
-        asker_email: user.email,
-        asker_user_id: user.id,
+        asker_email: askerEmail,
+        asker_user_id: askerUserId,
         status: "pending",
-        is_public: true, // Show question publicly immediately
+        is_public: true,
       })
       .select("id, question, asker_name, status, created_at")
       .single();
@@ -94,6 +135,48 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error("Failed to create question:", error);
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
+    }
+
+    // Slack notifications — must await in serverless to prevent early termination
+    try {
+      const { data: provider } = await db
+        .from("business_profiles")
+        .select("id, display_name, email")
+        .eq("slug", provider_id)
+        .single();
+
+      const providerName = provider?.display_name || provider_id;
+
+      let providerEmail = provider?.email || null;
+      if (!providerEmail && provider?.id) {
+        const { data: ios } = await db
+          .from("ios_provider_profiles")
+          .select("email")
+          .eq("provider_id", provider.id)
+          .single();
+        providerEmail = ios?.email || null;
+      }
+
+      const guestSuffix = !user ? " (guest)" : "";
+      const { text, blocks } = slackQuestionAsked({
+        askerName: askerName + guestSuffix,
+        providerName,
+        question: question.trim(),
+        providerSlug: provider_id,
+      });
+      await sendSlackAlert(text, blocks);
+
+      if (!providerEmail) {
+        const missing = slackQuestionMissingEmail({
+          askerName: askerName + guestSuffix,
+          providerName,
+          providerId: provider?.id || provider_id,
+          question: question.trim(),
+        });
+        await sendSlackAlert(missing.text, missing.blocks);
+      }
+    } catch (slackErr) {
+      console.error("Slack notification failed:", slackErr);
     }
 
     return NextResponse.json({ question: newQuestion }, { status: 201 });
@@ -106,11 +189,97 @@ export async function POST(request: NextRequest) {
 /**
  * PATCH /api/questions
  *
- * Edit a question (only by the original asker, and only if not yet answered).
- * Body: { id, question }
+ * Two modes:
+ * 1. Authenticated edit: { id, question } — edit question text (owner only, before answer)
+ * 2. Guest enrichment: { id, asker_name, asker_email } — augment anonymous question with identity
  */
 export async function PATCH(request: NextRequest) {
   try {
+    const body = await request.json();
+    const { id, question, asker_name: enrichName, asker_email: enrichEmail } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "id is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Mode 2: Guest enrichment — add name/email to an anonymous question
+    if (enrichName || enrichEmail) {
+      const { data: existing, error: fetchError } = await db
+        .from("provider_questions")
+        .select("id, asker_user_id, asker_email")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !existing) {
+        return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      }
+
+      // Only allow enrichment on anonymous questions (no user_id and no email yet)
+      if (existing.asker_user_id || existing.asker_email) {
+        return NextResponse.json({ error: "Question already has identity" }, { status: 400 });
+      }
+
+      const updates: Record<string, string> = {};
+      if (enrichName?.trim()) updates.asker_name = enrichName.trim();
+      if (enrichEmail?.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(enrichEmail.trim())) {
+          return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+        }
+        updates.asker_email = enrichEmail.trim().toLowerCase();
+      }
+
+      const { data: updated, error: updateError } = await db
+        .from("provider_questions")
+        .update(updates)
+        .eq("id", id)
+        .select("id, question, asker_name, status, created_at")
+        .single();
+
+      if (updateError) {
+        console.error("Failed to enrich question:", updateError);
+        return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+      }
+
+      // Send confirmation email (fire-and-forget)
+      if (updates.asker_email && updated?.question) {
+        try {
+          // Look up provider name + slug for the email
+          const { data: q } = await db
+            .from("provider_questions")
+            .select("provider_id")
+            .eq("id", id)
+            .single();
+
+          const providerSlug = q?.provider_id || "";
+          const { data: provider } = await db
+            .from("business_profiles")
+            .select("display_name")
+            .eq("slug", providerSlug)
+            .single();
+
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+          await sendEmail({
+            to: updates.asker_email,
+            subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
+            html: questionConfirmationEmail({
+              askerName: updates.asker_name || "there",
+              providerName: provider?.display_name || "the provider",
+              question: updated.question,
+              providerUrl: `${siteUrl}/provider/${providerSlug}`,
+            }),
+          });
+        } catch (emailErr) {
+          console.error("Question confirmation email failed:", emailErr);
+        }
+      }
+
+      return NextResponse.json({ question: updated });
+    }
+
+    // Mode 1: Authenticated edit — edit question text
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -118,20 +287,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { id, question } = body;
-
-    if (!id || !question) {
-      return NextResponse.json({ error: "id and question are required" }, { status: 400 });
+    if (!question) {
+      return NextResponse.json({ error: "question is required" }, { status: 400 });
     }
 
     if (question.length > 1000) {
       return NextResponse.json({ error: "Question must be under 1000 characters" }, { status: 400 });
     }
 
-    const db = getServiceClient();
-
-    // Verify ownership and status
     const { data: existing, error: fetchError } = await db
       .from("provider_questions")
       .select("id, asker_user_id, status, answer")
@@ -150,7 +313,6 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Cannot edit a question that has been answered" }, { status: 400 });
     }
 
-    // Update the question
     const { data: updated, error: updateError } = await db
       .from("provider_questions")
       .update({ question: question.trim() })

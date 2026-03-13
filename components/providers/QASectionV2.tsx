@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { setDeferredAction, getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 interface QAEntry {
   id?: string;
@@ -87,12 +86,20 @@ export default function QASectionV2({
     "Do caregivers give meds?",
   ],
 }: QASectionProps) {
-  const { user, openAuth } = useAuth();
+  const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-  const [pendingSubmit, setPendingSubmit] = useState(false);
+
+  // Guest enrichment state (post-submit identity capture)
+  const [showEnrichment, setShowEnrichment] = useState(false);
+  const [enrichQuestionId, setEnrichQuestionId] = useState<string | null>(null);
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [guestError, setGuestError] = useState("");
+  const [enriching, setEnriching] = useState(false);
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -133,7 +140,7 @@ export default function QASectionV2({
     fetchQuestions();
   }, [fetchQuestions]);
 
-  // Submit question (used both directly and after auth return)
+  // Submit question — fires immediately for both auth and guest
   const submitQuestion = useCallback(async (questionText: string) => {
     if (!questionText.trim()) return;
 
@@ -144,7 +151,11 @@ export default function QASectionV2({
       const res = await fetch("/api/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId, question: questionText.trim() }),
+        body: JSON.stringify({
+          provider_id: providerId,
+          question: questionText.trim(),
+          honeypot: honeypot || undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -153,63 +164,102 @@ export default function QASectionV2({
       }
 
       const data = await res.json();
-      // Add the new question to the top of the list
       if (data.question) {
         setQuestions((prev) => [data.question, ...prev]);
+
+        // For guests: show enrichment prompt after successful submit
+        if (!user && data.question.id) {
+          setEnrichQuestionId(data.question.id);
+          setShowEnrichment(true);
+        }
       }
 
       setInputValue("");
       setSubmitStatus("success");
-      setTimeout(() => setSubmitStatus("idle"), 4000);
+
+      // Auto-dismiss success for authenticated users
+      if (user) {
+        setTimeout(() => setSubmitStatus("idle"), 4000);
+      }
     } catch {
       setSubmitStatus("error");
     } finally {
       setSubmitting(false);
     }
-  }, [providerId]);
+  }, [providerId, user, honeypot]);
 
-  // Detect deferred action (returning from auth with a pending question)
-  useEffect(() => {
-    if (!user) return;
-    const deferred = getDeferredAction();
-    if (deferred?.action === "question" && deferred?.targetProfileId === providerId) {
-      clearDeferredAction();
-      // Restore the question text and auto-submit
-      if (deferred.questionText) {
-        setInputValue(deferred.questionText);
-        setPendingSubmit(true);
-      }
-    }
-  }, [user, providerId]);
-
-  // Auto-submit when returning from auth
-  useEffect(() => {
-    if (pendingSubmit && user && inputValue.trim()) {
-      setPendingSubmit(false);
-      submitQuestion(inputValue);
-    }
-  }, [pendingSubmit, user, inputValue, submitQuestion]);
-
-  // Handle submit button click
+  // Handle submit button click — fires immediately, no gate
   const handleSubmit = () => {
     if (!inputValue.trim() || submitting) return;
+    submitQuestion(inputValue);
+  };
 
-    // Auth-on-submit: if not logged in, save the question and open auth
-    if (!user) {
-      setDeferredAction({
-        action: "question",
-        targetProfileId: providerId,
-        questionText: inputValue.trim(),
-        returnUrl: window.location.pathname,
-      });
-      openAuth({
-        defaultMode: "sign-up",
-        intent: "family",
-      });
+  // Enrich anonymous question with name/email (optional, post-submit)
+  const handleEnrich = async () => {
+    if (!enrichQuestionId) return;
+    setGuestError("");
+
+    // Honeypot
+    if (honeypot) {
+      setShowEnrichment(false);
+      setTimeout(() => setSubmitStatus("idle"), 2000);
       return;
     }
 
-    submitQuestion(inputValue);
+    // At least one field should be filled
+    if (!guestName.trim() && !guestEmail.trim()) {
+      setShowEnrichment(false);
+      setTimeout(() => setSubmitStatus("idle"), 2000);
+      return;
+    }
+
+    if (guestEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail.trim())) {
+        setGuestError("Please enter a valid email.");
+        return;
+      }
+    }
+
+    setEnriching(true);
+    try {
+      const res = await fetch("/api/questions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: enrichQuestionId,
+          asker_name: guestName.trim() || undefined,
+          asker_email: guestEmail.trim().toLowerCase() || undefined,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        // Update question in local state with enriched name
+        if (data.question) {
+          setQuestions((prev) =>
+            prev.map((q) => (q.id === enrichQuestionId ? { ...q, ...data.question } : q))
+          );
+        }
+      }
+    } catch {
+      // Non-blocking — question is already posted
+    } finally {
+      setEnriching(false);
+      setShowEnrichment(false);
+      setEnrichQuestionId(null);
+      setGuestName("");
+      setGuestEmail("");
+      setTimeout(() => setSubmitStatus("idle"), 2000);
+    }
+  };
+
+  const handleDismissEnrichment = () => {
+    setShowEnrichment(false);
+    setEnrichQuestionId(null);
+    setGuestName("");
+    setGuestEmail("");
+    setTimeout(() => setSubmitStatus("idle"), 2000);
   };
 
   const handleEditSubmit = async () => {
@@ -277,51 +327,136 @@ export default function QASectionV2({
 
       {/* Ask a question form */}
       <div className="mb-8">
-        {/* Suggested pills — no label, just gentle prompts */}
-        {suggestedQuestions.length > 0 && !inputValue && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {suggestedQuestions.map((q) => (
+        {showEnrichment ? (
+          /* Post-submit enrichment prompt — question already posted */
+          <div className="animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-gray-800">Question posted</span>
+            </div>
+
+            <p className="text-[13px] text-gray-500 mb-3">
+              Want to know when they respond?
+            </p>
+
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="Name"
+                autoComplete="name"
+                autoFocus
+                className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:bg-white transition-all"
+              />
+              <input
+                type="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
+                placeholder="Email"
+                autoComplete="email"
+                className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:bg-white transition-all"
+              />
+            </div>
+
+            {/* Honeypot */}
+            <input
+              type="text"
+              name="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              style={{ display: "none" }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+
+            {guestError && (
+              <p className="text-xs text-red-500 mt-1" role="alert">{guestError}</p>
+            )}
+
+            <div className="flex items-center justify-between mt-2.5">
+              <span className="text-[12px] text-gray-400">Not shown publicly</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDismissEnrichment}
+                  className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Skip
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEnrich}
+                  disabled={enriching || (!guestName.trim() && !guestEmail.trim())}
+                  className="px-4 py-1.5 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  {enriching && (
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  Notify me
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Standard question input */
+          <>
+            {/* Suggested pills */}
+            {suggestedQuestions.length > 0 && !inputValue && submitStatus !== "success" && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {suggestedQuestions.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => setInputValue(q)}
+                    className="text-[13px] text-gray-500 px-3.5 py-1.5 bg-gray-50 border border-gray-150 rounded-full hover:border-gray-300 hover:text-gray-700 hover:bg-gray-100/60 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Textarea */}
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder={`Ask ${providerName} a question...`}
+              rows={2}
+              maxLength={1000}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:bg-white transition-all"
+            />
+
+            {/* Submit row */}
+            <div className="flex items-center justify-between mt-2.5 gap-4">
+              <div className="text-sm flex-1 min-w-0">
+                {submitStatus === "success" && (
+                  <span className="text-primary-600 font-medium">Question posted!</span>
+                )}
+                {submitStatus === "error" && (
+                  <span className="text-red-500 text-sm">Something went wrong. Try again.</span>
+                )}
+              </div>
               <button
-                key={q}
                 type="button"
-                onClick={() => setInputValue(q)}
-                className="text-[13px] text-gray-500 px-3.5 py-1.5 bg-gray-50 border border-gray-150 rounded-full hover:border-gray-300 hover:text-gray-700 hover:bg-gray-100/60 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+                onClick={handleSubmit}
+                disabled={!inputValue.trim() || submitting}
+                className="shrink-0 px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] flex items-center gap-2"
               >
-                {q}
+                {submitting && (
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                )}
+                {submitting ? "Posting..." : "Post Question"}
               </button>
-            ))}
-          </div>
+            </div>
+          </>
         )}
-
-        {/* Textarea */}
-        <textarea
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder={`Ask ${providerName} a question...`}
-          rows={2}
-          maxLength={1000}
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[15px] text-gray-900 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:bg-white transition-all"
-        />
-
-        {/* Submit row */}
-        <div className="flex items-center justify-between mt-2.5 gap-4">
-          <div className="text-sm flex-1 min-w-0">
-            {submitStatus === "success" && (
-              <span className="text-primary-600 font-medium">Question posted!</span>
-            )}
-            {submitStatus === "error" && (
-              <span className="text-red-600">Failed to submit. Please try again.</span>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!inputValue.trim() || submitting}
-            className="shrink-0 px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
-          >
-            {submitting ? "Posting..." : "Post Question"}
-          </button>
-        </div>
       </div>
 
       {/* Questions list */}

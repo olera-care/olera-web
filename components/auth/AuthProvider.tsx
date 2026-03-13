@@ -54,6 +54,10 @@ export interface OpenAuthOptions {
   deferred?: Omit<DeferredAction, "createdAt">;
   /** Start in post-auth onboarding (for returning OAuth users) */
   startAtPostAuth?: boolean;
+  /** Custom headline for the entry screen (context-specific copy) */
+  headline?: string;
+  /** Custom subline for the entry screen (context-specific copy) */
+  subline?: string;
 }
 
 const AUTH_INTENT_KEY = "olera_auth_intent";

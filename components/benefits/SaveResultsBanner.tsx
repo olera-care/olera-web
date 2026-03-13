@@ -18,7 +18,12 @@ export default function SaveResultsBanner() {
       action: "save_benefit",
       returnUrl: "/benefits/finder",
     });
-    openAuth({ defaultMode: "sign-up", intent: "family" });
+    openAuth({
+      defaultMode: "sign-up",
+      intent: "family",
+      headline: "Sign in to get matched",
+      subline: "We'll save your results and connect you with qualified providers in your area.",
+    });
   }
 
   // Use location if available, fallback to "your area"

@@ -607,9 +607,13 @@ export default function UnifiedAuthModal({
             />
           </div>
 
-          <h2 className="text-xl font-semibold text-gray-900 text-center mb-6">
-            Log in or sign up
+          <h2 className="text-xl font-semibold text-gray-900 text-center mb-1">
+            {options.headline || "Log in or sign up"}
           </h2>
+          {options.subline && (
+            <p className="text-sm text-gray-500 text-center mb-6">{options.subline}</p>
+          )}
+          {!options.subline && <div className="mb-5" />}
 
           {error && (
             <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm" role="alert">

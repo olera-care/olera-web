@@ -654,6 +654,14 @@ function FamilyCareCard({
   const familyFirstName = displayName.split(/\s+/)[0];
   const reachOuts = reachOutCount ?? 0;
 
+  // Who needs care display
+  const careRecipientRaw = meta?.relationship_to_recipient;
+  const careRecipientDisplay = careRecipientRaw
+    ? careRecipientRaw === "myself"
+      ? "For themselves"
+      : `For their ${careRecipientRaw.replace(/_/g, " ")}`
+    : null;
+
   // Distance computation
   const providerLat = providerProfile?.lat;
   const providerLng = providerProfile?.lng;
@@ -773,15 +781,15 @@ function FamilyCareCard({
         {/* ── Stats bar — mobile: 2 columns, desktop: 3 columns ── */}
         {/* Mobile stats */}
         <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
-          {careNeeds.length > 0 && (
+          {careRecipientDisplay && (
             <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-              <CheckCircleIcon className="w-4 h-4 text-primary-500 shrink-0" />
+              <PeopleIcon className="w-4 h-4 text-primary-500 shrink-0" />
               <p className="text-xs text-gray-600 font-medium truncate">
-                {careNeeds.slice(0, 2).join(" · ")}
+                {careRecipientDisplay}
               </p>
             </div>
           )}
-          <div className={`flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg ${careNeeds.length === 0 ? "col-span-2" : ""}`}>
+          <div className={`flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg ${!careRecipientDisplay ? "col-span-2" : ""}`}>
             <LocationIcon className="w-4 h-4 text-primary-500 shrink-0" />
             <p className="text-xs text-gray-600">
               {driveTime ? (
@@ -802,11 +810,11 @@ function FamilyCareCard({
         {/* Desktop stats */}
         <div className="hidden lg:grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            {careNeeds.length > 0 ? (
+            {careRecipientDisplay ? (
               <>
-                <CheckCircleIcon className="w-4 h-4 text-primary-500" />
+                <PeopleIcon className="w-4 h-4 text-primary-500" />
                 <p className="text-[13px] text-gray-700 font-medium truncate">
-                  {careNeeds.slice(0, 2).join(" · ")}
+                  {careRecipientDisplay}
                 </p>
               </>
             ) : null}
@@ -842,36 +850,17 @@ function FamilyCareCard({
           </div>
         )}
 
-        {/* ── Care need tags — horizontal scroll on mobile ── */}
+        {/* ── Care type tags — horizontal scroll on mobile ── */}
         {careNeeds.length > 0 && (
           <div className="flex gap-2 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide pb-1">
-            {careNeeds.slice(0, 5).map((need) => {
-              const isMatch = providerCareTypes.some(
-                (s) => s.toLowerCase() === need.toLowerCase(),
-              );
-              return (
-                <span
-                  key={need}
-                  className={`inline-flex items-center gap-1.5 text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border whitespace-nowrap shrink-0 ${
-                    isMatch
-                      ? "border-[#F5F4F1] text-gray-700 bg-[#F5F4F1]"
-                      : "border-warm-100 text-gray-500 bg-white"
-                  }`}
-                >
-                  {isMatch && (
-                    <svg className="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                  )}
-                  {need}
-                </span>
-              );
-            })}
-            {careNeeds.length > 5 && (
-              <span className="text-xs lg:text-[13px] text-gray-400 self-center pl-1 shrink-0">
-                +{careNeeds.length - 5}
+            {careNeeds.map((need) => (
+              <span
+                key={need}
+                className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-600 bg-white whitespace-nowrap shrink-0"
+              >
+                {need}
               </span>
-            )}
+            ))}
           </div>
         )}
 

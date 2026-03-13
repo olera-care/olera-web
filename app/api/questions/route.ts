@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAsked, slackQuestionMissingEmail } from "@/lib/slack";
 import { sendEmail } from "@/lib/email";
-import { questionConfirmationEmail } from "@/lib/email-templates";
+import { questionConfirmationEmail, questionReceivedEmail } from "@/lib/email-templates";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -177,6 +177,60 @@ export async function POST(request: NextRequest) {
       }
     } catch (slackErr) {
       console.error("Slack notification failed:", slackErr);
+    }
+
+    // Email notifications — must await in serverless
+    try {
+      // Look up provider for emails (reuse from Slack block or fetch fresh)
+      const { data: providerForEmail } = await db
+        .from("business_profiles")
+        .select("id, display_name, email, slug")
+        .eq("slug", provider_id)
+        .single();
+
+      const providerDisplayName = providerForEmail?.display_name || provider_id;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+      const providerUrl = `${siteUrl}/provider/${provider_id}`;
+
+      // 1. Email the provider about the new question (if they have an email)
+      let pEmail = providerForEmail?.email || null;
+      if (!pEmail && providerForEmail?.id) {
+        const { data: ios } = await db
+          .from("ios_provider_profiles")
+          .select("email")
+          .eq("provider_id", providerForEmail.id)
+          .single();
+        pEmail = ios?.email || null;
+      }
+
+      if (pEmail) {
+        await sendEmail({
+          to: pEmail,
+          subject: `New question on your Olera page`,
+          html: questionReceivedEmail({
+            providerName: providerDisplayName,
+            askerName,
+            question: question.trim(),
+            providerUrl,
+          }),
+        });
+      }
+
+      // 2. Confirmation email to the asker (if they have an email)
+      if (askerEmail) {
+        await sendEmail({
+          to: askerEmail,
+          subject: `Your question to ${providerDisplayName} on Olera`,
+          html: questionConfirmationEmail({
+            askerName,
+            providerName: providerDisplayName,
+            question: question.trim(),
+            providerUrl,
+          }),
+        });
+      }
+    } catch (emailErr) {
+      console.error("Question email notifications failed:", emailErr);
     }
 
     return NextResponse.json({ question: newQuestion }, { status: 201 });

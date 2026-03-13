@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
 
-    // Slack notifications (fire-and-forget)
+    // Slack notifications — must await in serverless to prevent early termination
     try {
       const { data: provider } = await db
         .from("business_profiles")
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
         question: question.trim(),
         providerSlug: provider_id,
       });
-      sendSlackAlert(text, blocks);
+      await sendSlackAlert(text, blocks);
 
       if (!providerEmail) {
         const missing = slackQuestionMissingEmail({
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
           providerId: provider?.id || provider_id,
           question: question.trim(),
         });
-        sendSlackAlert(missing.text, missing.blocks);
+        await sendSlackAlert(missing.text, missing.blocks);
       }
     } catch (slackErr) {
       console.error("Slack notification failed:", slackErr);

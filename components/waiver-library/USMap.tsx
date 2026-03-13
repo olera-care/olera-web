@@ -107,7 +107,7 @@ function parseSavingsAverage(savingsRange: string): number {
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
 
-const STATE_FILL = "#1a8fa8"; // teal
+const STATE_FILL = "#4d8a8a"; // primary-600
 
 interface TooltipInfo {
   stateId: string;
@@ -181,7 +181,7 @@ export function USMap({ states }: USMapProps) {
   function getFill(stateId: string | undefined, hovered: boolean): string {
     if (!stateId) return "#e5e7eb";
     if (!isActive(stateId)) return "#d1dbe6"; // dimmed
-    if (hovered) return "#083344"; // primary-950
+    if (hovered) return "#314f4f"; // primary-950
     return STATE_FILL;
   }
 
@@ -192,6 +192,7 @@ export function USMap({ states }: USMapProps) {
 
   return (
     <div>
+
       {/* Map */}
       <div ref={containerRef} className="relative w-full select-none mx-auto" style={{ filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.12)) drop-shadow(0 2px 3px rgba(0,0,0,0.08))" }}>
         <ComposableMap
@@ -248,7 +249,7 @@ export function USMap({ states }: USMapProps) {
                         cursor: stateId ? "pointer" : "default",
                       },
                       hover: {
-                        fill: stateId && isActive(stateId) ? "#083344" : "#d1dbe6",
+                        fill: stateId && isActive(stateId) ? "#314f4f" : "#d1dbe6",
                         stroke: "#ffffff",
                         strokeWidth: 1.5,
                         outline: "none",
@@ -270,20 +271,72 @@ export function USMap({ states }: USMapProps) {
             const centroid = stateCentroids[state.id];
             if (!centroid) return null;
             const active = isActive(state.id);
-            const isHovered = hoveredId === state.id;
-            const showBadge = matchedIds && matchedIds.has(state.id);
             const isSmall = state.id in smallStateOffsets;
+            const isSearchMatch = matchedIds && matchedIds.has(state.id);
+            const isSearching = !!matchedIds;
 
-            // Small states: always dot + leader line + label (atlas style)
-            if (isSmall) {
-              const [dx, dy] = smallStateOffsets[state.id];
-              const isMatch = matchedIds && matchedIds.has(state.id);
-              const lineColor = active ? "#94a3b8" : "#d1d5db";
-              const labelColor = isMatch ? "#083344" : active ? "#4b5563" : "#9ca3af";
-              const label = isMatch ? state.name : state.abbreviation;
+            // Matched state during search: full name with pill (checked first so small states also get it)
+            if (isSearchMatch) {
+              const label = state.name;
+              const pillWidth = label.length * 5.5 + 14;
+              const pillHeight = 16;
+              // For small states, offset the pill using the leader-line position
+              const offset = isSmall ? smallStateOffsets[state.id] : undefined;
+              const px = offset ? offset[0] + pillWidth / 2 - 2 : 0;
+              const py = offset ? offset[1] : 0;
               return (
                 <Marker key={state.id} coordinates={centroid}>
-                  <circle r={2.5} fill="#083344" style={{ pointerEvents: "none" }} />
+                  {isSmall && offset && (
+                    <>
+                      <circle r={2.5} fill="#314f4f" style={{ pointerEvents: "none" }} />
+                      <line
+                        x1={2} y1={0} x2={offset[0] - 2} y2={offset[1]}
+                        stroke="#94a3b8"
+                        strokeWidth={0.4}
+                        style={{ pointerEvents: "none" }}
+                      />
+                    </>
+                  )}
+                  <rect
+                    x={px - pillWidth / 2}
+                    y={py - pillHeight / 2}
+                    width={pillWidth}
+                    height={pillHeight}
+                    rx={5}
+                    fill="white"
+                    fillOpacity={0.9}
+                    stroke="#94a3b8"
+                    strokeWidth={0.5}
+                    style={{ pointerEvents: "none" }}
+                  />
+                  <text
+                    x={px}
+                    y={py}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      fill: "#314f4f",
+                      pointerEvents: "none",
+                      userSelect: "none",
+                    }}
+                  >
+                    {label}
+                  </text>
+                </Marker>
+              );
+            }
+
+            // Small states: dot + leader line + abbreviation (atlas style)
+            if (isSmall) {
+              const [dx, dy] = smallStateOffsets[state.id];
+              const lineColor = active ? "#94a3b8" : "#d1d5db";
+              const labelColor = active ? "#4b5563" : "#9ca3af";
+              return (
+                <Marker key={state.id} coordinates={centroid}>
+                  <circle r={2.5} fill="#314f4f" style={{ pointerEvents: "none" }} />
                   <line
                     x1={2} y1={0} x2={dx - 2} y2={dy}
                     stroke={lineColor}
@@ -297,42 +350,20 @@ export function USMap({ states }: USMapProps) {
                     dominantBaseline="central"
                     style={{
                       fontFamily: "Inter, system-ui, sans-serif",
-                      fontSize: isMatch ? "10px" : "9px",
-                      fontWeight: isMatch ? 700 : 600,
+                      fontSize: "11px",
+                      fontWeight: 600,
                       fill: labelColor,
                       pointerEvents: "none",
                       userSelect: "none",
                     }}
                   >
-                    {label}
+                    {state.abbreviation}
                   </text>
                 </Marker>
               );
             }
 
-            // Regular states with search match: white name on state
-            if (showBadge) {
-              return (
-                <Marker key={state.id} coordinates={centroid}>
-                  <text
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    style={{
-                      fontFamily: "Inter, system-ui, sans-serif",
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      fill: "#ffffff",
-                      pointerEvents: "none",
-                      userSelect: "none",
-                    }}
-                  >
-                    {state.name}
-                  </text>
-                </Marker>
-              );
-            }
-
-            // Regular states: abbreviation
+            // Default: abbreviation only (no pill)
             return (
               <Marker key={state.id} coordinates={centroid}>
                 <text
@@ -340,9 +371,9 @@ export function USMap({ states }: USMapProps) {
                   dominantBaseline="central"
                   style={{
                     fontFamily: "Inter, system-ui, sans-serif",
-                    fontSize: "9px",
+                    fontSize: "12px",
                     fontWeight: 600,
-                    fill: active ? "#ffffff" : "#9ca3af",
+                    fill: isSearching ? "#9ca3af" : "#ffffff",
                     pointerEvents: "none",
                     userSelect: "none",
                   }}
@@ -357,20 +388,14 @@ export function USMap({ states }: USMapProps) {
         {/* Hover tooltip */}
         {tooltip && (
           <div
-            className="absolute z-20 pointer-events-none bg-white rounded-xl shadow-lg border border-gray-200 px-4 py-3 min-w-[200px]"
-            style={{ left: tooltip.x + 16, top: tooltip.y - 80 }}
+            className="absolute z-20 pointer-events-none bg-white rounded-xl shadow-lg border border-gray-200 px-5 py-3 text-center"
+            style={{ left: tooltip.x, top: tooltip.y - 70, transform: "translateX(-50%)" }}
           >
-            <p className="font-semibold text-gray-900 text-sm">{tooltip.name}</p>
-            <p className="text-gray-500 text-xs mt-0.5">
-              {stateMap.get(tooltip.stateId)?.programs.length ?? 0} programs available
+            <p className="font-bold text-gray-900 text-lg leading-tight">{tooltip.name}</p>
+            <p className="text-gray-500 text-sm mt-1">
+              {stateMap.get(tooltip.stateId)?.programs.length ?? 0} programs
             </p>
-            {(stateSavings.get(tooltip.stateId) ?? 0) > 0 && (
-              <p className="text-gray-500 text-xs mt-0.5">
-                Est. savings: ~{formatSavings(stateSavings.get(tooltip.stateId)!)}
-                /yr
-              </p>
-            )}
-            <p className="mt-1.5 text-primary-600 text-xs font-medium">Click to explore →</p>
+            <p className="mt-1 text-primary-600 text-sm font-medium">Click to explore →</p>
           </div>
         )}
       </div>
@@ -388,37 +413,6 @@ export function USMap({ states }: USMapProps) {
         </div>
       )}
 
-      {/* Most explored states */}
-      <div className="-mt-28">
-        <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Most explored states</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {topStates.map((state) => (
-            <Link
-              key={state.id}
-              href={`/waiver-library/${state.id}`}
-              className="group px-5 py-4 rounded-xl bg-white border-2 border-gray-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.05)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.1)] hover:border-primary-300 hover:-translate-y-1 cursor-pointer transition-all duration-300"
-            >
-              <p className="font-semibold text-gray-900 text-lg group-hover:text-primary-700 transition-colors whitespace-nowrap">{state.name} <span className="inline-block ml-0.5 text-primary-400 group-hover:translate-x-0.5 transition-transform">&rarr;</span></p>
-              <p className="text-sm text-gray-500 mt-1">{state.programs.length} programs {"\u00B7"} <span className="text-primary-600 font-medium">up to ~{formatSavings(stateSavings.get(state.id) ?? 0)}/yr in savings</span></p>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* CTA Banner */}
-      <div className="mt-10 -mx-4 sm:-mx-6 lg:-mx-8 rounded-2xl bg-primary-900 px-6 py-6 md:py-8 text-center">
-        <h3 className="text-3xl md:text-4xl font-semibold text-white font-serif mb-2">Don&apos;t know where to start?</h3>
-        <p className="text-primary-200 text-lg md:text-xl mb-4">Answer a few quick questions and see every program you qualify for. Free, no signup required.</p>
-        <Link
-          href="/benefits/finder"
-          className="group inline-flex items-center justify-center px-8 py-3.5 text-primary-900 font-semibold rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),inset_0_-2px_3px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),inset_0_-2px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.12)] active:translate-y-0 transition-all duration-150 bg-white"
-        >
-          Check My Benefits
-          <svg className="w-5 h-5 ml-2 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-        </Link>
-      </div>
     </div>
   );
 }

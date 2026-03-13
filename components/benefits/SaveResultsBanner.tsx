@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useCareProfile } from "@/lib/benefits/care-profile-context";
 import { setDeferredAction } from "@/lib/deferred-action";
 
 export default function SaveResultsBanner() {
   const { user, openAuth } = useAuth();
+  const { locationDisplay } = useCareProfile();
   const [dismissed, setDismissed] = useState(false);
 
   // Don't show if user is authenticated or banner was dismissed
@@ -18,6 +20,9 @@ export default function SaveResultsBanner() {
     });
     openAuth({ defaultMode: "sign-up", intent: "family" });
   }
+
+  // Use location if available, fallback to "your area"
+  const locationText = locationDisplay?.trim() || "your area";
 
   return (
     <div className="relative border border-vanilla-300 bg-vanilla-100 rounded-2xl p-5 sm:p-6 mb-8">
@@ -32,14 +37,14 @@ export default function SaveResultsBanner() {
         </svg>
       </button>
 
-      {/* Label */}
+      {/* Headline */}
       <p className="text-xs font-medium text-gray-400 mb-2 tracking-widest uppercase pr-8">
-        Save your progress
+        Want providers to find you?
       </p>
 
       {/* Message */}
       <p className="text-sm text-gray-600 leading-relaxed max-w-md mb-4 sm:mb-5">
-        Create an account to save these results and get matched with providers in your area.
+        Sign in to let qualified providers in {locationText} reach out to you directly. You decide who to talk to.
       </p>
 
       {/* Action */}
@@ -47,7 +52,7 @@ export default function SaveResultsBanner() {
         onClick={handleSignIn}
         className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] bg-gray-900 text-white rounded-full text-sm font-medium border-none cursor-pointer hover:bg-gray-800 transition-colors"
       >
-        Sign in to save
+        Sign in to get matched
       </button>
     </div>
   );

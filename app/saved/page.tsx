@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
@@ -32,18 +33,31 @@ function toProvider(entry: {
   };
 }
 
-function handleShare() {
-  const url = typeof window !== "undefined" ? window.location.href : "";
-  if (navigator.share) {
-    navigator.share({ title: "My Saved Providers — Olera", url });
-  } else {
-    navigator.clipboard.writeText(url);
-  }
-}
-
 export default function SavedProvidersPage() {
   const { user, openAuth } = useAuth();
   const { savedProviders } = useSavedProviders();
+  const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
+
+  async function handleShare() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "My Saved Providers — Olera", url });
+        return;
+      } catch {
+        // User cancelled or share failed — fall through to clipboard
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareLabel("copied");
+      setTimeout(() => setShareLabel("share"), 2000);
+    } catch {
+      // Clipboard not available
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -63,12 +77,21 @@ export default function SavedProvidersPage() {
           {savedProviders.length > 0 && (
             <button
               onClick={handleShare}
-              className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors shrink-0"
-              aria-label="Share"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-sm font-medium text-gray-400 hover:text-gray-900 bg-transparent border-none cursor-pointer transition-colors shrink-0"
+              aria-label="Share saved providers"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
+              {shareLabel === "copied" ? "Copied!" : "Share"}
             </button>
           )}
         </div>

@@ -385,11 +385,14 @@ export default function PostAuthOnboarding({
           sessionStorage.setItem(MATCHES_ACTIVATED_KEY, "true");
           sessionStorage.setItem(MATCHES_CITY_KEY, city || "your area");
         }
+        console.log("[onboarding] Matches activated successfully");
       } else {
-        console.error("Activate matches failed, user can activate later from Matches tab");
+        const errorData = await activateRes.json().catch(() => ({}));
+        console.error("[onboarding] Activate matches failed:", activateRes.status, errorData);
+        // User can activate later from Matches tab
       }
     } catch (err) {
-      console.error("Activate matches error:", err);
+      console.error("[onboarding] Activate matches error:", err);
       // Continue to browse — user can activate later
     }
 

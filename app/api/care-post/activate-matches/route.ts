@@ -207,22 +207,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to activate" }, { status: 500 });
     }
 
-    // Send confirmation email
+    // Send confirmation email (best-effort - don't fail the API if email fails)
     const userEmail = user.email;
     const familyName = profile.display_name || "there";
     const locationCity = city || profile.city || "your area";
     const matchesUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/matches`;
 
     if (userEmail) {
-      await sendEmail({
-        to: userEmail,
-        subject: "Your Matches profile is live",
-        html: matchesLiveEmail({
-          familyName,
-          city: locationCity,
-          matchesUrl,
-        }),
-      });
+      try {
+        await sendEmail({
+          to: userEmail,
+          subject: "Your Matches profile is live",
+          html: matchesLiveEmail({
+            familyName,
+            city: locationCity,
+            matchesUrl,
+          }),
+        });
+        console.log("[activate-matches] Confirmation email sent to:", userEmail);
+      } catch (emailErr) {
+        // Log but don't fail - the activation succeeded
+        console.error("[activate-matches] Failed to send confirmation email:", emailErr);
+      }
+    } else {
+      console.warn("[activate-matches] No email address available for user:", user.id);
     }
 
     return NextResponse.json({

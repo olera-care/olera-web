@@ -248,6 +248,76 @@ export interface BenefitsSearchResult {
   matchedPrograms: BenefitMatch[];
 }
 
+// ─── Savings Estimates ───────────────────────────────────────────────────────
+// Client-side lookup for estimated monthly savings per program.
+// These are approximate ranges based on typical benefit values.
+// Keyed by program `name` (case-insensitive match via helper).
+
+const PROGRAM_SAVINGS_ESTIMATES: Record<string, { monthlyLow: number; monthlyHigh: number }> = {
+  // Healthcare
+  "Medicaid": { monthlyLow: 400, monthlyHigh: 900 },
+  "Medicare Savings Program (QMB)": { monthlyLow: 170, monthlyHigh: 250 },
+  "Medicare Savings Program (SLMB)": { monthlyLow: 100, monthlyHigh: 180 },
+  "Medicare Savings Program (QI)": { monthlyLow: 100, monthlyHigh: 180 },
+  "Medicare Part D Extra Help (LIS)": { monthlyLow: 50, monthlyHigh: 150 },
+  "Aid & Attendance (A&A)": { monthlyLow: 1400, monthlyHigh: 2400 },
+  "Veterans Directed Care": { monthlyLow: 1500, monthlyHigh: 3000 },
+  "PACE (Program of All-Inclusive Care for the Elderly)": { monthlyLow: 500, monthlyHigh: 2000 },
+  // Income
+  "Supplemental Security Income (SSI)": { monthlyLow: 600, monthlyHigh: 950 },
+  "Social Security Disability Insurance (SSDI)": { monthlyLow: 800, monthlyHigh: 1800 },
+  // Food
+  "SNAP (Supplemental Nutrition Assistance Program)": { monthlyLow: 100, monthlyHigh: 300 },
+  "Commodity Supplemental Food Program (CSFP)": { monthlyLow: 50, monthlyHigh: 100 },
+  "Meals on Wheels": { monthlyLow: 100, monthlyHigh: 250 },
+  "Senior Farmers\u2019 Market Nutrition Program": { monthlyLow: 20, monthlyHigh: 50 },
+  // Housing
+  "Section 8 Housing Choice Voucher": { monthlyLow: 400, monthlyHigh: 1200 },
+  "Section 202 Supportive Housing for the Elderly": { monthlyLow: 300, monthlyHigh: 800 },
+  "USDA Rural Housing": { monthlyLow: 200, monthlyHigh: 500 },
+  // Utilities
+  "LIHEAP (Low Income Home Energy Assistance Program)": { monthlyLow: 50, monthlyHigh: 200 },
+  "Weatherization Assistance Program": { monthlyLow: 30, monthlyHigh: 80 },
+  "Lifeline (Phone/Internet Discount)": { monthlyLow: 10, monthlyHigh: 35 },
+  // Caregiver
+  "National Family Caregiver Support Program": { monthlyLow: 100, monthlyHigh: 400 },
+  "Respite Care": { monthlyLow: 200, monthlyHigh: 600 },
+  "Medicaid Home and Community-Based Services (HCBS)": { monthlyLow: 800, monthlyHigh: 3000 },
+};
+
+/** Look up estimated savings for a program. Returns null if not in the table. */
+export function getEstimatedSavings(
+  programName: string
+): { monthly: number; annual: number } | null {
+  const key = programName.trim();
+  const match = PROGRAM_SAVINGS_ESTIMATES[key];
+  if (!match) {
+    // Try partial match (program name contains the key or vice versa)
+    const partial = Object.entries(PROGRAM_SAVINGS_ESTIMATES).find(
+      ([k]) => key.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(key.toLowerCase())
+    );
+    if (!partial) return null;
+    const avg = Math.round((partial[1].monthlyLow + partial[1].monthlyHigh) / 2);
+    return { monthly: avg, annual: avg * 12 };
+  }
+  const avg = Math.round((match.monthlyLow + match.monthlyHigh) / 2);
+  return { monthly: avg, annual: avg * 12 };
+}
+
+/** Get savings range for a program (for display as "$X–$Y/mo"). */
+export function getSavingsRange(
+  programName: string
+): { low: number; high: number } | null {
+  const key = programName.trim();
+  const match = PROGRAM_SAVINGS_ESTIMATES[key];
+  if (match) return { low: match.monthlyLow, high: match.monthlyHigh };
+  const partial = Object.entries(PROGRAM_SAVINGS_ESTIMATES).find(
+    ([k]) => key.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(key.toLowerCase())
+  );
+  if (!partial) return null;
+  return { low: partial[1].monthlyLow, high: partial[1].monthlyHigh };
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function getTierLabel(score: number): BenefitMatch["tierLabel"] {

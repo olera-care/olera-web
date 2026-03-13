@@ -472,3 +472,34 @@
            hover:shadow-md transition-shadow duration-200;
   }
 }
+
+/* ─── Print styles for Benefits Results ──────────────────────────── */
+@media print {
+  /* Hide navigation, sidebar, interactive-only elements */
+  header, nav, footer,
+  [aria-label="Care Profile"],
+  [role="toolbar"],
+  aside { display: none !important; }
+
+  /* Remove backgrounds and layout constraints */
+  body, .bg-vanilla-50, .min-h-\[calc\(100vh-4rem\)\] {
+    background: white !important;
+  }
+  .max-w-5xl { max-width: none !important; }
+  .lg\:gap-20, .lg\:gap-12 { gap: 0 !important; }
+  .py-10, .lg\:py-16 { padding-top: 0.5rem !important; padding-bottom: 0 !important; }
+  .px-4, .sm\:px-6, .lg\:px-8 { padding-left: 0 !important; padding-right: 0 !important; }
+
+  /* Full width — remove flex sidebar layout */
+  .flex.gap-12, .flex.gap-20 { display: block !important; }
+  .hidden.lg\:block { display: none !important; }
+
+  /* Expand all accordion cards */
+  .grid-rows-collapse { grid-template-rows: 1fr !important; }
+
+  /* Hide interactive buttons (bookmarks, show-more, toggles) */
+  .animate-bookmark-pop, [aria-label*="Bookmark"] { display: none !important; }
+
+  /* Page breaks */
+  .print\:break-before { break-before: page; }
+}

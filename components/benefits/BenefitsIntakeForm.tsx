@@ -271,14 +271,7 @@ export default function BenefitsIntakeForm() {
     if (step < 5) {
       goToStep((step + 1) as IntakeStep);
     } else {
-      // Final step — auth gate before submitting
-      if (!user) {
-        // Prompt sign-in, preserving wizard state in React context
-        openAuth({ defaultMode: "sign-up", intent: "family" });
-        return;
-      }
-
-      // Submit with all answers flushed
+      // Submit with all answers flushed — no auth gate, results are free
       updateAnswers({
         stateCode: selectedStateCode,
         zipCode: /^\d{5}$/.test(locationInput.trim()) ? locationInput.trim() : null,

@@ -81,7 +81,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   );
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
   const { reset, answers, locationDisplay, restoredFromDb, publishCarePost } = useCareProfile();
-  const { user, activeProfile, refreshAccountData } = useAuth();
+  const { user, activeProfile, refreshAccountData, openAuth } = useAuth();
   const { isSaved, toggleSave } = useSavedBenefits();
   const syncedRef = useRef(false);
 
@@ -328,6 +328,24 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
           Based on your care profile
         </p>
       </div>
+
+      {/* Account nudge — only for unauthenticated users */}
+      {!user && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-primary-50/60 rounded-xl mb-8">
+          <svg className="w-4 h-4 text-primary-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <p className="text-sm text-gray-600 flex-1">
+            <button
+              onClick={() => openAuth({ defaultMode: "sign-up", intent: "family" })}
+              className="font-medium text-primary-700 hover:text-primary-800 bg-transparent border-none cursor-pointer p-0 underline underline-offset-2"
+            >
+              Create a free account
+            </button>
+            {" "}to save programs and get personalized updates.
+          </p>
+        </div>
+      )}
 
       {/* AAA card */}
       {localAAA && (

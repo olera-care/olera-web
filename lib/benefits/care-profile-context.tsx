@@ -33,6 +33,7 @@ export function CareProfileProvider({ children }: { children: React.ReactNode })
       state.previewCount,
       state.restoredFromDb,
       state.publishCarePost,
+      state.voiceMode,
     ]
   );
 

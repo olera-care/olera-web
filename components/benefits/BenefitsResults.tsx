@@ -18,6 +18,8 @@ import type { FamilyMetadata } from "@/lib/types";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
 import SaveResultsBanner from "./SaveResultsBanner";
+import BenefitsReportHeader from "./BenefitsReportHeader";
+import FinancialImpactDashboard from "./FinancialImpactDashboard";
 
 // ── Success illustration for confirmation state ──
 function MatchesSuccessIllustration({ className = "w-12 h-12" }: { className?: string }) {
@@ -81,7 +83,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   );
   const [shareLabel, setShareLabel] = useState<"share" | "copied">("share");
   const { reset, answers, locationDisplay, restoredFromDb, publishCarePost } = useCareProfile();
-  const { user, activeProfile, refreshAccountData } = useAuth();
+  const { user, account, activeProfile, refreshAccountData } = useAuth();
   const { isSaved, toggleSave } = useSavedBenefits();
   const syncedRef = useRef(false);
 
@@ -299,35 +301,18 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
       {/* Soft auth banner for anonymous users */}
       <SaveResultsBanner />
 
-      {/* Header — serif with match count + share */}
-      <div className="mb-8">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="font-display text-display-sm font-medium text-gray-900 mb-1 leading-snug tracking-tight">
-            {matchedPrograms.length} program{matchedPrograms.length !== 1 ? "s" : ""} matched
-          </h2>
-          <button
-            onClick={handleShare}
-            className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-sm font-medium text-gray-400 hover:text-gray-900 bg-transparent border-none cursor-pointer transition-colors shrink-0"
-            aria-label="Share results"
-          >
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            {shareLabel === "copied" ? "Copied!" : "Share results"}
-          </button>
-        </div>
-        <p className="text-sm text-gray-400">
-          Based on your care profile
-        </p>
-      </div>
+      {/* Personalized report header */}
+      <BenefitsReportHeader
+        programCount={matchedPrograms.length}
+        answers={answers}
+        locationDisplay={locationDisplay}
+        userName={account?.display_name?.split(" ")[0] ?? null}
+        onShare={handleShare}
+        shareLabel={shareLabel}
+      />
+
+      {/* Financial impact dashboard */}
+      <FinancialImpactDashboard matchedPrograms={matchedPrograms} />
 
       {/* AAA card */}
       {localAAA && (

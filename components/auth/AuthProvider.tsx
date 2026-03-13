@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
-import { setDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { setDeferredAction, getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type AuthModalView = "sign-in" | "sign-up";
 
@@ -634,8 +634,21 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Family users: no popup needed — they can browse and connect without onboarding
-      // The connection API marks onboarding_completed=true when they connect
+      // Check for deferred action — if user has a pending action (save, inquiry, etc.),
+      // skip onboarding and let them complete their action first
+      const deferred = getDeferredAction();
+      if (deferred?.action) {
+        // User has a deferred action — skip onboarding, let them complete it
+        // The connection/save/etc. API will mark onboarding_completed=true
+        return;
+      }
+
+      // Family users with NO deferred action: show onboarding popup
+      // This handles Google OAuth signups and main nav signups
+      openAuth({
+        startAtPostAuth: true,
+        intent: "family",
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isLoading, state.user, state.account]);

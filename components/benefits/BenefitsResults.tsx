@@ -16,7 +16,7 @@ import { setBenefitsIntakeCache } from "@/lib/benefits-intake-cache";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { FamilyMetadata } from "@/lib/types";
 import ProgramCard from "./ProgramCard";
-import SaveResultsBanner from "./SaveResultsBanner";
+// SaveResultsBanner removed — value shown first, auth prompted on bookmark
 import BenefitsReportHeader from "./BenefitsReportHeader";
 import RecommendedFirstStep from "./RecommendedFirstStep";
 import DocumentChecklist from "./DocumentChecklist";
@@ -280,8 +280,6 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   return (
     <div className="w-full">
       {/* ── Beat 1: The moment of relief ─────────────────────────────── */}
-
-      <SaveResultsBanner />
 
       <BenefitsReportHeader
         programCount={matchedPrograms.length}

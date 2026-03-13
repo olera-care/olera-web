@@ -65,12 +65,11 @@ export default function InquiryForm({
     [handleSubmit, submitting]
   );
 
-  const canSubmit = email.trim().length > 0 && !submitting;
   const displayError = error || localError;
 
   return (
     <div className="space-y-2.5">
-      <p className="text-[15px] font-semibold text-gray-900">
+      <p className="text-[16px] font-bold text-gray-900">
         Get in touch
       </p>
 
@@ -134,35 +133,16 @@ export default function InquiryForm({
         </p>
       )}
 
-      {/* Submit */}
+      {/* Submit — always bold teal to invite engagement */}
       <button
         onClick={handleSubmit}
-        disabled={!canSubmit}
-        className={`w-full h-11 rounded-xl text-[14px] font-semibold tracking-wide border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 ${
-          canSubmit
-            ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] shadow-sm"
-            : "bg-gray-100 text-gray-400 cursor-default"
-        }`}
+        disabled={submitting}
+        className="w-full h-11 rounded-xl text-[14px] font-semibold border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-default disabled:active:scale-100"
       >
         {submitting && (
           <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         )}
-        {submitting ? "Sending..." : "Send inquiry"}
-        {!submitting && (
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        )}
+        {submitting ? "Sending..." : "Connect with us"}
       </button>
 
       {/* TOS */}

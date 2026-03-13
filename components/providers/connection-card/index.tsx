@@ -25,7 +25,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   const hook = useConnectionCard(props);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_16px_rgba(0,0,0,0.08)] overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
       {/* Main content */}
       <div className="px-5 py-5">
         {hook.cardState === "loading" && (

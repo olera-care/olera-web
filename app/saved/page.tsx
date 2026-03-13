@@ -43,20 +43,64 @@ function MatchesPromoBanner({
 
   const locationText = city || "near you";
 
-  // When Matches is active: show slim confirmation line
+  // When Matches is active: show confirmation banner with premium styling
   if (isMatchesActive) {
     return (
-      <div className="mb-6 px-4 py-3 bg-primary-50/60 border border-primary-100/60 rounded-xl flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-gray-700">
-          <span className="font-medium text-gray-900">Your care profile is live</span>
-          {" — "}providers in {locationText} can find you.
-        </p>
-        <Link
-          href="/portal/matches"
-          className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors whitespace-nowrap"
-        >
-          View your Matches profile →
-        </Link>
+      <div className="mb-6 relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300 overflow-hidden">
+        {/* Accent left border */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
+
+        <div className="flex items-center gap-4 px-5 py-3.5">
+          {/* Success icon with glow */}
+          <div className="relative flex-shrink-0">
+            <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
+            <div className="relative flex w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 items-center justify-center shadow-sm">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                <path
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <p className="text-[15px] font-semibold text-gray-900 truncate">
+              Your care profile is live
+            </p>
+            <p className="text-[13px] text-gray-500 truncate mt-0.5">
+              Providers in {locationText} can find you
+            </p>
+          </div>
+
+          {/* CTA Link */}
+          <Link
+            href="/portal/matches"
+            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-sm font-semibold text-white shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] transition-all duration-200 whitespace-nowrap flex-shrink-0"
+          >
+            View profile
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+
+        {/* Mobile CTA */}
+        <div className="sm:hidden px-5 pb-4">
+          <Link
+            href="/portal/matches"
+            className="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25"
+          >
+            View profile
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
       </div>
     );
   }

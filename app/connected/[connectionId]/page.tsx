@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,8 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { PROVIDERS_TABLE } from "@/lib/types/provider";
 import SimilarProvidersRow from "@/components/providers/SimilarProvidersRow";
 import BrowseByCareTypeSection from "@/components/home/BrowseByCareTypeSection";
+import type { CareRecipient, UrgencyValue } from "@/components/providers/connection-card/types";
+import { RECIPIENT_OPTIONS, URGENCY_OPTIONS } from "@/components/providers/connection-card/constants";
 
 const CLAIM_TOKEN_KEY = "olera_claim_token";
 
@@ -76,6 +78,31 @@ function ConnectedPageContent() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [claimToken, setClaimToken] = useState<string | null>(null);
+  const [recipient, setRecipient] = useState<CareRecipient | null>(null);
+  const [urgency, setUrgency] = useState<UrgencyValue | null>(null);
+  const [enrichmentSaved, setEnrichmentSaved] = useState(false);
+  const [enrichmentSaving, setEnrichmentSaving] = useState(false);
+
+  const saveEnrichment = useCallback(async () => {
+    if (!recipient || !urgency || !connectionId) return;
+    setEnrichmentSaving(true);
+    try {
+      await fetch("/api/connections/update-intent", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          connectionId,
+          careRecipient: recipient,
+          urgency,
+        }),
+      });
+      setEnrichmentSaved(true);
+    } catch {
+      // Non-blocking — don't disrupt the success state
+    } finally {
+      setEnrichmentSaving(false);
+    }
+  }, [connectionId, recipient, urgency]);
 
   // Read claim token from localStorage (for guest inbox access)
   useEffect(() => {
@@ -245,8 +272,71 @@ function ConnectedPageContent() {
 
             {/* Metadata — single quiet line */}
             {(category || location) && (
-              <p className="text-sm text-gray-400 mb-10">
+              <p className="text-sm text-gray-400 mb-8">
                 {[category, location].filter(Boolean).join(" \u00B7 ")}
+              </p>
+            )}
+
+            {/* Enrichment — help them prepare */}
+            {!enrichmentSaved && (
+              <div className="max-w-sm mx-auto mb-8 text-left">
+                <p className="text-[13px] text-gray-500 mb-3 text-center">
+                  Help them prepare for your conversation:
+                </p>
+
+                <p className="text-[13px] font-medium text-gray-700 mb-1.5">
+                  Who needs care?
+                </p>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {RECIPIENT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setRecipient(opt.value)}
+                      className={`px-3 py-1.5 rounded-full text-[13px] font-medium border transition-all duration-150 cursor-pointer ${
+                        recipient === opt.value
+                          ? "bg-primary-600 text-white border-primary-600"
+                          : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="text-[13px] font-medium text-gray-700 mb-1.5">
+                  When do you need care?
+                </p>
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {URGENCY_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setUrgency(opt.value)}
+                      className={`px-3 py-1.5 rounded-full text-[13px] font-medium border transition-all duration-150 cursor-pointer ${
+                        urgency === opt.value
+                          ? "bg-primary-600 text-white border-primary-600"
+                          : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {recipient && urgency && (
+                  <button
+                    onClick={saveEnrichment}
+                    disabled={enrichmentSaving}
+                    className="w-full py-2 rounded-xl text-[13px] font-semibold bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition-all duration-150 disabled:opacity-70 cursor-pointer border-none"
+                  >
+                    {enrichmentSaving ? "Saving..." : "Save preferences"}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {enrichmentSaved && (
+              <p className="text-[13px] text-primary-600 font-medium mb-8">
+                Preferences saved — they'll be ready for you
               </p>
             )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, Suspense } from "react";
+import { useState, useCallback, Suspense, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { FamilyMetadata } from "@/lib/types";
@@ -35,6 +35,24 @@ function MatchesContent() {
   const [step, setStep] = useState<"default" | "review" | "active">(
     hasPost ? "active" : "default"
   );
+
+  // Refresh account data on mount to ensure fresh profile state
+  // (e.g., after navigating here from onboarding banner)
+  const hasRefreshedRef = useRef(false);
+  useEffect(() => {
+    if (!hasRefreshedRef.current) {
+      hasRefreshedRef.current = true;
+      refreshAccountData();
+    }
+  }, [refreshAccountData]);
+
+  // Sync step state when hasPost changes (e.g., after refresh reveals activated profile)
+  useEffect(() => {
+    if (hasPost && step === "default") {
+      setStep("active");
+    }
+  }, [hasPost, step]);
+
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 

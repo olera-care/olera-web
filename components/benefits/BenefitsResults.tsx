@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { BENEFIT_CATEGORIES } from "@/lib/types/benefits";
 import type {
   BenefitsSearchResult,
@@ -16,6 +17,24 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { FamilyMetadata } from "@/lib/types";
 import AAACard from "./AAACard";
 import ProgramCard from "./ProgramCard";
+import SaveResultsBanner from "./SaveResultsBanner";
+
+// ── Success illustration for confirmation state ──
+function MatchesSuccessIllustration({ className = "w-12 h-12" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="20" fill="#199087" fillOpacity="0.12" />
+      <circle cx="24" cy="24" r="14" fill="white" />
+      <path
+        d="M17 24L21.5 28.5L31 19"
+        stroke="#199087"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 interface BenefitsResultsProps {
   result: BenefitsSearchResult;
@@ -66,6 +85,24 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
   const { isSaved, toggleSave } = useSavedBenefits();
   const syncedRef = useRef(false);
 
+  // Matches invitation card state
+  const [matchesCardDismissed, setMatchesCardDismissed] = useState(false);
+  const [matchesCardConfirmed, setMatchesCardConfirmed] = useState(false);
+  const [matchesActivating, setMatchesActivating] = useState(false);
+  const [matchesError, setMatchesError] = useState<string | null>(null);
+  const [syncInProgress, setSyncInProgress] = useState(false);
+
+  // Determine if user should see Matches invitation card
+  const profileMeta = activeProfile?.metadata as FamilyMetadata | undefined;
+  const hasActiveMatches = profileMeta?.care_post?.status === "active";
+  // Show card if: signed in, has profile, no active Matches (unless showing confirmation), not dismissed
+  const showMatchesCard = user && activeProfile && !matchesCardDismissed &&
+    (!hasActiveMatches || matchesCardConfirmed);
+
+  // Get city from location display (step 1 location data)
+  // locationDisplay is typically "City, ST" format
+  const cityDisplay = locationDisplay?.split(",")[0]?.trim() || "your area";
+
   // Persist results to DB + sync intake answers to profile fields
   useEffect(() => {
     if (syncedRef.current || restoredFromDb) return;
@@ -79,10 +116,14 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
 
     if (!activeProfile) return; // wait for profile to load
     syncedRef.current = true;
+    setSyncInProgress(true);
 
     (async () => {
       try {
-        if (!isSupabaseConfigured()) return;
+        if (!isSupabaseConfigured()) {
+          setSyncInProgress(false);
+          return;
+        }
         const supabase = createClient();
 
         // 1. Persist full results to metadata.benefits_results
@@ -141,6 +182,8 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
         }
       } catch (err) {
         console.error("[olera] Benefits persist/sync failed:", err);
+      } finally {
+        setSyncInProgress(false);
       }
     })();
   }, [user, activeProfile, answers, locationDisplay, result, restoredFromDb, publishCarePost, refreshAccountData]);
@@ -189,6 +232,47 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
     }
   }
 
+  // Activate Matches profile
+  async function handleActivateMatches() {
+    if (matchesActivating) return;
+    setMatchesActivating(true);
+    setMatchesError(null);
+
+    try {
+      const res = await fetch("/api/care-post/activate-matches", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          city: cityDisplay,
+          state: answers.stateCode || undefined,
+          primaryNeeds: answers.primaryNeeds || [],
+        }),
+      });
+
+      if (res.ok) {
+        setMatchesCardConfirmed(true);
+        await refreshAccountData();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setMatchesError(data.error || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      console.error("[olera] Matches activation error:", err);
+      setMatchesError("Something went wrong. Please try again.");
+    } finally {
+      setMatchesActivating(false);
+    }
+  }
+
+  function handleDismissMatchesCard() {
+    setMatchesCardDismissed(true);
+  }
+
+  function handleMatchesCardDone() {
+    setMatchesCardDismissed(true);
+    setMatchesCardConfirmed(false);
+  }
+
   // Empty state
   if (matchedPrograms.length === 0 && !localAAA) {
     return (
@@ -212,6 +296,9 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
 
   return (
     <div className="w-full">
+      {/* Soft auth banner for anonymous users */}
+      <SaveResultsBanner />
+
       {/* Header — serif with match count + share */}
       <div className="mb-8">
         <div className="flex items-baseline justify-between gap-4">
@@ -246,6 +333,91 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
       {localAAA && (
         <div className="mb-10">
           <AAACard agency={localAAA} />
+        </div>
+      )}
+
+      {/* Matches invitation card — for signed-in users without active Matches */}
+      {showMatchesCard && (
+        <div className="mb-10">
+          <div className="border border-vanilla-300 border-l-4 border-l-primary-500 bg-vanilla-100 rounded-2xl p-5 lg:p-6">
+            {matchesCardConfirmed ? (
+              /* ── Confirmation state ── */
+              <div className="flex flex-col items-center text-center py-2">
+                <MatchesSuccessIllustration className="w-12 h-12 mb-3" />
+                <h3 className="font-display text-display-xs font-medium text-gray-900 mb-1">
+                  Your profile is live in {cityDisplay}
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed max-w-md mb-4">
+                  Providers in your area can now find you. We&apos;ll email you the moment someone reaches out.
+                </p>
+                <Link
+                  href="/portal/matches"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mb-2"
+                >
+                  View your Matches profile &rarr;
+                </Link>
+                <button
+                  onClick={handleMatchesCardDone}
+                  className="text-sm font-medium text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer transition-colors"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              /* ── Invitation state ── */
+              <>
+                <p className="text-xs font-medium text-gray-400 mb-2 tracking-widest uppercase">
+                  Let providers find you
+                </p>
+                <h3 className="font-display text-display-xs font-medium text-gray-900">
+                  Now let care providers find you
+                </h3>
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-xl">
+                  Qualified providers in {cityDisplay} will reach out. You choose who to talk to.
+                </p>
+                {matchesError && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-600">
+                      We couldn&apos;t set up your profile right now.
+                    </p>
+                    <Link
+                      href="/portal/matches"
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      Visit your Matches tab to complete setup.
+                    </Link>
+                  </div>
+                )}
+                <div className="flex flex-wrap items-center gap-3 mt-4">
+                  <button
+                    onClick={handleActivateMatches}
+                    disabled={matchesActivating || syncInProgress}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 min-h-[44px] bg-primary-600 text-white rounded-full text-sm font-medium border-none cursor-pointer hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {syncInProgress ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Saving results...
+                      </>
+                    ) : matchesActivating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Activating...
+                      </>
+                    ) : (
+                      "Yes, let providers find me"
+                    )}
+                  </button>
+                  <button
+                    onClick={handleDismissMatchesCard}
+                    className="inline-flex items-center min-h-[44px] px-2 text-sm font-medium text-gray-500 hover:text-gray-700 bg-transparent border-none cursor-pointer transition-colors"
+                  >
+                    No thanks
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 

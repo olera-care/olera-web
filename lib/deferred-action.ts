@@ -1,4 +1,5 @@
 import type { DeferredAction } from "@/lib/types";
+import { validateReturnUrl } from "@/lib/validation";
 
 const STORAGE_KEY = "olera_deferred_action";
 const MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
@@ -6,8 +7,12 @@ const MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
 export function setDeferredAction(action: Omit<DeferredAction, "createdAt">) {
   if (typeof window === "undefined") return;
 
+  // Validate returnUrl before storing to prevent open redirect attacks
+  const safeReturnUrl = validateReturnUrl(action.returnUrl, "/browse");
+
   const entry: DeferredAction = {
     ...action,
+    returnUrl: safeReturnUrl,
     createdAt: new Date().toISOString(),
   };
 
@@ -29,6 +34,10 @@ export function getDeferredAction(): DeferredAction | null {
       clearDeferredAction();
       return null;
     }
+
+    // Validate returnUrl on read as defense-in-depth
+    // (in case storage was tampered with or old entries exist)
+    entry.returnUrl = validateReturnUrl(entry.returnUrl, "/browse");
 
     return entry;
   } catch {

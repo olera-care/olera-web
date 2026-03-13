@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { generateUniqueSlugFromName } from "@/lib/slug";
 import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
@@ -12,15 +13,6 @@ interface InquiryButtonProps {
   providerProfileId: string;
   providerName: string;
   providerSlug: string;
-}
-
-function generateSlug(name: string): string {
-  const base = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-  const suffix = Math.random().toString(36).substring(2, 6);
-  return `family-${base}-${suffix}`;
 }
 
 export default function InquiryButton({
@@ -86,7 +78,7 @@ export default function InquiryButton({
       // Create a minimal family profile (don't switch active profile away from provider)
       const displayName =
         userAccount.display_name || user?.email?.split("@")[0] || "Family";
-      const slug = generateSlug(displayName);
+      const slug = await generateUniqueSlugFromName(supabase, displayName);
 
       const { data: newProfile, error: profileError } = await supabase
         .from("business_profiles")

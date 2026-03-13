@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { BenefitMatch } from "@/lib/types/benefits";
 
 interface ProgramCardProps {
@@ -11,8 +11,20 @@ interface ProgramCardProps {
 
 export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [showSavedToast, setShowSavedToast] = useState(false);
   const { program, matchScore, matchReasons, tierLabel } = match;
   const bookmarkRef = useRef<SVGSVGElement>(null);
+  const prevSavedRef = useRef(isSaved);
+
+  // Show toast when isSaved changes from false to true
+  useEffect(() => {
+    if (isSaved && !prevSavedRef.current) {
+      setShowSavedToast(true);
+      const timer = setTimeout(() => setShowSavedToast(false), 2500);
+      return () => clearTimeout(timer);
+    }
+    prevSavedRef.current = isSaved;
+  }, [isSaved]);
 
   const previewReasons = matchReasons.slice(0, 2);
   const hasMoreReasons = matchReasons.length > 2;
@@ -70,7 +82,16 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
         </button>
 
         {/* Right side — bookmark + chevron */}
-        <div className="flex items-center gap-1 shrink-0 mt-1">
+        <div className="flex items-center gap-1 shrink-0 mt-1 relative">
+          {/* Saved toast */}
+          <span
+            className={`absolute right-full mr-2 text-xs font-medium text-primary-600 whitespace-nowrap transition-opacity duration-200 ${
+              showSavedToast ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+          >
+            Saved to profile
+          </span>
+
           {/* Bookmark */}
           <button
             onClick={handleBookmarkClick}

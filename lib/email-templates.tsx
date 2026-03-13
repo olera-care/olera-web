@@ -282,3 +282,22 @@ export function newReviewEmail(opts: {
     <div>${button("View review", opts.viewUrl)}</div>
   `);
 }
+
+/** Email to family when their Matches profile goes live */
+export function matchesLiveEmail(opts: {
+  familyName: string;
+  city: string;
+  matchesUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your Matches profile is live!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.familyName}, great news — qualified care providers in ${opts.city} can now find you on Olera.
+      We'll email you the moment someone reaches out.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You're in control. When a provider contacts you, you decide whether to respond.
+    </p>
+    <div>${button("View your Matches", opts.matchesUrl)}</div>
+  `);
+}

@@ -18,6 +18,56 @@ import MatchesFilterBar, {
 } from "@/components/provider/matches/MatchesFilterBar";
 import MatchesFilterSheet, { type FilterSheetType } from "@/components/provider/matches/MatchesFilterSheet";
 
+// ── Reach-out profile threshold check ──
+// 7 requirements: name, location, phone/email, logo, care service, payment method, default message
+
+interface ReachOutThreshold {
+  meetsThreshold: boolean;
+  completionPercent: number;
+  completedCount: number;
+  totalCount: number;
+}
+
+function checkReachOutThreshold(
+  profile: Profile | null,
+  metadata: ExtendedMetadata | null,
+  hasDefaultMessage: boolean,
+): ReachOutThreshold {
+  const totalCount = 7;
+  let completedCount = 0;
+
+  // 1. Name
+  if (profile?.display_name?.trim()) completedCount++;
+
+  // 2. Location (city + state or address)
+  if (
+    profile?.address?.trim() ||
+    (profile?.city?.trim() && profile?.state?.trim())
+  )
+    completedCount++;
+
+  // 3. Phone or email
+  if (profile?.phone?.trim() || profile?.email?.trim()) completedCount++;
+
+  // 4. Logo/photo
+  if (profile?.image_url?.trim()) completedCount++;
+
+  // 5. At least one care service
+  if (profile?.care_types && profile.care_types.length > 0) completedCount++;
+
+  // 6. At least one payment method
+  if (metadata?.accepted_payments && metadata.accepted_payments.length > 0)
+    completedCount++;
+
+  // 7. Default message saved
+  if (hasDefaultMessage) completedCount++;
+
+  const completionPercent = Math.round((completedCount / totalCount) * 100);
+  const meetsThreshold = completedCount >= totalCount;
+
+  return { meetsThreshold, completionPercent, completedCount, totalCount };
+}
+
 // ── Timeline config ──
 
 const TIMELINE_CONFIG: Record<string, { label: string; dot: string; glow: string; border: string; text: string; bg: string }> = {
@@ -154,6 +204,36 @@ function SendIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+    </svg>
+  );
+}
+
+function SuccessIllustration({ className = "w-16 h-16" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 80 80" fill="none">
+      {/* Outer circle with gradient */}
+      <circle cx="40" cy="40" r="36" fill="url(#successGradient)" />
+      {/* Inner white circle */}
+      <circle cx="40" cy="40" r="28" fill="white" />
+      {/* Checkmark */}
+      <path
+        d="M28 40L36 48L52 32"
+        stroke="#199087"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Sparkles */}
+      <circle cx="16" cy="24" r="2" fill="#199087" opacity="0.6" />
+      <circle cx="64" cy="20" r="2.5" fill="#199087" opacity="0.5" />
+      <circle cx="68" cy="52" r="1.5" fill="#199087" opacity="0.4" />
+      <circle cx="12" cy="56" r="2" fill="#199087" opacity="0.5" />
+      <defs>
+        <linearGradient id="successGradient" x1="4" y1="4" x2="76" y2="76" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#199087" stopOpacity="0.15" />
+          <stop offset="1" stopColor="#199087" stopOpacity="0.25" />
+        </linearGradient>
+      </defs>
     </svg>
   );
 }
@@ -618,6 +698,9 @@ function FamilyCareCard({
   onSend,
   sendError,
   reachOutCount,
+  isConfirmation,
+  onConfirmationDone,
+  reachOutThreshold,
 }: {
   family: Profile;
   hasFullAccess: boolean;
@@ -637,6 +720,9 @@ function FamilyCareCard({
   onSend?: () => void;
   sendError?: string | null;
   reachOutCount?: number;
+  isConfirmation?: boolean;
+  onConfirmationDone?: () => void;
+  reachOutThreshold?: ReachOutThreshold | null;
 }) {
   const meta = family.metadata as FamilyMetadata;
   const locationStr = [family.city, family.state].filter(Boolean).join(", ");
@@ -652,8 +738,21 @@ function FamilyCareCard({
   const displayName = family.display_name || "Family";
   const initials = getInitials(displayName);
   const familyFirstName = displayName.split(/\s+/)[0];
-  const matchCount = computeMatchingServices(careNeeds, providerCareTypes);
   const reachOuts = reachOutCount ?? 0;
+
+  // Who needs care display — exact mapping, no dynamic prefix
+  const careRecipientRaw = meta?.relationship_to_recipient?.toLowerCase().trim();
+  const careRecipientMap: Record<string, string> = {
+    "myself": "For themselves",
+    "my parent": "For their parent",
+    "my spouse": "For their spouse",
+    "my mother": "For their mother",
+    "my father": "For their father",
+    "someone else": "For someone else",
+  };
+  const careRecipientDisplay = careRecipientRaw && careRecipientMap[careRecipientRaw]
+    ? careRecipientMap[careRecipientRaw]
+    : "For a loved one";
 
   // Distance computation
   const providerLat = providerProfile?.lat;
@@ -689,7 +788,7 @@ function FamilyCareCard({
       ].join(" ")}
     >
       {/* ── Card body ── */}
-      <div className="p-4 lg:p-7">
+      <div className={`p-4 lg:p-7 transition-opacity duration-300 ${isConfirmation ? "opacity-40" : ""}`}>
         {/* Mobile header layout */}
         <div className="lg:hidden mb-4">
           <div className="flex items-start gap-3 mb-3">
@@ -775,9 +874,9 @@ function FamilyCareCard({
         {/* Mobile stats */}
         <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
           <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-            <CheckCircleIcon className="w-4 h-4 text-primary-500 shrink-0" />
-            <p className="text-xs text-gray-600">
-              <span className="font-bold">{matchCount}</span> service match
+            <PeopleIcon className="w-4 h-4 text-primary-500 shrink-0" />
+            <p className="text-xs text-gray-600 font-medium truncate">
+              {careRecipientDisplay}
             </p>
           </div>
           <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
@@ -801,10 +900,9 @@ function FamilyCareCard({
         {/* Desktop stats */}
         <div className="hidden lg:grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <CheckCircleIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-500">
-              <span className="font-bold text-gray-700">{matchCount} service{matchCount !== 1 ? "s" : ""}</span>{" "}
-              match
+            <PeopleIcon className="w-4 h-4 text-primary-500" />
+            <p className="text-[13px] text-gray-700 font-medium truncate">
+              {careRecipientDisplay}
             </p>
           </div>
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30 border-x border-warm-100/80">
@@ -830,48 +928,25 @@ function FamilyCareCard({
         </div>
 
         {/* ── About situation — full text when expanded ── */}
-        <div className="border-l-2 border-warm-200 pl-3 lg:pl-4 mb-4 lg:mb-5">
-          {aboutSituation && hasFullAccess ? (
+        {aboutSituation && hasFullAccess && (
+          <div className="border-l-2 border-warm-200 pl-3 lg:pl-4 mb-4 lg:mb-5">
             <p className={`text-sm lg:text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
               {aboutSituation}
             </p>
-          ) : (
-            <p className="text-sm lg:text-[15px] text-gray-400 italic leading-relaxed">
-              No description provided
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* ── Care need tags — horizontal scroll on mobile ── */}
+        {/* ── Care type tags — horizontal scroll on mobile ── */}
         {careNeeds.length > 0 && (
           <div className="flex gap-2 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap scrollbar-hide pb-1">
-            {careNeeds.slice(0, 5).map((need) => {
-              const isMatch = providerCareTypes.some(
-                (s) => s.toLowerCase() === need.toLowerCase(),
-              );
-              return (
-                <span
-                  key={need}
-                  className={`inline-flex items-center gap-1.5 text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border whitespace-nowrap shrink-0 ${
-                    isMatch
-                      ? "border-[#F5F4F1] text-gray-700 bg-[#F5F4F1]"
-                      : "border-warm-100 text-gray-500 bg-white"
-                  }`}
-                >
-                  {isMatch && (
-                    <svg className="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                  )}
-                  {need}
-                </span>
-              );
-            })}
-            {careNeeds.length > 5 && (
-              <span className="text-xs lg:text-[13px] text-gray-400 self-center pl-1 shrink-0">
-                +{careNeeds.length - 5}
+            {careNeeds.map((need) => (
+              <span
+                key={need}
+                className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-600 bg-white whitespace-nowrap shrink-0"
+              >
+                {need}
               </span>
-            )}
+            ))}
           </div>
         )}
 
@@ -914,109 +989,160 @@ function FamilyCareCard({
         </div>
       </div>
 
-      {/* ── Inline reach-out expansion ── */}
+      {/* ── Inline reach-out expansion OR confirmation card ── */}
       <div
         className="grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.33,1,0.68,1)]"
-        style={{ gridTemplateRows: isExpanded ? "1fr" : "0fr" }}
+        style={{ gridTemplateRows: isExpanded || isConfirmation ? "1fr" : "0fr" }}
       >
         <div className="overflow-hidden">
-          <div className={`border-t border-warm-100/60 bg-gradient-to-b from-vanilla-50/40 to-warm-50/20 transition-[opacity,transform] ${isExpanded ? "duration-400 delay-150 opacity-100 translate-y-0" : "duration-200 opacity-0 translate-y-1"}`}>
-          <div className="px-7 py-6">
-            {/* Message heading */}
-            <h4 className="text-[18px] font-display font-bold text-gray-900 mb-3">
-              Tell the {familyFirstName} family why you&apos;re a good fit
-            </h4>
+          {isConfirmation ? (
+            /* ── Confirmation card state ── */
+            <div className="border-t border-warm-100/60 bg-white">
+              <div className="px-7 py-8 flex flex-col items-center text-center">
+                {/* Success illustration */}
+                <SuccessIllustration className="w-20 h-20 mb-5" />
 
-            {/* Textarea */}
-            <textarea
-              value={reachOutNote}
-              onChange={(e) => onNoteChange?.(e.target.value)}
-              placeholder={`Share what makes your care approach a great match for the ${familyFirstName} family...`}
-              rows={4}
-              className="w-full px-4 py-3.5 text-[15px] leading-relaxed text-gray-700 bg-white border border-warm-200/80 rounded-xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none placeholder:text-gray-400"
-            />
+                {/* Headline */}
+                <h4 className="text-[18px] font-display font-bold text-gray-900 mb-2">
+                  Your reach-out was sent to {displayName}
+                </h4>
 
-            {/* Hint + save as default */}
-            <div className="flex items-center justify-between mt-2.5 mb-6">
-              <p className="text-[13px] text-gray-400">
-                Personal notes get <span className="font-medium">3&times; more responses</span>
-              </p>
-              <label className="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
-                <input
-                  type="checkbox"
-                  checked={saveAsDefault}
-                  onChange={(e) => onSaveAsDefaultChange?.(e.target.checked)}
-                  className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
-                />
-                <span className="text-[13px] text-gray-500">
-                  Save as default
-                </span>
-              </label>
-            </div>
+                {/* Subline */}
+                <p className="text-[15px] text-gray-500 leading-relaxed max-w-sm mb-5">
+                  We&apos;ll notify you when they respond. Most families respond within 3–5 days.
+                </p>
 
-            {/* ── Profile sharing notice ── */}
-            {providerProfile && (
-              <div className="flex items-center gap-2.5 text-[13px] text-gray-400">
-                <EyeIcon className="w-4 h-4 shrink-0" />
-                {providerCompleteness && providerCompleteness.overall < 100 ? (
-                  <p>
-                    Your profile ({providerCompleteness.overall}% complete) will be shared.{" "}
-                    <a href="/provider" className="font-medium text-gray-500 underline underline-offset-2 decoration-gray-300 hover:text-gray-700 transition-colors">
-                      Complete it
-                    </a>{" "}
-                    to get more responses.
+                {/* Conditional nudge line based on threshold */}
+                {reachOutThreshold && !reachOutThreshold.meetsThreshold ? (
+                  /* Version A — Below threshold */
+                  <div className="mb-6">
+                    <p className="text-[13px] text-gray-400 mb-1">
+                      Providers with complete profiles get 3&times; more responses. You&apos;re at {reachOutThreshold.completionPercent}%.
+                    </p>
+                    <Link
+                      href="/provider/profile"
+                      className="text-[13px] font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      Complete my profile
+                    </Link>
+                  </div>
+                ) : (
+                  /* Version B — Meets threshold */
+                  <p className="text-[13px] text-gray-500 mb-6">
+                    You&apos;re all set. Your complete profile makes a great first impression.
                   </p>
-                ) : (
-                  <p>Your full profile will be shared with {familyFirstName}.</p>
                 )}
-              </div>
-            )}
 
-            {/* Error */}
-            {sendError && (
-              <div className="mt-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-600">
-                {sendError}
+                {/* Done button — secondary style for dismissal */}
+                <button
+                  type="button"
+                  onClick={onConfirmationDone}
+                  className="inline-flex items-center px-6 py-2.5 rounded-xl text-[14px] font-semibold text-primary-600 bg-white border border-primary-300 hover:bg-primary-50 hover:border-primary-400 active:scale-[0.97] transition-all duration-200"
+                >
+                  Done
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            /* ── Reach-out composer ── */
+            <div className={`border-t border-warm-100/60 bg-gradient-to-b from-vanilla-50/40 to-warm-50/20 transition-[opacity,transform] ${isExpanded ? "duration-400 delay-150 opacity-100 translate-y-0" : "duration-200 opacity-0 translate-y-1"}`}>
+            <div className="px-7 py-6">
+              {/* Message heading */}
+              <h4 className="text-[18px] font-display font-bold text-gray-900 mb-3">
+                Tell the {familyFirstName} family why you&apos;re a good fit
+              </h4>
 
-          {/* ── Expanded footer: usage left / cancel + send ── */}
-          <div className="border-t border-warm-100/60 px-7 py-4 flex items-center justify-between gap-4">
-            {freeRemaining !== null ? (
-              <p className="text-[13px] text-gray-400 min-w-0 truncate">
-                This will use 1 of your {freeRemaining} monthly reach-out{freeRemaining !== 1 ? "s" : ""}
-              </p>
-            ) : <div />}
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={onCollapse}
-                disabled={sending}
-                className="inline-flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={onSend}
-                disabled={sending}
-                className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 disabled:hover:shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] transition-all duration-200 shrink-0"
-              >
-                {sending ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <SendIcon className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                )}
-                {sending ? "Sending\u2026" : "Send reach-out"}
-              </button>
+              {/* Textarea */}
+              <textarea
+                value={reachOutNote}
+                onChange={(e) => onNoteChange?.(e.target.value)}
+                placeholder={`Share what makes your care approach a great match for the ${familyFirstName} family...`}
+                rows={4}
+                className="w-full px-4 py-3.5 text-[15px] leading-relaxed text-gray-700 bg-white border border-warm-200/80 rounded-xl shadow-[inset_0_1px_2px_rgba(0,0,0,0.03)] focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 transition-all resize-none placeholder:text-gray-400"
+              />
+
+              {/* Hint + save as default */}
+              <div className="flex items-center justify-between mt-2.5 mb-6">
+                <p className="text-[13px] text-gray-400">
+                  Personal notes get <span className="font-medium">3&times; more responses</span>
+                </p>
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={saveAsDefault}
+                    onChange={(e) => onSaveAsDefaultChange?.(e.target.checked)}
+                    className="w-4 h-4 rounded border-warm-300 text-primary-600 focus:ring-primary-500/20 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <span className="text-[13px] text-gray-500">
+                    Save as default
+                  </span>
+                </label>
+              </div>
+
+              {/* ── Profile sharing notice ── */}
+              {providerProfile && (
+                <div className="flex items-center gap-2.5 text-[13px] text-gray-400">
+                  <EyeIcon className="w-4 h-4 shrink-0" />
+                  {providerCompleteness && providerCompleteness.overall < 100 ? (
+                    <p>
+                      Your profile ({providerCompleteness.overall}% complete) will be shared.{" "}
+                      <a href="/provider" className="font-medium text-gray-500 underline underline-offset-2 decoration-gray-300 hover:text-gray-700 transition-colors">
+                        Complete it
+                      </a>{" "}
+                      to get more responses.
+                    </p>
+                  ) : (
+                    <p>Your full profile will be shared with {familyFirstName}.</p>
+                  )}
+                </div>
+              )}
+
+              {/* Error */}
+              {sendError && (
+                <div className="mt-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-[13px] text-red-600">
+                  {sendError}
+                </div>
+              )}
+            </div>
+
+            {/* ── Expanded footer: usage left / cancel + send ── */}
+            <div className="border-t border-warm-100/60 px-7 py-4 flex items-center justify-between gap-4">
+              {freeRemaining !== null ? (
+                <p className="text-[13px] text-gray-400 min-w-0 truncate">
+                  This will use 1 of your {freeRemaining} monthly reach-out{freeRemaining !== 1 ? "s" : ""}
+                </p>
+              ) : <div />}
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={onCollapse}
+                  disabled={sending}
+                  className="inline-flex items-center px-4 py-2.5 rounded-xl text-[14px] font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-[0.97] transition-all duration-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={onSend}
+                  disabled={sending}
+                  className="group inline-flex items-center gap-2 pl-5 pr-6 py-2.5 rounded-xl bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[14px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-600 hover:to-primary-700 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] disabled:opacity-70 disabled:hover:shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] transition-all duration-200 shrink-0"
+                >
+                  {sending ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <SendIcon className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  )}
+                  {sending ? "Sending\u2026" : "Send reach-out"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+          )}
         </div>
       </div>
 
       {/* ── Card footer (collapsed states) ── */}
-      {!isExpanded && (
+      {!isExpanded && !isConfirmation && (
         <>
           {contacted ? (
             /* Already reached out */
@@ -1102,6 +1228,9 @@ export default function ProviderMatchesPage() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
+  // Confirmation card state (shown after successful send)
+  const [confirmationCardId, setConfirmationCardId] = useState<string | null>(null);
+
   // Mobile bottom sheet state
   const [reachOutSheetFamily, setReachOutSheetFamily] = useState<Profile | null>(null);
 
@@ -1119,6 +1248,22 @@ export default function ProviderMatchesPage() {
   const providerCareTypes = providerProfile?.care_types || [];
 
   const profileId = providerProfile?.id;
+
+  // Compute reach-out threshold for confirmation card
+  const reachOutThreshold = useMemo(() => {
+    if (!providerProfile) return null;
+    let hasDefaultMessage = false;
+    try {
+      hasDefaultMessage = !!localStorage.getItem(DEFAULT_NOTE_KEY);
+    } catch {
+      // Ignore localStorage errors
+    }
+    return checkReachOutThreshold(
+      providerProfile,
+      (providerProfile.metadata || {}) as ExtendedMetadata,
+      hasDefaultMessage,
+    );
+  }, [providerProfile]);
 
   // ── Expansion handlers ──
 
@@ -1163,6 +1308,12 @@ export default function ProviderMatchesPage() {
       setSendError(null);
     }
   }, [sending]);
+
+  // Handler for when Done is clicked on confirmation card
+  const handleConfirmationDone = useCallback((familyId: string) => {
+    setContactedIds((prev) => new Set([...prev, familyId]));
+    setConfirmationCardId(null);
+  }, []);
 
   const handleSend = useCallback(
     async (toProfileId: string) => {
@@ -1224,8 +1375,9 @@ export default function ProviderMatchesPage() {
           }
         }
 
-        setContactedIds((prev) => new Set([...prev, toProfileId]));
+        // Show confirmation card instead of immediately collapsing
         setExpandedCardId(null);
+        setConfirmationCardId(toProfileId);
         setReachOutNote("");
       } catch (err: unknown) {
         const msg =
@@ -1561,6 +1713,9 @@ export default function ProviderMatchesPage() {
                     onSend={() => handleSend(family.id)}
                     sendError={sendError}
                     reachOutCount={reachOutCounts.get(family.id) || 0}
+                    isConfirmation={confirmationCardId === family.id}
+                    onConfirmationDone={() => handleConfirmationDone(family.id)}
+                    reachOutThreshold={reachOutThreshold}
                   />
                 </div>
               ))

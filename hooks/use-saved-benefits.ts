@@ -77,6 +77,8 @@ export function useSavedBenefits() {
         openAuth({
           defaultMode: "sign-up",
           intent: "family",
+          headline: "Sign in to get matched",
+          subline: "Save your results and connect with providers in your area.",
           deferred: {
             action: "save_benefit",
             benefitProgramName: programName,

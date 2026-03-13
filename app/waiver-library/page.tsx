@@ -56,24 +56,22 @@ export default function WaiverLibraryPage() {
         {/* Content — pinned to left so it never overlaps the right-side faces */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 flex items-center min-h-[360px] md:min-h-[420px]">
           <div className="max-w-2xl">
-            <h1 className="font-bold leading-none font-serif">
-              <span className="block text-3xl md:text-4xl lg:text-5xl">Save up to $10,000 a Year</span>
-              <span className="block text-xl md:text-2xl lg:text-3xl text-primary-300 mt-0.5">in Senior Care Benefits</span>
+            <h1 className="font-bold leading-tight font-serif text-3xl sm:text-4xl lg:text-5xl">
+              Save Up to $10,000<br />on Care
             </h1>
-            <p className="mt-2 text-lg md:text-xl text-gray-200">
-              Check what you qualify for in 2 minutes. Free, no signup required.
+            <p className="mt-1 sm:mt-3 text-base sm:text-lg text-white/80 max-w-md leading-relaxed">
+              Check what benefits you qualify for in 2 minutes.<br />Free, no signup required.
             </p>
             <div className="mt-2 flex flex-col gap-4">
               <div>
                 <Link
                   href="/benefits/finder"
-                  className="inline-flex items-center justify-center px-6 py-2.5 text-sm text-white font-semibold rounded-xl border border-primary-700/50 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-2px_3px_rgba(0,0,0,0.15),0_2px_6px_rgba(0,0,0,0.25)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-2px_3px_rgba(0,0,0,0.15),0_4px_12px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] active:translate-y-0 transition-all duration-150"
-                  style={{ background: "linear-gradient(to bottom, #22a3c3, #0e7490)" }}
+                  className="inline-flex items-center justify-center px-6 py-3 text-base text-white font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-600/25 transition-all duration-200"
                 >
                   <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Check My Benefits
+                  Find My Savings
                 </Link>
               </div>
               <div className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 px-6 py-2">
@@ -117,11 +115,35 @@ export default function WaiverLibraryPage() {
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
               Explore Benefits by State
             </h2>
+            <p className="mt-2 text-gray-600 text-sm">
+              Your state offers free senior care benefits. Find yours below.
+            </p>
             <HeroStateSearch />
           </div>
         </div>
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24">
           <USMap states={allStates} />
+        </div>
+
+        {/* CTA Banner */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16">
+          <div className="rounded-2xl bg-white px-6 py-8 md:py-10 text-center shadow-[0_6px_24px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)] border border-gray-200/60">
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 font-serif mb-2">
+              See How Much You Could Save on Care
+            </h3>
+            <p className="text-gray-500 text-base md:text-lg mb-5">
+              Free, no signup required. Just a few quick questions.
+            </p>
+            <Link
+              href="/benefits/finder"
+              className="group inline-flex items-center justify-center px-6 py-3 text-base text-white font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-600/25 transition-all duration-200"
+            >
+              Find My Savings
+              <svg className="w-5 h-5 ml-2 group-hover:translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </section>
 

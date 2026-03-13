@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { AuthState, Account, Profile, Membership, DeferredAction } from "@/lib/types";
-import { setDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
+import { setDeferredAction, getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
 
 export type AuthModalView = "sign-in" | "sign-up";
 
@@ -54,6 +54,10 @@ export interface OpenAuthOptions {
   deferred?: Omit<DeferredAction, "createdAt">;
   /** Start in post-auth onboarding (for returning OAuth users) */
   startAtPostAuth?: boolean;
+  /** Custom headline for the entry screen (context-specific copy) */
+  headline?: string;
+  /** Custom subline for the entry screen (context-specific copy) */
+  subline?: string;
 }
 
 const AUTH_INTENT_KEY = "olera_auth_intent";
@@ -775,8 +779,21 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Family users: no popup needed — they can browse and connect without onboarding
-      // The connection API marks onboarding_completed=true when they connect
+      // Check for deferred action — if user has a pending action (save, inquiry, etc.),
+      // skip onboarding and let them complete their action first
+      const deferred = getDeferredAction();
+      if (deferred?.action) {
+        // User has a deferred action — skip onboarding, let them complete it
+        // The connection/save/etc. API will mark onboarding_completed=true
+        return;
+      }
+
+      // New users with NO deferred action: show onboarding popup
+      // This handles Google OAuth signups and main nav signups
+      // Don't pass intent — let them choose "Find care" vs "List my business"
+      openAuth({
+        startAtPostAuth: true,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isLoading, state.user, state.account]);

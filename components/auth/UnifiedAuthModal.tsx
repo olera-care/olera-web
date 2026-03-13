@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { createAuthClient } from "@/lib/supabase/auth-client";
 import { useAuth, type OpenAuthOptions } from "@/components/auth/AuthProvider";
+import { validateReturnUrl } from "@/lib/validation";
+import { getDeferredAction } from "@/lib/deferred-action";
 import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
@@ -485,11 +487,16 @@ export default function UnifiedAuthModal({
     // data loading in the background, and its onboarding-detection useEffect
     // will auto-open post-auth if onboarding is incomplete.
 
+    // Check for any deferred action (from options or sessionStorage)
+    const deferred = options.deferred || getDeferredAction();
+    const hasDeferredAction = !!deferred?.action;
+
     // Deferred returnUrl — skip PostAuth entirely and redirect.
     // Used by the claim page to return after auth (verification-first flow).
-    if (options.deferred?.returnUrl) {
+    if (deferred?.returnUrl && hasDeferredAction) {
+      const safeReturnUrl = validateReturnUrl(deferred.returnUrl, "/browse");
       onClose();
-      router.push(options.deferred.returnUrl);
+      router.push(safeReturnUrl);
       return;
     }
 
@@ -498,21 +505,9 @@ export default function UnifiedAuthModal({
       (p) => p.type === "organization" || p.type === "caregiver"
     );
 
-    // New signups always need onboarding
-    if (otpContext === "signup") {
-      if (options.intent === "provider") {
-        onClose();
-        router.push("/provider/onboarding");
-        return;
-      }
-      setStep("post-auth");
-      return;
-    }
-
-    // Provider intent — route based on whether they have a profile
+    // Provider intent — route to provider onboarding
     if (options.intent === "provider") {
       onClose();
-      // If they already have a provider profile, go straight to hub
       if (hasProviderProfile) {
         router.push("/provider");
       } else {
@@ -521,7 +516,15 @@ export default function UnifiedAuthModal({
       return;
     }
 
-    // Returning user — close instantly. AuthProvider handles the rest.
+    // New signups with NO deferred action → show onboarding
+    // New signups WITH deferred action → skip onboarding, let them complete their action
+    if (otpContext === "signup" && !hasDeferredAction) {
+      setStep("post-auth");
+      return;
+    }
+
+    // Returning user or user with deferred action — close instantly.
+    // AuthProvider handles the rest (including deferred action redirects).
     onClose();
   };
 
@@ -607,9 +610,13 @@ export default function UnifiedAuthModal({
             />
           </div>
 
-          <h2 className="text-xl font-semibold text-gray-900 text-center mb-6">
-            Log in or sign up
+          <h2 className="text-xl font-semibold text-gray-900 text-center mb-1">
+            {options.headline || "Log in or sign up"}
           </h2>
+          {options.subline && (
+            <p className="text-sm text-gray-500 text-center mb-6">{options.subline}</p>
+          )}
+          {!options.subline && <div className="mb-5" />}
 
           {error && (
             <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm" role="alert">

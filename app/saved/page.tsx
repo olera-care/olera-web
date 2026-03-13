@@ -68,12 +68,15 @@ function MatchesPromoBanner({
 
   // Show CTA banner when Matches is NOT active
   return (
-    <div className="mb-6 relative bg-white border border-gray-200/80 rounded-2xl shadow-sm overflow-hidden">
+    <div className="mb-6 relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300 overflow-hidden">
+      {/* Accent left border */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
+
       {/* Dismiss X */}
       <button
         type="button"
         onClick={handleDismiss}
-        className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors z-10"
         aria-label="Dismiss"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,18 +84,63 @@ function MatchesPromoBanner({
         </svg>
       </button>
 
-      <div className="px-5 py-5 pr-12">
-        <h3 className="text-[15px] font-semibold text-gray-900 mb-1">
-          You've saved providers you like — want them to come to you too?
-        </h3>
-        <p className="text-sm text-gray-500 mb-4 leading-relaxed">
-          Let qualified providers in {locationText} reach out directly. You decide who to talk to.
-        </p>
+      <div className="flex items-center gap-4 px-5 py-4 pr-12">
+        {/* Icon with glow effect */}
+        <div className="relative flex-shrink-0 hidden sm:block">
+          <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
+          <div className="relative flex w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 items-center justify-center shadow-sm">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24">
+              <path
+                stroke="currentColor"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15 19l-7-7 7-7"
+              />
+              <path
+                stroke="currentColor"
+                strokeWidth={1.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8 12h13"
+              />
+              <circle cx="5" cy="12" r="2" stroke="currentColor" strokeWidth={1.5} />
+            </svg>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[15px] font-semibold text-gray-900 mb-0.5">
+            Want these providers to come to you?
+          </h3>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            Let qualified providers in {locationText} reach out directly.
+          </p>
+        </div>
+
+        {/* CTA Button */}
         <Link
           href="/matches"
-          className="inline-flex items-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+          className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] whitespace-nowrap flex-shrink-0"
+        >
+          Set up profile
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
+
+      {/* Mobile CTA - full width below content */}
+      <div className="sm:hidden px-5 pb-4">
+        <Link
+          href="/matches"
+          className="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25"
         >
           Set up my care profile
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
         </Link>
       </div>
     </div>

@@ -7,9 +7,6 @@ export function HeroStateSearch() {
 
   return (
     <div className="max-w-sm mx-auto mt-2">
-      <label htmlFor="hero-state-search" className="block text-sm font-medium text-gray-600 mb-1">
-        Find your state
-      </label>
       <div className="relative">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

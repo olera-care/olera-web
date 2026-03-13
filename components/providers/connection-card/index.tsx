@@ -3,9 +3,8 @@
 import { useConnectionCard } from "./use-connection-card";
 import CardTopSection from "./CardTopSection";
 import CardBottomSection from "./CardBottomSection";
-import DefaultActions from "./DefaultActions";
-import IntentCapture from "./IntentCapture";
-import EmailCapture from "./EmailCapture";
+import InquiryForm from "./InquiryForm";
+import EnrichmentState from "./EnrichmentState";
 import ConnectedState from "./ConnectedState";
 import ReturningUserState from "./ReturningUserState";
 import type { ConnectionCardProps } from "./types";
@@ -26,7 +25,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
   const hook = useConnectionCard(props);
 
   return (
-    <div className="bg-vanilla-100 rounded-xl border border-gray-200 shadow-sm overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
+    <div className="bg-white rounded-2xl shadow-lg overflow-hidden max-h-[calc(100vh-120px)] overflow-y-auto">
       {/* Top section — persistent across all states */}
       <CardTopSection
         priceRange={priceRange}
@@ -49,33 +48,20 @@ export default function ConnectionCard(props: ConnectionCardProps) {
         )}
 
         {hook.cardState === "default" && (
-          <DefaultActions
-            phone={phone}
-            phoneRevealed={hook.phoneRevealed}
-            onConnect={hook.startFlow}
-            onRevealPhone={hook.revealPhone}
-          />
-        )}
-
-        {hook.cardState === "intent" && (
-          <IntentCapture
-            intentStep={hook.intentStep}
-            intentData={hook.intentData}
-            onSelectRecipient={hook.selectRecipient}
-            onSelectUrgency={hook.selectUrgency}
-            onConnect={hook.connect}
-            submitting={hook.submitting}
-            totalSteps={hook.totalSteps}
-          />
-        )}
-
-        {hook.cardState === "email_capture" && (
-          <EmailCapture
-            intentData={hook.intentData}
-            onSubmit={hook.submitGuestRequest}
-            onBack={hook.editFromEmailCapture}
+          <InquiryForm
+            providerName={providerName}
+            onSubmit={hook.submitInquiryForm}
             submitting={hook.submitting}
             error={hook.error}
+          />
+        )}
+
+        {hook.cardState === "enrichment" && (
+          <EnrichmentState
+            providerName={providerName}
+            onSave={hook.saveEnrichment}
+            onSkip={hook.skipEnrichment}
+            saving={hook.submitting}
           />
         )}
 

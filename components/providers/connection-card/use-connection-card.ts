@@ -518,6 +518,148 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setCardState("intent");
   }, []);
 
+  // ── Submit inquiry form (v2.0 — simple form, no multi-step) ──
+  const submitInquiryForm = useCallback(async (formData: {
+    email: string;
+    fullName: string;
+    phone: string;
+    message: string;
+  }) => {
+    setError("");
+    setSubmitting(true);
+
+    try {
+      // Build intent data from the message (minimal — enrichment comes after)
+      const formIntentData = {
+        careRecipient: null,
+        careType: null,
+        urgency: null,
+        additionalNotes: formData.message,
+      };
+
+      if (user) {
+        // Authenticated user flow
+        const res = await fetch("/api/connections/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            providerId,
+            providerName,
+            providerSlug,
+            intentData: formIntentData,
+            formData: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              message: formData.message,
+            },
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to send request.");
+
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+        if (data.connectionId && onConnectionCreated) {
+          onConnectionCreated(data.connectionId);
+          return;
+        }
+
+        await refreshAccountData();
+        if (data.created_at) setPendingRequestDate(data.created_at);
+        if (data.connectionId) setConnectionId(data.connectionId);
+
+        setCardState("enrichment");
+        setPhoneRevealed(true);
+      } else {
+        // Guest flow — use email for connection
+        const res = await fetch("/api/connections/request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            providerId,
+            providerName,
+            providerSlug,
+            intentData: formIntentData,
+            guest: true,
+            guestEmail: formData.email,
+            formData: {
+              fullName: formData.fullName,
+              phone: formData.phone,
+              message: formData.message,
+            },
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to send request.");
+
+        // Store claim token
+        if (data.claimToken) {
+          try { localStorage.setItem(CLAIM_TOKEN_KEY, data.claimToken); } catch {}
+        }
+        if (data.connectionId && data.claimToken) {
+          storeGuestRedirect(
+            `/portal/inbox?id=${data.connectionId}&token=${data.claimToken}`,
+            data.claimToken
+          );
+        }
+
+        window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+        if (data.connectionId && onConnectionCreated) {
+          onConnectionCreated(data.connectionId);
+          return;
+        }
+
+        if (data.created_at) setPendingRequestDate(data.created_at);
+        if (data.connectionId) setConnectionId(data.connectionId);
+
+        setCardState("enrichment");
+        setPhoneRevealed(true);
+      }
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : String(err);
+      console.error("Inquiry form error:", msg);
+      setError(msg || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated]);
+
+  // ── Save enrichment data (post-submit) ──
+  const saveEnrichment = useCallback(async (data: {
+    careRecipient: string;
+    urgency: string;
+  }) => {
+    setSubmitting(true);
+    try {
+      if (connectionId) {
+        await fetch("/api/connections/update-intent", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId,
+            careRecipient: data.careRecipient,
+            urgency: data.urgency,
+          }),
+        });
+      }
+    } catch {
+      // Non-blocking
+    } finally {
+      setSubmitting(false);
+      setCardState("connected");
+    }
+  }, [connectionId]);
+
+  const skipEnrichment = useCallback(() => {
+    setCardState("connected");
+  }, []);
+
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;
 
@@ -552,5 +694,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
     // Guest flow
     submitGuestRequest,
+
+    // v2.0 inquiry form flow
+    submitInquiryForm,
+    saveEnrichment,
+    skipEnrichment,
   };
 }

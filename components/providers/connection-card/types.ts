@@ -4,10 +4,11 @@
 
 export type CardState =
   | "loading" // Logged-in users while DB queries run
-  | "default" // State 1: Anonymous / no connection
+  | "default" // State 1: Form visible (email, name, phone, message)
   | "intent" // State 2: Intent capture (2 steps for logged-in, 3 for guest)
   | "email_capture" // State 2b: Guest email capture (after intent)
   | "returning" // State 3: Returning user (prior connection or past)
+  | "enrichment" // Post-submit: optional who/when enrichment
   | "connected"; // State 4: Existing connection (pending or accepted)
 
 export type IntentStep = 0 | 1;
@@ -30,6 +31,13 @@ export interface IntentData {
   careRecipient: CareRecipient | null;
   careType: CareTypeValue | null;
   urgency: UrgencyValue | null;
+}
+
+export interface InquiryFormData {
+  email: string;
+  fullName: string;
+  phone: string;
+  message: string;
 }
 
 export interface ConnectionCardProps {

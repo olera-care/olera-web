@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
@@ -76,6 +76,19 @@ const TIMELINE_CONFIG: Record<string, { label: string; dot: string; glow: string
   within_3_months: { label: "Within 3 months", dot: "bg-blue-400", glow: "glowBlue", border: "border-blue-200", text: "text-blue-600", bg: "bg-blue-50/50" },
   exploring: { label: "Exploring", dot: "bg-warm-300", glow: "glowWarm", border: "border-warm-200", text: "text-gray-500", bg: "bg-warm-50/50" },
 };
+
+// ── Profile quality check ──
+// Detailed = location + care type + age + payment method + description + phone
+function isDetailedProfile(profile: Profile, meta: FamilyMetadata | null): boolean {
+  const hasLocation = !!(profile.city || profile.state);
+  const hasCareType = (profile.care_types?.length ?? 0) > 0;
+  const hasAge = !!(meta?.age);
+  const hasPayment = (meta?.payment_methods?.length ?? 0) > 0;
+  const hasDescription = !!(meta?.about_situation || profile.description)?.trim();
+  const hasPhone = !!profile.phone?.trim();
+
+  return hasLocation && hasCareType && hasAge && hasPayment && hasDescription && hasPhone;
+}
 
 // ── Helpers ──
 
@@ -676,6 +689,58 @@ function MatchesSidebar({
 }
 
 // ---------------------------------------------------------------------------
+// Profile Quality Label with Tooltip
+// ---------------------------------------------------------------------------
+
+function ProfileQualityLabel({ isDetailed }: { isDetailed: boolean }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // Close tooltip on outside click (for mobile tap)
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setShowTooltip(false);
+      }
+    }
+    if (showTooltip) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showTooltip]);
+
+  const label = isDetailed ? "Detailed profile" : "Basic profile";
+  const tooltip = isDetailed
+    ? "This family has shared a lot about their care situation. A great starting point for a personalized reach-out."
+    : "This family is early in sharing their care needs. You can still reach out — profiles grow over time.";
+
+  return (
+    <div className="relative inline-block" ref={tooltipRef}>
+      <button
+        type="button"
+        onClick={() => setShowTooltip(!showTooltip)}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        className={[
+          "text-[11px] font-medium px-1.5 py-0.5 rounded transition-colors cursor-default",
+          isDetailed
+            ? "text-primary-600 bg-primary-50/80"
+            : "text-gray-500 bg-gray-100/80",
+        ].join(" ")}
+      >
+        {label}
+      </button>
+      {showTooltip && (
+        <div className="absolute left-0 top-full mt-1.5 w-56 p-3 bg-gray-900 text-white text-[12px] leading-relaxed rounded-lg shadow-xl z-30">
+          <div className="absolute -top-1 left-3 w-2 h-2 bg-gray-900 rotate-45" />
+          <p className="relative">{tooltip}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Family Care Card
 // ---------------------------------------------------------------------------
 
@@ -739,6 +804,9 @@ function FamilyCareCard({
   const initials = getInitials(displayName);
   const familyFirstName = displayName.split(/\s+/)[0];
   const reachOuts = reachOutCount ?? 0;
+
+  // Profile quality for label
+  const isDetailed = isDetailedProfile(family, meta);
 
   // Who needs care display — exact mapping, no dynamic prefix
   const careRecipientRaw = meta?.relationship_to_recipient?.toLowerCase().trim();
@@ -810,6 +878,9 @@ function FamilyCareCard({
                   </span>
                 </div>
               )}
+              <div className="mt-1">
+                <ProfileQualityLabel isDetailed={isDetailed} />
+              </div>
             </div>
           </div>
           {/* Badges row */}
@@ -851,6 +922,9 @@ function FamilyCareCard({
                 </span>
               </div>
             )}
+            <div className="mt-1.5">
+              <ProfileQualityLabel isDetailed={isDetailed} />
+            </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {timeline && (

@@ -102,33 +102,14 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
 
-  // ── Resolve initial state — show optimistic UI immediately ──
+  // ── Resolve initial state — show form immediately for everyone ──
   useEffect(() => {
     if (authLoading) return;
-
-    // Anonymous user — show default immediately
-    if (!user) {
-      setCardState("default");
-      return;
-    }
-
-    // Logged-in user — try optimistic render from profile data (skip skeleton)
-    if (activeProfile) {
-      const profileIntent = buildIntentFromProfile({
-        metadata: activeProfile.metadata as Record<string, unknown> | undefined,
-        care_types: activeProfile.care_types ?? undefined,
-      });
-      if (profileIntent) {
-        setPreviousIntent(profileIntent);
-        setIntentData(profileIntent);
-        setCardState("returning");
-        return;
-      }
-    }
-
-    // Logged-in but no profile data to pre-fill — show default instead of skeleton
+    // Both guests and signed-in users see the form ("default" state).
+    // Signed-in users get pre-filled fields; the DB check below
+    // may upgrade to "connected" if they already have an active connection.
     setCardState("default");
-  }, [authLoading, user, activeProfile]);
+  }, [authLoading]);
 
   // ── Check for existing connection + fetch previous intent (logged-in users) ──
   useEffect(() => {
@@ -200,42 +181,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         // Past/ended connection — fall through to check for previous intent data
       }
 
-      // Restore previous intent data (from any connection)
-      if (intentResult.data?.message) {
-        try {
-          const parsed = JSON.parse(intentResult.data.message);
-          const restored: IntentData = {
-            careRecipient: parsed.care_recipient || null,
-            careType: parsed.care_type || null, // Optional - may be null for new flow
-            urgency: parsed.urgency || null,
-          };
-          // Only require recipient + urgency for returning user state
-          if (restored.careRecipient && restored.urgency) {
-            setPreviousIntent(restored);
-            setIntentData(restored);
-            setCardState("returning");
-            return;
-          }
-        } catch {
-          // Invalid JSON — ignore
-        }
-      }
-
-      // Fallback: try to build intent from profile metadata
-      if (activeProfile) {
-        const profileIntent = buildIntentFromProfile({
-          metadata: activeProfile.metadata as Record<string, unknown> | undefined,
-          care_types: activeProfile.care_types ?? undefined,
-        });
-        if (profileIntent) {
-          setPreviousIntent(profileIntent);
-          setIntentData(profileIntent);
-          setCardState("returning");
-          return;
-        }
-      }
-
-      // No connection, no previous intent, no profile data → default
+      // No active connection — stay on default (form) state
       setCardState("default");
     };
 
@@ -664,6 +610,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const totalSteps = user ? 2 : 3;
 
   return {
+    // Pre-fill data for signed-in users
+    userEmail: user?.email || "",
+    userName: account?.display_name || "",
+
     // State
     cardState,
     intentStep,

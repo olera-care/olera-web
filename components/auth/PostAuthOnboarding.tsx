@@ -51,9 +51,11 @@ const CARE_TYPES = [
   "Rehabilitation",
 ];
 
-// SessionStorage keys for browse page banner
+// SessionStorage keys for browse page banners
 const MATCHES_ACTIVATED_KEY = "olera_matches_activated";
 const MATCHES_CITY_KEY = "olera_matches_city";
+const WELCOME_BANNER_KEY = "olera_welcome_banner";
+const WELCOME_CITY_KEY = "olera_welcome_city";
 
 // ============================================================
 // Progress Indicator
@@ -444,6 +446,14 @@ export default function PostAuthOnboarding({
       await refreshAccountData();
     } catch {
       console.error("Failed to refresh account data, continuing...");
+    }
+
+    // Set welcome banner flags for browse page
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(WELCOME_BANNER_KEY, "true");
+      if (city) {
+        sessionStorage.setItem(WELCOME_CITY_KEY, city);
+      }
     }
 
     // Handle deferred action if exists

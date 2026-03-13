@@ -6,6 +6,7 @@ import { useCitySearch } from "@/hooks/use-city-search";
 import { useRouter } from "next/navigation";
 import BrowseCard from "@/components/browse/BrowseCard";
 import MatchesActivatedBanner from "@/components/browse/MatchesActivatedBanner";
+import WelcomeBanner from "@/components/browse/WelcomeBanner";
 import { useNavbar } from "@/components/shared/NavbarContext";
 import Pagination from "@/components/ui/Pagination";
 import { createClient } from "@/lib/supabase/client";
@@ -717,8 +718,14 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
       <div className="lg:flex">
         {/* Left Panel - Provider List */}
         <div className="flex-1 min-w-0 px-4 sm:px-6 lg:pl-8 lg:pr-6 py-6">
-          {/* Matches Activated Banner (one-time, post-onboarding) */}
+          {/* Matches Activated Banner (one-time, post-onboarding opt-in) */}
           <MatchesActivatedBanner />
+
+          {/* Welcome Banner (one-time, post-onboarding skip) */}
+          <WelcomeBanner
+            providerCount={filteredProviders.length}
+            locationCity={searchLocation}
+          />
 
           {/* Heading + Sort */}
           <div className="relative z-20">

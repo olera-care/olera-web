@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { sendEmail } from "@/lib/email";
+import { questionAnsweredEmail } from "@/lib/email-templates";
 
 /**
  * GET /api/admin/questions
@@ -101,6 +103,33 @@ export async function PATCH(request: NextRequest) {
     if (error) {
       console.error("Admin question update error:", error);
       return NextResponse.json({ error: "Failed to update question" }, { status: 500 });
+    }
+
+    // Email the asker when their question is answered (fire-and-forget)
+    if (answer && data?.asker_email) {
+      try {
+        const providerSlug = data.provider_id || "";
+        const { data: provider } = await db
+          .from("business_profiles")
+          .select("display_name")
+          .eq("slug", providerSlug)
+          .single();
+
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+        sendEmail({
+          to: data.asker_email,
+          subject: `${provider?.display_name || "A provider"} answered your question on Olera`,
+          html: questionAnsweredEmail({
+            askerName: data.asker_name || "there",
+            providerName: provider?.display_name || "The provider",
+            question: data.question,
+            answer,
+            providerUrl: `${siteUrl}/provider/${providerSlug}`,
+          }),
+        });
+      } catch (emailErr) {
+        console.error("Answer notification email failed:", emailErr);
+      }
     }
 
     return NextResponse.json({ question: data });

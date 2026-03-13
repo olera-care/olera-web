@@ -1,12 +1,10 @@
 "use client";
 
 import { useConnectionCard } from "./use-connection-card";
-import CardTopSection from "./CardTopSection";
 import CardBottomSection from "./CardBottomSection";
 import InquiryForm from "./InquiryForm";
 import EnrichmentState from "./EnrichmentState";
 import ConnectedState from "./ConnectedState";
-import ReturningUserState from "./ReturningUserState";
 import type { ConnectionCardProps } from "./types";
 
 export type { ConnectionCardProps } from "./types";
@@ -14,12 +12,8 @@ export type { ConnectionCardProps } from "./types";
 export default function ConnectionCard(props: ConnectionCardProps) {
   const {
     providerName,
-    priceRange,
-    oleraScore,
-    reviewCount,
     phone,
     acceptedPayments,
-    responseTime,
   } = props;
 
   const hook = useConnectionCard(props);
@@ -41,6 +35,8 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             onSubmit={hook.submitInquiryForm}
             submitting={hook.submitting}
             error={hook.error}
+            initialEmail={hook.userEmail}
+            initialName={hook.userName}
           />
         )}
 
@@ -58,16 +54,6 @@ export default function ConnectionCard(props: ConnectionCardProps) {
             phone={phone}
             requestDate={hook.pendingRequestDate}
             connectionId={hook.connectionId}
-          />
-        )}
-
-        {hook.cardState === "returning" && (
-          <ReturningUserState
-            phone={phone}
-            intentData={hook.intentData}
-            onConnect={hook.connect}
-            onEdit={hook.editFromReturning}
-            submitting={hook.submitting}
           />
         )}
       </div>

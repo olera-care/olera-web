@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Question must be under 1000 characters" }, { status: 400 });
     }
 
-    // Determine asker identity: authenticated user or guest
+    // Determine asker identity: authenticated user or anonymous guest
     const db = getServiceClient();
     let askerName: string;
     let askerEmail: string | null;
@@ -88,31 +88,30 @@ export async function POST(request: NextRequest) {
       askerEmail = user.email || null;
       askerUserId = user.id;
     } else {
-      // Guest — require name + email
-      if (!guestName?.trim() || !guestEmail?.trim()) {
-        return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
+      // Guest — question fires immediately, name/email optional (added via PATCH later)
+      // If guest provided name/email inline, use them
+      const normalizedEmail = guestEmail?.trim().toLowerCase() || null;
+
+      if (normalizedEmail) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(normalizedEmail)) {
+          return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
+        }
+
+        // Rate limiting: 5 questions per email per hour
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+        const { data: recentQuestions } = await db
+          .from("provider_questions")
+          .select("id")
+          .eq("asker_email", normalizedEmail)
+          .gte("created_at", oneHourAgo);
+
+        if (recentQuestions && recentQuestions.length >= 5) {
+          return NextResponse.json({ error: "Too many questions. Please try again later." }, { status: 429 });
+        }
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(guestEmail.trim())) {
-        return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
-      }
-
-      const normalizedEmail = guestEmail.trim().toLowerCase();
-
-      // Rate limiting: 5 questions per email per hour
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-      const { data: recentQuestions } = await db
-        .from("provider_questions")
-        .select("id")
-        .eq("asker_email", normalizedEmail)
-        .gte("created_at", oneHourAgo);
-
-      if (recentQuestions && recentQuestions.length >= 5) {
-        return NextResponse.json({ error: "Too many questions. Please try again later." }, { status: 429 });
-      }
-
-      askerName = guestName.trim();
+      askerName = guestName?.trim() || "Anonymous";
       askerEmail = normalizedEmail;
       askerUserId = null;
     }
@@ -188,11 +187,64 @@ export async function POST(request: NextRequest) {
 /**
  * PATCH /api/questions
  *
- * Edit a question (only by the original asker, and only if not yet answered).
- * Body: { id, question }
+ * Two modes:
+ * 1. Authenticated edit: { id, question } — edit question text (owner only, before answer)
+ * 2. Guest enrichment: { id, asker_name, asker_email } — augment anonymous question with identity
  */
 export async function PATCH(request: NextRequest) {
   try {
+    const body = await request.json();
+    const { id, question, asker_name: enrichName, asker_email: enrichEmail } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "id is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Mode 2: Guest enrichment — add name/email to an anonymous question
+    if (enrichName || enrichEmail) {
+      const { data: existing, error: fetchError } = await db
+        .from("provider_questions")
+        .select("id, asker_user_id, asker_email")
+        .eq("id", id)
+        .single();
+
+      if (fetchError || !existing) {
+        return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      }
+
+      // Only allow enrichment on anonymous questions (no user_id and no email yet)
+      if (existing.asker_user_id || existing.asker_email) {
+        return NextResponse.json({ error: "Question already has identity" }, { status: 400 });
+      }
+
+      const updates: Record<string, string> = {};
+      if (enrichName?.trim()) updates.asker_name = enrichName.trim();
+      if (enrichEmail?.trim()) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(enrichEmail.trim())) {
+          return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+        }
+        updates.asker_email = enrichEmail.trim().toLowerCase();
+      }
+
+      const { data: updated, error: updateError } = await db
+        .from("provider_questions")
+        .update(updates)
+        .eq("id", id)
+        .select("id, question, asker_name, status, created_at")
+        .single();
+
+      if (updateError) {
+        console.error("Failed to enrich question:", updateError);
+        return NextResponse.json({ error: "Failed to update" }, { status: 500 });
+      }
+
+      return NextResponse.json({ question: updated });
+    }
+
+    // Mode 1: Authenticated edit — edit question text
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -200,20 +252,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { id, question } = body;
-
-    if (!id || !question) {
-      return NextResponse.json({ error: "id and question are required" }, { status: 400 });
+    if (!question) {
+      return NextResponse.json({ error: "question is required" }, { status: 400 });
     }
 
     if (question.length > 1000) {
       return NextResponse.json({ error: "Question must be under 1000 characters" }, { status: 400 });
     }
 
-    const db = getServiceClient();
-
-    // Verify ownership and status
     const { data: existing, error: fetchError } = await db
       .from("provider_questions")
       .select("id, asker_user_id, status, answer")
@@ -232,7 +278,6 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Cannot edit a question that has been answered" }, { status: 400 });
     }
 
-    // Update the question
     const { data: updated, error: updateError } = await db
       .from("provider_questions")
       .update({ question: question.trim() })

@@ -92,12 +92,14 @@ export default function QASectionV2({
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
-  // Guest email capture state
-  const [showEmailCapture, setShowEmailCapture] = useState(false);
+  // Guest enrichment state (post-submit identity capture)
+  const [showEnrichment, setShowEnrichment] = useState(false);
+  const [enrichQuestionId, setEnrichQuestionId] = useState<string | null>(null);
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [guestError, setGuestError] = useState("");
+  const [enriching, setEnriching] = useState(false);
 
   // Edit question state
   const [editingQuestion, setEditingQuestion] = useState<QAEntry | null>(null);
@@ -138,40 +140,25 @@ export default function QASectionV2({
     fetchQuestions();
   }, [fetchQuestions]);
 
-  // Submit question — works for both authenticated users and guests
-  const submitQuestion = useCallback(async (questionText: string, guestInfo?: { name: string; email: string; honeypot?: string }) => {
+  // Submit question — fires immediately for both auth and guest
+  const submitQuestion = useCallback(async (questionText: string) => {
     if (!questionText.trim()) return;
 
     setSubmitting(true);
     setSubmitStatus("idle");
-    setGuestError("");
 
     try {
-      const payload: Record<string, string> = {
-        provider_id: providerId,
-        question: questionText.trim(),
-      };
-
-      // Guest fields
-      if (guestInfo) {
-        payload.asker_name = guestInfo.name;
-        payload.asker_email = guestInfo.email;
-        if (guestInfo.honeypot) payload.honeypot = guestInfo.honeypot;
-      }
-
       const res = await fetch("/api/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          provider_id: providerId,
+          question: questionText.trim(),
+          honeypot: honeypot || undefined,
+        }),
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        if (res.status === 429) {
-          setGuestError("Too many questions. Please try again later.");
-        } else {
-          setGuestError(errData?.error || "Failed to submit. Please try again.");
-        }
         setSubmitStatus("error");
         return;
       }
@@ -179,69 +166,100 @@ export default function QASectionV2({
       const data = await res.json();
       if (data.question) {
         setQuestions((prev) => [data.question, ...prev]);
+
+        // For guests: show enrichment prompt after successful submit
+        if (!user && data.question.id) {
+          setEnrichQuestionId(data.question.id);
+          setShowEnrichment(true);
+        }
       }
 
       setInputValue("");
-      setShowEmailCapture(false);
-      setGuestName("");
-      setGuestEmail("");
       setSubmitStatus("success");
-      setTimeout(() => setSubmitStatus("idle"), 4000);
+
+      // Auto-dismiss success for authenticated users
+      if (user) {
+        setTimeout(() => setSubmitStatus("idle"), 4000);
+      }
     } catch {
       setSubmitStatus("error");
     } finally {
       setSubmitting(false);
     }
-  }, [providerId]);
+  }, [providerId, user, honeypot]);
 
-  // Handle submit button click
+  // Handle submit button click — fires immediately, no gate
   const handleSubmit = () => {
     if (!inputValue.trim() || submitting) return;
-
-    // Authenticated users submit directly
-    if (user) {
-      submitQuestion(inputValue);
-      return;
-    }
-
-    // Guests: show email capture step
-    setShowEmailCapture(true);
+    submitQuestion(inputValue);
   };
 
-  // Handle guest email capture submit
-  const handleGuestSubmit = () => {
+  // Enrich anonymous question with name/email (optional, post-submit)
+  const handleEnrich = async () => {
+    if (!enrichQuestionId) return;
     setGuestError("");
 
-    // Honeypot check — silently "succeed"
+    // Honeypot
     if (honeypot) {
-      setShowEmailCapture(false);
-      setInputValue("");
-      setSubmitStatus("success");
-      setTimeout(() => setSubmitStatus("idle"), 4000);
+      setShowEnrichment(false);
+      setTimeout(() => setSubmitStatus("idle"), 2000);
       return;
     }
 
-    if (!guestName.trim()) {
-      setGuestError("Please enter your name.");
+    // At least one field should be filled
+    if (!guestName.trim() && !guestEmail.trim()) {
+      setShowEnrichment(false);
+      setTimeout(() => setSubmitStatus("idle"), 2000);
       return;
     }
 
-    if (!guestEmail.trim()) {
-      setGuestError("Please enter your email address.");
-      return;
+    if (guestEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail.trim())) {
+        setGuestError("Please enter a valid email.");
+        return;
+      }
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(guestEmail.trim())) {
-      setGuestError("Please enter a valid email address.");
-      return;
-    }
+    setEnriching(true);
+    try {
+      const res = await fetch("/api/questions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: enrichQuestionId,
+          asker_name: guestName.trim() || undefined,
+          asker_email: guestEmail.trim().toLowerCase() || undefined,
+        }),
+      });
 
-    submitQuestion(inputValue, {
-      name: guestName.trim(),
-      email: guestEmail.trim().toLowerCase(),
-      honeypot,
-    });
+      if (res.ok) {
+        const data = await res.json();
+        // Update question in local state with enriched name
+        if (data.question) {
+          setQuestions((prev) =>
+            prev.map((q) => (q.id === enrichQuestionId ? { ...q, ...data.question } : q))
+          );
+        }
+      }
+    } catch {
+      // Non-blocking — question is already posted
+    } finally {
+      setEnriching(false);
+      setShowEnrichment(false);
+      setEnrichQuestionId(null);
+      setGuestName("");
+      setGuestEmail("");
+      setTimeout(() => setSubmitStatus("idle"), 2000);
+    }
+  };
+
+  const handleDismissEnrichment = () => {
+    setShowEnrichment(false);
+    setEnrichQuestionId(null);
+    setGuestName("");
+    setGuestEmail("");
+    setTimeout(() => setSubmitStatus("idle"), 2000);
   };
 
   const handleEditSubmit = async () => {
@@ -309,87 +327,88 @@ export default function QASectionV2({
 
       {/* Ask a question form */}
       <div className="mb-8">
-        {showEmailCapture ? (
-          /* Guest email capture step */
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-            {/* Question preview */}
-            <div className="mb-4 pb-3 border-b border-gray-200">
-              <p className="text-xs text-gray-400 mb-1">Your question</p>
-              <p className="text-[15px] text-gray-800">{inputValue}</p>
+        {showEnrichment ? (
+          /* Post-submit enrichment prompt — question already posted */
+          <div className="animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-5 h-5 rounded-full bg-primary-50 flex items-center justify-center">
+                <svg className="w-3 h-3 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-gray-800">Question posted</span>
             </div>
 
-            <p className="text-[15px] font-semibold text-gray-800 mb-3">
-              Add your details to post
+            <p className="text-[13px] text-gray-500 mb-3">
+              Want to know when they respond?
             </p>
 
-            <div className="space-y-2.5 mb-2">
+            <div className="flex gap-2 mb-2">
               <input
                 type="text"
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Your name"
+                placeholder="Name"
                 autoComplete="name"
                 autoFocus
-                className="w-full px-4 py-3 border border-gray-200 rounded-[10px] text-[15px] text-gray-800 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all"
+                className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:bg-white transition-all"
               />
               <input
                 type="email"
                 value={guestEmail}
                 onChange={(e) => setGuestEmail(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !submitting) { e.preventDefault(); handleGuestSubmit(); } }}
-                placeholder="Email address"
+                onKeyDown={(e) => { if (e.key === "Enter" && !enriching) { e.preventDefault(); handleEnrich(); } }}
+                placeholder="Email"
                 autoComplete="email"
-                className="w-full px-4 py-3 border border-gray-200 rounded-[10px] text-[15px] text-gray-800 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all"
-              />
-
-              {/* Honeypot — hidden from users, filled by bots */}
-              <input
-                type="text"
-                name="website"
-                value={honeypot}
-                onChange={(e) => setHoneypot(e.target.value)}
-                style={{ display: "none" }}
-                tabIndex={-1}
-                autoComplete="off"
-                aria-hidden="true"
+                className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-800 placeholder-gray-400 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-300 focus:bg-white transition-all"
               />
             </div>
 
+            {/* Honeypot */}
+            <input
+              type="text"
+              name="website"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              style={{ display: "none" }}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+            />
+
             {guestError && (
-              <p className="text-xs text-red-600 mb-2" role="alert">{guestError}</p>
+              <p className="text-xs text-red-500 mt-1" role="alert">{guestError}</p>
             )}
 
-            <p className="text-xs text-gray-500 mb-3">
-              Your email won&apos;t be displayed publicly. We&apos;ll notify you when the provider responds.
-            </p>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleGuestSubmit}
-                disabled={submitting}
-                className="flex-1 py-3 rounded-[10px] text-[15px] font-semibold text-white bg-primary-600 hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {submitting && (
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                )}
-                {submitting ? "Posting..." : "Post Question"}
-              </button>
-              <button
-                type="button"
-                onClick={() => { setShowEmailCapture(false); setGuestError(""); }}
-                disabled={submitting}
-                className="px-4 py-3 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                Back
-              </button>
+            <div className="flex items-center justify-between mt-2.5">
+              <span className="text-[12px] text-gray-400">Not shown publicly</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleDismissEnrichment}
+                  className="text-[13px] text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Skip
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEnrich}
+                  disabled={enriching || (!guestName.trim() && !guestEmail.trim())}
+                  className="px-4 py-1.5 text-[13px] font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  {enriching && (
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  Notify me
+                </button>
+              </div>
             </div>
           </div>
         ) : (
           /* Standard question input */
           <>
-            {/* Suggested pills — no label, just gentle prompts */}
-            {suggestedQuestions.length > 0 && !inputValue && (
+            {/* Suggested pills */}
+            {suggestedQuestions.length > 0 && !inputValue && submitStatus !== "success" && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {suggestedQuestions.map((q) => (
                   <button
@@ -421,15 +440,18 @@ export default function QASectionV2({
                   <span className="text-primary-600 font-medium">Question posted!</span>
                 )}
                 {submitStatus === "error" && (
-                  <span className="text-red-600">{guestError || "Failed to submit. Please try again."}</span>
+                  <span className="text-red-500 text-sm">Something went wrong. Try again.</span>
                 )}
               </div>
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={!inputValue.trim() || submitting}
-                className="shrink-0 px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+                className="shrink-0 px-5 py-2 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] flex items-center gap-2"
               >
+                {submitting && (
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                )}
                 {submitting ? "Posting..." : "Post Question"}
               </button>
             </div>

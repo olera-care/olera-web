@@ -506,15 +506,11 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        if (data.connectionId && onConnectionCreated) {
-          onConnectionCreated(data.connectionId);
-          return;
-        }
-
         await refreshAccountData();
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
+        // Show enrichment first — redirect happens after save/skip
         setCardState("enrichment");
         setPhoneRevealed(true);
       } else {
@@ -553,14 +549,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        if (data.connectionId && onConnectionCreated) {
-          onConnectionCreated(data.connectionId);
-          return;
-        }
-
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
+        // Show enrichment first — redirect happens after save/skip
         setCardState("enrichment");
         setPhoneRevealed(true);
       }
@@ -598,22 +590,31 @@ export function useConnectionCard(props: ConnectionCardProps) {
       // Non-blocking
     } finally {
       setSubmitting(false);
-      setCardState("connected");
+      // Redirect to connected page if callback available, else show connected state
+      if (connectionId && onConnectionCreated) {
+        onConnectionCreated(connectionId);
+      } else {
+        setCardState("connected");
+      }
     }
-  }, [connectionId]);
+  }, [connectionId, onConnectionCreated]);
 
   const skipEnrichment = useCallback(() => {
-    setCardState("connected");
-  }, []);
+    if (connectionId && onConnectionCreated) {
+      onConnectionCreated(connectionId);
+    } else {
+      setCardState("connected");
+    }
+  }, [connectionId, onConnectionCreated]);
 
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;
 
-  return {
-    // Pre-fill data for signed-in users
-    userEmail: user?.email || "",
-    userName: account?.display_name || "",
+  // Pre-fill data for signed-in users
+  const userEmail = user?.email || "";
+  const userName = account?.display_name || "";
 
+  return {
     // State
     cardState,
     intentStep,
@@ -649,5 +650,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     submitInquiryForm,
     saveEnrichment,
     skipEnrichment,
+
+    // Pre-fill for signed-in users
+    userEmail,
+    userName,
   };
 }

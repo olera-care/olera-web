@@ -50,10 +50,12 @@ export async function POST(request: Request) {
     // Parse optional body
     let displayName = "";
     let markOnboardingComplete = false;
+    let claimToken: string | null = null;
     try {
       const body = await request.json();
       displayName = body.display_name || "";
       markOnboardingComplete = body.mark_onboarding_complete === true;
+      claimToken = body.claimToken || null;
     } catch {
       // No body or invalid JSON - that's fine
     }
@@ -93,7 +95,7 @@ export async function POST(request: Request) {
 
       if (!existingFamilyProfile) {
         const name = (existingAccount as Account).display_name || user.email?.split("@")[0] || "My Family";
-        const { error: profileError } = await dbClient.from("business_profiles").insert({
+        const { data: newFamilyProfile, error: profileError } = await dbClient.from("business_profiles").insert({
           account_id: acctId,
           slug: `family-${acctId.slice(0, 8)}`,
           type: "family",
@@ -104,9 +106,16 @@ export async function POST(request: Request) {
           source: "user_created",
           is_active: true,
           metadata: {},
-        });
+        }).select("id").single();
         if (profileError) {
           console.error("Error creating family profile (existing account):", profileError.message, profileError.code);
+        }
+
+        // Set active profile so user can send messages
+        if (newFamilyProfile && !(existingAccount as Account).active_profile_id) {
+          await dbClient.from("accounts").update({
+            active_profile_id: newFamilyProfile.id,
+          }).eq("id", acctId);
         }
 
         // Send welcome email for fresh signups where DB trigger created the account
@@ -128,6 +137,37 @@ export async function POST(request: Request) {
             },
           });
         } catch {
+          // Non-blocking
+        }
+      }
+
+      // Handle placeholder profile claim for EXISTING accounts (guest connection flow)
+      // Move connections from placeholder to existing family profile, then delete placeholder
+      if (claimToken) {
+        try {
+          const mainFamilyId = existingFamilyProfile?.id;
+          const { data: placeholder } = await dbClient
+            .from("business_profiles")
+            .select("id")
+            .eq("claim_token", claimToken)
+            .is("account_id", null)
+            .single();
+
+          if (placeholder && mainFamilyId && placeholder.id !== mainFamilyId) {
+            // Move connections from placeholder to main family profile
+            await dbClient
+              .from("connections")
+              .update({ from_profile_id: mainFamilyId })
+              .eq("from_profile_id", placeholder.id);
+
+            // Delete the placeholder profile
+            await dbClient
+              .from("business_profiles")
+              .delete()
+              .eq("id", placeholder.id);
+          }
+        } catch (err) {
+          console.error("[ensure-account] placeholder handling error (existing):", err);
           // Non-blocking
         }
       }
@@ -223,7 +263,7 @@ export async function POST(request: Request) {
 
     if (!existingFamily) {
       const familyDisplayName = displayName || user.email?.split("@")[0] || "My Family";
-      const { error: profileError } = await dbClient.from("business_profiles").insert({
+      const { data: newFamilyProfile, error: profileError } = await dbClient.from("business_profiles").insert({
         account_id: accountId,
         slug: `family-${accountId.slice(0, 8)}`,
         type: "family",
@@ -234,9 +274,46 @@ export async function POST(request: Request) {
         source: "user_created",
         is_active: true,
         metadata: {},
-      });
+      }).select("id").single();
       if (profileError) {
         console.error("Error creating family profile (new account):", profileError.message, profileError.code);
+      }
+
+      // Set active profile so user can send messages
+      if (newFamilyProfile) {
+        await dbClient.from("accounts").update({
+          active_profile_id: newFamilyProfile.id,
+        }).eq("id", accountId);
+      }
+
+      // Handle placeholder profile claim (guest connection flow)
+      // Move connections from placeholder to new family profile, then delete placeholder
+      if (claimToken && newFamilyProfile) {
+        try {
+          const { data: placeholder } = await dbClient
+            .from("business_profiles")
+            .select("id")
+            .eq("claim_token", claimToken)
+            .is("account_id", null)
+            .single();
+
+          if (placeholder && placeholder.id !== newFamilyProfile.id) {
+            // Move connections from placeholder to new family profile
+            await dbClient
+              .from("connections")
+              .update({ from_profile_id: newFamilyProfile.id })
+              .eq("from_profile_id", placeholder.id);
+
+            // Delete the placeholder profile
+            await dbClient
+              .from("business_profiles")
+              .delete()
+              .eq("id", placeholder.id);
+          }
+        } catch (err) {
+          console.error("[ensure-account] placeholder handling error:", err);
+          // Non-blocking
+        }
       }
     }
 

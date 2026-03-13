@@ -57,6 +57,8 @@ export interface OpenAuthOptions {
 }
 
 const AUTH_INTENT_KEY = "olera_auth_intent";
+const CLAIM_TOKEN_KEY = "olera_claim_token";
+const GUEST_REDIRECT_KEY = "olera_guest_redirect";
 
 interface AuthContextValue extends AuthState {
   /** @deprecated Use openAuth instead */
@@ -287,6 +289,95 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     const init = async () => {
       console.time("[olera] init");
+
+      // CRITICAL: Handle implicit flow magic link tokens BEFORE getSession()
+      // Magic links from generateLink() put tokens in the hash fragment (#access_token=...)
+      // These must be processed client-side since hash fragments never reach the server
+      if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
+        try {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const accessToken = hashParams.get("access_token");
+          const refreshToken = hashParams.get("refresh_token");
+          const type = hashParams.get("type");
+
+          // Handle magic link and signup types (new users get "signup" type)
+          if (accessToken && (type === "magiclink" || type === "signup" || type === "email" || !type)) {
+            console.log("[olera] Found hash tokens, type:", type);
+
+            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || "",
+            });
+
+            if (sessionError) {
+              console.error("[olera] Failed to set session from hash:", sessionError);
+            } else if (sessionData?.session) {
+              console.log("[olera] Session set from hash tokens");
+
+              // Get redirect destination: URL params (cross-device) > localStorage (same device)
+              let redirectTo = "/portal/inbox";
+              let claimToken: string | null = null;
+              try {
+                // First check URL search params (works cross-device via magic link)
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlNext = urlParams.get("next");
+                const urlToken = urlParams.get("token");
+                if (urlNext) {
+                  redirectTo = urlNext;
+                  claimToken = urlToken;
+                } else {
+                  // Fall back to localStorage (same device/browser)
+                  const stored = localStorage.getItem(GUEST_REDIRECT_KEY);
+                  if (stored) {
+                    const parsed = JSON.parse(stored);
+                    redirectTo = parsed.redirect || "/portal/inbox";
+                    claimToken = parsed.claimToken || null;
+                    localStorage.removeItem(GUEST_REDIRECT_KEY);
+                  }
+                }
+                // Also check for standalone claim token
+                if (!claimToken) {
+                  claimToken = localStorage.getItem(CLAIM_TOKEN_KEY);
+                }
+              } catch {
+                // Use defaults
+              }
+
+              // Clear hash from URL before redirect
+              window.history.replaceState(null, "", window.location.pathname + window.location.search);
+
+              // Ensure account exists and claim placeholder profile
+              try {
+                await fetch("/api/auth/ensure-account", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ claimToken }),
+                });
+              } catch (err) {
+                console.error("[olera] ensure-account error:", err);
+              }
+
+              // Clear claim token from localStorage
+              try {
+                localStorage.removeItem(CLAIM_TOKEN_KEY);
+              } catch {
+                // Ignore
+              }
+
+              // Redirect to inbox (or stored destination)
+              // Use window.location for a hard redirect to ensure navigation completes
+              // (router.replace can be interrupted by React re-renders)
+              console.log("[olera] Redirecting to:", redirectTo);
+              window.location.replace(redirectTo);
+              return; // Exit init - we're redirecting
+            }
+          }
+        } catch (err) {
+          console.error("[olera] Hash token handling error:", err);
+        }
+        // Clear hash even on error to prevent loops
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
 
       const {
         data: { session },
@@ -533,6 +624,28 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               isLoading: false,
               fetchError: false,
             }));
+
+            // Auto-claim any placeholder profiles (fire-and-forget)
+            try {
+              // Check URL params first (magic link flow), then localStorage
+              const urlParams = new URLSearchParams(window.location.search);
+              const urlToken = urlParams.get("token");
+              const claimToken = urlToken || localStorage.getItem(CLAIM_TOKEN_KEY);
+              if (claimToken) {
+                fetch("/api/auth/claim-profiles", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ claimToken }),
+                }).then(() => {
+                  // Clear the claim token after claiming
+                  localStorage.removeItem(CLAIM_TOKEN_KEY);
+                }).catch(() => {
+                  // Non-blocking
+                });
+              }
+            } catch {
+              // localStorage unavailable
+            }
           } else {
             // No account found — ensure one exists (creates account + family profile)
             try {
@@ -541,7 +654,27 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                 headers: { "Content-Type": "application/json" },
               });
               if (cancelled || versionRef.current !== version) return;
-              // Re-fetch now that account + family profile exist
+
+              // Auto-claim placeholder profiles for new users (guest connection flow)
+              try {
+                // Check URL params first (magic link flow), then localStorage
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get("token");
+                const claimToken = urlToken || localStorage.getItem(CLAIM_TOKEN_KEY);
+                if (claimToken) {
+                  await fetch("/api/auth/claim-profiles", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ claimToken }),
+                  });
+                  localStorage.removeItem(CLAIM_TOKEN_KEY);
+                }
+              } catch {
+                // Non-blocking
+              }
+              if (cancelled || versionRef.current !== version) return;
+
+              // Re-fetch now that account + family profile exist (with claimed connections)
               const retryData = await fetchAccountData(userId);
               if (cancelled || versionRef.current !== version) return;
               if (retryData) {
@@ -621,6 +754,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         }
       } catch {
         // sessionStorage unavailable
+      }
+
+      // Check for guest connection flow — if there's a claim token, skip onboarding
+      // (user came from magic link after guest connection)
+      try {
+        const hasClaimToken = !!localStorage.getItem(CLAIM_TOKEN_KEY);
+        if (hasClaimToken) {
+          // Guest connection flow — don't show onboarding, let them access inbox
+          return;
+        }
+      } catch {
+        // localStorage unavailable
       }
 
       // Only route to provider onboarding if that's their explicit intent

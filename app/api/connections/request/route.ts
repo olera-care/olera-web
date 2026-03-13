@@ -3,10 +3,11 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
+import { getSiteUrl } from "@/lib/site-url";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -25,34 +26,523 @@ function generateSlug(name: string): string {
   return `family-${base}-${suffix}`;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// GUEST CONNECTION HANDLER
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface GuestConnectionParams {
+  guestEmail: string;
+  providerId: string;
+  providerName: string;
+  providerSlug: string;
+  intentData: {
+    careRecipient: string | null;
+    careType: string | null;
+    careTypeOtherText?: string;
+    urgency: string | null;
+    additionalNotes?: string;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any;
+}
+
+async function handleGuestConnection({
+  guestEmail,
+  providerId,
+  providerName,
+  providerSlug,
+  intentData,
+  admin,
+}: GuestConnectionParams) {
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(guestEmail)) {
+    return NextResponse.json(
+      { error: "Please enter a valid email address." },
+      { status: 400 }
+    );
+  }
+
+  const db = admin;
+  if (!db) {
+    return NextResponse.json(
+      { error: "Server configuration error." },
+      { status: 500 }
+    );
+  }
+
+  const normalizedEmail = guestEmail.trim().toLowerCase();
+
+  // Rate limiting: 5 connections per email per hour
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { data: recentConnections } = await db
+    .from("connections")
+    .select("id")
+    .eq("guest_email", normalizedEmail)
+    .gte("created_at", oneHourAgo);
+
+  if (recentConnections && recentConnections.length >= 5) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
+
+  // Find or create placeholder profile for this guest email
+  let fromProfileId: string;
+  let claimToken: string;
+
+  const { data: existingProfile } = await db
+    .from("business_profiles")
+    .select("id, claim_token")
+    .eq("email", normalizedEmail)
+    .is("account_id", null)
+    .eq("type", "family")
+    .limit(1)
+    .single();
+
+  if (existingProfile) {
+    fromProfileId = existingProfile.id;
+    claimToken = existingProfile.claim_token;
+  } else {
+    // Create placeholder profile
+    const displayName = normalizedEmail.split("@")[0] || "Guest";
+    const slug = generateSlug(displayName);
+
+    const { data: newProfile, error: profileError } = await db
+      .from("business_profiles")
+      .insert({
+        account_id: null, // Placeholder — no account yet
+        email: normalizedEmail,
+        slug,
+        type: "family",
+        category: null,
+        display_name: displayName,
+        care_types: [],
+        claim_state: "unclaimed",
+        verification_state: "unverified",
+        source: "guest_connection",
+        metadata: {
+          relationship_to_recipient: intentData.careRecipient
+            ? { self: "Myself", parent: "My parent", spouse: "My spouse", other: "Someone else" }[intentData.careRecipient]
+            : null,
+          timeline: intentData.urgency
+            ? { asap: "immediate", within_month: "within_1_month", few_months: "within_3_months", researching: "exploring" }[intentData.urgency]
+            : null,
+        },
+      })
+      .select("id, claim_token")
+      .single();
+
+    if (profileError) {
+      console.error("Failed to create guest profile:", profileError);
+      return NextResponse.json(
+        { error: "Failed to create your profile." },
+        { status: 500 }
+      );
+    }
+
+    fromProfileId = newProfile.id;
+    claimToken = newProfile.claim_token;
+  }
+
+  // Resolve target provider (same logic as authenticated flow)
+  let toProfileId: string;
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(providerId);
+
+  if (isUUID) {
+    const { data: existing } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("id", providerId)
+      .single();
+
+    if (existing) {
+      toProfileId = existing.id;
+    } else {
+      return NextResponse.json({ error: "Provider not found." }, { status: 404 });
+    }
+  } else {
+    // iOS provider lookup
+    const { data: existing } = await db
+      .from("business_profiles")
+      .select("id")
+      .eq("source_provider_id", providerId)
+      .limit(1)
+      .single();
+
+    if (existing) {
+      toProfileId = existing.id;
+    } else {
+      // Create from olera-providers
+      const { data: iosProvider } = await db
+        .from("olera-providers")
+        .select("provider_name, provider_category, main_category, city, state, phone, provider_logo, provider_images")
+        .eq("provider_id", providerId)
+        .single();
+
+      const providerCity = iosProvider?.city || null;
+      const providerState = iosProvider?.state || null;
+      const providerPhone = iosProvider?.phone || null;
+      const providerCategory = iosProvider?.provider_category || null;
+      const providerImageUrl = iosProvider?.provider_logo
+        || (iosProvider?.provider_images as string | null)?.split(" | ")?.[0]
+        || null;
+      const providerCareTypes = iosProvider ? [iosProvider.provider_category] : [];
+      if (iosProvider?.main_category && iosProvider.main_category !== iosProvider.provider_category) {
+        providerCareTypes.push(iosProvider.main_category);
+      }
+
+      const { data: newProvider, error: providerError } = await db
+        .from("business_profiles")
+        .insert({
+          source_provider_id: providerId,
+          slug: providerSlug || providerId,
+          type: "organization",
+          category: providerCategory,
+          display_name: providerName,
+          phone: providerPhone,
+          city: providerCity,
+          state: providerState,
+          image_url: providerImageUrl,
+          care_types: providerCareTypes,
+          claim_state: "unclaimed",
+          verification_state: "unverified",
+          source: "seeded",
+          is_active: true,
+          metadata: {},
+        })
+        .select("id")
+        .single();
+
+      if (providerError && providerError.code !== "23505") {
+        console.error("Failed to create provider profile:", providerError);
+        return NextResponse.json({ error: "Failed to register provider." }, { status: 500 });
+      }
+
+      toProfileId = newProvider?.id;
+      if (!toProfileId) {
+        // Race condition — fetch again
+        const { data: raceProvider } = await db
+          .from("business_profiles")
+          .select("id")
+          .eq("source_provider_id", providerId)
+          .limit(1)
+          .single();
+        toProfileId = raceProvider?.id;
+      }
+
+      if (!toProfileId) {
+        return NextResponse.json({ error: "Failed to register provider." }, { status: 500 });
+      }
+    }
+  }
+
+  // Check for existing connection from this guest profile
+  const { data: existingConnection } = await db
+    .from("connections")
+    .select("id, created_at")
+    .eq("from_profile_id", fromProfileId)
+    .eq("to_profile_id", toProfileId)
+    .eq("type", "inquiry")
+    .in("status", ["pending", "accepted"])
+    .limit(1)
+    .single();
+
+  if (existingConnection) {
+    return NextResponse.json({
+      status: "duplicate",
+      connectionId: existingConnection.id,
+      created_at: existingConnection.created_at,
+      claimToken,
+    });
+  }
+
+  // Build message payload
+  const firstName = normalizedEmail.split("@")[0] || "";
+
+  const messagePayload = JSON.stringify({
+    care_recipient: intentData?.careRecipient || null,
+    care_type: intentData?.careType || null,
+    care_type_other: intentData?.careTypeOtherText || null,
+    urgency: intentData?.urgency || null,
+    additional_notes: intentData?.additionalNotes || null,
+    contact_preference: null,
+    seeker_phone: null,
+    seeker_email: normalizedEmail,
+    seeker_first_name: firstName,
+    seeker_last_name: "",
+  });
+
+  // Look up provider info for notifications
+  let providerEmail: string | null = null;
+  let providerDisplayName: string | null = null;
+  try {
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("email, display_name")
+      .eq("id", toProfileId)
+      .single();
+    providerEmail = bp?.email || null;
+    providerDisplayName = bp?.display_name || null;
+
+    if (!providerEmail) {
+      const { data: ios } = await db
+        .from("olera-providers")
+        .select("email")
+        .eq("provider_id", providerId)
+        .single();
+      providerEmail = ios?.email || null;
+    }
+  } catch {
+    // Non-blocking
+  }
+
+  // Build connection metadata
+  const connectionMetadata: Record<string, unknown> = {};
+  if (!providerEmail) connectionMetadata.needs_provider_email = true;
+
+  // Auto-reply from provider (marked as auto to exclude from unread reminders)
+  connectionMetadata.thread = [
+    {
+      from_profile_id: toProfileId,
+      text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
+      created_at: new Date().toISOString(),
+      is_auto_reply: true,
+    },
+  ];
+
+  // Insert connection
+  const { data: newConnection, error: insertError } = await db
+    .from("connections")
+    .insert({
+      from_profile_id: fromProfileId,
+      to_profile_id: toProfileId,
+      type: "inquiry",
+      status: "pending",
+      message: messagePayload,
+      metadata: connectionMetadata,
+      guest_email: normalizedEmail, // For rate limiting
+    })
+    .select("id, created_at")
+    .single();
+
+  if (insertError) {
+    console.error("Failed to insert guest connection:", insertError);
+    return NextResponse.json({ error: "Failed to send request." }, { status: 500 });
+  }
+
+  // Send SINGLE combined email: connection confirmation + magic link
+  // Uses generateLink() to create magic link without Supabase sending its own email
+  try {
+    const { createClient: createAdminAuthClient } = await import("@supabase/supabase-js");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Use environment-aware URL so magic links work in preview/staging deployments
+    const siteUrl = getSiteUrl();
+
+    const careTypeMap: Record<string, string> = {
+      home_care: "Home Care",
+      home_health: "Home Health Care",
+      assisted_living: "Assisted Living",
+      memory_care: "Memory Care",
+    };
+
+    if (url && serviceKey) {
+      const authClient = createAdminAuthClient(url, serviceKey);
+
+      // Generate magic link without sending Supabase's default email
+      // Use client-side /auth/magic-link handler (not server-side /auth/callback)
+      // because generateLink() uses implicit flow which puts tokens in hash fragment
+      const finalDestination = `/portal/inbox?id=${newConnection.id}&token=${claimToken}`;
+      const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalizedEmail,
+        options: {
+          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(finalDestination)}&token=${claimToken}`,
+        },
+      });
+
+      if (linkError) {
+        console.error("Failed to generate magic link:", linkError);
+        // Fall back to simple confirmation email without magic link
+        await sendEmail({
+          to: normalizedEmail,
+          subject: `You're connected with ${providerName} on Olera`,
+          html: connectionSentEmail({
+            familyName: firstName || "there",
+            providerName,
+            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
+            viewUrl: `${siteUrl}${finalDestination}`,
+          }),
+        });
+      } else {
+        // Send our combined email with the magic link embedded
+        await sendEmail({
+          to: normalizedEmail,
+          subject: `You're connected with ${providerName} on Olera`,
+          html: guestConnectionEmail({
+            familyName: firstName || "there",
+            providerName,
+            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
+            magicLinkUrl: linkData.properties.action_link,
+          }),
+        });
+      }
+    }
+  } catch (emailErr) {
+    console.error("Failed to send guest connection email:", emailErr);
+    // Non-blocking — connection was created
+  }
+
+  // Provider notifications (fire-and-forget)
+  try {
+    if (providerEmail) {
+      const careTypeMap: Record<string, string> = {
+        home_care: "Home Care",
+        home_health: "Home Health Care",
+        assisted_living: "Assisted Living",
+        memory_care: "Memory Care",
+      };
+
+      await sendEmail({
+        to: providerEmail,
+        subject: `New care inquiry from ${firstName || "a family"} on Olera`,
+        html: connectionRequestEmail({
+          providerName: providerDisplayName || providerName,
+          familyName: firstName || "A family",
+          careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
+          message: intentData?.additionalNotes || null,
+          viewUrl: `${getSiteUrl()}/provider/connections`,
+        }),
+      });
+    }
+  } catch (emailErr) {
+    console.error("Failed to send provider email:", emailErr);
+  }
+
+  // SMS notification to provider
+  try {
+    let providerPhone: string | null = null;
+    const { data: bpPhone } = await db
+      .from("business_profiles")
+      .select("phone")
+      .eq("id", toProfileId)
+      .single();
+    providerPhone = bpPhone?.phone || null;
+
+    if (!providerPhone) {
+      const { data: iosPhone } = await db
+        .from("olera-providers")
+        .select("phone")
+        .eq("provider_id", providerId)
+        .single();
+      providerPhone = iosPhone?.phone || null;
+    }
+
+    if (providerPhone) {
+      const normalized = normalizeUSPhone(providerPhone);
+      if (normalized) {
+        await sendSMS({
+          to: normalized,
+          body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
+        });
+      }
+    }
+  } catch (smsErr) {
+    console.error("[sms] Guest connection error:", smsErr);
+  }
+
+  // Slack alert
+  try {
+    const careTypeMap: Record<string, string> = {
+      home_care: "Home Care",
+      home_health: "Home Health Care",
+      assisted_living: "Assisted Living",
+      memory_care: "Memory Care",
+    };
+    const alert = slackNewLead({
+      familyName: `${firstName || "Guest"} (guest)`,
+      providerName,
+      careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
+    });
+    await sendSlackAlert(alert.text, alert.blocks);
+  } catch {
+    // Non-blocking
+  }
+
+  // Slack alert for missing provider email
+  if (!providerEmail) {
+    try {
+      const careTypeMap: Record<string, string> = {
+        home_care: "Home Care",
+        home_health: "Home Health Care",
+        assisted_living: "Assisted Living",
+        memory_care: "Memory Care",
+      };
+      const missingAlert = slackMissingEmail({
+        familyName: `${firstName || "Guest"} (guest)`,
+        providerName,
+        providerId,
+        careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
+      });
+      await sendSlackAlert(missingAlert.text, missingAlert.blocks);
+    } catch {
+      // Non-blocking
+    }
+  }
+
+  // Loops event
+  try {
+    await sendLoopsEvent({
+      email: normalizedEmail,
+      eventName: "new_lead",
+      audience: "seeker",
+      eventProperties: {
+        providerName,
+        careType: intentData?.careType || "",
+        urgency: intentData?.urgency || "",
+        guest: true,
+      },
+    });
+  } catch {
+    // Non-blocking
+  }
+
+  return NextResponse.json({
+    status: "created",
+    connectionId: newConnection.id,
+    created_at: newConnection.created_at,
+    claimToken,
+  });
+}
+
 /**
  * POST /api/connections/request
  *
- * Creates a connection request from the authenticated user to a provider.
- * Handles:
- * - Ensuring user has a family profile
- * - Ensuring the target provider exists in business_profiles
- *   (creates a record for iOS olera-providers if needed)
- * - Inserting the connection with proper FK references
+ * Creates a connection request from a user to a provider.
+ * Supports both authenticated users and guest users (via email).
+ *
+ * For authenticated users:
+ * - Ensures user has a family profile
+ * - Creates connection with proper FK references
+ *
+ * For guest users:
+ * - Creates a placeholder profile with claim_token
+ * - Sends magic link via Supabase for later account creation
+ * - Returns claimToken for localStorage-based inbox access
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createServerClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
     const body = await request.json();
     const {
       providerId,
       providerName,
       providerSlug,
       intentData,
+      guest,
+      guestEmail,
+      website, // Honeypot field
     } = body as {
       providerId: string;
       providerName: string;
@@ -64,6 +554,9 @@ export async function POST(request: Request) {
         urgency: string | null;
         additionalNotes?: string;
       };
+      guest?: boolean;
+      guestEmail?: string;
+      website?: string; // Honeypot
     };
 
     if (!providerId || !providerName) {
@@ -73,7 +566,43 @@ export async function POST(request: Request) {
       );
     }
 
+    // Honeypot check — if filled, silently "succeed" but don't actually create connection
+    if (website) {
+      return NextResponse.json({
+        status: "created",
+        connectionId: "00000000-0000-0000-0000-000000000000",
+      });
+    }
+
     const admin = getAdminClient();
+
+    // ═══════════════════════════════════════════════════════════
+    // GUEST FLOW
+    // ═══════════════════════════════════════════════════════════
+    if (guest && guestEmail) {
+      return handleGuestConnection({
+        guestEmail,
+        providerId,
+        providerName,
+        providerSlug,
+        intentData,
+        admin,
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AUTHENTICATED FLOW
+    // ═══════════════════════════════════════════════════════════
+    const supabase = await createServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
     const db = admin || supabase;
 
     // 1. Get user's account
@@ -377,11 +906,13 @@ export async function POST(request: Request) {
 
     // Seed an automatic reply from the provider so the seeker has an
     // unread message in their inbox immediately after connecting.
+    // Marked as auto_reply to exclude from unread reminders cron.
     connectionMetadata.thread = [
       {
         from_profile_id: toProfileId,
         text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly. In the meantime, feel free to share any additional details.`,
         created_at: new Date().toISOString(),
+        is_auto_reply: true,
       },
     ];
 
@@ -424,7 +955,7 @@ export async function POST(request: Request) {
             familyName: firstName || "there",
             providerName,
             careType: intentData?.careType ? (careTypeMap0[intentData.careType] || intentData.careType) : null,
-            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
+            viewUrl: `${getSiteUrl()}/portal/inbox?id=${newConnection.id}`,
           }),
         });
       }
@@ -450,7 +981,7 @@ export async function POST(request: Request) {
             familyName: account.display_name || "A family",
             careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
             message: intentData?.additionalNotes || null,
-            viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
+            viewUrl: `${getSiteUrl()}/provider/connections`,
           }),
         });
       }
@@ -485,10 +1016,9 @@ export async function POST(request: Request) {
         const normalized = normalizeUSPhone(providerPhone);
         console.log("[sms] Normalized:", normalized, "from raw:", providerPhone);
         if (normalized) {
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
           const result = await sendSMS({
             to: normalized,
-            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${siteUrl}/provider/connections`,
+            body: `New care inquiry on Olera from ${firstName || "a family"}. View and respond: ${getSiteUrl()}/provider/connections`,
           });
           console.log("[sms] Send result:", JSON.stringify(result));
         } else {

@@ -16,6 +16,10 @@ interface ConversationPanelProps {
   detailOpen?: boolean;
   onToggleDetail?: () => void;
   className?: string;
+  /** Claim token for guest users (used when activeProfile is null) */
+  claimToken?: string | null;
+  /** Guest profile ID (used when user is not authenticated) */
+  guestProfileId?: string | null;
 }
 
 interface ThreadMessage {
@@ -128,7 +132,7 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 // ── Care Request Card ──
 
-function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, editable, connectionId, autoIntro, onUpdated }: {
+function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, editable, connectionId, autoIntro, onUpdated, claimToken }: {
   careRequest: CareRequestData;
   time: string;
   dateStr: string;
@@ -140,6 +144,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
   connectionId: string;
   autoIntro?: string | null;
   onUpdated?: (message: string, metadata: Record<string, unknown>) => void;
+  claimToken?: string | null;
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const senderName = careRequest.seekerName;
@@ -261,6 +266,7 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
             setEditOpen(false);
             onUpdated?.(message, metadata);
           }}
+          claimToken={claimToken}
         />
       )}
     </div>
@@ -279,7 +285,11 @@ export default function ConversationPanel({
   detailOpen,
   onToggleDetail,
   className = "",
+  claimToken,
+  guestProfileId,
 }: ConversationPanelProps) {
+  // Use guest profile ID when activeProfile is not available
+  const currentProfileId = activeProfile?.id || guestProfileId;
   const conversationRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
   const [messageText, setMessageText] = useState("");
@@ -311,7 +321,8 @@ export default function ConversationPanel({
   }, [connection?.metadata]);
 
   const handleSendMessage = useCallback(async () => {
-    if (!connection || !messageText.trim() || !activeProfile) return;
+    // Allow sending if user has activeProfile OR a valid claimToken (guest)
+    if (!connection || !messageText.trim() || (!activeProfile && !claimToken)) return;
     setSending(true);
     try {
       let thread: ThreadMessage[];
@@ -319,13 +330,19 @@ export default function ConversationPanel({
         // Mock-aware send — bypasses API
         thread = await onSendMessage(connection.id, messageText.trim());
       } else {
+        // Build request body, include claimToken for guests
+        const requestBody: Record<string, string> = {
+          connectionId: connection.id,
+          text: messageText.trim(),
+        };
+        if (claimToken) {
+          requestBody.claimToken = claimToken;
+        }
+
         const res = await fetch("/api/connections/message", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            connectionId: connection.id,
-            text: messageText.trim(),
-          }),
+          body: JSON.stringify(requestBody),
         });
         if (!res.ok) throw new Error("Failed to send");
         const data = await res.json();
@@ -345,7 +362,7 @@ export default function ConversationPanel({
     } finally {
       setSending(false);
     }
-  }, [connection, messageText, activeProfile, onMessageSent, onSendMessage]);
+  }, [connection, messageText, activeProfile, claimToken, onMessageSent, onSendMessage]);
 
   // ── Empty state ──
   if (!connection) {
@@ -366,7 +383,7 @@ export default function ConversationPanel({
   }
 
   // ── Derived values ──
-  const isInbound = connection.to_profile_id === activeProfile?.id;
+  const isInbound = connection.to_profile_id === currentProfileId;
   const otherProfile = isInbound ? connection.fromProfile : connection.toProfile;
   const otherName = otherProfile?.display_name || "Unknown";
   const otherInitial = otherName.charAt(0).toUpperCase();
@@ -481,6 +498,7 @@ export default function ConversationPanel({
                   onUpdated={(message, metadata) => {
                     onCareRequestUpdated?.(connection.id, message, metadata);
                   }}
+                  claimToken={claimToken}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */
@@ -569,7 +587,7 @@ export default function ConversationPanel({
               );
             }
 
-            const isOwn = msg.from_profile_id === activeProfile?.id;
+            const isOwn = msg.from_profile_id === currentProfileId;
             const msgTime = formatTime(msg.created_at);
 
             // Next step request cards

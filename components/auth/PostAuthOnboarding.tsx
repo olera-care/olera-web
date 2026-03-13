@@ -237,6 +237,30 @@ export default function PostAuthOnboarding({
     onComplete();
   };
 
+  // Handle "I'll explore first" - navigate to browse with welcome banner
+  const handleExploreFirst = async () => {
+    try {
+      await fetch("/api/auth/ensure-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mark_onboarding_complete: true }),
+      });
+    } catch {
+      // Best effort
+    }
+
+    // Set welcome banner flags
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(WELCOME_BANNER_KEY, "true");
+      if (city) {
+        sessionStorage.setItem(WELCOME_CITY_KEY, city);
+      }
+    }
+
+    router.push("/browse");
+    onComplete();
+  };
+
   // ──────────────────────────────────────────────────────────
   // Profile Info Validation
   // ──────────────────────────────────────────────────────────
@@ -642,7 +666,7 @@ export default function PostAuthOnboarding({
 
               <button
                 type="button"
-                onClick={handleDismiss}
+                onClick={handleExploreFirst}
                 className="w-full text-center py-4 mt-4 text-[15px] text-gray-400 hover:text-gray-600 transition-colors"
               >
                 I&apos;ll explore first

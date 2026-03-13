@@ -8,8 +8,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 const WELCOME_BANNER_KEY = "olera_welcome_banner";
 const WELCOME_CITY_KEY = "olera_welcome_city";
 
-const AUTO_DISMISS_MS = 8000;
-
 interface WelcomeBannerProps {
   providerCount: number;
   locationCity: string;
@@ -20,8 +18,8 @@ interface WelcomeBannerProps {
  * and chooses "I'll browse on my own".
  *
  * - Positioned below filter bar, above provider list
- * - Auto-dismisses after 8 seconds with progress indicator
- * - Dark gradient for visual distinction
+ * - Manual dismiss only (user must click "Not now" or "Get matched")
+ * - Premium glassmorphism design with accent border
  * - Mobile-optimized compact layout
  */
 export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBannerProps) {
@@ -30,9 +28,7 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [city, setCity] = useState<string | null>(null);
-  const [progressStarted, setProgressStarted] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const autoDismissRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -56,26 +52,16 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
       setShouldRender(true);
       timeoutRef.current = setTimeout(() => {
         setIsVisible(true);
-        // Start progress bar animation after banner is visible
-        setTimeout(() => setProgressStarted(true), 50);
       }, 50);
-
-      // Auto-dismiss after 8 seconds
-      autoDismissRef.current = setTimeout(() => {
-        handleDismiss();
-      }, AUTO_DISMISS_MS);
     }
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (autoDismissRef.current) clearTimeout(autoDismissRef.current);
     };
   }, [activeProfile]);
 
   const handleDismiss = () => {
     if (isExiting) return; // Prevent double-dismiss
-    if (autoDismissRef.current) clearTimeout(autoDismissRef.current);
-
     setIsExiting(true);
     timeoutRef.current = setTimeout(() => {
       setShouldRender(false);
@@ -128,15 +114,6 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
       ">
         {/* Accent left border */}
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
-
-        {/* Progress bar for auto-dismiss */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-200 origin-left"
-          style={{
-            transform: `scaleX(${progressStarted ? 0 : 1})`,
-            transition: progressStarted ? `transform ${AUTO_DISMISS_MS}ms linear` : 'none',
-          }}
-        />
 
         <div className="flex items-center justify-between gap-4 px-5 py-3.5">
           {/* Left: Icon + Message */}

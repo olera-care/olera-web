@@ -83,8 +83,9 @@ export async function GET(request: NextRequest) {
         }).select("id").single();
 
         // Create family profile (every user gets one)
+        let newFamilyId: string | null = null;
         if (newAccount) {
-          await admin.from("business_profiles").insert({
+          const { data: newFamily } = await admin.from("business_profiles").insert({
             account_id: newAccount.id,
             slug: `family-${newAccount.id.slice(0, 8)}`,
             type: "family",
@@ -93,7 +94,49 @@ export async function GET(request: NextRequest) {
             verification_state: "unverified",
             source: "user_created",
             metadata: {},
-          });
+          }).select("id").single();
+
+          newFamilyId = newFamily?.id || null;
+
+          // Set active profile so user can send messages
+          if (newFamilyId) {
+            await admin.from("accounts").update({
+              active_profile_id: newFamilyId,
+            }).eq("id", newAccount.id);
+          }
+        }
+
+        // Handle placeholder profile if token present (guest connection flow)
+        // Move connections to the newly created family profile and delete the placeholder
+        try {
+          const nextUrl = new URL(next, origin);
+          const claimToken = nextUrl.searchParams.get("token");
+          if (claimToken && newAccount && newFamilyId) {
+            // Find placeholder profile by token
+            const { data: placeholder } = await admin
+              .from("business_profiles")
+              .select("id")
+              .eq("claim_token", claimToken)
+              .is("account_id", null)
+              .single();
+
+            if (placeholder && placeholder.id !== newFamilyId) {
+              // Move connections from placeholder to the new family profile
+              await admin
+                .from("connections")
+                .update({ from_profile_id: newFamilyId })
+                .eq("from_profile_id", placeholder.id);
+
+              // Delete the placeholder profile (user now has a proper family profile)
+              await admin
+                .from("business_profiles")
+                .delete()
+                .eq("id", placeholder.id);
+            }
+          }
+        } catch (err) {
+          console.error("[callback] placeholder handling error:", err);
+          // Non-blocking — profile will be claimed by AuthProvider fallback
         }
 
         // Loops: new account created
@@ -140,6 +183,67 @@ export async function GET(request: NextRequest) {
             source: "user_created",
             metadata: {},
           });
+        }
+
+        // Claim placeholder profile if token present (guest connection flow)
+        // For EXISTING users, we DON'T claim the placeholder as a second family profile.
+        // Instead, we move the connections to their existing family profile and delete the placeholder.
+        try {
+          const nextUrl = new URL(next, origin);
+          const claimToken = nextUrl.searchParams.get("token");
+          if (claimToken) {
+            const { data: placeholder } = await admin
+              .from("business_profiles")
+              .select("id, display_name, email, metadata")
+              .eq("claim_token", claimToken)
+              .is("account_id", null)
+              .single();
+
+            if (placeholder) {
+              // Get or create the main family profile
+              let mainFamilyId = existingFamily?.id;
+
+              if (!mainFamilyId) {
+                // Edge case: existing account but no family profile yet
+                const displayName =
+                  data.user.user_metadata?.full_name ||
+                  data.user.user_metadata?.name ||
+                  placeholder.display_name ||
+                  data.user.email?.split("@")[0] ||
+                  "My Family";
+
+                const { data: newFamily } = await admin.from("business_profiles").insert({
+                  account_id: existing.id,
+                  slug: `family-${existing.id.slice(0, 8)}`,
+                  type: "family",
+                  display_name: displayName,
+                  claim_state: "claimed",
+                  verification_state: "unverified",
+                  source: "user_created",
+                  metadata: {},
+                }).select("id").single();
+
+                mainFamilyId = newFamily?.id;
+              }
+
+              if (mainFamilyId) {
+                // Move connections from placeholder to main family profile
+                await admin
+                  .from("connections")
+                  .update({ from_profile_id: mainFamilyId })
+                  .eq("from_profile_id", placeholder.id);
+
+                // Delete the placeholder profile (don't claim it as second family)
+                await admin
+                  .from("business_profiles")
+                  .delete()
+                  .eq("id", placeholder.id);
+              }
+            }
+          }
+        } catch (err) {
+          console.error("[callback] placeholder claim error:", err);
+          // Non-blocking
         }
       }
     }

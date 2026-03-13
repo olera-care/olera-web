@@ -28,9 +28,15 @@ function getLastActivityTime(conn: ConnectionWithProfile): number {
   return new Date(conn.updated_at || conn.created_at).getTime();
 }
 
+const CLAIM_TOKEN_KEY = "olera_claim_token";
+
 function InboxContent() {
   const searchParams = useSearchParams();
-  const { activeProfile, profiles } = useAuth();
+  const { activeProfile, profiles, user } = useAuth();
+
+  // Extract URL params explicitly so changes trigger re-renders on client-side navigation
+  const urlConnectionId = searchParams.get("id");
+  const urlToken = searchParams.get("token");
 
   const [connections, setConnections] = useState<ConnectionWithProfile[]>([]);
   const connectionsRef = useRef(connections);
@@ -43,6 +49,9 @@ function InboxContent() {
   const [reportingConnectionId, setReportingConnectionId] = useState<string | null>(null);
   const [archivedCount, setArchivedCount] = useState(0);
 
+  // Guest claim token support — used when not authenticated
+  const [guestProfileId, setGuestProfileId] = useState<string | null>(null);
+
   // Track managed connections. Protection is cleared ONLY when DB data confirms the change,
   // not on a timer or in finally blocks. This eliminates all race conditions.
   // "expect_absent" = archived/deleted, should NOT appear in active query
@@ -52,15 +61,110 @@ function InboxContent() {
   // Cache business profiles within the session to avoid re-fetching on every fetchConnections call
   const profileCacheRef = useRef(new Map<string, Profile>());
 
-  // Auto-select from URL param
+  // Auto-select from URL param and reset loading on navigation
   useEffect(() => {
-    const id = searchParams.get("id");
-    if (id) setSelectedId(id);
-  }, [searchParams]);
+    if (urlConnectionId) setSelectedId(urlConnectionId);
+    // Reset loading to trigger fresh fetch on client-side navigation
+    setLoading(true);
+  }, [urlConnectionId, urlToken]);
+
+  // Fetch guest profile from claim token (for unauthenticated users)
+  useEffect(() => {
+    if (user || activeProfile) return; // Already authenticated
+    if (!isSupabaseConfigured()) return;
+
+    // Check URL param first, then localStorage
+    const claimToken = urlToken || localStorage.getItem(CLAIM_TOKEN_KEY);
+    if (!claimToken) return;
+
+    // If token came from URL, also save to localStorage for future visits
+    if (urlToken) {
+      try {
+        localStorage.setItem(CLAIM_TOKEN_KEY, urlToken);
+      } catch {
+        // localStorage unavailable
+      }
+    }
+
+    const fetchGuestProfile = async () => {
+      try {
+        const res = await fetch("/api/connections/guest-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claimToken }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.profileId) {
+            setGuestProfileId(data.profileId);
+          }
+        }
+      } catch (err) {
+        console.error("[inbox] Failed to fetch guest profile:", err);
+      }
+    };
+
+    fetchGuestProfile();
+  }, [user, activeProfile, urlToken]);
 
   // Fetch connections
   const fetchConnections = useCallback(async () => {
-    if (!activeProfile || !profiles.length || !isSupabaseConfigured()) {
+    // For authenticated users, require activeProfile
+    // For guests, use API endpoint (bypasses RLS)
+    const hasAuthProfile = activeProfile && profiles.length > 0;
+
+    // Guest flow: use API endpoint since RLS blocks direct queries
+    if (!user && !hasAuthProfile) {
+      const claimToken = urlToken || localStorage.getItem(CLAIM_TOKEN_KEY);
+      if (!claimToken) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/connections/guest-inbox", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claimToken }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.connections?.length) {
+            // Transform API response to match ConnectionWithProfile shape
+            const conns: ConnectionWithProfile[] = data.connections.map((c: Record<string, unknown>) => {
+              const toProfile = c.to_profile as Record<string, unknown> | null;
+              return {
+                id: c.id as string,
+                type: c.type as string,
+                status: c.status as ConnectionStatus,
+                from_profile_id: data.profileId,
+                to_profile_id: toProfile?.id as string,
+                message: c.message as string | null,
+                metadata: c.metadata as Record<string, unknown>,
+                created_at: c.created_at as string,
+                updated_at: c.updated_at as string,
+                fromProfile: null, // Guest profile not needed for display
+                toProfile: toProfile as Profile | null,
+              };
+            });
+            setConnections(conns);
+            setGuestProfileId(data.profileId);
+          }
+        }
+      } catch (err) {
+        console.error("[inbox] Failed to fetch guest connections:", err);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (!hasAuthProfile) {
+      setLoading(false);
+      return;
+    }
+
+    if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
     }
@@ -270,7 +374,7 @@ function InboxContent() {
     } finally {
       setLoading(false);
     }
-  }, [activeProfile, profiles]);
+  }, [activeProfile, profiles, user, guestProfileId, urlToken, urlConnectionId]);
 
   useEffect(() => {
     fetchConnections();
@@ -568,6 +672,8 @@ function InboxContent() {
         detailOpen={detailOpen}
         onToggleDetail={() => setDetailOpen((p) => !p)}
         className={`w-full lg:flex-1 ${selectedId ? "flex" : "hidden lg:flex"}`}
+        claimToken={!user && !activeProfile ? (urlToken || localStorage.getItem(CLAIM_TOKEN_KEY)) : null}
+        guestProfileId={guestProfileId}
       />
 
       {/* Right panel — provider details (animated width) */}

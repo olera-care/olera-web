@@ -11,10 +11,116 @@ import StepIndicator from "@/components/providers/connection-card/StepIndicator"
 import {
   RECIPIENT_OPTIONS,
   URGENCY_OPTIONS,
-  CARE_TYPE_LABELS,
   RECIPIENT_LABELS,
   URGENCY_LABELS,
 } from "@/components/providers/connection-card/constants";
+
+// ── Mobile email capture form (inline to avoid circular imports) ──
+interface MobileEmailCaptureFormProps {
+  onSubmit: (email: string) => void;
+  submitting?: boolean;
+  error?: string;
+}
+
+function MobileEmailCaptureForm({
+  onSubmit,
+  submitting,
+  error,
+}: MobileEmailCaptureFormProps) {
+  const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [localError, setLocalError] = useState("");
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = useCallback(() => {
+    setLocalError("");
+
+    // Honeypot check — if filled, silently "succeed" but don't submit
+    if (honeypot) {
+      return;
+    }
+
+    if (!email.trim()) {
+      setLocalError("Please enter your email address.");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setLocalError("Please enter a valid email address.");
+      return;
+    }
+
+    onSubmit(email.trim().toLowerCase());
+  }, [email, honeypot, onSubmit]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !submitting) {
+        e.preventDefault();
+        handleSubmit();
+      }
+    },
+    [handleSubmit, submitting]
+  );
+
+  const canSubmit = email.trim().length > 0 && !submitting;
+  const displayError = error || localError;
+
+  return (
+    <>
+      <div className="mb-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Email address"
+          autoComplete="email"
+          autoFocus
+          className={`w-full px-4 py-3 border rounded-[10px] text-[15px] text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all ${
+            displayError ? "border-red-300" : "border-gray-200"
+          }`}
+        />
+        <input
+          type="text"
+          name="website"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          style={{ display: "none" }}
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+        />
+        {displayError && (
+          <p className="text-xs text-red-600 mt-1.5" role="alert">
+            {displayError}
+          </p>
+        )}
+      </div>
+      <p className="text-xs text-gray-500 mb-3">
+        We&apos;ll email you a link.
+      </p>
+      <button
+        onClick={handleSubmit}
+        disabled={!canSubmit}
+        className={`w-full py-3.5 border-none rounded-[10px] text-[15px] font-semibold cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 ${
+          canSubmit
+            ? "bg-primary-600 text-white hover:bg-primary-500 active:bg-primary-700"
+            : "bg-gray-100 text-gray-400 cursor-default"
+        }`}
+      >
+        {submitting && (
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        )}
+        {submitting ? "Connecting..." : "Connect"}
+      </button>
+    </>
+  );
+}
 
 interface MobileStickyBottomCTAProps {
   providerName: string;
@@ -117,9 +223,9 @@ export default function MobileStickyBottomCTA({
       case "intent":
         return hook.intentStep === 0
           ? "Who needs care?"
-          : hook.intentStep === 1
-          ? "What type of care?"
           : "When do you need care?";
+      case "email_capture":
+        return "How can we reach you?";
       case "connected":
         return undefined;
       case "returning":
@@ -132,7 +238,9 @@ export default function MobileStickyBottomCTA({
     if (hook.cardState === "intent") {
       if (hook.intentStep === 0) return () => hook.resetFlow();
       if (hook.intentStep === 1) return () => hook.setIntentStep(0);
-      if (hook.intentStep === 2) return () => hook.setIntentStep(1);
+    }
+    if (hook.cardState === "email_capture") {
+      return () => hook.editFromEmailCapture();
     }
     return undefined;
   })();
@@ -192,6 +300,10 @@ export default function MobileStickyBottomCTA({
           </div>
         );
 
+      case "email_capture":
+        // Footer is included in the email capture content itself
+        return undefined;
+
       case "connected": {
         const inboxHref = hook.connectionId
           ? `/portal/inbox?id=${hook.connectionId}`
@@ -234,9 +346,6 @@ export default function MobileStickyBottomCTA({
   })();
 
   // ── Derived labels for returning state ──
-  const careTypeLabel = hook.intentData.careType
-    ? CARE_TYPE_LABELS[hook.intentData.careType] || hook.intentData.careType
-    : "";
   const recipientLabel = hook.intentData.careRecipient
     ? RECIPIENT_LABELS[hook.intentData.careRecipient] ||
       hook.intentData.careRecipient
@@ -367,7 +476,7 @@ export default function MobileStickyBottomCTA({
         {/* ── Intent step 0: Who needs care? ── */}
         {hook.cardState === "intent" && hook.intentStep === 0 && (
           <div className="py-2 animate-step-in">
-            <StepIndicator current={0} total={3} />
+            <StepIndicator current={0} total={hook.totalSteps} />
             <div className="flex flex-col gap-1.5">
               {RECIPIENT_OPTIONS.map((opt) => (
                 <Pill
@@ -381,27 +490,10 @@ export default function MobileStickyBottomCTA({
           </div>
         )}
 
-        {/* ── Intent step 1: What type of care? ── */}
+        {/* ── Intent step 1: When do you need care? ── */}
         {hook.cardState === "intent" && hook.intentStep === 1 && (
           <div className="py-2 animate-step-in">
-            <StepIndicator current={1} total={3} />
-            <div className="flex flex-col gap-1.5">
-              {hook.availableCareTypes.map((ct) => (
-                <Pill
-                  key={ct}
-                  label={CARE_TYPE_LABELS[ct] || ct}
-                  selected={hook.intentData.careType === ct}
-                  onClick={() => hook.selectCareType(ct)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Intent step 2: When do you need care? ── */}
-        {hook.cardState === "intent" && hook.intentStep === 2 && (
-          <div className="py-2 animate-step-in">
-            <StepIndicator current={2} total={3} />
+            <StepIndicator current={1} total={hook.totalSteps} />
             <div className="grid grid-cols-2 gap-1.5">
               {URGENCY_OPTIONS.map((opt) => (
                 <Pill
@@ -412,6 +504,31 @@ export default function MobileStickyBottomCTA({
                 />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ── Email capture (guest flow) ── */}
+        {hook.cardState === "email_capture" && (
+          <div className="py-2 animate-step-in">
+            <StepIndicator current={2} total={3} />
+            {/* Summary chips */}
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {recipientLabel && (
+                <span className="text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
+                  {recipientLabel}
+                </span>
+              )}
+              {urgencyLabel && (
+                <span className="text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
+                  {urgencyLabel}
+                </span>
+              )}
+            </div>
+            <MobileEmailCaptureForm
+              onSubmit={hook.submitGuestRequest}
+              submitting={hook.submitting}
+              error={hook.error}
+            />
           </div>
         )}
 
@@ -448,10 +565,10 @@ export default function MobileStickyBottomCTA({
           <div className="py-2 animate-step-in">
             <div className="px-3.5 py-3.5 bg-gray-50 rounded-[10px] border border-gray-100">
               <p className="text-sm font-semibold text-gray-800">
-                {careTypeLabel}
+                {recipientLabel}
               </p>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                {recipientLabel} &middot; {urgencyLabel}
+                {urgencyLabel}
               </p>
               <button
                 onClick={hook.editFromReturning}

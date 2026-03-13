@@ -152,6 +152,50 @@
 
 ## Session Log
 
+### 2026-03-12 (Session 49) — Guest Connection Flow Takeover
+
+**Branch:** `zealous-gauss` (fresh from staging)
+
+**Context:** Esther handed off `feature/remove-auth-gate-connection-flow` (PR #237). Magic link redirects were blocked by Supabase redirect URL allowlist. TJ taking over to finish.
+
+**Completed:**
+- Added `https://*.vercel.app/**` to Supabase Auth redirect URL allowlist (was the main blocker)
+- Verified existing redirect URLs: `olera.care/portal/inbox`, `www.olera.care/portal/inbox`, Site URL = `https://olera.care`
+- Applied Esther's full 30-file diff cleanly onto staging (no merge conflicts — her branch was current with staging)
+- Removed debug `console.log` statements from `lib/site-url.ts` and `app/api/connections/request/route.ts`
+- Fixed cross-device magic link bug in `AuthProvider.tsx`: hash token handler now checks URL `next` param before falling back to localStorage (supports users clicking magic link on different device/browser)
+- TypeScript compilation passes clean
+
+**Files changed:** 22 modified + 8 new files (+1604/-235 lines)
+
+**Key new files:**
+- `lib/site-url.ts` — Environment-aware URL resolution
+- `components/providers/connection-card/EmailCapture.tsx` — Guest email collection
+- `app/auth/magic-link/page.tsx` — Client-side implicit flow handler
+- `app/api/auth/claim-profiles/route.ts` — Placeholder → real profile migration
+- `app/api/connections/guest-inbox/route.ts` — Guest inbox (bypasses RLS)
+- `app/api/connections/guest-profile/route.ts` — Guest profile lookup by token
+- `components/auth/MagicLinkHandler.tsx` — localStorage redirect persistence
+- `supabase/migrations/018_guest_connection_flow.sql` — DB migration (already run)
+
+**Architecture:**
+1. Guest visits provider → clicks Connect → 2-step intent (who + when)
+2. Email capture step → guest email collected
+3. Placeholder family profile created (account_id = NULL, claim_token = UUID)
+4. Connection created with guest_email for rate limiting (5/hr per email)
+5. Magic link generated via Supabase Admin API → combined email sent
+6. Guest redirected to /connected/[id] success page → can access guest inbox
+7. Magic link click → /auth/magic-link processes hash tokens → sets session → ensure-account → claim-profiles migrates connections → redirect to inbox
+8. Placeholder deleted, connections moved to real family profile
+
+**Still TODO:**
+- [ ] Run full build on Vercel (preview deployment via push)
+- [ ] End-to-end test: guest connect → email → magic link → inbox
+- [ ] Review security: rate limiting, CAPTCHA decision
+- [ ] PR to staging
+
+---
+
 ### 2026-03-11 (Session 48) — PR Merges + Unblock Guest Connection Flow
 
 **Branch:** `sunny-pike`

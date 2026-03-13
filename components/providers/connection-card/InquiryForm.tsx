@@ -69,9 +69,9 @@ export default function InquiryForm({
   const displayError = error || localError;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       <p className="text-[15px] font-semibold text-gray-900">
-        Connect with {providerName}
+        Get in touch
       </p>
 
       {/* Email — required */}
@@ -82,11 +82,11 @@ export default function InquiryForm({
         onKeyDown={handleKeyDown}
         placeholder="Your email address"
         autoComplete="email"
-        className="w-full px-3.5 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
+        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
       />
 
       {/* Name + Phone — side by side */}
-      <div className="flex gap-2.5">
+      <div className="flex gap-2">
         <input
           type="text"
           value={fullName}
@@ -94,7 +94,7 @@ export default function InquiryForm({
           onKeyDown={handleKeyDown}
           placeholder="Full name"
           autoComplete="name"
-          className="flex-1 min-w-0 px-3.5 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
+          className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
         />
         <input
           type="tel"
@@ -103,7 +103,7 @@ export default function InquiryForm({
           onKeyDown={handleKeyDown}
           placeholder="Phone"
           autoComplete="tel"
-          className="flex-1 min-w-0 px-3.5 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
+          className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
         />
       </div>
 
@@ -112,8 +112,8 @@ export default function InquiryForm({
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="I'd like to learn more about your services and availability."
-        rows={3}
-        className="w-full px-3.5 py-3 border border-gray-200 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
+        rows={2}
+        className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-[14px] text-gray-900 placeholder-gray-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-600/20 focus:border-primary-600 transition-all duration-150"
       />
 
       {/* Honeypot — hidden */}
@@ -138,16 +138,31 @@ export default function InquiryForm({
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className={`w-full h-12 rounded-xl text-[15px] font-semibold border-none cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 ${
+        className={`w-full h-11 rounded-xl text-[14px] font-semibold tracking-wide border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 ${
           canSubmit
-            ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]"
-            : "bg-gray-200 text-gray-400 cursor-default"
+            ? "bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] shadow-sm"
+            : "bg-gray-100 text-gray-400 cursor-default"
         }`}
       >
         {submitting && (
           <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         )}
         {submitting ? "Sending..." : "Send inquiry"}
+        {!submitting && (
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="5" y1="12" x2="19" y2="12" />
+            <polyline points="12 5 19 12 12 19" />
+          </svg>
+        )}
       </button>
 
       {/* TOS */}

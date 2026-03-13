@@ -821,6 +821,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         localStorage.removeItem("olera_onboarding_step");
         localStorage.removeItem("olera_onboarding_search");
         localStorage.removeItem("olera_onboarding_claim");
+        sessionStorage.removeItem("olera_post_auth_triggered");
       } catch {
         /* ignore */
       }
@@ -910,6 +911,42 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     },
     [configured, refreshAccountData]
   );
+
+  // ─── Auto-open PostAuthOnboarding for new OAuth users ─────────────────────
+  // This catches users who signed up via Google OAuth, where the browser
+  // redirected away from UnifiedAuthModal and the "post-auth" step was never shown.
+  // Condition: account created within the last 5 minutes AND hasn't completed onboarding.
+  // Uses sessionStorage to ensure it only triggers once per session.
+  useEffect(() => {
+    // Skip if loading or missing data
+    if (state.isLoading || !state.user || !state.account) return;
+
+    // Only trigger if onboarding is explicitly incomplete
+    if (state.account.onboarding_completed !== false) return;
+
+    // Skip if modal is already open
+    if (isUnifiedAuthOpen) return;
+
+    // Check if account was created within the last 5 minutes (OAuth redirect)
+    const createdAt = state.account.created_at;
+    if (!createdAt) return;
+    const accountAge = Date.now() - new Date(createdAt).getTime();
+    const FIVE_MINUTES = 5 * 60 * 1000;
+    if (accountAge > FIVE_MINUTES) return;
+
+    // Use sessionStorage to only trigger once per session
+    const triggeredKey = "olera_post_auth_triggered";
+    try {
+      if (sessionStorage.getItem(triggeredKey)) return;
+      sessionStorage.setItem(triggeredKey, "true");
+    } catch {
+      // sessionStorage unavailable
+      return;
+    }
+
+    // Open the modal at the post-auth onboarding step
+    openAuth({ startAtPostAuth: true });
+  }, [state.isLoading, state.user, state.account, isUnifiedAuthOpen, openAuth]);
 
   return (
     <AuthContext.Provider

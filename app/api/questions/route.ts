@@ -45,20 +45,22 @@ export async function GET(request: NextRequest) {
  * POST /api/questions
  *
  * Submit a question on a provider page.
- * Requires authentication.
- * Body: { provider_id, question }
+ * Supports both authenticated users and guests.
+ * Guests must provide asker_name + asker_email in body.
+ * Body: { provider_id, question, asker_name?, asker_email?, honeypot? }
  */
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-    }
-
     const body = await request.json();
-    const { provider_id, question } = body;
+    const { provider_id, question, asker_name: guestName, asker_email: guestEmail, honeypot } = body;
+
+    // Honeypot — bots fill this hidden field; silently succeed without creating anything
+    if (honeypot) {
+      return NextResponse.json({ question: { id: "ok", question, asker_name: guestName || "Guest", status: "pending", created_at: new Date().toISOString() } }, { status: 201 });
+    }
 
     if (!provider_id || !question) {
       return NextResponse.json({ error: "provider_id and question are required" }, { status: 400 });
@@ -68,15 +70,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Question must be under 1000 characters" }, { status: 400 });
     }
 
-    // Get user's display name from profile
+    // Determine asker identity: authenticated user or guest
     const db = getServiceClient();
-    const { data: profile } = await db
-      .from("business_profiles")
-      .select("display_name")
-      .eq("user_id", user.id)
-      .single();
+    let askerName: string;
+    let askerEmail: string | null;
+    let askerUserId: string | null;
 
-    const askerName = profile?.display_name || user.email?.split("@")[0] || "Anonymous";
+    if (user) {
+      // Authenticated user — get display name from profile
+      const { data: profile } = await db
+        .from("business_profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+
+      askerName = profile?.display_name || user.email?.split("@")[0] || "Anonymous";
+      askerEmail = user.email || null;
+      askerUserId = user.id;
+    } else {
+      // Guest — require name + email
+      if (!guestName?.trim() || !guestEmail?.trim()) {
+        return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail.trim())) {
+        return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
+      }
+
+      const normalizedEmail = guestEmail.trim().toLowerCase();
+
+      // Rate limiting: 5 questions per email per hour
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { data: recentQuestions } = await db
+        .from("provider_questions")
+        .select("id")
+        .eq("asker_email", normalizedEmail)
+        .gte("created_at", oneHourAgo);
+
+      if (recentQuestions && recentQuestions.length >= 5) {
+        return NextResponse.json({ error: "Too many questions. Please try again later." }, { status: 429 });
+      }
+
+      askerName = guestName.trim();
+      askerEmail = normalizedEmail;
+      askerUserId = null;
+    }
 
     const { data: newQuestion, error } = await db
       .from("provider_questions")
@@ -84,10 +123,10 @@ export async function POST(request: NextRequest) {
         provider_id,
         question: question.trim(),
         asker_name: askerName,
-        asker_email: user.email,
-        asker_user_id: user.id,
+        asker_email: askerEmail,
+        asker_user_id: askerUserId,
         status: "pending",
-        is_public: true, // Show question publicly immediately
+        is_public: true,
       })
       .select("id, question, asker_name, status, created_at")
       .single();
@@ -99,7 +138,6 @@ export async function POST(request: NextRequest) {
 
     // Slack notifications (fire-and-forget)
     try {
-      // Look up provider name and email
       const { data: provider } = await db
         .from("business_profiles")
         .select("id, display_name, email")
@@ -108,7 +146,6 @@ export async function POST(request: NextRequest) {
 
       const providerName = provider?.display_name || provider_id;
 
-      // Check iOS profiles for email if business_profiles has none
       let providerEmail = provider?.email || null;
       if (!providerEmail && provider?.id) {
         const { data: ios } = await db
@@ -119,8 +156,9 @@ export async function POST(request: NextRequest) {
         providerEmail = ios?.email || null;
       }
 
+      const guestSuffix = !user ? " (guest)" : "";
       const { text, blocks } = slackQuestionAsked({
-        askerName: askerName,
+        askerName: askerName + guestSuffix,
         providerName,
         question: question.trim(),
         providerSlug: provider_id,
@@ -129,7 +167,7 @@ export async function POST(request: NextRequest) {
 
       if (!providerEmail) {
         const missing = slackQuestionMissingEmail({
-          askerName: askerName,
+          askerName: askerName + guestSuffix,
           providerName,
           providerId: provider?.id || provider_id,
           question: question.trim(),

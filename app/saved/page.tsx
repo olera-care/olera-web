@@ -45,6 +45,8 @@ function MatchesPromoBanner({
 
   // When Matches is active: show confirmation banner with premium styling
   if (isMatchesActive) {
+    if (dismissed) return null;
+
     return (
       <div className="mb-6 relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300 overflow-hidden">
         {/* Accent left border */}
@@ -77,20 +79,29 @@ function MatchesPromoBanner({
             </p>
           </div>
 
-          {/* CTA Link */}
-          <Link
-            href="/portal/matches"
-            className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-sm font-semibold text-white shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] transition-all duration-200 whitespace-nowrap flex-shrink-0"
-          >
-            View profile
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+          {/* CTA Buttons */}
+          <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleDismiss}
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Not now
+            </button>
+            <Link
+              href="/portal/matches"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-sm font-semibold text-white shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
+            >
+              View profile
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
         </div>
 
         {/* Mobile CTA */}
-        <div className="sm:hidden px-5 pb-4">
+        <div className="sm:hidden px-5 pb-4 flex flex-col gap-3">
           <Link
             href="/portal/matches"
             className="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25"
@@ -100,6 +111,13 @@ function MatchesPromoBanner({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </Link>
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors text-center"
+          >
+            Not now
+          </button>
         </div>
       </div>
     );

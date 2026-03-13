@@ -235,7 +235,11 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
       const res = await fetch("/api/care-post/activate-matches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ city: cityDisplay }),
+        body: JSON.stringify({
+          city: cityDisplay,
+          state: answers.stateCode || undefined,
+          primaryNeeds: answers.primaryNeeds || [],
+        }),
       });
 
       if (res.ok) {
@@ -328,20 +332,20 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
       {/* Matches invitation card — for signed-in users without active Matches */}
       {showMatchesCard && (
         <div className="mb-10">
-          <div className="border border-vanilla-300 bg-vanilla-100 rounded-2xl p-6 lg:p-8">
+          <div className="border border-vanilla-300 border-l-4 border-l-primary-500 bg-vanilla-100 rounded-2xl p-5 lg:p-6">
             {matchesCardConfirmed ? (
               /* ── Confirmation state ── */
               <div className="flex flex-col items-center text-center py-2">
-                <MatchesSuccessIllustration className="w-14 h-14 mb-4" />
-                <h3 className="font-display text-display-xs font-medium text-gray-900 mb-2">
+                <MatchesSuccessIllustration className="w-12 h-12 mb-3" />
+                <h3 className="font-display text-display-xs font-medium text-gray-900 mb-1">
                   Your profile is live in {cityDisplay}
                 </h3>
-                <p className="text-sm text-gray-500 leading-relaxed max-w-md mb-5">
+                <p className="text-sm text-gray-500 leading-relaxed max-w-md mb-4">
                   Providers in your area can now find you. We&apos;ll email you the moment someone reaches out.
                 </p>
                 <Link
                   href="/portal/matches"
-                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mb-3"
+                  className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors mb-2"
                 >
                   View your Matches profile &rarr;
                 </Link>
@@ -355,20 +359,30 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
             ) : (
               /* ── Invitation state ── */
               <>
-                <p className="text-xs font-medium text-gray-400 mb-3 tracking-widest uppercase">
+                <p className="text-xs font-medium text-gray-400 mb-2 tracking-widest uppercase">
                   Let providers find you
                 </p>
-                <h3 className="font-display text-display-xs font-medium text-gray-900 mb-1">
+                <h3 className="font-display text-display-xs font-medium text-gray-900">
                   Now let care providers find you
                 </h3>
-                <p className="text-sm text-gray-600 mt-4 leading-relaxed max-w-xl">
+                <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-xl">
                   You&apos;ve already told us everything we need. We&apos;ll share your care profile with
                   qualified providers in {cityDisplay} — they reach out, and you decide who to talk to.
                 </p>
                 {matchesError && (
-                  <p className="text-sm text-red-600 mt-4">{matchesError}</p>
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-600">
+                      We couldn&apos;t set up your profile right now.
+                    </p>
+                    <Link
+                      href="/portal/matches"
+                      className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                    >
+                      Visit your Matches tab to complete setup.
+                    </Link>
+                  </div>
                 )}
-                <div className="flex flex-wrap items-center gap-3 mt-6">
+                <div className="flex flex-wrap items-center gap-3 mt-4">
                   <button
                     onClick={handleActivateMatches}
                     disabled={matchesActivating}

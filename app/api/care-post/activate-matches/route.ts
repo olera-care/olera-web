@@ -1,14 +1,54 @@
 import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { matchesLiveEmail } from "@/lib/email-templates";
+import { PRIMARY_NEEDS, type PrimaryNeed } from "@/lib/types/benefits";
+
+/**
+ * Creates a Supabase admin client with service role key.
+ * Bypasses RLS — only use server-side.
+ */
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) {
+    console.warn("SUPABASE_SERVICE_ROLE_KEY not configured — falling back to authenticated client");
+    return null;
+  }
+  return createClient(url, serviceKey);
+}
+
+function generateSlug(name: string, city: string, state: string): string {
+  const parts = [name, city, state].filter(Boolean);
+  const slug = parts
+    .join(" ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  const suffix = Math.random().toString(36).substring(2, 6);
+  return `${slug}-${suffix}`;
+}
+
+/**
+ * Maps PrimaryNeed keys to display titles for care_types
+ */
+function mapNeedsToCareTypes(needs: PrimaryNeed[]): string[] {
+  return needs
+    .map((need) => PRIMARY_NEEDS[need]?.displayTitle)
+    .filter(Boolean) as string[];
+}
 
 /**
  * POST /api/care-post/activate-matches
  *
  * Activates the family's Matches profile and sends a confirmation email.
- * This is triggered from the Benefits Finder results page when a user
- * clicks "Yes, let providers find me".
+ * If no family profile exists, creates one using Benefits Finder data.
+ *
+ * Request body:
+ * - city: string (from location display)
+ * - state: string (from location display or stateCode)
+ * - primaryNeeds: PrimaryNeed[] (from Benefits Finder step 4)
  */
 export async function POST(request: Request) {
   try {
@@ -23,27 +63,118 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { city } = body as { city?: string };
+    const { city, state, primaryNeeds = [] } = body as {
+      city?: string;
+      state?: string;
+      primaryNeeds?: PrimaryNeed[];
+    };
 
-    // Get user's family profile
-    const { data: account } = await supabase
+    // Use admin client to bypass RLS
+    const adminClient = getAdminClient();
+    const db = adminClient || supabase;
+
+    // Get the user's account
+    const { data: account, error: accountErr } = await db
       .from("accounts")
-      .select("active_profile_id")
+      .select("id, active_profile_id, display_name")
       .eq("user_id", user.id)
       .single();
 
-    if (!account?.active_profile_id) {
-      return NextResponse.json({ error: "No active profile" }, { status: 400 });
+    if (accountErr || !account) {
+      return NextResponse.json({ error: "Account not found" }, { status: 400 });
     }
 
-    const { data: profile } = await supabase
-      .from("business_profiles")
-      .select("id, metadata, type, display_name")
-      .eq("id", account.active_profile_id)
-      .single();
+    let profileId = account.active_profile_id;
+    let profile;
 
-    if (!profile || profile.type !== "family") {
-      return NextResponse.json({ error: "Family profile required" }, { status: 400 });
+    // Step 1: Check if user has an active profile
+    if (profileId) {
+      const { data: existingProfile } = await db
+        .from("business_profiles")
+        .select("id, metadata, type, display_name, city, state, care_types")
+        .eq("id", profileId)
+        .single();
+
+      if (existingProfile?.type === "family") {
+        profile = existingProfile;
+      } else {
+        // Active profile is not a family profile — look for one
+        profileId = null;
+      }
+    }
+
+    // Step 2: If no family profile is active, look for an existing one
+    if (!profileId) {
+      const { data: existingFamilyProfile } = await db
+        .from("business_profiles")
+        .select("id, metadata, type, display_name, city, state, care_types")
+        .eq("account_id", account.id)
+        .eq("type", "family")
+        .limit(1)
+        .maybeSingle();
+
+      if (existingFamilyProfile) {
+        profile = existingFamilyProfile;
+        profileId = existingFamilyProfile.id;
+
+        // Set this as the active profile
+        await db
+          .from("accounts")
+          .update({ active_profile_id: profileId })
+          .eq("id", account.id);
+      }
+    }
+
+    // Step 3: If no family profile exists, create one
+    if (!profileId) {
+      const displayName = account.display_name || user.user_metadata?.full_name || "Family";
+      const careTypes = mapNeedsToCareTypes(primaryNeeds);
+      const slug = generateSlug(displayName, city || "", state || "");
+
+      const { data: newProfile, error: insertErr } = await db
+        .from("business_profiles")
+        .insert({
+          account_id: account.id,
+          slug,
+          type: "family",
+          display_name: displayName,
+          city: city || null,
+          state: state || null,
+          care_types: careTypes,
+          claim_state: "claimed",
+          verification_state: "unverified",
+          source: "benefits_finder",
+          is_active: true,
+          metadata: {
+            timeline: "exploring",
+            visible_to_families: true,
+            visible_to_providers: true,
+          },
+        })
+        .select("id, metadata, type, display_name, city, state, care_types")
+        .single();
+
+      if (insertErr) {
+        console.error("Create family profile error:", insertErr);
+        return NextResponse.json(
+          { error: `Failed to create profile: ${insertErr.message}` },
+          { status: 500 }
+        );
+      }
+
+      profile = newProfile;
+      profileId = newProfile.id;
+
+      // Set this as the active profile
+      await db
+        .from("accounts")
+        .update({ active_profile_id: profileId })
+        .eq("id", account.id);
+    }
+
+    // Now we have a family profile — proceed with activation
+    if (!profile || !profileId) {
+      return NextResponse.json({ error: "Failed to create or find family profile" }, { status: 500 });
     }
 
     const metadata = (profile.metadata || {}) as Record<string, unknown>;
@@ -59,16 +190,25 @@ export async function POST(request: Request) {
       metadata.timeline = "exploring";
     }
 
+    // Update profile with Benefits Finder data if missing
+    const profileUpdate: Record<string, unknown> = {};
+    if (!profile.city && city) profileUpdate.city = city;
+    if (!profile.state && state) profileUpdate.state = state;
+    if ((!profile.care_types || profile.care_types.length === 0) && primaryNeeds.length > 0) {
+      profileUpdate.care_types = mapNeedsToCareTypes(primaryNeeds);
+    }
+
     // Publish the care post
     metadata.care_post = {
       status: "active",
       published_at: new Date().toISOString(),
     };
+    profileUpdate.metadata = metadata;
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await db
       .from("business_profiles")
-      .update({ metadata })
-      .eq("id", profile.id);
+      .update(profileUpdate)
+      .eq("id", profileId);
 
     if (updateError) {
       console.error("Matches activation error:", updateError);
@@ -78,7 +218,7 @@ export async function POST(request: Request) {
     // Send confirmation email
     const userEmail = user.email;
     const familyName = profile.display_name || "there";
-    const locationCity = city || "your area";
+    const locationCity = city || profile.city || "your area";
     const matchesUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/portal/matches`;
 
     if (userEmail) {
@@ -95,6 +235,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      profileId,
       care_post: metadata.care_post,
     });
   } catch (err) {

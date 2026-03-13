@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { BenefitMatch } from "@/lib/types/benefits";
+import { getSavingsRange } from "@/lib/types/benefits";
+import MatchConfidenceBar from "./MatchConfidenceBar";
 
 interface ProgramCardProps {
   match: BenefitMatch;
@@ -50,15 +52,26 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
           aria-expanded={expanded}
           className="flex-1 min-w-0 text-left cursor-pointer bg-transparent border-none group"
         >
-          {/* Program name — hero element */}
-          <h4 className="font-display text-lg font-medium text-gray-900 mb-1 leading-snug">
-            {program.short_name || program.name}
-          </h4>
+          {/* Program name + savings badge */}
+          <div className="flex items-baseline gap-2 mb-1 flex-wrap">
+            <h4 className="font-display text-lg font-medium text-gray-900 leading-snug">
+              {program.short_name || program.name}
+            </h4>
+            {(() => {
+              const range = getSavingsRange(program.name);
+              if (!range) return null;
+              return (
+                <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  ${range.low.toLocaleString()}&ndash;${range.high.toLocaleString()}/mo
+                </span>
+              );
+            })()}
+          </div>
 
-          {/* Tier + score as quiet metadata */}
-          <p className="text-xs text-gray-400 mb-3">
-            {tierLabel} · {matchScore}% match
-          </p>
+          {/* Confidence bar */}
+          <div className="mb-3">
+            <MatchConfidenceBar score={matchScore} tierLabel={tierLabel} />
+          </div>
 
           {/* Top reasons */}
           <div className="space-y-1">
@@ -195,7 +208,36 @@ export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCar
               </div>
             )}
 
-            {/* Actions */}
+            {/* How to Apply steps */}
+            {(program.phone || program.website || program.application_url) && (
+              <div className="mb-4">
+                <p className="text-xs font-medium text-gray-400 mb-2 tracking-wide uppercase">
+                  How to apply
+                </p>
+                <ol className="list-none p-0 m-0 space-y-2">
+                  {program.application_url && (
+                    <li className="flex items-start gap-2.5 text-sm text-gray-600">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary-50 text-primary-700 text-[11px] font-bold shrink-0 mt-0.5">1</span>
+                      <span>Apply online at <a href={program.application_url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">{new URL(program.application_url).hostname.replace("www.", "")}</a></span>
+                    </li>
+                  )}
+                  {program.phone && (
+                    <li className="flex items-start gap-2.5 text-sm text-gray-600">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary-50 text-primary-700 text-[11px] font-bold shrink-0 mt-0.5">{program.application_url ? "2" : "1"}</span>
+                      <span>Call <a href={`tel:${program.phone}`} className="text-primary-600 hover:text-primary-700 font-medium no-underline">{program.phone}</a> to check your eligibility</span>
+                    </li>
+                  )}
+                  {program.website && !program.application_url && (
+                    <li className="flex items-start gap-2.5 text-sm text-gray-600">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary-50 text-primary-700 text-[11px] font-bold shrink-0 mt-0.5">{program.phone ? "2" : "1"}</span>
+                      <span>Visit <a href={program.website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">{new URL(program.website).hostname.replace("www.", "")}</a> for details</span>
+                    </li>
+                  )}
+                </ol>
+              </div>
+            )}
+
+            {/* Quick action buttons */}
             <div className="flex flex-wrap items-center gap-3">
               {program.phone && (
                 <a

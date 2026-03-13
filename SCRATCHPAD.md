@@ -97,9 +97,19 @@
 
 ---
 
+## Current Active Work
+
+- **Enrichment in card flow** (branch: `enrichment-in-card`) — IN PROGRESS
+  - Form submit → enrichment pills in card → save/skip → redirect to connected page
+  - Lead fires on form submit, enrichment is optional bonus data
+  - **BLOCKER**: TJ reports no Slack/email notifications on submit. Likely duplicate detection returning early (existing pending connection to test provider). Need to test with a fresh provider.
+  - Connected page stays clean (no enrichment there)
+  - Branch `enrichment-connected-page` has connected-page enrichment — ABANDONED per TJ's direction
+
 ## Next Up
 
-1. **Reconcile Esther's guest connection branch** with #232/#234 — conflicts in AuthProvider.tsx, membership.ts, pro/page.tsx
+1. **Debug lead not firing** — Test with a fresh provider (no existing connection). If still failing, check API logs. The duplicate check at line 830 of `route.ts` silently returns without notifications.
+2. **Reconcile Esther's guest connection branch** with #232/#234 — conflicts in AuthProvider.tsx, membership.ts, pro/page.tsx
 2. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
 3. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
 4. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
@@ -135,6 +145,10 @@
 | 2026-03-10 | Dynamic API route for sitemap, not metadata file | `app/sitemap.ts` is statically generated at build time — Supabase queries fail, empty result cached permanently. `app/api/sitemap/route.ts` with `force-dynamic` works correctly |
 | 2026-03-10 | Rewrite `/sitemap.xml` → `/api/sitemap` | `app/[category]` dynamic route catches `sitemap.xml` as a category slug → 404. Rewrite in `next.config.ts` bypasses the route conflict |
 | 2026-03-10 | Static OG image over dynamic ImageResponse | Shutterstock photo looks better than teal gradient text; static `.jpg` is simpler and faster |
+| 2026-03-13 | Simple form CTA over multi-step wizard | Too many clicks kills conversion. Fire lead on single submit, collect enrichment after. Kept Esther's backend, simplified frontend. |
+| 2026-03-13 | Enrichment in card, not connected page | Connected page should be pure celebration moment. Enrichment is natural continuation of form in the same card. |
+| 2026-03-13 | Remove price/rating from CTA card | Data quality unreliable for senior care, bold display angers providers. Info still shown elsewhere on page. |
+| 2026-03-13 | Teal button always active, no disabled state | Faint gray disabled button kills engagement. Old CTA had bold teal that got 5-10 leads/day. Validate on click instead. |
 | 2026-03-11 | Remove auth gate for family connections (magic link approach) | Traffic flowing but no connect requests — auth wall killing conversion. Collect email inline, fire lead immediately, send magic link for optional account creation. Logan approved. |
 | 2026-03-11 | Remove paywall entirely — all features free | Startup should focus on usage before gating. `canEngage()` always returns true. Can re-add later. |
 | 2026-02-21 | Server-side pagination for directory | 36K+ records — must use Supabase `.range()` |
@@ -151,6 +165,57 @@
 ---
 
 ## Session Log
+
+### 2026-03-13 (Session 50) — Replace Multi-Step CTA with Simple Form + Polish
+
+**Branches:** `zealous-gauss` (merged), `fix/signed-in-cta` (merged), `fix/prefill-timing` (merged), `enrichment-in-card` (in progress)
+
+**Context:** TJ tested Esther's multi-step intent wizard and felt it had "too many clicks" — suspected conversion would drop. Decision: revert to v1.0-style simple form that fires lead immediately, then optional enrichment post-submit.
+
+**Completed & merged to production:**
+- **PR #243** — Replace multi-step wizard with single-form CTA (InquiryForm.tsx)
+  - Simple form: email (required), name + phone (optional, side-by-side), message textarea, honeypot
+  - Teal "Connect with us" button always active (validates on click, no disabled state)
+  - Removed price/rating from card (data quality unreliable, pisses off providers)
+  - Card restyled: white bg, uniform shadow, border-gray-200
+  - Input borders gray-300, textarea 2 rows, bold 16px title "Get in touch"
+  - New components: `InquiryForm.tsx`, `EnrichmentState.tsx`
+  - Updated: `use-connection-card.ts` (submitInquiryForm, saveEnrichment, skipEnrichment methods)
+  - Updated: `index.tsx` (renders InquiryForm in default state)
+  - Updated: `types.ts` (added "enrichment" CardState, InquiryFormData interface)
+- **PR #245** — Pre-fill form for signed-in users
+  - Same form for everyone, email/name pre-filled from account data
+  - Removed flickering "returning" state entirely
+  - Simplified state machine: everyone starts "default", only "connected" overrides
+- **PR #248** — Fix pre-fill timing
+  - `useState(initialEmail)` only captures value at first render — auth loads async
+  - Added `key={userEmail || "guest"}` to force re-mount when auth completes
+
+**UI critique & polish decisions:**
+- Button: gray-900 (Nike-style) → primary-600 teal (Olera brand, matches old CTA that got 5-10 leads/day)
+- Button always active — no faint disabled state that kills engagement
+- Title: "Connect with {name}" → "Get in touch" (shorter, less generic)
+- Removed arrow icon from button for cleaner look
+- Shadow: `shadow-lg` (bottom-heavy) → `shadow-[0_2px_16px_rgba(0,0,0,0.08)]` + border for uniform visibility
+
+**In progress:**
+- `enrichment-in-card` branch: enrichment pills show in card after form submit, before redirect to connected page
+  - Lead fires on submit, enrichment is bonus data PATCHed onto connection
+  - Connected page stays clean celebration moment
+  - **BLOCKER**: TJ reports no Slack/email on submit — needs debugging
+
+**Abandoned:**
+- `enrichment-connected-page` branch: tried putting enrichment on connected page, TJ said it was doing too much — breaks the emotional arc of the celebration moment
+
+**Key decisions:**
+- v1.0-style form over multi-step wizard (conversion > data richness)
+- Kept Esther's backend work (guest flow, magic links, claim tokens, rate limiting) while simplifying frontend
+- Enrichment belongs in card (natural continuation of form), not connected page (should be pure celebration)
+- Price/rating removed from CTA card entirely (data quality issues anger providers)
+
+**Files modified:** `InquiryForm.tsx` (new), `EnrichmentState.tsx` (new), `index.tsx`, `use-connection-card.ts`, `types.ts`, `CardTopSection.tsx`
+
+---
 
 ### 2026-03-12 (Session 49) — Guest Connection Flow Takeover
 

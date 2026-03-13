@@ -788,7 +788,7 @@ function FamilyCareCard({
       ].join(" ")}
     >
       {/* ── Card body ── */}
-      <div className="p-4 lg:p-7">
+      <div className={`p-4 lg:p-7 transition-opacity duration-300 ${isConfirmation ? "opacity-40" : ""}`}>
         {/* Mobile header layout */}
         <div className="lg:hidden mb-4">
           <div className="flex items-start gap-3 mb-3">
@@ -1017,7 +1017,7 @@ function FamilyCareCard({
                   /* Version A — Below threshold */
                   <div className="mb-6">
                     <p className="text-[13px] text-gray-400 mb-1">
-                      Your profile is {reachOutThreshold.completionPercent}% complete.
+                      Providers with complete profiles get 3&times; more responses. You&apos;re at {reachOutThreshold.completionPercent}%.
                     </p>
                     <Link
                       href="/provider/profile"
@@ -1033,11 +1033,11 @@ function FamilyCareCard({
                   </p>
                 )}
 
-                {/* Done button */}
+                {/* Done button — secondary style for dismissal */}
                 <button
                   type="button"
                   onClick={onConfirmationDone}
-                  className="inline-flex items-center px-6 py-2.5 rounded-xl text-[14px] font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-[0.97] transition-all duration-200"
+                  className="inline-flex items-center px-6 py-2.5 rounded-xl text-[14px] font-semibold text-primary-600 bg-white border border-primary-300 hover:bg-primary-50 hover:border-primary-400 active:scale-[0.97] transition-all duration-200"
                 >
                   Done
                 </button>

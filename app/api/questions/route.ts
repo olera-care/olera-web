@@ -261,7 +261,7 @@ export async function PATCH(request: NextRequest) {
             .single();
 
           const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-          sendEmail({
+          await sendEmail({
             to: updates.asker_email,
             subject: `Your question to ${provider?.display_name || "a provider"} on Olera`,
             html: questionConfirmationEmail({

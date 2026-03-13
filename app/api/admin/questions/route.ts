@@ -116,7 +116,7 @@ export async function PATCH(request: NextRequest) {
           .single();
 
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-        sendEmail({
+        await sendEmail({
           to: data.asker_email,
           subject: `${provider?.display_name || "A provider"} answered your question on Olera`,
           html: questionAnsweredEmail({

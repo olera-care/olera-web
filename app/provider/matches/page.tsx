@@ -652,7 +652,6 @@ function FamilyCareCard({
   const displayName = family.display_name || "Family";
   const initials = getInitials(displayName);
   const familyFirstName = displayName.split(/\s+/)[0];
-  const matchCount = computeMatchingServices(careNeeds, providerCareTypes);
   const reachOuts = reachOutCount ?? 0;
 
   // Distance computation
@@ -774,13 +773,15 @@ function FamilyCareCard({
         {/* ── Stats bar — mobile: 2 columns, desktop: 3 columns ── */}
         {/* Mobile stats */}
         <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
-          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-            <CheckCircleIcon className="w-4 h-4 text-primary-500 shrink-0" />
-            <p className="text-xs text-gray-600">
-              <span className="font-bold">{matchCount}</span> service match
-            </p>
-          </div>
-          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
+          {careNeeds.length > 0 && (
+            <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
+              <CheckCircleIcon className="w-4 h-4 text-primary-500 shrink-0" />
+              <p className="text-xs text-gray-600 font-medium truncate">
+                {careNeeds.slice(0, 2).join(" · ")}
+              </p>
+            </div>
+          )}
+          <div className={`flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg ${careNeeds.length === 0 ? "col-span-2" : ""}`}>
             <LocationIcon className="w-4 h-4 text-primary-500 shrink-0" />
             <p className="text-xs text-gray-600">
               {driveTime ? (
@@ -801,11 +802,14 @@ function FamilyCareCard({
         {/* Desktop stats */}
         <div className="hidden lg:grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            <CheckCircleIcon className="w-4 h-4 text-primary-500" />
-            <p className="text-[13px] text-gray-500">
-              <span className="font-bold text-gray-700">{matchCount} service{matchCount !== 1 ? "s" : ""}</span>{" "}
-              match
-            </p>
+            {careNeeds.length > 0 ? (
+              <>
+                <CheckCircleIcon className="w-4 h-4 text-primary-500" />
+                <p className="text-[13px] text-gray-700 font-medium truncate">
+                  {careNeeds.slice(0, 2).join(" · ")}
+                </p>
+              </>
+            ) : null}
           </div>
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30 border-x border-warm-100/80">
             <LocationIcon className="w-4 h-4 text-primary-500" />
@@ -830,17 +834,13 @@ function FamilyCareCard({
         </div>
 
         {/* ── About situation — full text when expanded ── */}
-        <div className="border-l-2 border-warm-200 pl-3 lg:pl-4 mb-4 lg:mb-5">
-          {aboutSituation && hasFullAccess ? (
+        {aboutSituation && hasFullAccess && (
+          <div className="border-l-2 border-warm-200 pl-3 lg:pl-4 mb-4 lg:mb-5">
             <p className={`text-sm lg:text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
               {aboutSituation}
             </p>
-          ) : (
-            <p className="text-sm lg:text-[15px] text-gray-400 italic leading-relaxed">
-              No description provided
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ── Care need tags — horizontal scroll on mobile ── */}
         {careNeeds.length > 0 && (

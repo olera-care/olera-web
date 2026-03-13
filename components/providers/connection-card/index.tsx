@@ -37,10 +37,13 @@ export default function ConnectionCard(props: ConnectionCardProps) {
 
         {hook.cardState === "default" && (
           <InquiryForm
+            key={hook.userEmail || "guest"}
             providerName={providerName}
             onSubmit={hook.submitInquiryForm}
             submitting={hook.submitting}
             error={hook.error}
+            initialEmail={hook.userEmail}
+            initialName={hook.userName}
           />
         )}
 

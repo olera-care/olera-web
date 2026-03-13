@@ -664,6 +664,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;
 
+  // Pre-fill data for signed-in users
+  const userEmail = user?.email || "";
+  const userName = account?.display_name || "";
+
   return {
     // State
     cardState,
@@ -700,5 +704,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     submitInquiryForm,
     saveEnrichment,
     skipEnrichment,
+
+    // Pre-fill for signed-in users
+    userEmail,
+    userName,
   };
 }

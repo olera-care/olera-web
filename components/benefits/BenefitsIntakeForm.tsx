@@ -25,9 +25,10 @@ import type {
 } from "@/lib/types/benefits";
 import VoiceMicButton from "./VoiceMicButton";
 import VoiceModeSelection from "./VoiceModeSelection";
-import GuidedVoicePrompt, { GUIDED_CONFIRMATIONS } from "./GuidedVoicePrompt";
+import GuidedVoicePrompt, { GUIDED_CONFIRMATIONS, GUIDED_PROMPTS } from "./GuidedVoicePrompt";
 import type { VoiceParseResult } from "@/lib/benefits/voice-intent-parser";
 import { zipToState } from "@/lib/benefits/zip-lookup";
+import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
 import { preloadFullCityData } from "@/lib/us-city-search";
 
 // US state name → abbreviation for geolocation reverse-geocode
@@ -77,6 +78,9 @@ export default function BenefitsIntakeForm() {
   const [guidedConfirmation, setGuidedConfirmation] = useState<string | null>(null);
   /** Guided voice: whether mic should auto-start */
   const [guidedAutoStart, setGuidedAutoStart] = useState(false);
+
+  // TTS narration for guided mode
+  const { speak: narrate, stop: stopNarration, isSpeaking } = useSpeechSynthesis();
 
   const locationInputRef = useRef<HTMLInputElement>(null);
   const locationDropdownRef = useRef<HTMLDivElement>(null);
@@ -315,11 +319,15 @@ export default function BenefitsIntakeForm() {
     setVoiceMode(mode);
     setModeChosen(true);
     if (mode === "guided") {
-      setGuidedAutoStart(true);
+      // Narrate the first prompt, then auto-start mic when speech finishes
+      narrate(GUIDED_PROMPTS[0], () => {
+        setGuidedAutoStart(true);
+      });
     }
   }
 
   function exitGuidedMode() {
+    stopNarration();
     setVoiceMode("off");
     if (autoAdvanceTimerRef.current) {
       clearTimeout(autoAdvanceTimerRef.current);
@@ -445,29 +453,48 @@ export default function BenefitsIntakeForm() {
       // For needs step, don't auto-advance (user says "done" to advance)
       // For navigation "continue", the handleVoiceResult already advances
       if (result.type === "primaryNeeds" || result.type === "navigation") {
+        // For navigation "done"/"continue" on needs step, narrate the next prompt
+        if (result.type === "navigation") {
+          const nextStep = (step + 1) as IntakeStep;
+          if (nextStep <= 5) {
+            narrate(GUIDED_PROMPTS[nextStep], () => {
+              setGuidedAutoStart(true);
+            });
+          }
+        }
         return;
       }
 
-      // Auto-advance after 1.5s (except final step)
+      // Auto-advance with narration (except final step)
       if (step < 5 && result.type !== "unknown") {
         if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+
+        // Build narration: confirmation + next question
+        const nextStep = (step + 1) as IntakeStep;
+        const confirmText = confirmFn ? confirmFn(confirmDetail) : "";
+        const nextPrompt = GUIDED_PROMPTS[nextStep] || "";
+        const narrationText = confirmText
+          ? `${confirmText} ${nextPrompt}`
+          : nextPrompt;
+
+        // Narrate, then auto-start mic after speech finishes
         autoAdvanceTimerRef.current = setTimeout(() => {
           setGuidedConfirmation(null);
-          setGuidedAutoStart(true);
-          // The step was already advanced by handleVoiceResult
-          // Just need to trigger auto-start for the next step
-        }, 1500);
+          narrate(narrationText, () => {
+            setGuidedAutoStart(true);
+          });
+        }, 500); // Brief pause before narrating
       }
 
-      // Final step — auto-submit after confirmation
+      // Final step — narrate closing, then auto-submit
       if (step === 5 && result.type === "medicaidStatus") {
         if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
-        autoAdvanceTimerRef.current = setTimeout(() => {
+        narrate("Thanks, that\u2019s everything. Let me find what\u2019s available.", () => {
           handleNext();
-        }, 2000);
+        });
       }
     },
-    [step, handleVoiceResult, handleNext]
+    [step, handleVoiceResult, handleNext, narrate]
   );
 
   // Reset guided state when step changes
@@ -487,7 +514,7 @@ export default function BenefitsIntakeForm() {
     return (
       <div className="w-full">
         {/* Guided prompt */}
-        <GuidedVoicePrompt step={step} confirmation={guidedConfirmation} />
+        <GuidedVoicePrompt step={step} confirmation={guidedConfirmation} isSpeaking={isSpeaking} />
 
         {/* Large centered mic */}
         <div className="flex justify-center my-6">
@@ -496,6 +523,7 @@ export default function BenefitsIntakeForm() {
             onResult={handleGuidedVoiceResult}
             guided
             autoStart={guidedAutoStart}
+            narratingActive={isSpeaking}
           />
         </div>
 

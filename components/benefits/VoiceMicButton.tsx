@@ -22,6 +22,8 @@ interface VoiceMicButtonProps {
   autoStart?: boolean;
   /** Called when confirmation is shown (guided mode uses this for auto-advance) */
   onConfirmation?: (msg: string) => void;
+  /** Whether TTS narration is currently playing (suppresses auto-start) */
+  narratingActive?: boolean;
 }
 
 export default function VoiceMicButton({
@@ -31,6 +33,7 @@ export default function VoiceMicButton({
   guided = false,
   autoStart = false,
   onConfirmation,
+  narratingActive = false,
 }: VoiceMicButtonProps) {
   const {
     transcript,
@@ -62,10 +65,11 @@ export default function VoiceMicButton({
     }
   }, [step, reset]);
 
-  // Auto-start mic in guided mode
+  // Auto-start mic in guided mode (wait for narration to finish)
   useEffect(() => {
     if (!autoStart || autoStartedRef.current) return;
     if (engine === "none" || permissionState === "denied") return;
+    if (narratingActive) return; // Don't start mic while TTS is speaking
 
     autoStartedRef.current = true;
 
@@ -83,7 +87,7 @@ export default function VoiceMicButton({
     // Small delay to let the UI settle after step transition
     const timer = setTimeout(() => start(), 300);
     return () => clearTimeout(timer);
-  }, [autoStart, engine, permissionState, start, step]);
+  }, [autoStart, engine, permissionState, start, step, narratingActive]);
 
   // Process transcript when listening stops
   useEffect(() => {
@@ -206,7 +210,11 @@ export default function VoiceMicButton({
         </button>
 
         <span className="mt-3 text-xs text-gray-400">
-          {isListening ? "Listening\u2026 tap to stop" : "Tap to speak"}
+          {narratingActive
+            ? "Speaking\u2026"
+            : isListening
+              ? "Listening\u2026 tap to stop"
+              : "Tap to speak"}
         </span>
 
         {/* Privacy note (first use only) */}

@@ -654,13 +654,19 @@ function FamilyCareCard({
   const familyFirstName = displayName.split(/\s+/)[0];
   const reachOuts = reachOutCount ?? 0;
 
-  // Who needs care display
-  const careRecipientRaw = meta?.relationship_to_recipient;
-  const careRecipientDisplay = careRecipientRaw
-    ? careRecipientRaw === "myself"
-      ? "For themselves"
-      : `For their ${careRecipientRaw.replace(/_/g, " ")}`
-    : null;
+  // Who needs care display — exact mapping, no dynamic prefix
+  const careRecipientRaw = meta?.relationship_to_recipient?.toLowerCase().trim();
+  const careRecipientMap: Record<string, string> = {
+    "myself": "For themselves",
+    "my parent": "For their parent",
+    "my spouse": "For their spouse",
+    "my mother": "For their mother",
+    "my father": "For their father",
+    "someone else": "For someone else",
+  };
+  const careRecipientDisplay = careRecipientRaw && careRecipientMap[careRecipientRaw]
+    ? careRecipientMap[careRecipientRaw]
+    : "For a loved one";
 
   // Distance computation
   const providerLat = providerProfile?.lat;
@@ -781,15 +787,13 @@ function FamilyCareCard({
         {/* ── Stats bar — mobile: 2 columns, desktop: 3 columns ── */}
         {/* Mobile stats */}
         <div className="lg:hidden grid grid-cols-2 gap-2 mb-4">
-          {careRecipientDisplay && (
-            <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
-              <PeopleIcon className="w-4 h-4 text-primary-500 shrink-0" />
-              <p className="text-xs text-gray-600 font-medium truncate">
-                {careRecipientDisplay}
-              </p>
-            </div>
-          )}
-          <div className={`flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg ${!careRecipientDisplay ? "col-span-2" : ""}`}>
+          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
+            <PeopleIcon className="w-4 h-4 text-primary-500 shrink-0" />
+            <p className="text-xs text-gray-600 font-medium truncate">
+              {careRecipientDisplay}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 py-2.5 px-3 bg-warm-50/50 rounded-lg">
             <LocationIcon className="w-4 h-4 text-primary-500 shrink-0" />
             <p className="text-xs text-gray-600">
               {driveTime ? (
@@ -810,14 +814,10 @@ function FamilyCareCard({
         {/* Desktop stats */}
         <div className="hidden lg:grid grid-cols-3 rounded-xl border border-warm-100/80 overflow-hidden mb-5">
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30">
-            {careRecipientDisplay ? (
-              <>
-                <PeopleIcon className="w-4 h-4 text-primary-500" />
-                <p className="text-[13px] text-gray-700 font-medium truncate">
-                  {careRecipientDisplay}
-                </p>
-              </>
-            ) : null}
+            <PeopleIcon className="w-4 h-4 text-primary-500" />
+            <p className="text-[13px] text-gray-700 font-medium truncate">
+              {careRecipientDisplay}
+            </p>
           </div>
           <div className="flex items-center justify-center gap-2 py-3 px-3 bg-warm-50/30 border-x border-warm-100/80">
             <LocationIcon className="w-4 h-4 text-primary-500" />

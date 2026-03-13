@@ -108,45 +108,61 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
   return (
     <div
       className={`
-        transition-all duration-300 ease-out overflow-hidden mb-5
+        transition-all duration-500 ease-out mb-5
         ${isVisible && !isExiting
-          ? "opacity-100 max-h-24"
-          : "opacity-0 max-h-0 mb-0"
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-2"
         }
+        ${!shouldRender ? "hidden" : ""}
       `}
     >
-      <div className="relative bg-gradient-to-r from-primary-50 via-white to-primary-50 border border-primary-200 rounded-xl shadow-sm overflow-hidden">
-        {/* Progress bar for auto-dismiss - shrinks from left to right */}
+      {/* Premium card with accent border and glassmorphism */}
+      <div className="
+        relative overflow-hidden
+        bg-white/80 backdrop-blur-sm
+        border border-gray-200/80
+        rounded-2xl
+        shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.04)]
+        hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)]
+        transition-shadow duration-300
+      ">
+        {/* Accent left border */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
+
+        {/* Progress bar for auto-dismiss */}
         <div
-          className="absolute bottom-0 left-0 h-1 bg-primary-500 transition-[width] ease-linear rounded-bl-xl"
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-200 origin-left"
           style={{
-            width: progressStarted ? '0%' : '100%',
-            transitionDuration: progressStarted ? `${AUTO_DISMISS_MS}ms` : '0ms',
+            transform: `scaleX(${progressStarted ? 0 : 1})`,
+            transition: progressStarted ? `transform ${AUTO_DISMISS_MS}ms linear` : 'none',
           }}
         />
 
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
-          {/* Left: Message */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {/* Icon */}
-            <div className="flex w-9 h-9 rounded-lg bg-primary-100 items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-primary-600" fill="none" viewBox="0 0 24 24">
-                <path
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 3C7.5 3 4 6 4 10c0 3 2 5 4 6v3l4-2 4 2v-3c2-1 4-3 4-6 0-4-3.5-7-8-7z"
-                />
-              </svg>
+        <div className="flex items-center justify-between gap-4 pl-5 pr-4 py-3.5">
+          {/* Left: Icon + Message */}
+          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+            {/* Icon with glow effect */}
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
+              <div className="relative flex w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 items-center justify-center shadow-sm">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <path
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 3C7.5 3 4 6 4 10c0 3 2 5 4 6v3l4-2 4 2v-3c2-1 4-3 4-6 0-4-3.5-7-8-7z"
+                  />
+                </svg>
+              </div>
             </div>
 
-            {/* Text */}
+            {/* Text with better hierarchy */}
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-gray-900 truncate">
+              <p className="text-[15px] font-semibold text-gray-900 tracking-tight truncate">
                 {welcomeGreeting}
               </p>
-              <p className="text-sm text-gray-600 truncate">
+              <p className="text-[13px] text-gray-500 truncate mt-0.5">
                 {browsingContext}
               </p>
             </div>
@@ -160,17 +176,20 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
               className="
                 inline-flex items-center gap-1.5
                 px-4 py-2
-                rounded-lg
-                bg-primary-600 hover:bg-primary-700
-                text-sm font-medium text-white
-                active:scale-[0.97]
-                transition-all duration-150
+                rounded-xl
+                bg-gradient-to-r from-primary-600 to-primary-700
+                hover:from-primary-700 hover:to-primary-800
+                text-sm font-semibold text-white
+                shadow-sm shadow-primary-600/25
+                hover:shadow-md hover:shadow-primary-600/30
+                active:scale-[0.98]
+                transition-all duration-200
                 whitespace-nowrap
               "
             >
               Get matched
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
@@ -178,16 +197,16 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
               type="button"
               onClick={handleDismiss}
               className="
-                p-1.5 rounded-lg
+                p-2 rounded-xl
                 text-gray-400 hover:text-gray-600
                 hover:bg-gray-100
-                active:scale-90
+                active:scale-95
                 transition-all duration-150
               "
               aria-label="Dismiss"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>

@@ -59,36 +59,52 @@ export default function MatchesActivatedBanner() {
   return (
     <div
       className={`
-        transition-all duration-300 ease-out overflow-hidden mb-5
+        transition-all duration-500 ease-out mb-5
         ${isVisible && !isExiting
-          ? "opacity-100 max-h-24"
-          : "opacity-0 max-h-0 mb-0"
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-2"
         }
+        ${!shouldRender ? "hidden" : ""}
       `}
     >
-      <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-green-50 border border-green-200 rounded-xl shadow-sm">
-        <div className="flex items-center justify-between gap-3 px-4 py-3">
+      {/* Premium card with accent border and glassmorphism */}
+      <div className="
+        relative overflow-hidden
+        bg-white/80 backdrop-blur-sm
+        border border-gray-200/80
+        rounded-2xl
+        shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.04)]
+        hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)]
+        transition-shadow duration-300
+      ">
+        {/* Success accent left border */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-400 to-green-600 rounded-l-2xl" />
+
+        <div className="flex items-center justify-between gap-4 pl-5 pr-4 py-3.5">
           {/* Left: Icon + Message */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {/* Success icon */}
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
-                <path
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+            {/* Success icon with glow effect */}
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 bg-emerald-400/20 rounded-xl blur-md" />
+              <div className="relative flex w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 items-center justify-center shadow-sm">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <path
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
             </div>
 
-            {/* Text */}
+            {/* Text with better hierarchy */}
             <div className="min-w-0">
-              <p className="text-[15px] font-semibold text-gray-900 truncate">
+              <p className="text-[15px] font-semibold text-gray-900 tracking-tight truncate">
                 Your profile is live!
               </p>
-              <p className="text-sm text-gray-600 truncate">
+              <p className="text-[13px] text-gray-500 truncate mt-0.5">
                 Providers in {city} can now find you
               </p>
             </div>
@@ -102,17 +118,20 @@ export default function MatchesActivatedBanner() {
               className="
                 inline-flex items-center gap-1.5
                 px-4 py-2
-                rounded-lg
-                bg-green-600 hover:bg-green-700
-                text-sm font-medium text-white
-                active:scale-[0.97]
-                transition-all duration-150
+                rounded-xl
+                bg-gradient-to-r from-emerald-600 to-green-700
+                hover:from-emerald-700 hover:to-green-800
+                text-sm font-semibold text-white
+                shadow-sm shadow-emerald-600/25
+                hover:shadow-md hover:shadow-emerald-600/30
+                active:scale-[0.98]
+                transition-all duration-200
                 whitespace-nowrap
               "
             >
               View profile
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
 
@@ -120,16 +139,16 @@ export default function MatchesActivatedBanner() {
               type="button"
               onClick={handleDismiss}
               className="
-                p-1.5 rounded-lg
+                p-2 rounded-xl
                 text-gray-400 hover:text-gray-600
                 hover:bg-gray-100
-                active:scale-90
+                active:scale-95
                 transition-all duration-150
               "
               aria-label="Dismiss"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>

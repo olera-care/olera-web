@@ -428,13 +428,6 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Fixed-position banners (outside content flow) */}
-      <WelcomeBanner
-        providerCount={filteredProviders.length}
-        locationCity={searchLocation}
-      />
-      <MatchesActivatedBanner />
-
       {/* Filter Bar */}
       <div
         className="sticky z-40 bg-white border-b border-gray-200"
@@ -720,6 +713,13 @@ export default function BrowseClient({ careType, searchQuery }: BrowseClientProp
           </div>
         </div>
       </div>
+
+      {/* Banners - Below filter bar, above content */}
+      <WelcomeBanner
+        providerCount={filteredProviders.length}
+        locationCity={searchLocation}
+      />
+      <MatchesActivatedBanner />
 
       {/* Main Content - Split Layout */}
       <div className="lg:flex">

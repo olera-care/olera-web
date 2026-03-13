@@ -16,13 +16,13 @@ interface WelcomeBannerProps {
 }
 
 /**
- * Fixed top announcement bar shown below the navbar after a new
- * family user completes onboarding and chooses "I'll browse on my own".
+ * Inline banner shown after a new family user completes onboarding
+ * and chooses "I'll browse on my own".
  *
- * - Fixed position, full width, below navbar
- * - Auto-dismisses after 8 seconds
+ * - Positioned below filter bar, above provider list
+ * - Auto-dismisses after 8 seconds with progress indicator
+ * - Dark gradient for visual distinction
  * - Mobile-optimized compact layout
- * - Graceful degradation for missing data
  */
 export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBannerProps) {
   const { account, activeProfile } = useAuth();
@@ -108,16 +108,14 @@ export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBa
   return (
     <div
       className={`
-        fixed left-0 right-0 z-50
-        top-16
-        transition-all duration-300 ease-out
+        transition-all duration-300 ease-out overflow-hidden
         ${isVisible && !isExiting
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 -translate-y-full"
+          ? "opacity-100 max-h-24"
+          : "opacity-0 max-h-0"
         }
       `}
     >
-      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 shadow-lg">
+      <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 shadow-sm">
         {/* Progress bar for auto-dismiss - shrinks from left to right */}
         <div
           className="absolute bottom-0 left-0 h-0.5 bg-primary-400/60 transition-[width] ease-linear"

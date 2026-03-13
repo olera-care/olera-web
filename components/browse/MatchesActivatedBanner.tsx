@@ -8,12 +8,12 @@ const MATCHES_ACTIVATED_KEY = "olera_matches_activated";
 const MATCHES_CITY_KEY = "olera_matches_city";
 
 /**
- * Floating toast notification shown after a user opts into Matches
- * during onboarding.
+ * Inline banner shown after a user opts into Matches during onboarding.
  *
- * - Desktop: Fixed bottom-left corner
- * - Mobile: Full width at bottom (iOS-style)
+ * - Positioned below filter bar, above provider list
+ * - Light primary gradient background
  * - Smooth entrance/exit animations
+ * - Auto-dismissible
  */
 export default function MatchesActivatedBanner() {
   const [shouldRender, setShouldRender] = useState(false);
@@ -59,74 +59,71 @@ export default function MatchesActivatedBanner() {
   return (
     <div
       className={`
-        fixed z-50
-        bottom-0 left-0 right-0
-        sm:bottom-6 sm:left-6 sm:right-auto
-        transition-all duration-300 ease-out
+        transition-all duration-300 ease-out overflow-hidden
         ${isVisible && !isExiting
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-4 sm:translate-y-2"
+          ? "opacity-100 max-h-24"
+          : "opacity-0 max-h-0"
         }
       `}
     >
-      {/* Mobile: full-width bar | Desktop: floating card */}
-      <div
-        className="
-          bg-white
-          sm:rounded-2xl
-          border-t sm:border border-gray-200
-          shadow-[0_-4px_20px_rgba(0,0,0,0.08)] sm:shadow-xl
-          sm:max-w-sm
-        "
-      >
-        <div className="px-4 py-3 sm:p-4">
-          <div className="flex items-center gap-3">
-            {/* Success icon */}
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-primary-500/25">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
-                <path
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+      <div className="bg-gradient-to-r from-primary-50 via-white to-primary-50 border-b border-primary-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-3 py-2.5 sm:py-3">
+            {/* Left: Icon + Message */}
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Success icon */}
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <path
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+
+              {/* Text */}
+              <div className="min-w-0 flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                <span className="text-sm sm:text-[15px] font-semibold text-gray-900 truncate">
+                  Your profile is live!
+                </span>
+                <span className="hidden xs:inline text-gray-300">·</span>
+                <span className="text-xs sm:text-sm text-gray-600 truncate">
+                  Providers in {city} can now find you
+                </span>
+              </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-semibold text-gray-900">
-                Your profile is live!
-              </p>
-              <p className="text-sm text-gray-500 truncate">
-                Providers in {city} can now find you
-              </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Right: CTA + Dismiss */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <Link
                 href="/portal/matches"
                 onClick={handleDismiss}
                 className="
-                  px-3 py-1.5
-                  rounded-lg
-                  text-sm font-medium
-                  text-primary-600 hover:text-primary-700
-                  hover:bg-primary-50
+                  inline-flex items-center gap-1
+                  px-3 py-1.5 sm:px-4 sm:py-2
+                  rounded-full
+                  bg-primary-500 hover:bg-primary-600
+                  text-xs sm:text-sm font-medium text-white
                   active:scale-[0.97]
                   transition-all duration-150
+                  whitespace-nowrap
                 "
               >
-                View
+                <span className="hidden sm:inline">View your profile</span>
+                <span className="sm:hidden">View</span>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
               </Link>
 
               <button
                 type="button"
                 onClick={handleDismiss}
                 className="
-                  p-1.5 rounded-lg
+                  p-1.5 rounded-full
                   text-gray-400 hover:text-gray-600
                   hover:bg-gray-100
                   active:scale-90
@@ -134,7 +131,7 @@ export default function MatchesActivatedBanner() {
                 "
                 aria-label="Dismiss"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>

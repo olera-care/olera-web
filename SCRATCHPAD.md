@@ -63,15 +63,63 @@
   - Item #1 (gated provider portal page) assigned to Esther
   - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
 
-- **Guest Connection Flow (Remove Auth Gate)** (branch: `feature/remove-auth-gate-connection-flow`) — IN PROGRESS (Esther)
-  - Magic link approach: collect email inline → fire lead → send magic link for account creation
-  - Migration 018 run on Supabase (claim_token, nullable account_id, guest_email)
-  - Supabase redirect URLs + Vercel NEXT_PUBLIC_SITE_URL configured
-  - Branch has merge conflicts with #232/#234 — needs reconciliation before merge
-  - 10 commits, 19 files changed (+2,409 / -226)
+- **Guest Connection Flow (Remove Auth Gate)** — DONE ✅
+  - PRs #243, #245, #248, #250, #251, #252 all merged to staging + promoted to main
+  - Auth gate replaced with simple inquiry form (email, name, phone, message)
+  - Guest placeholder profiles + magic link for account creation
+  - Pre-fill for signed-in users, enrichment (who/when) shown post-submit in card
+  - Honeypot spam protection + rate limiting (5/hr per email)
+  - Reconciled with Phase 1+2 (#251) and enrichment PR (#252)
 
-- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
-  - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
+- **Guest Q&A (Remove Auth Gate)** — DONE ✅
+  - PRs #254, #257 merged to staging + promoted to main (#255, #258)
+  - Guests ask questions without signing in — fire-first, optional enrichment
+  - Slack notifications (#notifications) + email to provider and asker
+  - Admin approval (pending status), rate limiting, honeypot
+  - Hotfix #258: email notifications for provider + asker on question submit
+
+- **V1.0 Reviews Migration** — DONE ✅
+  - PR #226 merged to staging + promoted to main (#227)
+  - 34 legitimate v1.0 reviews imported via migrations 016 + 017
+  - Admin `/admin/reviews` page with filter, search, moderation controls
+  - Schema: nullable account_id/relationship, migration_source column
+
+- **Waiver Library Redesign** — DONE ✅
+  - PRs #236 (forms pages), #247 (hero, map, CTA) merged to staging
+  - Teal sticky headers, searchable program lists, localStorage checklist persistence
+  - Hero: "Save Up to $10,000 on Care", redesigned map with full-name pills
+  - 528 programs populated with application forms across all 50 states
+
+- **Senior Benefits Finder: Voice + Results Redesign** — DONE ✅
+  - PR #256 merged to staging
+  - Guided voice mode: conversational intake with TTS narration (Chrome/Edge)
+  - Results redesign: progressive disclosure, confidence bars, savings badges, "Recommended First Step" hero card
+  - Print optimization, document checklist behind toggle
+  - Auth gate removed from intake — results shown to everyone
+
+- **Phase 1+2: Benefits Auth + Provider UX + Family Onboarding** — DONE ✅
+  - PR #239, reconciled via #251, merged to staging
+  - Unauthenticated Benefits Finder results, soft auth banner
+  - Provider matches: "who needs care" display, all care type tags
+  - Family onboarding: Matches Invite step, refresh fix, email robustness
+
+- **Phase 3: Discovery UX Improvements** — DONE ✅
+  - PR #259 merged to staging (2026-03-13)
+  - Welcome banner (glassmorphism) for "I'll explore first" users
+  - Matches promotion on /saved page, profile quality labels on family cards
+  - OAuth post-auth fix: full onboarding for new users
+  - Removed publish restrictions for family Matches profiles
+  - Cleaned up 13 debug console.logs before merge
+
+- **Notes from the Field Issue 1** — DONE ✅
+  - PR #241 merged to staging + promoted to main (#242)
+  - PDF at `/docs/NotesFromTheField_Issue1.pdf`
+  - Article live at `/research-and-press/notes-from-the-field-issue-1`
+
+- **Paywall Removal** — DONE ✅
+  - PRs #229, #232 merged — all features free, `canEngage()` always returns true
+  - Onboarding popup removed for family users (#234)
+  - Post-auth onboarding improved (#231)
 
 - **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
   - Plan: `plans/provider-home-page-plan.md`
@@ -79,11 +127,8 @@
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Plan: `plans/provider-deletion-request-plan.md`
 
-- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅ + Notification Testing IN PROGRESS
+- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅
   - Plan: `plans/backend-integration-roadmap-plan.md`
-  - Analysis: `docs/backend-integration-analysis.md`
-  - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
-  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing), #138 (Approval Email + Loops), #141 (Fix: accounts table lookup), #147 (Family emails + remove mock leads)
   - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → ~~Marketing (Loops)~~ ✅ → Sentry (P4 backlog)
   - **Notification Test Matrix:** [Notion](https://www.notion.so/Notification-Test-Matrix-2026-03-04-3195903a0ffe8190be95d95554e52dd1) — 18 tests across Email/SMS/Slack/Cron/Loops
 
@@ -99,16 +144,15 @@
 
 ## Next Up
 
-1. **Reconcile Esther's guest connection branch** with #232/#234 — conflicts in AuthProvider.tsx, membership.ts, pro/page.tsx
-2. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
-3. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-4. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
-5. **Monitor GSC for 404 spikes** — check over next few days post-cutover
-6. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
-7. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-8. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+1. **Promote staging → main** — 53 commits on staging not yet on main (Phase 3, Voice+Results, Waiver Library, Phase 1+2, Reviews)
+2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
+3. **Monitor GSC for 404 spikes** — ongoing post-cutover (3 days since DNS switch)
+4. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+5. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
+6. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+7. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+8. **Provider Home Page** — next feature work (plan exists)
+9. **Provider Deletion Request** — planned (plan exists)
 
 ---
 
@@ -138,6 +182,11 @@
 | 2026-03-11 | Remove auth gate for family connections (magic link approach) | Traffic flowing but no connect requests — auth wall killing conversion. Collect email inline, fire lead immediately, send magic link for optional account creation. Logan approved. |
 | 2026-03-11 | Remove paywall entirely — all features free | Startup should focus on usage before gating. `canEngage()` always returns true. Can re-add later. |
 | 2026-02-21 | Server-side pagination for directory | 36K+ records — must use Supabase `.range()` |
+| 2026-03-12 | Simple inquiry form over multi-step wizard | Multi-step intent wizard had too much friction. Single form (email, name, phone, message) fires lead immediately, optional enrichment post-submit |
+| 2026-03-12 | Fire-first UX for Q&A | Question submits immediately, then optional enrichment prompt for name/email. Zero friction > data completeness |
+| 2026-03-13 | OAuth post-auth: 5-min window detection | Replace always-on onboarding popup with targeted check: only auto-open for accounts created <5 minutes ago. Prevents nagging returning users |
+| 2026-03-13 | Voice intake for Benefits Finder (Chrome/Edge only) | TTS + speech recognition for guided conversational intake. Disabled on Firefox/Safari (no API support) |
+| 2026-03-13 | Progressive disclosure for Benefits results | 3 beats: moment of relief → explore at your pace → tools when ready. Top 5 programs shown, rest behind "See more" |
 
 ---
 
@@ -151,6 +200,31 @@
 ---
 
 ## Session Log
+
+### 2026-03-13 (Session 50) — PR #259 Merge + SCRATCHPAD Refresh + Staging → Main Promotion
+
+**Branch:** `scratchpad-session-50` (from staging)
+
+**What:** Merged Esther's Phase 3: Discovery UX PR, audited all recent activity (20+ PRs merged in 3 days), refreshed SCRATCHPAD and memory, then promoted staging to main.
+
+**PR #259 merge:**
+- Cleaned up 13 debug console.logs from AuthProvider.tsx and PostAuthOnboarding.tsx
+- Verified all critical files intact post-merge (Footer, AuthProvider CACHE_TTL, GA4, redirects)
+- Notion merge report published
+
+**SCRATCHPAD refresh:**
+- Marked 9 items DONE: Guest connections, Guest Q&A, V1.0 reviews, Waiver library, Benefits Finder voice+results, Phase 1+2, Phase 3, Notes from the Field, Paywall removal
+- Updated Next Up: removed 3 completed items, added staging→main promotion
+- Added 5 new decisions to Decisions table
+
+**Memory updates:**
+- `project_current_state.md` — current shipped vs staging state
+- `project_team_contributors.md` — team members and patterns
+- `project_ux_pattern_fire_first.md` — fire-first UX pattern
+
+**Staging → main promotion:** PR #260 (53 commits)
+
+---
 
 ### 2026-03-12 (Session 49) — Guest Connection Flow Takeover
 

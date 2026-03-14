@@ -2,37 +2,51 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 // SessionStorage keys (must match PostAuthOnboarding)
-const MATCHES_ACTIVATED_KEY = "olera_matches_activated";
-const MATCHES_CITY_KEY = "olera_matches_city";
+const WELCOME_BANNER_KEY = "olera_welcome_banner";
+const WELCOME_CITY_KEY = "olera_welcome_city";
+
+interface WelcomeBannerProps {
+  providerCount: number;
+  locationCity: string;
+}
 
 /**
- * Inline banner shown after a user opts into Matches during onboarding.
+ * Inline banner shown after a new family user completes onboarding
+ * and chooses "I'll browse on my own".
  *
  * - Positioned below filter bar, above provider list
- * - Light primary gradient background
- * - Smooth entrance/exit animations
- * - Auto-dismissible
+ * - Manual dismiss only (user must click "Not now" or "Get matched")
+ * - Premium glassmorphism design with accent border
+ * - Mobile-optimized compact layout
  */
-export default function MatchesActivatedBanner() {
+export default function WelcomeBanner({ providerCount, locationCity }: WelcomeBannerProps) {
+  const { account, activeProfile } = useAuth();
   const [shouldRender, setShouldRender] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  const [city, setCity] = useState("your area");
+  const [city, setCity] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const activated = sessionStorage.getItem(MATCHES_ACTIVATED_KEY);
-    if (activated === "true") {
-      const storedCity = sessionStorage.getItem(MATCHES_CITY_KEY);
+    // Don't show if user already has an active Matches profile
+    const carePostStatus = (activeProfile?.metadata as Record<string, unknown>)?.care_post as { status?: string } | undefined;
+    if (carePostStatus?.status === "active" || carePostStatus?.status === "paused") {
+      return;
+    }
+
+    const shouldShow = sessionStorage.getItem(WELCOME_BANNER_KEY);
+    if (shouldShow === "true") {
+      const storedCity = sessionStorage.getItem(WELCOME_CITY_KEY);
       if (storedCity) setCity(storedCity);
 
-      // Clear flags immediately
-      sessionStorage.removeItem(MATCHES_ACTIVATED_KEY);
-      sessionStorage.removeItem(MATCHES_CITY_KEY);
+      // Clear flags immediately so it only shows once
+      sessionStorage.removeItem(WELCOME_BANNER_KEY);
+      sessionStorage.removeItem(WELCOME_CITY_KEY);
 
       // Render first, then animate in
       setShouldRender(true);
@@ -44,10 +58,10 @@ export default function MatchesActivatedBanner() {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, []);
+  }, [activeProfile]);
 
   const handleDismiss = () => {
-    if (isExiting) return;
+    if (isExiting) return; // Prevent double-dismiss
     setIsExiting(true);
     timeoutRef.current = setTimeout(() => {
       setShouldRender(false);
@@ -55,6 +69,27 @@ export default function MatchesActivatedBanner() {
   };
 
   if (!shouldRender) return null;
+
+  // Extract first name from account display_name (graceful fallback)
+  const displayName = account?.display_name || "";
+  const firstName = displayName.split(" ")[0] || null;
+
+  // Use stored city from onboarding, or fall back to current browse location
+  const displayCity = city || locationCity || null;
+
+  // Build the welcome message with graceful degradation
+  const welcomeGreeting = firstName ? `Welcome, ${firstName}!` : "Welcome to Olera!";
+
+  const browsingContext = (() => {
+    if (providerCount > 0 && displayCity) {
+      return `Browsing ${providerCount} providers in ${displayCity}`;
+    } else if (providerCount > 0) {
+      return `Browsing ${providerCount} providers`;
+    } else if (displayCity) {
+      return `Browsing providers in ${displayCity}`;
+    }
+    return "Browsing providers in your area";
+  })();
 
   return (
     <div
@@ -77,23 +112,23 @@ export default function MatchesActivatedBanner() {
         hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)]
         transition-shadow duration-300
       ">
-        {/* Primary color accent left border */}
+        {/* Accent left border */}
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
 
         <div className="flex items-center justify-between gap-4 px-5 py-3.5">
           {/* Left: Icon + Message */}
           <div className="flex items-center gap-3.5 min-w-0 flex-1">
-            {/* Success icon with glow effect */}
+            {/* Icon with glow effect */}
             <div className="relative flex-shrink-0">
               <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
               <div className="relative flex w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 items-center justify-center shadow-sm">
                 <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
                   <path
                     stroke="currentColor"
-                    strokeWidth={2.5}
+                    strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
+                    d="M12 3C7.5 3 4 6 4 10c0 3 2 5 4 6v3l4-2 4 2v-3c2-1 4-3 4-6 0-4-3.5-7-8-7z"
                   />
                 </svg>
               </div>
@@ -102,10 +137,10 @@ export default function MatchesActivatedBanner() {
             {/* Text with better hierarchy */}
             <div className="min-w-0">
               <p className="text-[15px] font-semibold text-gray-900 tracking-tight truncate">
-                Your profile is live!
+                {welcomeGreeting}
               </p>
               <p className="text-[13px] text-gray-500 truncate mt-0.5">
-                Providers in {city} can now find you
+                {browsingContext}
               </p>
             </div>
           </div>
@@ -137,7 +172,7 @@ export default function MatchesActivatedBanner() {
                 whitespace-nowrap
               "
             >
-              View profile
+              Get matched
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>

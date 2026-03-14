@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useProviderProfile } from "@/hooks/useProviderProfile";
@@ -76,6 +76,19 @@ const TIMELINE_CONFIG: Record<string, { label: string; dot: string; glow: string
   within_3_months: { label: "Within 3 months", dot: "bg-blue-400", glow: "glowBlue", border: "border-blue-200", text: "text-blue-600", bg: "bg-blue-50/50" },
   exploring: { label: "Exploring", dot: "bg-warm-300", glow: "glowWarm", border: "border-warm-200", text: "text-gray-500", bg: "bg-warm-50/50" },
 };
+
+// ── Profile quality check ──
+// Detailed = location + care type + age + payment method + description + phone
+function isDetailedProfile(profile: Profile, meta: FamilyMetadata | null): boolean {
+  const hasLocation = !!(profile.city || profile.state);
+  const hasCareType = (profile.care_types?.length ?? 0) > 0;
+  const hasAge = !!(meta?.age);
+  const hasPayment = (meta?.payment_methods?.length ?? 0) > 0;
+  const hasDescription = !!(meta?.about_situation || profile.description)?.trim();
+  const hasPhone = !!profile.phone?.trim();
+
+  return hasLocation && hasCareType && hasAge && hasPayment && hasDescription && hasPhone;
+}
 
 // ── Helpers ──
 
@@ -676,6 +689,74 @@ function MatchesSidebar({
 }
 
 // ---------------------------------------------------------------------------
+// Profile Quality Label with Tooltip
+// ---------------------------------------------------------------------------
+
+function ProfileQualityLabel({ isDetailed }: { isDetailed: boolean }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  // Detect mobile for tap vs hover behavior
+  useEffect(() => {
+    setIsMobile(window.matchMedia("(max-width: 1023px)").matches);
+  }, []);
+
+  // Close tooltip on outside click (for mobile tap)
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
+        setShowTooltip(false);
+      }
+    }
+    if (showTooltip) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showTooltip]);
+
+  const label = isDetailed ? "Detailed profile" : "Basic profile";
+  const tooltip = isDetailed
+    ? "This family has shared a lot about their care situation. A great starting point for a personalized reach-out."
+    : "This family is early in sharing their care needs. You can still reach out — profiles grow over time.";
+
+  return (
+    <div className="relative inline-flex items-center gap-1" ref={tooltipRef}>
+      <span
+        className={[
+          "text-[11px] font-medium px-1.5 py-0.5 rounded",
+          isDetailed
+            ? "text-primary-600 bg-primary-50/80"
+            : "text-gray-500 bg-gray-100/80",
+        ].join(" ")}
+      >
+        {label}
+      </span>
+      {/* Info icon - clickable on mobile, hover on desktop */}
+      <button
+        type="button"
+        onClick={() => isMobile && setShowTooltip(!showTooltip)}
+        onMouseEnter={() => !isMobile && setShowTooltip(true)}
+        onMouseLeave={() => !isMobile && setShowTooltip(false)}
+        className="w-3.5 h-3.5 text-gray-400 hover:text-gray-500 transition-colors"
+        aria-label="More info"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+        </svg>
+      </button>
+      {/* Tooltip */}
+      {showTooltip && (
+        <div className="absolute left-0 top-full mt-2 w-52 sm:w-56 p-3 bg-gray-900 text-white text-[12px] leading-relaxed rounded-xl shadow-xl z-30 max-w-[calc(100vw-3rem)]">
+          <div className="absolute -top-1.5 left-4 w-2.5 h-2.5 bg-gray-900 rotate-45 rounded-sm" />
+          <p className="relative">{tooltip}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Family Care Card
 // ---------------------------------------------------------------------------
 
@@ -739,6 +820,9 @@ function FamilyCareCard({
   const initials = getInitials(displayName);
   const familyFirstName = displayName.split(/\s+/)[0];
   const reachOuts = reachOutCount ?? 0;
+
+  // Profile quality for label
+  const isDetailed = isDetailedProfile(family, meta);
 
   // Who needs care display — exact mapping, no dynamic prefix
   const careRecipientRaw = meta?.relationship_to_recipient?.toLowerCase().trim();
@@ -810,6 +894,9 @@ function FamilyCareCard({
                   </span>
                 </div>
               )}
+              <div className="mt-1">
+                <ProfileQualityLabel isDetailed={isDetailed} />
+              </div>
             </div>
           </div>
           {/* Badges row */}
@@ -851,6 +938,9 @@ function FamilyCareCard({
                 </span>
               </div>
             )}
+            <div className="mt-1.5">
+              <ProfileQualityLabel isDetailed={isDetailed} />
+            </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             {timeline && (

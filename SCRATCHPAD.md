@@ -63,50 +63,27 @@
   - Item #1 (gated provider portal page) assigned to Esther
   - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
 
-- **Senior Benefits Finder Voice Input** (branch: `guided-voice-sbf`, was `peaceful-hawking`) — IN PROGRESS
-  - Plan: `plans/benefits-voice-input-plan.md`
-  - Phases 1-4 complete (hook, parser, components, form integration)
-  - **Phase 5 (2026-03-10):** Mic reliability + city parsing + UI redesign
-    - Fixed `audio-capture` mic errors: auto-retry (1 silent retry, 500ms delay), suppress error if speech was captured
-    - Added city+state voice parsing via existing 18K city search infra ("I live in Katy Texas" → Katy, TX)
-    - Fixed VoiceTranscript showing error + clarification simultaneously (mutually exclusive now)
-    - Redesigned voice button: bare 40x40 gray circle → centered labeled pill ("Speak") with teal listening state
-    - Moved voice below primary input/options on all 6 steps (consistent placement)
-    - Commits: `b50eae6` (bug fixes + city parsing), `84f4bb9` (UI redesign)
-  - **Phase 6 (2026-03-11):** Guided voice mode — conversational intake experience
-    - Mode selection screen before step 0: "Talk through it" vs "Fill it out myself"
-    - Guided mode: warm conversational prompts per step, large 80px pulsing mic, auto-start
-    - Auto-advance: confirmation text → 1.5s pause → next step with mic auto-restart
-    - Needs step (multi-select): requires "done"/"that's it" to advance (new navigation intents)
-    - "Switch to form" link exits guided mode at current step
-    - voiceMode persisted in localStorage draft for page reload recovery
-    - Files modified: `use-benefits-state.ts`, `care-profile-context.tsx`, `voice-intent-parser.ts`, `VoiceMicButton.tsx`, `BenefitsIntakeForm.tsx`
-    - Files created: `VoiceModeSelection.tsx`, `GuidedVoicePrompt.tsx`
-    - Commit: `b97a9b6`
-  - **Phase 7 (2026-03-13):** TTS narration, auth gate, browser guard, UX polish
-    - Added TTS audio narration via Web Speech Synthesis API (`use-speech-synthesis.ts`)
-      - Narrates each guided prompt aloud, mic auto-starts after speech finishes
-      - Voice selection: prefers premium/Google voices, falls back to local English
-      - Rate 0.95, pitch 1.02 (warm + clear), matches iOS `VoiceSynthesisManager` pattern
-      - "Speaking" indicator in GuidedVoicePrompt, VoiceMicButton suppresses auto-start during TTS
-      - Final step: "Thanks, that's everything. Let me find what's available." → auto-submit
-    - Disabled guided voice option on unsupported browsers (Firefox/Safari)
-      - `VoiceModeSelection` checks `SpeechRecognition` availability, disables with message
-      - Safety net: auto-exits guided mode on draft restore if speech unavailable
-    - Removed auth gate from intake submit — results now shown to everyone
-      - Auth only triggered on bookmark/save (already handled by `useSavedBenefits`)
-      - Added "Create a free account" nudge on results page (non-blocking, inline)
-    - Reordered mode selection: "Fill it out myself" first (primary), "Talk through it" second
-    - Fixed worktree `.git` pointer (repo moved from `Desktop/olera-web` to `Desktop/Claude Screenshots/olera-web` then back)
-    - Commits: `fb7d8d5`, `aee4553`, `1734e76`, `5291c18`
-  - Remaining: unit tests, Deepgram fallback (Firefox/iOS Safari), edge case polish, QA guided flow
-  - Pushed to origin, PR not yet created
-
-- **Senior Benefits Finder Results Redesign** (branch: TBD) — PLANNED
-  - Inspired by Chantel's Lovable prototype: personalized header, financial impact dashboard,
-    match confidence bars, master document checklist, step-by-step "How to Apply",
-    spend-down calculator, prioritized action plan, print/PDF optimization
-  - Plan to be created next session
+- **Senior Benefits Finder Voice + Results Redesign** — MERGED TO STAGING ✅
+  - PR #256 merged 2026-03-13 → staging at `3c14db7`
+  - Combined work from `guided-voice-sbf` + `results-redesign-sbf` into `sbf-voice-and-results-redesign`
+  - **Voice Input (Phases 1-7):**
+    - Speech recognition hook, voice intent parser, guided mode with conversational prompts
+    - TTS audio narration via Web Speech Synthesis API (narrates each question, mic auto-starts after)
+    - Mode selection: "Fill it out myself" (primary) / "Talk through it" (secondary)
+    - Browser detection: disables voice on unsupported browsers
+    - Auth gate removed from submit — results shown to everyone, auth on bookmark only
+  - **Results Redesign (Progressive Disclosure):**
+    - "Great news" header with savings estimate folded into one line
+    - "Recommended First Step" hero card with "When you call, say this" script
+    - Confidence bars (green/amber/gray) replacing tier labels
+    - Savings badges ($X–$Y/mo) on program cards
+    - "How to Apply" numbered steps generated from existing data
+    - Progressive reveal: top 5 programs, "See X more" button for rest
+    - Document checklist collapsed behind toggle (4 category cards, 20 items)
+    - Print: expands all programs + checklist, hides nav/sidebar/interactive
+    - Removed: SaveResultsBanner, FinancialImpactDashboard (folded into header), ActionPlan (replaced by hero), standalone AAA card
+  - **New files:** 13 components, 3 hooks, 2 plans, voice-intent-parser, speech-recognition types
+  - **Design principle:** Progressive disclosure — 3 beats: (1) moment of relief, (2) explore at your pace, (3) tools when ready
 
 - **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
   - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
@@ -158,6 +135,10 @@
 | 2026-03-13 | Auth gate on bookmark only, not on results | Let users see value first → higher conversion. Bookmark is the natural auth moment |
 | 2026-03-13 | Web Speech Synthesis API for TTS (no external service) | Free, built into all browsers, zero latency, no API key. Good enough for intake prompts |
 | 2026-03-13 | Borrow Chantel's results page ideas, not her code | Her Lovable prototype has great UX patterns (financial impact, action plan, print) but needs to be rebuilt in our stack |
+| 2026-03-13 | Progressive disclosure over report layout | Results page had 9 sections — overwhelming. Reduced to 3 beats: hero card, program list, tools. Document checklist behind toggle. |
+| 2026-03-13 | "Recommended First Step" hero > Action Plan list | One specific program with call script > 5 programs in a numbered list. Reduces decision paralysis. |
+| 2026-03-13 | Remove SaveResultsBanner from results | Show value first, ask later. Auth only on bookmark. Banner was the first thing users saw — wrong priority. |
+| 2026-03-13 | Print expands everything via beforeprint event | Progressive disclosure is great for screen, bad for paper. JS listener overrides collapsed state during print. |
 | 2026-03-05 | Flat `/provider/{slug}` URL is correct | v1.0 already used flat canonical URLs — no SEO trade-off in migration |
 | 2026-03-05 | Gated provider portal → Esther | `/provider-portal/provider/{slug}/*` needs smart landing page, not just redirect. Critical for provider email funnel |
 | 2026-03-02 | 16:9 primary featured image, 4 featured articles | 3:2 and 4:3 were too tall — pushed article grid below fold. 4 featured (1 large + 3 small) fills the right column without blank space |

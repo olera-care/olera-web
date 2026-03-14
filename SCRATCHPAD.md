@@ -63,53 +63,63 @@
   - Item #1 (gated provider portal page) assigned to Esther
   - Items #12, #13 are monitor-only (research-and-press redirect verify, forum content loss)
 
-- **Senior Benefits Finder Voice Input** (branch: `guided-voice-sbf`, was `peaceful-hawking`) — IN PROGRESS
-  - Plan: `plans/benefits-voice-input-plan.md`
-  - Phases 1-4 complete (hook, parser, components, form integration)
-  - **Phase 5 (2026-03-10):** Mic reliability + city parsing + UI redesign
-    - Fixed `audio-capture` mic errors: auto-retry (1 silent retry, 500ms delay), suppress error if speech was captured
-    - Added city+state voice parsing via existing 18K city search infra ("I live in Katy Texas" → Katy, TX)
-    - Fixed VoiceTranscript showing error + clarification simultaneously (mutually exclusive now)
-    - Redesigned voice button: bare 40x40 gray circle → centered labeled pill ("Speak") with teal listening state
-    - Moved voice below primary input/options on all 6 steps (consistent placement)
-    - Commits: `b50eae6` (bug fixes + city parsing), `84f4bb9` (UI redesign)
-  - **Phase 6 (2026-03-11):** Guided voice mode — conversational intake experience
-    - Mode selection screen before step 0: "Talk through it" vs "Fill it out myself"
-    - Guided mode: warm conversational prompts per step, large 80px pulsing mic, auto-start
-    - Auto-advance: confirmation text → 1.5s pause → next step with mic auto-restart
-    - Needs step (multi-select): requires "done"/"that's it" to advance (new navigation intents)
-    - "Switch to form" link exits guided mode at current step
-    - voiceMode persisted in localStorage draft for page reload recovery
-    - Files modified: `use-benefits-state.ts`, `care-profile-context.tsx`, `voice-intent-parser.ts`, `VoiceMicButton.tsx`, `BenefitsIntakeForm.tsx`
-    - Files created: `VoiceModeSelection.tsx`, `GuidedVoicePrompt.tsx`
-    - Commit: `b97a9b6`
-  - **Phase 7 (2026-03-13):** TTS narration, auth gate, browser guard, UX polish
-    - Added TTS audio narration via Web Speech Synthesis API (`use-speech-synthesis.ts`)
-      - Narrates each guided prompt aloud, mic auto-starts after speech finishes
-      - Voice selection: prefers premium/Google voices, falls back to local English
-      - Rate 0.95, pitch 1.02 (warm + clear), matches iOS `VoiceSynthesisManager` pattern
-      - "Speaking" indicator in GuidedVoicePrompt, VoiceMicButton suppresses auto-start during TTS
-      - Final step: "Thanks, that's everything. Let me find what's available." → auto-submit
-    - Disabled guided voice option on unsupported browsers (Firefox/Safari)
-      - `VoiceModeSelection` checks `SpeechRecognition` availability, disables with message
-      - Safety net: auto-exits guided mode on draft restore if speech unavailable
-    - Removed auth gate from intake submit — results now shown to everyone
-      - Auth only triggered on bookmark/save (already handled by `useSavedBenefits`)
-      - Added "Create a free account" nudge on results page (non-blocking, inline)
-    - Reordered mode selection: "Fill it out myself" first (primary), "Talk through it" second
-    - Fixed worktree `.git` pointer (repo moved from `Desktop/olera-web` to `Desktop/Claude Screenshots/olera-web` then back)
-    - Commits: `fb7d8d5`, `aee4553`, `1734e76`, `5291c18`
-  - Remaining: unit tests, Deepgram fallback (Firefox/iOS Safari), edge case polish, QA guided flow
-  - Pushed to origin, PR not yet created
+- **Guest Connection Flow (Remove Auth Gate)** — DONE ✅
+  - PRs #243, #245, #248, #250, #251, #252 all merged to staging + promoted to main
+  - Auth gate replaced with simple inquiry form (email, name, phone, message)
+  - Guest placeholder profiles + magic link for account creation
+  - Pre-fill for signed-in users, enrichment (who/when) shown post-submit in card
+  - Honeypot spam protection + rate limiting (5/hr per email)
+  - Reconciled with Phase 1+2 (#251) and enrichment PR (#252)
 
-- **Senior Benefits Finder Results Redesign** (branch: TBD) — PLANNED
-  - Inspired by Chantel's Lovable prototype: personalized header, financial impact dashboard,
-    match confidence bars, master document checklist, step-by-step "How to Apply",
-    spend-down calculator, prioritized action plan, print/PDF optimization
-  - Plan to be created next session
+- **Guest Q&A (Remove Auth Gate)** — DONE ✅
+  - PRs #254, #257 merged to staging + promoted to main (#255, #258)
+  - Guests ask questions without signing in — fire-first, optional enrichment
+  - Slack notifications (#notifications) + email to provider and asker
+  - Admin approval (pending status), rate limiting, honeypot
+  - Hotfix #258: email notifications for provider + asker on question submit
 
-- **Senior Benefits Finder Desktop Redesign** (branch: `witty-ritchie`) — IN PROGRESS
-  - Plan: `plans/benefits-finder-desktop-redesign-plan.md`
+- **V1.0 Reviews Migration** — DONE ✅
+  - PR #226 merged to staging + promoted to main (#227)
+  - 34 legitimate v1.0 reviews imported via migrations 016 + 017
+  - Admin `/admin/reviews` page with filter, search, moderation controls
+  - Schema: nullable account_id/relationship, migration_source column
+
+- **Waiver Library Redesign** — DONE ✅
+  - PRs #236 (forms pages), #247 (hero, map, CTA) merged to staging
+  - Teal sticky headers, searchable program lists, localStorage checklist persistence
+  - Hero: "Save Up to $10,000 on Care", redesigned map with full-name pills
+  - 528 programs populated with application forms across all 50 states
+
+- **Senior Benefits Finder: Voice + Results Redesign** — DONE ✅
+  - PR #256 merged to staging
+  - Guided voice mode: conversational intake with TTS narration (Chrome/Edge)
+  - Results redesign: progressive disclosure, confidence bars, savings badges, "Recommended First Step" hero card
+  - Print optimization, document checklist behind toggle
+  - Auth gate removed from intake — results shown to everyone
+
+- **Phase 1+2: Benefits Auth + Provider UX + Family Onboarding** — DONE ✅
+  - PR #239, reconciled via #251, merged to staging
+  - Unauthenticated Benefits Finder results, soft auth banner
+  - Provider matches: "who needs care" display, all care type tags
+  - Family onboarding: Matches Invite step, refresh fix, email robustness
+
+- **Phase 3: Discovery UX Improvements** — DONE ✅
+  - PR #259 merged to staging (2026-03-13)
+  - Welcome banner (glassmorphism) for "I'll explore first" users
+  - Matches promotion on /saved page, profile quality labels on family cards
+  - OAuth post-auth fix: full onboarding for new users
+  - Removed publish restrictions for family Matches profiles
+  - Cleaned up 13 debug console.logs before merge
+
+- **Notes from the Field Issue 1** — DONE ✅
+  - PR #241 merged to staging + promoted to main (#242)
+  - PDF at `/docs/NotesFromTheField_Issue1.pdf`
+  - Article live at `/research-and-press/notes-from-the-field-issue-1`
+
+- **Paywall Removal** — DONE ✅
+  - PRs #229, #232 merged — all features free, `canEngage()` always returns true
+  - Onboarding popup removed for family users (#234)
+  - Post-auth onboarding improved (#231)
 
 - **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
   - Plan: `plans/provider-home-page-plan.md`
@@ -117,11 +127,8 @@
 - **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
   - Plan: `plans/provider-deletion-request-plan.md`
 
-- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅ + Notification Testing IN PROGRESS
+- **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅
   - Plan: `plans/backend-integration-roadmap-plan.md`
-  - Analysis: `docs/backend-integration-analysis.md`
-  - Notion: [Backend Integration Roadmap](https://www.notion.so/3185903a0ffe800982bbd55176cb46e2)
-  - PRs: #111 (Email + Slack), #112 (Twilio SMS), #113 (Vercel Cron), #123-#129 (Loops Marketing), #138 (Approval Email + Loops), #141 (Fix: accounts table lookup), #147 (Family emails + remove mock leads)
   - Phases: ~~Email~~ ✅ → ~~Slack~~ ✅ → ~~Twilio SMS~~ ✅ → ~~Vercel Cron~~ ✅ → ~~Marketing (Loops)~~ ✅ → Sentry (P4 backlog)
   - **Notification Test Matrix:** [Notion](https://www.notion.so/Notification-Test-Matrix-2026-03-04-3195903a0ffe8190be95d95554e52dd1) — 18 tests across Email/SMS/Slack/Cron/Loops
 
@@ -137,16 +144,15 @@
 
 ## Next Up
 
-1. **Merge PR #219** (waiver library redesign) — waiting on Chantel to remove `package.json.tmp` + `.mcp.json`
+1. **Promote staging → main** — 53 commits on staging not yet on main (Phase 3, Voice+Results, Waiver Library, Phase 1+2, Reviews)
 2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-3. **Test Google OAuth on olera.care** — verify sign-in flow end-to-end
-4. **Monitor GSC for 404 spikes** — check over next few days post-cutover
-5. **Re-submit sitemap in GSC** — now returns sitemap index with all shards, should discover 40K+ pages
-6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-7. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-8. **Gated provider portal page** — Esther building; sanity check item #1
-9. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-10. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+3. **Monitor GSC for 404 spikes** — ongoing post-cutover (3 days since DNS switch)
+4. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+5. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
+6. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+7. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+8. **Provider Home Page** — next feature work (plan exists)
+9. **Provider Deletion Request** — planned (plan exists)
 
 ---
 
@@ -154,10 +160,6 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
-| 2026-03-13 | Form-first, voice-second in mode selection | Most users expect a form; voice is a differentiator but shouldn't be the default path |
-| 2026-03-13 | Auth gate on bookmark only, not on results | Let users see value first → higher conversion. Bookmark is the natural auth moment |
-| 2026-03-13 | Web Speech Synthesis API for TTS (no external service) | Free, built into all browsers, zero latency, no API key. Good enough for intake prompts |
-| 2026-03-13 | Borrow Chantel's results page ideas, not her code | Her Lovable prototype has great UX patterns (financial impact, action plan, print) but needs to be rebuilt in our stack |
 | 2026-03-05 | Flat `/provider/{slug}` URL is correct | v1.0 already used flat canonical URLs — no SEO trade-off in migration |
 | 2026-03-05 | Gated provider portal → Esther | `/provider-portal/provider/{slug}/*` needs smart landing page, not just redirect. Critical for provider email funnel |
 | 2026-03-02 | 16:9 primary featured image, 4 featured articles | 3:2 and 4:3 were too tall — pushed article grid below fold. 4 featured (1 large + 3 small) fills the right column without blank space |
@@ -177,16 +179,14 @@
 | 2026-03-10 | Dynamic API route for sitemap, not metadata file | `app/sitemap.ts` is statically generated at build time — Supabase queries fail, empty result cached permanently. `app/api/sitemap/route.ts` with `force-dynamic` works correctly |
 | 2026-03-10 | Rewrite `/sitemap.xml` → `/api/sitemap` | `app/[category]` dynamic route catches `sitemap.xml` as a category slug → 404. Rewrite in `next.config.ts` bypasses the route conflict |
 | 2026-03-10 | Static OG image over dynamic ImageResponse | Shutterstock photo looks better than teal gradient text; static `.jpg` is simpler and faster |
-| 2026-03-10 | Web Speech API + Deepgram fallback for voice | Web Speech API is free and covers ~75% of traffic (Chrome/Edge). Deepgram at $0.008/min covers Firefox + iOS Safari. Cheaper and simpler than a single paid provider for all traffic |
-| 2026-03-10 | Keyword parser over LLM for voice interpretation | iOS VoiceIntentParser uses keyword matching and handles all edge cases. No need for Claude API — deterministic, instant, zero cost. LLM can be added later for Plan C conversational mode |
-| 2026-03-10 | Mic per step, not separate voice mode | Keeps voice as an enhancement to the existing form. Users can mix voice and tap freely. Lower engineering cost than a full voice overlay (Plan B) |
-| 2026-03-10 | Voice on all 6 steps, not just text inputs | Even pill-select steps (care preference, needs, income, Medicaid) benefit from voice — "help with bathing and cooking" is natural speech that maps cleanly to pills |
-| 2026-03-10 | Labeled pill over bare icon for voice button | Bare 40x40 gray circle has zero affordance — users won't discover it. Labeled pill with "Speak" text is discoverable without being pushy |
-| 2026-03-10 | Teal listening state over red | Red = error/danger in every mental model. Teal (brand color) signals "active" with calm confidence |
-| 2026-03-10 | Voice below options, not above | Voice is a secondary input method. Below the primary interaction (input/pills) communicates "or you can speak" without competing with the primary path |
-| 2026-03-10 | City search over ZIP-only for voice | Users naturally say "I live in Katy Texas" not "seven seven four four nine". Reuse existing 18K city search infra with state name extraction. ZIP still works if spoken |
-| 2026-03-10 | Auto-retry on audio-capture mic error | Chrome's Web Speech API flakes on mic access — abort→start race condition. One silent 500ms retry resolves most transient failures |
+| 2026-03-11 | Remove auth gate for family connections (magic link approach) | Traffic flowing but no connect requests — auth wall killing conversion. Collect email inline, fire lead immediately, send magic link for optional account creation. Logan approved. |
+| 2026-03-11 | Remove paywall entirely — all features free | Startup should focus on usage before gating. `canEngage()` always returns true. Can re-add later. |
 | 2026-02-21 | Server-side pagination for directory | 36K+ records — must use Supabase `.range()` |
+| 2026-03-12 | Simple inquiry form over multi-step wizard | Multi-step intent wizard had too much friction. Single form (email, name, phone, message) fires lead immediately, optional enrichment post-submit |
+| 2026-03-12 | Fire-first UX for Q&A | Question submits immediately, then optional enrichment prompt for name/email. Zero friction > data completeness |
+| 2026-03-13 | OAuth post-auth: 5-min window detection | Replace always-on onboarding popup with targeted check: only auto-open for accounts created <5 minutes ago. Prevents nagging returning users |
+| 2026-03-13 | Voice intake for Benefits Finder (Chrome/Edge only) | TTS + speech recognition for guided conversational intake. Disabled on Firefox/Safari (no API support) |
+| 2026-03-13 | Progressive disclosure for Benefits results | 3 beats: moment of relief → explore at your pace → tools when ready. Top 5 programs shown, rest behind "See more" |
 
 ---
 
@@ -201,37 +201,96 @@
 
 ## Session Log
 
-### 2026-03-10 (Session 48) — Senior Benefits Finder Voice Input (Phases 1-4)
+### 2026-03-13 (Session 50) — PR #259 Merge + SCRATCHPAD Refresh + Staging → Main Promotion
 
-**Branch:** `peaceful-hawking` (worktree)
+**Branch:** `scratchpad-session-50` (from staging)
 
-**What:** Added voice input to the 6-step Benefits Finder intake form. Ported the iOS VoiceIntentParser keyword maps to TypeScript. Built speech recognition hook, mic button component, and wired into the existing form.
+**What:** Merged Esther's Phase 3: Discovery UX PR, audited all recent activity (20+ PRs merged in 3 days), refreshed SCRATCHPAD and memory, then promoted staging to main.
 
-**Exploration & Research:**
-- Read full Notion task: "Senior Benefits Finder Web Voice Input Integration" (P1)
-- Explored iOS codebase (`OleraClean`): SpeechRecognitionManager, VoiceIntentParser, VoiceIntakeViewModel, VoiceMicButton, VoiceOrb, FoundationModelService
-- Researched 8 voice APIs: Web Speech API, Deepgram, ElevenLabs Scribe, OpenAI Whisper, Google Cloud STT, AssemblyAI, Azure Speech, Picovoice Cheetah
-- Proposed 3 plans: (A) Mic per step, (B) Voice overlay with TTS, (C) Conversational assistant with LLM
-- TJ approved Plan A with evolution path to Plan B
+**PR #259 merge:**
+- Cleaned up 13 debug console.logs from AuthProvider.tsx and PostAuthOnboarding.tsx
+- Verified all critical files intact post-merge (Footer, AuthProvider CACHE_TTL, GA4, redirects)
+- Notion merge report published
 
-**Implementation (Phases 1-4):**
-1. `types/speech-recognition.d.ts` — Web Speech API TypeScript declarations
-2. `hooks/use-speech-recognition.ts` — Unified hook: start/stop/transcript/error/permissionState. Detects Web Speech API support, handles permission flow, auto-stops on 10s silence
-3. `lib/benefits/voice-intent-parser.ts` — Full port of iOS VoiceIntentParser: ZIP (regex + spoken digits), age (compound spoken numbers), care preference (20+ keywords), primary needs (7 categories, multi-select), income (bracket detection with spoken amounts), Medicaid (negation-first checking). Returns typed parse result with confidence + clarification prompts
-4. `components/benefits/VoiceMicButton.tsx` — 40x40 mic button, 3 states (idle/listening/disabled), pulse animation, first-use privacy note, processes transcript on stop
-5. `components/benefits/VoiceTranscript.tsx` — Real-time transcript, confirmation messages, clarification prompts, aria-live for screen readers
-6. `components/benefits/BenefitsIntakeForm.tsx` — Wired mic buttons into all 6 steps. Steps 0-1: mic inline with input. Steps 2-5: mic above pills. Voice results auto-map to form state and auto-advance (except primary needs — additive, no auto-advance). ZIP voice uses `zipToState()` for immediate state code resolution
+**SCRATCHPAD refresh:**
+- Marked 9 items DONE: Guest connections, Guest Q&A, V1.0 reviews, Waiver library, Benefits Finder voice+results, Phase 1+2, Phase 3, Notes from the Field, Paywall removal
+- Updated Next Up: removed 3 completed items, added staging→main promotion
+- Added 5 new decisions to Decisions table
 
-**Build status:** TypeScript compiles clean. Pre-existing waiver-library prerender failures (unrelated).
+**Memory updates:**
+- `project_current_state.md` — current shipped vs staging state
+- `project_team_contributors.md` — team members and patterns
+- `project_ux_pattern_fire_first.md` — fire-first UX pattern
 
-**Remaining tasks:**
-- Task 4: Parser unit tests (vitest)
-- Task 8: City name voice handling (search city list from spoken name)
-- Tasks 9-10: Deepgram WebSocket fallback for Firefox/iOS Safari
-- Tasks 12-15: Polish (mobile, accessibility, error recovery)
+**Staging → main promotion:** PR #260 (53 commits)
 
-**Files created:** `hooks/use-speech-recognition.ts`, `lib/benefits/voice-intent-parser.ts`, `components/benefits/VoiceMicButton.tsx`, `components/benefits/VoiceTranscript.tsx`, `types/speech-recognition.d.ts`, `plans/benefits-voice-input-plan.md`
-**Files modified:** `components/benefits/BenefitsIntakeForm.tsx`, `.env.example`
+---
+
+### 2026-03-12 (Session 49) — Guest Connection Flow Takeover
+
+**Branch:** `zealous-gauss` (fresh from staging)
+
+**Context:** Esther handed off `feature/remove-auth-gate-connection-flow` (PR #237). Magic link redirects were blocked by Supabase redirect URL allowlist. TJ taking over to finish.
+
+**Completed:**
+- Added `https://*.vercel.app/**` to Supabase Auth redirect URL allowlist (was the main blocker)
+- Verified existing redirect URLs: `olera.care/portal/inbox`, `www.olera.care/portal/inbox`, Site URL = `https://olera.care`
+- Applied Esther's full 30-file diff cleanly onto staging (no merge conflicts — her branch was current with staging)
+- Removed debug `console.log` statements from `lib/site-url.ts` and `app/api/connections/request/route.ts`
+- Fixed cross-device magic link bug in `AuthProvider.tsx`: hash token handler now checks URL `next` param before falling back to localStorage (supports users clicking magic link on different device/browser)
+- TypeScript compilation passes clean
+
+**Files changed:** 22 modified + 8 new files (+1604/-235 lines)
+
+**Key new files:**
+- `lib/site-url.ts` — Environment-aware URL resolution
+- `components/providers/connection-card/EmailCapture.tsx` — Guest email collection
+- `app/auth/magic-link/page.tsx` — Client-side implicit flow handler
+- `app/api/auth/claim-profiles/route.ts` — Placeholder → real profile migration
+- `app/api/connections/guest-inbox/route.ts` — Guest inbox (bypasses RLS)
+- `app/api/connections/guest-profile/route.ts` — Guest profile lookup by token
+- `components/auth/MagicLinkHandler.tsx` — localStorage redirect persistence
+- `supabase/migrations/018_guest_connection_flow.sql` — DB migration (already run)
+
+**Architecture:**
+1. Guest visits provider → clicks Connect → 2-step intent (who + when)
+2. Email capture step → guest email collected
+3. Placeholder family profile created (account_id = NULL, claim_token = UUID)
+4. Connection created with guest_email for rate limiting (5/hr per email)
+5. Magic link generated via Supabase Admin API → combined email sent
+6. Guest redirected to /connected/[id] success page → can access guest inbox
+7. Magic link click → /auth/magic-link processes hash tokens → sets session → ensure-account → claim-profiles migrates connections → redirect to inbox
+8. Placeholder deleted, connections moved to real family profile
+
+**Still TODO:**
+- [ ] Run full build on Vercel (preview deployment via push)
+- [ ] End-to-end test: guest connect → email → magic link → inbox
+- [ ] Review security: rate limiting, CAPTCHA decision
+- [ ] PR to staging
+
+---
+
+### 2026-03-11 (Session 48) — PR Merges + Unblock Guest Connection Flow
+
+**Branch:** `sunny-pike`
+
+**What:** Merged Esther's 2 PRs to staging, then unblocked her guest connection flow (remove auth gate) by configuring Supabase + Vercel + running migration.
+
+**PRs merged:**
+- #232 — Remove paywall completely, all users have full access (3 files, +90/-930)
+- #234 — Fix: Remove onboarding popup for family users + fix inbox refresh (3 files, +14/-8)
+- #219 — Skipped (Chantel's waiver library, still needs cleanup)
+
+**Guest connection flow unblock (Esther's `feature/remove-auth-gate-connection-flow`):**
+- Verified Supabase redirect URLs already present (3 inbox URLs)
+- Added Vercel `NEXT_PUBLIC_SITE_URL` = `https://olera.care` for Production environment (Preview was already set)
+- Ran migration 018 on Supabase: `claim_token` UUID, nullable `account_id`, `guest_email` on connections
+- Reviewed Esther's 10-commit branch: EmailCapture component, guest connection API, claim-profiles API, guest-inbox API, middleware guest token bypass
+- Flagged merge conflicts: AuthProvider.tsx (#234 removed onboarding popup, her branch re-adds with claim token skip), membership.ts + pro/page.tsx (#232 gutted paywall, her branch has old version)
+
+**Notion reports:** PR #232 and #234 merge reports published to PR Merge Reports folder
+
+**Staging:** `b5b2248` — all critical files verified intact post-merge
 
 ---
 

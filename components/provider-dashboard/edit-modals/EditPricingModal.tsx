@@ -331,7 +331,7 @@ export default function EditPricingModal({
               )}
             </button>
           </div>
-          <p className="text-[13px] text-gray-500 mt-3 text-center">
+          <p className="text-[13px] text-gray-500 mt-3">
             {contactForPricing
               ? "Families will see 'Contact for pricing' instead of rates."
               : "Families will see your starting rates on your profile."}

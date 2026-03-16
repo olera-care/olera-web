@@ -608,18 +608,18 @@ export default function ConversationList({
         {/* Filter pills — smooth collapse during search */}
         <div
           className={`overflow-hidden transition-all duration-200 ease-out ${
-            searchOpen ? "max-h-0 opacity-0" : "max-h-24 opacity-100"
+            searchOpen ? "max-h-0 opacity-0" : "max-h-16 opacity-100"
           }`}
         >
-          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 space-y-2.5">
+          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 flex items-center gap-2 flex-wrap">
             {/* Role filter pills — only shown for dual-account users */}
             {showRoleFilters && onRoleFilterChange && (
-              <div className="flex items-center gap-2">
+              <>
                 <button
                   onClick={() => onRoleFilterChange("all")}
-                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                  className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
                     roleFilter === "all"
-                      ? "bg-primary-600 text-white"
+                      ? "bg-gray-900 text-white"
                       : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
                   }`}
                 >
@@ -627,7 +627,7 @@ export default function ConversationList({
                 </button>
                 <button
                   onClick={() => onRoleFilterChange("family")}
-                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                  className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
                     roleFilter === "family"
                       ? "bg-primary-600 text-white"
                       : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
@@ -637,7 +637,7 @@ export default function ConversationList({
                 </button>
                 <button
                   onClick={() => onRoleFilterChange("provider")}
-                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                  className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
                     roleFilter === "provider"
                       ? "bg-primary-600 text-white"
                       : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
@@ -645,32 +645,22 @@ export default function ConversationList({
                 >
                   Provider
                 </button>
-              </div>
+                {/* Divider */}
+                <div className="w-px h-6 bg-gray-200 mx-1" />
+              </>
             )}
 
-            {/* Read status filter pills */}
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setUnreadOnly(false)}
-                className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                  !unreadOnly
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setUnreadOnly(true)}
-                className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                  unreadOnly
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                Unread
-              </button>
-            </div>
+            {/* Unread filter — standalone toggle */}
+            <button
+              onClick={() => setUnreadOnly(!unreadOnly)}
+              className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                unreadOnly
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              Unread
+            </button>
           </div>
         </div>
       </div>
@@ -685,6 +675,23 @@ export default function ConversationList({
             <div className="flex flex-col items-center justify-center py-16 px-6">
               {searchOpen ? (
                 <p className="text-[15px] text-gray-500">No results found</p>
+              ) : unreadOnly ? (
+                <div className="text-center">
+                  <p className="text-[15px] font-display font-medium text-gray-900 mb-1">No unread messages</p>
+                  <p className="text-sm text-gray-500">You&apos;re all caught up</p>
+                </div>
+              ) : roleFilter !== "all" ? (
+                <div className="text-center">
+                  <p className="text-[15px] font-display font-medium text-gray-900 mb-1">
+                    No {roleFilter} messages
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {roleFilter === "provider"
+                      ? "When families connect with your provider profile, they'll appear here"
+                      : "When you connect with providers as a family, they'll appear here"
+                    }
+                  </p>
+                </div>
               ) : (
                 <div className="text-center">
                   <p className="text-[15px] font-display font-medium text-gray-900 mb-1">You have no messages yet</p>

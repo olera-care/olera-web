@@ -254,39 +254,48 @@ export default function EditPricingModal({
         />
       }
     >
-      <div className="space-y-5 pt-2">
+      <div className="space-y-6 pt-1">
         {/* Section 1 — Display toggle */}
         <div>
-          <label className="block text-sm font-semibold text-gray-900 mb-3">
+          <label className="block text-[13px] font-semibold text-gray-900 uppercase tracking-wide mb-3">
             Pricing display
           </label>
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => {
                 setContactForPricing(false);
                 setHasInteracted(true);
               }}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
+              className={`relative flex flex-col items-center gap-2 px-4 py-4 rounded-2xl text-sm font-medium transition-all ${
                 !contactForPricing
-                  ? "bg-primary-50 border-primary-500 text-primary-700 shadow-sm"
-                  : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                  ? "bg-primary-50 ring-2 ring-primary-500 text-primary-700 shadow-sm"
+                  : "bg-gray-50 ring-1 ring-gray-200 text-gray-600 hover:ring-gray-300 hover:bg-gray-100"
               }`}
             >
-              <svg
-                className={`w-5 h-5 ${!contactForPricing ? "text-primary-600" : "text-gray-400"}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Show my rates
+              {!contactForPricing && (
+                <span className="absolute top-2 right-2 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+              )}
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${!contactForPricing ? "bg-primary-100" : "bg-gray-200"}`}>
+                <svg
+                  className={`w-5 h-5 ${!contactForPricing ? "text-primary-600" : "text-gray-500"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <span>Show my rates</span>
             </button>
             <button
               type="button"
@@ -294,45 +303,54 @@ export default function EditPricingModal({
                 setContactForPricing(true);
                 setHasInteracted(true);
               }}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
+              className={`relative flex flex-col items-center gap-2 px-4 py-4 rounded-2xl text-sm font-medium transition-all ${
                 contactForPricing
-                  ? "bg-primary-50 border-primary-500 text-primary-700 shadow-sm"
-                  : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                  ? "bg-primary-50 ring-2 ring-primary-500 text-primary-700 shadow-sm"
+                  : "bg-gray-50 ring-1 ring-gray-200 text-gray-600 hover:ring-gray-300 hover:bg-gray-100"
               }`}
             >
-              <svg
-                className={`w-5 h-5 ${contactForPricing ? "text-primary-600" : "text-gray-400"}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-              Contact for pricing
+              {contactForPricing && (
+                <span className="absolute top-2 right-2 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+              )}
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${contactForPricing ? "bg-primary-100" : "bg-gray-200"}`}>
+                <svg
+                  className={`w-5 h-5 ${contactForPricing ? "text-primary-600" : "text-gray-500"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+              <span>Contact for pricing</span>
             </button>
           </div>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-[13px] text-gray-500 mt-3 text-center">
             {contactForPricing
-              ? "Families will see 'Contact for pricing' instead of your starting rates."
-              : "Families will see your starting rates upfront on your profile."}
+              ? "Families will see 'Contact for pricing' instead of rates."
+              : "Families will see your starting rates on your profile."}
           </p>
         </div>
 
         {/* Section 2 — Price range (hidden when "Contact for pricing") */}
         {!contactForPricing && (
-          <div className="pt-5 border-t border-gray-200">
-            <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Price range
+          <div className="pt-6">
+            <label className="block text-[13px] font-semibold text-gray-900 uppercase tracking-wide mb-3">
+              Starting price
             </label>
             <div className="flex flex-wrap items-center gap-3">
               {/* Min price */}
               <div className="relative flex-1 min-w-[100px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
                   $
                 </span>
                 <input
@@ -345,15 +363,15 @@ export default function EditPricingModal({
                   }}
                   placeholder="Min"
                   aria-label="Minimum price"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                  className="w-full pl-8 pr-3 py-3 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow"
                 />
               </div>
 
-              <span className="text-gray-400 text-sm">to</span>
+              <span className="text-gray-400 text-sm font-medium">to</span>
 
               {/* Max price */}
               <div className="relative flex-1 min-w-[100px]">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">
                   $
                 </span>
                 <input
@@ -364,9 +382,9 @@ export default function EditPricingModal({
                     setUpperPrice(e.target.value.replace(/[^\d,]/g, ""));
                     setHasInteracted(true);
                   }}
-                  placeholder="Max (optional)"
+                  placeholder="Max"
                   aria-label="Maximum price"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                  className="w-full pl-8 pr-3 py-3 rounded-xl bg-gray-50 border-0 ring-1 ring-inset ring-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow"
                 />
               </div>
 
@@ -386,40 +404,40 @@ export default function EditPricingModal({
                 />
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-2">
-              {currentLower && currentUpper && currentUpper > currentLower
-                ? `Displays as: ${buildPriceRangeString(currentLower, currentUpper, priceFrequency)}`
-                : currentLower
-                  ? `Displays as: ${buildPriceRangeString(currentLower, undefined, priceFrequency)}`
-                  : "Enter your starting price, or a price range."}
-            </p>
+            {(currentLower || currentUpper) && (
+              <div className="mt-3 px-3 py-2 bg-primary-50 rounded-lg">
+                <p className="text-[13px] text-primary-700 font-medium">
+                  Preview: {buildPriceRangeString(currentLower, currentUpper, priceFrequency) || "—"}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
         {/* Section 3 — Service rates (always visible) */}
-        <div className="pt-5 border-t border-gray-200">
-          <label className="block text-sm font-semibold text-gray-900 mb-3">
+        <div className="pt-6">
+          <label className="block text-[13px] font-semibold text-gray-900 uppercase tracking-wide mb-3">
             Service rates
           </label>
 
           {/* Existing service rows */}
           {rows.length > 0 && (
-            <div className="space-y-2 mb-3">
+            <div className="space-y-2 mb-4">
               {rows.map((row) => (
                 <div
                   key={row.service}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-100"
+                  className="group flex items-center gap-3 px-4 py-3 rounded-xl bg-white ring-1 ring-gray-200 hover:ring-gray-300 transition-all"
                 >
                   <span className="text-sm font-medium text-gray-900 flex-1 min-w-0 truncate">
                     {row.service}
                   </span>
-                  <span className="text-sm text-gray-500 shrink-0">
+                  <span className="text-sm text-gray-500 font-medium shrink-0 tabular-nums">
                     {formatRateDisplay(row.rateMin, row.rateMax, row.rateType) || "No rate"}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeRow(row.service)}
-                    className="w-8 h-8 -mr-1 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0"
+                    className="w-7 h-7 -mr-1 rounded-lg flex items-center justify-center text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 hover:bg-red-50 transition-all shrink-0"
                     aria-label={`Remove ${row.service}`}
                   >
                     <svg
@@ -443,7 +461,7 @@ export default function EditPricingModal({
 
           {/* Add service inline form */}
           {isAddingService ? (
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+            <div className="rounded-2xl bg-gray-50 ring-1 ring-gray-200 p-4 space-y-4">
               {/* Row 1: Service dropdown (full width) */}
               <Select
                 options={availableServices.map((s) => ({ value: s, label: s }))}
@@ -456,7 +474,7 @@ export default function EditPricingModal({
               {/* Row 2: Price range inputs + Frequency dropdown */}
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative flex-1 min-w-[80px]">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none z-10">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none z-10">
                     $
                   </span>
                   <input
@@ -468,12 +486,12 @@ export default function EditPricingModal({
                     }
                     placeholder="Min"
                     aria-label="Minimum rate"
-                    className="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[40px]"
+                    className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-white ring-1 ring-inset ring-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow"
                   />
                 </div>
-                <span className="text-gray-400 text-sm">to</span>
+                <span className="text-gray-400 text-sm font-medium">to</span>
                 <div className="relative flex-1 min-w-[80px]">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none z-10">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none z-10">
                     $
                   </span>
                   <input
@@ -485,7 +503,7 @@ export default function EditPricingModal({
                     }
                     placeholder="Max"
                     aria-label="Maximum rate"
-                    className="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[40px]"
+                    className="w-full pl-8 pr-3 py-2.5 rounded-xl bg-white ring-1 ring-inset ring-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow"
                   />
                 </div>
                 <div className="w-28 shrink-0">
@@ -502,11 +520,11 @@ export default function EditPricingModal({
               </div>
 
               {/* Row 3: Action buttons */}
-              <div className="flex items-center justify-end gap-3 pt-1">
+              <div className="flex items-center justify-end gap-2 pt-1">
                 <button
                   type="button"
                   onClick={handleCancelAdd}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                   Cancel
                 </button>
@@ -514,9 +532,9 @@ export default function EditPricingModal({
                   type="button"
                   onClick={handleAddService}
                   disabled={!newService.trim()}
-                  className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
+                  className="px-5 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"
                 >
-                  Add
+                  Add service
                 </button>
               </div>
             </div>
@@ -525,21 +543,23 @@ export default function EditPricingModal({
             <button
               type="button"
               onClick={() => setIsAddingService(true)}
-              className="w-full py-2.5 px-3 rounded-xl border border-dashed border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-gray-50 ring-1 ring-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:ring-gray-300 transition-all flex items-center justify-center gap-2"
             >
-              <svg
-                className="w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+              <span className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center">
+                <svg
+                  className="w-3 h-3 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </span>
               Add a service rate
             </button>
           )}

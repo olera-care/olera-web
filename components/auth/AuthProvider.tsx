@@ -426,22 +426,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const cached = getCachedAuthData(userId);
       const hasCachedData = !!cached?.account;
 
-      // If cache is warm, set everything immediately - instant render with full menu.
-      // If cache is cold, DON'T set user yet - fetch data first, then set user + profiles
-      // together. This avoids any loading state in the menu dropdown.
-      if (hasCachedData) {
-        setState({
-          user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
-          account: cached.account,
-          activeProfile: cached.activeProfile,
-          profiles: cached.profiles,
-          membership: cached.membership,
-          isLoading: false,
-          fetchError: false,
-        });
-      }
-      // If cache is cold, keep isLoading true but don't set user yet.
-      // The user pill won't show until we have all data ready.
+      // ALWAYS set user immediately so they appear logged in.
+      // If cache is warm, also set profiles for instant render.
+      // If cache is cold, keep isLoading true until fetch completes.
+      setState({
+        user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
+        account: cached?.account ?? null,
+        activeProfile: cached?.activeProfile ?? null,
+        profiles: cached?.profiles ?? [],
+        membership: cached?.membership ?? null,
+        isLoading: !hasCachedData,
+        fetchError: false,
+      });
 
       // Fetch fresh data. When cache is cold this is the critical path.
       try {
@@ -463,15 +459,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               if (cancelled) return;
               if (refreshed) {
                 cacheAuthData(userId, refreshed);
-                setState({
-                  user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
+                setState((prev) => ({
+                  ...prev,
                   account: refreshed.account,
                   activeProfile: refreshed.activeProfile,
                   profiles: refreshed.profiles,
                   membership: refreshed.membership,
                   isLoading: false,
                   fetchError: false,
-                });
+                }));
                 console.timeEnd("[olera] init");
                 return;
               }
@@ -480,15 +476,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             }
           }
           cacheAuthData(userId, data);
-          setState({
-            user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
+          setState((prev) => ({
+            ...prev,
             account: data.account,
             activeProfile: data.activeProfile,
             profiles: data.profiles,
             membership: data.membership,
             isLoading: false,
             fetchError: false,
-          });
+          }));
         } else {
           // No account found — ensure one exists (creates account + family profile)
           try {
@@ -502,23 +498,21 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             if (cancelled) return;
             if (retryData) {
               cacheAuthData(userId, retryData);
-              setState({
-                user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
+              setState((prev) => ({
+                ...prev,
                 account: retryData.account,
                 activeProfile: retryData.activeProfile,
                 profiles: retryData.profiles,
                 membership: retryData.membership,
                 isLoading: false,
                 fetchError: false,
-              });
+              }));
             } else {
-              // Failed to fetch account - show error state without user
               setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
             }
           } catch {
             if (cancelled) return;
-            // Fetch failed - keep user logged out if cache was cold
-            setState((prev) => ({ ...prev, isLoading: false, fetchError: !hasCachedData }));
+            setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
           }
         }
       } catch (err) {
@@ -564,23 +558,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         const cached = getCachedAuthData(userId);
         const hasCachedData = !!cached?.account;
 
-        // If cache is warm, set everything immediately - instant render with full menu.
-        // If cache is cold, DON'T set user yet - fetch data first, then set user + profiles
-        // together. This avoids any loading state in the menu dropdown.
-        if (hasCachedData) {
-          setState({
-            user: { id: userId, email: userEmail, email_confirmed_at: emailConfirmedAt },
-            account: cached.account,
-            activeProfile: cached.activeProfile,
-            profiles: cached.profiles,
-            membership: cached.membership,
-            isLoading: false,
-            fetchError: false,
-          });
-        }
-        // If cache is cold, keep user null until we have profile data.
+        // ALWAYS set user immediately so they appear logged in.
+        // If cache is warm, also set profiles. If cold, keep isLoading true.
+        setState((prev) => ({
+          ...prev,
+          user: { id: userId, email: userEmail, email_confirmed_at: emailConfirmedAt },
+          account: cached?.account ?? prev.account,
+          activeProfile: cached?.activeProfile ?? prev.activeProfile,
+          profiles: cached?.profiles ?? prev.profiles,
+          membership: cached?.membership ?? prev.membership,
+          isLoading: !hasCachedData && !prev.account,
+          fetchError: false,
+        }));
 
-        // Fetch fresh data. For cold cache, this is the critical path.
+        // Fetch fresh data in the background.
         // Only retry (once) if the account row is missing (DB trigger delay),
         // NOT on timeout — retrying a timeout just doubles the wait.
         const version = ++versionRef.current;
@@ -612,15 +603,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                 if (cancelled || versionRef.current !== version) return;
                 if (refreshed) {
                   cacheAuthData(userId, refreshed);
-                  setState({
-                    user: { id: userId, email: userEmail, email_confirmed_at: emailConfirmedAt },
+                  setState((prev) => ({
+                    ...prev,
                     account: refreshed.account,
                     activeProfile: refreshed.activeProfile,
                     profiles: refreshed.profiles,
                     membership: refreshed.membership,
                     isLoading: false,
                     fetchError: false,
-                  });
+                  }));
                   return;
                 }
               } catch {
@@ -628,15 +619,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               }
             }
             cacheAuthData(userId, data);
-            setState({
-              user: { id: userId, email: userEmail, email_confirmed_at: emailConfirmedAt },
+            setState((prev) => ({
+              ...prev,
               account: data.account,
               activeProfile: data.activeProfile,
               profiles: data.profiles,
               membership: data.membership,
               isLoading: false,
               fetchError: false,
-            });
+            }));
 
             // Auto-claim any placeholder profiles (fire-and-forget)
             try {
@@ -692,32 +683,28 @@ export default function AuthProvider({ children }: AuthProviderProps) {
               if (cancelled || versionRef.current !== version) return;
               if (retryData) {
                 cacheAuthData(userId, retryData);
-                setState({
-                  user: { id: userId, email: userEmail, email_confirmed_at: emailConfirmedAt },
+                setState((prev) => ({
+                  ...prev,
                   account: retryData.account,
                   activeProfile: retryData.activeProfile,
                   profiles: retryData.profiles,
                   membership: retryData.membership,
                   isLoading: false,
                   fetchError: false,
-                });
+                }));
               } else {
-                // Failed to fetch - don't show user if we don't have data
                 setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
               }
             } catch {
               if (cancelled || versionRef.current !== version) return;
-              // Fetch failed - don't show user if we don't have cached data
-              setState((prev) => ({ ...prev, isLoading: false, fetchError: !hasCachedData }));
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
             }
           }
         } catch (err) {
           // Timeout or network error — don't retry, just use cache
           console.error("[olera] SIGNED_IN fetch failed:", err);
           if (cancelled || versionRef.current !== version) return;
-          // If cache was warm, user is already set and we keep them logged in.
-          // If cache was cold, don't show user - show error state.
-          setState((prev) => ({ ...prev, isLoading: false, fetchError: !hasCachedData }));
+          setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
         }
       }
 

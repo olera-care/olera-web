@@ -180,12 +180,19 @@ export default function UnifiedAuthModal({
       // Check if email confirmation is required
       if (!authData.session) {
         if (authData.user?.identities?.length === 0) {
-          setError("This email is already registered. Try signing in instead.");
-          setLoading(false);
-          return;
+          // Anti-enumeration response: email may be an existing unconfirmed
+          // user, or Supabase is masking that it doesn't exist. Either way,
+          // signUp() did NOT send a confirmation email in this case. Explicitly
+          // resend — if an unconfirmed user exists, this delivers a fresh code.
+          // If not, the call fails silently and the user can fall back to
+          // sign-in from the OTP screen.
+          try {
+            await authClient.auth.resend({ type: "signup", email });
+          } catch {
+            // Ignore — proceed to OTP screen with sign-in fallback
+          }
         }
-
-        // signUp() already sends the confirmation token — no need for a separate OTP call
+        // For identities.length > 0, signUp() already sent the confirmation
         setOtpContext("signup");
         setResendCooldown(60);
         setLoading(false);
@@ -420,6 +427,8 @@ export default function UnifiedAuthModal({
       if (otpError) {
         if (otpError.message.includes("not found") || otpError.message.includes("not registered")) {
           setError("No account found with this email. Please sign up first.");
+        } else if (otpError.message.includes("not allowed") || otpError.message.includes("disabled")) {
+          setError("Email codes aren't available right now. Please use your password or reset it below.");
         } else {
           setError(otpError.message);
         }
@@ -852,6 +861,19 @@ export default function UnifiedAuthModal({
                   className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none"
                 >
                   Use password instead
+                </button>
+              </p>
+            )}
+
+            {otpContext === "signup" && (
+              <p className="text-center text-sm text-gray-400 mt-1">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => { setStep("sign-in"); setOtpCode(""); setError(""); }}
+                  className="text-primary-600 hover:text-primary-700 font-medium focus:outline-none"
+                >
+                  Sign in instead
                 </button>
               </p>
             )}

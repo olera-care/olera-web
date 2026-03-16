@@ -71,9 +71,8 @@ export default function EditPricingModal({
   guidedTotal,
   onGuidedBack,
 }: BaseEditModalProps) {
-  const [contactForPricing, setContactForPricing] = useState(
-    metadata.contact_for_pricing || false
-  );
+  // Always default to "Show my rates" when modal opens
+  const [contactForPricing, setContactForPricing] = useState(false);
   const parsed = parseStartingPrice(metadata.price_range || "");
   const [startingPrice, setStartingPrice] = useState(parsed.price);
   const [priceType, setPriceType] = useState(parsed.type);
@@ -261,7 +260,7 @@ export default function EditPricingModal({
                   : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
               }`}
             >
-              Show rates
+              Show my rates
             </button>
             <button
               type="button"
@@ -272,19 +271,17 @@ export default function EditPricingModal({
                   : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
               }`}
             >
-              Contact only
+              Contact for pricing
             </button>
           </div>
+          <p className="text-[13px] text-gray-400 mt-3">
+            {contactForPricing
+              ? "Families will see 'Contact for pricing' and reach out to discuss."
+              : "Families will see your rates upfront on your profile."}
+          </p>
         </div>
 
-        {contactForPricing ? (
-          /* Contact only state — centered helper text */
-          <div className="py-12 text-center">
-            <p className="text-[14px] text-gray-400 leading-relaxed">
-              Families will see &ldquo;Contact for pricing&rdquo; on your profile.
-            </p>
-          </div>
-        ) : (
+        {!contactForPricing && (
           <>
             {/* Section 2 — Starting from */}
             <div className="py-5 border-t border-gray-100">

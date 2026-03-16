@@ -40,7 +40,8 @@ const FREQUENCY_SUFFIX: Record<string, string> = {
 
 interface PricingRow {
   service: string;
-  rate: string;
+  rateMin: string;
+  rateMax: string;
   rateType: string;
 }
 
@@ -73,10 +74,16 @@ function buildPriceRangeString(
   return "";
 }
 
-function formatRateDisplay(rate: string, rateType: string): string {
-  if (!rate) return "";
-  const label = RATE_TYPES.find((r) => r.value === rateType)?.label || rateType;
-  return `$${rate} ${label.toLowerCase()}`;
+function formatRateDisplay(rateMin: string, rateMax: string, rateType: string): string {
+  if (!rateMin && !rateMax) return "";
+  const suffix = FREQUENCY_SUFFIX[rateType] || "/mo";
+  if (rateMin && rateMax && rateMax !== rateMin) {
+    return `$${rateMin} - $${rateMax}${suffix}`;
+  }
+  if (rateMin) {
+    return `$${rateMin}${suffix}`;
+  }
+  return "";
 }
 
 export default function EditPricingModal({
@@ -104,11 +111,16 @@ export default function EditPricingModal({
   );
   const [rows, setRows] = useState<PricingRow[]>(
     metadata.pricing_details && metadata.pricing_details.length > 0
-      ? metadata.pricing_details.map((d) => ({
-          service: d.service,
-          rate: d.rate.replace(/^\$/, ""),
-          rateType: d.rateType,
-        }))
+      ? metadata.pricing_details.map((d) => {
+          // Handle legacy single rate format - parse "rateMin" and "rateMax" if present, otherwise use "rate"
+          const legacyRate = (d.rate || "").replace(/^\$/, "");
+          return {
+            service: d.service,
+            rateMin: (d as { rateMin?: string }).rateMin?.replace(/^\$/, "") || legacyRate,
+            rateMax: (d as { rateMax?: string }).rateMax?.replace(/^\$/, "") || "",
+            rateType: d.rateType,
+          };
+        })
       : []
   );
   const [saving, setSaving] = useState(false);
@@ -117,7 +129,8 @@ export default function EditPricingModal({
   // Add service inline form state
   const [isAddingService, setIsAddingService] = useState(false);
   const [newService, setNewService] = useState("");
-  const [newRate, setNewRate] = useState("");
+  const [newRateMin, setNewRateMin] = useState("");
+  const [newRateMax, setNewRateMax] = useState("");
   const [newRateType, setNewRateType] = useState("per month");
 
   // Track if user has interacted with the form
@@ -134,7 +147,8 @@ export default function EditPricingModal({
   // Normalize rows for comparison (add $ prefix like we do on save)
   const normalizedRows = rows.map((r) => ({
     ...r,
-    rate: r.rate ? `$${r.rate.replace(/^\$/, "")}` : "",
+    rateMin: r.rateMin ? `$${r.rateMin.replace(/^\$/, "")}` : "",
+    rateMax: r.rateMax ? `$${r.rateMax.replace(/^\$/, "")}` : "",
   }));
 
   const hasChanges =
@@ -159,10 +173,11 @@ export default function EditPricingModal({
     if (!newService.trim()) return;
     setRows((prev) => [
       ...prev,
-      { service: newService, rate: newRate, rateType: newRateType },
+      { service: newService, rateMin: newRateMin, rateMax: newRateMax, rateType: newRateType },
     ]);
     setNewService("");
-    setNewRate("");
+    setNewRateMin("");
+    setNewRateMax("");
     setNewRateType("per month");
     setIsAddingService(false);
     setHasInteracted(true);
@@ -170,7 +185,8 @@ export default function EditPricingModal({
 
   function handleCancelAdd() {
     setNewService("");
-    setNewRate("");
+    setNewRateMin("");
+    setNewRateMax("");
     setNewRateType("per month");
     setIsAddingService(false);
   }
@@ -186,8 +202,12 @@ export default function EditPricingModal({
       const validRows = rows
         .filter((r) => r.service.trim())
         .map((r) => ({
-          ...r,
-          rate: r.rate ? `$${r.rate.replace(/^\$/, "")}` : "",
+          service: r.service,
+          rateMin: r.rateMin ? `$${r.rateMin.replace(/^\$/, "")}` : "",
+          rateMax: r.rateMax ? `$${r.rateMax.replace(/^\$/, "")}` : "",
+          rateType: r.rateType,
+          // Keep legacy "rate" field for backwards compatibility
+          rate: r.rateMin ? `$${r.rateMin.replace(/^\$/, "")}` : "",
         }));
 
       // Build the display string for backwards compatibility
@@ -237,7 +257,7 @@ export default function EditPricingModal({
       <div className="space-y-5 pt-2">
         {/* Section 1 — Display toggle */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="block text-sm font-semibold text-gray-900 mb-3">
             Pricing display
           </label>
           <div className="flex flex-wrap gap-2">
@@ -247,10 +267,10 @@ export default function EditPricingModal({
                 setContactForPricing(false);
                 setHasInteracted(true);
               }}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-colors ${
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
                 !contactForPricing
-                  ? "bg-primary-50 border-primary-300 text-primary-700"
-                  : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
+                  ? "bg-primary-50 border-primary-500 text-primary-700 shadow-sm"
+                  : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
             >
               Show my rates
@@ -261,10 +281,10 @@ export default function EditPricingModal({
                 setContactForPricing(true);
                 setHasInteracted(true);
               }}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-colors ${
+              className={`px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
                 contactForPricing
-                  ? "bg-primary-50 border-primary-300 text-primary-700"
-                  : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
+                  ? "bg-primary-50 border-primary-500 text-primary-700 shadow-sm"
+                  : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
             >
               Contact for pricing
@@ -279,8 +299,8 @@ export default function EditPricingModal({
 
         {/* Section 2 — Price range (hidden when "Contact for pricing") */}
         {!contactForPricing && (
-          <div className="pt-5 border-t border-warm-100">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+          <div className="pt-5 border-t border-gray-200">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
               Price range
             </label>
             <div className="flex flex-wrap items-center gap-3">
@@ -299,7 +319,7 @@ export default function EditPricingModal({
                   }}
                   placeholder="Min"
                   aria-label="Minimum price"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-warm-100 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                  className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
                 />
               </div>
 
@@ -320,7 +340,7 @@ export default function EditPricingModal({
                   }}
                   placeholder="Max (optional)"
                   aria-label="Maximum price"
-                  className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-warm-100 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                  className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
                 />
               </div>
 
@@ -351,8 +371,8 @@ export default function EditPricingModal({
         )}
 
         {/* Section 3 — Service rates (always visible) */}
-        <div className="pt-5 border-t border-warm-100">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+        <div className="pt-5 border-t border-gray-200">
+          <label className="block text-sm font-semibold text-gray-900 mb-3">
             Service rates
           </label>
 
@@ -362,13 +382,13 @@ export default function EditPricingModal({
               {rows.map((row) => (
                 <div
                   key={row.service}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl bg-warm-50"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 border border-gray-100"
                 >
                   <span className="text-sm font-medium text-gray-900 flex-1 min-w-0 truncate">
                     {row.service}
                   </span>
                   <span className="text-sm text-gray-500 shrink-0">
-                    {formatRateDisplay(row.rate, row.rateType) || "No rate"}
+                    {formatRateDisplay(row.rateMin, row.rateMax, row.rateType) || "No rate"}
                   </span>
                   <button
                     type="button"
@@ -397,7 +417,7 @@ export default function EditPricingModal({
 
           {/* Add service inline form */}
           {isAddingService ? (
-            <div className="rounded-xl border border-warm-100 bg-warm-50/50 p-4 space-y-3">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
               {/* Row 1: Service dropdown (full width) */}
               <Select
                 options={availableServices.map((s) => ({ value: s, label: s }))}
@@ -407,25 +427,42 @@ export default function EditPricingModal({
                 size="sm"
               />
 
-              {/* Row 2: Price input + Frequency dropdown side by side */}
-              <div className="flex gap-3">
-                <div className="relative flex-1">
+              {/* Row 2: Price range inputs + Frequency dropdown */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative flex-1 min-w-[80px]">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none z-10">
                     $
                   </span>
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={newRate}
+                    value={newRateMin}
                     onChange={(e) =>
-                      setNewRate(e.target.value.replace(/[^\d,]/g, ""))
+                      setNewRateMin(e.target.value.replace(/[^\d,]/g, ""))
                     }
-                    placeholder="0"
-                    aria-label="Service rate"
-                    className="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-white placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[40px]"
+                    placeholder="Min"
+                    aria-label="Minimum rate"
+                    className="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[40px]"
                   />
                 </div>
-                <div className="w-32">
+                <span className="text-gray-400 text-sm">to</span>
+                <div className="relative flex-1 min-w-[80px]">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none z-10">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={newRateMax}
+                    onChange={(e) =>
+                      setNewRateMax(e.target.value.replace(/[^\d,]/g, ""))
+                    }
+                    placeholder="Max"
+                    aria-label="Maximum rate"
+                    className="w-full pl-7 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[40px]"
+                  />
+                </div>
+                <div className="w-28 shrink-0">
                   <Select
                     options={RATE_TYPES.map((t) => ({
                       value: t.value,
@@ -462,7 +499,7 @@ export default function EditPricingModal({
             <button
               type="button"
               onClick={() => setIsAddingService(true)}
-              className="w-full py-2.5 px-3 rounded-xl border border-dashed border-warm-200 text-sm font-medium text-gray-600 hover:bg-warm-50 hover:border-warm-300 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-3 rounded-xl border border-dashed border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center justify-center gap-2"
             >
               <svg
                 className="w-4 h-4 text-gray-400"

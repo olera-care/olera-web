@@ -32,7 +32,7 @@ export interface ExtendedMetadata {
   staff?: { name: string; position: string; bio: string; image: string };
   badge?: string;
   accepted_payments?: string[];
-  pricing_details?: { service: string; rate: string; rateType: string }[];
+  pricing_details?: { service: string; rate: string; rateMin?: string; rateMax?: string; rateType: string }[];
   staff_screening?: string[];
   reviews?: {
     name: string;

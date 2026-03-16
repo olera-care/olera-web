@@ -288,37 +288,43 @@ export default function EditPricingModal({
               <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
                 Starting from
               </label>
-              <div className="relative mb-3">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[15px] pointer-events-none">
-                  $
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={startingPrice}
-                  onChange={(e) =>
-                    setStartingPrice(e.target.value.replace(/[^\d,]/g, ""))
-                  }
-                  placeholder="0"
-                  aria-label="Starting price"
-                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-[15px] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
-                />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {RATE_TYPES.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => setPriceType(type.value)}
-                    className={`px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all duration-200 ${
-                      priceType === type.value
-                        ? "border-primary-500 bg-primary-50 text-primary-700"
-                        : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                    }`}
-                  >
-                    {type.label}
-                  </button>
-                ))}
+              <div className="flex gap-3">
+                {/* Price input */}
+                <div className="relative flex-1">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[15px] pointer-events-none">
+                    $
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={startingPrice}
+                    onChange={(e) =>
+                      setStartingPrice(e.target.value.replace(/[^\d,]/g, ""))
+                    }
+                    placeholder="0"
+                    aria-label="Starting price"
+                    className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-[15px] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                  />
+                </div>
+                {/* Frequency dropdown */}
+                <select
+                  value={priceType}
+                  onChange={(e) => setPriceType(e.target.value)}
+                  className="px-4 py-3 rounded-xl border border-gray-200 text-[15px] text-gray-900 bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 appearance-none shrink-0"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                    backgroundPosition: "right 0.75rem center",
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: "1.25rem 1.25rem",
+                    paddingRight: "2.5rem",
+                  }}
+                >
+                  {RATE_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

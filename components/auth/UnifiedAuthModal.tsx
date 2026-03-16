@@ -179,13 +179,20 @@ export default function UnifiedAuthModal({
 
       // Check if email confirmation is required
       if (!authData.session) {
-        // With "Confirm email" enabled, Supabase returns identities: []
-        // for ALL signups (anti-enumeration protection) — regardless of
-        // whether the email is new or taken. We can't distinguish the two
-        // cases, so proceed to OTP verification. If the email is genuinely
-        // new, the confirmation code was already sent. If it's a duplicate,
-        // no code was sent — the user can fall back to sign-in from the
-        // OTP screen.
+        if (authData.user?.identities?.length === 0) {
+          // Anti-enumeration response: email may be an existing unconfirmed
+          // user, or Supabase is masking that it doesn't exist. Either way,
+          // signUp() did NOT send a confirmation email in this case. Explicitly
+          // resend — if an unconfirmed user exists, this delivers a fresh code.
+          // If not, the call fails silently and the user can fall back to
+          // sign-in from the OTP screen.
+          try {
+            await authClient.auth.resend({ type: "signup", email });
+          } catch {
+            // Ignore — proceed to OTP screen with sign-in fallback
+          }
+        }
+        // For identities.length > 0, signUp() already sent the confirmation
         setOtpContext("signup");
         setResendCooldown(60);
         setLoading(false);

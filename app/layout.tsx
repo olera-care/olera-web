@@ -16,7 +16,7 @@ const dmSerifDisplay = DM_Serif_Display({
   variable: "--font-dm-serif-display",
 });
 
-const GA_MEASUREMENT_ID = "G-F2F7FG745B";
+const GA_MEASUREMENT_ID = "G-ZLP95NWSZW";
 
 export const metadata: Metadata = {
   title: {
@@ -123,7 +123,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
         <link rel="dns-prefetch" href="https://api.maptiler.com" />
 
-        {/* GA4 — same property as v1.0 */}
+        {/* GA4 — Olera Google tag, routes to olera.care - GA4 as destination */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"

@@ -128,22 +128,41 @@ function MatchesContent() {
           <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
             {/* Main content */}
             <div className="px-8 pt-10 pb-8 text-center">
-              {/* Speech bubble icon */}
-              <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-5">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-primary-500"
-                >
+              {/* Warm illustration: person being discovered/connected */}
+              <div className="w-24 h-24 mx-auto mb-6">
+                <svg viewBox="0 0 96 96" fill="none" className="w-full h-full">
+                  {/* Soft background glow */}
+                  <circle cx="48" cy="48" r="40" fill="#199087" fillOpacity="0.08" />
+                  <circle cx="48" cy="48" r="28" fill="#199087" fillOpacity="0.12" />
+
+                  {/* Person silhouette - warm, approachable */}
+                  <circle cx="48" cy="36" r="10" fill="#199087" fillOpacity="0.9" />
                   <path
-                    d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
+                    d="M32 62c0-8.837 7.163-16 16-16s16 7.163 16 16"
+                    stroke="#199087"
+                    strokeWidth="3"
                     strokeLinecap="round"
-                    strokeLinejoin="round"
+                    fill="#199087"
+                    fillOpacity="0.15"
                   />
+
+                  {/* Connection dots - representing providers finding you */}
+                  <circle cx="22" cy="40" r="4" fill="#199087" fillOpacity="0.4">
+                    <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" />
+                  </circle>
+                  <circle cx="74" cy="40" r="4" fill="#199087" fillOpacity="0.4">
+                    <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" begin="0.5s" />
+                  </circle>
+                  <circle cx="28" cy="58" r="3" fill="#199087" fillOpacity="0.3">
+                    <animate attributeName="opacity" values="0.15;0.45;0.15" dur="2s" repeatCount="indefinite" begin="0.25s" />
+                  </circle>
+                  <circle cx="68" cy="58" r="3" fill="#199087" fillOpacity="0.3">
+                    <animate attributeName="opacity" values="0.15;0.45;0.15" dur="2s" repeatCount="indefinite" begin="0.75s" />
+                  </circle>
+
+                  {/* Subtle connection lines */}
+                  <path d="M26 40 L38 38" stroke="#199087" strokeOpacity="0.2" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M70 40 L58 38" stroke="#199087" strokeOpacity="0.2" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </div>
 
@@ -151,18 +170,13 @@ function MatchesContent() {
                 Let providers find you
               </h3>
               <p className="text-[15px] text-gray-500 leading-relaxed max-w-[380px] mx-auto mb-7">
-                Share your care profile and qualified providers in your area will
-                reach out directly. It only takes a moment.
+                Share your care needs once. Providers reach out to you.
               </p>
 
               <button
                 onClick={() => setEditModalOpen(true)}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
+                className="inline-flex items-center px-8 py-3.5 rounded-full bg-gradient-to-b from-primary-500 to-primary-600 text-white text-[15px] font-semibold shadow-[0_1px_3px_rgba(25,144,135,0.3),0_1px_2px_rgba(25,144,135,0.2)] hover:from-primary-400 hover:to-primary-500 hover:shadow-[0_3px_8px_rgba(25,144,135,0.35),0_1px_3px_rgba(25,144,135,0.25)] active:scale-[0.97] transition-all duration-200"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
                 Share your care profile
               </button>
             </div>
@@ -289,32 +303,70 @@ function MatchesContent() {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
                 <div className="px-8 pt-10 pb-8 text-center">
-                  {/* Animated dots */}
-                  <div className="flex items-center justify-center gap-2 mb-6">
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="w-3 h-3 rounded-full bg-primary-400"
-                        style={{
-                          animation: "waitingPulse 1.4s ease-in-out infinite",
-                          animationDelay: `${i * 0.2}s`,
-                        }}
+                  {/* Delightful illustration: anticipation, momentum, being seen */}
+                  <div className="w-32 h-32 mx-auto mb-6">
+                    <svg viewBox="0 0 128 128" fill="none" className="w-full h-full">
+                      {/* Radiating energy rings - animated */}
+                      <circle cx="64" cy="64" r="56" stroke="#199087" strokeOpacity="0.08" strokeWidth="2">
+                        <animate attributeName="r" values="48;56;48" dur="3s" repeatCount="indefinite" />
+                        <animate attributeName="stroke-opacity" values="0.12;0.05;0.12" dur="3s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="64" cy="64" r="44" stroke="#199087" strokeOpacity="0.12" strokeWidth="2">
+                        <animate attributeName="r" values="40;48;40" dur="3s" repeatCount="indefinite" begin="0.3s" />
+                        <animate attributeName="stroke-opacity" values="0.15;0.08;0.15" dur="3s" repeatCount="indefinite" begin="0.3s" />
+                      </circle>
+
+                      {/* Central warm glow */}
+                      <circle cx="64" cy="64" r="32" fill="#199087" fillOpacity="0.1" />
+
+                      {/* Person - centered, confident, visible */}
+                      <circle cx="64" cy="52" r="12" fill="#199087" />
+                      <path
+                        d="M44 82c0-11.046 8.954-20 20-20s20 8.954 20 20"
+                        fill="#199087"
+                        fillOpacity="0.85"
                       />
-                    ))}
+
+                      {/* Sparkles representing attention/discovery */}
+                      <g className="sparkles">
+                        <path d="M28 48 L30 44 L32 48 L30 52 Z" fill="#199087" fillOpacity="0.6">
+                          <animate attributeName="fill-opacity" values="0.3;0.8;0.3" dur="1.5s" repeatCount="indefinite" />
+                        </path>
+                        <path d="M96 48 L98 44 L100 48 L98 52 Z" fill="#199087" fillOpacity="0.6">
+                          <animate attributeName="fill-opacity" values="0.3;0.8;0.3" dur="1.5s" repeatCount="indefinite" begin="0.5s" />
+                        </path>
+                        <path d="M38 76 L40 72 L42 76 L40 80 Z" fill="#199087" fillOpacity="0.5">
+                          <animate attributeName="fill-opacity" values="0.2;0.7;0.2" dur="1.5s" repeatCount="indefinite" begin="0.25s" />
+                        </path>
+                        <path d="M86 76 L88 72 L90 76 L88 80 Z" fill="#199087" fillOpacity="0.5">
+                          <animate attributeName="fill-opacity" values="0.2;0.7;0.2" dur="1.5s" repeatCount="indefinite" begin="0.75s" />
+                        </path>
+                        <circle cx="24" cy="64" r="2" fill="#199087" fillOpacity="0.4">
+                          <animate attributeName="fill-opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                        <circle cx="104" cy="64" r="2" fill="#199087" fillOpacity="0.4">
+                          <animate attributeName="fill-opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" begin="1s" />
+                        </circle>
+                      </g>
+
+                      {/* Subtle upward motion lines */}
+                      <path d="M54 28 L54 20" stroke="#199087" strokeOpacity="0.3" strokeWidth="2" strokeLinecap="round">
+                        <animate attributeName="stroke-opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" />
+                      </path>
+                      <path d="M64 24 L64 14" stroke="#199087" strokeOpacity="0.4" strokeWidth="2" strokeLinecap="round">
+                        <animate attributeName="stroke-opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" begin="0.3s" />
+                      </path>
+                      <path d="M74 28 L74 20" stroke="#199087" strokeOpacity="0.3" strokeWidth="2" strokeLinecap="round">
+                        <animate attributeName="stroke-opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.6s" />
+                      </path>
+                    </svg>
                   </div>
-                  <style jsx>{`
-                    @keyframes waitingPulse {
-                      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-                      40% { opacity: 1; transform: scale(1); }
-                    }
-                  `}</style>
 
                   <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
-                    Your profile is out there
+                    Providers in your area can see you now
                   </h3>
                   <p className="text-[15px] text-gray-500 leading-relaxed max-w-[420px] mx-auto">
-                    Providers in your area are reviewing profiles daily.
-                    We&apos;ll email you when someone reaches out.
+                    We&apos;ll notify you the moment a provider reaches out. Most respond within 3–5 days.
                   </p>
                 </div>
 

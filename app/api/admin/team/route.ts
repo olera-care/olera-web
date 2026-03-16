@@ -72,16 +72,33 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Find the user in auth.users by email
-    const { data: authUsers, error: authError } = await db.auth.admin.listUsers();
+    // Look up user by email via GoTrue admin filter (avoids pagination issues
+    // with listUsers() which defaults to 50 per page)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (authError) {
-      console.error("Failed to list auth users:", authError);
+    if (!supabaseUrl || !serviceKey) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    }
+
+    const res = await fetch(
+      `${supabaseUrl}/auth/v1/admin/users?filter=${encodeURIComponent(email)}&page=1&per_page=50`,
+      {
+        headers: {
+          Authorization: `Bearer ${serviceKey}`,
+          apikey: serviceKey,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      console.error("Failed to look up auth user:", res.status);
       return NextResponse.json({ error: "Failed to look up user" }, { status: 500 });
     }
 
-    const targetUser = authUsers.users.find(
-      (u) => u.email?.toLowerCase() === email
+    const authData = await res.json();
+    const targetUser = (authData.users ?? []).find(
+      (u: { email?: string }) => u.email?.toLowerCase() === email
     );
 
     if (!targetUser) {

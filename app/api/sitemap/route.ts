@@ -127,27 +127,34 @@ export async function GET(request: Request) {
       if (supabase) {
         for (const cat of CATEGORY_CONFIGS) {
           entries.push(xmlEntry(`${SITE_URL}/${cat.slug}`, 0.8, "weekly"));
-          const { data: geoCombos } = await supabase
-            .from("olera-providers")
-            .select("state, city")
-            .eq("provider_category", cat.dbValue)
-            .or("deleted.is.null,deleted.eq.false")
-            .not("state", "is", null)
-            .not("city", "is", null);
-          if (geoCombos) {
-            const stateSet = new Set<string>();
-            const citySet = new Set<string>();
+          const stateSet = new Set<string>();
+          const citySet = new Set<string>();
+          const PAGE_SIZE = 10_000;
+          let offset = 0;
+          let hasMore = true;
+          while (hasMore) {
+            const { data: geoCombos } = await supabase
+              .from("olera-providers")
+              .select("state, city")
+              .eq("provider_category", cat.dbValue)
+              .or("deleted.is.null,deleted.eq.false")
+              .not("state", "is", null)
+              .not("city", "is", null)
+              .range(offset, offset + PAGE_SIZE - 1);
+            if (!geoCombos || geoCombos.length === 0) break;
             for (const row of geoCombos) {
               stateSet.add(row.state as string);
               citySet.add(`${row.state}::${row.city}`);
             }
-            for (const abbr of stateSet) {
-              entries.push(xmlEntry(`${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}`, 0.75, "weekly"));
-            }
-            for (const key of citySet) {
-              const [abbr, city] = key.split("::");
-              entries.push(xmlEntry(`${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}/${cityToSlug(city)}`, 0.7, "weekly"));
-            }
+            hasMore = geoCombos.length === PAGE_SIZE;
+            offset += PAGE_SIZE;
+          }
+          for (const abbr of stateSet) {
+            entries.push(xmlEntry(`${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}`, 0.75, "weekly"));
+          }
+          for (const key of citySet) {
+            const [abbr, city] = key.split("::");
+            entries.push(xmlEntry(`${SITE_URL}/${cat.slug}/${stateAbbrevToSlug(abbr)}/${cityToSlug(city)}`, 0.7, "weekly"));
           }
         }
       }

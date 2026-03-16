@@ -412,31 +412,16 @@ export default function InterestedCard({
           <div className="flex items-start justify-between gap-4 mt-4">
             {/* Care type tags */}
             <div className="flex flex-wrap gap-2 min-w-0 flex-1">
-              {careTypes.slice(0, isExpanded ? 8 : 3).map((ct) => {
-                const isMatched = matchReasons.some(
-                  (r) => r.toLowerCase() === ct.toLowerCase()
-                );
-                return (
-                  <span
-                    key={ct}
-                    className={[
-                      "inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border",
-                      isMatched
-                        ? "border-[#F5F4F1] text-gray-700 bg-[#F5F4F1]"
-                        : "border-warm-100 text-gray-500 bg-white",
-                    ].join(" ")}
-                  >
-                    {isMatched && (
-                      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                    )}
-                    {ct}
-                  </span>
-                );
-              })}
+              {careTypes.slice(0, isExpanded ? 8 : 3).map((ct) => (
+                <span
+                  key={ct}
+                  className="inline-flex items-center text-xs lg:text-[13px] font-medium px-2.5 lg:px-3 py-1.5 rounded-full border border-warm-100 text-gray-600 bg-white whitespace-nowrap shrink-0"
+                >
+                  {ct}
+                </span>
+              ))}
               {!isExpanded && careTypes.length > 3 && (
-                <span className="text-[13px] text-gray-400 self-center pl-1">
+                <span className="text-xs lg:text-[13px] text-gray-400 self-center pl-1">
                   +{careTypes.length - 3}
                 </span>
               )}

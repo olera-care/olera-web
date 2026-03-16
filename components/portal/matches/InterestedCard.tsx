@@ -466,11 +466,16 @@ export default function InterestedCard({
           </div>
         )}
 
-        {/* Row 3: Provider message — no label, 2 lines max when collapsed */}
+        {/* Row 3: Provider message */}
         {reachOutNote && !isDeclined && (
-          <p className={`mt-4 text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
-            {reachOutNote}
-          </p>
+          <div className="mt-4">
+            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              Their message to you
+            </p>
+            <p className={`text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
+              {reachOutNote}
+            </p>
+          </div>
         )}
       </div>
 
@@ -568,7 +573,7 @@ export default function InterestedCard({
         <button
           type="button"
           onClick={() => isExpanded ? onCollapse?.() : onExpand?.(item.id)}
-          className="w-full border-t border-warm-100/60 bg-warm-50/30 px-7 py-3 flex items-center justify-center gap-1.5 text-[14px] font-medium text-gray-500 hover:text-gray-700 hover:bg-warm-50/60 transition-all duration-200"
+          className="w-full border-t border-gray-200 bg-warm-50/30 px-7 py-3 flex items-center justify-center gap-1.5 text-[14px] font-semibold text-primary-600 hover:text-primary-700 hover:bg-warm-50/60 transition-all duration-200"
         >
           {isExpanded ? "Close details" : "View details"}
           <svg

@@ -807,12 +807,17 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   /**
-   * Sign out. Clears local state and navigates immediately,
-   * then fires the Supabase signOut in the background.
+   * Sign out. Navigates first, then clears local state.
+   * This prevents a flash of loading skeleton on protected pages.
    */
   const signOut = useCallback(
     async (onComplete?: () => void) => {
       if (!configured) return;
+
+      // Navigate FIRST — user sees landing page immediately
+      onComplete?.();
+
+      // THEN clear state (happens after navigation starts)
       clearAuthCache();
       // Clear onboarding session so a different user doesn't see stale data
       try {
@@ -827,7 +832,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
       versionRef.current++;
       setState({ ...EMPTY_STATE });
-      onComplete?.();
+
       // Fire-and-forget — session invalidation happens in the background
       const supabase = createClient();
       supabase.auth.signOut().catch((err) => {

@@ -260,19 +260,32 @@ export default function EditPricingModal({
           <label className="block text-sm font-semibold text-gray-900 mb-3">
             Pricing display
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => {
                 setContactForPricing(false);
                 setHasInteracted(true);
               }}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
+              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
                 !contactForPricing
                   ? "bg-primary-50 border-primary-500 text-primary-700 shadow-sm"
                   : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
             >
+              <svg
+                className={`w-5 h-5 ${!contactForPricing ? "text-primary-600" : "text-gray-400"}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
               Show my rates
             </button>
             <button
@@ -281,12 +294,25 @@ export default function EditPricingModal({
                 setContactForPricing(true);
                 setHasInteracted(true);
               }}
-              className={`px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all ${
+              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all ${
                 contactForPricing
                   ? "bg-primary-50 border-primary-500 text-primary-700 shadow-sm"
                   : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50"
               }`}
             >
+              <svg
+                className={`w-5 h-5 ${contactForPricing ? "text-primary-600" : "text-gray-400"}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
               Contact for pricing
             </button>
           </div>

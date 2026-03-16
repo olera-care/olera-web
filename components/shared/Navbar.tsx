@@ -143,14 +143,15 @@ export default function Navbar() {
   const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
+  // Note: With our AuthProvider changes, user is only set when we have all profile data
   const hasSession = !!user;
-  const isFullyLoaded = !!user && !authLoading;
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
   const hasProviderProfile = (profiles || []).some(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  const showModeSwitcher = isFullyLoaded && hasFamilyProfile && hasProviderProfile;
+  // Since user is only set when profiles are loaded, we just check hasSession
+  const showModeSwitcher = hasSession && hasFamilyProfile && hasProviderProfile;
 
   // Profile IDs for hub switching — used by the mode switcher to also switch activeProfile
   const familyProfileId = (profiles || []).find((p) => p.type === "family")?.id;
@@ -1067,19 +1068,15 @@ export default function Navbar() {
                       </div>
 
                       {/* Provider profile switcher */}
-                      {isFullyLoaded && (
-                        <>
-                          <div className="my-3 border-t border-gray-100" />
-                          <div className="px-3">
-                            <ProfileSwitcher
-                              onSwitch={() => setIsMobileMenuOpen(false)}
-                              variant="dropdown"
-                              allowedTypes={["organization", "caregiver"]}
-                              navigateTo="/provider"
-                            />
-                          </div>
-                        </>
-                      )}
+                      <div className="my-3 border-t border-gray-100" />
+                      <div className="px-3">
+                        <ProfileSwitcher
+                          onSwitch={() => setIsMobileMenuOpen(false)}
+                          variant="dropdown"
+                          allowedTypes={["organization", "caregiver"]}
+                          navigateTo="/provider"
+                        />
+                      </div>
 
                       {/* Switch to Family */}
                       {hasFamilyProfile && (
@@ -1218,19 +1215,17 @@ export default function Navbar() {
                       {/* Profile switcher & other actions */}
                       <div className="my-3 border-t border-gray-100" />
 
-                      {isFullyLoaded && (
-                        <div className="px-3">
-                          <ProfileSwitcher
-                            onSwitch={() => setIsMobileMenuOpen(false)}
-                            variant="dropdown"
-                            allowedTypes={["family"]}
-                            navigateTo="/"
-                          />
-                        </div>
-                      )}
+                      <div className="px-3">
+                        <ProfileSwitcher
+                          onSwitch={() => setIsMobileMenuOpen(false)}
+                          variant="dropdown"
+                          allowedTypes={["family"]}
+                          navigateTo="/"
+                        />
+                      </div>
 
-                      {/* Switch to Provider - show while loading or when user has provider access */}
-                      {(hasProviderProfile || hasAttemptedOnboarding || authLoading) && (
+                      {/* Switch to Provider - show when user has provider access */}
+                      {(hasProviderProfile || hasAttemptedOnboarding) && (
                         <button
                           type="button"
                           onClick={() => {
@@ -1249,10 +1244,7 @@ export default function Navbar() {
                               router.push("/provider/onboarding");
                             }
                           }}
-                          disabled={authLoading && !hasProviderProfile && !hasAttemptedOnboarding}
-                          className={`flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full ${
-                            (authLoading && !hasProviderProfile && !hasAttemptedOnboarding) ? "opacity-50" : ""
-                          }`}
+                          className="flex items-center gap-3 px-3 py-3 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-xl transition-colors text-left w-full"
                         >
                           <svg className="w-5 h-5 text-gray-400 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />

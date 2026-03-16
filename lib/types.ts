@@ -177,7 +177,18 @@ export interface OrganizationMetadata {
   accepted_payments?: string[];
   amenities?: string[];
   hours?: string;
-  price_range?: string;
+
+  // Pricing fields
+  price_range?: string; // Legacy: formatted string like "$3,500 monthly"
+  lower_price?: number; // Minimum price (e.g., 3500)
+  upper_price?: number; // Maximum price (optional, for ranges)
+  price_frequency?: string; // e.g., "per month", "per hour"
+  contact_for_pricing?: boolean;
+  pricing_details?: {
+    service: string;
+    rate: string;
+    rateType: string;
+  }[];
 
   // Verification fields
   verification_id_type?: string;

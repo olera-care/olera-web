@@ -426,22 +426,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const cached = getCachedAuthData(userId);
       const hasCachedData = !!cached?.account;
 
-      // Set user immediately so the avatar pill shows. If cache is warm,
-      // also set account/profiles for instant render. If cache is cold,
-      // keep isLoading true — the dropdown will show a brief loading state
-      // instead of an empty-then-full flash.
+      // ALWAYS set user immediately so they appear logged in.
+      // If cache is warm, also set profiles for instant render.
+      // If cache is cold, keep isLoading true until fetch completes.
       setState({
         user: { id: userId, email: userEmail!, email_confirmed_at: emailConfirmedAt },
         account: cached?.account ?? null,
         activeProfile: cached?.activeProfile ?? null,
         profiles: cached?.profiles ?? [],
         membership: cached?.membership ?? null,
-        isLoading: !hasCachedData, // Only "done" if we have cached data
+        isLoading: !hasCachedData,
         fetchError: false,
       });
 
-      // Fetch fresh data. When cache is cold this is the critical path —
-      // the UI stays in loading state until this completes.
+      // Fetch fresh data. When cache is cold this is the critical path.
       try {
         const data = await fetchAccountData(userId);
         if (cancelled) return;
@@ -514,7 +512,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             }
           } catch {
             if (cancelled) return;
-            setState((prev) => ({ ...prev, isLoading: false, fetchError: !hasCachedData }));
+            setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
           }
         }
       } catch (err) {
@@ -553,25 +551,27 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         if (initHandlingRef.current) return;
 
         const userId = session.user.id;
+        const userEmail = session.user.email!;
+        const emailConfirmedAt = session.user.email_confirmed_at ?? undefined;
 
-        // Set user + any cached data immediately
+        // Check for cached data
         const cached = getCachedAuthData(userId);
         const hasCachedData = !!cached?.account;
+
+        // ALWAYS set user immediately so they appear logged in.
+        // If cache is warm, also set profiles. If cold, keep isLoading true.
         setState((prev) => ({
           ...prev,
-          user: { id: userId, email: session.user.email!, email_confirmed_at: session.user.email_confirmed_at ?? undefined },
+          user: { id: userId, email: userEmail, email_confirmed_at: emailConfirmedAt },
           account: cached?.account ?? prev.account,
           activeProfile: cached?.activeProfile ?? prev.activeProfile,
           profiles: cached?.profiles ?? prev.profiles,
           membership: cached?.membership ?? prev.membership,
-          // Only mark as "done loading" if we have cached data — otherwise
-          // keep loading until the background fetch completes to avoid
-          // showing empty states that flash to populated states.
           isLoading: !hasCachedData && !prev.account,
           fetchError: false,
         }));
 
-        // Fetch fresh data in the background. Don't block the user.
+        // Fetch fresh data in the background.
         // Only retry (once) if the account row is missing (DB trigger delay),
         // NOT on timeout — retrying a timeout just doubles the wait.
         const version = ++versionRef.current;
@@ -693,18 +693,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
                   fetchError: false,
                 }));
               } else {
-                setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+                setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
               }
             } catch {
               if (cancelled || versionRef.current !== version) return;
-              setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+              setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
             }
           }
         } catch (err) {
           // Timeout or network error — don't retry, just use cache
           console.error("[olera] SIGNED_IN fetch failed:", err);
           if (cancelled || versionRef.current !== version) return;
-          setState((prev) => ({ ...prev, isLoading: false, fetchError: !cached?.account }));
+          setState((prev) => ({ ...prev, isLoading: false, fetchError: true }));
         }
       }
 

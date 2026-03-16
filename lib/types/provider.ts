@@ -403,6 +403,26 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
   const primaryImage = bp.image_url || metaImages[0] || null;
   const hasImage = !!primaryImage;
 
+  // Pricing: read from metadata fields, fall back to "Contact for pricing"
+  const contactForPricing = meta?.contact_for_pricing === true;
+  let priceRange = "Contact for pricing";
+
+  if (!contactForPricing) {
+    const lowerPrice = meta?.lower_price as number | undefined;
+    const upperPrice = meta?.upper_price as number | undefined;
+    const frequency = (meta?.price_frequency as string | undefined) || "per month";
+    const suffix = frequency === "per hour" ? "/hr" : frequency === "per day" ? "/day" : "/mo";
+
+    if (lowerPrice && upperPrice && upperPrice > lowerPrice) {
+      priceRange = `$${lowerPrice.toLocaleString()} - $${upperPrice.toLocaleString()}${suffix}`;
+    } else if (lowerPrice) {
+      priceRange = `From $${lowerPrice.toLocaleString()}${suffix}`;
+    } else if (meta?.price_range) {
+      // Fallback to legacy price_range string
+      priceRange = meta.price_range as string;
+    }
+  }
+
   return {
     id: bp.id,
     slug: bp.slug,
@@ -413,7 +433,7 @@ export function businessProfileToCardFormat(bp: BusinessProfile): ProviderCardDa
     address: [bp.city, bp.state].filter(Boolean).join(", "),
     rating: 0,
     reviewCount: undefined,
-    priceRange: "Contact for pricing",
+    priceRange,
     primaryCategory: displayCategory,
     careTypes: bp.care_types.length > 0 ? bp.care_types : (supabaseCat ? [supabaseCat] : []),
     highlights: getHighlightsForCategory(supabaseCat),

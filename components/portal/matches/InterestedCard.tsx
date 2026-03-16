@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { avatarGradient } from "@/components/portal/ConnectionDetailContent";
 import type { InterestedProvider } from "@/hooks/useInterestedProviders";
 import type {
-  ProfileCategory,
   OrganizationMetadata,
   CaregiverMetadata,
 } from "@/lib/types";
@@ -46,28 +46,6 @@ function formatRelativeDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  home_care_agency: "Home Care Agency",
-  home_health_agency: "Home Health Agency",
-  hospice_agency: "Hospice Agency",
-  independent_living: "Independent Living",
-  assisted_living: "Assisted Living",
-  memory_care: "Memory Care",
-  nursing_home: "Nursing Home",
-  inpatient_hospice: "Inpatient Hospice",
-  rehab_facility: "Rehab Facility",
-  adult_day_care: "Adult Day Care",
-  wellness_center: "Wellness Center",
-  private_caregiver: "Private Caregiver",
-};
-
-function getCategoryLabel(category: ProfileCategory | null | undefined, type: string | undefined): string {
-  if (category && CATEGORY_LABELS[category]) return CATEGORY_LABELS[category];
-  if (type === "caregiver") return "Private Caregiver";
-  if (type === "organization") return "Care Provider";
-  return "Care Provider";
-}
-
 function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 3959;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -104,7 +82,97 @@ function getPricingLabel(profile: InterestedProvider["providerProfile"]): string
   const upper = meta.upper_price as number | undefined;
   if (lower && upper) return `$${lower}–$${upper}/hr`;
   if (lower) return `From $${lower}/hr`;
-  return "Contact for pricing";
+  return null;
+}
+
+// ── Info tooltip component ──
+function InfoTooltip({ text }: { text: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const tooltipWidth = 280;
+    const padding = 16;
+
+    // Calculate left position, keeping tooltip within viewport
+    let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+    if (left < padding) left = padding;
+    if (left + tooltipWidth > window.innerWidth - padding) {
+      left = window.innerWidth - tooltipWidth - padding;
+    }
+
+    setPos({
+      top: rect.bottom + 8,
+      left,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+      window.addEventListener("scroll", updatePosition, true);
+      window.addEventListener("resize", updatePosition);
+      return () => {
+        window.removeEventListener("scroll", updatePosition, true);
+        window.removeEventListener("resize", updatePosition);
+      };
+    }
+  }, [isOpen, updatePosition]);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        triggerRef.current?.contains(e.target as Node) ||
+        tooltipRef.current?.contains(e.target as Node)
+      ) return;
+      setIsOpen(false);
+    };
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [isOpen]);
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
+        className="inline-flex items-center justify-center w-4 h-4 rounded-full text-gray-400 hover:text-gray-500 transition-colors"
+        aria-label="More info"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+        </svg>
+      </button>
+      {mounted && isOpen && createPortal(
+        <div
+          ref={tooltipRef}
+          className="fixed z-[9999] w-[280px] animate-in fade-in duration-150"
+          style={{ top: pos.top, left: pos.left }}
+          onMouseEnter={() => setIsOpen(true)}
+          onMouseLeave={() => setIsOpen(false)}
+        >
+          <div className="bg-gray-900 text-white rounded-lg px-4 py-3 text-[13px] leading-relaxed shadow-lg">
+            {text}
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
 }
 
 export default function InterestedCard({
@@ -140,10 +208,6 @@ export default function InterestedCard({
   const matchReasons = ((item.metadata as Record<string, unknown>)?.match_reasons as string[]) || [];
   const reachOutNote = item.message || (item.metadata as Record<string, unknown>)?.reach_out_note as string | undefined;
   const dateLabel = formatRelativeDate(item.created_at);
-  const categoryLabel = getCategoryLabel(
-    profile?.category as ProfileCategory | null,
-    profile?.type
-  );
 
   // Provider care types
   const careTypes = profile?.care_types || [];
@@ -163,6 +227,10 @@ export default function InterestedCard({
   const providerMeta = profile?.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
   const pricingLabel = getPricingLabel(profile);
   const profileSlug = profile?.slug;
+  // Check if provider explicitly selected "Contact for pricing" or has no pricing
+  const contactForPricing = providerMeta?.contact_for_pricing === true;
+  const hasNoPricing = !pricingLabel && !contactForPricing;
+  const showPricingTooltip = contactForPricing || hasNoPricing;
 
   // Accepted payments
   const acceptedPayments = (providerMeta?.accepted_payments as string[]) || [];
@@ -170,8 +238,6 @@ export default function InterestedCard({
   if (providerMeta?.accepts_medicaid && !paymentMethods.includes("Medicaid")) paymentMethods.push("Medicaid");
   if (providerMeta?.accepts_medicare && !paymentMethods.includes("Medicare")) paymentMethods.push("Medicare");
   if (providerMeta?.accepts_private_insurance && !paymentMethods.includes("Private Health Insurance")) paymentMethods.push("Private Health Insurance");
-  const primaryPayment = paymentMethods[0] || null;
-  const remainingPayments = paymentMethods.slice(1);
 
   // Rating from iOS data (stored in metadata by hook)
   const googleRating = (providerMeta?.google_rating as number) || 0;
@@ -288,7 +354,7 @@ export default function InterestedCard({
     >
       {/* ── Card body ── */}
       <div className="p-7">
-        {/* Header: avatar + type/name/location + new badge + time */}
+        {/* Row 1: Provider identity — avatar + name + location | new badge + timestamp */}
         <div className="flex items-start gap-4">
           {imageUrl ? (
             <Image
@@ -308,9 +374,6 @@ export default function InterestedCard({
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider leading-none mb-1">
-              {categoryLabel}
-            </p>
             <h3
               className={[
                 "text-lg font-display leading-tight truncate",
@@ -344,126 +407,70 @@ export default function InterestedCard({
           </div>
         </div>
 
-        {/* ── Message from provider ── */}
-        {reachOutNote && !isDeclined && (
-          <div className="mt-5 bg-gray-50/80 rounded-xl px-5 py-4">
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              Their message to you
-            </p>
-            <p className={`text-[15px] text-gray-700 leading-relaxed ${isExpanded ? "" : "line-clamp-3"}`}>
-              {reachOutNote}
-            </p>
-          </div>
-        )}
-
-        {/* ── Description fallback if no note ── */}
-        {!reachOutNote && profile?.description && !isDeclined && (
-          <div className="mt-5 bg-gray-50/80 rounded-xl px-5 py-4">
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">
-              About this provider
-            </p>
-            <p className={`text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-3"}`}>
-              {profile.description}
-            </p>
-          </div>
-        )}
-
-        {/* ── Match stats row ── */}
-        {!isDeclined && (matchCount > 0 || driveTime) && (
-          <div className="flex items-center gap-5 mt-5">
-            {matchCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-500">
-                <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-                <span className="font-semibold text-gray-700">{matchCount} service{matchCount !== 1 ? "s" : ""}</span>{" "}
-                match your needs
-              </span>
-            )}
-            {driveTime && (
-              <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-500">
-                <svg className="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                </svg>
-                <span className="font-semibold text-gray-700">{driveTime}</span> from you
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* ── Care type pills ── */}
-        {careTypes.length > 0 && !isDeclined && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {careTypes.slice(0, isExpanded ? 8 : 4).map((ct) => {
-              const isMatched = matchReasons.some(
-                (r) => r.toLowerCase() === ct.toLowerCase()
-              );
-              return (
-                <span
-                  key={ct}
-                  className={[
-                    "inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border",
-                    isMatched
-                      ? "border-[#F5F4F1] text-gray-700 bg-[#F5F4F1]"
-                      : "border-warm-100 text-gray-500 bg-white",
-                  ].join(" ")}
-                >
-                  {isMatched && (
-                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                  )}
-                  {ct}
+        {/* Row 2: Quick compatibility scan — care types (left) | payment types (right) */}
+        {!isDeclined && (careTypes.length > 0 || paymentMethods.length > 0) && (
+          <div className="flex items-start justify-between gap-4 mt-4">
+            {/* Care type tags */}
+            <div className="flex flex-wrap gap-2 min-w-0 flex-1">
+              {careTypes.slice(0, isExpanded ? 8 : 3).map((ct) => {
+                const isMatched = matchReasons.some(
+                  (r) => r.toLowerCase() === ct.toLowerCase()
+                );
+                return (
+                  <span
+                    key={ct}
+                    className={[
+                      "inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border",
+                      isMatched
+                        ? "border-[#F5F4F1] text-gray-700 bg-[#F5F4F1]"
+                        : "border-warm-100 text-gray-500 bg-white",
+                    ].join(" ")}
+                  >
+                    {isMatched && (
+                      <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                    )}
+                    {ct}
+                  </span>
+                );
+              })}
+              {!isExpanded && careTypes.length > 3 && (
+                <span className="text-[13px] text-gray-400 self-center pl-1">
+                  +{careTypes.length - 3}
                 </span>
-              );
-            })}
-            {!isExpanded && careTypes.length > 4 && (
-              <span className="text-[13px] text-gray-400 self-center pl-1">
-                +{careTypes.length - 4}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* ── Accepted Payments ── */}
-        {!isDeclined && (
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mr-1">
-              Payment
-            </span>
-            {primaryPayment ? (
-              <>
-                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border border-primary-100 text-primary-700 bg-primary-50/40">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
-                  </svg>
-                  {primaryPayment}
-                </span>
-                {paymentExpanded ? (
-                  remainingPayments.map((p) => (
-                    <span key={p} className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-500 bg-white">
-                      {p}
-                    </span>
-                  ))
-                ) : (
-                  remainingPayments.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setPaymentExpanded(true)}
-                      className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors"
-                    >
-                      +{remainingPayments.length} more
-                    </button>
-                  )
+              )}
+            </div>
+            {/* Payment type tags */}
+            {paymentMethods.length > 0 && (
+              <div className="flex flex-wrap gap-2 shrink-0">
+                {paymentMethods.slice(0, paymentExpanded ? paymentMethods.length : 2).map((p) => (
+                  <span
+                    key={p}
+                    className="inline-flex items-center gap-1.5 text-[13px] font-medium px-3 py-1.5 rounded-full border border-primary-100 text-primary-700 bg-primary-50/40"
+                  >
+                    {p}
+                  </span>
+                ))}
+                {!paymentExpanded && paymentMethods.length > 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentExpanded(true)}
+                    className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-warm-100 text-gray-400 bg-white hover:border-gray-300 hover:text-gray-500 transition-colors"
+                  >
+                    +{paymentMethods.length - 2}
+                  </button>
                 )}
-              </>
-            ) : (
-              <span className="inline-flex items-center text-[13px] font-medium px-3 py-1.5 rounded-full border border-dashed border-warm-200 text-gray-400 bg-white">
-                Not specified
-              </span>
+              </div>
             )}
           </div>
+        )}
+
+        {/* Row 3: Provider message — no label, 2 lines max when collapsed */}
+        {reachOutNote && !isDeclined && (
+          <p className={`mt-4 text-[15px] text-gray-600 leading-relaxed ${isExpanded ? "" : "line-clamp-2"}`}>
+            {reachOutNote}
+          </p>
         )}
       </div>
 
@@ -511,18 +518,30 @@ export default function InterestedCard({
 
                 {/* Info cards: Pricing + Rating */}
                 <div className="grid grid-cols-2 gap-3">
+                  {/* Pricing card */}
                   <div className="rounded-xl border border-gray-200/80 bg-white px-5 py-4">
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                      Pricing
-                    </p>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                        Pricing
+                      </p>
+                      {showPricingTooltip && (
+                        <InfoTooltip text="This provider's pricing is tailored to each person's care needs. Reach out to get a quote based on your specific situation." />
+                      )}
+                    </div>
                     <p className="text-[15px] font-semibold text-gray-900">
                       {pricingLabel || "Contact for pricing"}
                     </p>
                   </div>
+                  {/* Rating card */}
                   <div className="rounded-xl border border-gray-200/80 bg-white px-5 py-4">
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
-                      Rating
-                    </p>
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                        Rating
+                      </p>
+                      {googleRating === 0 && (
+                        <InfoTooltip text="This provider recently joined Olera. You can still reach out — many great providers are new to our platform." />
+                      )}
+                    </div>
                     {googleRating > 0 ? (
                       <div className="flex items-center gap-1.5">
                         <svg className="w-4 h-4 text-primary-500" viewBox="0 0 20 20" fill="currentColor">

@@ -29,14 +29,15 @@ import EditPaymentModal from "./edit-modals/EditPaymentModal";
 
 export default function DashboardPage() {
   const profile = useProviderProfile();
-  const { metadata, loading } = useProviderDashboardData(profile);
+  const { metadata } = useProviderDashboardData(profile);
   const { refreshAccountData } = useAuth();
 
   // Modal state
   const [editingSection, setEditingSection] = useState<SectionId | null>(null);
 
-  // Loading state
-  if (!profile || loading) {
+  // Only show skeleton if we don't have a profile yet
+  // Metadata is returned immediately (base data), enrichment happens in background
+  if (!profile) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

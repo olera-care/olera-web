@@ -833,7 +833,7 @@ export default function PostAuthOnboarding({
               </svg>
             </div>
             <h2 className="font-display text-2xl sm:text-[28px] text-gray-900 tracking-tight">
-              Want providers to come to you?
+              Let providers come to you
             </h2>
             <p className="text-gray-500 mt-3 text-[15px] leading-relaxed">
               Qualified providers in {city || "your area"} will reach out directly. You choose who to talk to.
@@ -858,7 +858,7 @@ export default function PostAuthOnboarding({
               disabled={loading}
               className="w-full text-center py-4 text-[15px] text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
             >
-              I&apos;ll browse on my own
+              I&apos;ll explore on my own
             </button>
           </div>
 

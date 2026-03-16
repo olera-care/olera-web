@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import { saveProfile } from "./save-profile";
-import ModalFooter from "./ModalFooter";
 import type { BaseEditModalProps } from "./types";
 
 const COMMON_SERVICES = [
@@ -25,8 +24,8 @@ const RATE_TYPES = [
   { value: "per month", label: "Monthly" },
   { value: "per day", label: "Daily" },
   { value: "per hour", label: "Hourly" },
-  { value: "per visit", label: "Per Visit" },
-  { value: "flat rate", label: "Flat Rate" },
+  { value: "per visit", label: "Per visit" },
+  { value: "flat rate", label: "Flat rate" },
 ];
 
 interface PricingRow {
@@ -56,6 +55,12 @@ function formatStartingPrice(price: string, type: string): string {
   return `$${formatted} ${label}`;
 }
 
+function formatRateDisplay(rate: string, rateType: string): string {
+  if (!rate) return "";
+  const label = RATE_TYPES.find((r) => r.value === rateType)?.label || rateType;
+  return `$${rate} ${label.toLowerCase()}`;
+}
+
 export default function EditPricingModal({
   profile,
   metadata,
@@ -81,9 +86,14 @@ export default function EditPricingModal({
         }))
       : []
   );
-  const [customService, setCustomService] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Add service inline form state
+  const [isAddingService, setIsAddingService] = useState(false);
+  const [newService, setNewService] = useState("");
+  const [newRate, setNewRate] = useState("");
+  const [newRateType, setNewRateType] = useState("per month");
 
   const composedRange = formatStartingPrice(startingPrice, priceType);
   const originalRows =
@@ -103,33 +113,31 @@ export default function EditPricingModal({
     JSON.stringify(normalizedRows) !== JSON.stringify(originalRows);
 
   const selectedServices = rows.map((r) => r.service);
-
-  function toggleService(service: string) {
-    if (selectedServices.includes(service)) {
-      setRows((prev) => prev.filter((r) => r.service !== service));
-    } else {
-      setRows((prev) => [...prev, { service, rate: "", rateType: "per month" }]);
-    }
-  }
-
-  function addCustomService() {
-    const trimmed = customService.trim();
-    if (trimmed && !selectedServices.includes(trimmed)) {
-      setRows((prev) => [...prev, { service: trimmed, rate: "", rateType: "per month" }]);
-    }
-    setCustomService("");
-  }
-
-  function updateRow(service: string, field: "rate" | "rateType", value: string) {
-    setRows((prev) =>
-      prev.map((row) =>
-        row.service === service ? { ...row, [field]: value } : row
-      )
-    );
-  }
+  const availableServices = COMMON_SERVICES.filter(
+    (s) => !selectedServices.includes(s)
+  );
 
   function removeRow(service: string) {
     setRows((prev) => prev.filter((r) => r.service !== service));
+  }
+
+  function handleAddService() {
+    if (!newService.trim()) return;
+    setRows((prev) => [
+      ...prev,
+      { service: newService, rate: newRate, rateType: newRateType },
+    ]);
+    setNewService("");
+    setNewRate("");
+    setNewRateType("per month");
+    setIsAddingService(false);
+  }
+
+  function handleCancelAdd() {
+    setNewService("");
+    setNewRate("");
+    setNewRateType("per month");
+    setIsAddingService(false);
   }
 
   async function handleSave() {
@@ -163,81 +171,152 @@ export default function EditPricingModal({
     }
   }
 
+  // Custom footer with hairline border
+  const footer = (
+    <div className="pt-4 border-t border-gray-200 flex items-center justify-between">
+      {guidedMode ? (
+        <>
+          <div className="flex items-center gap-3">
+            {onGuidedBack ? (
+              <button
+                type="button"
+                onClick={onGuidedBack}
+                disabled={saving}
+                className="text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Back
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Skip
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-gray-400">
+              {guidedStep} of {guidedTotal}
+            </span>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[14px] font-semibold rounded-xl transition-colors"
+            >
+              {saving
+                ? "Saving..."
+                : guidedStep === guidedTotal
+                  ? "Finish"
+                  : hasChanges
+                    ? "Save & Next"
+                    : "Next"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[14px] font-semibold rounded-xl transition-colors"
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <Modal
       isOpen
       onClose={onClose}
-      title="Edit Pricing"
-      size="2xl"
-      footer={
-        <ModalFooter
-          saving={saving}
-          hasChanges={hasChanges}
-          onClose={onClose}
-          onSave={handleSave}
-          guidedMode={guidedMode}
-          guidedStep={guidedStep}
-          guidedTotal={guidedTotal}
-          onGuidedBack={onGuidedBack}
-        />
-      }
+      title="Pricing"
+      size="md"
+      footer={footer}
     >
-      <div className="space-y-5 pt-2">
-        {/* Starting Price Section */}
-        <div className="space-y-3">
-          <label className="block text-base font-medium text-gray-700">
-            Starting Price
-          </label>
-
-          {/* Contact for pricing toggle */}
-          <button
-            type="button"
-            onClick={() => setContactForPricing(!contactForPricing)}
-            className="flex items-center gap-3 w-full"
-          >
-            <div
-              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 shrink-0 ${
-                contactForPricing
-                  ? "bg-primary-500 border-primary-500"
-                  : "border-warm-300 bg-white"
+      <div className="pt-2">
+        {/* Section 1 — Display toggle */}
+        <div className="pb-5">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setContactForPricing(false)}
+              className={`py-3 px-4 rounded-xl text-[14px] font-medium border-2 transition-all duration-200 ${
+                !contactForPricing
+                  ? "border-primary-500 bg-primary-50 text-primary-700"
+                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
               }`}
             >
-              {contactForPricing && (
-                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </div>
-            <span className="text-[15px] text-gray-700">Contact for pricing</span>
-          </button>
+              Show rates
+            </button>
+            <button
+              type="button"
+              onClick={() => setContactForPricing(true)}
+              className={`py-3 px-4 rounded-xl text-[14px] font-medium border-2 transition-all duration-200 ${
+                contactForPricing
+                  ? "border-primary-500 bg-primary-50 text-primary-700"
+                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+              }`}
+            >
+              Contact only
+            </button>
+          </div>
+        </div>
 
-          {/* Starting price input */}
-          {!contactForPricing && (
-            <div className="space-y-3">
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">$</span>
+        {contactForPricing ? (
+          /* Contact only state — centered helper text */
+          <div className="py-12 text-center">
+            <p className="text-[14px] text-gray-400 leading-relaxed">
+              Families will see &ldquo;Contact for pricing&rdquo; on your profile.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Section 2 — Starting from */}
+            <div className="py-5 border-t border-gray-100">
+              <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Starting from
+              </label>
+              <div className="relative mb-3">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[15px] pointer-events-none">
+                  $
+                </span>
                 <input
                   type="text"
                   inputMode="numeric"
                   value={startingPrice}
-                  onChange={(e) => setStartingPrice(e.target.value.replace(/[^\d,]/g, ""))}
-                  placeholder="e.g. 3,500"
+                  onChange={(e) =>
+                    setStartingPrice(e.target.value.replace(/[^\d,]/g, ""))
+                  }
+                  placeholder="0"
                   aria-label="Starting price"
-                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
+                  className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-[15px] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
                 />
               </div>
-
-              {/* Rate type pills */}
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {RATE_TYPES.map((type) => (
                   <button
                     key={type.value}
                     type="button"
                     onClick={() => setPriceType(type.value)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
+                    className={`px-3.5 py-2 rounded-full text-[13px] font-medium border transition-all duration-200 ${
                       priceType === type.value
-                        ? "bg-primary-50 border-primary-300 text-primary-700"
-                        : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
+                        ? "border-primary-500 bg-primary-50 text-primary-700"
+                        : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
                     }`}
                   >
                     {type.label}
@@ -245,144 +324,190 @@ export default function EditPricingModal({
                 ))}
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Service Pricing Section */}
-        <div className="space-y-3">
-          <label className="block text-base font-medium text-gray-700">
-            Service Pricing
-          </label>
+            {/* Section 3 — Service rates */}
+            <div className="py-5 border-t border-gray-100">
+              <label className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Service rates
+              </label>
 
-          {/* Service pills */}
-          <div className="flex flex-wrap gap-2">
-            {COMMON_SERVICES.map((service) => {
-              const isSelected = selectedServices.includes(service);
-              return (
-                <button
-                  key={service}
-                  type="button"
-                  role="checkbox"
-                  aria-checked={isSelected}
-                  onClick={() => toggleService(service)}
-                  className={`px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                    isSelected
-                      ? "bg-primary-50 border-primary-300 text-primary-700"
-                      : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
-                  }`}
-                >
-                  {service}
-                </button>
-              );
-            })}
-            {/* Custom services not in the predefined list */}
-            {selectedServices
-              .filter((s) => !COMMON_SERVICES.includes(s))
-              .map((service) => (
-                <button
-                  key={service}
-                  type="button"
-                  role="checkbox"
-                  aria-checked
-                  onClick={() => toggleService(service)}
-                  className="px-3.5 py-2 rounded-xl text-sm font-medium border bg-primary-50 border-primary-300 text-primary-700 transition-all duration-200"
-                >
-                  {service}
-                </button>
-              ))}
-          </div>
-
-          {/* Custom service input */}
-          <div className="relative">
-            <input
-              type="text"
-              value={customService}
-              onChange={(e) => setCustomService(e.target.value)}
-              placeholder="Add custom service"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  addCustomService();
-                }
-              }}
-              className="w-full pl-4 pr-16 py-3 rounded-xl border border-gray-300 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
-            />
-            <button
-              type="button"
-              onClick={addCustomService}
-              disabled={!customService.trim()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            >
-              Add
-            </button>
-          </div>
-        </div>
-
-        {/* Selected service pricing cards */}
-        {rows.length > 0 && (
-          <div className="space-y-3">
-            {rows.map((row) => (
-              <div
-                key={row.service}
-                className="rounded-xl border border-warm-100 bg-vanilla-50/50 p-4 space-y-3"
-              >
-                {/* Service header with remove */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-semibold text-gray-900">
-                    {row.service}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeRow(row.service)}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-warm-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
-                    aria-label={`Remove ${row.service}`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Rate input with $ prefix */}
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none">$</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={row.rate}
-                    onChange={(e) => updateRow(row.service, "rate", e.target.value.replace(/^\$/, ""))}
-                    placeholder="0"
-                    aria-label={`Rate for ${row.service}`}
-                    className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-gray-300 bg-white text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 min-h-[44px]"
-                  />
-                </div>
-
-                {/* Rate type pills */}
-                <div className="flex flex-wrap gap-1.5">
-                  {RATE_TYPES.map((type) => (
-                    <button
-                      key={type.value}
-                      type="button"
-                      onClick={() => updateRow(row.service, "rateType", type.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-200 ${
-                        row.rateType === type.value
-                          ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200"
-                      }`}
+              {/* Existing service rows */}
+              {rows.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {rows.map((row) => (
+                    <div
+                      key={row.service}
+                      className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gray-50"
                     >
-                      {type.label}
-                    </button>
+                      <span className="text-[14px] font-medium text-gray-900 flex-1 min-w-0 truncate">
+                        {row.service}
+                      </span>
+                      <span className="text-[14px] text-gray-500 shrink-0">
+                        {formatRateDisplay(row.rate, row.rateType) || "No rate"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeRow(row.service)}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 shrink-0"
+                        aria-label={`Remove ${row.service}`}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
                   ))}
                 </div>
-              </div>
-            ))}
-          </div>
+              )}
+
+              {/* Add service inline form */}
+              {isAddingService ? (
+                <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+                  {/* Service dropdown */}
+                  <div>
+                    <select
+                      value={newService}
+                      onChange={(e) => setNewService(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 appearance-none"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: "right 0.75rem center",
+                        backgroundRepeat: "no-repeat",
+                        backgroundSize: "1.25rem 1.25rem",
+                        paddingRight: "2.5rem",
+                      }}
+                    >
+                      <option value="">Select a service</option>
+                      {availableServices.map((service) => (
+                        <option key={service} value={service}>
+                          {service}
+                        </option>
+                      ))}
+                      <option value="__custom__">+ Custom service</option>
+                    </select>
+                  </div>
+
+                  {/* Custom service input */}
+                  {newService === "__custom__" && (
+                    <input
+                      type="text"
+                      placeholder="Enter service name"
+                      onChange={(e) => setNewService(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-[14px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                    />
+                  )}
+
+                  {/* Price input */}
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[14px] pointer-events-none">
+                      $
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={newRate}
+                      onChange={(e) =>
+                        setNewRate(e.target.value.replace(/[^\d,]/g, ""))
+                      }
+                      placeholder="0"
+                      aria-label="Service rate"
+                      className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-gray-200 text-[14px] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500"
+                    />
+                  </div>
+
+                  {/* Frequency dropdown */}
+                  <select
+                    value={newRateType}
+                    onChange={(e) => setNewRateType(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-[14px] text-gray-900 bg-white focus:outline-none focus:ring-2 focus:border-transparent focus:ring-primary-500 appearance-none"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                      backgroundPosition: "right 0.75rem center",
+                      backgroundRepeat: "no-repeat",
+                      backgroundSize: "1.25rem 1.25rem",
+                      paddingRight: "2.5rem",
+                    }}
+                  >
+                    {RATE_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Confirm / Cancel */}
+                  <div className="flex items-center justify-end gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleCancelAdd}
+                      className="text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddService}
+                      disabled={!newService.trim() || newService === "__custom__"}
+                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[13px] font-semibold rounded-lg transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Add service button */
+                <button
+                  type="button"
+                  onClick={() => setIsAddingService(true)}
+                  className="w-full py-3 px-4 rounded-xl border-2 border-dashed border-gray-200 text-[14px] font-medium text-gray-500 hover:border-gray-300 hover:text-gray-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Add a service rate
+                </button>
+              )}
+            </div>
+          </>
         )}
 
         {error && (
-          <div className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4" role="alert">
-            <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          <div
+            className="flex items-start gap-3 rounded-xl bg-red-50 border border-red-100 p-4 mt-4"
+            role="alert"
+          >
+            <svg
+              className="w-5 h-5 text-red-400 shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+              />
             </svg>
             <p className="text-sm text-red-700 flex-1">{error}</p>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth, type AuthFlowIntent, type AuthFlowProviderType } from "@/components/auth/AuthProvider";
@@ -9,6 +9,8 @@ import type { Profile, ProfileCategory } from "@/lib/types";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
+import { useCitySearch } from "@/hooks/use-city-search";
+import { useClickOutside } from "@/hooks/use-click-outside";
 
 // ============================================================
 // Types
@@ -137,6 +139,18 @@ export default function PostAuthOnboarding({
   const [state, setState] = useState(claimProfile?.state || "");
   const [careTypes, setCareTypes] = useState<string[]>(claimProfile?.care_types || []);
   const [category, setCategory] = useState<ProfileCategory | null>(claimProfile?.category || null);
+
+  // City picker state
+  const [locationInput, setLocationInput] = useState(
+    claimProfile?.city && claimProfile?.state
+      ? `${claimProfile.city}, ${claimProfile.state}`
+      : ""
+  );
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+  const cityInputRef = useRef<HTMLInputElement>(null);
+  const { results: cityResults, preload: preloadCities } = useCitySearch(locationInput);
+  useClickOutside(cityDropdownRef, () => setShowCityDropdown(false));
 
   // Org search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -736,21 +750,108 @@ export default function PostAuthOnboarding({
             />
           ) : null}
 
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="City"
-              type="text"
-              value={city}
-              onChange={(e) => setCity((e.target as HTMLInputElement).value)}
-              placeholder="City"
-            />
-            <Input
-              label="State"
-              type="text"
-              value={state}
-              onChange={(e) => setState((e.target as HTMLInputElement).value)}
-              placeholder="State"
-            />
+          {/* City picker with autocomplete */}
+          <div className="relative" ref={cityDropdownRef}>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              City
+            </label>
+            <div
+              className={`flex items-center px-4 py-3 bg-white rounded-xl border transition-colors cursor-text ${
+                showCityDropdown ? "border-primary-400 ring-2 ring-primary-100" : "border-gray-200 hover:border-gray-300"
+              }`}
+              onClick={() => {
+                setShowCityDropdown(true);
+                cityInputRef.current?.focus();
+              }}
+            >
+              <svg
+                className="w-5 h-5 text-gray-400 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <input
+                ref={cityInputRef}
+                type="text"
+                value={locationInput}
+                onChange={(e) => {
+                  setLocationInput(e.target.value);
+                  setShowCityDropdown(true);
+                  // Clear city/state when user types
+                  setCity("");
+                  setState("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && cityResults.length > 0 && locationInput.trim()) {
+                    e.preventDefault();
+                    const selected = cityResults[0];
+                    setLocationInput(selected.full);
+                    setCity(selected.city);
+                    setState(selected.state);
+                    setShowCityDropdown(false);
+                  }
+                }}
+                onFocus={() => {
+                  setShowCityDropdown(true);
+                  preloadCities();
+                }}
+                placeholder="Search city or ZIP code"
+                className="w-full ml-3 bg-transparent border-none text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-0 text-[15px]"
+              />
+            </div>
+
+            {/* City dropdown */}
+            {showCityDropdown && (
+              <div className="absolute left-0 top-[calc(100%+4px)] w-full bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50 max-h-[240px] overflow-y-auto">
+                {!locationInput.trim() && cityResults.length > 0 && (
+                  <div className="px-4 pt-1 pb-1">
+                    <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Popular cities</span>
+                  </div>
+                )}
+                {cityResults.length > 0 ? (
+                  cityResults.map((loc, index) => (
+                    <button
+                      key={loc.full}
+                      type="button"
+                      onClick={() => {
+                        setLocationInput(loc.full);
+                        setCity(loc.city);
+                        setState(loc.state);
+                        setShowCityDropdown(false);
+                      }}
+                      className={`flex items-center gap-2.5 w-full px-4 py-2.5 text-left text-sm transition-colors ${
+                        index === 0 && locationInput.trim()
+                          ? "bg-gray-50 text-gray-900"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span>{loc.full}</span>
+                    </button>
+                  ))
+                ) : locationInput.trim() ? (
+                  <div className="px-4 py-3 text-sm text-gray-500">
+                    No cities found
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
 
           {intent === "provider" && providerType === "organization" && (
@@ -833,7 +934,7 @@ export default function PostAuthOnboarding({
               </svg>
             </div>
             <h2 className="font-display text-2xl sm:text-[28px] text-gray-900 tracking-tight">
-              Want providers to come to you?
+              Let providers come to you
             </h2>
             <p className="text-gray-500 mt-3 text-[15px] leading-relaxed">
               Qualified providers in {city || "your area"} will reach out directly. You choose who to talk to.
@@ -858,7 +959,7 @@ export default function PostAuthOnboarding({
               disabled={loading}
               className="w-full text-center py-4 text-[15px] text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
             >
-              I&apos;ll browse on my own
+              I&apos;ll explore on my own
             </button>
           </div>
 

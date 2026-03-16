@@ -1269,7 +1269,7 @@ function FamilyCareCard({
               <div className="hidden lg:flex items-center gap-1.5">
                 <InfoIcon className="w-4 h-4 text-gray-400" />
                 <p className="text-[13px] text-gray-400">
-                  Your profile will be shared with this family
+                  Your profile will be visible to this family
                 </p>
               </div>
               <button

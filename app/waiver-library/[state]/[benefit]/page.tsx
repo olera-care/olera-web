@@ -138,7 +138,7 @@ export default async function BenefitPage({ params }: Props) {
               href="/benefits/finder"
               className="shrink-0 inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white font-semibold text-sm rounded-xl hover:bg-primary-500 transition-colors"
             >
-              Check My Benefits
+              Find My Savings
             </Link>
           </div>
         </div>
@@ -334,7 +334,7 @@ export default async function BenefitPage({ params }: Props) {
                 href="/benefits/finder"
                 className="inline-flex items-center justify-center px-8 py-3 bg-white text-primary-900 font-semibold rounded-xl shadow-lg shadow-black/20 hover:shadow-xl hover:bg-primary-50 transition-all"
               >
-                Check My Benefits
+                Find My Savings
                 <svg
                   className="ml-2 w-4 h-4"
                   fill="none"

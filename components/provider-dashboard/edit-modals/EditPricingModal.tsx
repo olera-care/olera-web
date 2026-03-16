@@ -64,7 +64,8 @@ function buildPriceRangeString(
   upper: number | undefined,
   frequency: string
 ): string {
-  const suffix = FREQUENCY_SUFFIX[frequency] || "/mo";
+  // Use hasOwnProperty check to handle empty string for flat rate
+  const suffix = frequency in FREQUENCY_SUFFIX ? FREQUENCY_SUFFIX[frequency] : "/mo";
   if (lower && upper && upper > lower) {
     return `$${lower.toLocaleString()} - $${upper.toLocaleString()}${suffix}`;
   }
@@ -260,29 +261,22 @@ export default function EditPricingModal({
           <label className="block text-[13px] font-semibold text-gray-900 uppercase tracking-wide mb-3">
             Pricing display
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={() => {
                 setContactForPricing(false);
                 setHasInteracted(true);
               }}
-              className={`relative flex flex-col items-center gap-2 px-4 py-4 rounded-2xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 !contactForPricing
-                  ? "bg-primary-50 ring-2 ring-primary-500 text-primary-700 shadow-sm"
+                  ? "bg-primary-50 ring-2 ring-primary-500 text-primary-700"
                   : "bg-gray-50 ring-1 ring-gray-200 text-gray-600 hover:ring-gray-300 hover:bg-gray-100"
               }`}
             >
-              {!contactForPricing && (
-                <span className="absolute top-2 right-2 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              )}
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${!contactForPricing ? "bg-primary-100" : "bg-gray-200"}`}>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${!contactForPricing ? "bg-primary-100" : "bg-gray-200"}`}>
                 <svg
-                  className={`w-5 h-5 ${!contactForPricing ? "text-primary-600" : "text-gray-500"}`}
+                  className={`w-4 h-4 ${!contactForPricing ? "text-primary-600" : "text-gray-500"}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -296,6 +290,11 @@ export default function EditPricingModal({
                 </svg>
               </div>
               <span>Show my rates</span>
+              {!contactForPricing && (
+                <svg className="w-4 h-4 text-primary-600 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
             </button>
             <button
               type="button"
@@ -303,22 +302,15 @@ export default function EditPricingModal({
                 setContactForPricing(true);
                 setHasInteracted(true);
               }}
-              className={`relative flex flex-col items-center gap-2 px-4 py-4 rounded-2xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 contactForPricing
-                  ? "bg-primary-50 ring-2 ring-primary-500 text-primary-700 shadow-sm"
+                  ? "bg-primary-50 ring-2 ring-primary-500 text-primary-700"
                   : "bg-gray-50 ring-1 ring-gray-200 text-gray-600 hover:ring-gray-300 hover:bg-gray-100"
               }`}
             >
-              {contactForPricing && (
-                <span className="absolute top-2 right-2 w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              )}
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${contactForPricing ? "bg-primary-100" : "bg-gray-200"}`}>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${contactForPricing ? "bg-primary-100" : "bg-gray-200"}`}>
                 <svg
-                  className={`w-5 h-5 ${contactForPricing ? "text-primary-600" : "text-gray-500"}`}
+                  className={`w-4 h-4 ${contactForPricing ? "text-primary-600" : "text-gray-500"}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -332,6 +324,11 @@ export default function EditPricingModal({
                 </svg>
               </div>
               <span>Contact for pricing</span>
+              {contactForPricing && (
+                <svg className="w-4 h-4 text-primary-600 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
             </button>
           </div>
           <p className="text-[13px] text-gray-500 mt-3 text-center">
@@ -404,12 +401,11 @@ export default function EditPricingModal({
                 />
               </div>
             </div>
-            {(currentLower || currentUpper) && (
-              <div className="mt-3 px-3 py-2 bg-primary-50 rounded-lg">
-                <p className="text-[13px] text-primary-700 font-medium">
-                  Preview: {buildPriceRangeString(currentLower, currentUpper, priceFrequency) || "—"}
-                </p>
-              </div>
+            {currentLower && (
+              <p className="mt-3 text-sm text-gray-900">
+                <span className="text-gray-500">Displays as:</span>{" "}
+                <span className="font-semibold">{buildPriceRangeString(currentLower, currentUpper, priceFrequency)}</span>
+              </p>
             )}
           </div>
         )}

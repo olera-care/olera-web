@@ -11,6 +11,8 @@ export interface ConnectionWithProfile extends Connection {
   toProfile: Profile | null;
 }
 
+type RoleFilter = "all" | "family" | "provider";
+
 interface ConversationListProps {
   connections: ConnectionWithProfile[];
   selectedId: string | null;
@@ -26,6 +28,14 @@ interface ConversationListProps {
   className?: string;
   /** "family" (default) or "provider" — controls empty state copy */
   variant?: "family" | "provider";
+  /** Role filter for dual-account users: "all", "family", or "provider" */
+  roleFilter?: RoleFilter;
+  /** Callback when role filter changes */
+  onRoleFilterChange?: (filter: RoleFilter) => void;
+  /** Set of provider profile IDs (used for filtering) */
+  providerProfileIds?: Set<string>;
+  /** Whether to show role filter pills (only for dual-account users) */
+  showRoleFilters?: boolean;
 }
 
 /** Deterministic gradient for fallback avatars */
@@ -207,6 +217,10 @@ export default function ConversationList({
   archivedCount = 0,
   className = "",
   variant = "family",
+  roleFilter = "all",
+  onRoleFilterChange,
+  providerProfileIds,
+  showRoleFilters = false,
 }: ConversationListProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -258,18 +272,33 @@ export default function ConversationList({
   // Close menu on outside click
   useClickOutside(menuRef, () => setMenuOpenId(null), !!menuOpenId);
 
+  // Helper to filter by role (family vs provider)
+  const filterByRole = (list: ConnectionWithProfile[]) => {
+    if (roleFilter === "all" || !providerProfileIds) return list;
+    return list.filter((c) => {
+      // Check if this connection involves a provider profile
+      const involvesProvider =
+        providerProfileIds.has(c.from_profile_id) || providerProfileIds.has(c.to_profile_id);
+      return roleFilter === "provider" ? involvesProvider : !involvesProvider;
+    });
+  };
+
   // Apply filters
   const filtered = (() => {
-    if (searchOpen) return searchConnections(getActiveConnections(connections), searchQuery, activeProfileId);
+    if (searchOpen) return filterByRole(searchConnections(getActiveConnections(connections), searchQuery, activeProfileId));
     let list = getActiveConnections(connections);
+    list = filterByRole(list);
     if (unreadOnly) list = list.filter((c) => !readIds.has(c.id));
     return list;
   })();
 
   // Past connections shown separately in accordion (not during search)
-  const pastConnections = searchOpen
-    ? searchConnections(getPastConnections(connections), searchQuery, activeProfileId)
-    : getPastConnections(connections);
+  const pastConnections = (() => {
+    const base = searchOpen
+      ? searchConnections(getPastConnections(connections), searchQuery, activeProfileId)
+      : getPastConnections(connections);
+    return filterByRole(base);
+  })();
 
   // Shared conversation item renderer
   const renderConversationItem = (conn: ConnectionWithProfile, isPast = false) => {
@@ -579,33 +608,69 @@ export default function ConversationList({
         {/* Filter pills — smooth collapse during search */}
         <div
           className={`overflow-hidden transition-all duration-200 ease-out ${
-            searchOpen ? "max-h-0 opacity-0" : "max-h-14 opacity-100"
+            searchOpen ? "max-h-0 opacity-0" : "max-h-24 opacity-100"
           }`}
         >
-          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 flex items-center gap-2.5">
-            {/* "All" toggle pill */}
-            <button
-              onClick={() => setUnreadOnly(false)}
-              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                !unreadOnly
-                  ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              All
-            </button>
+          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 space-y-2.5">
+            {/* Role filter pills — only shown for dual-account users */}
+            {showRoleFilters && onRoleFilterChange && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onRoleFilterChange("all")}
+                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                    roleFilter === "all"
+                      ? "bg-primary-600 text-white"
+                      : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => onRoleFilterChange("family")}
+                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                    roleFilter === "family"
+                      ? "bg-primary-600 text-white"
+                      : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Family
+                </button>
+                <button
+                  onClick={() => onRoleFilterChange("provider")}
+                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                    roleFilter === "provider"
+                      ? "bg-primary-600 text-white"
+                      : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Provider
+                </button>
+              </div>
+            )}
 
-            {/* "Unread" toggle pill */}
-            <button
-              onClick={() => setUnreadOnly(true)}
-              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                unreadOnly
-                  ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              Unread
-            </button>
+            {/* Read status filter pills */}
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setUnreadOnly(false)}
+                className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                  !unreadOnly
+                    ? "bg-gray-900 text-white"
+                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setUnreadOnly(true)}
+                className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
+                  unreadOnly
+                    ? "bg-gray-900 text-white"
+                    : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Unread
+              </button>
+            </div>
           </div>
         </div>
       </div>

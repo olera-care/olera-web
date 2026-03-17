@@ -172,10 +172,6 @@ export default function MedJobsPage() {
                   <p className="text-xs text-gray-500">Students applied</p>
                 </div>
               </div>
-              <div className="absolute -top-3 -right-3 sm:right-4 bg-white rounded-2xl shadow-lg border border-gray-100 px-4 py-3 hidden sm:block">
-                <p className="text-xs text-gray-400 mb-0.5">Avg. hours earned</p>
-                <p className="text-lg font-bold text-primary-600">240 hrs</p>
-              </div>
             </div>
           </div>
         </div>

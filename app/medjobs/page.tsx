@@ -305,10 +305,9 @@ export default function MedJobsPage() {
             {/* Photo mosaic */}
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-7 aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
-                {/* TODO: Replace — student helping senior with activity */}
                 <Image
-                  src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=500&h=667&fit=crop&crop=faces"
-                  alt="Student caregiver"
+                  src="/images/medjobs/college-caregivers.png"
+                  alt="College student caregivers"
                   width={500}
                   height={667}
                   className="w-full h-full object-cover"
@@ -316,20 +315,18 @@ export default function MedJobsPage() {
               </div>
               <div className="col-span-5 space-y-3">
                 <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100">
-                  {/* TODO: Replace — senior smiling */}
                   <Image
-                    src="https://images.unsplash.com/photo-1581579438747-104c53d7fbc4?w=400&h=400&fit=crop&crop=faces"
-                    alt="Happy senior"
+                    src="/images/medjobs/caregiving-support.jpg"
+                    alt="Students supporting seniors"
                     width={400}
                     height={400}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100">
-                  {/* TODO: Replace — another caregiving moment */}
                   <Image
-                    src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&h=500&fit=crop&crop=faces"
-                    alt="Pre-med student"
+                    src="/images/medjobs/students-group.jpg"
+                    alt="Pre-health student group"
                     width={400}
                     height={500}
                     className="w-full h-full object-cover"

@@ -152,8 +152,8 @@ export default function MedJobsPage() {
             <div className="relative">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-2xl shadow-gray-900/10">
                   <Image
-                  src="/images/medjobs/hero-student.jpg"
-                  alt="Student caregiver — Olera MedJobs"
+                  src="/images/medjobs/hero-caregiving.jpg"
+                  alt="Student caregiver helping a senior — Olera MedJobs"
                   width={800}
                   height={600}
                   className="w-full h-full object-cover"
@@ -220,10 +220,9 @@ export default function MedJobsPage() {
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             {/* Photo — sticky on scroll */}
             <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 lg:sticky lg:top-24 shadow-xl shadow-gray-900/5">
-              {/* TODO: Replace with real photo — student in scrubs or at facility */}
               <Image
-                src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&h=800&fit=crop&crop=faces"
-                alt="Pre-health student in clinical setting"
+                src="/images/medjobs/student-portrait.jpg"
+                alt="Pre-health student caregiver"
                 width={600}
                 height={800}
                 className="w-full h-full object-cover"

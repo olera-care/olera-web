@@ -38,7 +38,7 @@ export default function PortalProfilePage() {
             and connect you with the right providers.
           </p>
           <button
-            onClick={() => openAuth({ startAtPostAuth: true })}
+            onClick={() => openAuth()}
             className="inline-flex items-center px-6 py-3 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             Create family profile

@@ -11,13 +11,12 @@ import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
 import OtpInput from "@/components/auth/OtpInput";
-import PostAuthOnboarding from "@/components/auth/PostAuthOnboarding";
 
 // ============================================================
 // Types
 // ============================================================
 
-type AuthStep = "entry" | "sign-up" | "sign-in" | "verify-otp" | "post-auth";
+type AuthStep = "entry" | "sign-up" | "sign-in" | "verify-otp";
 
 export interface UnifiedAuthModalProps {
   isOpen: boolean;
@@ -39,9 +38,8 @@ export default function UnifiedAuthModal({
 
   // Determine initial step
   const getInitialStep = useCallback((): AuthStep => {
-    if (options.startAtPostAuth) return "post-auth";
     return "entry";
-  }, [options.startAtPostAuth]);
+  }, []);
 
   const [step, setStep] = useState<AuthStep>(getInitialStep);
   const [email, setEmail] = useState("");
@@ -200,7 +198,7 @@ export default function UnifiedAuthModal({
         return;
       }
 
-      // No email confirmation — proceed to post-auth
+      // No email confirmation — auth complete
       setLoading(false);
       handleAuthComplete();
     } catch (err) {
@@ -493,14 +491,13 @@ export default function UnifiedAuthModal({
 
   const handleAuthComplete = () => {
     // Zero network calls here. AuthProvider's SIGNED_IN listener handles
-    // data loading in the background, and its onboarding-detection useEffect
-    // will auto-open post-auth if onboarding is incomplete.
+    // data loading in the background.
 
     // Check for any deferred action (from options or sessionStorage)
     const deferred = options.deferred || getDeferredAction();
     const hasDeferredAction = !!deferred?.action;
 
-    // Deferred returnUrl — skip PostAuth entirely and redirect.
+    // Deferred returnUrl — skip welcome and redirect to where they were going.
     // Used by the claim page to return after auth (verification-first flow).
     if (deferred?.returnUrl && hasDeferredAction) {
       const safeReturnUrl = validateReturnUrl(deferred.returnUrl, "/browse");
@@ -514,7 +511,7 @@ export default function UnifiedAuthModal({
       (p) => p.type === "organization" || p.type === "caregiver"
     );
 
-    // Provider intent — route to provider onboarding
+    // Provider intent — route to provider onboarding (not /welcome)
     if (options.intent === "provider") {
       onClose();
       if (hasProviderProfile) {
@@ -525,19 +522,19 @@ export default function UnifiedAuthModal({
       return;
     }
 
-    // New signups with NO deferred action → show onboarding
-    // New signups WITH deferred action → skip onboarding, let them complete their action
-    if (otpContext === "signup" && !hasDeferredAction) {
-      setStep("post-auth");
+    // New family user (onboarding_completed=false) + no deferred action → /welcome
+    // Note: account may be null briefly after signup before SIGNED_IN fetches it,
+    // but refreshAccountData() is called before this, so it should be populated.
+    if (account?.onboarding_completed === false && !hasDeferredAction) {
+      onClose();
+      // Pass current page as ?next= so they return here after welcome
+      const currentPath = window.location.pathname + window.location.search;
+      router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);
       return;
     }
 
-    // Returning user or user with deferred action — close instantly.
-    // AuthProvider handles the rest (including deferred action redirects).
-    onClose();
-  };
-
-  const handlePostAuthComplete = () => {
+    // Close modal — user is authenticated (returning user or has deferred action).
+    // AuthProvider handles the rest (including deferred action execution).
     onClose();
   };
 
@@ -546,7 +543,6 @@ export default function UnifiedAuthModal({
   // ──────────────────────────────────────────────────────────
 
   const getSize = (): "sm" | "md" | "lg" => {
-    if (step === "post-auth") return "lg";
     return "sm";
   };
 
@@ -881,15 +877,6 @@ export default function UnifiedAuthModal({
         </div>
       )}
 
-      {/* ─── Post-Auth Onboarding ─── */}
-      {step === "post-auth" && (
-        <PostAuthOnboarding
-          intent={options.intent ?? null}
-          providerType={options.providerType ?? null}
-          claimProfile={options.claimProfile ?? null}
-          onComplete={handlePostAuthComplete}
-        />
-      )}
     </Modal>
   );
 }

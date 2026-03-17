@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
-// SessionStorage keys (must match PostAuthOnboarding)
+// SessionStorage keys for Matches activation
 const MATCHES_ACTIVATED_KEY = "olera_matches_activated";
 const MATCHES_CITY_KEY = "olera_matches_city";
 

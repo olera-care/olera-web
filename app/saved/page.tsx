@@ -313,7 +313,7 @@ export default function SavedProvidersPage() {
             )}
           </>
         ) : (
-          <div className="py-12 sm:py-16">
+          <div>
             <div className="relative w-full max-w-md">
               {/* Premium card */}
               <div className="relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden">

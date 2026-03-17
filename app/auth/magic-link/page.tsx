@@ -104,15 +104,14 @@ function MagicLinkHandler() {
 
         // Determine final destination
         // New user (onboarding_completed=false) + no deferred action → /welcome
+        // Note: middleware also handles this redirect, but we keep this for deferred action support
         const hasDeferredAction = !!getDeferredAction()?.action;
         const finalDestination = (isNewUser && !hasDeferredAction)
           ? `/welcome?next=${encodeURIComponent(next)}`
           : next;
 
-        // Small delay to show success state, then redirect
-        setTimeout(() => {
-          router.replace(finalDestination);
-        }, 500);
+        // Redirect immediately — no delay needed since middleware handles new user redirect
+        router.replace(finalDestination);
       } catch (err) {
         console.error("Magic link handler error:", err);
         setError("Something went wrong. Please try again.");

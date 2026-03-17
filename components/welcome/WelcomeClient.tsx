@@ -494,6 +494,14 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                   </div>
                 )}
               </div>
+
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="mt-8 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ← Back
+              </button>
             </div>
           )}
 
@@ -532,6 +540,14 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               >
                 Continue
               </button>
+
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="mt-4 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ← Back
+              </button>
             </div>
           )}
 
@@ -560,7 +576,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               </div>
 
-              <h1 className="font-display font-bold text-2xl lg:text-4xl text-gray-900 tracking-tight mb-4">
+              <h1 className="font-display font-bold text-2xl lg:text-4xl text-gray-900 text-center tracking-tight mb-4">
                 Sit back — let care come to you
               </h1>
               <p className="text-gray-500 text-base lg:text-lg mb-10 max-w-sm mx-auto leading-relaxed">
@@ -586,6 +602,14 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                   I&apos;ll keep searching on my own
                 </button>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="mt-6 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ← Back
+              </button>
             </div>
           )}
         </div>

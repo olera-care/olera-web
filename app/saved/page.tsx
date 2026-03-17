@@ -281,18 +281,37 @@ export default function SavedProvidersPage() {
 
         {/* Provider grid or empty state */}
         {savedProviders.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {savedProviders.map((entry) => (
-              <ProviderCard
-                key={entry.providerId}
-                provider={toProvider(entry)}
-              />
-            ))}
-            {/* Matches promo card - appears as last grid item when user has saved providers */}
+          <>
+            <div className="flex gap-8">
+              {/* Main content — provider grid */}
+              <div className="flex-1 min-w-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {savedProviders.map((entry) => (
+                    <ProviderCard
+                      key={entry.providerId}
+                      provider={toProvider(entry)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Fixed sidebar — Matches promo card (desktop only) */}
+              {showMatchesBanner && (
+                <div className="hidden lg:block w-[320px] flex-shrink-0">
+                  <div className="sticky top-24">
+                    <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile promo card — appears below the grid */}
             {showMatchesBanner && (
-              <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
+              <div className="lg:hidden mt-8">
+                <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
+              </div>
             )}
-          </div>
+          </>
         ) : (
           <div className="py-12 sm:py-16">
             <div className="relative w-full max-w-md">

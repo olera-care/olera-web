@@ -581,25 +581,86 @@ export default function AdminDirectoryDetailPage() {
           )}
         </Section>
 
-        {/* Status */}
-        <Section title="Status">
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={!!formData.deleted}
-                onChange={(e) => updateField("deleted", e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
-              />
-              <span className="text-sm font-medium text-gray-700">Deleted</span>
-            </label>
-            {!!formData.deleted_at && (
-              <span className="text-sm text-gray-500">
-                Deleted at: {new Date(formData.deleted_at as string).toLocaleString()}
-              </span>
-            )}
-          </div>
-        </Section>
+        {/* Danger Zone */}
+        <div className={`rounded-xl border ${formData.deleted ? "border-amber-300 bg-amber-50" : "border-red-200 bg-red-50"} p-6`}>
+          {formData.deleted ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-amber-800">This provider is deleted</h2>
+                <p className="text-sm text-amber-600 mt-1">
+                  Deleted {formData.deleted_at ? new Date(formData.deleted_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}. It is hidden from public search results.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ deleted: false }),
+                    });
+                    if (res.ok) {
+                      setFormData((prev) => ({ ...prev, deleted: false, deleted_at: null }));
+                      setOriginalData((prev) => ({ ...prev, deleted: false, deleted_at: null }));
+                      setSaveMessage({ type: "success", text: "Provider restored." });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    } else {
+                      setSaveMessage({ type: "error", text: "Failed to restore provider." });
+                    }
+                  } catch {
+                    setSaveMessage({ type: "error", text: "Network error." });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                Restore Provider
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-red-800">Danger Zone</h2>
+                <p className="text-sm text-red-600 mt-1">
+                  Removing this provider will hide it from all public search results.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  if (!confirm(`Are you sure you want to delete "${provider.provider_name}"? It will be hidden from public search.`)) return;
+                  setSaving(true);
+                  try {
+                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ deleted: true }),
+                    });
+                    if (res.ok) {
+                      const now = new Date().toISOString();
+                      setFormData((prev) => ({ ...prev, deleted: true, deleted_at: now }));
+                      setOriginalData((prev) => ({ ...prev, deleted: true, deleted_at: now }));
+                      setSaveMessage({ type: "success", text: "Provider deleted." });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    } else {
+                      setSaveMessage({ type: "error", text: "Failed to delete provider." });
+                    }
+                  } catch {
+                    setSaveMessage({ type: "error", text: "Network error." });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                Delete Provider
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bottom save bar */}

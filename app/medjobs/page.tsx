@@ -86,17 +86,15 @@ const STUDENT_FEATURES = [
 const TESTIMONIALS = [
   {
     quote: "Working with seniors through MedJobs gave me the patient care hours I needed for my PA application. The experience was so much more meaningful than I expected.",
-    name: "Student from UT Austin",
-    track: "Pre-PA, Class of 2026",
-    // TODO: Replace with real photo from pilot
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces",
+    name: "Minh-Nguyet Hoang",
+    track: "Texas A&M Health Science Center",
+    image: "/images/medjobs/minh-nguyet-hoang.jpg",
   },
   {
     quote: "I was struggling to find clinical experience that fit my class schedule. MedJobs matched me with a home care agency 10 minutes from campus. I work two shifts a week.",
-    name: "Student from Texas A&M",
-    track: "Pre-Med, Class of 2027",
-    // TODO: Replace with real photo from pilot
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=faces",
+    name: "Jeswin Vennatt",
+    track: "MD/MBA Candidate, Texas A&M",
+    image: "/images/medjobs/jeswin-vennatt.png",
   },
 ];
 

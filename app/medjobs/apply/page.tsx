@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type { StudentProgramTrack } from "@/lib/types";
 
@@ -55,6 +56,11 @@ export default function MedJobsApplyPage() {
   const [error, setError] = useState("");
   const [resultSlug, setResultSlug] = useState("");
 
+  // Photo
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Personal
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -85,6 +91,24 @@ export default function MedJobsApplyPage() {
 
   // Honeypot
   const [honeypot, setHoneypot] = useState("");
+
+  const handlePhotoSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("Please select a JPEG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Photo must be under 5MB.");
+      return;
+    }
+
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    setError("");
+  }, []);
 
   const toggleCertification = useCallback((cert: string) => {
     setCertifications((prev) =>
@@ -167,6 +191,19 @@ export default function MedJobsApplyPage() {
         return;
       }
 
+      // Upload photo if selected (fire and forget)
+      if (photoFile && data.profileId) {
+        const formData = new FormData();
+        formData.append("file", photoFile);
+        formData.append("profileId", data.profileId);
+        fetch("/api/medjobs/upload-photo", {
+          method: "POST",
+          body: formData,
+        }).catch(() => {
+          // Photo upload is best-effort, don't block on failure
+        });
+      }
+
       setResultSlug(data.slug);
       setStep("success");
     } catch {
@@ -177,7 +214,7 @@ export default function MedJobsApplyPage() {
   }, [
     displayName, email, phone, description, university, major, graduationYear,
     programTrack, city, state, certifications, yearsCaregiving, careExperienceTypes,
-    languages, availabilityType, hoursPerWeek, transportation, maxCommuteMiles, honeypot,
+    languages, availabilityType, hoursPerWeek, transportation, maxCommuteMiles, honeypot, photoFile,
   ]);
 
   if (step === "success") {
@@ -269,6 +306,37 @@ export default function MedJobsApplyPage() {
           {step === "personal" && (
             <div className="space-y-5">
               <h2 className="text-lg font-semibold text-gray-900">About You</h2>
+
+              {/* Photo upload */}
+              <div className="flex flex-col items-center">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-gray-300 hover:border-primary-400 transition-colors group bg-gray-50"
+                >
+                  {photoPreview ? (
+                    <Image src={photoPreview} alt="Photo preview" fill className="object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 group-hover:text-primary-500 transition-colors">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+                <p className="mt-2 text-xs text-gray-400">
+                  {photoPreview ? "Click to change" : "Add a photo (optional)"}
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handlePhotoSelect}
+                  className="hidden"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                 <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none" placeholder="Sarah Kim" />

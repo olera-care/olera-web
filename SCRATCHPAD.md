@@ -141,10 +141,9 @@
   - **PR:** #273 targeting staging
   - **Deferred:** Phase 6 (credential engine UI), Phase 7 (Stripe billing)
 
-- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
-  - Plan: `plans/provider-home-page-plan.md`
+- **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — DONE ✅
 
-- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — PLANNED
+- **Provider Deletion Request & Admin Approval** (branch: `relaxed-babbage`) — ON STAGING ✅
   - Plan: `plans/provider-deletion-request-plan.md`
 
 - **Backend Integration Roadmap** — PHASES 1-5 COMPLETE ✅
@@ -221,6 +220,30 @@
 ---
 
 ## Session Log
+
+### 2026-03-17 (Session 54) — MedJobs Photo-Forward Cards, Photo Upload, Real Testimonial Photos
+
+**Branch:** `shiny-knuth` (from staging)
+
+**What:** Redesigned MedJobs candidate cards to be photo-forward (matching Softr reference design but cleaner), added optional photo upload to student application, and swapped testimonial stock photos for real people (Jeswin Vennatt, Minh-Nguyet Hoang).
+
+**Changes:**
+- `app/medjobs/candidates/page.tsx` — Full card redesign: large photo (aspect-[3/4]) at top with gradient+initial fallback, structured criteria rows (Track, Location, Availability, Care Experience, Certifications, Verified Hours), "View Profile →" button
+- `app/medjobs/apply/page.tsx` — Optional circular photo upload in "About You" step, fire-and-forget upload after profile creation
+- `app/api/medjobs/upload-photo/route.ts` — New API: no-auth photo upload to Supabase `profile-images` bucket, updates `image_url` on business_profile
+- `app/medjobs/page.tsx` — Testimonials: Minh-Nguyet Hoang (Texas A&M HSC) and Jeswin Vennatt (MD/MBA, Texas A&M) with real photos replacing Unsplash stock
+- `public/images/medjobs/jeswin-vennatt.png` + `minh-nguyet-hoang.jpg` — Real photos
+
+**Decisions:**
+- Photo upload is no-auth (students aren't signed in during application)
+- Upload is fire-and-forget — profile creates first, photo is best-effort
+- Candidate cards use gradient backgrounds with initials as fallback when no photo
+
+**Also:** Updated SCRATCHPAD — marked Provider Home Page as DONE, Provider Deletion as ON STAGING. GSC sitemap re-submission discussed (re-submit /sitemap.xml to pick up new shards + MedJobs pages).
+
+**Next session:** Push MedJobs to main, test photo upload end-to-end on staging, add real pilot photos to "Meet the Students" cards, continue SBF Phase 1 bug fixes.
+
+---
 
 ### 2026-03-17 (Session 53) — MedJobs Phases 4-5, Migration Fixes, Competitive Analysis, Design Polish
 

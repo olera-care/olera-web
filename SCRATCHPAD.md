@@ -128,6 +128,15 @@
   - 4-phase improvement plan created in Notion (Phases 1-2 = P1 🔥, Phases 3-4 = P2)
   - Audit doc: `docs/sbf-accuracy-audit.md`
 
+- **Olera MedJobs: Student Caregiver Talent Marketplace** (branch: `modest-dijkstra`) — IN PROGRESS (Phases 1-3 done)
+  - Plan: `plans/medjobs-plan.md`
+  - Notion tasks: Original + Enhanced v2 (both P1 🔥)
+  - **Phase 1 DONE:** Migration 019 (student profile type, experience_logs, universities, job_posts tables), TypeScript types, 50 TX universities seed
+  - **Phase 2 DONE:** Landing page `/medjobs`, 4-step application form `/medjobs/apply`, candidate browse `/medjobs/candidates`, student profile pages, 6 email templates
+  - **Phase 3 DONE:** Provider dashboard `/provider/medjobs`, candidate browsing `/provider/medjobs/candidates`, full student profile view, application API with email/SMS/Slack notifications
+  - **Next:** Phase 4 (Loops events, weekly digest cron, profile nudge cron), Phase 5 (nav integration, sitemap, admin panel)
+  - **Deferred:** Phase 6 (credential engine UI), Phase 7 (Stripe billing)
+
 - **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
   - Plan: `plans/provider-home-page-plan.md`
 
@@ -211,6 +220,41 @@
 ---
 
 ## Session Log
+
+### 2026-03-16 (Session 52) — MedJobs Architecture + Phases 1-3 Implementation
+
+**Branch:** `modest-dijkstra` (from staging)
+
+**What:** Designed and began implementing Olera MedJobs — a student caregiver talent marketplace. Read both Notion tasks in full, explored existing codebase (auth, email, Supabase schema, notifications), created architecture plan, then implemented Phases 1-3.
+
+**Architecture decisions:**
+- Student as new `profile_type` enum value (safe additive migration)
+- 3 new tables: `medjobs_experience_logs`, `medjobs_universities`, `medjobs_job_posts`
+- Reuse `connections` table for student→provider applications
+- StudentMetadata JSONB with credential engine fields from day one
+- Separate MedJobs email templates file for modularity
+- RLS: student profiles public (like org/caregiver), contact info gated at API layer
+
+**Files created (3,712 lines across 3 commits):**
+- `supabase/migrations/019_medjobs_foundation.sql` — schema
+- `scripts/seed-universities.sql` — 50 TX universities
+- `plans/medjobs-plan.md` — 7-phase, 24-task plan
+- `lib/types.ts` — updated with StudentMetadata + MedJobs types
+- `lib/medjobs-email-templates.tsx` — 6 email templates
+- `app/medjobs/page.tsx` — landing page
+- `app/medjobs/apply/page.tsx` — 4-step application form
+- `app/medjobs/candidates/page.tsx` — public candidate browse
+- `app/medjobs/candidates/[slug]/page.tsx` — student profile (public)
+- `app/api/medjobs/apply/route.ts` — student application API
+- `app/api/medjobs/candidates/route.ts` — candidate query API
+- `app/api/medjobs/apply-to-provider/route.ts` — application + notifications
+- `app/provider/medjobs/page.tsx` — provider MedJobs dashboard
+- `app/provider/medjobs/candidates/page.tsx` — provider candidate browse
+- `app/provider/medjobs/candidates/[slug]/page.tsx` — provider student profile view
+
+**Next session:** Phase 4 (Loops events, weekly digest cron, profile nudge cron), Phase 5 (nav integration, sitemap, admin panel)
+
+---
 
 ### 2026-03-14 (Session 51) — SBF Accuracy Audit & Recommendation Quality Review
 

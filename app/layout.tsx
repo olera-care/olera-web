@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { DM_Serif_Display } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/shared/Navbar";
-import ConditionalFooter from "@/components/shared/ConditionalFooter";
 import AuthProvider from "@/components/auth/AuthProvider";
-import GlobalUnifiedAuthModal from "@/components/auth/GlobalUnifiedAuthModal";
 import { SavedProvidersProvider } from "@/hooks/use-saved-providers";
-import { NavbarProvider } from "@/components/shared/NavbarContext";
+import LayoutShell from "./LayoutShell";
 
 const dmSerifDisplay = DM_Serif_Display({
   weight: "400",
@@ -147,12 +144,7 @@ export default function RootLayout({
         <Script src="https://cdn.lordicon.com/lordicon.js" strategy="afterInteractive" />
         <AuthProvider>
           <SavedProvidersProvider>
-          <NavbarProvider>
-            <Navbar />
-            <main className="flex-grow">{children}</main>
-            <ConditionalFooter />
-            <GlobalUnifiedAuthModal />
-          </NavbarProvider>
+            <LayoutShell>{children}</LayoutShell>
           </SavedProvidersProvider>
         </AuthProvider>
       </body>

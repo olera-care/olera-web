@@ -143,14 +143,12 @@ export default function Navbar() {
   const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
-  // Note: With our AuthProvider changes, user is only set when we have all profile data
   const hasSession = !!user;
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
   const hasProviderProfile = (profiles || []).some(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  // Since user is only set when profiles are loaded, we just check hasSession
   const showModeSwitcher = hasSession && hasFamilyProfile && hasProviderProfile;
 
   // Profile IDs for hub switching — used by the mode switcher to also switch activeProfile

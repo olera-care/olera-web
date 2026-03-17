@@ -242,6 +242,46 @@
   animation: pulse-subtle 1.5s ease-in-out 2;
 }
 
+/* Floating animations for decorative elements */
+@keyframes float-slow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes float-medium {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes float-fast {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 3s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float-fast 2s ease-in-out infinite;
+}
+
 /* Smooth expand/collapse using grid row trick */
 .grid-rows-expand {
   grid-template-rows: 1fr;

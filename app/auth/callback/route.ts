@@ -161,6 +161,13 @@ export async function GET(request: NextRequest) {
         } catch {
           // Non-blocking
         }
+
+        // New user (onboarding_completed=false) → redirect to /welcome
+        // Pass original destination as ?next= so they return there after welcome
+        const welcomeUrl = `/welcome?next=${encodeURIComponent(next)}`;
+        return NextResponse.redirect(`${origin}${welcomeUrl}`, {
+          headers: response.headers,
+        });
       } else {
         // Account exists — ensure family profile exists (handles edge cases)
         const { data: existingFamily } = await admin

@@ -296,7 +296,7 @@ export default function SavedProvidersPage() {
               </div>
 
               {/* Fixed sidebar — Matches promo card (desktop only) */}
-              {showMatchesBanner && (
+              {showMatchesBanner && !isMatchesActive && (
                 <div className="hidden lg:block w-[320px] flex-shrink-0">
                   <div className="sticky top-24">
                     <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
@@ -306,7 +306,7 @@ export default function SavedProvidersPage() {
             </div>
 
             {/* Mobile promo card — appears below the grid */}
-            {showMatchesBanner && (
+            {showMatchesBanner && !isMatchesActive && (
               <div className="lg:hidden mt-8">
                 <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
               </div>

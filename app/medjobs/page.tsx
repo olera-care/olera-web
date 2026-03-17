@@ -306,8 +306,8 @@ export default function MedJobsPage() {
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-7 aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
                 <Image
-                  src="/images/medjobs/college-caregivers.png"
-                  alt="College student caregivers"
+                  src="/images/medjobs/students-group.jpg"
+                  alt="Pre-health student group"
                   width={500}
                   height={667}
                   className="w-full h-full object-cover"
@@ -325,8 +325,8 @@ export default function MedJobsPage() {
                 </div>
                 <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100">
                   <Image
-                    src="/images/medjobs/students-group.jpg"
-                    alt="Pre-health student group"
+                    src="/images/medjobs/college-caregivers.png"
+                    alt="College student caregivers"
                     width={400}
                     height={500}
                     className="w-full h-full object-cover"
@@ -370,11 +370,10 @@ export default function MedJobsPage() {
             </h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            {/* TODO: Replace with real students from the pilot */}
             {[
-              { name: "Sarah K.", school: "UT Austin", track: "Pre-Med", hours: "312 hrs verified", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=500&fit=crop&crop=faces" },
-              { name: "Marcus J.", school: "Texas A&M", track: "Pre-Nursing", hours: "180 hrs verified", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=500&fit=crop&crop=faces" },
-              { name: "Priya R.", school: "Rice University", track: "Pre-PA", hours: "456 hrs verified", image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=500&fit=crop&crop=faces" },
+              { name: "Joshua S.", school: "Texas A&M", track: "Pre-Med", hours: "180 hrs verified", image: "/images/medjobs/student-joshua.jpg" },
+              { name: "Natasha J.", school: "University of Michigan", track: "Pre-PA", hours: "312 hrs verified", image: "/images/medjobs/student-natasha.jpg" },
+              { name: "Emma N.", school: "Texas A&M", track: "Pre-Nursing", hours: "456 hrs verified", image: "/images/medjobs/student-emma.jpg" },
             ].map((student) => (
               <div key={student.name} className="group">
                 <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-100 mb-4">

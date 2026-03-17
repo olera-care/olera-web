@@ -85,9 +85,9 @@ const STUDENT_FEATURES = [
 // Placeholder testimonials — replace with real quotes from pilot students
 const TESTIMONIALS = [
   {
-    quote: "Working with seniors through MedJobs gave me the patient care hours I needed for my PA application. The experience was so much more meaningful than I expected.",
+    quote: "Caregiving through Olera gave me direct patient experience I couldn\u2019t get in a classroom. It strengthened my med school application and reminded me why I chose this path.",
     name: "Minh-Nguyet Hoang",
-    track: "Texas A&M Health Science Center",
+    track: "MD/MBA Candidate, Texas A&M",
     image: "/images/medjobs/minh-nguyet-hoang.jpg",
   },
   {

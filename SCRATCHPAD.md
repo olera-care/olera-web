@@ -128,6 +128,19 @@
   - 4-phase improvement plan created in Notion (Phases 1-2 = P1 🔥, Phases 3-4 = P2)
   - Audit doc: `docs/sbf-accuracy-audit.md`
 
+- **Olera MedJobs: Student Caregiver Talent Marketplace** (branch: `modest-dijkstra`) — IN PROGRESS (Phases 1-5 done, design polish in progress)
+  - Plan: `plans/medjobs-plan.md`
+  - Notion tasks: Original + Enhanced v2 (both P1 🔥)
+  - **Phase 1 DONE:** Migration 019 (student profile type, experience_logs, universities, job_posts tables), TypeScript types, 50 TX universities seed
+  - **Phase 2 DONE:** Landing page `/medjobs`, 4-step application form `/medjobs/apply`, candidate browse `/medjobs/candidates`, student profile pages, 6 email templates
+  - **Phase 3 DONE:** Provider dashboard `/provider/medjobs`, candidate browsing `/provider/medjobs/candidates`, full student profile view, application API with email/SMS/Slack notifications
+  - **Phase 4 DONE:** Structured Slack alerts, Loops events, weekly digest cron (Monday 8AM CT), profile nudge cron (daily 10AM CT)
+  - **Phase 5 DONE:** MedJobs in nav (desktop+mobile) + footer, sitemap entries, admin panel with student table
+  - **Design Polish:** Competitive analysis (CareYaYa, Papa, Honor, Caring Support) → Notion report. Landing page redesigned 3x: template → minimal → warm/photo-forward. Real pilot photos being added (TJ has from last year's pilot).
+  - **Migration ran on Production** (only one Supabase). 3 fixes needed: CHECK constraint (not enum), `update_updated_at_column()` (not `update_updated_at()`), `business_profiles` (not `profiles`).
+  - **PR:** #273 targeting staging
+  - **Deferred:** Phase 6 (credential engine UI), Phase 7 (Stripe billing)
+
 - **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
   - Plan: `plans/provider-home-page-plan.md`
 
@@ -208,6 +221,83 @@
 ---
 
 ## Session Log
+
+### 2026-03-17 (Session 53) — MedJobs Phases 4-5, Migration Fixes, Competitive Analysis, Design Polish
+
+**Branch:** `modest-dijkstra` (continued)
+
+**What:** Completed Phases 4-5 implementation, fixed 3 migration issues discovered during production deploy, ran competitive analysis (CareYaYa, Papa, Honor, Caring Support), and iterated on landing page design 3 times based on taste pass and competitive patterns.
+
+**Migration fixes (ran on production):**
+- `profile_type` is TEXT + CHECK constraint, not a PostgreSQL enum (schema.sql is misleading)
+- Trigger function is `update_updated_at_column()` not `update_updated_at()`
+- Table is `business_profiles` not `profiles`
+- Saved these learnings to memory: `feedback_schema_text_not_enum.md`
+
+**Competitive analysis highlights:**
+- CareYaYa: 30K+ students, $15-18/hr, scrapbook aesthetic, career outcome hook ("double acceptance rate")
+- Papa: $241M funded, companionship model, playful SVG animations, segmented hero
+- Olera's moat: verified credential engine (no competitor has this)
+- Report in Notion under original MedJobs task page
+
+**Landing page evolution:**
+1. Template version (dark gradient, numbered circles) → too generic
+2. Minimal Perena version (warm stone bg, flat lists) → too cold/corporate
+3. Photo-forward version (split hero, photo mosaic, testimonials) → warm but needed real photos
+4. Refined with competitive patterns: career outcome hook in hero ("that counts toward your degree"), specific hour requirements (PA: 1,000-2,000), woven testimonials, provider stat cards
+5. Added real pilot photos from TJ's files
+
+**Files created/modified this session:**
+- `app/api/cron/medjobs-digest/route.ts` — weekly candidate digest
+- `app/api/cron/medjobs-nudge/route.ts` — profile completion nudge
+- `lib/slack.ts` — MedJobs alert helpers
+- `vercel.json` — added 2 cron schedules
+- `components/shared/Navbar.tsx` — MedJobs link
+- `components/shared/Footer.tsx` — MedJobs link
+- `components/admin/AdminSidebar.tsx` — MedJobs nav item
+- `app/admin/medjobs/page.tsx` — admin student table
+- `app/api/sitemap/route.ts` — medjobs entries
+- `app/medjobs/page.tsx` — redesigned 3x
+- `supabase/migrations/019_medjobs_foundation.sql` — 3 fixes
+
+**Next session:** Get real pilot photos for remaining placeholders, test application flow end-to-end on preview deploy, consider Phase 6 (credential engine UI).
+
+---
+
+### 2026-03-16 (Session 52) — MedJobs Architecture + Phases 1-3 Implementation
+
+**Branch:** `modest-dijkstra` (from staging)
+
+**What:** Designed and began implementing Olera MedJobs — a student caregiver talent marketplace. Read both Notion tasks in full, explored existing codebase (auth, email, Supabase schema, notifications), created architecture plan, then implemented Phases 1-3.
+
+**Architecture decisions:**
+- Student as new `profile_type` enum value (safe additive migration)
+- 3 new tables: `medjobs_experience_logs`, `medjobs_universities`, `medjobs_job_posts`
+- Reuse `connections` table for student→provider applications
+- StudentMetadata JSONB with credential engine fields from day one
+- Separate MedJobs email templates file for modularity
+- RLS: student profiles public (like org/caregiver), contact info gated at API layer
+
+**Files created (3,712 lines across 3 commits):**
+- `supabase/migrations/019_medjobs_foundation.sql` — schema
+- `scripts/seed-universities.sql` — 50 TX universities
+- `plans/medjobs-plan.md` — 7-phase, 24-task plan
+- `lib/types.ts` — updated with StudentMetadata + MedJobs types
+- `lib/medjobs-email-templates.tsx` — 6 email templates
+- `app/medjobs/page.tsx` — landing page
+- `app/medjobs/apply/page.tsx` — 4-step application form
+- `app/medjobs/candidates/page.tsx` — public candidate browse
+- `app/medjobs/candidates/[slug]/page.tsx` — student profile (public)
+- `app/api/medjobs/apply/route.ts` — student application API
+- `app/api/medjobs/candidates/route.ts` — candidate query API
+- `app/api/medjobs/apply-to-provider/route.ts` — application + notifications
+- `app/provider/medjobs/page.tsx` — provider MedJobs dashboard
+- `app/provider/medjobs/candidates/page.tsx` — provider candidate browse
+- `app/provider/medjobs/candidates/[slug]/page.tsx` — provider student profile view
+
+**Next session:** Phase 4 (Loops events, weekly digest cron, profile nudge cron), Phase 5 (nav integration, sitemap, admin panel)
+
+---
 
 ### 2026-03-14 (Session 51) — SBF Accuracy Audit & Recommendation Quality Review
 

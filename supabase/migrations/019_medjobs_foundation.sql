@@ -1,11 +1,14 @@
 -- ============================================================
 -- MedJobs Foundation
 -- Adds student profile type + MedJobs-specific tables
--- Safe: ALTER TYPE ADD VALUE is additive, never touches existing rows
+-- business_profiles.type uses TEXT + CHECK constraint (not an enum)
 -- ============================================================
 
--- Add student to profile_type enum
-ALTER TYPE profile_type ADD VALUE IF NOT EXISTS 'student';
+-- Widen the CHECK constraint on business_profiles.type to include 'student'
+-- Drop the existing constraint and recreate with the new value
+ALTER TABLE public.business_profiles DROP CONSTRAINT IF EXISTS business_profiles_type_check;
+ALTER TABLE public.business_profiles ADD CONSTRAINT business_profiles_type_check
+  CHECK (type IN ('organization', 'caregiver', 'family', 'student'));
 
 -- ============================================================
 -- MEDJOBS UNIVERSITIES

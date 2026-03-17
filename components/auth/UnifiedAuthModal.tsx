@@ -256,6 +256,9 @@ export default function UnifiedAuthModal({
         }
       }
 
+      // Yield to event loop so React commits the state update before modal closes
+      await new Promise(resolve => setTimeout(resolve, 0));
+
       setLoading(false);
       handleAuthComplete();
     } catch (err) {
@@ -339,6 +342,9 @@ export default function UnifiedAuthModal({
           // Timeout — SIGNED_IN handler continues in background
         }
       }
+
+      // Yield to event loop so React commits the state update before modal closes
+      await new Promise(resolve => setTimeout(resolve, 0));
 
       setLoading(false);
       handleAuthComplete();

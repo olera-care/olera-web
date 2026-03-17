@@ -45,8 +45,8 @@ CREATE TRIGGER medjobs_universities_updated_at
 
 CREATE TABLE public.medjobs_experience_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  student_profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  provider_profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  student_profile_id uuid NOT NULL REFERENCES public.business_profiles(id) ON DELETE CASCADE,
+  provider_profile_id uuid NOT NULL REFERENCES public.business_profiles(id) ON DELETE CASCADE,
   hours numeric(7,1) NOT NULL CHECK (hours > 0),
   care_type text NOT NULL,
   start_date date NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE public.medjobs_experience_logs (
   notes text,
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'disputed')),
   confirmed_at timestamptz,
-  confirmed_by uuid REFERENCES public.profiles(id),
+  confirmed_by uuid REFERENCES public.business_profiles(id),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -76,7 +76,7 @@ CREATE TRIGGER medjobs_experience_logs_updated_at
 
 CREATE TABLE public.medjobs_job_posts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  provider_profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  provider_profile_id uuid NOT NULL REFERENCES public.business_profiles(id) ON DELETE CASCADE,
   title text NOT NULL,
   description text,
   care_types text[] NOT NULL DEFAULT '{}',
@@ -117,7 +117,7 @@ CREATE POLICY "Students can read own experience logs"
   USING (
     EXISTS (
       SELECT 1 FROM public.accounts a
-      JOIN public.profiles p ON p.account_id = a.id
+      JOIN public.business_profiles p ON p.account_id = a.id
       WHERE a.user_id = auth.uid()
       AND p.id = student_profile_id
     )
@@ -128,7 +128,7 @@ CREATE POLICY "Providers can read experience logs for their facility"
   USING (
     EXISTS (
       SELECT 1 FROM public.accounts a
-      JOIN public.profiles p ON p.account_id = a.id
+      JOIN public.business_profiles p ON p.account_id = a.id
       WHERE a.user_id = auth.uid()
       AND p.id = provider_profile_id
     )
@@ -139,7 +139,7 @@ CREATE POLICY "Students can insert own experience logs"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.accounts a
-      JOIN public.profiles p ON p.account_id = a.id
+      JOIN public.business_profiles p ON p.account_id = a.id
       WHERE a.user_id = auth.uid()
       AND p.id = student_profile_id
     )
@@ -150,7 +150,7 @@ CREATE POLICY "Providers can update experience logs for their facility"
   USING (
     EXISTS (
       SELECT 1 FROM public.accounts a
-      JOIN public.profiles p ON p.account_id = a.id
+      JOIN public.business_profiles p ON p.account_id = a.id
       WHERE a.user_id = auth.uid()
       AND p.id = provider_profile_id
     )
@@ -166,7 +166,7 @@ CREATE POLICY "Providers can manage own job posts"
   USING (
     EXISTS (
       SELECT 1 FROM public.accounts a
-      JOIN public.profiles p ON p.account_id = a.id
+      JOIN public.business_profiles p ON p.account_id = a.id
       WHERE a.user_id = auth.uid()
       AND p.id = provider_profile_id
     )

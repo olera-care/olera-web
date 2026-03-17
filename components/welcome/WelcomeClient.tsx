@@ -114,7 +114,6 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   // UI state
   const [step, setStep] = useState<Step>(1);
   const [saving, setSaving] = useState(false);
-  const [hasCheckedGuards, setHasCheckedGuards] = useState(false);
 
   // City picker state
   const [locationInput, setLocationInput] = useState("");
@@ -157,12 +156,13 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }, [activeProfile]);
 
   // ──────────────────────────────────────────────────────────
-  // Entry Guards
+  // Entry Guards — run when account data loads, transition to correct step or redirect
+  // Step 1 renders immediately as default; this effect adjusts once data is available
   // ──────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (isLoading || hasCheckedGuards) return;
-    if (!user) return; // Wait for auth to resolve
+    // Wait for auth data to be available
+    if (!user || !account) return;
 
     // Guard 0: Provider profile → redirect immediately
     if (isProviderProfile()) {
@@ -171,29 +171,24 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
     }
 
     // Guard 1: onboarding_completed + Matches active → redirect
-    if (account?.onboarding_completed && isMatchesActive()) {
+    if (account.onboarding_completed && isMatchesActive()) {
       router.replace(destination);
       return;
     }
 
     // Guard 2: onboarding_completed + profile complete + Matches NOT active → step 4 only
-    if (account?.onboarding_completed && isProfileComplete() && !isMatchesActive()) {
+    if (account.onboarding_completed && isProfileComplete() && !isMatchesActive()) {
       setStep(4);
-      setHasCheckedGuards(true);
       return;
     }
 
     // Guard 3: onboarding_completed + profile incomplete → start at first missing step
-    if (account?.onboarding_completed && !isProfileComplete()) {
+    if (account.onboarding_completed && !isProfileComplete()) {
       setStep(getFirstMissingStep());
-      setHasCheckedGuards(true);
       return;
     }
 
-    // Guard 4: Fresh user → full flow from step 1
-    setStep(1);
-    setHasCheckedGuards(true);
-
+    // Guard 4: Fresh user → stay on step 1 (already the default)
     // Pre-fill from existing profile data if available
     if (activeProfile?.city) {
       setCity(activeProfile.city);
@@ -208,11 +203,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       setSelectedCareTypes(activeProfile.care_types);
     }
   }, [
-    isLoading,
     user,
     account,
     activeProfile,
-    hasCheckedGuards,
     destination,
     router,
     isProviderProfile,
@@ -333,11 +326,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   };
 
   // ──────────────────────────────────────────────────────────
-  // Render
+  // Render — Step 1 renders immediately, no loading states
   // ──────────────────────────────────────────────────────────
-
-  // Loading state flag — show shell immediately, spinner in content area
-  const showLoading = isLoading || !hasCheckedGuards;
 
   return (
     <div className="min-h-screen bg-white flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -353,7 +343,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         <button
           type="button"
           onClick={handleSkip}
-          disabled={saving || showLoading}
+          disabled={saving}
           className="min-h-[44px] px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 active:bg-gray-50 transition-colors disabled:opacity-50"
         >
           Skip for now
@@ -362,13 +352,6 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-12 lg:py-16">
-        {/* Loading state — show spinner in content area while keeping shell visible */}
-        {showLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-            <p className="mt-4 text-sm text-gray-500">Loading...</p>
-          </div>
-        ) : (
         <div className="w-full max-w-md lg:max-w-lg">
           {/* Progress Dots */}
           <div className="mb-10">
@@ -606,7 +589,6 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             </div>
           )}
         </div>
-        )}
       </main>
     </div>
   );

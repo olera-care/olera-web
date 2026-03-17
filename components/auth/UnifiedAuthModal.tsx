@@ -256,10 +256,6 @@ export default function UnifiedAuthModal({
         }
       }
 
-      // Wait for React to commit the state update before modal closes
-      // Double rAF ensures we wait for a full render + paint cycle
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
       setLoading(false);
       handleAuthComplete();
     } catch (err) {
@@ -343,10 +339,6 @@ export default function UnifiedAuthModal({
           // Timeout — SIGNED_IN handler continues in background
         }
       }
-
-      // Wait for React to commit the state update before modal closes
-      // Double rAF ensures we wait for a full render + paint cycle
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       setLoading(false);
       handleAuthComplete();

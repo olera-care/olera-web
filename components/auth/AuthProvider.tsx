@@ -875,6 +875,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           activeProfile: data.activeProfile,
           profiles: data.profiles,
           membership: data.membership,
+          isLoading: false,
           fetchError: false,
         }));
       }

@@ -144,14 +144,11 @@ export default function Navbar() {
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
-  // Profile checks — if still loading, treat profiles as potentially incomplete
-  // This prevents showing stale menu state while data is being fetched
-  const profilesLoaded = !authLoading && profiles.length > 0;
-  const hasFamilyProfile = profilesLoaded && profiles.some((p) => p.type === "family");
-  const hasProviderProfile = profilesLoaded && profiles.some(
+  // Mode switcher — shown when user has both a family and a provider profile
+  const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
+  const hasProviderProfile = (profiles || []).some(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  // Mode switcher — shown when user has both a family and a provider profile
   const showModeSwitcher = hasSession && hasFamilyProfile && hasProviderProfile;
 
   // Profile IDs for hub switching — used by the mode switcher to also switch activeProfile

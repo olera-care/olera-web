@@ -15,12 +15,11 @@ interface WelcomeClientProps {
   destination: string;
 }
 
-interface ProviderMatch {
-  provider_id: string;
-  provider_name: string;
-  provider_logo: string | null;
-  provider_images: string | null;
-  provider_category: string;
+interface ProviderCard {
+  id: string;
+  display_name: string;
+  image_url: string | null;
+  care_types: string[];
 }
 
 interface ConnectionWithProvider {
@@ -31,6 +30,13 @@ interface ConnectionWithProvider {
     image_url: string | null;
   } | null;
 }
+
+// Placeholder data for when real providers aren't available
+const PLACEHOLDER_PROVIDERS: ProviderCard[] = [
+  { id: "placeholder-1", display_name: "Sunrise Senior Care", image_url: null, care_types: ["Assisted Living"] },
+  { id: "placeholder-2", display_name: "Comfort Home Health", image_url: null, care_types: ["Home Care"] },
+  { id: "placeholder-3", display_name: "Golden Years Living", image_url: null, care_types: ["Memory Care"] },
+];
 
 // ============================================================
 // Helper Functions
@@ -68,19 +74,20 @@ function ProviderAvatar({
 }: {
   name: string;
   imageUrl?: string | null;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
 }) {
   const sizeClasses = {
     sm: "w-7 h-7 text-xs",
     md: "w-10 h-10 text-sm",
     lg: "w-12 h-12 text-base",
+    xl: "w-12 h-12 text-lg",
   }[size];
 
-  const imgSize = { sm: 28, md: 40, lg: 48 }[size];
+  const imgSize = { sm: 28, md: 40, lg: 48, xl: 48 }[size];
 
   if (imageUrl) {
     return (
-      <div className={`${sizeClasses} rounded-full overflow-hidden bg-gray-100 flex-shrink-0`}>
+      <div className={`${sizeClasses} rounded-xl overflow-hidden bg-gray-100 flex-shrink-0`}>
         <Image
           src={imageUrl}
           alt={name}
@@ -94,7 +101,7 @@ function ProviderAvatar({
 
   return (
     <div
-      className={`${sizeClasses} rounded-full flex items-center justify-center flex-shrink-0`}
+      className={`${sizeClasses} rounded-xl flex items-center justify-center flex-shrink-0`}
       style={{ background: avatarGradient(name) }}
     >
       <span className="font-semibold text-white">{getInitial(name)}</span>
@@ -102,50 +109,24 @@ function ProviderAvatar({
   );
 }
 
-/** Compact grid card for provider with staggered animation */
-function ProviderGridCard({ provider, index }: { provider: ProviderMatch; index: number }) {
-  const imageUrl = provider.provider_logo || provider.provider_images?.split(" | ")?.[0] || null;
+/** Grid card for provider with staggered animation */
+function ProviderGridCard({ provider, index }: { provider: ProviderCard; index: number }) {
+  const careType = provider.care_types?.[0] || "Care Provider";
 
   return (
     <div
       className="flex flex-col items-center p-4 bg-white rounded-xl border border-gray-200/80 animate-card-in"
       style={{ animationDelay: `${index * 100}ms` }}
     >
-      <ProviderAvatar name={provider.provider_name} imageUrl={imageUrl} size="lg" />
-      <p className="mt-2.5 text-sm font-medium text-gray-900 text-center line-clamp-1">
-        {provider.provider_name}
+      <ProviderAvatar name={provider.display_name} imageUrl={provider.image_url} size="xl" />
+      <p className="mt-3 text-sm font-medium text-gray-900 text-center leading-snug">
+        {provider.display_name}
       </p>
-      <p className="mt-0.5 text-xs text-gray-500 text-center line-clamp-1">
-        {provider.provider_category}
-      </p>
-      {/* Small interested badge with pulsing green dot */}
-      <span className="mt-2.5 inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-primary-700 bg-primary-50/80 rounded-full">
-        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-subtle" />
-        Interested
-      </span>
-    </div>
-  );
-}
-
-/** Placeholder grid card with staggered animation */
-function PlaceholderGridCard({ index }: { index: number }) {
-  const names = ["Sunrise Senior Care", "Comfort Home Health", "Golden Years Living"];
-  const types = ["Assisted Living", "Home Care", "Memory Care"];
-
-  return (
-    <div
-      className="flex flex-col items-center p-4 bg-white rounded-xl border border-gray-200/80 animate-card-in"
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
-      <ProviderAvatar name={names[index]} size="lg" />
-      <p className="mt-2.5 text-sm font-medium text-gray-900 text-center line-clamp-1">
-        {names[index]}
-      </p>
-      <p className="mt-0.5 text-xs text-gray-500 text-center line-clamp-1">
-        {types[index]}
+      <p className="mt-1 text-xs text-gray-500 text-center">
+        {careType}
       </p>
       {/* Small interested badge with pulsing green dot */}
-      <span className="mt-2.5 inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-primary-700 bg-primary-50/80 rounded-full">
+      <span className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-primary-700 bg-primary-50/80 rounded-full">
         <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-subtle" />
         Interested
       </span>
@@ -165,7 +146,7 @@ function BenefitsCard() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 text-left">
         <p className="text-[15px] font-semibold text-gray-900">Care may be covered</p>
         <p className="text-sm text-gray-500 mt-0.5">Find benefits you qualify for · 3 min</p>
       </div>
@@ -187,7 +168,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
-  const [matches, setMatches] = useState<ProviderMatch[]>([]);
+  const [providers, setProviders] = useState<ProviderCard[]>([]);
   const [city, setCity] = useState<string | null>(null);
 
   // Check if should skip and load initial data
@@ -209,10 +190,13 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         return;
       }
 
-      // Get city from profile
+      // Get city and state from profile
       setCity(activeProfile.city || null);
+      const familyState = activeProfile.state;
+      const familyCareTypes = activeProfile.care_types || [];
 
       // Check for connection record with provider info
+      let connectedProviderId: string | null = null;
       try {
         const { data: connections } = await supabase
           .from("connections")
@@ -228,25 +212,70 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           .limit(1);
 
         if (connections && connections.length > 0) {
-          setConnection(connections[0] as ConnectionWithProvider);
+          const conn = connections[0] as ConnectionWithProvider;
+          setConnection(conn);
+          connectedProviderId = conn.to_profile?.id || null;
         }
       } catch (err) {
         console.error("[welcome] Failed to fetch connection:", err);
       }
 
-      // Fetch matches for provider cards
+      // Fetch real providers from business_profiles
       try {
-        const res = await fetch("/api/matches/fetch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ limit: 3 }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setMatches(data.providers?.slice(0, 3) || []);
+        let query = supabase
+          .from("business_profiles")
+          .select("id, display_name, image_url, care_types")
+          .in("type", ["organization", "caregiver"])
+          .eq("is_active", true);
+
+        // Filter by state if family has one
+        if (familyState) {
+          query = query.eq("state", familyState);
+        }
+
+        // Exclude the connected provider
+        if (connectedProviderId) {
+          query = query.neq("id", connectedProviderId);
+        }
+
+        // Order by those with images first, then alphabetically
+        query = query.order("image_url", { ascending: false, nullsFirst: false });
+        query = query.limit(10); // Fetch extra to filter by care_types
+
+        const { data: providerData, error } = await query;
+
+        if (!error && providerData && providerData.length > 0) {
+          let filteredProviders = providerData as ProviderCard[];
+
+          // If family has care_types, prefer providers with overlapping care_types
+          if (familyCareTypes.length > 0) {
+            const withOverlap = filteredProviders.filter((p) =>
+              p.care_types?.some((ct) => familyCareTypes.includes(ct))
+            );
+            const withoutOverlap = filteredProviders.filter(
+              (p) => !p.care_types?.some((ct) => familyCareTypes.includes(ct))
+            );
+            filteredProviders = [...withOverlap, ...withoutOverlap];
+          }
+
+          // Take top 3
+          const topProviders = filteredProviders.slice(0, 3);
+
+          // Fill remaining slots with placeholders if needed
+          if (topProviders.length < 3) {
+            const placeholdersNeeded = 3 - topProviders.length;
+            const fillers = PLACEHOLDER_PROVIDERS.slice(0, placeholdersNeeded);
+            setProviders([...topProviders, ...fillers]);
+          } else {
+            setProviders(topProviders);
+          }
+        } else {
+          // No providers found, use all placeholders
+          setProviders(PLACEHOLDER_PROVIDERS);
         }
       } catch (err) {
-        console.error("[welcome] Failed to fetch matches:", err);
+        console.error("[welcome] Failed to fetch providers:", err);
+        setProviders(PLACEHOLDER_PROVIDERS);
       }
 
       setLoading(false);
@@ -316,8 +345,6 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }
 
   // Headline with city accent in teal
-  const headlineStart = "Providers in ";
-  const headlineEnd = " are ready to reach out to you.";
   const cityDisplay = city || "your area";
 
   return (
@@ -345,12 +372,12 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main Content — centered, max-width 560px */}
       <main className="px-4 sm:px-6">
-        <div className="max-w-[480px] mx-auto">
-          {/* Provider Crumb — only if connection exists */}
+        <div className="max-w-[560px] mx-auto text-center">
+          {/* Provider Crumb — only if connection exists, 56px top padding */}
           {connection?.to_profile && (
-            <div className="flex items-center gap-2.5 pt-6 animate-fade-in">
+            <div className="flex items-center justify-center gap-2.5 pt-14 animate-fade-in">
               <ProviderAvatar
                 name={connection.to_profile.display_name}
                 imageUrl={connection.to_profile.image_url}
@@ -364,20 +391,21 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             </div>
           )}
 
-          {/* Headline — with 48px+ breathing room above, city in teal */}
-          <h1 className="pt-12 font-serif text-display-sm sm:text-display-md text-gray-900 leading-tight tracking-tight">
-            {headlineStart}
+          {/* Headline — 38px, font-weight 600, line-height 1.15, centered */}
+          <h1
+            className="pt-14 text-gray-900"
+            style={{ fontSize: "38px", fontWeight: 600, lineHeight: 1.15 }}
+          >
+            Providers in{" "}
             <span className="text-primary-600">{cityDisplay}</span>
-            {headlineEnd}
+            {" "}are ready to reach out to you.
           </h1>
 
-          {/* Provider Cards — 3-column grid with staggered entrance */}
+          {/* Provider Cards — 3-column grid, 32px top margin */}
           <div className="mt-8 grid grid-cols-3 gap-3">
-            {matches.length > 0
-              ? matches.map((provider, i) => (
-                  <ProviderGridCard key={provider.provider_id} provider={provider} index={i} />
-                ))
-              : [0, 1, 2].map((i) => <PlaceholderGridCard key={i} index={i} />)}
+            {providers.map((provider, i) => (
+              <ProviderGridCard key={provider.id} provider={provider} index={i} />
+            ))}
           </div>
 
           {/* Primary Button */}
@@ -399,8 +427,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             )}
           </button>
 
-          {/* Decline Link — plain text, no button styling */}
-          <p className="mt-4 text-center">
+          {/* Decline Link — plain text, centered */}
+          <p className="mt-4">
             <button
               onClick={handleSkip}
               disabled={saving}

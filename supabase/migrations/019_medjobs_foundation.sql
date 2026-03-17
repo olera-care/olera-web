@@ -35,7 +35,7 @@ CREATE INDEX idx_medjobs_universities_slug ON public.medjobs_universities(slug);
 
 CREATE TRIGGER medjobs_universities_updated_at
   BEFORE UPDATE ON public.medjobs_universities
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- ============================================================
 -- MEDJOBS EXPERIENCE LOGS
@@ -67,7 +67,7 @@ CREATE INDEX idx_medjobs_exp_status ON public.medjobs_experience_logs(status);
 
 CREATE TRIGGER medjobs_experience_logs_updated_at
   BEFORE UPDATE ON public.medjobs_experience_logs
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- ============================================================
 -- MEDJOBS JOB POSTS (Phase 2+)
@@ -96,7 +96,7 @@ CREATE INDEX idx_medjobs_jobs_care_types ON public.medjobs_job_posts USING gin(c
 
 CREATE TRIGGER medjobs_job_posts_updated_at
   BEFORE UPDATE ON public.medjobs_job_posts
-  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- ============================================================
 -- ROW-LEVEL SECURITY

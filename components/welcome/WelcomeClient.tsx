@@ -280,10 +280,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         }
       } finally {
         setSaving(false);
-        router.push(destination);
+        // Hard navigation forces fresh AuthProvider.init() so inbox has fresh auth state
+        window.location.replace(destination);
       }
     },
-    [account, user, city, state, selectedCareTypes, destination, router, refreshAccountData]
+    [account, user, city, state, selectedCareTypes, destination, refreshAccountData]
   );
 
   const handleSkip = () => {

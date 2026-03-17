@@ -401,10 +401,9 @@ export default function MedJobsPage() {
             {/* Photo */}
             <div className="order-2 lg:order-1">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-xl shadow-gray-900/5">
-                {/* TODO: Replace — care facility or provider team */}
                 <Image
-                  src="https://images.unsplash.com/photo-1586105251261-72a756497a11?w=800&h=600&fit=crop&crop=faces"
-                  alt="Senior care facility team"
+                  src="/images/medjobs/provider-caregiving.jpg"
+                  alt="Student caregiver with senior patient"
                   width={800}
                   height={600}
                   className="w-full h-full object-cover"

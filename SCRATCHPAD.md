@@ -121,6 +121,13 @@
   - Onboarding popup removed for family users (#234)
   - Post-auth onboarding improved (#231)
 
+- **SBF Accuracy Audit & Recommendation Quality Review** — AUDIT COMPLETE ✅
+  - Full audit of recommendation engine: 7 findings across geography, logic, taxonomy, ranking, data quality
+  - Root cause of College Station bug: county field is never populated → AAA fallback = first alphabetically
+  - Critical: Chantel's 528-program waiver library is disconnected from the matching engine
+  - 4-phase improvement plan created in Notion (Phases 1-2 = P1 🔥, Phases 3-4 = P2)
+  - Audit doc: `docs/sbf-accuracy-audit.md`
+
 - **Provider Home Page (Marketing Landing)** (branch: `shiny-maxwell`) — IN PROGRESS
   - Plan: `plans/provider-home-page-plan.md`
 
@@ -144,15 +151,17 @@
 
 ## Next Up
 
-1. **Promote staging → main** — 53 commits on staging not yet on main (Phase 3, Voice+Results, Waiver Library, Phase 1+2, Reviews)
-2. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-3. **Monitor GSC for 404 spikes** — ongoing post-cutover (3 days since DNS switch)
-4. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-5. **Plan Q&A + user data migration** — once XFive delivers export, map to v2 Supabase schema
-6. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-7. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
-8. **Provider Home Page** — next feature work (plan exists)
-9. **Provider Deletion Request** — planned (plan exists)
+1. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching fix, carePreference in scoring (P1 🔥)
+2. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into structured format, migrate to Supabase, fix needs-to-categories mapping (P1 🔥)
+3. **SBF Phase 3: Improve Matching Quality** — Sub-state geo data, weighted scoring model, validation layer (P2)
+4. **SBF Phase 4: Ongoing Quality** — Test harness with 10-20 personas, admin review tool (P2)
+5. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
+6. **Monitor GSC for 404 spikes** — ongoing post-cutover
+7. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+8. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+9. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+10. **Provider Home Page** — next feature work (plan exists)
+11. **Provider Deletion Request** — planned (plan exists)
 
 ---
 
@@ -187,6 +196,8 @@
 | 2026-03-13 | OAuth post-auth: 5-min window detection | Replace always-on onboarding popup with targeted check: only auto-open for accounts created <5 minutes ago. Prevents nagging returning users |
 | 2026-03-13 | Voice intake for Benefits Finder (Chrome/Edge only) | TTS + speech recognition for guided conversational intake. Disabled on Firefox/Safari (no API support) |
 | 2026-03-13 | Progressive disclosure for Benefits results | 3 beats: moment of relief → explore at your pace → tools when ready. Top 5 programs shown, rest behind "See more" |
+| 2026-03-14 | SBF accuracy issues are systemic, not surface-level | Root cause is structural: no county resolution, two disconnected data systems, no sub-state geo intelligence. Needs phased fix, not a patch. |
+| 2026-03-14 | Chantel's 528-program waiver library is the path forward | Must be parsed into structured format and migrated to Supabase to power recommendations. Currently only used for static Waiver Library pages. |
 
 ---
 
@@ -200,6 +211,36 @@
 ---
 
 ## Session Log
+
+### 2026-03-14 (Session 51) — SBF Accuracy Audit & Recommendation Quality Review
+
+**Branch:** `great-shaw` (from staging)
+
+**What:** Full audit of the Senior Benefits Finder recommendation engine per Notion P1 task. Deep exploration of matching logic, geographic resolution, data systems, and scoring model.
+
+**7 Findings:**
+1. **Critical:** County is never populated — AAA matching falls back to first agency alphabetically (root cause of College Station → Alamo AAA bug)
+2. **Critical:** Two disconnected data systems — Chantel's 528-program waiver library (`data/waiver-library.ts`) is not used by the recommendation engine (which queries smaller Supabase `sbf_*` tables)
+3. **High:** No sub-state geographic intelligence — all state programs shown to all state users
+4. **Medium:** `carePreference` collected but never used in scoring
+5. **Medium:** `needsToCategories` mapping has blind spots — housing, food, utilities categories unreachable
+6. **Medium:** Additive scoring model has no geographic component, causes score compression
+7. **Low:** Name-based deduplication is fragile
+
+**Files created:**
+- `docs/sbf-accuracy-audit.md` — Full audit document with all findings and recommendations
+
+**Notion:**
+- Audit document: [SBF Accuracy Audit & Recommendation Quality Review](https://www.notion.so/3235903a0ffe81ff9a44cd35ced4b12a)
+- 4 phase tasks created in Web App Action Items/Roadmap:
+  - Phase 1: Fix Critical Bugs (P1 🔥)
+  - Phase 2: Unify Data (P1 🔥)
+  - Phase 3: Improve Matching Quality (P2)
+  - Phase 4: Ongoing Quality (P2)
+
+**No code changes** — this was a research/audit session only.
+
+---
 
 ### 2026-03-13 (Session 50) — PR #259 Merge + SCRATCHPAD Refresh + Staging → Main Promotion
 

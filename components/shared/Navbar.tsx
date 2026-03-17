@@ -543,8 +543,7 @@ export default function Navbar() {
   );
 
   // Onboarding page has its own minimal nav
-  // Hide navbar on standalone pages
-  if (pathname === "/provider/onboarding" || pathname === "/welcome") return null;
+  if (pathname === "/provider/onboarding") return null;
 
   return (
     <>

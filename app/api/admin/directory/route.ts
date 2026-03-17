@@ -143,7 +143,18 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
     const providerId = crypto.randomUUID();
-    const slug = generateProviderSlug(providerName, null);
+    const baseSlug = generateProviderSlug(providerName, null);
+
+    // Ensure slug uniqueness — append random suffix if base slug exists
+    let slug = baseSlug;
+    const { data: existing } = await db
+      .from("olera-providers")
+      .select("provider_id")
+      .eq("slug", baseSlug)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
+    }
 
     const { error: insertError } = await db
       .from("olera-providers")

@@ -489,10 +489,7 @@ export default function UnifiedAuthModal({
   // Post-auth routing
   // ──────────────────────────────────────────────────────────
 
-  const handleAuthComplete = () => {
-    // Zero network calls here. AuthProvider's SIGNED_IN listener handles
-    // data loading in the background.
-
+  const handleAuthComplete = async () => {
     // Check for any deferred action (from options or sessionStorage)
     const deferred = options.deferred || getDeferredAction();
     const hasDeferredAction = !!deferred?.action;
@@ -522,15 +519,27 @@ export default function UnifiedAuthModal({
       return;
     }
 
-    // New family user (onboarding_completed=false) + no deferred action → /welcome
-    // Note: account may be null briefly after signup before SIGNED_IN fetches it,
-    // but refreshAccountData() is called before this, so it should be populated.
-    if (account?.onboarding_completed === false && !hasDeferredAction) {
-      onClose();
-      // Pass current page as ?next= so they return here after welcome
-      const currentPath = window.location.pathname + window.location.search;
-      router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);
-      return;
+    // Check onboarding_completed directly from API (not React state, which may be stale)
+    // This avoids the race condition where setState from refreshAccountData hasn't rendered yet
+    if (!hasDeferredAction) {
+      try {
+        const res = await fetch("/api/auth/ensure-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (res.ok) {
+          const { account: freshAccount } = await res.json();
+          if (freshAccount?.onboarding_completed === false) {
+            onClose();
+            // Pass current page as ?next= so they return here after welcome
+            const currentPath = window.location.pathname + window.location.search;
+            router.push(`/welcome?next=${encodeURIComponent(currentPath)}`);
+            return;
+          }
+        }
+      } catch {
+        // Non-blocking — continue to close modal
+      }
     }
 
     // Close modal — user is authenticated (returning user or has deferred action).

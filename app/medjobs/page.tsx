@@ -151,10 +151,9 @@ export default function MedJobsPage() {
             {/* Hero image with overlapping elements */}
             <div className="relative">
               <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-2xl shadow-gray-900/10">
-                {/* TODO: Replace with real photo from pilot — student with senior */}
-                <Image
-                  src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800&h=600&fit=crop&crop=faces"
-                  alt="Student caregiver helping a senior"
+                  <Image
+                  src="/images/medjobs/hero-student.jpg"
+                  alt="Student caregiver — Olera MedJobs"
                   width={800}
                   height={600}
                   className="w-full h-full object-cover"

@@ -155,13 +155,10 @@
 2. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into structured format, migrate to Supabase, fix needs-to-categories mapping (P1 🔥)
 3. **SBF Phase 3: Improve Matching Quality** — Sub-state geo data, weighted scoring model, validation layer (P2)
 4. **SBF Phase 4: Ongoing Quality** — Test harness with 10-20 personas, admin review tool (P2)
-5. **Fix Supabase 1000-row limit** in provider sitemap shards (returns 1000 instead of 10,000)
-6. **Monitor GSC for 404 spikes** — ongoing post-cutover
-7. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-8. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-9. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
-10. **Provider Home Page** — next feature work (plan exists)
-11. **Provider Deletion Request** — planned (plan exists)
+5. **Monitor GSC for 404 spikes** — ongoing post-cutover
+6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
+7. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
+8. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
 
 ---
 

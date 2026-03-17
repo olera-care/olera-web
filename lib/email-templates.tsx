@@ -364,3 +364,94 @@ export function matchesLiveEmail(opts: {
     <div>${button("View your Matches", opts.matchesUrl)}</div>
   `);
 }
+
+/** Document checklist email for benefits applications */
+export function checklistEmail(opts: {
+  programName: string;
+  programShortName: string;
+  stateName: string;
+  checked: string[];
+}): string {
+  const categories = [
+    {
+      name: "Identity & Personal",
+      items: [
+        "Government-issued photo ID",
+        "Social Security card",
+        "Birth certificate",
+        "Marriage certificate (if applicable)",
+        "Passport-size photo",
+      ],
+    },
+    {
+      name: "Medical & Health",
+      items: [
+        "Medical records or doctor's statement",
+        "Diagnosis or disability documentation",
+        "Current medication list",
+        "Health insurance card (Medicare/Medicaid)",
+      ],
+    },
+    {
+      name: "Financial & Income",
+      items: [
+        "Proof of income (pay stubs, tax return, SSI letter)",
+        "Bank statements (last 3 months)",
+        "Proof of assets (property, investments)",
+        "Proof of expenses (rent, utilities, medical bills)",
+      ],
+    },
+    {
+      name: "Residency & Housing",
+      items: [
+        "Proof of state residency (utility bill, lease)",
+        "Current living arrangement documentation",
+        "Proof of U.S. citizenship or immigration status",
+      ],
+    },
+  ];
+
+  const checkedSet = new Set(opts.checked);
+  const totalItems = categories.reduce((s, c) => s + c.items.length, 0);
+  const checkedCount = opts.checked.length;
+
+  const categoriesHtml = categories
+    .map((cat) => {
+      const itemsHtml = cat.items
+        .map((item) => {
+          const done = checkedSet.has(item);
+          const icon = done ? "&#9745;" : "&#9744;";
+          const style = done
+            ? "color:#9ca3af;text-decoration:line-through;"
+            : "color:#374151;";
+          return `<tr><td style="padding:4px 0;font-size:14px;${style}">${icon}&nbsp; ${item}</td></tr>`;
+        })
+        .join("");
+
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+          <tr><td style="font-size:15px;font-weight:600;color:#111827;padding:0 0 8px;border-bottom:1px solid #f3f4f6;">
+            ${cat.name}
+          </td></tr>
+          ${itemsHtml}
+        </table>`;
+    })
+    .join("");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your Document Checklist</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
+      For <strong>${opts.programName}</strong> in ${opts.stateName}
+    </p>
+    <p style="font-size:14px;color:${BRAND_COLOR};font-weight:600;margin:0 0 24px;">
+      ${checkedCount} of ${totalItems} documents gathered
+    </p>
+    ${categoriesHtml}
+    <div style="background:#f0fdfa;border-radius:8px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Next step:</strong> Once you've gathered all documents, visit the ${opts.programShortName} page on Olera to start your application.
+      </p>
+    </div>
+    <div>${button("View program details", `${BASE_URL}/waiver-library`)}</div>
+  `);
+}

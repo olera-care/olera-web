@@ -261,6 +261,11 @@ export default function Footer() {
                     Claim Your Listing
                   </Link>
                 </li>
+                <li>
+                  <Link href="/medjobs" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    MedJobs
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

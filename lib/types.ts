@@ -2,7 +2,7 @@
 // Database Types — mirrors the Supabase schema
 // ============================================================
 
-export type ProfileType = "organization" | "caregiver" | "family";
+export type ProfileType = "organization" | "caregiver" | "family" | "student";
 
 export type ProfileCategory =
   // Home-based organizations
@@ -80,7 +80,7 @@ export interface BusinessProfile {
   lng: number | null;
   service_area: string | null;
   care_types: string[];
-  metadata: OrganizationMetadata | CaregiverMetadata | FamilyMetadata;
+  metadata: OrganizationMetadata | CaregiverMetadata | FamilyMetadata | StudentMetadata;
   claim_state: ClaimState;
   verification_state: VerificationState;
   source: ProfileSource;
@@ -263,6 +263,110 @@ export interface FamilyMetadata {
     location_display: string;
     completed_at: string;
   };
+}
+
+// ============================================================
+// MedJobs Types
+// ============================================================
+
+export type StudentProgramTrack =
+  | "pre_nursing"
+  | "nursing"
+  | "pre_med"
+  | "pre_pa"
+  | "pre_health"
+  | "other";
+
+export interface StudentMetadata {
+  // Education
+  university?: string;
+  university_id?: string;         // FK to medjobs_universities
+  campus?: string;
+  major?: string;
+  graduation_year?: number;
+  gpa?: number;
+  program_track?: StudentProgramTrack;
+
+  // Experience
+  certifications?: string[];       // CNA, BLS, First Aid, etc.
+  years_caregiving?: number;
+  care_experience_types?: string[];  // "dementia", "post_surgical", "mobility", etc.
+  languages?: string[];
+
+  // Availability
+  availability_type?: "part_time" | "full_time" | "flexible" | "summer_only" | "weekends";
+  hours_per_week?: number;
+  available_start?: string;        // ISO date
+  transportation?: boolean;
+  willing_to_relocate?: boolean;
+  max_commute_miles?: number;
+
+  // Media
+  resume_url?: string;
+  video_intro_url?: string;
+  linkedin_url?: string;
+
+  // Credential engine (data model ready, UI Phase 2)
+  total_verified_hours?: number;
+  verified_care_types?: string[];
+
+  // Status
+  profile_completeness?: number;   // 0-100
+  seeking_status?: "actively_looking" | "open" | "not_looking";
+}
+
+export type ExperienceLogStatus = "pending" | "confirmed" | "disputed";
+
+export interface ExperienceLog {
+  id: string;
+  student_profile_id: string;
+  provider_profile_id: string;
+  hours: number;
+  care_type: string;
+  start_date: string;
+  end_date: string | null;
+  supervisor_name: string | null;
+  supervisor_title: string | null;
+  notes: string | null;
+  status: ExperienceLogStatus;
+  confirmed_at: string | null;
+  confirmed_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MedJobsUniversity {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  state: string;
+  lat: number | null;
+  lng: number | null;
+  logo_url: string | null;
+  is_active: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export type JobPostStatus = "draft" | "active" | "paused" | "closed";
+export type JobLocationType = "on_site" | "hybrid" | "flexible";
+
+export interface MedJobsJobPost {
+  id: string;
+  provider_profile_id: string;
+  title: string;
+  description: string | null;
+  care_types: string[];
+  hours_per_week_min: number | null;
+  hours_per_week_max: number | null;
+  pay_rate_min: number | null;
+  pay_rate_max: number | null;
+  location_type: JobLocationType;
+  status: JobPostStatus;
+  created_at: string;
+  updated_at: string;
 }
 
 // ============================================================

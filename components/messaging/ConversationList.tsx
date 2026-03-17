@@ -608,55 +608,55 @@ export default function ConversationList({
         {/* Filter pills — smooth collapse during search */}
         <div
           className={`overflow-hidden transition-all duration-200 ease-out ${
-            searchOpen ? "max-h-0 opacity-0" : "max-h-16 opacity-100"
+            searchOpen ? "max-h-0 opacity-0" : "max-h-12 opacity-100"
           }`}
         >
-          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-4 flex items-center gap-2 flex-wrap">
+          <div className="pl-4 sm:pl-[44px] pr-4 sm:pr-5 pb-3 flex items-center gap-1.5 flex-nowrap overflow-x-auto scrollbar-hide">
             {/* Role filter pills — only shown for dual-account users */}
             {showRoleFilters && onRoleFilterChange && (
               <>
                 <button
                   onClick={() => onRoleFilterChange("all")}
-                  className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors whitespace-nowrap shrink-0 ${
                     roleFilter === "all"
                       ? "bg-gray-900 text-white"
-                      : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   All
                 </button>
                 <button
                   onClick={() => onRoleFilterChange("family")}
-                  className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors whitespace-nowrap shrink-0 ${
                     roleFilter === "family"
-                      ? "bg-primary-600 text-white"
-                      : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   Family
                 </button>
                 <button
                   onClick={() => onRoleFilterChange("provider")}
-                  className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                  className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors whitespace-nowrap shrink-0 ${
                     roleFilter === "provider"
-                      ? "bg-primary-600 text-white"
-                      : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                      ? "bg-gray-900 text-white"
+                      : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
                   }`}
                 >
                   Provider
                 </button>
                 {/* Divider */}
-                <div className="w-px h-6 bg-gray-200 mx-1" />
+                <div className="w-px h-5 bg-gray-200 mx-0.5 shrink-0" />
               </>
             )}
 
             {/* Unread filter — standalone toggle */}
             <button
               onClick={() => setUnreadOnly(!unreadOnly)}
-              className={`min-h-[44px] px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-full text-[13px] font-semibold transition-colors whitespace-nowrap shrink-0 ${
                 unreadOnly
                   ? "bg-gray-900 text-white"
-                  : "bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
               }`}
             >
               Unread

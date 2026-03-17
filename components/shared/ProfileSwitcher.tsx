@@ -45,7 +45,7 @@ export default function ProfileSwitcher({
   allowedTypes,
   navigateTo = "/portal",
 }: ProfileSwitcherProps) {
-  const { profiles, activeProfile, switchProfile, openAuth } = useAuth();
+  const { profiles, activeProfile, switchProfile } = useAuth();
   const router = useRouter();
 
   const visibleProfiles = allowedTypes
@@ -106,7 +106,7 @@ export default function ProfileSwitcher({
         })}
         <button
           type="button"
-          onClick={() => { onSwitch?.(); openAuth({ intent: "provider" }); }}
+          onClick={() => { onSwitch?.(); router.push("/provider/onboarding"); }}
           className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors min-h-[44px] w-full"
         >
           <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center shrink-0">
@@ -165,7 +165,7 @@ export default function ProfileSwitcher({
       })}
       <button
         type="button"
-        onClick={() => { onSwitch?.(); openAuth({ intent: "provider" }); }}
+        onClick={() => { onSwitch?.(); router.push("/provider/onboarding"); }}
         className="flex items-center gap-3 px-4 py-2.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors w-full"
       >
         <div className="w-8 h-8 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center shrink-0">

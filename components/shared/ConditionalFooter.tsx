@@ -13,7 +13,7 @@ import SimpleFooter from "./SimpleFooter";
 export default function ConditionalFooter() {
   const pathname = usePathname();
 
-  // Inbox, onboarding, claim wizard, removal request, and match detail — no footer
+  // Inbox, onboarding, welcome, claim wizard, removal request, and match detail — no footer
   if (
     pathname.startsWith("/portal/inbox") ||
     pathname.startsWith("/provider/inbox") ||
@@ -21,7 +21,8 @@ export default function ConditionalFooter() {
     pathname.startsWith("/for-providers/claim") ||
     pathname.startsWith("/for-providers/removal-request") ||
     pathname.startsWith("/for-providers/dispute") ||
-    pathname.match(/^\/portal\/matches\/[^/]+$/)
+    pathname.match(/^\/portal\/matches\/[^/]+$/) ||
+    pathname === "/welcome"
   ) {
     return null;
   }

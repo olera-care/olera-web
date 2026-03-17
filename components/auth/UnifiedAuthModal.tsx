@@ -256,8 +256,9 @@ export default function UnifiedAuthModal({
         }
       }
 
-      // Yield to event loop so React commits the state update before modal closes
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Wait for React to commit the state update before modal closes
+      // Double rAF ensures we wait for a full render + paint cycle
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       setLoading(false);
       handleAuthComplete();
@@ -343,8 +344,9 @@ export default function UnifiedAuthModal({
         }
       }
 
-      // Yield to event loop so React commits the state update before modal closes
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Wait for React to commit the state update before modal closes
+      // Double rAF ensures we wait for a full render + paint cycle
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
       setLoading(false);
       handleAuthComplete();

@@ -12,10 +12,10 @@ import type { FamilyMetadata } from "@/lib/types";
 const MATCHES_BANNER_DISMISSED_KEY = "olera_saved_matches_banner_dismissed";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Matches Promotion Banner (state-driven)
+// Matches Promotion Card (premium card style, sits in grid)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function MatchesPromoBanner({
+function MatchesPromoCard({
   city,
   isMatchesActive,
 }: {
@@ -43,84 +43,9 @@ function MatchesPromoBanner({
 
   const locationText = city || "near you";
 
-  // When Matches is active: show confirmation banner with premium styling
+  // When Matches is already active, don't show — user knows it's on
   if (isMatchesActive) {
-    if (dismissed) return null;
-
-    return (
-      <div className="mb-6 relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300 overflow-hidden">
-        {/* Accent left border */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
-
-        <div className="flex items-center gap-4 px-5 py-3.5">
-          {/* Success icon with glow */}
-          <div className="relative flex-shrink-0">
-            <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
-            <div className="relative flex w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 items-center justify-center shadow-sm">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
-                <path
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <p className="text-[15px] font-semibold text-gray-900 truncate">
-              Your care profile is live
-            </p>
-            <p className="text-[13px] text-gray-500 truncate mt-0.5">
-              Providers in {locationText} can find you
-            </p>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
-            <button
-              type="button"
-              onClick={handleDismiss}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Not now
-            </button>
-            <Link
-              href="/portal/matches"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-sm font-semibold text-white shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
-            >
-              View profile
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-
-        {/* Mobile CTA */}
-        <div className="sm:hidden px-5 pb-4 flex flex-col gap-3">
-          <Link
-            href="/portal/matches"
-            className="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25"
-          >
-            View profile
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors text-center"
-          >
-            Not now
-          </button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // When dismissed for this session, don't show
@@ -128,85 +53,84 @@ function MatchesPromoBanner({
     return null;
   }
 
-  // Show CTA banner when Matches is NOT active
+  // Premium card style matching empty state design
   return (
-    <div className="mb-6 relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300 overflow-hidden">
-      {/* Accent left border */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-400 to-primary-600 rounded-l-2xl" />
+    <div className="relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.06)] transition-shadow duration-300 overflow-hidden">
+      {/* Gradient accent at top */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600" />
 
-      <div className="flex items-center gap-4 px-5 py-4">
-        {/* Icon with glow effect */}
-        <div className="relative flex-shrink-0 hidden sm:block">
-          <div className="absolute inset-0 bg-primary-400/20 rounded-xl blur-md" />
-          <div className="relative flex w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 items-center justify-center shadow-sm">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24">
-              <path
-                stroke="currentColor"
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
-              <path
-                stroke="currentColor"
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8 12h13"
-              />
-              <circle cx="5" cy="12" r="2" stroke="currentColor" strokeWidth={1.5} />
-            </svg>
-          </div>
+      <div className="px-6 py-8 text-center">
+        {/* Delightful animated illustration - person being discovered by providers */}
+        <div className="w-20 h-20 mx-auto mb-5">
+          <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
+            {/* Soft radiating rings */}
+            <circle cx="40" cy="40" r="36" stroke="#199087" strokeOpacity="0.08" strokeWidth="1.5">
+              <animate attributeName="r" values="32;36;32" dur="3s" repeatCount="indefinite" />
+              <animate attributeName="stroke-opacity" values="0.1;0.05;0.1" dur="3s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="40" cy="40" r="28" stroke="#199087" strokeOpacity="0.12" strokeWidth="1.5">
+              <animate attributeName="r" values="26;30;26" dur="3s" repeatCount="indefinite" begin="0.3s" />
+            </circle>
+
+            {/* Central warm glow */}
+            <circle cx="40" cy="40" r="22" fill="#199087" fillOpacity="0.08" />
+
+            {/* Person silhouette - warm, approachable */}
+            <circle cx="40" cy="32" r="8" fill="#199087" fillOpacity="0.9" />
+            <path
+              d="M28 52c0-6.627 5.373-12 12-12s12 5.373 12 12"
+              fill="#199087"
+              fillOpacity="0.85"
+            />
+
+            {/* Discovery sparkles */}
+            <circle cx="18" cy="34" r="2.5" fill="#199087" fillOpacity="0.4">
+              <animate attributeName="fill-opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="62" cy="34" r="2.5" fill="#199087" fillOpacity="0.4">
+              <animate attributeName="fill-opacity" values="0.2;0.5;0.2" dur="2s" repeatCount="indefinite" begin="0.5s" />
+            </circle>
+            <circle cx="22" cy="50" r="2" fill="#199087" fillOpacity="0.3">
+              <animate attributeName="fill-opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.25s" />
+            </circle>
+            <circle cx="58" cy="50" r="2" fill="#199087" fillOpacity="0.3">
+              <animate attributeName="fill-opacity" values="0.15;0.4;0.15" dur="2s" repeatCount="indefinite" begin="0.75s" />
+            </circle>
+
+            {/* Subtle connection lines */}
+            <path d="M22 34 L32 33" stroke="#199087" strokeOpacity="0.15" strokeWidth="1" strokeLinecap="round" />
+            <path d="M58 34 L48 33" stroke="#199087" strokeOpacity="0.15" strokeWidth="1" strokeLinecap="round" />
+          </svg>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[15px] font-semibold text-gray-900 mb-0.5">
-            Want these providers to come to you?
-          </h3>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            Let qualified providers in {locationText} reach out directly.
-          </p>
-        </div>
+        {/* Headline */}
+        <h3 className="text-lg font-display font-bold text-gray-900 mb-1.5">
+          Let providers come to you
+        </h3>
 
-        {/* CTA Buttons */}
-        <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
-          <button
-            type="button"
-            onClick={handleDismiss}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Not now
-          </button>
-          <Link
-            href="/portal/matches"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25 hover:shadow-md hover:shadow-primary-600/30 active:scale-[0.98] whitespace-nowrap"
-          >
-            Set up profile
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-      </div>
+        {/* Description */}
+        <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-[240px] mx-auto">
+          Qualified providers in {locationText} can reach out directly when you set up your care profile.
+        </p>
 
-      {/* Mobile CTA - full width below content */}
-      <div className="sm:hidden px-5 pb-4 flex flex-col gap-3">
+        {/* CTA Button */}
         <Link
           href="/portal/matches"
-          className="flex items-center justify-center gap-1.5 w-full px-4 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-primary-600/25"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-primary-600/25 hover:shadow-lg hover:shadow-primary-600/30 active:scale-[0.98]"
         >
-          Set up my care profile
+          Set up profile
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
           </svg>
         </Link>
+
+        {/* Dismiss link */}
         <button
           type="button"
           onClick={handleDismiss}
-          className="text-sm text-gray-500 hover:text-gray-700 transition-colors text-center"
+          className="block mx-auto mt-3 text-xs text-gray-400 hover:text-gray-600 transition-colors"
         >
-          Not now
+          Maybe later
         </button>
       </div>
     </div>
@@ -332,11 +256,6 @@ export default function SavedProvidersPage() {
           )}
         </div>
 
-        {/* Matches promotion banner - state-driven (logged-in users only) */}
-        {showMatchesBanner && (
-          <MatchesPromoBanner city={city} isMatchesActive={isMatchesActive} />
-        )}
-
         {/* Banner — compact for logged-out users */}
         {savedProviders.length > 0 && !user && (
           <div className="mb-6 px-4 py-3 bg-primary-50 border border-primary-100 rounded-xl flex items-center justify-between gap-3">
@@ -369,9 +288,13 @@ export default function SavedProvidersPage() {
                 provider={toProvider(entry)}
               />
             ))}
+            {/* Matches promo card - appears as last grid item when user has saved providers */}
+            {showMatchesBanner && (
+              <MatchesPromoCard city={city} isMatchesActive={isMatchesActive} />
+            )}
           </div>
         ) : (
-          <div className="flex items-center justify-center py-12 sm:py-16">
+          <div className="py-12 sm:py-16">
             <div className="relative w-full max-w-md">
               {/* Premium card */}
               <div className="relative bg-white/80 backdrop-blur-sm border border-gray-200/80 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] overflow-hidden">

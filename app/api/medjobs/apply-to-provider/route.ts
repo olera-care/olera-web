@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/email";
 import { applicationReceivedEmail, applicationSentEmail } from "@/lib/medjobs-email-templates";
-import { sendSlackAlert } from "@/lib/slack";
+import { sendSlackAlert, slackMedJobsApplication } from "@/lib/slack";
 import { sendSMS } from "@/lib/twilio";
 
 const supabaseAdmin = createClient(
@@ -161,11 +161,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fire-and-forget: Slack
+    // Fire-and-forget: Slack (structured)
     try {
-      await sendSlackAlert(
-        `MedJobs Application: ${studentProfile.display_name} → ${providerProfile.display_name}`
-      );
+      const alert = slackMedJobsApplication({
+        studentName: studentProfile.display_name,
+        providerName: providerProfile.display_name,
+        university: (studentMeta.university as string) || "Not specified",
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
     } catch (err) {
       console.error("[medjobs/apply-to-provider] slack error:", err);
     }

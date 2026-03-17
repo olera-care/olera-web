@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { studentWelcomeEmail } from "@/lib/medjobs-email-templates";
-import { sendSlackAlert } from "@/lib/slack";
+import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
+import { sendLoopsEvent } from "@/lib/loops";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -186,13 +187,39 @@ export async function POST(req: NextRequest) {
       console.error("[medjobs/apply] welcome email error:", err);
     }
 
-    // Fire-and-forget: Slack alert
+    // Fire-and-forget: Slack alert (structured)
     try {
-      await sendSlackAlert(
-        `New MedJobs student: ${trimmedName} (${metadata.university || "unknown university"}, ${metadata.program_track || "unknown track"}) — ${city || "?"}, ${state || "?"}`
-      );
+      const alert = slackMedJobsNewStudent({
+        studentName: trimmedName,
+        university: metadata.university || "Not specified",
+        programTrack: metadata.program_track || "Not specified",
+        location: [city, state].filter(Boolean).join(", ") || "Not specified",
+      });
+      await sendSlackAlert(alert.text, alert.blocks);
     } catch (err) {
       console.error("[medjobs/apply] slack error:", err);
+    }
+
+    // Fire-and-forget: Loops event (student audience — seeker domain)
+    try {
+      await sendLoopsEvent({
+        email: email.trim().toLowerCase(),
+        eventName: "medjobs_student_signup",
+        audience: "seeker",
+        eventProperties: {
+          university: metadata.university || "",
+          program_track: metadata.program_track || "",
+          city: city || "",
+          state: state || "",
+        },
+        contactProperties: {
+          firstName: trimmedName.split(" ")[0],
+          lastName: trimmedName.split(" ").slice(1).join(" "),
+          source: "medjobs",
+        },
+      });
+    } catch (err) {
+      console.error("[medjobs/apply] loops error:", err);
     }
 
     return NextResponse.json({ profileId: profile.id, slug });

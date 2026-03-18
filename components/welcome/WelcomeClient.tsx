@@ -70,55 +70,12 @@ function getInitials(name: string): string {
 }
 
 // ============================================================
-// Illustration Component — warm, human, connection-focused
+// Subtle gradient accent — modern, warm, minimal
 // ============================================================
 
-function MatchIllustration() {
+function WarmGradientAccent() {
   return (
-    <div className="w-28 h-28 mx-auto">
-      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
-        {/* Soft warm background */}
-        <circle cx="50" cy="50" r="48" fill="#FDF8F3" />
-        <circle cx="50" cy="50" r="38" fill="#F9EDE0" />
-
-        {/* Caring hands forming a heart shape */}
-        {/* Left hand (warm) */}
-        <path
-          d="M30 52c-2-8 4-16 12-14 4 1 6 4 8 8"
-          stroke="#E9BD91"
-          strokeWidth="6"
-          strokeLinecap="round"
-          fill="none"
-        />
-
-        {/* Right hand (teal) */}
-        <path
-          d="M70 52c2-8-4-16-12-14-4 1-6 4-8 8"
-          stroke="#5FA3A3"
-          strokeWidth="6"
-          strokeLinecap="round"
-          fill="none"
-        />
-
-        {/* Heart in the center */}
-        <path
-          d="M50 62 C50 62 38 52 38 44 C38 38 44 36 50 42 C56 36 62 38 62 44 C62 52 50 62 50 62Z"
-          fill="#E07A5F"
-          opacity="0.85"
-        />
-
-        {/* Gentle sparkles */}
-        <circle cx="35" cy="35" r="2" fill="#F4A261" opacity="0.6">
-          <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.5s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="65" cy="38" r="1.5" fill="#5FA3A3" opacity="0.5">
-          <animate attributeName="opacity" values="0.4;0.7;0.4" dur="2s" repeatCount="indefinite" begin="0.5s" />
-        </circle>
-        <circle cx="50" cy="28" r="1.5" fill="#E9BD91" opacity="0.6">
-          <animate attributeName="opacity" values="0.3;0.6;0.3" dur="3s" repeatCount="indefinite" begin="1s" />
-        </circle>
-      </svg>
-    </div>
+    <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-br from-primary-100 via-warm-100 to-vanilla-100 opacity-80" />
   );
 }
 
@@ -491,30 +448,34 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }
 
   const cityDisplay = city || "your area";
+  const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Subtle warm gradient background accent */}
+      <div className="absolute inset-x-0 top-0 h-[500px] bg-gradient-to-b from-warm-50/40 via-vanilla-50/20 to-transparent pointer-events-none" />
+
       {/* ================================================================
-          OPENING — dynamic greeting based on connection state
+          OPENING — personalized greeting
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-10 sm:pt-14 pb-6 animate-fadeIn">
+      <section className="relative px-4 sm:px-6 pt-10 sm:pt-14 pb-6 animate-fadeIn">
         <div className="max-w-xl mx-auto text-center">
           {connection?.to_profile?.display_name ? (
             <>
               <h1 className="text-[32px] sm:text-[40px] font-display font-bold text-gray-900 leading-[1.15] tracking-tight">
-                You&apos;re connected.
+                You&apos;re connected{userName ? `, ${userName}` : ""}.
               </h1>
-              <p className="mt-2 text-lg text-gray-500">
+              <p className="mt-3 text-lg text-gray-500">
                 Explore more providers and benefits you may qualify for.
               </p>
             </>
           ) : (
             <>
               <h1 className="text-[32px] sm:text-[40px] font-display font-bold text-gray-900 leading-[1.15] tracking-tight">
-                Welcome to Olera.
+                {userName ? `Welcome, ${userName}.` : "Welcome to Olera."}
               </h1>
-              <p className="mt-2 text-lg text-gray-500">
-                Explore providers and benefits you may qualify for.
+              <p className="mt-3 text-lg text-gray-500">
+                Let&apos;s find the right care for you.
               </p>
             </>
           )}
@@ -524,26 +485,30 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 1 — ACTIVATION CARD
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-4 pb-12">
+      <section className="relative px-4 sm:px-6 pt-4 pb-12">
         <div className="max-w-lg mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-lg overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden">
             <div className="px-6 sm:px-10 pt-10 pb-8 text-center">
               {showConfirmation ? (
-                /* ============ CONFIRMATION STATE ============ */
+                /* ============ CONFIRMATION STATE — celebratory ============ */
                 <>
-                  {/* Checkmark */}
-                  <div className="w-16 h-16 mx-auto rounded-full bg-primary-100 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
+                  {/* Animated checkmark with glow */}
+                  <div className="relative w-20 h-20 mx-auto">
+                    <div className="absolute inset-0 rounded-full bg-primary-100 animate-ping opacity-20" />
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-200">
+                      <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
                   </div>
 
-                  {/* Confirmation text — matching default state spacing */}
-                  <h2 className="mt-4 text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
-                    You&apos;re on the list.
+                  {/* Celebratory text */}
+                  <h2 className="mt-6 text-2xl sm:text-[26px] font-display font-bold text-gray-900 leading-snug">
+                    You&apos;re all set!
                   </h2>
-                  <p className="mt-1 text-[15px] text-gray-500">
-                    Providers in <span className="text-primary-600 font-medium">{cityDisplay}</span> will start reaching out soon.
+                  <p className="mt-2 text-[15px] text-gray-500 leading-relaxed">
+                    Providers in <span className="text-primary-600 font-semibold">{cityDisplay}</span> can now see your profile.<br className="hidden sm:inline" />
+                    We&apos;ll notify you when someone reaches out.
                   </p>
 
                   {/* Action buttons */}
@@ -639,22 +604,22 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               ) : (
                 /* ============ DEFAULT STATE ============ */
                 <>
-                  {/* Content stack — Airbnb/Apple tight spacing */}
+                  {/* Content stack — clean, minimal */}
                   <div>
-                    {/* Illustration */}
-                    <MatchIllustration />
+                    {/* Subtle gradient accent */}
+                    <WarmGradientAccent />
 
                     {/* Headline */}
-                    <h2 className="mt-4 text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
+                    <h2 className="mt-5 text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
                       {connection?.to_profile?.display_name
                         ? "Let more providers find you"
                         : "Let providers find you"
                       }
                     </h2>
 
-                    {/* Subtext — tight to headline */}
-                    <p className="mt-1 text-[15px] text-gray-500">
-                      Get matched with care providers in your area.
+                    {/* Subtext */}
+                    <p className="mt-2 text-[15px] text-gray-500 leading-relaxed">
+                      Share your care needs once. Providers in your area<br className="hidden sm:inline" /> will reach out to you directly.
                     </p>
                   </div>
 
@@ -707,16 +672,14 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     )}
                     </button>
 
-                    {/* Skip link — 44px touch target for mobile */}
-                    <div className="mt-4 flex justify-center">
-                      <button
-                        onClick={handleSkip}
-                        disabled={saving}
-                        className="min-h-[44px] px-4 text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
-                      >
-                        {connection ? "No thanks, take me to my inbox" : "Skip for now"}
-                      </button>
-                    </div>
+                    {/* Secondary option — equally valid */}
+                    <button
+                      onClick={handleSkip}
+                      disabled={saving}
+                      className="mt-3 w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all disabled:opacity-50"
+                    >
+                      {connection ? "Take me to my inbox" : "I'll explore on my own"}
+                    </button>
                   </div>
                 </>
               )}
@@ -728,11 +691,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 2 — BENEFITS
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-6 pb-8">
+      <section className="relative px-4 sm:px-6 pt-2 pb-8">
         <div className="max-w-lg mx-auto">
-          <h2 className="text-xl font-display font-semibold text-gray-900 mb-4">
-            Explore the benefits center
-          </h2>
+          <p className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-3">
+            While you&apos;re here
+          </p>
           <BenefitsCard />
         </div>
       </section>
@@ -740,7 +703,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 3 — PROVIDER RECOMMENDATIONS (horizontal scroll)
           ================================================================ */}
-      <section className="pt-10 pb-16">
+      <section className="relative pt-10 pb-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section header with View all button */}
           <div className="flex items-start justify-between gap-4 mb-5">

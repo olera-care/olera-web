@@ -651,40 +651,55 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 3 — PROVIDER RECOMMENDATIONS (horizontal scroll)
           ================================================================ */}
-      {matches.length > 0 && (
-        <section className="pt-12 pb-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-lg font-display font-semibold text-gray-900 mb-5">
-              {city ? (
-                <>
-                  Other providers in{" "}
-                  <span className="text-primary-600">{city}</span>
-                  {" "}you may like
-                </>
-              ) : (
-                "Other providers you may like"
-              )}
-            </h2>
+      <section className="pt-12 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-lg font-display font-semibold text-gray-900 mb-5">
+            {city ? (
+              <>
+                Other providers in{" "}
+                <span className="text-primary-600">{city}</span>
+                {" "}you may like
+              </>
+            ) : (
+              "Other providers you may like"
+            )}
+          </h2>
 
-            {/* Horizontal scroll container — 2 cards visible + third peeking */}
-            <div
-              ref={scrollRef}
-              className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 snap-x snap-mandatory"
-              style={{
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                WebkitOverflowScrolling: "touch",
-              }}
-            >
-              {matches.map((provider) => (
+          {/* Horizontal scroll container — 2 cards visible + third peeking */}
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 snap-x snap-mandatory"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            {matches.length > 0 ? (
+              matches.map((provider) => (
                 <div key={provider.provider_id} className="snap-start">
                   <ProviderScrollCard provider={provider} />
                 </div>
-              ))}
-            </div>
+              ))
+            ) : (
+              /* Placeholder cards when no matches available */
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={`placeholder-${i}`} className="snap-start flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px]">
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="h-36 sm:h-44 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full bg-primary-100/60 animate-pulse" />
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-gray-100 rounded-full w-3/4 animate-pulse" />
+                      <div className="h-3 bg-gray-100 rounded-full w-1/2 animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Animations and scrollbar hiding */}
       <style jsx global>{`

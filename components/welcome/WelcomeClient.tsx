@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
+import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { PRE_AUTH_PAGE_KEY } from "@/components/auth/UnifiedAuthModal";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import type { Provider } from "@/components/providers/ProviderCard";

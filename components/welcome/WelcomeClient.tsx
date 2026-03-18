@@ -70,12 +70,47 @@ function getInitials(name: string): string {
 }
 
 // ============================================================
-// Subtle gradient accent — modern, warm, minimal
+// Illustration — person being discovered by providers
 // ============================================================
 
-function WarmGradientAccent() {
+function DiscoveryIllustration() {
   return (
-    <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-gradient-to-br from-primary-100 via-warm-100 to-vanilla-100 opacity-80" />
+    <div className="w-24 h-24 mx-auto">
+      <svg viewBox="0 0 96 96" fill="none" className="w-full h-full">
+        {/* Soft background glow */}
+        <circle cx="48" cy="48" r="40" fill="#199087" fillOpacity="0.08" />
+        <circle cx="48" cy="48" r="28" fill="#199087" fillOpacity="0.12" />
+
+        {/* Person silhouette - warm, approachable */}
+        <circle cx="48" cy="36" r="10" fill="#199087" fillOpacity="0.9" />
+        <path
+          d="M32 62c0-8.837 7.163-16 16-16s16 7.163 16 16"
+          stroke="#199087"
+          strokeWidth="3"
+          strokeLinecap="round"
+          fill="#199087"
+          fillOpacity="0.15"
+        />
+
+        {/* Connection dots - representing providers finding you */}
+        <circle cx="22" cy="40" r="4" fill="#199087" fillOpacity="0.4">
+          <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="74" cy="40" r="4" fill="#199087" fillOpacity="0.4">
+          <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" begin="0.5s" />
+        </circle>
+        <circle cx="28" cy="58" r="3" fill="#199087" fillOpacity="0.3">
+          <animate attributeName="opacity" values="0.15;0.45;0.15" dur="2s" repeatCount="indefinite" begin="0.25s" />
+        </circle>
+        <circle cx="68" cy="58" r="3" fill="#199087" fillOpacity="0.3">
+          <animate attributeName="opacity" values="0.15;0.45;0.15" dur="2s" repeatCount="indefinite" begin="0.75s" />
+        </circle>
+
+        {/* Subtle connection lines */}
+        <path d="M26 40 L38 38" stroke="#199087" strokeOpacity="0.2" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M70 40 L58 38" stroke="#199087" strokeOpacity="0.2" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    </div>
   );
 }
 
@@ -129,7 +164,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
   return (
     <Link
       href={`/provider/${provider.provider_id}`}
-      className="group flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px] bg-white rounded-xl border border-gray-100 shadow-md shadow-gray-100/50 hover:shadow-lg hover:border-gray-200 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+      className="group flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px] bg-white rounded-xl border border-gray-200 shadow-md hover:shadow-xl hover:border-gray-300 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
     >
       {/* Image */}
       <div className="relative h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
@@ -606,11 +641,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 <>
                   {/* Content stack — clean, minimal */}
                   <div>
-                    {/* Subtle gradient accent */}
-                    <WarmGradientAccent />
+                    {/* Illustration */}
+                    <DiscoveryIllustration />
 
                     {/* Headline */}
-                    <h2 className="mt-5 text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
+                    <h2 className="mt-6 text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
                       {connection?.to_profile?.display_name
                         ? "Let more providers find you"
                         : "Let providers find you"
@@ -757,7 +792,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             >
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={`placeholder-${i}`} className="flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px]">
-                  <div className="bg-white rounded-xl border border-gray-100 shadow-md shadow-gray-100/50 overflow-hidden">
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden">
                     <div className="h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex items-center justify-center">
                       <div className="w-14 h-14 rounded-full bg-primary-100/60 animate-pulse" />
                     </div>

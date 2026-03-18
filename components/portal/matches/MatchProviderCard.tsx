@@ -129,10 +129,10 @@ export default function MatchProviderCard({
         href={providerUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="group block bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all overflow-hidden"
+        className="group flex flex-col h-full bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all overflow-hidden"
       >
-        {/* Image */}
-        <div className="relative h-40 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
+        {/* Image - fixed height */}
+        <div className="relative h-40 flex-shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
           {provider.image ? (
             <Image
               src={provider.image}
@@ -188,11 +188,11 @@ export default function MatchProviderCard({
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-4">
-          {/* Name + Rating */}
+        {/* Content - flex-1 to fill remaining space */}
+        <div className="p-4 flex flex-col flex-1">
+          {/* Name + Rating - fixed height area */}
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-gray-900 text-[15px] group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">
+            <h3 className="font-semibold text-gray-900 text-[15px] group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug min-h-[2.5rem]">
               {provider.name}
             </h3>
             {provider.rating && provider.rating > 0 && (
@@ -213,17 +213,15 @@ export default function MatchProviderCard({
             {location && ` · ${location}`}
           </p>
 
-          {/* Price if available */}
-          {provider.priceRange && (
-            <p className="text-sm font-semibold text-gray-900 mt-2">
-              {provider.priceRange}
-            </p>
-          )}
+          {/* Price - always show area, use placeholder if no price */}
+          <p className="text-sm font-semibold text-gray-900 mt-2 min-h-[1.25rem]">
+            {provider.priceRange || <span className="text-gray-400 font-normal">Contact for pricing</span>}
+          </p>
 
-          {/* Provider's message (if interested) */}
-          {isInterested && interestedMessage && (
-            <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="text-sm text-gray-600 line-clamp-3">
+          {/* Provider's message (if interested) - fixed height container */}
+          {isInterested ? (
+            <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100 min-h-[5.5rem]">
+              <p className="text-sm text-gray-600 line-clamp-2">
                 &ldquo;{interestedMessage}&rdquo;
               </p>
               {interestedAt && (
@@ -232,10 +230,13 @@ export default function MatchProviderCard({
                 </p>
               )}
             </div>
+          ) : (
+            /* Spacer for non-interested cards to maintain height parity */
+            <div className="flex-1 min-h-3" />
           )}
 
-          {/* Actions */}
-          <div className="mt-4 flex gap-2">
+          {/* Actions - always at bottom */}
+          <div className="mt-auto pt-4 flex gap-2">
             {isInterested ? (
               <>
                 {/* Reply / Continue conversation */}

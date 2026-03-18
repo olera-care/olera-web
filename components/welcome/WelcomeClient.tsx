@@ -620,12 +620,12 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     {/* Content */}
                     <div className="flex-1 p-5 sm:p-6 flex flex-col min-w-0">
                       {/* Provider Name — with line clamp for long names */}
-                      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900 leading-tight line-clamp-2">
+                      <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight line-clamp-2">
                         {provider.display_name}
                       </h2>
 
                       {/* Location · Category */}
-                      <p className="mt-1.5 text-[15px] text-gray-500 line-clamp-1">
+                      <p className="mt-1.5 text-text-md text-gray-500 line-clamp-1">
                         {location || provider.category || "Care Provider"}
                         {location && provider.category && (
                           <span className="text-gray-300"> · </span>
@@ -639,7 +639,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                       {hasRatingOrPricing && (
                         <>
                           <div className="my-4 border-t border-gray-100" />
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-text-sm">
                             {provider.metadata?.google_rating && (
                               <div className="flex items-center gap-1.5">
                                 <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
@@ -677,7 +677,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                       <div className="mt-4 sm:mt-5 flex sm:justify-end">
                         <Link
                           href={`/portal/inbox?provider=${provider.id}`}
-                          className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-[15px] font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                          className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
                         >
                           Message
                         </Link>
@@ -701,8 +701,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               <div className="relative flex items-start gap-4 pb-4">
                 {/* Left column — label + step number */}
                 <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
-                  <span className="text-xs font-medium text-gray-500 mb-2">Profile</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-500 z-10">
+                  <span className="text-text-xs font-medium text-gray-500 mb-2">Profile</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-text-sm font-medium text-gray-500 z-10">
                     1
                   </div>
                 </div>
@@ -724,8 +724,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
                   {/* Text */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">Complete your profile</p>
-                    <p className="text-sm text-gray-500 mt-0.5">Help providers understand your needs</p>
+                    <p className="text-text-md font-semibold text-gray-900">Complete your profile</p>
+                    <p className="text-text-sm text-gray-500 mt-0.5">Help providers understand your needs</p>
                   </div>
 
                   {/* Chevron */}
@@ -739,8 +739,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               <div className="relative flex items-start gap-4 pb-4">
                 {/* Left column — label + step number */}
                 <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
-                  <span className="text-xs font-medium text-gray-500 mb-2">Benefits</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-500 z-10">
+                  <span className="text-text-xs font-medium text-gray-500 mb-2">Benefits</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-text-sm font-medium text-gray-500 z-10">
                     2
                   </div>
                 </div>
@@ -764,10 +764,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
                     {/* Content */}
                     <div className="flex-1 p-5">
-                      <p className="font-semibold text-lg text-gray-900">
+                      <p className="font-semibold text-text-lg text-gray-900">
                         You may qualify for benefits
                       </p>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-text-sm text-gray-500 mt-1">
                         Discover programs that help cover care costs
                       </p>
                     </div>
@@ -779,8 +779,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               <div className="relative flex items-start gap-4">
                 {/* Left column — label + step number */}
                 <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
-                  <span className="text-xs font-medium text-gray-500 mb-2">Matches</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-500 z-10">
+                  <span className="text-text-xs font-medium text-gray-500 mb-2">Matches</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-text-sm font-medium text-gray-500 z-10">
                     3
                   </div>
                 </div>
@@ -802,8 +802,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
                   {/* Text */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">Get matched with providers</p>
-                    <p className="text-sm text-gray-500 mt-0.5">Let care providers reach out to you</p>
+                    <p className="text-text-md font-semibold text-gray-900">Get matched with providers</p>
+                    <p className="text-text-sm text-gray-500 mt-0.5">Let care providers reach out to you</p>
                   </div>
 
                   {/* Chevron */}
@@ -822,7 +822,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             <section className="pb-16">
               {/* Section header with navigation arrows — Airbnb style */}
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-text-lg font-semibold text-gray-900">
                   Discover providers near you
                 </h2>
                 <div className="flex items-center gap-1.5">
@@ -903,14 +903,14 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
                       {/* Content below image — clean text only */}
                       <div className="mt-3">
-                        <h3 className="font-medium text-gray-900 text-[15px] leading-snug line-clamp-2">
+                        <h3 className="font-medium text-gray-900 text-text-md leading-snug line-clamp-2">
                           {provider.provider_name}
                         </h3>
-                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
+                        <p className="text-text-sm text-gray-500 mt-0.5 line-clamp-1">
                           {provider.provider_category}
                         </p>
                         {provider.google_rating && (
-                          <p className="text-sm text-gray-500 mt-0.5">
+                          <p className="text-text-sm text-gray-500 mt-0.5">
                             <span className="text-gray-900">★ {provider.google_rating.toFixed(1)}</span>
                           </p>
                         )}

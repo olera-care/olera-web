@@ -625,30 +625,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     }
   }, [updateScrollButtons]);
 
-  // Loading state - wait for both auth and local initialization
-  if (loading || authLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" style={{ willChange: "transform" }} />
-      </div>
-    );
-  }
-
-  const cityDisplay = city || "your area";
-  const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
-  const isConnected = !!connection?.to_profile?.display_name;
-
   // Gamification: attention moves through cards as user completes steps
   // 1. Profile card pulses until profile >= 50% complete
   // 2. Benefits card pulses until they've visited (not necessarily saved)
   // 3. Matches card pulses until profile is live
+  // NOTE: These calculations and the useEffect MUST be before any conditional returns
+  // to avoid the "Rendered more hooks than during the previous render" error
   const profileComplete = profilePercentage >= 50;
-
-  const needsProfileAttention = !profileComplete;
-  const needsBenefitsAttention = profileComplete && !hasViewedBenefits;
-  const needsMatchesAttention = profileComplete && hasViewedBenefits && !isProfileLive;
-
-  // All steps complete = ready to celebrate!
   const allStepsComplete = profileComplete && hasViewedBenefits && isProfileLive;
 
   // Trigger celebration when all steps complete (only once)
@@ -664,6 +647,23 @@ export default function WelcomeClient({ destination, initialProviders = [], init
       return () => clearTimeout(timer);
     }
   }, [allStepsComplete, celebrationShown, showCelebration]);
+
+  // Loading state - wait for both auth and local initialization
+  if (loading || authLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" style={{ willChange: "transform" }} />
+      </div>
+    );
+  }
+
+  const cityDisplay = city || "your area";
+  const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
+  const isConnected = !!connection?.to_profile?.display_name;
+
+  const needsProfileAttention = !profileComplete;
+  const needsBenefitsAttention = profileComplete && !hasViewedBenefits;
+  const needsMatchesAttention = profileComplete && hasViewedBenefits && !isProfileLive;
 
   // Toggle this to switch between new and old version during development
   const USE_NEW_VERSION = true;

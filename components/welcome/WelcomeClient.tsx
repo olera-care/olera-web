@@ -793,10 +793,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           </section>
 
           {/* ============================================================
-              PROVIDER RECOMMENDATIONS — Horizontal carousel with nav
+              PROVIDER RECOMMENDATIONS — Aligned with content above
               ============================================================ */}
           {matches.length > 0 && (
-            <section className="pb-16">
+            <section className="pb-16 pl-16">
               {/* Section header with navigation arrows — Airbnb style */}
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-text-lg font-semibold text-gray-900">
@@ -826,11 +826,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               </div>
 
-              {/* Scrollable provider cards — more gap like Airbnb */}
+              {/* Scrollable provider cards — contained within content boundaries */}
               <div
                 ref={providerScrollRef}
                 onScroll={updateScrollButtons}
-                className="flex gap-5 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scroll-smooth"
+                className="flex gap-4 overflow-x-auto pb-2 scroll-smooth"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 {matches.map((provider) => {
@@ -901,7 +901,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
           {/* Loading state for providers */}
           {providersLoading && (
-            <section className="pb-16">
+            <section className="pb-16 pl-16">
               <div className="flex items-center justify-between mb-5">
                 <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
                 <div className="flex gap-2">
@@ -910,8 +910,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               </div>
               <div className="flex gap-4 overflow-hidden">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[200px]">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[180px]">
                     <div className="aspect-[4/3] rounded-xl bg-gray-100 animate-pulse" />
                     <div className="mt-2.5 space-y-2">
                       <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse" />

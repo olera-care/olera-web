@@ -712,9 +712,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
           {/* ============================================================
               ACTION TIMELINE — Profile, Benefits, Matches (Airbnb style)
-              Indented on LEFT only to feel "nested" — RIGHT aligns with main sections
+              Indented on LEFT (desktop only) to feel "nested" — RIGHT aligns with main sections
               ============================================================ */}
-          <section className="pb-16 ml-4 sm:ml-8">
+          <section className="pb-16 sm:ml-16">
             {/* Nested layout: timeline on left, cards fill remaining space */}
             <div className="relative pl-14">
               {/* Timeline — absolutely positioned in left margin, minimal and subtle */}

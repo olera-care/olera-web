@@ -183,6 +183,7 @@ export default function ProfileEditWizard({
   // Step state
   const [step, setStep] = useState<Step>(initialStep);
   const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Step 1: Basic Info
   const [displayName, setDisplayName] = useState(profile.display_name || "");
@@ -278,8 +279,8 @@ export default function ProfileEditWizard({
     );
   };
 
-  // Save all changes
-  const handleSave = useCallback(async () => {
+  // Auto-save function (doesn't close modal)
+  const saveChanges = useCallback(async () => {
     if (!isSupabaseConfigured() || !profile) return;
     setSaving(true);
 
@@ -315,9 +316,8 @@ export default function ProfileEditWizard({
         .eq("id", profile.id);
 
       await refreshAccountData();
-      onSaved();
     } catch (err) {
-      console.error("[ProfileEditWizard] Save failed:", err);
+      console.error("[ProfileEditWizard] Auto-save failed:", err);
     } finally {
       setSaving(false);
     }
@@ -334,24 +334,43 @@ export default function ProfileEditWizard({
     timeline,
     payments,
     refreshAccountData,
-    onSaved,
   ]);
 
-  // Navigation
-  const canGoNext = step < 4;
-  const canGoBack = step > 1;
+  // Track if initial load is done (to prevent saving on mount)
+  const initialLoadDone = useRef(false);
+  useEffect(() => {
+    initialLoadDone.current = true;
+  }, []);
 
-  const handleNext = () => {
-    if (canGoNext) setStep((s) => (s + 1) as Step);
-  };
+  // Debounced auto-save when any field changes
+  useEffect(() => {
+    if (!initialLoadDone.current) return;
 
-  const handleBack = () => {
-    if (canGoBack) setStep((s) => (s - 1) as Step);
-  };
+    setHasChanges(true);
+    const timer = setTimeout(() => {
+      saveChanges();
+    }, 800); // 800ms debounce
 
-  const handleFinish = () => {
-    handleSave();
-  };
+    return () => clearTimeout(timer);
+  }, [
+    displayName,
+    city,
+    state,
+    email,
+    phone,
+    contactPref,
+    whoNeedsCare,
+    careTypes,
+    timeline,
+    payments,
+    saveChanges,
+  ]);
+
+  // Handle close - just close, changes are already saved
+  const handleClose = useCallback(() => {
+    onSaved(); // Refresh parent data
+    onClose();
+  }, [onSaved, onClose]);
 
   // Step validation (optional - for visual feedback)
   const isStep1Valid = displayName.trim().length > 0;
@@ -362,7 +381,7 @@ export default function ProfileEditWizard({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Modal */}
@@ -386,7 +405,7 @@ export default function ProfileEditWizard({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -744,55 +763,33 @@ export default function ProfileEditWizard({
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-          <div>
-            {canGoBack ? (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Back
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Cancel
-              </button>
+          <div className="flex items-center gap-2 text-sm text-gray-500 min-w-[120px]">
+            {hasChanges && (
+              saving ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Changes saved</span>
+                </>
+              )
             )}
           </div>
 
           <ProgressDots current={step - 1} total={4} />
 
-          <div>
-            {canGoNext ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-              >
-                Continue
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleFinish}
-                disabled={saving}
-                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2"
-              >
-                {saving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </button>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>

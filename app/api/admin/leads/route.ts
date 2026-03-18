@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         message,
         metadata,
         created_at,
-        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type),
+        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, type, email, phone, metadata, care_types),
         to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, type, slug, source_provider_id)
       `)
       .order("created_at", { ascending: false })

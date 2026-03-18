@@ -164,7 +164,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
   return (
     <Link
       href={`/provider/${provider.provider_id}`}
-      className="group flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px] bg-white rounded-xl border border-gray-200 shadow-md hover:shadow-xl hover:border-gray-300 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+      className="group w-[280px] min-w-[280px] bg-white rounded-xl border border-gray-200 shadow-md hover:shadow-xl hover:border-gray-300 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
     >
       {/* Image */}
       <div className="relative h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
@@ -791,7 +791,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={`placeholder-${i}`} className="flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px]">
+                <div key={`placeholder-${i}`} className="w-[280px] min-w-[280px]">
                   <div className="bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden">
                     <div className="h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex items-center justify-center">
                       <div className="w-14 h-14 rounded-full bg-primary-100/60 animate-pulse" />

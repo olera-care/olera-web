@@ -1587,6 +1587,15 @@ export default function ProviderMatchesPage() {
     fetchFamilies(0);
   }, [fetchFamilies]);
 
+  // Poll for updates every 45 seconds (family profile changes, new listings)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchFamilies(0);
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, [fetchFamilies]);
+
   // Filter + sort
   const filteredFamilies = useMemo(() => {
     let result = families.filter((f) => !contactedIds.has(f.id));

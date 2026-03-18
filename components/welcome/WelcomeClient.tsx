@@ -290,8 +290,14 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // Saved benefits tracking
   const { savedCount: benefitsSavedCount } = useSavedBenefits();
 
-  // Profile live status (is_active on the profile)
-  const isProfileLive = activeProfile?.is_active ?? false;
+  // Profile live status — only "Live" if profile has meaningful data AND is_active
+  // A fresh profile should NOT show "Live" just because is_active defaults to true
+  const hasMinimalProfileData = Boolean(
+    activeProfile?.email ||
+    activeProfile?.phone ||
+    (activeProfile?.care_types && activeProfile.care_types.length > 0)
+  );
+  const isProfileLive = (activeProfile?.is_active ?? false) && hasMinimalProfileData;
 
   // Read pre-auth page from localStorage on mount (for "Skip for now" redirect)
   useEffect(() => {
@@ -526,6 +532,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
   const isConnected = !!connection?.to_profile?.display_name;
 
+  // Show attention animation for fresh users who haven't started their profile
+  const needsProfileAttention = !isConnected && profilePercentage < 50;
+
   // Toggle this to switch between new and old version during development
   const USE_NEW_VERSION = true;
 
@@ -748,11 +757,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
               {/* Cards — full width, generous spacing */}
               <div className="space-y-4">
-                {/* Card 1: Profile */}
-                <button
-                  onClick={() => setProfileWizardOpen(true)}
-                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
-                >
+                {/* Card 1: Profile — with attention animation for fresh users */}
+                <div className="relative">
+                  {/* Pulsing attention ring for fresh users */}
+                  {needsProfileAttention && (
+                    <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
+                  )}
+                  <button
+                    onClick={() => setProfileWizardOpen(true)}
+                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsProfileAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                  >
                   <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
                     <svg viewBox="0 0 32 32" className="w-8 h-8">
                       <rect x="6" y="4" width="20" height="26" rx="2" fill="#E8DDD4" stroke="#C4B5A6" strokeWidth="1.5"/>
@@ -775,7 +789,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                </button>
+                  </button>
+                </div>
 
                 {/* Card 2: Benefits */}
                 <Link

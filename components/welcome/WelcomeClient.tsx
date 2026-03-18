@@ -255,6 +255,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [navigating, setNavigating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
   const [matches, setMatches] = useState<MatchProvider[]>([]);
@@ -373,29 +374,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
     setSaving(true);
 
     try {
-      if (activateMatches) {
-        console.log("[welcome] Activating matches with city:", city, "state:", activeProfile?.state);
-        const activateRes = await fetch("/api/care-post/activate-matches", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            city: city || undefined,
-            state: activeProfile?.state || undefined,
-          }),
-        });
-
-        if (!activateRes.ok) {
-          const errorData = await activateRes.json().catch(() => ({}));
-          console.error("[welcome] Failed to activate matches:", activateRes.status, errorData);
-          // Don't block the flow, but log the error
-        } else {
-          const successData = await activateRes.json();
-          console.log("[welcome] Matches activated successfully:", successData);
-        }
-      }
-
-      // Mark onboarding as completed
-      const profileRes = await fetch("/api/auth/create-profile", {
+      // Build the profile update request
+      const profileRequest = fetch("/api/auth/create-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -407,12 +387,44 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         }),
       });
 
-      if (!profileRes.ok) {
-        const errorData = await profileRes.json().catch(() => ({}));
-        console.error("[welcome] Failed to update profile:", profileRes.status, errorData);
+      if (activateMatches) {
+        // Run both API calls in parallel for faster completion
+        console.log("[welcome] Activating matches with city:", city, "state:", activeProfile?.state);
+        const [activateRes, profileRes] = await Promise.all([
+          fetch("/api/care-post/activate-matches", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              city: city || undefined,
+              state: activeProfile?.state || undefined,
+            }),
+          }),
+          profileRequest,
+        ]);
+
+        if (!activateRes.ok) {
+          const errorData = await activateRes.json().catch(() => ({}));
+          console.error("[welcome] Failed to activate matches:", activateRes.status, errorData);
+        } else {
+          const successData = await activateRes.json();
+          console.log("[welcome] Matches activated successfully:", successData);
+        }
+
+        if (!profileRes.ok) {
+          const errorData = await profileRes.json().catch(() => ({}));
+          console.error("[welcome] Failed to update profile:", profileRes.status, errorData);
+        }
+      } else {
+        // Just complete the profile update
+        const profileRes = await profileRequest;
+        if (!profileRes.ok) {
+          const errorData = await profileRes.json().catch(() => ({}));
+          console.error("[welcome] Failed to update profile:", profileRes.status, errorData);
+        }
       }
 
-      await refreshAccountData?.();
+      // Refresh account data in background — don't wait for it
+      refreshAccountData?.();
 
       if (showConfirmationAfter) {
         setSaving(false);
@@ -441,8 +453,19 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }, [completeOnboarding]);
 
   const handleGoToInbox = useCallback(() => {
+    setNavigating(true);
     router.push(destination);
   }, [router, destination]);
+
+  const handleViewMatches = useCallback(() => {
+    setNavigating(true);
+    router.push("/portal/matches");
+  }, [router]);
+
+  const handleBrowseProviders = useCallback(() => {
+    setNavigating(true);
+    router.push("/browse");
+  }, [router]);
 
   // Loading state
   if (loading) {
@@ -513,11 +536,13 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                   <div className="mt-7 space-y-3">
                     {/* Primary: View matches profile */}
                     <button
-                      onClick={() => router.push("/portal/matches")}
+                      onClick={handleViewMatches}
+                      disabled={navigating}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        gap: "8px",
                         width: "100%",
                         minHeight: "52px",
                         padding: "0 24px",
@@ -528,36 +553,71 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                         fontWeight: 600,
                         borderRadius: "12px",
                         border: "none",
-                        cursor: "pointer",
+                        cursor: navigating ? "not-allowed" : "pointer",
+                        opacity: navigating ? 0.7 : 1,
                         boxShadow: "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)",
                         transition: "all 0.2s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #6db3b3, #5fa3a3)";
-                        e.currentTarget.style.boxShadow = "0 6px 10px -2px rgba(77, 138, 138, 0.25), 0 3px 6px -2px rgba(77, 138, 138, 0.15)";
+                        if (!navigating) {
+                          e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #6db3b3, #5fa3a3)";
+                          e.currentTarget.style.boxShadow = "0 6px 10px -2px rgba(77, 138, 138, 0.25), 0 3px 6px -2px rgba(77, 138, 138, 0.15)";
+                        }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #5fa3a3, #4d8a8a)";
                         e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)";
                       }}
                     >
-                      View my matches
+                      {navigating ? (
+                        <>
+                          <svg style={{ animation: "spin 1s linear infinite", height: "16px", width: "16px" }} fill="none" viewBox="0 0 24 24">
+                            <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Loading...
+                        </>
+                      ) : (
+                        "View my matches"
+                      )}
                     </button>
 
                     {/* Secondary: Context-aware button */}
                     {connection ? (
                       <button
                         onClick={handleGoToInbox}
-                        className="w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
+                        disabled={navigating}
+                        className="w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        Go to my inbox
+                        {navigating ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Loading...
+                          </>
+                        ) : (
+                          "Go to my inbox"
+                        )}
                       </button>
                     ) : (
                       <button
-                        onClick={() => router.push("/browse")}
-                        className="w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
+                        onClick={handleBrowseProviders}
+                        disabled={navigating}
+                        className="w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        Browse providers
+                        {navigating ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Loading...
+                          </>
+                        ) : (
+                          "Browse providers"
+                        )}
                       </button>
                     )}
                   </div>

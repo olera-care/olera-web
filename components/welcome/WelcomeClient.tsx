@@ -258,6 +258,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
   const [matches, setMatches] = useState<MatchProvider[]>([]);
+  const [providersLoading, setProvidersLoading] = useState(true);
   const [city, setCity] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -335,8 +336,13 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             }
           } catch (err) {
             console.error("[welcome] Failed to fetch provider recommendations:", err);
+          } finally {
+            setProvidersLoading(false);
           }
         })();
+      } else {
+        // No city to search — mark loading complete
+        setProvidersLoading(false);
       }
     }
 
@@ -652,37 +658,44 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 Highly reviewed care providers {city ? `near ${city}` : "in your area"}
               </p>
             </div>
-            <Link
-              href="/browse"
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors flex-shrink-0"
-            >
-              View all providers
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+            {matches.length > 0 && (
+              <Link
+                href="/browse"
+                className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors flex-shrink-0"
+              >
+                View all providers
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            )}
           </div>
 
           {/* Horizontal scroll container — 2 cards visible + third peeking */}
-          <div
-            ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 snap-x snap-mandatory"
-            style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {matches.length > 0 ? (
-              matches.map((provider) => (
+          {matches.length > 0 ? (
+            <div
+              ref={scrollRef}
+              className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 snap-x snap-mandatory"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              {matches.map((provider) => (
                 <div key={provider.provider_id} className="snap-start">
                   <ProviderScrollCard provider={provider} />
                 </div>
-              ))
-            ) : (
-              /* Placeholder cards when no matches available */
-              Array.from({ length: 3 }).map((_, i) => (
-                <div key={`placeholder-${i}`} className="snap-start flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px]">
+              ))}
+            </div>
+          ) : providersLoading ? (
+            /* Loading skeleton placeholders */
+            <div
+              className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={`placeholder-${i}`} className="flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px]">
                   <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     <div className="h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex items-center justify-center">
                       <div className="w-14 h-14 rounded-full bg-primary-100/60 animate-pulse" />
@@ -693,22 +706,46 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            /* Empty state — no providers to show */
+            <div className="bg-gradient-to-br from-gray-50 to-primary-50/30 rounded-2xl border border-gray-200/60 p-8 text-center">
+              <div className="w-14 h-14 mx-auto rounded-full bg-primary-100 flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Find providers near you</h3>
+              <p className="text-gray-500 text-sm mb-5 max-w-sm mx-auto">
+                Browse our network of trusted care providers and find the right match for your needs.
+              </p>
+              <Link
+                href="/browse"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors"
+              >
+                Browse all providers
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          )}
 
-          {/* Mobile View all button */}
-          <div className="mt-6 sm:hidden">
-            <Link
-              href="/browse"
-              className="flex items-center justify-center gap-2 w-full py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors"
-            >
-              View all providers
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
+          {/* Mobile View all button — only show when we have provider cards */}
+          {matches.length > 0 && (
+            <div className="mt-6 sm:hidden">
+              <Link
+                href="/browse"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors"
+              >
+                View all providers
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

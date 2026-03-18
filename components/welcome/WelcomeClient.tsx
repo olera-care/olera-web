@@ -694,15 +694,15 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               ============================================================ */}
           <section className="pb-12">
             <div className="relative">
-              {/* Vertical timeline line — positioned to align with step numbers */}
-              <div className="absolute left-[47px] top-[52px] bottom-[52px] w-px bg-gray-200" />
+              {/* Vertical timeline line — thin and subtle like Airbnb */}
+              <div className="absolute left-[27px] top-[56px] bottom-[56px] w-px bg-gray-200" />
 
               {/* Step 1: Profile */}
-              <div className="relative flex items-start gap-4 pb-4">
-                {/* Left column — label + step number */}
-                <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
-                  <span className="text-text-xs font-medium text-gray-500 mb-2">Profile</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-text-sm font-medium text-gray-500 z-10">
+              <div className="relative flex items-start gap-5 pb-6">
+                {/* Left column — label + step number (Airbnb style: outlined circle, prominent number) */}
+                <div className="flex flex-col items-center w-[54px] flex-shrink-0">
+                  <span className="text-[11px] font-medium text-gray-400 mb-1.5">Profile</span>
+                  <div className="w-11 h-11 rounded-full bg-white border border-gray-200 flex items-center justify-center text-lg font-semibold text-gray-700 z-10">
                     1
                   </div>
                 </div>
@@ -736,11 +736,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               </div>
 
               {/* Step 2: Benefits (Featured - larger card with image) */}
-              <div className="relative flex items-start gap-4 pb-4">
-                {/* Left column — label + step number */}
-                <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
-                  <span className="text-text-xs font-medium text-gray-500 mb-2">Benefits</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-text-sm font-medium text-gray-500 z-10">
+              <div className="relative flex items-start gap-5 pb-6">
+                {/* Left column — label + step number (Airbnb style) */}
+                <div className="flex flex-col items-center w-[54px] flex-shrink-0">
+                  <span className="text-[11px] font-medium text-gray-400 mb-1.5">Benefits</span>
+                  <div className="w-11 h-11 rounded-full bg-white border border-gray-200 flex items-center justify-center text-lg font-semibold text-gray-700 z-10">
                     2
                   </div>
                 </div>
@@ -776,11 +776,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               </div>
 
               {/* Step 3: Matches */}
-              <div className="relative flex items-start gap-4">
-                {/* Left column — label + step number */}
-                <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
-                  <span className="text-text-xs font-medium text-gray-500 mb-2">Matches</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-text-sm font-medium text-gray-500 z-10">
+              <div className="relative flex items-start gap-5">
+                {/* Left column — label + step number (Airbnb style) */}
+                <div className="flex flex-col items-center w-[54px] flex-shrink-0">
+                  <span className="text-[11px] font-medium text-gray-400 mb-1.5">Matches</span>
+                  <div className="w-11 h-11 rounded-full bg-white border border-gray-200 flex items-center justify-center text-lg font-semibold text-gray-700 z-10">
                     3
                   </div>
                 </div>

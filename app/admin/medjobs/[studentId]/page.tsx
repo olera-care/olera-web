@@ -41,6 +41,8 @@ export default function AdminMedJobsDetailPage() {
   const [originalData, setOriginalData] = useState<Record<string, unknown>>({});
   const [slug, setSlug] = useState("");
   const [applicationCount, setApplicationCount] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // City search
   const [cityQuery, setCityQuery] = useState("");
@@ -199,6 +201,56 @@ export default function AdminMedJobsDetailPage() {
     }
   }
 
+  async function handlePhotoUpload(file: File) {
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("profileId", studentId);
+
+      const res = await fetch("/api/medjobs/upload-photo", { method: "POST", body });
+      if (res.ok) {
+        const data = await res.json();
+        setFormData((prev) => ({ ...prev, image_url: data.imageUrl }));
+        setOriginalData((prev) => ({ ...prev, image_url: data.imageUrl }));
+        setSaveMessage({ type: "success", text: "Photo uploaded." });
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setSaveMessage({ type: "error", text: err.error || "Failed to upload." });
+      }
+    } catch {
+      setSaveMessage({ type: "error", text: "Network error uploading photo." });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handlePhotoRemove() {
+    if (!confirm("Remove this student's photo?")) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/medjobs/${studentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_url: null }),
+      });
+      if (res.ok) {
+        setFormData((prev) => ({ ...prev, image_url: null }));
+        setOriginalData((prev) => ({ ...prev, image_url: null }));
+        setSaveMessage({ type: "success", text: "Photo removed." });
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        setSaveMessage({ type: "error", text: "Failed to remove photo." });
+      }
+    } catch {
+      setSaveMessage({ type: "error", text: "Network error." });
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -269,8 +321,68 @@ export default function AdminMedJobsDetailPage() {
             <FieldInput label="Full Name" value={formData.display_name as string} onChange={(v) => updateField("display_name", v)} />
             <FieldInput label="Email" value={formData.email as string} onChange={(v) => updateField("email", v || null)} />
             <FieldInput label="Phone" value={formData.phone as string} onChange={(v) => updateField("phone", v || null)} />
-            <FieldInput label="Image URL" value={formData.image_url as string} onChange={(v) => updateField("image_url", v || null)} />
           </div>
+        </Section>
+
+        {/* Photo */}
+        <Section title="Photo">
+          {formData.image_url ? (
+            <div className="flex items-start gap-6">
+              <div className="w-32 h-32 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 flex-shrink-0">
+                <img
+                  src={formData.image_url as string}
+                  alt={formData.display_name as string}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              </div>
+              <div className="space-y-3 pt-1">
+                <p className="text-sm text-gray-500 break-all max-w-md">{formData.image_url as string}</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  >
+                    {uploading ? "Uploading..." : "Replace Photo"}
+                  </button>
+                  <button
+                    onClick={handlePhotoRemove}
+                    disabled={saving}
+                    className="px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+                  >
+                    Remove Photo
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-gray-300 rounded-xl">
+              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-500 mb-3">No photo uploaded</p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 border border-primary-200 rounded-lg hover:bg-primary-100 disabled:opacity-50 transition-colors"
+              >
+                {uploading ? "Uploading..." : "Upload Photo"}
+              </button>
+            </div>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handlePhotoUpload(file);
+            }}
+            className="hidden"
+          />
         </Section>
 
         {/* Location */}

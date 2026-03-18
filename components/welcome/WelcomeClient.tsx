@@ -451,38 +451,6 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       {/* ================================================================
-          NAV — logo left, avatar right
-          ================================================================ */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2 shrink-0">
-              <Image src="/images/olera-logo.png" alt="Olera" width={32} height={32} className="object-contain" />
-              <span className="text-xl font-bold text-gray-900">Olera</span>
-            </Link>
-
-            {/* User avatar — 44px touch target with 32px visual */}
-            <button
-              onClick={handleSkip}
-              disabled={saving}
-              className="w-11 h-11 rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 disabled:opacity-50 hover:opacity-90 transition-opacity"
-              aria-label="Go to portal"
-            >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
-                style={{ background: avatarGradient(activeProfile?.display_name || account?.display_name || "User") }}
-              >
-                <span className="text-white">
-                  {getInitials(activeProfile?.display_name || account?.display_name || "U")}
-                </span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* ================================================================
           OPENING — dynamic greeting based on connection state
           ================================================================ */}
       <section className="px-4 sm:px-6 pt-8 sm:pt-10 pb-4">

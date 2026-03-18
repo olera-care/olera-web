@@ -468,9 +468,11 @@ function MatchesContent() {
               <CarePostSidebar
                 activeProfile={activeProfile}
                 interestedCount={totalInterested}
+                userEmail={user?.email}
                 onPublish={handlePublish}
                 onDeactivate={handleDeactivate}
                 onDelete={handleDelete}
+                onProfileUpdated={refreshAccountData}
               />
             )}
           </div>

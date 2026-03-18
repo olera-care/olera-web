@@ -667,13 +667,172 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           })()}
 
           {/* ============================================================
-              MORE CONTENT — Will build below
+              ACTION TIMELINE — Profile, Benefits, Matches
               ============================================================ */}
-          <div className="pb-16">
-            {!isConnected && (
-              <p className="text-sm text-gray-400">Fresh account state — no connection yet</p>
-            )}
-          </div>
+          <section className="pb-16">
+            <div className="relative">
+              {/* Vertical timeline line */}
+              <div className="absolute left-[19px] top-8 bottom-8 w-px bg-gray-200" />
+
+              {/* Step 1: Profile */}
+              <div className="relative flex gap-5 pb-6">
+                {/* Step indicator */}
+                <div className="flex flex-col items-center z-10">
+                  <span className="text-xs font-medium text-gray-400 mb-1.5">Profile</span>
+                  <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+                    1
+                  </div>
+                </div>
+
+                {/* Card */}
+                <Link
+                  href="/portal/profile"
+                  className="flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all group"
+                >
+                  {/* 3D Icon — Profile/Clipboard */}
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-50 to-sky-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg viewBox="0 0 40 40" className="w-9 h-9">
+                      <defs>
+                        <linearGradient id="clipboard-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#38bdf8" />
+                          <stop offset="100%" stopColor="#0284c7" />
+                        </linearGradient>
+                      </defs>
+                      {/* Clipboard body */}
+                      <rect x="8" y="6" width="24" height="30" rx="3" fill="white" stroke="url(#clipboard-gradient)" strokeWidth="2"/>
+                      {/* Clipboard clip */}
+                      <rect x="14" y="3" width="12" height="6" rx="2" fill="url(#clipboard-gradient)"/>
+                      {/* Lines */}
+                      <rect x="12" y="14" width="16" height="2" rx="1" fill="#bae6fd"/>
+                      <rect x="12" y="20" width="12" height="2" rx="1" fill="#bae6fd"/>
+                      <rect x="12" y="26" width="14" height="2" rx="1" fill="#bae6fd"/>
+                    </svg>
+                  </div>
+
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 group-hover:text-gray-700">Complete your profile</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Help providers understand your needs</p>
+                  </div>
+
+                  {/* Chevron */}
+                  <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+
+              {/* Step 2: Benefits (Featured - larger card) */}
+              <div className="relative flex gap-5 pb-6">
+                {/* Step indicator */}
+                <div className="flex flex-col items-center z-10">
+                  <span className="text-xs font-medium text-gray-400 mb-1.5">Benefits</span>
+                  <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+                    2
+                  </div>
+                </div>
+
+                {/* Card — Featured/Larger */}
+                <Link
+                  href="/benefits/finder"
+                  className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all overflow-hidden group"
+                >
+                  <div className="flex flex-col sm:flex-row">
+                    {/* 3D Illustration area */}
+                    <div className="relative w-full sm:w-[180px] h-[140px] sm:h-auto bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center flex-shrink-0">
+                      <svg viewBox="0 0 80 80" className="w-20 h-20">
+                        <defs>
+                          <linearGradient id="coin-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#fbbf24" />
+                            <stop offset="100%" stopColor="#f59e0b" />
+                          </linearGradient>
+                          <linearGradient id="sparkle-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#fef3c7" />
+                            <stop offset="100%" stopColor="#fcd34d" />
+                          </linearGradient>
+                        </defs>
+                        {/* Main coin */}
+                        <ellipse cx="40" cy="45" rx="22" ry="8" fill="#d97706" opacity="0.3"/>
+                        <circle cx="40" cy="40" r="20" fill="url(#coin-gradient)" stroke="#d97706" strokeWidth="2"/>
+                        <circle cx="40" cy="40" r="14" fill="none" stroke="#fef3c7" strokeWidth="1.5" opacity="0.6"/>
+                        <text x="40" y="46" textAnchor="middle" fill="#92400e" fontSize="16" fontWeight="bold">$</text>
+                        {/* Sparkles */}
+                        <circle cx="18" cy="25" r="3" fill="url(#sparkle-gradient)"/>
+                        <circle cx="62" cy="30" r="2.5" fill="url(#sparkle-gradient)"/>
+                        <circle cx="55" cy="55" r="2" fill="url(#sparkle-gradient)"/>
+                      </svg>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 p-5">
+                      <p className="font-semibold text-lg text-gray-900 group-hover:text-gray-700">
+                        You may qualify for benefits
+                      </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Discover programs that can help cover care costs
+                      </p>
+                      <div className="mt-4">
+                        <span className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg group-hover:bg-amber-100 transition-colors">
+                          Find my benefits
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Step 3: Matches */}
+              <div className="relative flex gap-5">
+                {/* Step indicator */}
+                <div className="flex flex-col items-center z-10">
+                  <span className="text-xs font-medium text-gray-400 mb-1.5">Matches</span>
+                  <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+                    3
+                  </div>
+                </div>
+
+                {/* Card */}
+                <Link
+                  href="/portal/matches"
+                  className="flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all group"
+                >
+                  {/* 3D Icon — Connection/People */}
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg viewBox="0 0 40 40" className="w-9 h-9">
+                      <defs>
+                        <linearGradient id="people-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#5eead4" />
+                          <stop offset="100%" stopColor="#14b8a6" />
+                        </linearGradient>
+                      </defs>
+                      {/* Person 1 */}
+                      <circle cx="15" cy="14" r="5" fill="url(#people-gradient)"/>
+                      <path d="M8 28c0-4 3-7 7-7s7 3 7 7" fill="url(#people-gradient)" opacity="0.8"/>
+                      {/* Person 2 */}
+                      <circle cx="27" cy="16" r="4" fill="#99f6e4"/>
+                      <path d="M21 28c0-3.5 2.5-6 6-6s6 2.5 6 6" fill="#99f6e4" opacity="0.8"/>
+                      {/* Connection line */}
+                      <path d="M18 18 L24 20" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 2"/>
+                    </svg>
+                  </div>
+
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 group-hover:text-gray-700">Get matched with providers</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Let care providers reach out to you</p>
+                  </div>
+
+                  {/* Chevron */}
+                  <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     );

@@ -87,7 +87,7 @@ function getInitials(name: string): string {
 
 function MatchIllustration() {
   return (
-    <div className="w-28 h-28 mx-auto">
+    <div className="w-24 h-24 mx-auto">
       <svg viewBox="0 0 96 96" fill="none" className="w-full h-full">
         {/* Soft background glow */}
         <circle cx="48" cy="48" r="40" fill="#199087" fillOpacity="0.08" />
@@ -453,24 +453,30 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           OPENING — dynamic greeting based on connection state
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-8 sm:pt-10 pb-4">
+      <section className="px-4 sm:px-6 pt-8 sm:pt-12 pb-6">
         <div className="max-w-lg mx-auto text-center">
           {connection?.to_profile?.display_name ? (
             <>
-              <h1 className="text-2xl sm:text-[28px] font-display font-bold text-gray-900 leading-tight">
+              {/* Celebratory checkmark */}
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="text-3xl sm:text-[34px] font-display font-bold text-gray-900 leading-tight">
                 You&apos;re connected with{" "}
                 <span className="text-primary-600">{connection.to_profile.display_name}</span>.
               </h1>
-              <p className="mt-2 text-[15px] text-gray-500 leading-relaxed">
+              <p className="mt-3 text-base text-gray-500 leading-relaxed">
                 While you wait to hear back, here&apos;s what else we can do for you.
               </p>
             </>
           ) : (
             <>
-              <h1 className="text-2xl sm:text-[28px] font-display font-bold text-gray-900 leading-tight">
+              <h1 className="text-3xl sm:text-[34px] font-display font-bold text-gray-900 leading-tight">
                 Welcome to Olera.
               </h1>
-              <p className="mt-2 text-[15px] text-gray-500 leading-relaxed">
+              <p className="mt-3 text-base text-gray-500 leading-relaxed">
                 Let&apos;s help you find the right care.
               </p>
             </>
@@ -541,48 +547,52 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               ) : (
                 /* ============ DEFAULT STATE ============ */
                 <>
-                  {/* Label */}
-                  <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-6">
-                    Find Your Match
-                  </p>
+                  {/* Content stack — label, illustration, headline, subtext */}
+                  <div className="space-y-4">
+                    {/* Label */}
+                    <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase">
+                      Find Your Match
+                    </p>
 
-                  {/* Illustration */}
-                  <MatchIllustration />
+                    {/* Illustration */}
+                    <MatchIllustration />
 
-                  {/* Headline — dynamic based on connection state */}
-                  <h2 className="mt-8 text-xl sm:text-2xl font-display font-bold text-gray-900 leading-tight">
-                    {connection?.to_profile?.display_name ? (
-                      <>
-                        Let other providers in{" "}
-                        <span className="text-primary-600">{cityDisplay}</span>
-                        {" "}find you too.
-                      </>
-                    ) : (
-                      <>
-                        Providers in{" "}
-                        <span className="text-primary-600">{cityDisplay}</span>
-                        {" "}are ready to connect with you.
-                      </>
-                    )}
-                  </h2>
+                    {/* Headline — dynamic based on connection state */}
+                    <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 leading-tight pt-1">
+                      {connection?.to_profile?.display_name ? (
+                        <>
+                          Let other providers in{" "}
+                          <span className="text-primary-600">{cityDisplay}</span>
+                          {" "}find you too.
+                        </>
+                      ) : (
+                        <>
+                          Providers in{" "}
+                          <span className="text-primary-600">{cityDisplay}</span>
+                          {" "}are ready to connect with you.
+                        </>
+                      )}
+                    </h2>
 
-                  {/* Subtext */}
-                  <p className="mt-3 text-[15px] text-gray-500 leading-relaxed">
-                    Turning this on means providers can reach out to you directly — no searching required.
-                  </p>
+                    {/* Subtext */}
+                    <p className="text-[15px] text-gray-500 leading-relaxed">
+                      Turning this on means providers can reach out to you directly — no searching required.
+                    </p>
+                  </div>
 
-                  {/* Primary CTA with explicit inline styles */}
-                  <button
-                    onClick={handleActivate}
-                    disabled={saving}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                      minHeight: "52px",
-                      marginTop: "28px",
-                      padding: "0 24px",
+                  {/* Action stack — separated from content */}
+                  <div className="mt-8 pt-6 border-t border-gray-100">
+                    {/* Primary CTA with explicit inline styles */}
+                    <button
+                      onClick={handleActivate}
+                      disabled={saving}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        minHeight: "52px",
+                        padding: "0 24px",
                       backgroundColor: "#4d8a8a",
                       backgroundImage: "linear-gradient(to bottom, #5fa3a3, #4d8a8a)",
                       color: "#ffffff",
@@ -617,18 +627,19 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     ) : (
                       "Yes, let providers find me"
                     )}
-                  </button>
-
-                  {/* Plain text link */}
-                  <p className="mt-4">
-                    <button
-                      onClick={handleSkip}
-                      disabled={saving}
-                      className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
-                    >
-                      No thanks, take me to my inbox
                     </button>
-                  </p>
+
+                    {/* Plain text link */}
+                    <p className="mt-4">
+                      <button
+                        onClick={handleSkip}
+                        disabled={saving}
+                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
+                      >
+                        No thanks, take me to my inbox
+                      </button>
+                    </p>
+                  </div>
                 </>
               )}
             </div>

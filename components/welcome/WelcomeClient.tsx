@@ -240,6 +240,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               city: city || undefined,
               state: state || undefined,
               careTypes: selectedCareTypes.length > 0 ? selectedCareTypes : undefined,
+              whoNeedsCare: whoNeedsCare || undefined,
             }),
           });
         } catch (err) {

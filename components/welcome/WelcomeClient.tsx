@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import { PRE_AUTH_PAGE_KEY } from "@/components/auth/UnifiedAuthModal";
 
 // ============================================================
 // Types
@@ -262,6 +263,19 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const [providersLoading, setProvidersLoading] = useState(true);
   const [city, setCity] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [preAuthPage, setPreAuthPage] = useState<string | null>(null);
+
+  // Read pre-auth page from localStorage on mount (for "Skip for now" redirect)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(PRE_AUTH_PAGE_KEY);
+      if (stored && stored !== "/welcome" && !stored.startsWith("/portal") && !stored.startsWith("/admin")) {
+        setPreAuthPage(stored);
+        // Clear it so it's not reused on future visits
+        localStorage.removeItem(PRE_AUTH_PAGE_KEY);
+      }
+    } catch { /* localStorage not available */ }
+  }, []);
 
   // Check if should skip and load initial data
   useEffect(() => {
@@ -443,10 +457,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       // Connected user: go to their intended destination (inbox)
       completeOnboarding(false);
     } else {
-      // Fresh account: go to landing page (where they likely were before signup)
-      completeOnboarding(false, false, "/");
+      // Fresh account: go back to where they were before signup (or landing page)
+      completeOnboarding(false, false, preAuthPage || "/");
     }
-  }, [completeOnboarding, connection]);
+  }, [completeOnboarding, connection, preAuthPage]);
 
   const handleActivate = useCallback(() => {
     completeOnboarding(true, true); // Show confirmation after activation

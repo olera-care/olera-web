@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getDeferredAction } from "@/lib/deferred-action";
 import { Suspense } from "react";
 
 /**
@@ -78,17 +79,22 @@ function MagicLinkHandler() {
         }
 
         // Ensure account exists (same as OAuth callback)
+        let isNewUser = false;
         try {
-          await fetch("/api/auth/ensure-account", {
+          const res = await fetch("/api/auth/ensure-account", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               claimToken: searchParams.get("token") || null,
             }),
           });
+          if (res.ok) {
+            const { account } = await res.json();
+            isNewUser = account?.onboarding_completed === false;
+          }
         } catch (err) {
           console.error("ensure-account error:", err);
-          // Non-blocking
+          // Non-blocking — continue to redirect
         }
 
         // Clear the hash from URL (for cleaner experience)
@@ -96,10 +102,16 @@ function MagicLinkHandler() {
 
         setStatus("success");
 
-        // Small delay to show success state, then redirect
-        setTimeout(() => {
-          router.replace(next);
-        }, 500);
+        // Determine final destination
+        // New user (onboarding_completed=false) + no deferred action → /welcome
+        // Note: middleware also handles this redirect, but we keep this for deferred action support
+        const hasDeferredAction = !!getDeferredAction()?.action;
+        const finalDestination = (isNewUser && !hasDeferredAction)
+          ? `/welcome?next=${encodeURIComponent(next)}`
+          : next;
+
+        // Redirect immediately — no delay needed since middleware handles new user redirect
+        router.replace(finalDestination);
       } catch (err) {
         console.error("Magic link handler error:", err);
         setError("Something went wrong. Please try again.");

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
+import { useCitySearch } from "@/hooks/use-city-search";
 import type { DirectoryProvider } from "@/lib/types";
 
 interface ImageMetadata {
@@ -35,6 +36,25 @@ export default function AdminDirectoryDetailPage() {
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [rawImages, setRawImages] = useState<string[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // City search state
+  const [cityQuery, setCityQuery] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const { results: cityResults, preload: preloadCities } = useCitySearch(cityQuery);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close city dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+        setShowCityDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchProvider = useCallback(async () => {
     try {
@@ -149,6 +169,42 @@ export default function AdminDirectoryDetailPage() {
     }
   }
 
+  async function handleImageUpload(file: File) {
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("providerId", providerId);
+
+      const res = await fetch("/api/admin/directory/upload", {
+        method: "POST",
+        body,
+      });
+
+      if (res.ok) {
+        // Refresh to show new image
+        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        if (detailRes.ok) {
+          const data = await detailRes.json();
+          setFormData((prev) => ({ ...prev, provider_images: data.provider.provider_images }));
+          setOriginalData((prev) => ({ ...prev, provider_images: data.provider.provider_images }));
+          setImages(data.images ?? []);
+          setRawImages(data.rawImages ?? []);
+        }
+        setSaveMessage({ type: "success", text: "Image uploaded successfully." });
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setSaveMessage({ type: "error", text: err.error || "Failed to upload image." });
+      }
+    } catch {
+      setSaveMessage({ type: "error", text: "Network error uploading image." });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -211,7 +267,17 @@ export default function AdminDirectoryDetailPage() {
               onChange={(val) => updateField("provider_category", val)}
               size="sm"
             />
-            <FieldInput label="Main Category" value={formData.main_category as string} onChange={(v) => updateField("main_category", v)} />
+            <Select
+              label="Main Category"
+              options={[
+                { value: "", label: "Select..." },
+                { value: "Home Care", label: "Home Care" },
+                { value: "Senior Community", label: "Senior Community" },
+              ]}
+              value={(formData.main_category as string) || ""}
+              onChange={(val) => updateField("main_category", val)}
+              size="sm"
+            />
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
@@ -239,7 +305,46 @@ export default function AdminDirectoryDetailPage() {
             <div className="sm:col-span-2">
               <FieldInput label="Address" value={formData.address as string} onChange={(v) => updateField("address", v)} />
             </div>
-            <FieldInput label="City" value={formData.city as string} onChange={(v) => updateField("city", v)} />
+
+            {/* Smart city selector */}
+            <div className="space-y-1.5 relative" ref={cityDropdownRef}>
+              <label className="block text-sm font-medium text-gray-700">City</label>
+              <input
+                type="text"
+                value={showCityDropdown ? cityQuery : (formData.city as string) ?? ""}
+                onChange={(e) => {
+                  setCityQuery(e.target.value);
+                  if (!showCityDropdown) setShowCityDropdown(true);
+                }}
+                onFocus={() => {
+                  preloadCities();
+                  setCityQuery((formData.city as string) ?? "");
+                  setShowCityDropdown(true);
+                }}
+                placeholder="Search city or ZIP..."
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              />
+              {showCityDropdown && cityResults.length > 0 && (
+                <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  {cityResults.map((result) => (
+                    <button
+                      key={result.full}
+                      type="button"
+                      onClick={() => {
+                        updateField("city", result.city);
+                        updateField("state", result.state);
+                        setShowCityDropdown(false);
+                        setCityQuery("");
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
+                    >
+                      {result.full}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <FieldInput label="State" value={formData.state as string} onChange={(v) => updateField("state", v)} />
             <FieldInput label="Zipcode" value={formData.zipcode as string} onChange={(v) => updateField("zipcode", v === "" ? null : Number(v))} type="number" />
             <FieldInput label="Latitude" value={formData.lat as string} onChange={(v) => updateField("lat", v === "" ? null : Number(v))} type="number" step="any" />
@@ -304,6 +409,31 @@ export default function AdminDirectoryDetailPage() {
 
           <div className="mb-4">
             <FieldInput label="Provider Logo URL" value={formData.provider_logo as string} onChange={(v) => updateField("provider_logo", v || null)} />
+          </div>
+
+          {/* Image upload */}
+          <div className="mb-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Upload Image</p>
+            <div className="flex items-center gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file);
+                }}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-primary-400 hover:text-primary-600 transition-colors disabled:opacity-50"
+              >
+                {uploading ? "Uploading..." : "Choose file or drag here"}
+              </button>
+              <span className="text-xs text-gray-400">JPEG, PNG, or WebP. Max 5MB.</span>
+            </div>
           </div>
 
           {/* Classified images */}
@@ -451,25 +581,86 @@ export default function AdminDirectoryDetailPage() {
           )}
         </Section>
 
-        {/* Status */}
-        <Section title="Status">
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={!!formData.deleted}
-                onChange={(e) => updateField("deleted", e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
-              />
-              <span className="text-sm font-medium text-gray-700">Deleted</span>
-            </label>
-            {!!formData.deleted_at && (
-              <span className="text-sm text-gray-500">
-                Deleted at: {new Date(formData.deleted_at as string).toLocaleString()}
-              </span>
-            )}
-          </div>
-        </Section>
+        {/* Danger Zone */}
+        <div className={`rounded-xl border ${formData.deleted ? "border-amber-300 bg-amber-50" : "border-red-200 bg-red-50"} p-6`}>
+          {formData.deleted ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-amber-800">This provider is deleted</h2>
+                <p className="text-sm text-amber-600 mt-1">
+                  Deleted {formData.deleted_at ? new Date(formData.deleted_at as string).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}. It is hidden from public search results.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ deleted: false }),
+                    });
+                    if (res.ok) {
+                      setFormData((prev) => ({ ...prev, deleted: false, deleted_at: null }));
+                      setOriginalData((prev) => ({ ...prev, deleted: false, deleted_at: null }));
+                      setSaveMessage({ type: "success", text: "Provider restored." });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    } else {
+                      setSaveMessage({ type: "error", text: "Failed to restore provider." });
+                    }
+                  } catch {
+                    setSaveMessage({ type: "error", text: "Network error." });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="px-4 py-2 bg-amber-600 text-white text-sm font-medium rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                Restore Provider
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-red-800">Danger Zone</h2>
+                <p className="text-sm text-red-600 mt-1">
+                  Removing this provider will hide it from all public search results.
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  if (!confirm(`Are you sure you want to delete "${provider.provider_name}"? It will be hidden from public search.`)) return;
+                  setSaving(true);
+                  try {
+                    const res = await fetch(`/api/admin/directory/${providerId}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ deleted: true }),
+                    });
+                    if (res.ok) {
+                      const now = new Date().toISOString();
+                      setFormData((prev) => ({ ...prev, deleted: true, deleted_at: now }));
+                      setOriginalData((prev) => ({ ...prev, deleted: true, deleted_at: now }));
+                      setSaveMessage({ type: "success", text: "Provider deleted." });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    } else {
+                      setSaveMessage({ type: "error", text: "Failed to delete provider." });
+                    }
+                  } catch {
+                    setSaveMessage({ type: "error", text: "Network error." });
+                  } finally {
+                    setSaving(false);
+                  }
+                }}
+                disabled={saving}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                Delete Provider
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bottom save bar */}

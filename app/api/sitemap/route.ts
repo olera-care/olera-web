@@ -92,6 +92,9 @@ export async function GET(request: Request) {
         { path: "/terms", priority: 0.3, freq: "yearly" },
         { path: "/waiver-library", priority: 0.6, freq: "monthly" },
         { path: "/waiver-library/forms", priority: 0.5, freq: "monthly" },
+        { path: "/medjobs", priority: 0.8, freq: "weekly" },
+        { path: "/medjobs/candidates", priority: 0.7, freq: "daily" },
+        { path: "/medjobs/apply", priority: 0.7, freq: "monthly" },
       ];
       for (const p of staticPages) {
         entries.push(xmlEntry(`${SITE_URL}${p.path}`, p.priority, p.freq));

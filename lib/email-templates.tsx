@@ -364,3 +364,170 @@ export function matchesLiveEmail(opts: {
     <div>${button("View your Matches", opts.matchesUrl)}</div>
   `);
 }
+
+/** Email to family when a provider sends a reach-out (Matches F2) */
+export function providerReachOutEmail(opts: {
+  familyName: string;
+  providerName: string;
+  city: string;
+  message: string | null;
+  matchesUrl: string;
+}): string {
+  const messageLine = opts.message
+    ? `<div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${opts.message}"</p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A provider in ${opts.city} is interested</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, <strong>${opts.providerName}</strong> in ${opts.city} saw your care profile and wants to connect.
+    </p>
+    ${messageLine}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You're in control — review their profile and decide if you'd like to start a conversation.
+    </p>
+    <div>${button("View on Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Email to family when they have unanswered messages and Matches is not active (F3) */
+export function matchesNudgeEmail(opts: {
+  familyName: string;
+  unansweredCount: number;
+  matchesUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still waiting to hear back? There's a better way.</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, you've reached out to ${opts.unansweredCount} providers but haven't heard back yet.
+    </p>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      With Matches, providers come to you. Share what you're looking for once, and qualified providers in your area will reach out directly.
+    </p>
+    <div>${button("Activate Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Email to provider when their profile is still incomplete 48hrs after signup (P1) */
+export function providerIncompleteProfileEmail(opts: {
+  providerName: string;
+  city: string;
+  profileUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are searching in ${opts.city}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.providerName}, families in ${opts.city} are looking for care providers on Olera — but your profile isn't ready yet.
+      Complete it so families can find and connect with you.
+    </p>
+    <div>${button("Complete your profile", opts.profileUrl)}</div>
+  `);
+}
+
+/** Email to provider when a family accepts their reach-out (P2) */
+export function reachOutAcceptedEmail(opts: {
+  providerName: string;
+  familyName: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're connected!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      <strong>${opts.familyName}</strong> accepted your reach-out on Olera. You can now message each other directly.
+    </p>
+    <div>${button("View conversation", opts.viewUrl)}</div>
+  `);
+}
+
+/** Document checklist email for benefits applications */
+export function checklistEmail(opts: {
+  programName: string;
+  programShortName: string;
+  stateName: string;
+  checked: string[];
+}): string {
+  const categories = [
+    {
+      name: "Identity & Personal",
+      items: [
+        "Government-issued photo ID",
+        "Social Security card",
+        "Birth certificate",
+        "Marriage certificate (if applicable)",
+        "Passport-size photo",
+      ],
+    },
+    {
+      name: "Medical & Health",
+      items: [
+        "Medical records or doctor's statement",
+        "Diagnosis or disability documentation",
+        "Current medication list",
+        "Health insurance card (Medicare/Medicaid)",
+      ],
+    },
+    {
+      name: "Financial & Income",
+      items: [
+        "Proof of income (pay stubs, tax return, SSI letter)",
+        "Bank statements (last 3 months)",
+        "Proof of assets (property, investments)",
+        "Proof of expenses (rent, utilities, medical bills)",
+      ],
+    },
+    {
+      name: "Residency & Housing",
+      items: [
+        "Proof of state residency (utility bill, lease)",
+        "Current living arrangement documentation",
+        "Proof of U.S. citizenship or immigration status",
+      ],
+    },
+  ];
+
+  const checkedSet = new Set(opts.checked);
+  const totalItems = categories.reduce((s, c) => s + c.items.length, 0);
+  const checkedCount = opts.checked.length;
+
+  const categoriesHtml = categories
+    .map((cat) => {
+      const itemsHtml = cat.items
+        .map((item) => {
+          const done = checkedSet.has(item);
+          const icon = done ? "&#9745;" : "&#9744;";
+          const style = done
+            ? "color:#9ca3af;text-decoration:line-through;"
+            : "color:#374151;";
+          return `<tr><td style="padding:4px 0;font-size:14px;${style}">${icon}&nbsp; ${item}</td></tr>`;
+        })
+        .join("");
+
+      return `
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+          <tr><td style="font-size:15px;font-weight:600;color:#111827;padding:0 0 8px;border-bottom:1px solid #f3f4f6;">
+            ${cat.name}
+          </td></tr>
+          ${itemsHtml}
+        </table>`;
+    })
+    .join("");
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Your Document Checklist</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 4px;line-height:1.5;">
+      For <strong>${opts.programName}</strong> in ${opts.stateName}
+    </p>
+    <p style="font-size:14px;color:${BRAND_COLOR};font-weight:600;margin:0 0 24px;">
+      ${checkedCount} of ${totalItems} documents gathered
+    </p>
+    ${categoriesHtml}
+    <div style="background:#f0fdfa;border-radius:8px;padding:16px;margin:0 0 24px;">
+      <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">
+        <strong>Next step:</strong> Once you've gathered all documents, visit the ${opts.programShortName} page on Olera to start your application.
+      </p>
+    </div>
+    <div>${button("View program details", `${BASE_URL}/waiver-library`)}</div>
+  `);
+}

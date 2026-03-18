@@ -85,7 +85,7 @@ export default async function StateFormsPage({ params }: Props) {
                 href="/benefits/finder"
                 className="inline-flex items-center justify-center px-8 py-3 bg-white text-primary-900 font-semibold rounded-xl shadow-lg shadow-black/20 hover:shadow-xl hover:bg-primary-50 transition-all"
               >
-                Check My Benefits
+                Find My Savings
                 <svg
                   className="ml-2 w-4 h-4"
                   fill="none"

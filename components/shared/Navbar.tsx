@@ -143,14 +143,12 @@ export default function Navbar() {
   const isMinimalNav = pathname.startsWith("/portal/inbox");
 
   // Show auth pill as soon as we know a user session exists.
-  // Note: With our AuthProvider changes, user is only set when we have all profile data
   const hasSession = !!user;
   // Mode switcher — shown when user has both a family and a provider profile
   const hasFamilyProfile = (profiles || []).some((p) => p.type === "family");
   const hasProviderProfile = (profiles || []).some(
     (p) => p.type === "organization" || p.type === "caregiver"
   );
-  // Since user is only set when profiles are loaded, we just check hasSession
   const showModeSwitcher = hasSession && hasFamilyProfile && hasProviderProfile;
 
   // Profile IDs for hub switching — used by the mode switcher to also switch activeProfile
@@ -765,6 +763,14 @@ export default function Navbar() {
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
+                    {/* MedJobs link */}
+                    <Link
+                      href="/medjobs"
+                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                    >
+                      MedJobs
+                    </Link>
+
                     {/* For Providers link */}
                     <button
                       onClick={handleForProviders}
@@ -1336,6 +1342,18 @@ export default function Navbar() {
 
                   {/* Divider before provider section */}
                   <div className="my-3 border-t border-gray-100" />
+
+                  {/* MedJobs */}
+                  <Link
+                    href="/medjobs"
+                    className={`flex items-center gap-3 py-3 font-medium ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-700 hover:text-primary-600"}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <svg className={`w-5 h-5 shrink-0 ${pathname.startsWith("/medjobs") ? "text-primary-600" : "text-gray-400"}`} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+                    </svg>
+                    MedJobs
+                  </Link>
 
                   {/* For Providers */}
                   <Link

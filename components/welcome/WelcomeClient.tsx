@@ -702,7 +702,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               }}
             >
               {matches.map((provider) => (
-                <div key={provider.provider_id} className="snap-start">
+                <div key={provider.provider_id} className="snap-start flex-shrink-0">
                   <ProviderScrollCard provider={provider} />
                 </div>
               ))}

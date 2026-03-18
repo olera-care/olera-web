@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 
 type StatusFilter = "pending" | "claimed" | "rejected" | "all";
@@ -16,6 +17,8 @@ interface Provider {
   created_at: string;
   email: string | null;
   phone: string | null;
+  slug: string | null;
+  source_provider_id: string | null;
 }
 
 export default function AdminProvidersPage() {
@@ -149,6 +152,15 @@ export default function AdminProvidersPage() {
                       <p className="text-sm font-medium text-gray-900">{provider.display_name}</p>
                       {provider.email && (
                         <p className="text-sm text-gray-500">{provider.email}</p>
+                      )}
+                      {provider.slug && (
+                        <Link
+                          href={`/provider/${provider.slug}`}
+                          target="_blank"
+                          className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          View Public Profile &rarr;
+                        </Link>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">

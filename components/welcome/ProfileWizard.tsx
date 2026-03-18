@@ -1,12 +1,62 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useClickOutside } from "@/hooks/use-click-outside";
+
+// ── Draft Storage ──
+const DRAFT_KEY = "olera_profile_wizard_draft";
+
+interface ProfileWizardDraft {
+  step: number;
+  displayName: string;
+  city: string;
+  state: string;
+  locationInput: string;
+  email: string;
+  phone: string;
+  contactPref: string;
+  careRecipient: string;
+  age: string;
+  careTypes: string[];
+  careNeeds: string[];
+  timeline: string;
+  payments: string[];
+  savedAt: number;
+}
+
+function saveDraft(draft: Omit<ProfileWizardDraft, "savedAt">) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, savedAt: Date.now() }));
+  } catch { /* localStorage not available */ }
+}
+
+function loadDraft(): ProfileWizardDraft | null {
+  try {
+    const stored = localStorage.getItem(DRAFT_KEY);
+    if (!stored) return null;
+    const draft = JSON.parse(stored) as ProfileWizardDraft;
+    // Expire drafts older than 7 days
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    if (Date.now() - draft.savedAt > sevenDays) {
+      localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    return draft;
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch { /* localStorage not available */ }
+}
 
 // ── Options ──
 
@@ -99,6 +149,78 @@ export default function ProfileWizard({
   // Payment fields
   const [payments, setPayments] = useState<string[]>(meta.payment_methods || []);
 
+  // Draft restoration state
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<ProfileWizardDraft | null>(null);
+
+  // Check for existing draft on mount
+  useEffect(() => {
+    if (draftRestored) return;
+    const draft = loadDraft();
+    if (draft && draft.step > 0) {
+      // Only prompt if they made progress
+      setPendingDraft(draft);
+      setShowDraftPrompt(true);
+    }
+    setDraftRestored(true);
+  }, [draftRestored]);
+
+  const restoreDraft = useCallback(() => {
+    if (!pendingDraft) return;
+    setCurrentStep(pendingDraft.step);
+    setDisplayName(pendingDraft.displayName);
+    setCity(pendingDraft.city);
+    setState(pendingDraft.state);
+    setLocationInput(pendingDraft.locationInput);
+    setEmail(pendingDraft.email);
+    setPhone(pendingDraft.phone);
+    setContactPref(pendingDraft.contactPref);
+    setCareRecipient(pendingDraft.careRecipient);
+    setAge(pendingDraft.age);
+    setCareTypes(pendingDraft.careTypes);
+    setCareNeeds(pendingDraft.careNeeds);
+    setTimeline(pendingDraft.timeline);
+    setPayments(pendingDraft.payments);
+    setShowDraftPrompt(false);
+    setPendingDraft(null);
+  }, [pendingDraft]);
+
+  const discardDraft = useCallback(() => {
+    clearDraft();
+    setShowDraftPrompt(false);
+    setPendingDraft(null);
+  }, []);
+
+  // Auto-save draft when state changes (debounced by step navigation)
+  useEffect(() => {
+    if (!draftRestored || showDraftPrompt) return;
+    // Only save if user has made some progress
+    if (currentStep === 0 && !displayName && !city && !email) return;
+
+    saveDraft({
+      step: currentStep,
+      displayName,
+      city,
+      state,
+      locationInput,
+      email,
+      phone,
+      contactPref,
+      careRecipient,
+      age,
+      careTypes,
+      careNeeds,
+      timeline,
+      payments,
+    });
+  }, [
+    draftRestored, showDraftPrompt, currentStep,
+    displayName, city, state, locationInput,
+    email, phone, contactPref, careRecipient,
+    age, careTypes, careNeeds, timeline, payments,
+  ]);
+
   const saveCurrentStep = useCallback(async () => {
     if (!isSupabaseConfigured() || !profile) return true;
     setSaving(true);
@@ -188,7 +310,8 @@ export default function ProfileWizard({
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Last step — show celebration
+      // Last step — clear draft and show celebration
+      clearDraft();
       setShowCelebration(true);
     }
   };
@@ -203,11 +326,13 @@ export default function ProfileWizard({
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
+      clearDraft();
       setShowCelebration(true);
     }
   };
 
   const handleFinish = () => {
+    clearDraft();
     onComplete();
   };
 
@@ -266,6 +391,39 @@ export default function ProfileWizard({
 
   // ── Main Wizard ──
   const step = STEPS[currentStep];
+
+  // Draft restoration prompt
+  if (showDraftPrompt && pendingDraft) {
+    return (
+      <Modal isOpen onClose={onClose} size="md">
+        <div className="p-6 text-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-50 flex items-center justify-center">
+            <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Continue where you left off?</h2>
+          <p className="text-sm text-gray-500 mb-6">
+            You were on step {pendingDraft.step + 1} of {STEPS.length}
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={discardDraft}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Start fresh
+            </button>
+            <button
+              onClick={restoreDraft}
+              className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen onClose={onClose} size="2xl">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
@@ -8,6 +8,8 @@ import { useBenefitsState } from "@/hooks/use-benefits-state";
 import { useSavedBenefits } from "@/hooks/use-saved-benefits";
 import { useCitySearch } from "@/hooks/use-city-search";
 import { useClickOutside } from "@/hooks/use-click-outside";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import {
   CARE_PREFERENCES,
   PRIMARY_NEEDS,
@@ -38,8 +40,33 @@ const STATE_ABBREVIATIONS: Record<string, string> = {
 // ── Types ──
 
 interface BenefitsWizardProps {
+  profile?: BusinessProfile | null;
   onClose: () => void;
   onComplete: () => void;
+}
+
+// Map profile care_needs to benefits primaryNeeds
+const CARE_NEEDS_TO_PRIMARY_NEEDS: Record<string, PrimaryNeed> = {
+  "Personal Care": "personalCare",
+  "Household Tasks": "householdTasks",
+  "Health Management": "healthManagement",
+  "Companionship": "companionship",
+  "Memory Care": "memoryCare",
+  "Mobility Help": "mobilityHelp",
+};
+
+// Map profile care_types to care preference
+function inferCarePreference(careTypes: string[]): CarePreference | null {
+  const facilityTypes = ["Assisted Living", "Memory Care", "Nursing Home", "Independent Living"];
+  const homeTypes = ["Home Care", "Home Health Care"];
+
+  const hasFacility = careTypes.some(t => facilityTypes.includes(t));
+  const hasHome = careTypes.some(t => homeTypes.includes(t));
+
+  if (hasFacility && !hasHome) return "exploringFacility";
+  if (hasHome && !hasFacility) return "stayHome";
+  if (hasFacility && hasHome) return "unsure";
+  return null;
 }
 
 const STEPS = [
@@ -51,8 +78,9 @@ const STEPS = [
   { id: "medicaid", title: "Medicaid", subtitle: "Do you currently have Medicaid?" },
 ] as const;
 
-export default function BenefitsWizard({ onClose, onComplete }: BenefitsWizardProps) {
+export default function BenefitsWizard({ profile, onClose, onComplete }: BenefitsWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [prefilled, setPrefilled] = useState(false);
 
   // Benefits state management
   const {
@@ -73,7 +101,128 @@ export default function BenefitsWizard({ onClose, onComplete }: BenefitsWizardPr
   const locationDropdownRef = useRef<HTMLDivElement>(null);
   const { results: cityResults, preload: preloadCities } = useCitySearch(locationDisplay);
 
+  // ── Prefill from profile ──
+  useEffect(() => {
+    if (prefilled || !profile) return;
+    setPrefilled(true);
+
+    const meta = (profile.metadata || {}) as FamilyMetadata;
+    const updates: Parameters<typeof updateAnswers>[0] = {};
+
+    // Location
+    if (profile.city && profile.state) {
+      const stateCode = STATE_ABBREVIATIONS[profile.state] || profile.state;
+      setLocationDisplay(`${profile.city}, ${profile.state}`);
+      updates.stateCode = stateCode;
+    }
+
+    // Age
+    if (meta.age) {
+      updates.age = meta.age;
+    }
+
+    // Care preference (infer from care_types)
+    if (profile.care_types && profile.care_types.length > 0) {
+      const inferred = inferCarePreference(profile.care_types);
+      if (inferred) {
+        updates.carePreference = inferred;
+      }
+    }
+
+    // Primary needs (map from care_needs)
+    if (meta.care_needs && meta.care_needs.length > 0) {
+      const mappedNeeds: PrimaryNeed[] = [];
+      for (const need of meta.care_needs) {
+        const mapped = CARE_NEEDS_TO_PRIMARY_NEEDS[need];
+        if (mapped) mappedNeeds.push(mapped);
+      }
+      if (mappedNeeds.length > 0) {
+        updates.primaryNeeds = mappedNeeds;
+      }
+    }
+
+    // Income range (if already saved)
+    if (meta.income_range) {
+      updates.incomeRange = meta.income_range as IncomeRange;
+    }
+
+    // Medicaid status (if already saved)
+    if (meta.medicaid_status) {
+      updates.medicaidStatus = meta.medicaid_status as MedicaidStatus;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      updateAnswers(updates);
+    }
+  }, [profile, prefilled, updateAnswers, setLocationDisplay]);
+
   useClickOutside(locationDropdownRef, () => setShowLocationDropdown(false));
+
+  // ── Sync answers back to profile ──
+  const syncToProfile = async () => {
+    if (!profile || !isSupabaseConfigured()) return;
+
+    try {
+      const supabase = createClient();
+      const { data: current } = await supabase
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", profile.id)
+        .single();
+
+      const existingMeta = (current?.metadata || {}) as FamilyMetadata;
+
+      // Build metadata updates from benefits answers
+      const metaUpdates: Partial<FamilyMetadata> = {};
+
+      if (answers.age) {
+        metaUpdates.age = answers.age;
+      }
+
+      if (answers.incomeRange) {
+        metaUpdates.income_range = answers.incomeRange;
+      }
+
+      if (answers.medicaidStatus) {
+        metaUpdates.medicaid_status = answers.medicaidStatus;
+      }
+
+      // Map primaryNeeds back to care_needs format
+      if (answers.primaryNeeds.length > 0) {
+        const careNeeds: string[] = [];
+        const reverseMap: Record<PrimaryNeed, string> = {
+          personalCare: "Personal Care",
+          householdTasks: "Household Tasks",
+          healthManagement: "Health Management",
+          companionship: "Companionship",
+          financialHelp: "Financial Help",
+          memoryCare: "Memory Care",
+          mobilityHelp: "Mobility Help",
+        };
+        for (const need of answers.primaryNeeds) {
+          careNeeds.push(reverseMap[need]);
+        }
+        metaUpdates.care_needs = careNeeds;
+      }
+
+      // Store benefits results reference
+      if (result) {
+        metaUpdates.benefits_results = {
+          matchCount: result.matchedPrograms.length,
+          completed_at: new Date().toISOString(),
+        };
+      }
+
+      await supabase
+        .from("business_profiles")
+        .update({
+          metadata: { ...existingMeta, ...metaUpdates },
+        })
+        .eq("id", profile.id);
+    } catch (err) {
+      console.error("[BenefitsWizard] Sync to profile failed:", err);
+    }
+  };
 
   const handleLocationSelect = (result: { city: string; state: string; full: string }) => {
     setLocationDisplay(result.full);
@@ -214,7 +363,10 @@ export default function BenefitsWizard({ onClose, onComplete }: BenefitsWizardPr
                 </span>
               </div>
               <button
-                onClick={onComplete}
+                onClick={async () => {
+                  await syncToProfile();
+                  onComplete();
+                }}
                 className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors"
               >
                 Done

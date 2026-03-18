@@ -221,25 +221,31 @@
 
 ## Session Log
 
-### 2026-03-17 (Session 54) — MedJobs Photo-Forward Cards, Photo Upload, Real Testimonial Photos
+### 2026-03-17 (Session 54) — MedJobs Design Polish: Cards, Photos, Logos, Testimonials
 
-**Branch:** `shiny-knuth` (from staging)
+**Branch:** `shiny-knuth` (from staging) — PR #279
 
-**What:** Redesigned MedJobs candidate cards to be photo-forward (matching Softr reference design but cleaner), added optional photo upload to student application, and swapped testimonial stock photos for real people (Jeswin Vennatt, Minh-Nguyet Hoang).
+**What:** Major design polish pass on MedJobs landing page and candidate browse. Photo-forward candidate cards, real testimonial photos, hero image tuning, and university partner logos.
 
-**Changes:**
+**Changes (7 commits):**
 - `app/medjobs/candidates/page.tsx` — Full card redesign: large photo (aspect-[3/4]) at top with gradient+initial fallback, structured criteria rows (Track, Location, Availability, Care Experience, Certifications, Verified Hours), "View Profile →" button
 - `app/medjobs/apply/page.tsx` — Optional circular photo upload in "About You" step, fire-and-forget upload after profile creation
 - `app/api/medjobs/upload-photo/route.ts` — New API: no-auth photo upload to Supabase `profile-images` bucket, updates `image_url` on business_profile
-- `app/medjobs/page.tsx` — Testimonials: Minh-Nguyet Hoang (Texas A&M HSC) and Jeswin Vennatt (MD/MBA, Texas A&M) with real photos replacing Unsplash stock
-- `public/images/medjobs/jeswin-vennatt.png` + `minh-nguyet-hoang.jpg` — Real photos
+- `app/medjobs/page.tsx` — Multiple iterations:
+  - Testimonials: Minh-Nguyet Hoang (MD/MBA, Texas A&M) and Jeswin Vennatt (MD/MBA, Texas A&M) with real photos
+  - Hero image: tuned from 4/3 → 3/4 → 4/5 → square (native 1080x1080)
+  - University trust bar: text list → real logos (Texas A&M, Michigan, Houston, Prairie View A&M, Maryland) with grayscale hover effect
+- `public/images/medjobs/` — jeswin-vennatt.png, minh-nguyet-hoang.jpg, universities/ (5 logos)
 
 **Decisions:**
 - Photo upload is no-auth (students aren't signed in during application)
 - Upload is fire-and-forget — profile creates first, photo is best-effort
 - Candidate cards use gradient backgrounds with initials as fallback when no photo
+- Hero image uses native square aspect ratio (1080x1080 source) — no cropping
+- University logos: grayscale by default, color on hover — 5 partner schools with existing connections
+- Minh-Nguyet Hoang is MD/MBA Candidate at Texas A&M (not PA / Health Science Center)
 
-**Also:** Updated SCRATCHPAD — marked Provider Home Page as DONE, Provider Deletion as ON STAGING. GSC sitemap re-submission discussed (re-submit /sitemap.xml to pick up new shards + MedJobs pages).
+**Also:** Marked Provider Home Page as DONE, Provider Deletion as ON STAGING. GSC sitemap re-submission discussed.
 
 **Next session:** Push MedJobs to main, test photo upload end-to-end on staging, add real pilot photos to "Meet the Students" cards, continue SBF Phase 1 bug fixes.
 

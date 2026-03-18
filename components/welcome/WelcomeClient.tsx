@@ -129,7 +129,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
   return (
     <Link
       href={`/provider/${provider.provider_id}`}
-      className="group flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px] bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+      className="group flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px] bg-white rounded-xl border border-gray-100 shadow-md shadow-gray-100/50 hover:shadow-lg hover:border-gray-200 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
     >
       {/* Image */}
       <div className="relative h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
@@ -487,7 +487,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           ================================================================ */}
       <section className="relative px-4 sm:px-6 pt-4 pb-12">
         <div className="max-w-lg mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-lg shadow-gray-100/50 overflow-hidden">
             <div className="px-6 sm:px-10 pt-10 pb-8 text-center">
               {showConfirmation ? (
                 /* ============ CONFIRMATION STATE — celebratory ============ */
@@ -757,7 +757,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             >
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={`placeholder-${i}`} className="flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px]">
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-md shadow-gray-100/50 overflow-hidden">
                     <div className="h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex items-center justify-center">
                       <div className="w-14 h-14 rounded-full bg-primary-100/60 animate-pulse" />
                     </div>

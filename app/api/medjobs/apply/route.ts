@@ -5,10 +5,13 @@ import { studentWelcomeEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors when env vars are not available
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 function generateSlug(name: string, university: string): string {
   const base = `${name}-${university}`
@@ -143,6 +146,8 @@ export async function POST(req: NextRequest) {
       resumeUrl: metadata.resume_url,
       videoIntroUrl: metadata.video_intro_url,
     });
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Create profile
     const { data: profile, error } = await supabaseAdmin

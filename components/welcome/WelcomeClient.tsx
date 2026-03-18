@@ -319,31 +319,50 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       setLoading(false);
 
       // Fetch provider recommendations in the background (non-blocking)
-      if (recommendationCity) {
-        (async () => {
-          try {
-            const { data: providerMatches, error: matchError } = await supabase
+      // If city is available, filter by city; otherwise fetch top-rated nationally
+      (async () => {
+        try {
+          let query = supabase
+            .from("olera-providers")
+            .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
+            .eq("deleted", false)
+            .not("google_rating", "is", null)
+            .gte("google_rating", 4.0)
+            .not("provider_images", "is", null)
+            .order("google_rating", { ascending: false })
+            .limit(6);
+
+          // Filter by city if available
+          if (recommendationCity) {
+            query = query.eq("city", recommendationCity);
+          }
+
+          const { data: providerMatches, error: matchError } = await query;
+
+          if (!matchError && providerMatches && providerMatches.length > 0) {
+            setMatches(providerMatches as MatchProvider[]);
+          } else if (recommendationCity) {
+            // City search returned no results — fallback to national
+            const { data: nationalMatches } = await supabase
               .from("olera-providers")
               .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
-              .eq("city", recommendationCity)
               .eq("deleted", false)
               .not("google_rating", "is", null)
+              .gte("google_rating", 4.0)
+              .not("provider_images", "is", null)
               .order("google_rating", { ascending: false })
               .limit(6);
 
-            if (!matchError && providerMatches && providerMatches.length > 0) {
-              setMatches(providerMatches as MatchProvider[]);
+            if (nationalMatches && nationalMatches.length > 0) {
+              setMatches(nationalMatches as MatchProvider[]);
             }
-          } catch (err) {
-            console.error("[welcome] Failed to fetch provider recommendations:", err);
-          } finally {
-            setProvidersLoading(false);
           }
-        })();
-      } else {
-        // No city to search — mark loading complete
-        setProvidersLoading(false);
-      }
+        } catch (err) {
+          console.error("[welcome] Failed to fetch provider recommendations:", err);
+        } finally {
+          setProvidersLoading(false);
+        }
+      })();
     }
 
     init();

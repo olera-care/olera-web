@@ -68,23 +68,28 @@ export async function updateSession(request: NextRequest) {
   // This prevents the inbox from flashing before the client-side redirect kicks in
   // Note: Guest flow (unauthenticated users with token) is handled above - if we're here,
   // the user is authenticated and should go through the onboarding check regardless of token
+  // Exception: /portal/profile is always accessible so users can complete their profile
   if (user && request.nextUrl.pathname.startsWith("/portal")) {
-    try {
-      const { data: account } = await supabase
-        .from("accounts")
-        .select("onboarding_completed")
-        .eq("user_id", user.id)
-        .single();
+    const isProfilePage = request.nextUrl.pathname === "/portal/profile";
 
-      if (account && account.onboarding_completed === false) {
-        const url = request.nextUrl.clone();
-        const originalPath = request.nextUrl.pathname + request.nextUrl.search;
-        url.pathname = "/welcome";
-        url.search = `?next=${encodeURIComponent(originalPath)}`;
-        return NextResponse.redirect(url);
+    if (!isProfilePage) {
+      try {
+        const { data: account } = await supabase
+          .from("accounts")
+          .select("onboarding_completed")
+          .eq("user_id", user.id)
+          .single();
+
+        if (account && account.onboarding_completed === false) {
+          const url = request.nextUrl.clone();
+          const originalPath = request.nextUrl.pathname + request.nextUrl.search;
+          url.pathname = "/welcome";
+          url.search = `?next=${encodeURIComponent(originalPath)}`;
+          return NextResponse.redirect(url);
+        }
+      } catch {
+        // Query failed — allow through, client-side will handle it
       }
-    } catch {
-      // Query failed — allow through, client-side will handle it
     }
   }
 

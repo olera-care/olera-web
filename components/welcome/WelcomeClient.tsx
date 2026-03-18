@@ -592,12 +592,12 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
 
             return (
-              <section className="pb-8">
-                {/* Card container */}
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <section className="pb-10">
+                {/* Card container — no border, subtle shadow like Airbnb */}
+                <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
                   <div className="flex flex-col sm:flex-row">
-                    {/* Provider Image — taller aspect on mobile, fixed width on desktop */}
-                    <div className="relative w-full sm:w-[220px] aspect-[16/10] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100">
+                    {/* Provider Image — rounded corners on mobile top, left on desktop */}
+                    <div className="relative w-full sm:w-[240px] aspect-[16/10] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100 overflow-hidden sm:rounded-l-2xl">
                       {provider.image_url ? (
                         <Image
                           src={provider.image_url}
@@ -690,166 +690,124 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           })()}
 
           {/* ============================================================
-              ACTION TIMELINE — Profile, Benefits, Matches
+              ACTION TIMELINE — Profile, Benefits, Matches (Airbnb style)
               ============================================================ */}
-          <section className="pb-16">
+          <section className="pb-12">
             <div className="relative">
-              {/* Vertical timeline line */}
-              <div className="absolute left-[19px] top-8 bottom-8 w-px bg-gray-200" />
+              {/* Vertical timeline line — positioned to align with step numbers */}
+              <div className="absolute left-[47px] top-[52px] bottom-[52px] w-px bg-gray-200" />
 
               {/* Step 1: Profile */}
-              <div className="relative flex gap-5 pb-6">
-                {/* Step indicator */}
-                <div className="flex flex-col items-center z-10">
-                  <span className="text-xs font-medium text-gray-400 mb-1.5">Profile</span>
-                  <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+              <div className="relative flex items-start gap-4 pb-4">
+                {/* Left column — label + step number */}
+                <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
+                  <span className="text-xs font-medium text-gray-500 mb-2">Profile</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-500 z-10">
                     1
                   </div>
                 </div>
 
-                {/* Card */}
+                {/* Card — no border, subtle shadow */}
                 <Link
                   href="/portal/profile"
-                  className="flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all group"
+                  className="flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
                 >
-                  {/* 3D Icon — Profile/Clipboard */}
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-sky-50 to-sky-100 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <svg viewBox="0 0 40 40" className="w-9 h-9">
-                      <defs>
-                        <linearGradient id="clipboard-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#38bdf8" />
-                          <stop offset="100%" stopColor="#0284c7" />
-                        </linearGradient>
-                      </defs>
-                      {/* Clipboard body */}
-                      <rect x="8" y="6" width="24" height="30" rx="3" fill="white" stroke="url(#clipboard-gradient)" strokeWidth="2"/>
-                      {/* Clipboard clip */}
-                      <rect x="14" y="3" width="12" height="6" rx="2" fill="url(#clipboard-gradient)"/>
-                      {/* Lines */}
-                      <rect x="12" y="14" width="16" height="2" rx="1" fill="#bae6fd"/>
-                      <rect x="12" y="20" width="12" height="2" rx="1" fill="#bae6fd"/>
-                      <rect x="12" y="26" width="14" height="2" rx="1" fill="#bae6fd"/>
+                  {/* Icon — neutral cream background like Airbnb */}
+                  <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 32 32" className="w-8 h-8">
+                      {/* Simple door/home icon in warm brown */}
+                      <rect x="6" y="4" width="20" height="26" rx="2" fill="#E8DDD4" stroke="#C4B5A6" strokeWidth="1.5"/>
+                      <rect x="9" y="8" width="14" height="10" rx="1" fill="#F5EFE8"/>
+                      <circle cx="20" cy="20" r="1.5" fill="#A69484"/>
                     </svg>
                   </div>
 
                   {/* Text */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 group-hover:text-gray-700">Complete your profile</p>
+                    <p className="font-semibold text-gray-900">Complete your profile</p>
                     <p className="text-sm text-gray-500 mt-0.5">Help providers understand your needs</p>
                   </div>
 
                   {/* Chevron */}
-                  <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
               </div>
 
-              {/* Step 2: Benefits (Featured - larger card) */}
-              <div className="relative flex gap-5 pb-6">
-                {/* Step indicator */}
-                <div className="flex flex-col items-center z-10">
-                  <span className="text-xs font-medium text-gray-400 mb-1.5">Benefits</span>
-                  <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+              {/* Step 2: Benefits (Featured - larger card with image) */}
+              <div className="relative flex items-start gap-4 pb-4">
+                {/* Left column — label + step number */}
+                <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
+                  <span className="text-xs font-medium text-gray-500 mb-2">Benefits</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-500 z-10">
                     2
                   </div>
                 </div>
 
-                {/* Card — Featured/Larger */}
+                {/* Card — Featured/Larger, no border */}
                 <Link
                   href="/benefits/finder"
-                  className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all overflow-hidden group"
+                  className="flex-1 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow overflow-hidden group"
                 >
                   <div className="flex flex-col sm:flex-row">
-                    {/* 3D Illustration area */}
-                    <div className="relative w-full sm:w-[180px] h-[140px] sm:h-auto bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center flex-shrink-0">
-                      <svg viewBox="0 0 80 80" className="w-20 h-20">
-                        <defs>
-                          <linearGradient id="coin-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#fbbf24" />
-                            <stop offset="100%" stopColor="#f59e0b" />
-                          </linearGradient>
-                          <linearGradient id="sparkle-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#fef3c7" />
-                            <stop offset="100%" stopColor="#fcd34d" />
-                          </linearGradient>
-                        </defs>
-                        {/* Main coin */}
-                        <ellipse cx="40" cy="45" rx="22" ry="8" fill="#d97706" opacity="0.3"/>
-                        <circle cx="40" cy="40" r="20" fill="url(#coin-gradient)" stroke="#d97706" strokeWidth="2"/>
-                        <circle cx="40" cy="40" r="14" fill="none" stroke="#fef3c7" strokeWidth="1.5" opacity="0.6"/>
-                        <text x="40" y="46" textAnchor="middle" fill="#92400e" fontSize="16" fontWeight="bold">$</text>
-                        {/* Sparkles */}
-                        <circle cx="18" cy="25" r="3" fill="url(#sparkle-gradient)"/>
-                        <circle cx="62" cy="30" r="2.5" fill="url(#sparkle-gradient)"/>
-                        <circle cx="55" cy="55" r="2" fill="url(#sparkle-gradient)"/>
+                    {/* Image area — warm gradient with illustration */}
+                    <div className="relative w-full sm:w-[160px] h-[120px] sm:h-auto sm:min-h-[140px] bg-gradient-to-br from-[#FEF7ED] to-[#FDE9D2] flex items-center justify-center flex-shrink-0">
+                      <svg viewBox="0 0 64 64" className="w-16 h-16">
+                        {/* Coin with dollar sign */}
+                        <ellipse cx="32" cy="36" rx="18" ry="6" fill="#D4A574" opacity="0.3"/>
+                        <circle cx="32" cy="32" r="16" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
+                        <circle cx="32" cy="32" r="11" fill="none" stroke="#F5E6D3" strokeWidth="1"/>
+                        <text x="32" y="38" textAnchor="middle" fill="#8B7355" fontSize="14" fontWeight="600">$</text>
                       </svg>
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 p-5">
-                      <p className="font-semibold text-lg text-gray-900 group-hover:text-gray-700">
+                      <p className="font-semibold text-lg text-gray-900">
                         You may qualify for benefits
                       </p>
                       <p className="text-sm text-gray-500 mt-1">
-                        Discover programs that can help cover care costs
+                        Discover programs that help cover care costs
                       </p>
-                      <div className="mt-4">
-                        <span className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg group-hover:bg-amber-100 transition-colors">
-                          Find my benefits
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </Link>
               </div>
 
               {/* Step 3: Matches */}
-              <div className="relative flex gap-5">
-                {/* Step indicator */}
-                <div className="flex flex-col items-center z-10">
-                  <span className="text-xs font-medium text-gray-400 mb-1.5">Matches</span>
-                  <div className="w-10 h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-sm font-semibold text-gray-600">
+              <div className="relative flex items-start gap-4">
+                {/* Left column — label + step number */}
+                <div className="flex flex-col items-center w-[60px] flex-shrink-0 pt-3">
+                  <span className="text-xs font-medium text-gray-500 mb-2">Matches</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center text-sm font-medium text-gray-500 z-10">
                     3
                   </div>
                 </div>
 
-                {/* Card */}
+                {/* Card — no border, subtle shadow */}
                 <Link
                   href="/portal/matches"
-                  className="flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all group"
+                  className="flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
                 >
-                  {/* 3D Icon — Connection/People */}
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <svg viewBox="0 0 40 40" className="w-9 h-9">
-                      <defs>
-                        <linearGradient id="people-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#5eead4" />
-                          <stop offset="100%" stopColor="#14b8a6" />
-                        </linearGradient>
-                      </defs>
-                      {/* Person 1 */}
-                      <circle cx="15" cy="14" r="5" fill="url(#people-gradient)"/>
-                      <path d="M8 28c0-4 3-7 7-7s7 3 7 7" fill="url(#people-gradient)" opacity="0.8"/>
-                      {/* Person 2 */}
-                      <circle cx="27" cy="16" r="4" fill="#99f6e4"/>
-                      <path d="M21 28c0-3.5 2.5-6 6-6s6 2.5 6 6" fill="#99f6e4" opacity="0.8"/>
-                      {/* Connection line */}
-                      <path d="M18 18 L24 20" stroke="#5eead4" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 2"/>
+                  {/* Icon — neutral cream background */}
+                  <div className="w-14 h-14 rounded-xl bg-[#E8F5F3] flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 32 32" className="w-8 h-8">
+                      {/* Simple house/door icon in teal */}
+                      <rect x="6" y="4" width="20" height="26" rx="2" fill="#C5E8E4" stroke="#8BCDC5" strokeWidth="1.5"/>
+                      <rect x="9" y="8" width="14" height="10" rx="1" fill="#E0F2EF"/>
+                      <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
                     </svg>
                   </div>
 
                   {/* Text */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 group-hover:text-gray-700">Get matched with providers</p>
+                    <p className="font-semibold text-gray-900">Get matched with providers</p>
                     <p className="text-sm text-gray-500 mt-0.5">Let care providers reach out to you</p>
                   </div>
 
                   {/* Chevron */}
-                  <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
@@ -862,40 +820,40 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               ============================================================ */}
           {matches.length > 0 && (
             <section className="pb-16">
-              {/* Section header with navigation arrows */}
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-xl font-semibold text-gray-900">
+              {/* Section header with navigation arrows — Airbnb style */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
                   Discover providers near you
                 </h2>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => scrollProviders("left")}
                     disabled={!canScrollLeft}
-                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                     aria-label="Scroll left"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                   <button
                     onClick={() => scrollProviders("right")}
                     disabled={!canScrollRight}
-                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
                     aria-label="Scroll right"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
                 </div>
               </div>
 
-              {/* Scrollable provider cards */}
+              {/* Scrollable provider cards — more gap like Airbnb */}
               <div
                 ref={providerScrollRef}
                 onScroll={updateScrollButtons}
-                className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scroll-smooth"
+                className="flex gap-5 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scroll-smooth"
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 {matches.map((provider) => {
@@ -906,16 +864,16 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     <Link
                       key={provider.provider_id}
                       href={`/provider/${provider.provider_id}`}
-                      className="group flex-shrink-0 w-[200px]"
+                      className="group flex-shrink-0 w-[180px]"
                     >
-                      {/* Card with image */}
-                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 shadow-sm border border-gray-200 group-hover:shadow-md group-hover:border-gray-300 transition-all">
+                      {/* Image — no border, just rounded corners like Airbnb */}
+                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
                         {imageUrl ? (
                           <Image
                             src={imageUrl}
                             alt={provider.provider_name}
                             fill
-                            className="object-cover"
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
                           <div
@@ -928,38 +886,33 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                           </div>
                         )}
 
-                        {/* Heart/Save button */}
+                        {/* Heart button — prominent white circle like Airbnb */}
                         <button
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            // Save functionality would go here
                           }}
-                          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white hover:scale-105 transition-all"
+                          className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 transition-transform"
                           aria-label="Save provider"
                         >
-                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <svg className="w-[18px] h-[18px] text-gray-700" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                           </svg>
                         </button>
                       </div>
 
-                      {/* Card content below image */}
-                      <div className="mt-2.5">
-                        <h3 className="font-medium text-gray-900 text-[15px] leading-snug line-clamp-2 group-hover:text-gray-700">
+                      {/* Content below image — clean text only */}
+                      <div className="mt-3">
+                        <h3 className="font-medium text-gray-900 text-[15px] leading-snug line-clamp-2">
                           {provider.provider_name}
                         </h3>
                         <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
                           {provider.provider_category}
-                          {location && <span className="text-gray-400"> · {location}</span>}
                         </p>
                         {provider.google_rating && (
-                          <div className="flex items-center gap-1 mt-1">
-                            <svg className="w-3.5 h-3.5 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <span className="text-sm font-medium text-gray-900">{provider.google_rating.toFixed(1)}</span>
-                          </div>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            <span className="text-gray-900">★ {provider.google_rating.toFixed(1)}</span>
+                          </p>
                         )}
                       </div>
                     </Link>

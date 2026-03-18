@@ -593,7 +593,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
 
             return (
-              <section className="pb-10">
+              <section className="pb-12">
                 {/* Card container — no border, subtle shadow like Airbnb */}
                 <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
                   <div className="flex flex-col sm:flex-row">
@@ -693,40 +693,40 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           {/* ============================================================
               ACTION TIMELINE — Profile, Benefits, Matches (Airbnb style)
               ============================================================ */}
-          <section className="pb-12">
+          <section className="pb-16">
             {/* Airbnb-style layout: narrow timeline margin + full-width cards */}
-            <div className="relative pl-16">
-              {/* Timeline — absolutely positioned in left margin */}
-              <div className="absolute left-0 top-0 bottom-0 w-14 flex flex-col items-center">
+            <div className="relative pl-14">
+              {/* Timeline — absolutely positioned in left margin, minimal and subtle */}
+              <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col items-center">
                 {/* Step 1 marker */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[11px] font-medium text-gray-400 mb-1">Profile</span>
-                  <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-base font-semibold text-gray-600">
+                  <span className="text-[11px] text-gray-400 mb-1">Profile</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
                     1
                   </div>
                 </div>
                 {/* Line segment 1 */}
-                <div className="flex-1 w-px bg-gray-200 my-2" />
+                <div className="flex-1 w-px bg-gray-150 my-3" style={{ backgroundColor: '#e8e8e8' }} />
                 {/* Step 2 marker */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[11px] font-medium text-gray-400 mb-1">Benefits</span>
-                  <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-base font-semibold text-gray-600">
+                  <span className="text-[11px] text-gray-400 mb-1">Benefits</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
                     2
                   </div>
                 </div>
                 {/* Line segment 2 */}
-                <div className="flex-1 w-px bg-gray-200 my-2" />
+                <div className="flex-1 w-px bg-gray-150 my-3" style={{ backgroundColor: '#e8e8e8' }} />
                 {/* Step 3 marker */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[11px] font-medium text-gray-400 mb-1">Matches</span>
-                  <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-base font-semibold text-gray-600">
+                  <span className="text-[11px] text-gray-400 mb-1">Matches</span>
+                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
                     3
                   </div>
                 </div>
               </div>
 
-              {/* Cards — full width, stacked vertically */}
-              <div className="space-y-4">
+              {/* Cards — full width, generous spacing */}
+              <div className="space-y-5">
                 {/* Card 1: Profile */}
                 <Link
                   href="/portal/profile"
@@ -797,9 +797,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               PROVIDER RECOMMENDATIONS — Aligned with content above
               ============================================================ */}
           {matches.length > 0 && (
-            <section className="pb-16 pl-16">
+            <section className="pb-20 pl-14">
               {/* Section header with navigation arrows — Airbnb style */}
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-5">
                 <h2 className="text-text-lg font-semibold text-gray-900">
                   Discover providers near you
                 </h2>
@@ -865,7 +865,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
           {/* Loading state for providers */}
           {providersLoading && (
-            <section className="pb-16 pl-16">
+            <section className="pb-20 pl-14">
               <div className="flex items-center justify-between mb-5">
                 <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
                 <div className="flex gap-2">

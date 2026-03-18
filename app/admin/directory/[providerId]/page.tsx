@@ -252,6 +252,15 @@ export default function AdminDirectoryDetailPage() {
           <Badge variant={provider.deleted ? "rejected" : "verified"}>
             {provider.deleted ? "Deleted" : "Published"}
           </Badge>
+          {formData.slug && (
+            <Link
+              href={`/provider/${formData.slug}`}
+              target="_blank"
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              View Public Profile &rarr;
+            </Link>
+          )}
         </div>
       </div>
 

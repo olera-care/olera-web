@@ -575,10 +575,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               HEADER — Time-aware greeting + Welcome message
               ============================================================ */}
           <section className="pt-8 sm:pt-12 pb-6 sm:pb-8">
-            <p className="text-base sm:text-lg text-gray-500">
+            <p className="text-text-md sm:text-text-lg text-gray-500">
               {greeting}
             </p>
-            <h1 className="mt-0.5 text-[26px] sm:text-[30px] font-semibold text-gray-900 tracking-tight leading-tight">
+            <h1 className="mt-1 text-display-xs sm:text-display-sm font-display text-gray-900">
               Welcome to Olera
             </h1>
           </section>

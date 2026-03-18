@@ -281,6 +281,19 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // Profile wizard state
   const [profileWizardOpen, setProfileWizardOpen] = useState(false);
 
+  // Track if user has viewed benefits (for gamification)
+  const [hasViewedBenefits, setHasViewedBenefits] = useState(false);
+
+  // Check localStorage on mount for benefits view status
+  useEffect(() => {
+    try {
+      const viewed = localStorage.getItem("olera_viewed_benefits");
+      if (viewed === "true") {
+        setHasViewedBenefits(true);
+      }
+    } catch { /* localStorage not available */ }
+  }, []);
+
   // Profile completeness tracking
   const { percentage: profilePercentage, firstIncompleteStep } = useProfileCompleteness(
     activeProfile ?? null,
@@ -534,14 +547,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
   // Gamification: attention moves through cards as user completes steps
   // 1. Profile card pulses until profile >= 50% complete
-  // 2. Benefits card pulses until they've saved at least 1 benefit
+  // 2. Benefits card pulses until they've visited (not necessarily saved)
   // 3. Matches card pulses until profile is live
   const profileComplete = profilePercentage >= 50;
-  const benefitsSaved = benefitsSavedCount > 0;
 
   const needsProfileAttention = !profileComplete;
-  const needsBenefitsAttention = profileComplete && !benefitsSaved;
-  const needsMatchesAttention = profileComplete && benefitsSaved && !isProfileLive;
+  const needsBenefitsAttention = profileComplete && !hasViewedBenefits;
+  const needsMatchesAttention = profileComplete && hasViewedBenefits && !isProfileLive;
 
   // Toggle this to switch between new and old version during development
   const USE_NEW_VERSION = true;
@@ -807,6 +819,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   )}
                   <Link
                     href="/benefits/finder"
+                    onClick={() => {
+                      // Mark benefits as viewed for gamification
+                      try {
+                        localStorage.setItem("olera_viewed_benefits", "true");
+                        setHasViewedBenefits(true);
+                      } catch { /* localStorage not available */ }
+                    }}
                     className={`relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group ${needsBenefitsAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
                   >
                     <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">

@@ -106,11 +106,11 @@ export default function MedJobsPage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50/80 via-orange-50/20 to-white" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 lg:pt-28 pb-16">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 lg:pt-16 pb-10">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Copy */}
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-4">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
                 <span className="text-xs font-medium text-primary-700">Now accepting applications for Fall 2026</span>
               </div>
@@ -121,12 +121,12 @@ export default function MedJobsPage() {
                 <br />
                 <span className="text-primary-600">your degree</span>
               </h1>
-              <p className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg">
+              <p className="mt-3 text-base text-gray-500 leading-relaxed max-w-lg">
                 Pre-health students gain verified patient care hours while
                 helping seniors live better. Every hour is logged, confirmed
                 by your provider, and ready for your grad school application.
               </p>
-              <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
+              <div className="mt-6 flex flex-col sm:flex-row items-start gap-3">
                 <Link
                   href="/medjobs/apply"
                   className="inline-flex items-center px-7 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
@@ -150,7 +150,7 @@ export default function MedJobsPage() {
 
             {/* Hero image with overlapping elements */}
             <div className="relative">
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-2xl shadow-gray-900/10">
+              <div className="aspect-[4/3] lg:aspect-[5/4] rounded-3xl overflow-hidden bg-gray-100 shadow-2xl shadow-gray-900/10">
                   <Image
                   src="/images/medjobs/hero-caregiving.jpg"
                   alt="Student caregiver helping a senior — Olera MedJobs"
@@ -178,9 +178,9 @@ export default function MedJobsPage() {
       </section>
 
       {/* Trust bar — universities */}
-      <section className="py-8 sm:py-10 border-b border-gray-100 bg-gray-50/50">
+      <section className="py-5 sm:py-6 border-b border-gray-100 bg-gray-50/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-medium mb-5">
+          <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-medium mb-3">
             Students from 50+ Texas universities
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
@@ -193,14 +193,14 @@ export default function MedJobsPage() {
       </section>
 
       {/* Testimonial #1 — woven between sections */}
-      <section className="py-14 sm:py-16">
+      <section className="py-8 sm:py-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex items-start gap-5">
             <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-100">
               <Image src={TESTIMONIALS[0].image} alt="" width={48} height={48} className="w-full h-full object-cover" />
             </div>
             <div>
-              <p className="text-lg text-gray-700 leading-relaxed italic">
+              <p className="text-base text-gray-700 leading-relaxed italic">
                 &ldquo;{TESTIMONIALS[0].quote}&rdquo;
               </p>
               <p className="mt-3 text-sm font-medium text-gray-900">{TESTIMONIALS[0].name}</p>

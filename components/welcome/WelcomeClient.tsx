@@ -82,45 +82,48 @@ function getInitials(name: string): string {
 }
 
 // ============================================================
-// Illustration Component (from Matches empty state)
+// Illustration Component — warm, human, connection-focused
 // ============================================================
 
 function MatchIllustration() {
   return (
-    <div className="w-24 h-24 mx-auto">
-      <svg viewBox="0 0 96 96" fill="none" className="w-full h-full">
-        {/* Soft background glow */}
-        <circle cx="48" cy="48" r="40" fill="#199087" fillOpacity="0.08" />
-        <circle cx="48" cy="48" r="28" fill="#199087" fillOpacity="0.12" />
+    <div className="w-20 h-20 mx-auto">
+      <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
+        {/* Warm background glow */}
+        <circle cx="40" cy="40" r="38" fill="#F9EDE0" />
+        <circle cx="40" cy="40" r="28" fill="#F2D8BD" fillOpacity="0.5" />
 
-        {/* Person silhouette - warm, approachable */}
-        <circle cx="48" cy="36" r="10" fill="#199087" fillOpacity="0.9" />
+        {/* Two people connecting — warm and teal */}
+        {/* Left person (warm) */}
+        <circle cx="28" cy="32" r="7" fill="#E9BD91" />
         <path
-          d="M32 62c0-8.837 7.163-16 16-16s16 7.163 16 16"
-          stroke="#199087"
-          strokeWidth="3"
-          strokeLinecap="round"
-          fill="#199087"
-          fillOpacity="0.15"
+          d="M18 50c0-5.5 4.5-10 10-10s10 4.5 10 10"
+          fill="#E9BD91"
+          fillOpacity="0.6"
         />
 
-        {/* Connection dots - representing providers finding you */}
-        <circle cx="22" cy="40" r="4" fill="#199087" fillOpacity="0.4">
-          <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="74" cy="40" r="4" fill="#199087" fillOpacity="0.4">
-          <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2s" repeatCount="indefinite" begin="0.5s" />
-        </circle>
-        <circle cx="28" cy="58" r="3" fill="#199087" fillOpacity="0.3">
-          <animate attributeName="opacity" values="0.15;0.45;0.15" dur="2s" repeatCount="indefinite" begin="0.25s" />
-        </circle>
-        <circle cx="68" cy="58" r="3" fill="#199087" fillOpacity="0.3">
-          <animate attributeName="opacity" values="0.15;0.45;0.15" dur="2s" repeatCount="indefinite" begin="0.75s" />
-        </circle>
+        {/* Right person (teal) */}
+        <circle cx="52" cy="32" r="7" fill="#5FA3A3" />
+        <path
+          d="M42 50c0-5.5 4.5-10 10-10s10 4.5 10 10"
+          fill="#5FA3A3"
+          fillOpacity="0.6"
+        />
 
-        {/* Subtle connection lines */}
-        <path d="M26 40 L38 38" stroke="#199087" strokeOpacity="0.2" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M70 40 L58 38" stroke="#199087" strokeOpacity="0.2" strokeWidth="1.5" strokeLinecap="round" />
+        {/* Connection heart/bridge between them */}
+        <path
+          d="M36 38 Q40 32 44 38"
+          stroke="#D67F42"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.7"
+        />
+
+        {/* Subtle sparkle */}
+        <circle cx="40" cy="28" r="2" fill="#D67F42" opacity="0.5">
+          <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" repeatCount="indefinite" />
+        </circle>
       </svg>
     </div>
   );
@@ -453,31 +456,25 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           OPENING — dynamic greeting based on connection state
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-8 sm:pt-12 pb-6">
-        <div className="max-w-lg mx-auto text-center">
+      <section className="px-4 sm:px-6 pt-10 sm:pt-16 pb-8 animate-fadeIn">
+        <div className="max-w-xl mx-auto text-center">
           {connection?.to_profile?.display_name ? (
             <>
-              {/* Celebratory checkmark */}
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary-100 flex items-center justify-center">
-                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h1 className="text-3xl sm:text-[34px] font-display font-bold text-gray-900 leading-tight">
+              <h1 className="text-[32px] sm:text-[40px] font-display font-bold text-gray-900 leading-[1.15] tracking-tight">
                 You&apos;re connected with{" "}
                 <span className="text-primary-600">{connection.to_profile.display_name}</span>.
               </h1>
-              <p className="mt-3 text-base text-gray-500 leading-relaxed">
-                While you wait to hear back, here&apos;s what else we can do for you.
+              <p className="mt-4 text-lg text-gray-500">
+                We&apos;ll notify you when they respond.
               </p>
             </>
           ) : (
             <>
-              <h1 className="text-3xl sm:text-[34px] font-display font-bold text-gray-900 leading-tight">
+              <h1 className="text-[32px] sm:text-[40px] font-display font-bold text-gray-900 leading-[1.15] tracking-tight">
                 Welcome to Olera.
               </h1>
-              <p className="mt-3 text-base text-gray-500 leading-relaxed">
-                Let&apos;s help you find the right care.
+              <p className="mt-4 text-lg text-gray-500">
+                Let&apos;s find the right care for you.
               </p>
             </>
           )}
@@ -547,41 +544,27 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               ) : (
                 /* ============ DEFAULT STATE ============ */
                 <>
-                  {/* Content stack — label, illustration, headline, subtext */}
-                  <div className="space-y-4">
-                    {/* Label */}
-                    <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase">
-                      Find Your Match
-                    </p>
-
+                  {/* Content stack — illustration, headline, subtext */}
+                  <div className="space-y-5">
                     {/* Illustration */}
                     <MatchIllustration />
 
-                    {/* Headline — dynamic based on connection state */}
-                    <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900 leading-tight pt-1">
-                      {connection?.to_profile?.display_name ? (
-                        <>
-                          Let other providers in{" "}
-                          <span className="text-primary-600">{cityDisplay}</span>
-                          {" "}find you too.
-                        </>
-                      ) : (
-                        <>
-                          Providers in{" "}
-                          <span className="text-primary-600">{cityDisplay}</span>
-                          {" "}are ready to connect with you.
-                        </>
-                      )}
+                    {/* Headline — simplified */}
+                    <h2 className="text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
+                      {connection?.to_profile?.display_name
+                        ? "Let more providers find you"
+                        : "Let providers find you"
+                      }
                     </h2>
 
-                    {/* Subtext */}
+                    {/* Subtext — shorter */}
                     <p className="text-[15px] text-gray-500 leading-relaxed">
-                      Turning this on means providers can reach out to you directly — no searching required.
+                      Get matched with care providers in your area.
                     </p>
                   </div>
 
-                  {/* Action stack — separated from content */}
-                  <div className="mt-8 pt-6 border-t border-gray-100">
+                  {/* Action stack */}
+                  <div className="mt-7">
                     {/* Primary CTA with explicit inline styles */}
                     <button
                       onClick={handleActivate}
@@ -717,6 +700,19 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out forwards;
         }
         /* Hide scrollbar for horizontal scroll containers */
         [style*="scrollbar-width: none"]::-webkit-scrollbar {

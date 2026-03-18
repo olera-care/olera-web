@@ -264,51 +264,20 @@ export default function ProfileWizard({
   return (
     <Modal isOpen onClose={onClose} size="2xl">
       <div className="flex flex-col min-h-[500px]">
-        {/* Progress Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-          {/* Step indicator */}
-          <div className="flex items-center justify-between mb-4">
-            {STEPS.map((s, i) => (
-              <div key={s.id} className="flex items-center">
-                <div
-                  className={[
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all",
-                    i < currentStep
-                      ? "bg-primary-600 text-white"
-                      : i === currentStep
-                      ? "bg-primary-100 text-primary-700 ring-2 ring-primary-600"
-                      : "bg-gray-100 text-gray-400",
-                  ].join(" ")}
-                >
-                  {i < currentStep ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    i + 1
-                  )}
-                </div>
-                {i < STEPS.length - 1 && (
-                  <div
-                    className={[
-                      "w-12 sm:w-20 h-1 mx-2 rounded-full transition-all",
-                      i < currentStep ? "bg-primary-600" : "bg-gray-100",
-                    ].join(" ")}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+        {/* Clean Header — no divider, minimal progress */}
+        <div className="px-6 pt-6 pb-2">
+          {/* Step counter — subtle, top-right aligned with close button */}
+          <p className="text-sm text-gray-400 mb-3">
+            Step {currentStep + 1} of {STEPS.length}
+          </p>
 
           {/* Step title */}
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
-            <p className="text-sm text-gray-500 mt-0.5">{step.subtitle}</p>
-          </div>
+          <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
+          <p className="text-sm text-gray-500 mt-1">{step.subtitle}</p>
         </div>
 
-        {/* Form Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        {/* Form Content — overflow visible on step 1 for dropdown */}
+        <div className={`flex-1 px-6 py-5 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
           {/* ── Step 1: Basics ── */}
           {step.id === "basics" && (
             <div className="space-y-5">

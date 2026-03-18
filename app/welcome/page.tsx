@@ -76,12 +76,20 @@ async function getUserCity(): Promise<string | null> {
 
     if (!user) return null;
 
-    // Get user's family profile city
+    // Get user's account first
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("id, active_profile_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!account?.active_profile_id) return null;
+
+    // Get city from active profile
     const { data: profile } = await supabase
       .from("business_profiles")
       .select("city")
-      .eq("user_id", user.id)
-      .eq("type", "family")
+      .eq("id", account.active_profile_id)
       .single();
 
     return profile?.city || null;

@@ -3,10 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors when env vars are not available
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 async function getAuthenticatedProvider(req: NextRequest) {
   const cookieStore = await cookies();
@@ -18,6 +21,8 @@ async function getAuthenticatedProvider(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
+
+  const supabaseAdmin = getSupabaseAdmin();
 
   // Check if user has a provider profile
   const { data: account } = await supabaseAdmin
@@ -54,6 +59,8 @@ export async function GET(req: NextRequest) {
     // Check if authenticated provider
     const auth = await getAuthenticatedProvider(req);
     const isProvider = !!auth?.providerProfile;
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Build query
     let query = supabaseAdmin

@@ -221,10 +221,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
       const supabase = createClient();
 
-      console.time("[olera] fetchAccountData");
+      // Use unique timer labels to avoid conflicts from concurrent calls
+      const timerId = Math.random().toString(36).slice(2, 8);
+      const timerLabel = `[olera] fetchAccountData-${timerId}`;
+      const accountsLabel = `[olera] query: accounts-${timerId}`;
+      const profilesLabel = `[olera] query: profiles+membership-${timerId}`;
+
+      console.time(timerLabel);
 
       // Step 1: Get account (required for everything else)
-      console.time("[olera] query: accounts");
+      console.time(accountsLabel);
       const accountResult = await withBoundedTimeout(
         supabase
           .from("accounts")
@@ -236,15 +242,15 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       );
       const account = accountResult.data;
       const accountError = accountResult.error;
-      console.timeEnd("[olera] query: accounts");
+      console.timeEnd(accountsLabel);
 
       if (accountError || !account) {
-        console.timeEnd("[olera] fetchAccountData");
+        console.timeEnd(timerLabel);
         return null;
       }
 
       // Step 2: Fetch profiles and membership in parallel
-      console.time("[olera] query: profiles+membership");
+      console.time(profilesLabel);
       const [profilesResult, membershipResult] = await withBoundedTimeout(
         Promise.all([
           supabase
@@ -261,7 +267,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         QUERY_TIMEOUT_MS,
         "profiles+membership query"
       );
-      console.timeEnd("[olera] query: profiles+membership");
+      console.timeEnd(profilesLabel);
 
       const profiles = (profilesResult.data as Profile[]) || [];
       const membershipRows = (membershipResult.data as Membership[]) || [];
@@ -273,7 +279,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           profiles.find((p) => p.id === account.active_profile_id) || null;
       }
 
-      console.timeEnd("[olera] fetchAccountData");
+      console.timeEnd(timerLabel);
       return { account, activeProfile, profiles, membership };
     },
     [configured]

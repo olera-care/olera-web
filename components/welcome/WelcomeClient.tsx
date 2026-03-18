@@ -728,7 +728,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               </div>
 
               {/* Cards — full width, generous spacing */}
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {/* Card 1: Profile */}
                 <Link
                   href="/portal/profile"
@@ -741,34 +741,27 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                       <circle cx="20" cy="20" r="1.5" fill="#A69484"/>
                     </svg>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-text-md font-semibold text-gray-900">Complete your profile</p>
-                    <p className="text-text-sm text-gray-500 mt-0.5">Help providers understand your needs</p>
-                  </div>
+                  <p className="flex-1 text-text-md font-semibold text-gray-900">Complete your profile</p>
                   <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </Link>
 
-                {/* Card 2: Benefits (Featured) */}
+                {/* Card 2: Benefits */}
                 <Link
                   href="/benefits/finder"
-                  className="block bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow overflow-hidden group"
+                  className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
                 >
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="relative w-full sm:w-[140px] h-[100px] sm:h-auto sm:min-h-[120px] bg-gradient-to-br from-[#FEF7ED] to-[#FDE9D2] flex items-center justify-center flex-shrink-0">
-                      <svg viewBox="0 0 64 64" className="w-14 h-14">
-                        <ellipse cx="32" cy="36" rx="18" ry="6" fill="#D4A574" opacity="0.3"/>
-                        <circle cx="32" cy="32" r="16" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
-                        <circle cx="32" cy="32" r="11" fill="none" stroke="#F5E6D3" strokeWidth="1"/>
-                        <text x="32" y="38" textAnchor="middle" fill="#8B7355" fontSize="14" fontWeight="600">$</text>
-                      </svg>
-                    </div>
-                    <div className="flex-1 p-4 sm:p-5">
-                      <p className="font-semibold text-text-lg text-gray-900">You may qualify for benefits</p>
-                      <p className="text-text-sm text-gray-500 mt-1">Discover programs that help cover care costs</p>
-                    </div>
+                  <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 32 32" className="w-8 h-8">
+                      <circle cx="16" cy="16" r="10" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
+                      <text x="16" y="20" textAnchor="middle" fill="#8B7355" fontSize="12" fontWeight="600">$</text>
+                    </svg>
                   </div>
+                  <p className="flex-1 text-text-md font-semibold text-gray-900">You may qualify for benefits</p>
+                  <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
 
                 {/* Card 3: Matches */}
@@ -783,10 +776,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                       <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
                     </svg>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-text-md font-semibold text-gray-900">Get matched with providers</p>
-                    <p className="text-text-sm text-gray-500 mt-0.5">Let care providers reach out to you</p>
-                  </div>
+                  <p className="flex-1 text-text-md font-semibold text-gray-900">Get matched with providers</p>
                   <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>

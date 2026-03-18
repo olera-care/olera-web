@@ -484,7 +484,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" style={{ willChange: "transform" }} />
       </div>
     );
@@ -493,7 +493,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const cityDisplay = city || "your area";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
+    <div className="min-h-screen bg-white">
       {/* ================================================================
           OPENING — dynamic greeting based on connection state
           ================================================================ */}

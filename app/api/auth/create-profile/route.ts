@@ -296,7 +296,7 @@ export async function POST(request: Request) {
       // Family profile — check if a baseline one already exists (created by ensure-account)
       const { data: existingFamilyProfile } = await db
         .from("business_profiles")
-        .select("id")
+        .select("id, metadata")
         .eq("account_id", accountId)
         .eq("type", "family")
         .limit(1)
@@ -304,6 +304,14 @@ export async function POST(request: Request) {
 
       if (existingFamilyProfile) {
         // Update the existing baseline family profile with the user's info
+        // IMPORTANT: Preserve existing metadata (like care_post) while updating visibility flags
+        const existingMetadata = (existingFamilyProfile.metadata || {}) as Record<string, unknown>;
+        const mergedMetadata = {
+          ...existingMetadata,
+          visible_to_families: visibleToFamilies ?? existingMetadata.visible_to_families ?? true,
+          visible_to_providers: visibleToProviders ?? existingMetadata.visible_to_providers ?? true,
+        };
+
         const { error: updateErr } = await db
           .from("business_profiles")
           .update({
@@ -312,10 +320,7 @@ export async function POST(request: Request) {
             state: state || null,
             zip: zip || null,
             care_types: sanitizedCareNeeds.length > 0 ? sanitizedCareNeeds : sanitizedCareTypes,
-            metadata: {
-              visible_to_families: visibleToFamilies ?? true,
-              visible_to_providers: visibleToProviders ?? true,
-            },
+            metadata: mergedMetadata,
           })
           .eq("id", existingFamilyProfile.id);
 

@@ -140,7 +140,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/account") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isMinimalNav = pathname.startsWith("/portal/inbox");
+  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome");
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
@@ -763,21 +763,15 @@ export default function Navbar() {
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
-                    {/* MedJobs link */}
-                    <Link
-                      href="/medjobs"
-                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                    >
-                      MedJobs
-                    </Link>
-
-                    {/* For Providers link */}
-                    <button
-                      onClick={handleForProviders}
-                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                    >
-                      For Providers
-                    </button>
+                    {/* For Providers link — hidden on minimal nav pages */}
+                    {!isMinimalNav && (
+                      <button
+                        onClick={handleForProviders}
+                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                      >
+                        For Providers
+                      </button>
+                    )}
 
                     {/* Saved providers heart */}
                     <Link

@@ -100,4 +100,5 @@ export const CARE_CATEGORIES: CareCategory[] = [
 export const NAV_LINKS: NavLink[] = [
   { label: "Caregiver Support", href: "/caregiver-support" },
   { label: "Benefits Center", href: "/benefits" },
+  { label: "MedJobs", href: "/medjobs" },
 ];

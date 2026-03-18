@@ -252,7 +252,7 @@ export default function AdminDirectoryDetailPage() {
           <Badge variant={provider.deleted ? "rejected" : "verified"}>
             {provider.deleted ? "Deleted" : "Published"}
           </Badge>
-          {formData.slug && (
+          {typeof formData.slug === "string" && (
             <Link
               href={`/provider/${formData.slug}`}
               target="_blank"

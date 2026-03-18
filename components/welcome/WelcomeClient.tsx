@@ -33,6 +33,7 @@ interface ConnectionWithProvider {
   to_profile: {
     id: string;
     slug: string | null;
+    source_provider_id: string | null;
     display_name: string;
     image_url: string | null;
     city: string | null;
@@ -308,7 +309,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           .select(`
             id,
             to_profile:business_profiles!connections_to_profile_id_fkey(
-              id, slug, display_name, image_url, city, state, category, metadata
+              id, slug, source_provider_id, display_name, image_url, city, state, category, metadata
             )
           `)
           .eq("from_profile_id", activeProfile.id)
@@ -317,9 +318,40 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           .limit(1);
 
         if (connections && connections.length > 0) {
-          const conn = connections[0] as ConnectionWithProvider;
-          setConnection(conn);
+          let conn = connections[0] as ConnectionWithProvider;
           connectedProviderCity = conn.to_profile?.city || null;
+
+          // Enrich with iOS data (rating, pricing) from olera-providers
+          if (conn.to_profile) {
+            const iosKey = conn.to_profile.source_provider_id || conn.to_profile.slug;
+            if (iosKey) {
+              const { data: iosData } = await supabase
+                .from("olera-providers")
+                .select("provider_logo, provider_images, google_rating, review_count, lower_price, upper_price")
+                .eq("provider_id", iosKey)
+                .single();
+
+              if (iosData) {
+                const iosImage = iosData.provider_logo || iosData.provider_images?.split(" | ")[0] || null;
+                conn = {
+                  ...conn,
+                  to_profile: {
+                    ...conn.to_profile,
+                    image_url: conn.to_profile.image_url || iosImage,
+                    metadata: {
+                      ...((conn.to_profile.metadata || {}) as Record<string, unknown>),
+                      ...(iosData.google_rating ? { google_rating: iosData.google_rating } : {}),
+                      ...(iosData.review_count ? { review_count: iosData.review_count } : {}),
+                      ...(iosData.lower_price ? { lower_price: iosData.lower_price } : {}),
+                      ...(iosData.upper_price ? { upper_price: iosData.upper_price } : {}),
+                    },
+                  },
+                };
+              }
+            }
+          }
+
+          setConnection(conn);
         }
       } catch (err) {
         console.error("[welcome] Failed to fetch connection:", err);

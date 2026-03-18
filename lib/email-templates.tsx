@@ -365,6 +365,82 @@ export function matchesLiveEmail(opts: {
   `);
 }
 
+/** Email to family when a provider sends a reach-out (Matches F2) */
+export function providerReachOutEmail(opts: {
+  familyName: string;
+  providerName: string;
+  city: string;
+  message: string | null;
+  matchesUrl: string;
+}): string {
+  const messageLine = opts.message
+    ? `<div style="background:#f9fafb;border-left:3px solid ${BRAND_COLOR};padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+        <p style="font-size:14px;color:#374151;margin:0;line-height:1.5;">"${opts.message}"</p>
+      </div>`
+    : "";
+
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A provider in ${opts.city} is interested</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, <strong>${opts.providerName}</strong> in ${opts.city} saw your care profile and wants to connect.
+    </p>
+    ${messageLine}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You're in control — review their profile and decide if you'd like to start a conversation.
+    </p>
+    <div>${button("View on Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Email to family when they have unanswered messages and Matches is not active (F3) */
+export function matchesNudgeEmail(opts: {
+  familyName: string;
+  unansweredCount: number;
+  matchesUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Still waiting to hear back? There's a better way.</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, you've reached out to ${opts.unansweredCount} providers but haven't heard back yet.
+    </p>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      With Matches, providers come to you. Share what you're looking for once, and qualified providers in your area will reach out directly.
+    </p>
+    <div>${button("Activate Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Email to provider when their profile is still incomplete 48hrs after signup (P1) */
+export function providerIncompleteProfileEmail(opts: {
+  providerName: string;
+  city: string;
+  profileUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Families are searching in ${opts.city}</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Hi ${opts.providerName}, families in ${opts.city} are looking for care providers on Olera — but your profile isn't ready yet.
+      Complete it so families can find and connect with you.
+    </p>
+    <div>${button("Complete your profile", opts.profileUrl)}</div>
+  `);
+}
+
+/** Email to provider when a family accepts their reach-out (P2) */
+export function reachOutAcceptedEmail(opts: {
+  providerName: string;
+  familyName: string;
+  viewUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're connected!</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      <strong>${opts.familyName}</strong> accepted your reach-out on Olera. You can now message each other directly.
+    </p>
+    <div>${button("View conversation", opts.viewUrl)}</div>
+  `);
+}
+
 /** Document checklist email for benefits applications */
 export function checklistEmail(opts: {
   programName: string;

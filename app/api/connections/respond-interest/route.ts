@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
-import { connectionResponseEmail } from "@/lib/email-templates";
+import { reachOutAcceptedEmail } from "@/lib/email-templates";
 import { sendLoopsEvent } from "@/lib/loops";
 
 /**
@@ -184,13 +184,13 @@ export async function POST(request: Request) {
           .single();
 
         if (providerBp?.email) {
+          const familyName = seekerBp?.display_name || "A family";
           await sendEmail({
             to: providerBp.email,
-            subject: `${seekerBp?.display_name || "A family"} accepted your connection on Olera`,
-            html: connectionResponseEmail({
-              familyName: seekerBp?.display_name || "A family",
+            subject: `${familyName} accepted your reach-out — you're connected`,
+            html: reachOutAcceptedEmail({
               providerName: providerBp.display_name || "Provider",
-              accepted: true,
+              familyName,
               viewUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/provider/connections`,
             }),
           });

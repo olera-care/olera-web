@@ -9,6 +9,7 @@ import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
+import { syncIntentToProfile, recipientMap, timelineMap, careTypeMap } from "@/lib/sync-intent-to-profile";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAdminClient(): any {
@@ -105,6 +106,18 @@ async function handleGuestConnection({
   if (existingProfile) {
     fromProfileId = existingProfile.id;
     claimToken = existingProfile.claim_token;
+
+    // Sync latest intent data to existing guest profile
+    try {
+      await syncIntentToProfile(db, fromProfileId, {
+        careRecipient: intentData.careRecipient,
+        careType: intentData.careType,
+        urgency: intentData.urgency,
+        additionalNotes: intentData.additionalNotes,
+      });
+    } catch (syncErr) {
+      console.error("Failed to sync intent to guest profile:", syncErr);
+    }
   } else {
     // Create placeholder profile
     const displayName = normalizedEmail.split("@")[0] || "Guest";
@@ -119,17 +132,20 @@ async function handleGuestConnection({
         type: "family",
         category: null,
         display_name: displayName,
-        care_types: [],
+        care_types: intentData.careType && careTypeMap[intentData.careType]
+          ? [careTypeMap[intentData.careType]]
+          : [],
         claim_state: "unclaimed",
         verification_state: "unverified",
         source: "guest_connection",
         metadata: {
           relationship_to_recipient: intentData.careRecipient
-            ? { self: "Myself", parent: "My parent", spouse: "My spouse", other: "Someone else" }[intentData.careRecipient]
+            ? recipientMap[intentData.careRecipient] ?? null
             : null,
           timeline: intentData.urgency
-            ? { asap: "immediate", within_month: "within_1_month", few_months: "within_3_months", researching: "exploring" }[intentData.urgency]
+            ? timelineMap[intentData.urgency] ?? null
             : null,
+          about_situation: intentData.additionalNotes || null,
         },
       })
       .select("id, claim_token")
@@ -1090,60 +1106,12 @@ export async function POST(request: Request) {
     // 10. Sync intent data back to user's family profile
     if (intentData) {
       try {
-        const { data: currentProfile } = await db
-          .from("business_profiles")
-          .select("metadata, care_types")
-          .eq("id", fromProfileId)
-          .single();
-
-        if (currentProfile) {
-          const currentMeta = (currentProfile.metadata || {}) as Record<string, unknown>;
-          const currentCareTypes: string[] = currentProfile.care_types || [];
-          const updates: Record<string, unknown> = {};
-
-          // Map CTA recipient → profile relationship_to_recipient
-          const recipientMap: Record<string, string> = {
-            self: "Myself",
-            parent: "My parent",
-            spouse: "My spouse",
-            other: "Someone else",
-          };
-          if (intentData.careRecipient && recipientMap[intentData.careRecipient]) {
-            currentMeta.relationship_to_recipient = recipientMap[intentData.careRecipient];
-          }
-
-          // Map CTA urgency → profile timeline
-          const timelineMap: Record<string, string> = {
-            asap: "immediate",
-            within_month: "within_1_month",
-            few_months: "within_3_months",
-            researching: "exploring",
-          };
-          if (intentData.urgency && timelineMap[intentData.urgency]) {
-            currentMeta.timeline = timelineMap[intentData.urgency];
-          }
-
-          updates.metadata = currentMeta;
-
-          // Map CTA careType → profile care_types display name
-          const careTypeMap: Record<string, string> = {
-            home_care: "Home Care",
-            home_health: "Home Health Care",
-            assisted_living: "Assisted Living",
-            memory_care: "Memory Care",
-          };
-          if (intentData.careType && careTypeMap[intentData.careType]) {
-            const displayName = careTypeMap[intentData.careType];
-            if (!currentCareTypes.includes(displayName)) {
-              updates.care_types = [...currentCareTypes, displayName];
-            }
-          }
-
-          await db
-            .from("business_profiles")
-            .update(updates)
-            .eq("id", fromProfileId);
-        }
+        await syncIntentToProfile(db, fromProfileId, {
+          careRecipient: intentData.careRecipient,
+          careType: intentData.careType,
+          urgency: intentData.urgency,
+          additionalNotes: intentData.additionalNotes,
+        });
       } catch (syncErr) {
         // Non-blocking — connection was created, profile sync is best-effort
         console.error("Failed to sync intent to profile:", syncErr);

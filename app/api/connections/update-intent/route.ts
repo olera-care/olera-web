@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
+import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
 
 interface ThreadMessage {
   from_profile_id: string;
@@ -176,6 +177,19 @@ export async function PATCH(request: Request) {
         { error: "Failed to update care request" },
         { status: 500 }
       );
+    }
+
+    // Sync updated intent back to the sender's profile
+    try {
+      await syncIntentToProfile(admin, profileId, {
+        careRecipient: existingMessage.care_recipient as string | null,
+        careType: existingMessage.care_type as string | null,
+        urgency: existingMessage.urgency as string | null,
+        additionalNotes: existingMessage.additional_notes as string | null,
+      });
+    } catch (syncErr) {
+      // Non-blocking — connection update succeeded
+      console.error("[update-intent] profile sync error:", syncErr);
     }
 
     return NextResponse.json({

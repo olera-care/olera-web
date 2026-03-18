@@ -7,12 +7,37 @@ import Badge from "@/components/ui/Badge";
 
 type TypeFilter = "all" | "inquiry" | "application" | "invitation" | "needs_email";
 
+const CARE_TYPE_LABELS: Record<string, string> = {
+  home_care: "Home Care",
+  home_health: "Home Health Care",
+  assisted_living: "Assisted Living",
+  memory_care: "Memory Care",
+};
+
+const URGENCY_LABELS: Record<string, string> = {
+  asap: "ASAP",
+  within_month: "Within 1 month",
+  few_months: "Within 3 months",
+  researching: "Exploring",
+};
+
+const TIMELINE_LABELS: Record<string, string> = {
+  immediate: "ASAP",
+  within_1_month: "Within 1 month",
+  within_3_months: "Within 3 months",
+  exploring: "Exploring",
+};
+
 interface ConnectionProfile {
   id: string;
   display_name: string;
   type: string;
   slug?: string;
   source_provider_id?: string;
+  email?: string;
+  phone?: string;
+  metadata?: Record<string, unknown>;
+  care_types?: string[];
 }
 
 interface Lead {
@@ -193,6 +218,8 @@ export default function AdminLeadsPage() {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">From</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">To</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Care Type</th>
+                  <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Urgency</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Type</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Status</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Date</th>
@@ -204,12 +231,48 @@ export default function AdminLeadsPage() {
                   const needsEmail = lead.metadata?.needs_provider_email === true;
                   const providerEditorId = lead.to_profile?.source_provider_id;
                   const providerSlug = (lead.to_profile as ConnectionProfile & { slug?: string })?.slug;
+
+                  // Resolve care type and urgency — prefer profile metadata, fall back to connection message
+                  let careTypeDisplay: string | null = null;
+                  let urgencyDisplay: string | null = null;
+
+                  const fromMeta = lead.from_profile?.metadata as Record<string, unknown> | undefined;
+                  const fromCareTypes = lead.from_profile?.care_types as string[] | undefined;
+
+                  if (fromCareTypes && fromCareTypes.length > 0) {
+                    careTypeDisplay = fromCareTypes[0];
+                  }
+                  if (fromMeta?.timeline) {
+                    urgencyDisplay = TIMELINE_LABELS[fromMeta.timeline as string] || (fromMeta.timeline as string);
+                  }
+
+                  // Fallback: parse connections.message JSON
+                  if ((!careTypeDisplay || !urgencyDisplay) && lead.message) {
+                    try {
+                      const msg = JSON.parse(lead.message);
+                      if (!careTypeDisplay && msg.care_type) {
+                        careTypeDisplay = CARE_TYPE_LABELS[msg.care_type] || msg.care_type;
+                      }
+                      if (!urgencyDisplay && msg.urgency) {
+                        urgencyDisplay = URGENCY_LABELS[msg.urgency] || msg.urgency;
+                      }
+                    } catch { /* ignore */ }
+                  }
+
+                  const isFromFamily = lead.from_profile?.type === "family";
+
                   return (
                   <tr key={lead.id} className={`hover:bg-gray-50 ${needsEmail ? "bg-amber-50" : ""}`}>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-gray-900">
-                        {lead.from_profile?.display_name ?? "Unknown"}
-                      </p>
+                      {isFromFamily ? (
+                        <Link href={`/admin/care-seekers/${lead.from_profile?.id}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
+                          {lead.from_profile?.display_name ?? "Unknown"}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-medium text-gray-900">
+                          {lead.from_profile?.display_name ?? "Unknown"}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500">
                         {lead.from_profile?.type ?? "—"}
                       </p>
@@ -238,6 +301,22 @@ export default function AdminLeadsPage() {
                           </span>
                         )}
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {careTypeDisplay ? (
+                        <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
+                          {careTypeDisplay}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {urgencyDisplay ? (
+                        <span className="text-xs text-gray-600">{urgencyDisplay}</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <Badge variant="default">{lead.type}</Badge>

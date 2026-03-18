@@ -99,24 +99,34 @@ async function getUserCity(): Promise<string | null> {
 }
 
 export default async function WelcomePage({ searchParams }: WelcomePageProps) {
-  const params = await searchParams;
-  const destination = params.next || "/portal/inbox";
+  let destination = "/portal/inbox";
+  let userCity: string | null = null;
+  let finalProviders: MatchProvider[] = [];
 
-  // Fetch user city and providers in parallel for speed
-  const [userCity, providers] = await Promise.all([
-    getUserCity(),
-    // Start with national — will refine with city below
-    fetchProviders(null),
-  ]);
+  try {
+    const params = await searchParams;
+    destination = params.next || "/portal/inbox";
 
-  // If we got a city, try to get city-specific providers
-  // (This is a small optimization — if city fetch fails, we already have national)
-  let finalProviders = providers;
-  if (userCity && providers.length > 0) {
-    const cityProviders = await fetchProviders(userCity);
-    if (cityProviders.length > 0) {
-      finalProviders = cityProviders;
+    // Fetch user city and providers in parallel for speed
+    // Wrap in try-catch to prevent server errors from crashing the page
+    const [fetchedCity, providers] = await Promise.all([
+      getUserCity().catch(() => null),
+      fetchProviders(null).catch(() => []),
+    ]);
+
+    userCity = fetchedCity;
+    finalProviders = providers;
+
+    // If we got a city, try to get city-specific providers
+    if (userCity && providers.length > 0) {
+      const cityProviders = await fetchProviders(userCity).catch(() => []);
+      if (cityProviders.length > 0) {
+        finalProviders = cityProviders;
+      }
     }
+  } catch (err) {
+    console.error("[welcome] Server component error:", err);
+    // Continue with defaults - don't crash the page
   }
 
   return (

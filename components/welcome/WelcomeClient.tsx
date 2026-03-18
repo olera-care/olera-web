@@ -745,13 +745,14 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
           {/* ============================================================
               ACTION TIMELINE — Profile, Benefits, Matches (Airbnb style)
-              Indented on LEFT (desktop only) to feel "nested" — RIGHT aligns with main sections
+              Desktop: Indented with timeline markers on left
+              Mobile: Just cards, no timeline (cleaner, more space)
               ============================================================ */}
           <section className="pb-16 sm:ml-16">
-            {/* Nested layout: timeline on left, cards fill remaining space */}
-            <div className="relative pl-14">
-              {/* Timeline — absolutely positioned in left margin, minimal and subtle */}
-              <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col items-center">
+            {/* Nested layout: timeline on left (desktop only), cards fill remaining space */}
+            <div className="relative sm:pl-14">
+              {/* Timeline — hidden on mobile, visible on sm+ */}
+              <div className="hidden sm:flex absolute left-0 top-0 bottom-0 w-12 flex-col items-center">
                 {/* Step 1 marker */}
                 <div className="flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-gray-500 mb-1">Profile</span>

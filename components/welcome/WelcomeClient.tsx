@@ -316,7 +316,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
 
 export default function WelcomeClient({ destination, initialProviders = [], initialCity = null }: WelcomeClientProps) {
   const router = useRouter();
-  const { account, activeProfile, refreshAccountData, user } = useAuth();
+  const { account, activeProfile, refreshAccountData, user, isLoading: authLoading } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
   const providerScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -625,8 +625,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     }
   }, [updateScrollButtons]);
 
-  // Loading state
-  if (loading) {
+  // Loading state - wait for both auth and local initialization
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" style={{ willChange: "transform" }} />

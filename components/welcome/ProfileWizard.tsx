@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, type ChangeEvent } from "react";
-import Image from "next/image";
+import { useState, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
@@ -64,10 +63,6 @@ export default function ProfileWizard({
   const [displayName, setDisplayName] = useState(profile.display_name || "");
   const [city, setCity] = useState(profile.city || "");
   const [state, setState] = useState(profile.state || "");
-  const [imageUploading, setImageUploading] = useState(false);
-  const [imageError, setImageError] = useState("");
-  const [localImageUrl, setLocalImageUrl] = useState(profile.image_url || "");
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Contact fields
   const [email, setEmail] = useState(profile.email || userEmail || "");
@@ -83,40 +78,6 @@ export default function ProfileWizard({
 
   // Payment fields
   const [payments, setPayments] = useState<string[]>(meta.payment_methods || []);
-
-  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageError("");
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setImageError("Please upload a JPEG, PNG, or WebP image.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError("Image must be under 5MB.");
-      return;
-    }
-    setImageUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("profileId", profile.id);
-      formData.append("setAsProfilePhoto", "true");
-      const res = await fetch("/api/profile/upload-image", { method: "POST", body: formData });
-      if (!res.ok) {
-        const data = await res.json();
-        setImageError(data.error || "Upload failed.");
-        return;
-      }
-      const data = await res.json();
-      setLocalImageUrl(data.url || profile.image_url);
-    } catch {
-      setImageError("Failed to upload image. Please try again.");
-    } finally {
-      setImageUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
 
   const saveCurrentStep = useCallback(async () => {
     if (!isSupabaseConfigured() || !profile) return true;
@@ -332,67 +293,6 @@ export default function ProfileWizard({
           {/* ── Step 1: Basics ── */}
           {step.id === "basics" && (
             <div className="space-y-5">
-              {/* Photo upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Profile photo <span className="text-gray-400 font-normal">(optional)</span>
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    disabled={imageUploading}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={imageUploading}
-                    className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 ring-[3px] ring-gray-100 hover:ring-primary-200 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-center group relative shrink-0"
-                  >
-                    {localImageUrl ? (
-                      <>
-                        <Image
-                          src={localImageUrl}
-                          alt={profile.display_name || "Profile"}
-                          width={80}
-                          height={80}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all rounded-full flex items-center justify-center">
-                          <svg
-                            className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center gap-0.5 text-gray-400 group-hover:text-primary-600 transition-colors">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
-                        </svg>
-                      </div>
-                    )}
-                    {imageUploading && (
-                      <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-full">
-                        <div className="w-5 h-5 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-                      </div>
-                    )}
-                  </button>
-                  <p className="text-sm text-gray-500">
-                    Add a photo to help providers recognize you
-                  </p>
-                </div>
-                {imageError && <p className="text-sm text-red-600 mt-2">{imageError}</p>}
-              </div>
-
               <Input
                 label="Your name"
                 value={displayName}

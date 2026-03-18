@@ -255,6 +255,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const router = useRouter();
   const { account, activeProfile, refreshAccountData } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const providerScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -513,6 +516,26 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
     setNavigating(true);
     router.push("/browse");
   }, [router]);
+
+  // Provider scroll navigation
+  const updateScrollButtons = useCallback(() => {
+    if (providerScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = providerScrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  }, []);
+
+  const scrollProviders = useCallback((direction: "left" | "right") => {
+    if (providerScrollRef.current) {
+      const scrollAmount = 300;
+      providerScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+      setTimeout(updateScrollButtons, 350);
+    }
+  }, [updateScrollButtons]);
 
   // Loading state
   if (loading) {
@@ -833,6 +856,142 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               </div>
             </div>
           </section>
+
+          {/* ============================================================
+              PROVIDER RECOMMENDATIONS — Horizontal carousel with nav
+              ============================================================ */}
+          {matches.length > 0 && (
+            <section className="pb-16">
+              {/* Section header with navigation arrows */}
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Discover providers near you
+                </h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => scrollProviders("left")}
+                    disabled={!canScrollLeft}
+                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    aria-label="Scroll left"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => scrollProviders("right")}
+                    disabled={!canScrollRight}
+                    className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:border-gray-400 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    aria-label="Scroll right"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable provider cards */}
+              <div
+                ref={providerScrollRef}
+                onScroll={updateScrollButtons}
+                className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 scroll-smooth"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {matches.map((provider) => {
+                  const imageUrl = provider.provider_logo || provider.provider_images?.split(" | ")?.[0] || null;
+                  const location = [provider.city, provider.state].filter(Boolean).join(", ");
+
+                  return (
+                    <Link
+                      key={provider.provider_id}
+                      href={`/provider/${provider.provider_id}`}
+                      className="group flex-shrink-0 w-[200px]"
+                    >
+                      {/* Card with image */}
+                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 shadow-sm border border-gray-200 group-hover:shadow-md group-hover:border-gray-300 transition-all">
+                        {imageUrl ? (
+                          <Image
+                            src={imageUrl}
+                            alt={provider.provider_name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center"
+                            style={{ background: avatarGradient(provider.provider_name) }}
+                          >
+                            <span className="text-2xl font-bold text-white">
+                              {getInitials(provider.provider_name)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Heart/Save button */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            // Save functionality would go here
+                          }}
+                          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white hover:scale-105 transition-all"
+                          aria-label="Save provider"
+                        >
+                          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Card content below image */}
+                      <div className="mt-2.5">
+                        <h3 className="font-medium text-gray-900 text-[15px] leading-snug line-clamp-2 group-hover:text-gray-700">
+                          {provider.provider_name}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-1">
+                          {provider.provider_category}
+                          {location && <span className="text-gray-400"> · {location}</span>}
+                        </p>
+                        {provider.google_rating && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <svg className="w-3.5 h-3.5 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <span className="text-sm font-medium text-gray-900">{provider.google_rating.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Loading state for providers */}
+          {providersLoading && (
+            <section className="pb-16">
+              <div className="flex items-center justify-between mb-5">
+                <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
+                <div className="flex gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
+                </div>
+              </div>
+              <div className="flex gap-4 overflow-hidden">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[200px]">
+                    <div className="aspect-[4/3] rounded-xl bg-gray-100 animate-pulse" />
+                    <div className="mt-2.5 space-y-2">
+                      <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse" />
+                      <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     );

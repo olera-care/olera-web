@@ -32,9 +32,18 @@ interface ConnectionWithProvider {
   id: string;
   to_profile: {
     id: string;
+    slug: string | null;
     display_name: string;
     image_url: string | null;
     city: string | null;
+    state: string | null;
+    category: string | null;
+    metadata: {
+      google_rating?: number;
+      review_count?: number;
+      lower_price?: number;
+      upper_price?: number;
+    } | null;
   } | null;
 }
 
@@ -299,7 +308,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           .select(`
             id,
             to_profile:business_profiles!connections_to_profile_id_fkey(
-              id, display_name, image_url, city
+              id, slug, display_name, image_url, city, state, category, metadata
             )
           `)
           .eq("from_profile_id", activeProfile.id)
@@ -484,7 +493,163 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
   const cityDisplay = city || "your area";
   const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
+  const isConnected = !!connection?.to_profile?.display_name;
 
+  // Toggle this to switch between new and old version during development
+  const USE_NEW_VERSION = true;
+
+  // Time-aware greeting
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return "Good morning";
+    if (hour >= 12 && hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const greeting = userName ? `${getTimeGreeting()}, ${userName}` : getTimeGreeting();
+
+  // ================================================================
+  // NEW VERSION — Building on top (Connected State first)
+  // ================================================================
+  if (USE_NEW_VERSION) {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Main content container */}
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* ============================================================
+              HEADER — Time-aware greeting + Welcome message
+              ============================================================ */}
+          <section className="pt-8 sm:pt-12 pb-6 sm:pb-8">
+            <h1 className="text-[26px] sm:text-[30px] font-semibold text-gray-900 tracking-tight leading-tight">
+              {greeting}
+            </h1>
+            <p className="mt-0.5 text-base sm:text-lg text-gray-500">
+              Welcome to Olera
+            </p>
+          </section>
+
+          {/* ============================================================
+              CONNECTION CARD — Provider they're connected with
+              ============================================================ */}
+          {isConnected && connection?.to_profile && (() => {
+            const provider = connection.to_profile;
+            const location = [provider.city, provider.state].filter(Boolean).join(", ");
+            const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
+
+            return (
+              <section className="pb-8">
+                {/* Card container */}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="flex flex-col sm:flex-row">
+                    {/* Provider Image — taller aspect on mobile, fixed width on desktop */}
+                    <div className="relative w-full sm:w-[220px] aspect-[16/10] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100">
+                      {provider.image_url ? (
+                        <Image
+                          src={provider.image_url}
+                          alt={provider.display_name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ background: avatarGradient(provider.display_name) }}
+                        >
+                          <span className="text-4xl font-bold text-white">
+                            {getInitials(provider.display_name)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 p-5 sm:p-6 flex flex-col min-w-0">
+                      {/* Provider Name — with line clamp for long names */}
+                      <h2 className="text-xl sm:text-[22px] font-semibold text-gray-900 leading-tight line-clamp-2">
+                        {provider.display_name}
+                      </h2>
+
+                      {/* Location · Category */}
+                      <p className="mt-1.5 text-[15px] text-gray-500 line-clamp-1">
+                        {location || provider.category || "Care Provider"}
+                        {location && provider.category && (
+                          <span className="text-gray-300"> · </span>
+                        )}
+                        {location && provider.category && (
+                          <span>{provider.category}</span>
+                        )}
+                      </p>
+
+                      {/* Rating & Pricing row — only show if data exists */}
+                      {hasRatingOrPricing && (
+                        <>
+                          <div className="my-4 border-t border-gray-100" />
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                            {provider.metadata?.google_rating && (
+                              <div className="flex items-center gap-1.5">
+                                <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span className="font-semibold text-gray-900">
+                                  {provider.metadata.google_rating.toFixed(1)}
+                                </span>
+                                {provider.metadata.review_count && (
+                                  <span className="text-gray-400">
+                                    ({provider.metadata.review_count})
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {provider.metadata?.lower_price && (
+                              <div className="text-gray-600">
+                                <span className="font-medium text-gray-900">
+                                  ${provider.metadata.lower_price.toLocaleString()}
+                                  {provider.metadata.upper_price && (
+                                    <span>–${provider.metadata.upper_price.toLocaleString()}</span>
+                                  )}
+                                </span>
+                                <span className="text-gray-400">/mo</span>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Spacer — pushes button to bottom on desktop */}
+                      <div className="flex-1 min-h-4" />
+
+                      {/* Message Button — full width on mobile, right-aligned on desktop */}
+                      <div className="mt-4 sm:mt-5 flex sm:justify-end">
+                        <Link
+                          href={`/portal/inbox?provider=${provider.id}`}
+                          className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-[15px] font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                        >
+                          Message
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          })()}
+
+          {/* ============================================================
+              MORE CONTENT — Will build below
+              ============================================================ */}
+          <div className="pb-16">
+            {!isConnected && (
+              <p className="text-sm text-gray-400">Fresh account state — no connection yet</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ================================================================
+  // OLD VERSION — REFERENCE (set USE_NEW_VERSION = false to render)
+  // ================================================================
   return (
     <div className="min-h-screen bg-white">
       {/* Subtle warm gradient background accent */}

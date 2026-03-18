@@ -66,10 +66,13 @@ export async function updateSession(request: NextRequest) {
 
   // New user onboarding guard: redirect to /welcome if onboarding not completed
   // This prevents the inbox from flashing before the client-side redirect kicks in
+  // Note: Guest flow (unauthenticated users with token) is handled above - if we're here,
+  // the user is authenticated and should go through the onboarding check regardless of token
+  // Exception: /portal/profile is always accessible so users can complete their profile
   if (user && request.nextUrl.pathname.startsWith("/portal")) {
-    // Skip if already going to /welcome or if this is a guest token flow
-    const isGuestFlow = request.nextUrl.searchParams.has("token");
-    if (!isGuestFlow) {
+    const isProfilePage = request.nextUrl.pathname === "/portal/profile";
+
+    if (!isProfilePage) {
       try {
         const { data: account } = await supabase
           .from("accounts")

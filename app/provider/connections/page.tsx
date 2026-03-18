@@ -1181,89 +1181,103 @@ export default function ProviderLeadsPage() {
   const fetchedRef = useRef(false);
 
   // Fetch leads (connections) from Supabase
-  useEffect(() => {
-    if (!providerProfile || fetchedRef.current) return;
+  const fetchLeads = useCallback(async (isInitialLoad = false) => {
+    if (!providerProfile) return;
     if (!isSupabaseConfigured()) {
-      setIsLoading(false);
+      if (isInitialLoad) setIsLoading(false);
       return;
     }
 
-    fetchedRef.current = true;
+    try {
+      const supabase = createClient();
+      const profileId = providerProfile.id;
 
-    (async () => {
-      try {
-        const supabase = createClient();
-        const profileId = providerProfile.id;
+      // Fetch TWO types of connections that should appear as leads:
+      // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
+      // 2. Provider-initiated requests (type="request") that were accepted by family
+      const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
+        // Query 1: Family-initiated inquiries (existing behavior)
+        supabase
+          .from("connections")
+          .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
+          .eq("to_profile_id", profileId)
+          .eq("type", "inquiry")
+          .in("status", ["pending", "accepted"])
+          .order("created_at", { ascending: false }),
 
-        // Fetch TWO types of connections that should appear as leads:
-        // 1. Family-initiated inquiries (type="inquiry") where provider is recipient
-        // 2. Provider-initiated requests (type="request") that were accepted by family
-        const [inquiriesResult, acceptedRequestsResult] = await Promise.all([
-          // Query 1: Family-initiated inquiries (existing behavior)
-          supabase
-            .from("connections")
-            .select("*, fromProfile:from_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
-            .eq("to_profile_id", profileId)
-            .eq("type", "inquiry")
-            .in("status", ["pending", "accepted"])
-            .order("created_at", { ascending: false }),
+        // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
+        supabase
+          .from("connections")
+          .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
+          .eq("from_profile_id", profileId)
+          .eq("type", "request")
+          .eq("status", "accepted")
+          .order("created_at", { ascending: false }),
+      ]);
 
-          // Query 2: Accepted provider-initiated requests (NEW - these should also be leads)
-          supabase
-            .from("connections")
-            .select("*, toProfile:to_profile_id(id, display_name, email, phone, city, state, type, care_types, metadata)")
-            .eq("from_profile_id", profileId)
-            .eq("type", "request")
-            .eq("status", "accepted")
-            .order("created_at", { ascending: false }),
-        ]);
-
-        if (inquiriesResult.error) {
-          console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (acceptedRequestsResult.error) {
-          console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
-          // Continue with just inquiries if this fails
-        }
-
-        // Combine and deduplicate connections
-        const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
-        const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
-          ...conn,
-          _familyProfile: conn.toProfile, // Mark family profile for mapping
-        }));
-
-        const allConnections = [...inquiries, ...acceptedRequests];
-        const uniqueConnections = allConnections.filter(
-          (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
-        );
-
-        // Map connections to leads, filtering out hidden ones
-        const mappedLeads = uniqueConnections
-          .filter((conn) => {
-            const meta = conn.metadata as Record<string, unknown> | undefined;
-            return !meta?.hidden;
-          })
-          .map((conn) => mapConnectionToLead(conn, profileId));
-
-        // Sort by created_at descending
-        mappedLeads.sort((a, b) => {
-          const connA = uniqueConnections.find((c) => c.id === a.id);
-          const connB = uniqueConnections.find((c) => c.id === b.id);
-          return new Date(connB?.created_at || 0).getTime() - new Date(connA?.created_at || 0).getTime();
-        });
-
-        setLeads(mappedLeads);
-      } catch (err) {
-        console.error("Failed to fetch leads:", err);
-      } finally {
-        setIsLoading(false);
+      if (inquiriesResult.error) {
+        console.error("Failed to fetch inquiry leads:", inquiriesResult.error);
+        if (isInitialLoad) setIsLoading(false);
+        return;
       }
-    })();
+
+      if (acceptedRequestsResult.error) {
+        console.error("Failed to fetch accepted request leads:", acceptedRequestsResult.error);
+        // Continue with just inquiries if this fails
+      }
+
+      // Combine and deduplicate connections
+      const inquiries = (inquiriesResult.data || []) as ConnectionWithProfile[];
+      const acceptedRequests = ((acceptedRequestsResult.data || []) as ConnectionWithProfile[]).map((conn) => ({
+        ...conn,
+        _familyProfile: conn.toProfile, // Mark family profile for mapping
+      }));
+
+      const allConnections = [...inquiries, ...acceptedRequests];
+      const uniqueConnections = allConnections.filter(
+        (conn, index, self) => self.findIndex((c) => c.id === conn.id) === index
+      );
+
+      // Map connections to leads, filtering out hidden ones
+      const mappedLeads = uniqueConnections
+        .filter((conn) => {
+          const meta = conn.metadata as Record<string, unknown> | undefined;
+          return !meta?.hidden;
+        })
+        .map((conn) => mapConnectionToLead(conn, profileId));
+
+      // Sort by created_at descending
+      mappedLeads.sort((a, b) => {
+        const connA = uniqueConnections.find((c) => c.id === a.id);
+        const connB = uniqueConnections.find((c) => c.id === b.id);
+        return new Date(connB?.created_at || 0).getTime() - new Date(connA?.created_at || 0).getTime();
+      });
+
+      setLeads(mappedLeads);
+    } catch (err) {
+      console.error("Failed to fetch leads:", err);
+    } finally {
+      if (isInitialLoad) setIsLoading(false);
+    }
   }, [providerProfile]);
+
+  // Initial fetch
+  useEffect(() => {
+    if (!providerProfile || fetchedRef.current) return;
+    fetchedRef.current = true;
+    fetchLeads(true);
+  }, [providerProfile, fetchLeads]);
+
+  // Poll for updates every 45 seconds (family profile changes, new leads)
+  useEffect(() => {
+    if (!providerProfile) return;
+
+    const interval = setInterval(() => {
+      fetchLeads(false);
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, [providerProfile, fetchLeads]);
 
   // Broadcast new-leads count to Navbar badge and persist to localStorage (profile-scoped)
   const newLeadsCount = useMemo(() => leads.filter((l) => l.isNew).length, [leads]);

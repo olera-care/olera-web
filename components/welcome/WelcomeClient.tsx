@@ -6,8 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
-import { useSavedProviders } from "@/hooks/use-saved-providers";
 import { PRE_AUTH_PAGE_KEY } from "@/components/auth/UnifiedAuthModal";
+import CompactProviderCard from "@/components/providers/CompactProviderCard";
+import type { Provider } from "@/components/providers/ProviderCard";
 
 // ============================================================
 // Types
@@ -826,7 +827,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               </div>
 
-              {/* Scrollable provider cards — contained within content boundaries */}
+              {/* Scrollable provider cards — using Olera's CompactProviderCard */}
               <div
                 ref={providerScrollRef}
                 onScroll={updateScrollButtons}
@@ -834,65 +835,28 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               >
                 {matches.map((provider) => {
-                  const imageUrl = provider.provider_logo || provider.provider_images?.split(" | ")?.[0] || null;
+                  // Map olera-providers data to Provider interface
+                  const imageUrl = provider.provider_logo || provider.provider_images?.split(" | ")?.[0] || "";
                   const location = [provider.city, provider.state].filter(Boolean).join(", ");
 
+                  const mappedProvider: Provider = {
+                    id: provider.provider_id,
+                    slug: provider.provider_id,
+                    name: provider.provider_name,
+                    image: imageUrl,
+                    address: location,
+                    rating: provider.google_rating || 0,
+                    priceRange: "",
+                    primaryCategory: provider.provider_category,
+                    careTypes: [provider.provider_category],
+                    highlights: [],
+                    verified: false,
+                  };
+
                   return (
-                    <Link
-                      key={provider.provider_id}
-                      href={`/provider/${provider.provider_id}`}
-                      className="group flex-shrink-0 w-[180px]"
-                    >
-                      {/* Image — no border, just rounded corners like Airbnb */}
-                      <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100">
-                        {imageUrl ? (
-                          <Image
-                            src={imageUrl}
-                            alt={provider.provider_name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : (
-                          <div
-                            className="w-full h-full flex items-center justify-center"
-                            style={{ background: avatarGradient(provider.provider_name) }}
-                          >
-                            <span className="text-2xl font-bold text-white">
-                              {getInitials(provider.provider_name)}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Heart button — prominent white circle like Airbnb */}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-                          aria-label="Save provider"
-                        >
-                          <svg className="w-[18px] h-[18px] text-gray-700" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      {/* Content below image — clean text only */}
-                      <div className="mt-3">
-                        <h3 className="font-medium text-gray-900 text-text-md leading-snug line-clamp-2">
-                          {provider.provider_name}
-                        </h3>
-                        <p className="text-text-sm text-gray-500 mt-0.5 line-clamp-1">
-                          {provider.provider_category}
-                        </p>
-                        {provider.google_rating && (
-                          <p className="text-text-sm text-gray-500 mt-0.5">
-                            <span className="text-gray-900">★ {provider.google_rating.toFixed(1)}</span>
-                          </p>
-                        )}
-                      </div>
-                    </Link>
+                    <div key={provider.provider_id} className="flex-shrink-0 w-[220px]">
+                      <CompactProviderCard provider={mappedProvider} />
+                    </div>
                   );
                 })}
               </div>

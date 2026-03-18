@@ -532,8 +532,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
   const isConnected = !!connection?.to_profile?.display_name;
 
-  // Show attention animation for fresh users who haven't started their profile
-  const needsProfileAttention = !isConnected && profilePercentage < 50;
+  // Gamification: attention moves through cards as user completes steps
+  // 1. Profile card pulses until profile >= 50% complete
+  // 2. Benefits card pulses until they've saved at least 1 benefit
+  // 3. Matches card pulses until profile is live
+  const profileComplete = profilePercentage >= 50;
+  const benefitsSaved = benefitsSavedCount > 0;
+
+  const needsProfileAttention = !profileComplete;
+  const needsBenefitsAttention = profileComplete && !benefitsSaved;
+  const needsMatchesAttention = profileComplete && benefitsSaved && !isProfileLive;
 
   // Toggle this to switch between new and old version during development
   const USE_NEW_VERSION = true;
@@ -792,58 +800,68 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   </button>
                 </div>
 
-                {/* Card 2: Benefits */}
-                <Link
-                  href="/benefits/finder"
-                  className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
-                >
-                  <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
-                    <svg viewBox="0 0 32 32" className="w-8 h-8">
-                      <circle cx="16" cy="16" r="10" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
-                      <text x="16" y="20" textAnchor="middle" fill="#8B7355" fontSize="12" fontWeight="600">$</text>
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-text-md font-semibold text-gray-900">You may qualify for benefits</p>
-                    <p className="text-text-sm text-gray-500 mt-0.5">
-                      {benefitsSavedCount === 0 ? "0 saved" : `${benefitsSavedCount} saved`}
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
+                {/* Card 2: Benefits — with attention animation */}
+                <div className="relative">
+                  {needsBenefitsAttention && (
+                    <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
+                  )}
+                  <Link
+                    href="/benefits/finder"
+                    className={`relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group ${needsBenefitsAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                  >
+                    <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
+                      <svg viewBox="0 0 32 32" className="w-8 h-8">
+                        <circle cx="16" cy="16" r="10" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
+                        <text x="16" y="20" textAnchor="middle" fill="#8B7355" fontSize="12" fontWeight="600">$</text>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-text-md font-semibold text-gray-900">You may qualify for benefits</p>
+                      <p className="text-text-sm text-gray-500 mt-0.5">
+                        {benefitsSavedCount === 0 ? "0 saved" : `${benefitsSavedCount} saved`}
+                      </p>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                </div>
 
-                {/* Card 3: Matches */}
-                <Link
-                  href="/portal/matches"
-                  className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
-                >
-                  <div className="w-14 h-14 rounded-xl bg-[#E8F5F3] flex items-center justify-center flex-shrink-0">
-                    <svg viewBox="0 0 32 32" className="w-8 h-8">
-                      <rect x="6" y="4" width="20" height="26" rx="2" fill="#C5E8E4" stroke="#8BCDC5" strokeWidth="1.5"/>
-                      <rect x="9" y="8" width="14" height="10" rx="1" fill="#E0F2EF"/>
-                      <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-text-md font-semibold text-gray-900">Get matched with providers</p>
-                    <p className="text-text-sm text-gray-500 mt-0.5">
-                      {isProfileLive ? (
-                        <span className="text-primary-600">Live</span>
-                      ) : (
-                        "Profile not live"
-                      )}
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
+                {/* Card 3: Matches — with attention animation */}
+                <div className="relative">
+                  {needsMatchesAttention && (
+                    <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
+                  )}
+                  <Link
+                    href="/portal/matches"
+                    className={`relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group ${needsMatchesAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                  >
+                    <div className="w-14 h-14 rounded-xl bg-[#E8F5F3] flex items-center justify-center flex-shrink-0">
+                      <svg viewBox="0 0 32 32" className="w-8 h-8">
+                        <rect x="6" y="4" width="20" height="26" rx="2" fill="#C5E8E4" stroke="#8BCDC5" strokeWidth="1.5"/>
+                        <rect x="9" y="8" width="14" height="10" rx="1" fill="#E0F2EF"/>
+                        <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-text-md font-semibold text-gray-900">Get matched with providers</p>
+                      <p className="text-text-sm text-gray-500 mt-0.5">
+                        {isProfileLive ? (
+                          <span className="text-primary-600">Live</span>
+                        ) : (
+                          "Profile not live"
+                        )}
+                      </p>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </Link>
+                </div>
               </div>
             </div>
           </section>

@@ -16,13 +16,6 @@ interface WelcomeClientProps {
   destination: string;
 }
 
-interface ProviderCard {
-  id: string;
-  display_name: string;
-  image_url: string | null;
-  care_types: string[];
-}
-
 interface MatchProvider {
   provider_id: string;
   provider_name: string;
@@ -40,15 +33,9 @@ interface ConnectionWithProvider {
     id: string;
     display_name: string;
     image_url: string | null;
+    city: string | null;
   } | null;
 }
-
-// Placeholder data for when real providers aren't available
-const PLACEHOLDER_PROVIDERS: ProviderCard[] = [
-  { id: "placeholder-1", display_name: "Sunrise Senior Care", image_url: null, care_types: ["Assisted Living"] },
-  { id: "placeholder-2", display_name: "Comfort Home Health", image_url: null, care_types: ["Home Care"] },
-  { id: "placeholder-3", display_name: "Golden Years Living", image_url: null, care_types: ["Memory Care"] },
-];
 
 // ============================================================
 // Helper Functions
@@ -87,42 +74,47 @@ function getInitials(name: string): string {
 
 function MatchIllustration() {
   return (
-    <div className="w-20 h-20 mx-auto">
-      <svg viewBox="0 0 80 80" fill="none" className="w-full h-full">
-        {/* Warm background glow */}
-        <circle cx="40" cy="40" r="38" fill="#F9EDE0" />
-        <circle cx="40" cy="40" r="28" fill="#F2D8BD" fillOpacity="0.5" />
+    <div className="w-28 h-28 mx-auto">
+      <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
+        {/* Soft warm background */}
+        <circle cx="50" cy="50" r="48" fill="#FDF8F3" />
+        <circle cx="50" cy="50" r="38" fill="#F9EDE0" />
 
-        {/* Two people connecting — warm and teal */}
-        {/* Left person (warm) */}
-        <circle cx="28" cy="32" r="7" fill="#E9BD91" />
+        {/* Caring hands forming a heart shape */}
+        {/* Left hand (warm) */}
         <path
-          d="M18 50c0-5.5 4.5-10 10-10s10 4.5 10 10"
-          fill="#E9BD91"
-          fillOpacity="0.6"
-        />
-
-        {/* Right person (teal) */}
-        <circle cx="52" cy="32" r="7" fill="#5FA3A3" />
-        <path
-          d="M42 50c0-5.5 4.5-10 10-10s10 4.5 10 10"
-          fill="#5FA3A3"
-          fillOpacity="0.6"
-        />
-
-        {/* Connection heart/bridge between them */}
-        <path
-          d="M36 38 Q40 32 44 38"
-          stroke="#D67F42"
-          strokeWidth="2.5"
+          d="M30 52c-2-8 4-16 12-14 4 1 6 4 8 8"
+          stroke="#E9BD91"
+          strokeWidth="6"
           strokeLinecap="round"
           fill="none"
-          opacity="0.7"
         />
 
-        {/* Subtle sparkle */}
-        <circle cx="40" cy="28" r="2" fill="#D67F42" opacity="0.5">
-          <animate attributeName="opacity" values="0.3;0.7;0.3" dur="2s" repeatCount="indefinite" />
+        {/* Right hand (teal) */}
+        <path
+          d="M70 52c2-8-4-16-12-14-4 1-6 4-8 8"
+          stroke="#5FA3A3"
+          strokeWidth="6"
+          strokeLinecap="round"
+          fill="none"
+        />
+
+        {/* Heart in the center */}
+        <path
+          d="M50 62 C50 62 38 52 38 44 C38 38 44 36 50 42 C56 36 62 38 62 44 C62 52 50 62 50 62Z"
+          fill="#E07A5F"
+          opacity="0.85"
+        />
+
+        {/* Gentle sparkles */}
+        <circle cx="35" cy="35" r="2" fill="#F4A261" opacity="0.6">
+          <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.5s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="65" cy="38" r="1.5" fill="#5FA3A3" opacity="0.5">
+          <animate attributeName="opacity" values="0.4;0.7;0.4" dur="2s" repeatCount="indefinite" begin="0.5s" />
+        </circle>
+        <circle cx="50" cy="28" r="1.5" fill="#E9BD91" opacity="0.6">
+          <animate attributeName="opacity" values="0.3;0.6;0.3" dur="3s" repeatCount="indefinite" begin="1s" />
         </circle>
       </svg>
     </div>
@@ -182,7 +174,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
       className="group flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px] bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
     >
       {/* Image */}
-      <div className="relative h-36 sm:h-44 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
+      <div className="relative h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -221,7 +213,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         {/* Name + Rating */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-gray-900 text-[15px] group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">
@@ -237,15 +229,16 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
           )}
         </div>
 
-        {/* Category tag */}
-        <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-full">
-          {provider.provider_category}
-        </span>
+        {/* Category · Location */}
+        <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+          {provider.provider_category}{location ? ` · ${location}` : ""}
+        </p>
 
-        {/* Location */}
-        {location && (
-          <p className="text-xs text-gray-500 mt-2">{location}</p>
-        )}
+        {/* Spacer */}
+        <div className="flex-1 min-h-2" />
+
+        {/* Pricing */}
+        <p className="text-sm font-bold text-gray-900 mt-3">Contact for pricing</p>
       </div>
     </Link>
   );
@@ -264,9 +257,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const [saving, setSaving] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
-  const [providers, setProviders] = useState<ProviderCard[]>([]);
   const [matches, setMatches] = useState<MatchProvider[]>([]);
   const [city, setCity] = useState<string | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Check if should skip and load initial data
   useEffect(() => {
@@ -278,26 +271,27 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
       const supabase = createClient();
 
-      // Check if onboarding already completed → skip
-      if (account?.onboarding_completed === true) {
+      // Check if onboarding already completed → skip (only on first load)
+      if (!hasInitialized && account?.onboarding_completed === true) {
         router.replace(destination);
         return;
       }
+      setHasInitialized(true);
 
       // Get city and state from profile
       setCity(activeProfile.city || null);
       const familyState = activeProfile.state;
       const familyCareTypes = activeProfile.care_types || [];
 
-      // Check for connection record with provider info
-      let connectedProviderId: string | null = null;
+      // Fetch connection info — this is quick and needed for the main UI
+      let connectedProviderCity: string | null = null;
       try {
         const { data: connections } = await supabase
           .from("connections")
           .select(`
             id,
             to_profile:business_profiles!connections_to_profile_id_fkey(
-              id, display_name, image_url
+              id, display_name, image_url, city
             )
           `)
           .eq("from_profile_id", activeProfile.id)
@@ -308,83 +302,46 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         if (connections && connections.length > 0) {
           const conn = connections[0] as ConnectionWithProvider;
           setConnection(conn);
-          connectedProviderId = conn.to_profile?.id || null;
+          connectedProviderCity = conn.to_profile?.city || null;
         }
       } catch (err) {
         console.error("[welcome] Failed to fetch connection:", err);
       }
 
-      // Fetch real providers from business_profiles (for activation card - not used in new design but kept for logic)
-      try {
-        let query = supabase
-          .from("business_profiles")
-          .select("id, display_name, image_url, care_types")
-          .in("type", ["organization", "caregiver"])
-          .eq("is_active", true);
-
-        if (familyState) {
-          query = query.eq("state", familyState);
-        }
-
-        if (connectedProviderId) {
-          query = query.neq("id", connectedProviderId);
-        }
-
-        query = query.order("image_url", { ascending: false, nullsFirst: false });
-        query = query.limit(10);
-
-        const { data: providerData, error } = await query;
-
-        if (!error && providerData && providerData.length > 0) {
-          let filteredProviders = providerData as ProviderCard[];
-
-          if (familyCareTypes.length > 0) {
-            const withOverlap = filteredProviders.filter((p) =>
-              p.care_types?.some((ct) => familyCareTypes.includes(ct))
-            );
-            const withoutOverlap = filteredProviders.filter(
-              (p) => !p.care_types?.some((ct) => familyCareTypes.includes(ct))
-            );
-            filteredProviders = [...withOverlap, ...withoutOverlap];
-          }
-
-          const topProviders = filteredProviders.slice(0, 3);
-
-          if (topProviders.length < 3) {
-            const placeholdersNeeded = 3 - topProviders.length;
-            const fillers = PLACEHOLDER_PROVIDERS.slice(0, placeholdersNeeded);
-            setProviders([...topProviders, ...fillers]);
-          } else {
-            setProviders(topProviders);
-          }
-        } else {
-          setProviders(PLACEHOLDER_PROVIDERS);
-        }
-      } catch (err) {
-        console.error("[welcome] Failed to fetch providers:", err);
-        setProviders(PLACEHOLDER_PROVIDERS);
+      // Determine city for recommendations
+      const recommendationCity = connectedProviderCity || activeProfile.city;
+      if (recommendationCity) {
+        setCity(recommendationCity);
       }
 
-      // Fetch matches for Section 3 horizontal scroll
-      try {
-        const res = await fetch("/api/matches/fetch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ limit: 6 }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setMatches(data.providers?.slice(0, 6) || []);
-        }
-      } catch (err) {
-        console.error("[welcome] Failed to fetch matches:", err);
-      }
-
+      // Show the main UI immediately — don't wait for provider recommendations
       setLoading(false);
+
+      // Fetch provider recommendations in the background (non-blocking)
+      if (recommendationCity) {
+        (async () => {
+          try {
+            const { data: providerMatches, error: matchError } = await supabase
+              .from("olera-providers")
+              .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
+              .eq("city", recommendationCity)
+              .eq("deleted", false)
+              .not("google_rating", "is", null)
+              .order("google_rating", { ascending: false })
+              .limit(6);
+
+            if (!matchError && providerMatches && providerMatches.length > 0) {
+              setMatches(providerMatches as MatchProvider[]);
+            }
+          } catch (err) {
+            console.error("[welcome] Failed to fetch provider recommendations:", err);
+          }
+        })();
+      }
     }
 
     init();
-  }, [activeProfile, account, destination, router]);
+  }, [activeProfile, account, destination, router, hasInitialized]);
 
   // Complete onboarding and redirect (or show confirmation)
   const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false) => {
@@ -392,7 +349,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
     try {
       if (activateMatches) {
-        await fetch("/api/care-post/activate-matches", {
+        console.log("[welcome] Activating matches with city:", city, "state:", activeProfile?.state);
+        const activateRes = await fetch("/api/care-post/activate-matches", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -400,9 +358,19 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             state: activeProfile?.state || undefined,
           }),
         });
+
+        if (!activateRes.ok) {
+          const errorData = await activateRes.json().catch(() => ({}));
+          console.error("[welcome] Failed to activate matches:", activateRes.status, errorData);
+          // Don't block the flow, but log the error
+        } else {
+          const successData = await activateRes.json();
+          console.log("[welcome] Matches activated successfully:", successData);
+        }
       }
 
-      await fetch("/api/auth/create-profile", {
+      // Mark onboarding as completed
+      const profileRes = await fetch("/api/auth/create-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -413,6 +381,11 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           isAddingProfile: true,
         }),
       });
+
+      if (!profileRes.ok) {
+        const errorData = await profileRes.json().catch(() => ({}));
+        console.error("[welcome] Failed to update profile:", profileRes.status, errorData);
+      }
 
       await refreshAccountData?.();
 
@@ -456,7 +429,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           OPENING — dynamic greeting based on connection state
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-10 sm:pt-16 pb-8 animate-fadeIn">
+      <section className="px-4 sm:px-6 pt-10 sm:pt-14 pb-6 animate-fadeIn">
         <div className="max-w-xl mx-auto text-center">
           {connection?.to_profile?.display_name ? (
             <>
@@ -464,8 +437,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 You&apos;re connected with{" "}
                 <span className="text-primary-600">{connection.to_profile.display_name}</span>.
               </h1>
-              <p className="mt-4 text-lg text-gray-500">
-                We&apos;ll notify you when they respond.
+              <p className="mt-2 text-lg text-gray-500">
+                Find more providers and explore benefits you may qualify for.
               </p>
             </>
           ) : (
@@ -473,8 +446,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               <h1 className="text-[32px] sm:text-[40px] font-display font-bold text-gray-900 leading-[1.15] tracking-tight">
                 Welcome to Olera.
               </h1>
-              <p className="mt-4 text-lg text-gray-500">
-                Let&apos;s find the right care for you.
+              <p className="mt-2 text-lg text-gray-500">
+                Find more providers and explore benefits you may qualify for.
               </p>
             </>
           )}
@@ -484,7 +457,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 1 — ACTIVATION CARD
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-8 pb-16">
+      <section className="px-4 sm:px-6 pt-4 pb-12">
         <div className="max-w-lg mx-auto">
           <div className="bg-white rounded-2xl border border-gray-200/80 shadow-lg overflow-hidden">
             <div className="px-6 sm:px-10 pt-10 pb-8 text-center">
@@ -498,67 +471,85 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     </svg>
                   </div>
 
-                  {/* Confirmation text */}
-                  <h2 className="mt-6 text-xl sm:text-2xl font-display font-bold text-gray-900 leading-tight">
+                  {/* Confirmation text — matching default state spacing */}
+                  <h2 className="mt-4 text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
                     You&apos;re on the list.
                   </h2>
-                  <p className="mt-3 text-[15px] text-gray-500 leading-relaxed">
+                  <p className="mt-1 text-[15px] text-gray-500">
                     Providers in <span className="text-primary-600 font-medium">{cityDisplay}</span> will start reaching out soon.
                   </p>
 
-                  {/* Go to inbox button */}
-                  <button
-                    onClick={handleGoToInbox}
-                    className="group"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "100%",
-                      minHeight: "52px",
-                      marginTop: "28px",
-                      padding: "0 24px",
-                      backgroundColor: "#4d8a8a",
-                      backgroundImage: "linear-gradient(to bottom, #5fa3a3, #4d8a8a)",
-                      color: "#ffffff",
-                      fontSize: "15px",
-                      fontWeight: 600,
-                      borderRadius: "12px",
-                      border: "none",
-                      cursor: "pointer",
-                      boxShadow: "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #6db3b3, #5fa3a3)";
-                      e.currentTarget.style.boxShadow = "0 6px 10px -2px rgba(77, 138, 138, 0.25), 0 3px 6px -2px rgba(77, 138, 138, 0.15)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #5fa3a3, #4d8a8a)";
-                      e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)";
-                    }}
-                  >
-                    Go to my inbox
-                  </button>
+                  {/* Action buttons */}
+                  <div className="mt-7 space-y-3">
+                    {/* Primary: View matches profile */}
+                    <button
+                      onClick={() => router.push("/portal/matches")}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        minHeight: "52px",
+                        padding: "0 24px",
+                        backgroundColor: "#4d8a8a",
+                        backgroundImage: "linear-gradient(to bottom, #5fa3a3, #4d8a8a)",
+                        color: "#ffffff",
+                        fontSize: "15px",
+                        fontWeight: 600,
+                        borderRadius: "12px",
+                        border: "none",
+                        cursor: "pointer",
+                        boxShadow: "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #6db3b3, #5fa3a3)";
+                        e.currentTarget.style.boxShadow = "0 6px 10px -2px rgba(77, 138, 138, 0.25), 0 3px 6px -2px rgba(77, 138, 138, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #5fa3a3, #4d8a8a)";
+                        e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)";
+                      }}
+                    >
+                      View my matches
+                    </button>
+
+                    {/* Secondary: Context-aware button */}
+                    {connection ? (
+                      <button
+                        onClick={handleGoToInbox}
+                        className="w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
+                      >
+                        Go to my inbox
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => router.push("/browse")}
+                        className="w-full min-h-[48px] px-6 text-[15px] font-medium text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 transition-all"
+                      >
+                        Browse providers
+                      </button>
+                    )}
+                  </div>
                 </>
               ) : (
                 /* ============ DEFAULT STATE ============ */
                 <>
-                  {/* Content stack — illustration, headline, subtext */}
-                  <div className="space-y-5">
+                  {/* Content stack — Airbnb/Apple tight spacing */}
+                  <div>
                     {/* Illustration */}
                     <MatchIllustration />
 
-                    {/* Headline — simplified */}
-                    <h2 className="text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
+                    {/* Headline */}
+                    <h2 className="mt-4 text-xl sm:text-[22px] font-display font-bold text-gray-900 leading-snug">
                       {connection?.to_profile?.display_name
                         ? "Let more providers find you"
                         : "Let providers find you"
                       }
                     </h2>
 
-                    {/* Subtext — shorter */}
-                    <p className="text-[15px] text-gray-500 leading-relaxed">
+                    {/* Subtext — tight to headline */}
+                    <p className="mt-1 text-[15px] text-gray-500">
                       Get matched with care providers in your area.
                     </p>
                   </div>
@@ -612,16 +603,16 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                     )}
                     </button>
 
-                    {/* Plain text link */}
-                    <p className="mt-4">
+                    {/* Skip link — 44px touch target for mobile */}
+                    <div className="mt-4 flex justify-center">
                       <button
                         onClick={handleSkip}
                         disabled={saving}
-                        className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
+                        className="min-h-[44px] px-4 text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
                       >
                         No thanks, take me to my inbox
                       </button>
-                    </p>
+                    </div>
                   </div>
                 </>
               )}
@@ -633,9 +624,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 2 — BENEFITS
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-2 pb-4">
+      <section className="px-4 sm:px-6 pt-6 pb-8">
         <div className="max-w-lg mx-auto">
-          <h2 className="text-lg font-display font-semibold text-gray-900 mb-4">
+          <h2 className="text-xl font-display font-semibold text-gray-900 mb-4">
             Explore the benefits center
           </h2>
           <BenefitsCard />
@@ -645,19 +636,32 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 3 — PROVIDER RECOMMENDATIONS (horizontal scroll)
           ================================================================ */}
-      <section className="pt-12 pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-lg font-display font-semibold text-gray-900 mb-5">
-            {city ? (
-              <>
-                Other providers in{" "}
-                <span className="text-primary-600">{city}</span>
-                {" "}you may like
-              </>
-            ) : (
-              "Other providers you may like"
-            )}
-          </h2>
+      <section className="pt-10 pb-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section header with View all button */}
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-900">
+                {city ? (
+                  <>Top-rated providers in {city}</>
+                ) : (
+                  "Top-rated providers"
+                )}
+              </h2>
+              <p className="text-gray-500 mt-1">
+                Highly reviewed care providers {city ? `near ${city}` : "in your area"}
+              </p>
+            </div>
+            <Link
+              href="/browse"
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors flex-shrink-0"
+            >
+              View all providers
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
 
           {/* Horizontal scroll container — 2 cards visible + third peeking */}
           <div
@@ -680,7 +684,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               Array.from({ length: 3 }).map((_, i) => (
                 <div key={`placeholder-${i}`} className="snap-start flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px]">
                   <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <div className="h-36 sm:h-44 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex items-center justify-center">
+                    <div className="h-40 sm:h-48 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 flex items-center justify-center">
                       <div className="w-14 h-14 rounded-full bg-primary-100/60 animate-pulse" />
                     </div>
                     <div className="p-4 space-y-3">
@@ -691,6 +695,19 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               ))
             )}
+          </div>
+
+          {/* Mobile View all button */}
+          <div className="mt-6 sm:hidden">
+            <Link
+              href="/browse"
+              className="flex items-center justify-center gap-2 w-full py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors"
+            >
+              View all providers
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
         </div>
       </section>

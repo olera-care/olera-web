@@ -170,6 +170,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to create or find family profile" }, { status: 500 });
     }
 
+    // Mark onboarding as completed when going live
+    // This prevents users from being stuck on Welcome page forever
+    await db
+      .from("accounts")
+      .update({ onboarding_completed: true })
+      .eq("id", account.id);
+
     const metadata = (profile.metadata || {}) as Record<string, unknown>;
 
     // Check if already active

@@ -14,6 +14,7 @@ import type { Provider } from "@/components/providers/ProviderCard";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import ProfileWizard from "@/components/welcome/ProfileWizard";
 import BenefitsWizard from "@/components/welcome/BenefitsWizard";
+import type { FamilyMetadata } from "@/lib/types";
 
 // ============================================================
 // Types
@@ -135,6 +136,60 @@ function DiscoveryIllustration() {
 // ============================================================
 // Helper Components
 // ============================================================
+
+// ============================================================
+// Confetti Celebration Component
+// ============================================================
+
+function ConfettiCelebration() {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {/* Generate confetti pieces */}
+      {Array.from({ length: 50 }).map((_, i) => {
+        const colors = ['#199087', '#f59e0b', '#8b5cf6', '#ec4899', '#10b981', '#3b82f6'];
+        const color = colors[i % colors.length];
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.5;
+        const duration = 2 + Math.random() * 2;
+        const size = 6 + Math.random() * 8;
+        const rotation = Math.random() * 360;
+
+        return (
+          <div
+            key={i}
+            className="absolute animate-confetti-fall"
+            style={{
+              left: `${left}%`,
+              top: '-20px',
+              width: `${size}px`,
+              height: `${size}px`,
+              backgroundColor: color,
+              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+              transform: `rotate(${rotation}deg)`,
+              animationDelay: `${delay}s`,
+              animationDuration: `${duration}s`,
+            }}
+          />
+        );
+      })}
+      <style jsx>{`
+        @keyframes confetti-fall {
+          0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+          }
+        }
+        .animate-confetti-fall {
+          animation: confetti-fall linear forwards;
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function BenefitsCard() {
   return (
@@ -285,16 +340,45 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // Benefits wizard state
   const [benefitsWizardOpen, setBenefitsWizardOpen] = useState(false);
 
+  // Profile activation state (for "Go Live" action)
+  const [activatingProfile, setActivatingProfile] = useState(false);
+
   // Track if user has viewed benefits (for gamification)
   const [hasViewedBenefits, setHasViewedBenefits] = useState(false);
 
-  // Check localStorage on mount for benefits view status
+  // Celebration state
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationShown, setCelebrationShown] = useState(false);
+
+  // Track if this is a returning user
+  const [isReturningUser, setIsReturningUser] = useState(false);
+
+  // Check localStorage on mount for benefits view status, celebration, and visit tracking
   useEffect(() => {
     try {
       const viewed = localStorage.getItem("olera_viewed_benefits");
       if (viewed === "true") {
         setHasViewedBenefits(true);
       }
+      const celebrated = localStorage.getItem("olera_onboarding_celebrated");
+      if (celebrated === "true") {
+        setCelebrationShown(true);
+      }
+
+      // Visit tracking for "Welcome back" messaging
+      const lastVisit = localStorage.getItem("olera_welcome_last_visit");
+      const now = Date.now();
+
+      if (lastVisit) {
+        const hoursSinceLastVisit = (now - parseInt(lastVisit, 10)) / (1000 * 60 * 60);
+        // Consider "returning" if more than 1 hour since last visit
+        if (hoursSinceLastVisit > 1) {
+          setIsReturningUser(true);
+        }
+      }
+
+      // Update last visit timestamp
+      localStorage.setItem("olera_welcome_last_visit", now.toString());
     } catch { /* localStorage not available */ }
   }, []);
 
@@ -307,14 +391,19 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // Saved benefits tracking
   const { savedCount: benefitsSavedCount } = useSavedBenefits();
 
-  // Profile live status — only "Live" if profile has meaningful data AND is_active
-  // A fresh profile should NOT show "Live" just because is_active defaults to true
-  const hasMinimalProfileData = Boolean(
-    activeProfile?.email ||
-    activeProfile?.phone ||
-    (activeProfile?.care_types && activeProfile.care_types.length > 0)
-  );
-  const isProfileLive = (activeProfile?.is_active ?? false) && hasMinimalProfileData;
+  // Profile live status — aligned with Matches page logic
+  // Uses metadata.care_post.status === "active" (set by /api/care-post/activate-matches)
+  const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
+  const isProfileLive = carePostStatus === "active";
+
+  // Go Live validation — minimum data required for meaningful matching
+  // Providers filter by location and care types, so we require both
+  const hasLocation = Boolean(activeProfile?.city && activeProfile?.state);
+  const hasCareTypes = Boolean(activeProfile?.care_types && activeProfile.care_types.length > 0);
+  const canGoLive = hasLocation && hasCareTypes;
+  const goLiveMissingItems: string[] = [];
+  if (!hasLocation) goLiveMissingItems.push("location");
+  if (!hasCareTypes) goLiveMissingItems.push("care needs");
 
   // Read pre-auth page from localStorage on mount (for "Skip for now" redirect)
   useEffect(() => {
@@ -559,10 +648,27 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   const needsBenefitsAttention = profileComplete && !hasViewedBenefits;
   const needsMatchesAttention = profileComplete && hasViewedBenefits && !isProfileLive;
 
+  // All steps complete = ready to celebrate!
+  const allStepsComplete = profileComplete && hasViewedBenefits && isProfileLive;
+
+  // Trigger celebration when all steps complete (only once)
+  useEffect(() => {
+    if (allStepsComplete && !celebrationShown && !showCelebration) {
+      setShowCelebration(true);
+      setCelebrationShown(true);
+      try {
+        localStorage.setItem("olera_onboarding_celebrated", "true");
+      } catch { /* localStorage not available */ }
+      // Auto-hide celebration after 4 seconds
+      const timer = setTimeout(() => setShowCelebration(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [allStepsComplete, celebrationShown, showCelebration]);
+
   // Toggle this to switch between new and old version during development
   const USE_NEW_VERSION = true;
 
-  // Time-aware greeting
+  // Time-aware greeting with "Welcome back" for returning users
   const getTimeGreeting = () => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return "Good morning";
@@ -570,7 +676,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     return "Good evening";
   };
 
-  const greeting = userName ? `${getTimeGreeting()}, ${userName}` : getTimeGreeting();
+  const greeting = isReturningUser
+    ? (userName ? `Welcome back, ${userName}` : "Welcome back")
+    : (userName ? `${getTimeGreeting()}, ${userName}` : getTimeGreeting());
+
+  const subtitle = isReturningUser && !allStepsComplete
+    ? "Pick up where you left off"
+    : "Welcome to Olera";
 
   // ================================================================
   // NEW VERSION — Building on top (Connected State first)
@@ -588,7 +700,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               {greeting}
             </p>
             <h1 className="mt-1 text-display-xs sm:text-display-sm font-display text-gray-900">
-              Welcome to Olera
+              {subtitle}
             </h1>
           </section>
 
@@ -743,11 +855,68 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             </section>
           )}
 
+          {/* Confetti celebration */}
+          {showCelebration && <ConfettiCelebration />}
+
+          {/* ============================================================
+              COMPLETION CELEBRATION BANNER — Shows when all steps done
+              ============================================================ */}
+          {allStepsComplete && (
+            <section className="pb-8">
+              <div className="bg-gradient-to-r from-primary-50 via-primary-50/80 to-warm-50 rounded-2xl p-6 border border-primary-100/60">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm border border-primary-100">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-text-lg font-semibold text-gray-900">You're all set!</h2>
+                    <p className="text-text-sm text-gray-600 mt-0.5">
+                      Your profile is live and providers can now find you. Explore our recommendations below.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Compact status row */}
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setProfileWizardOpen(true)}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-full text-text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Profile {profilePercentage}%
+                  </button>
+                  <button
+                    onClick={() => setBenefitsWizardOpen(true)}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-full text-text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    Benefits {benefitsSavedCount > 0 ? `(${benefitsSavedCount} saved)` : 'explored'}
+                  </button>
+                  <Link
+                    href="/portal/matches"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-full text-text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    Profile Live
+                  </Link>
+                </div>
+              </div>
+            </section>
+          )}
+
           {/* ============================================================
               ACTION TIMELINE — Profile, Benefits, Matches (Airbnb style)
               Desktop: Indented with timeline markers on left
               Mobile: Just cards, no timeline (cleaner, more space)
+              Hidden when all steps complete (replaced by compact banner above)
               ============================================================ */}
+          {!allStepsComplete && (
           <section className="pb-16 sm:ml-16">
             {/* Nested layout: timeline on left (desktop only), cards fill remaining space */}
             <div className="relative sm:pl-14">
@@ -756,26 +925,38 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 {/* Step 1 marker */}
                 <div className="flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-gray-500 mb-1">Profile</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
-                    1
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${profileComplete ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
+                    {profileComplete ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : '1'}
                   </div>
                 </div>
                 {/* Line segment 1 */}
-                <div className="flex-1 w-px bg-gray-150 my-3" style={{ backgroundColor: '#e8e8e8' }} />
+                <div className={`flex-1 w-px my-3 ${profileComplete ? 'bg-primary-200' : ''}`} style={{ backgroundColor: profileComplete ? undefined : '#e8e8e8' }} />
                 {/* Step 2 marker */}
                 <div className="flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-gray-500 mb-1">Benefits</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
-                    2
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${hasViewedBenefits ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
+                    {hasViewedBenefits ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : '2'}
                   </div>
                 </div>
                 {/* Line segment 2 */}
-                <div className="flex-1 w-px bg-gray-150 my-3" style={{ backgroundColor: '#e8e8e8' }} />
+                <div className={`flex-1 w-px my-3 ${hasViewedBenefits ? 'bg-primary-200' : ''}`} style={{ backgroundColor: hasViewedBenefits ? undefined : '#e8e8e8' }} />
                 {/* Step 3 marker */}
                 <div className="flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-gray-500 mb-1">Matches</span>
-                  <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
-                    3
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${isProfileLive ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
+                    {isProfileLive ? (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : '3'}
                   </div>
                 </div>
               </div>
@@ -792,20 +973,26 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     onClick={() => setProfileWizardOpen(true)}
                     className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsProfileAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
                   >
-                  <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
-                    <svg viewBox="0 0 32 32" className="w-8 h-8">
-                      <rect x="6" y="4" width="20" height="26" rx="2" fill="#E8DDD4" stroke="#C4B5A6" strokeWidth="1.5"/>
-                      <rect x="9" y="8" width="14" height="10" rx="1" fill="#F5EFE8"/>
-                      <circle cx="20" cy="20" r="1.5" fill="#A69484"/>
-                    </svg>
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${profileComplete ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
+                    {profileComplete ? (
+                      <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 32 32" className="w-8 h-8">
+                        <rect x="6" y="4" width="20" height="26" rx="2" fill="#E8DDD4" stroke="#C4B5A6" strokeWidth="1.5"/>
+                        <rect x="9" y="8" width="14" height="10" rx="1" fill="#F5EFE8"/>
+                        <circle cx="20" cy="20" r="1.5" fill="#A69484"/>
+                      </svg>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-text-md font-semibold text-gray-900">
-                      {isConnected && connection?.to_profile?.display_name
+                      {profileComplete ? "Profile looking good!" : (isConnected && connection?.to_profile?.display_name
                         ? `Help ${connection.to_profile.display_name.split(' ')[0]} learn more about you`
-                        : "Complete your profile"}
+                        : "Complete your profile")}
                     </p>
-                    <p className="text-text-sm text-gray-500 mt-0.5">
+                    <p className={`text-text-sm mt-0.5 ${profileComplete ? 'text-primary-600' : 'text-gray-500'}`}>
                       {profilePercentage}% complete
                     </p>
                   </div>
@@ -833,16 +1020,24 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     }}
                     className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsBenefitsAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
                   >
-                    <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
-                      <svg viewBox="0 0 32 32" className="w-8 h-8">
-                        <circle cx="16" cy="16" r="10" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
-                        <text x="16" y="20" textAnchor="middle" fill="#8B7355" fontSize="12" fontWeight="600">$</text>
-                      </svg>
+                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${hasViewedBenefits ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
+                      {hasViewedBenefits ? (
+                        <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 32 32" className="w-8 h-8">
+                          <circle cx="16" cy="16" r="10" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
+                          <text x="16" y="20" textAnchor="middle" fill="#8B7355" fontSize="12" fontWeight="600">$</text>
+                        </svg>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-text-md font-semibold text-gray-900">You may qualify for benefits</p>
-                      <p className="text-text-sm text-gray-500 mt-0.5">
-                        {benefitsSavedCount === 0 ? "0 saved" : `${benefitsSavedCount} saved`}
+                      <p className="text-text-md font-semibold text-gray-900">
+                        {hasViewedBenefits ? "Benefits explored" : "You may qualify for benefits"}
+                      </p>
+                      <p className={`text-text-sm mt-0.5 ${hasViewedBenefits ? 'text-primary-600' : 'text-gray-500'}`}>
+                        {benefitsSavedCount === 0 ? (hasViewedBenefits ? "Tap to explore more" : "0 saved") : `${benefitsSavedCount} saved`}
                       </p>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -853,74 +1048,176 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   </button>
                 </div>
 
-                {/* Card 3: Matches — with attention animation */}
+                {/* Card 3: Matches — activates profile if not live, otherwise links to matches */}
                 <div className="relative">
                   {needsMatchesAttention && (
                     <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
                   )}
-                  <Link
-                    href="/portal/matches"
-                    className={`relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group ${needsMatchesAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
-                  >
-                    <div className="w-14 h-14 rounded-xl bg-[#E8F5F3] flex items-center justify-center flex-shrink-0">
-                      <svg viewBox="0 0 32 32" className="w-8 h-8">
-                        <rect x="6" y="4" width="20" height="26" rx="2" fill="#C5E8E4" stroke="#8BCDC5" strokeWidth="1.5"/>
-                        <rect x="9" y="8" width="14" height="10" rx="1" fill="#E0F2EF"/>
-                        <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-text-md font-semibold text-gray-900">Get matched with providers</p>
-                      <p className="text-text-sm text-gray-500 mt-0.5">
-                        {isProfileLive ? (
-                          <span className="text-primary-600">Live</span>
+                  {isProfileLive ? (
+                    // Already live — just link to matches
+                    <Link
+                      href="/portal/matches"
+                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+                    >
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-50">
+                        <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">You're discoverable!</p>
+                        <p className="text-text-sm mt-0.5 text-primary-600">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            Profile is live
+                          </span>
+                        </p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  ) : canGoLive ? (
+                    // Ready to go live — button to activate
+                    <button
+                      onClick={async () => {
+                        setActivatingProfile(true);
+                        try {
+                          const res = await fetch("/api/care-post/activate-matches", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              city: city || activeProfile?.city || undefined,
+                              state: activeProfile?.state || undefined,
+                            }),
+                          });
+                          if (res.ok) {
+                            await refreshAccountData?.();
+                            // Small delay to let state update, then celebration will trigger
+                          }
+                        } catch (err) {
+                          console.error("[welcome] Failed to activate profile:", err);
+                        } finally {
+                          setActivatingProfile(false);
+                        }
+                      }}
+                      disabled={activatingProfile}
+                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''} disabled:opacity-70`}
+                    >
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
+                        {activatingProfile ? (
+                          <svg className="w-6 h-6 text-primary-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
                         ) : (
-                          "Profile not live"
+                          <svg viewBox="0 0 32 32" className="w-8 h-8">
+                            <rect x="6" y="4" width="20" height="26" rx="2" fill="#C5E8E4" stroke="#8BCDC5" strokeWidth="1.5"/>
+                            <rect x="9" y="8" width="14" height="10" rx="1" fill="#E0F2EF"/>
+                            <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
+                          </svg>
                         )}
-                      </p>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </Link>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">
+                          {activatingProfile ? "Going live..." : "Go live & get matched"}
+                        </p>
+                        <p className="text-text-sm mt-0.5 text-gray-500">
+                          Let providers discover you
+                        </p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </div>
+                    </button>
+                  ) : (
+                    // Not ready to go live — missing data, prompt to complete profile
+                    <button
+                      onClick={() => setProfileWizardOpen(true)}
+                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                    >
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-100">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">
+                          Complete profile to go live
+                        </p>
+                        <p className="text-text-sm mt-0.5 text-gray-500">
+                          Add {goLiveMissingItems.join(" and ")} first
+                        </p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </section>
+          )}
 
           {/* ============================================================
               PROVIDER RECOMMENDATIONS — Full width, aligned with main card
+              More prominent when all steps complete
               ============================================================ */}
           {matches.length > 0 && (
-            <section className="pb-20">
-              {/* Section header with navigation arrows */}
+            <section className={allStepsComplete ? "pb-20" : "pb-20"}>
+              {/* Section header — bigger when onboarding complete */}
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-text-lg font-semibold text-gray-900">
-                  Discover providers near you
-                </h2>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => scrollProviders("left")}
-                    disabled={!canScrollLeft}
-                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Scroll left"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => scrollProviders("right")}
-                    disabled={!canScrollRight}
-                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Scroll right"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                <div>
+                  <h2 className={`font-semibold text-gray-900 ${allStepsComplete ? 'text-text-xl sm:text-display-xs' : 'text-text-lg'}`}>
+                    {allStepsComplete ? 'Your recommended providers' : 'Discover providers near you'}
+                  </h2>
+                  {allStepsComplete && (
+                    <p className="text-text-sm text-gray-500 mt-1">Based on your profile and location</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* "Explore All" button - more prominent when complete */}
+                  {allStepsComplete && (
+                    <Link
+                      href="/browse"
+                      className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-text-sm font-medium rounded-full hover:bg-primary-700 transition-colors"
+                    >
+                      Explore all
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  )}
+                  {/* Navigation arrows */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => scrollProviders("left")}
+                      disabled={!canScrollLeft}
+                      className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Scroll left"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => scrollProviders("right")}
+                      disabled={!canScrollRight}
+                      className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Scroll right"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -957,6 +1254,21 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   );
                 })}
               </div>
+
+              {/* Mobile "Explore All" button — shown when onboarding complete */}
+              {allStepsComplete && (
+                <div className="mt-6 sm:hidden">
+                  <Link
+                    href="/browse"
+                    className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary-600 text-white text-text-md font-medium rounded-xl hover:bg-primary-700 transition-colors"
+                  >
+                    Explore all providers
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
             </section>
           )}
 

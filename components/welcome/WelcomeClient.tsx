@@ -999,6 +999,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
         {benefitsWizardOpen && (
           <BenefitsWizard
+            profile={activeProfile}
             onClose={() => setBenefitsWizardOpen(false)}
             onComplete={() => {
               refreshAccountData();

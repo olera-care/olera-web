@@ -13,6 +13,7 @@ import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import type { Provider } from "@/components/providers/ProviderCard";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import ProfileWizard from "@/components/welcome/ProfileWizard";
+import BenefitsWizard from "@/components/welcome/BenefitsWizard";
 
 // ============================================================
 // Types
@@ -280,6 +281,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
   // Profile wizard state
   const [profileWizardOpen, setProfileWizardOpen] = useState(false);
+
+  // Benefits wizard state
+  const [benefitsWizardOpen, setBenefitsWizardOpen] = useState(false);
 
   // Track if user has viewed benefits (for gamification)
   const [hasViewedBenefits, setHasViewedBenefits] = useState(false);
@@ -817,16 +821,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   {needsBenefitsAttention && (
                     <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
                   )}
-                  <Link
-                    href="/benefits/finder"
+                  <button
                     onClick={() => {
                       // Mark benefits as viewed for gamification
                       try {
                         localStorage.setItem("olera_viewed_benefits", "true");
                         setHasViewedBenefits(true);
                       } catch { /* localStorage not available */ }
+                      setBenefitsWizardOpen(true);
                     }}
-                    className={`relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group ${needsBenefitsAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsBenefitsAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
                   >
                     <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
                       <svg viewBox="0 0 32 32" className="w-8 h-8">
@@ -845,7 +849,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
-                  </Link>
+                  </button>
                 </div>
 
                 {/* Card 3: Matches — with attention animation */}
@@ -989,6 +993,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             onComplete={() => {
               refreshAccountData();
               setProfileWizardOpen(false);
+            }}
+          />
+        )}
+
+        {benefitsWizardOpen && (
+          <BenefitsWizard
+            onClose={() => setBenefitsWizardOpen(false)}
+            onComplete={() => {
+              refreshAccountData();
+              setBenefitsWizardOpen(false);
             }}
           />
         )}

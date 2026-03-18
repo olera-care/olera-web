@@ -85,18 +85,16 @@ const STUDENT_FEATURES = [
 // Placeholder testimonials — replace with real quotes from pilot students
 const TESTIMONIALS = [
   {
-    quote: "Working with seniors through MedJobs gave me the patient care hours I needed for my PA application. The experience was so much more meaningful than I expected.",
-    name: "Student from UT Austin",
-    track: "Pre-PA, Class of 2026",
-    // TODO: Replace with real photo from pilot
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=faces",
+    quote: "Caregiving through Olera gave me direct patient experience I couldn\u2019t get in a classroom. It strengthened my med school application and reminded me why I chose this path.",
+    name: "Minh-Nguyet Hoang",
+    track: "MD/MBA Candidate, Texas A&M",
+    image: "/images/medjobs/minh-nguyet-hoang.jpg",
   },
   {
     quote: "I was struggling to find clinical experience that fit my class schedule. MedJobs matched me with a home care agency 10 minutes from campus. I work two shifts a week.",
-    name: "Student from Texas A&M",
-    track: "Pre-Med, Class of 2027",
-    // TODO: Replace with real photo from pilot
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=faces",
+    name: "Jeswin Vennatt",
+    track: "MD/MBA Candidate, Texas A&M",
+    image: "/images/medjobs/jeswin-vennatt.png",
   },
 ];
 
@@ -150,12 +148,12 @@ export default function MedJobsPage() {
 
             {/* Hero image with overlapping elements */}
             <div className="relative">
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-gray-100 shadow-2xl shadow-gray-900/10">
+              <div className="aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-2xl shadow-gray-900/10">
                   <Image
                   src="/images/medjobs/hero-caregiving.jpg"
                   alt="Student caregiver helping a senior — Olera MedJobs"
-                  width={800}
-                  height={600}
+                  width={1080}
+                  height={1080}
                   className="w-full h-full object-cover"
                   priority
                 />
@@ -177,17 +175,29 @@ export default function MedJobsPage() {
         </div>
       </section>
 
-      {/* Trust bar — universities */}
+      {/* Trust bar — university logos */}
       <section className="py-8 sm:py-10 border-b border-gray-100 bg-gray-50/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-medium mb-5">
-            Students from 50+ Texas universities
+          <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-medium mb-6">
+            Students from universities across the country
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2">
-            {["UT Austin", "Texas A&M", "Rice", "Baylor", "SMU", "TCU", "UT Dallas", "Texas State", "UH"].map((name) => (
-              <span key={name} className="text-[13px] font-semibold text-gray-300 tracking-wide">{name}</span>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+            {[
+              { name: "Texas A&M University", logo: "/images/medjobs/universities/texas-am.png" },
+              { name: "University of Michigan", logo: "/images/medjobs/universities/michigan.png" },
+              { name: "University of Houston", logo: "/images/medjobs/universities/houston.png" },
+              { name: "Prairie View A&M University", logo: "/images/medjobs/universities/prairie-view.webp" },
+              { name: "University of Maryland", logo: "/images/medjobs/universities/maryland.png" },
+            ].map((uni) => (
+              <Image
+                key={uni.name}
+                src={uni.logo}
+                alt={uni.name}
+                width={120}
+                height={60}
+                className="h-10 sm:h-12 w-auto object-contain opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+              />
             ))}
-            <span className="text-[13px] font-medium text-primary-400">+41 more</span>
           </div>
         </div>
       </section>

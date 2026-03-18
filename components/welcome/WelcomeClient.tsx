@@ -369,7 +369,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }, [activeProfile, account, destination, router, hasInitialized]);
 
   // Complete onboarding and redirect (or show confirmation)
-  const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false) => {
+  const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false, customRedirect?: string) => {
     setSaving(true);
 
     try {
@@ -418,7 +418,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         setSaving(false);
         setShowConfirmation(true);
       } else {
-        router.push(destination);
+        router.push(customRedirect || destination);
       }
     } catch (err) {
       console.error("[welcome] Error completing onboarding:", err);
@@ -427,8 +427,14 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }, [city, activeProfile, account, refreshAccountData, router, destination]);
 
   const handleSkip = useCallback(() => {
-    completeOnboarding(false);
-  }, [completeOnboarding]);
+    if (connection) {
+      // Connected user: go to their intended destination (inbox)
+      completeOnboarding(false);
+    } else {
+      // Fresh account: go to landing page (where they likely were before signup)
+      completeOnboarding(false, false, "/");
+    }
+  }, [completeOnboarding, connection]);
 
   const handleActivate = useCallback(() => {
     completeOnboarding(true, true); // Show confirmation after activation

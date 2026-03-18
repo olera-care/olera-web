@@ -1439,6 +1439,13 @@ export default function ProviderMatchesPage() {
           throw new Error(insertError.message);
         }
 
+        // Notify family of reach-out (fire-and-forget)
+        fetch("/api/matches/notify-reach-out", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ toProfileId }),
+        }).catch(() => {});
+
         // Increment free_responses_used only for free tier (not trial)
         if (membership && membership.status === "free") {
           const newCount = (membership.free_responses_used ?? 0) + 1;

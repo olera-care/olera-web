@@ -19,6 +19,14 @@
     {
       "path": "/api/cron/medjobs-nudge",
       "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/matches-nudge",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/matches-unread",
+      "schedule": "0 * * * *"
     }
   ]
 }

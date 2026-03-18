@@ -635,7 +635,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                         disabled={saving}
                         className="min-h-[44px] px-4 text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
                       >
-                        No thanks, take me to my inbox
+                        {connection ? "No thanks, take me to my inbox" : "Skip for now"}
                       </button>
                     </div>
                   </div>

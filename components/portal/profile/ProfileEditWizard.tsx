@@ -366,7 +366,7 @@ export default function ProfileEditWizard({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-4xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-4">
@@ -397,9 +397,9 @@ export default function ProfileEditWizard({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="min-h-[480px]">
+          <div className="min-h-[400px]">
             {/* Form Content */}
-            <div className="p-6 lg:p-8 max-w-2xl">
+            <div className="p-6 lg:p-8">
               {/* Step title */}
               <div className="mb-6">
                 <p className="text-sm font-medium text-primary-600 mb-1">

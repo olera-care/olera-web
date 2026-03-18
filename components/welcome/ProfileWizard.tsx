@@ -43,8 +43,9 @@ interface ProfileWizardProps {
 const STEPS = [
   { id: "basics", title: "Basic Info", subtitle: "Let's start with the basics" },
   { id: "contact", title: "Contact", subtitle: "How can providers reach you?" },
-  { id: "care", title: "Care Needs", subtitle: "Tell us about the care situation" },
-  { id: "payment", title: "Payment", subtitle: "How will care be paid for?" },
+  { id: "recipient", title: "Care Recipient", subtitle: "Tell us about who needs care" },
+  { id: "care", title: "Care Preferences", subtitle: "What type of care are you looking for?" },
+  { id: "payment", title: "Payment", subtitle: "Select all that apply" },
 ] as const;
 
 type StepId = typeof STEPS[number]["id"];
@@ -135,15 +136,20 @@ export default function ProfileWizard({
           };
           break;
 
+        case "recipient":
+          metaUpdates = {
+            relationship_to_recipient: careRecipient || undefined,
+            age: age ? Number(age) : undefined,
+            timeline: timeline || undefined,
+          };
+          break;
+
         case "care":
           updates = {
             care_types: careTypes,
           };
           metaUpdates = {
-            relationship_to_recipient: careRecipient || undefined,
-            age: age ? Number(age) : undefined,
             care_needs: careNeeds.length > 0 ? careNeeds : undefined,
-            timeline: timeline || undefined,
           };
           break;
 
@@ -373,9 +379,9 @@ export default function ProfileWizard({
             </div>
           )}
 
-          {/* ── Step 3: Care Needs ── */}
-          {step.id === "care" && (
-            <div className="space-y-5">
+          {/* ── Step 3: Care Recipient ── */}
+          {step.id === "recipient" && (
+            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2.5">
                   Who needs care?
@@ -397,9 +403,25 @@ export default function ProfileWizard({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2.5">
+                  How soon do you need care?
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {TIMELINES.map((t) =>
+                    renderPill(t.label, timeline === t.value, () => setTimeline(t.value))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 4: Care Preferences ── */}
+          {step.id === "care" && (
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2.5">
                   Type of care needed
                 </label>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {CARE_TYPES.map((ct) =>
                     renderPill(ct, careTypes.includes(ct), () =>
                       setCareTypes((prev) =>
@@ -414,7 +436,7 @@ export default function ProfileWizard({
                 <label className="block text-sm font-medium text-gray-700 mb-2.5">
                   What kind of help is needed?
                 </label>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {CARE_NEED_OPTIONS.map((need) =>
                     renderPill(need, careNeeds.includes(need), () =>
                       setCareNeeds((prev) =>
@@ -424,56 +446,19 @@ export default function ProfileWizard({
                   )}
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2.5">
-                  How soon do you need care?
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {TIMELINES.map((t) =>
-                    renderPill(t.label, timeline === t.value, () => setTimeline(t.value))
-                  )}
-                </div>
-              </div>
             </div>
           )}
 
-          {/* ── Step 4: Payment ── */}
+          {/* ── Step 5: Payment ── */}
           {step.id === "payment" && (
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2.5">
-                  How will care be paid for?
-                </label>
-                <p className="text-sm text-gray-500 mb-3">
-                  Select all that apply. This helps providers understand your situation.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {PAYMENT_OPTIONS.map((opt) =>
-                    renderPill(opt, payments.includes(opt), () =>
-                      setPayments((prev) =>
-                        prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
-                      )
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 rounded-xl bg-primary-50/50 border border-primary-100">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">You may qualify for benefits</p>
-                    <p className="text-sm text-gray-600 mt-0.5">
-                      After completing your profile, check our Benefits Finder to discover programs that could help cover care costs.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {PAYMENT_OPTIONS.map((opt) =>
+                renderPill(opt, payments.includes(opt), () =>
+                  setPayments((prev) =>
+                    prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+                  )
+                )
+              )}
             </div>
           )}
         </div>

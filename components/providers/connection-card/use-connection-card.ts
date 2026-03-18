@@ -576,6 +576,16 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setSubmitting(true);
     try {
       if (connectionId) {
+        // Guest users need claim token for authorization
+        let claimToken: string | undefined;
+        if (!user) {
+          try {
+            claimToken = localStorage.getItem(CLAIM_TOKEN_KEY) || undefined;
+          } catch {
+            // localStorage may fail in private browsing
+          }
+        }
+
         await fetch("/api/connections/update-intent", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -583,6 +593,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
             connectionId,
             careRecipient: data.careRecipient,
             urgency: data.urgency,
+            ...(claimToken ? { claimToken } : {}),
           }),
         });
       }
@@ -597,7 +608,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         setCardState("connected");
       }
     }
-  }, [connectionId, onConnectionCreated]);
+  }, [connectionId, onConnectionCreated, user]);
 
   const skipEnrichment = useCallback(() => {
     if (connectionId && onConnectionCreated) {

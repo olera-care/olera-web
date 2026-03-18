@@ -33,6 +33,7 @@ function generateSlug(name: string): string {
 
 interface GuestConnectionParams {
   guestEmail: string;
+  guestFullName?: string;
   providerId: string;
   providerName: string;
   providerSlug: string;
@@ -49,6 +50,7 @@ interface GuestConnectionParams {
 
 async function handleGuestConnection({
   guestEmail,
+  guestFullName,
   providerId,
   providerName,
   providerSlug,
@@ -107,7 +109,8 @@ async function handleGuestConnection({
     claimToken = existingProfile.claim_token;
   } else {
     // Create placeholder profile
-    const displayName = normalizedEmail.split("@")[0] || "Guest";
+    // Use fullName from form if provided, otherwise fall back to email prefix
+    const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
     const slug = generateSlug(displayName);
 
     const { data: newProfile, error: profileError } = await db
@@ -543,6 +546,7 @@ export async function POST(request: Request) {
       intentData,
       guest,
       guestEmail,
+      formData,
       website, // Honeypot field
     } = body as {
       providerId: string;
@@ -557,6 +561,7 @@ export async function POST(request: Request) {
       };
       guest?: boolean;
       guestEmail?: string;
+      formData?: { fullName?: string; phone?: string; message?: string };
       website?: string; // Honeypot
     };
 
@@ -583,6 +588,7 @@ export async function POST(request: Request) {
     if (guest && guestEmail) {
       return handleGuestConnection({
         guestEmail,
+        guestFullName: formData?.fullName,
         providerId,
         providerName,
         providerSlug,

@@ -152,7 +152,7 @@ function BenefitsCard() {
   );
 }
 
-/** Horizontal scroll provider card (comparison style) */
+/** Horizontal scroll provider card (comparison style matching ProviderCard) */
 function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
   const { isSaved, toggleSave } = useSavedProviders();
   const saved = isSaved(provider.provider_id);
@@ -167,7 +167,7 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
       slug: provider.provider_id,
       name: provider.provider_name,
       location: location,
-      careTypes: [],
+      careTypes: [provider.provider_category],
       image: imageUrl,
       rating: provider.google_rating ?? undefined,
     });
@@ -176,10 +176,10 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
   return (
     <Link
       href={`/provider/${provider.provider_id}`}
-      className="flex-shrink-0 w-[280px] bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md transition-shadow overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+      className="group flex-shrink-0 w-[calc(50vw-24px)] sm:w-[280px] bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-gray-300 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
     >
       {/* Image */}
-      <div className="relative h-40 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
+      <div className="relative h-36 sm:h-44 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -192,41 +192,57 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
             <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: avatarGradient(provider.provider_name) }}>
               <span className="text-xl font-bold text-white">{getInitials(provider.provider_name)}</span>
             </div>
+            <span className="text-xs font-medium text-primary-400 mt-2">{provider.provider_category}</span>
           </div>
         )}
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
 
         {/* Heart save button — 44px touch target for WCAG compliance */}
         <button
           onClick={handleSave}
-          className="absolute top-2 right-2 w-11 h-11 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-1"
+          className={`absolute top-2 right-2 w-11 h-11 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-1 ${saved ? "scale-105" : ""}`}
           aria-label={saved ? "Remove from saved" : "Save provider"}
         >
           <svg
-            className={`w-5 h-5 transition-colors ${saved ? "text-red-500 fill-red-500" : "text-gray-600"}`}
+            className={`w-5 h-5 transition-all ${saved ? "text-primary-600 fill-primary-600" : "text-gray-400 hover:text-primary-600"}`}
             fill={saved ? "currentColor" : "none"}
             stroke="currentColor"
+            strokeWidth={2}
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
         </button>
-
-        {/* Rating badge */}
-        {provider.google_rating && (
-          <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium">
-            <svg className="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span>{provider.google_rating.toFixed(1)}</span>
-          </div>
-        )}
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-gray-900 line-clamp-1">{provider.provider_name}</h3>
-        <p className="text-sm text-gray-500 mt-0.5">{provider.provider_category}</p>
-        {location && <p className="text-xs text-gray-400 mt-1">{location}</p>}
+        {/* Name + Rating */}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-gray-900 text-[15px] group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug">
+            {provider.provider_name}
+          </h3>
+          {provider.google_rating && provider.google_rating > 0 && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <span className="text-sm font-semibold text-gray-900">{provider.google_rating.toFixed(1)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Category tag */}
+        <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium bg-primary-50 text-primary-700 rounded-full">
+          {provider.provider_category}
+        </span>
+
+        {/* Location */}
+        {location && (
+          <p className="text-xs text-gray-500 mt-2">{location}</p>
+        )}
       </div>
     </Link>
   );
@@ -243,6 +259,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
   const [providers, setProviders] = useState<ProviderCard[]>([]);
   const [matches, setMatches] = useState<MatchProvider[]>([]);
@@ -258,11 +275,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
       const supabase = createClient();
 
-      // Check if onboarding completed AND matches already active → skip
-      const metadata = (activeProfile.metadata || {}) as Record<string, unknown>;
-      const carePost = metadata.care_post as { status?: string } | undefined;
-
-      if (account?.onboarding_completed && carePost?.status === "active") {
+      // Check if onboarding already completed → skip
+      if (account?.onboarding_completed === true) {
         router.replace(destination);
         return;
       }
@@ -369,8 +383,8 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
     init();
   }, [activeProfile, account, destination, router]);
 
-  // Complete onboarding and redirect
-  const completeOnboarding = useCallback(async (activateMatches: boolean) => {
+  // Complete onboarding and redirect (or show confirmation)
+  const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false) => {
     setSaving(true);
 
     try {
@@ -398,7 +412,13 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       });
 
       await refreshAccountData?.();
-      router.push(destination);
+
+      if (showConfirmationAfter) {
+        setSaving(false);
+        setShowConfirmation(true);
+      } else {
+        router.push(destination);
+      }
     } catch (err) {
       console.error("[welcome] Error completing onboarding:", err);
       setSaving(false);
@@ -410,14 +430,18 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   }, [completeOnboarding]);
 
   const handleActivate = useCallback(() => {
-    completeOnboarding(true);
+    completeOnboarding(true, true); // Show confirmation after activation
   }, [completeOnboarding]);
+
+  const handleGoToInbox = useCallback(() => {
+    router.push(destination);
+  }, [router, destination]);
 
   // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" style={{ willChange: "transform" }} />
       </div>
     );
   }
@@ -427,7 +451,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-vanilla-50 via-white to-white">
       {/* ================================================================
-          NAV — matches provider onboarding pattern
+          NAV — logo left, avatar right
           ================================================================ */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -438,93 +462,207 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               <span className="text-xl font-bold text-gray-900">Olera</span>
             </Link>
 
-            {/* Skip button — outlined style */}
+            {/* User avatar — 44px touch target with 32px visual */}
             <button
               onClick={handleSkip}
               disabled={saving}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-base font-medium text-gray-600 border border-gray-300 rounded-lg hover:border-gray-400 hover:text-gray-900 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+              className="w-11 h-11 rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 disabled:opacity-50 hover:opacity-90 transition-opacity"
+              aria-label="Go to portal"
             >
-              Skip for now
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
+                style={{ background: avatarGradient(activeProfile?.display_name || account?.display_name || "User") }}
+              >
+                <span className="text-white">
+                  {getInitials(activeProfile?.display_name || account?.display_name || "U")}
+                </span>
+              </div>
             </button>
           </div>
         </div>
       </header>
 
       {/* ================================================================
+          OPENING — dynamic greeting based on connection state
+          ================================================================ */}
+      <section className="px-4 sm:px-6 pt-8 sm:pt-10 pb-4">
+        <div className="max-w-lg mx-auto text-center">
+          {connection?.to_profile?.display_name ? (
+            <>
+              <h1 className="text-2xl sm:text-[28px] font-display font-bold text-gray-900 leading-tight">
+                You&apos;re connected with{" "}
+                <span className="text-primary-600">{connection.to_profile.display_name}</span>.
+              </h1>
+              <p className="mt-2 text-[15px] text-gray-500 leading-relaxed">
+                While you wait to hear back, here&apos;s what else we can do for you.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl sm:text-[28px] font-display font-bold text-gray-900 leading-tight">
+                Welcome to Olera.
+              </h1>
+              <p className="mt-2 text-[15px] text-gray-500 leading-relaxed">
+                Let&apos;s help you find the right care.
+              </p>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ================================================================
           SECTION 1 — ACTIVATION CARD
           ================================================================ */}
-      <section className="px-4 sm:px-6 pt-12 pb-16">
+      <section className="px-4 sm:px-6 pt-8 pb-16">
         <div className="max-w-lg mx-auto">
           <div className="bg-white rounded-2xl border border-gray-200/80 shadow-lg overflow-hidden">
             <div className="px-6 sm:px-10 pt-10 pb-8 text-center">
-              {/* Label */}
-              <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-6">
-                Find Your Match
-              </p>
-
-              {/* Illustration */}
-              <MatchIllustration />
-
-              {/* Headline */}
-              <h1 className="mt-8 text-2xl sm:text-[28px] font-display font-bold text-gray-900 leading-tight">
-                Providers in{" "}
-                <span className="text-primary-600">{cityDisplay}</span>
-                {" "}are ready to connect.
-              </h1>
-
-              {/* Subtext */}
-              <p className="mt-3 text-[15px] text-gray-500 leading-relaxed">
-                Let them reach out — no searching required.
-              </p>
-
-              {/* Primary CTA with explicit inline styles */}
-              <button
-                onClick={handleActivate}
-                disabled={saving}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                  minHeight: "52px",
-                  marginTop: "28px",
-                  padding: "0 24px",
-                  backgroundColor: "#4d8a8a",
-                  backgroundImage: "linear-gradient(to bottom, #5fa3a3, #4d8a8a)",
-                  color: "#ffffff",
-                  fontSize: "15px",
-                  fontWeight: 600,
-                  borderRadius: "12px",
-                  border: "none",
-                  cursor: saving ? "not-allowed" : "pointer",
-                  opacity: saving ? 0.5 : 1,
-                  boxShadow: "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)",
-                  transition: "all 0.2s",
-                }}
-              >
-                {saving ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                    <svg style={{ animation: "spin 1s linear infinite", height: "16px", width: "16px" }} fill="none" viewBox="0 0 24 24">
-                      <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              {showConfirmation ? (
+                /* ============ CONFIRMATION STATE ============ */
+                <>
+                  {/* Checkmark */}
+                  <div className="w-16 h-16 mx-auto rounded-full bg-primary-100 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
-                    Saving...
-                  </span>
-                ) : (
-                  "Yes, let providers find me"
-                )}
-              </button>
+                  </div>
 
-              {/* Plain text link */}
-              <p className="mt-4">
-                <button
-                  onClick={handleSkip}
-                  disabled={saving}
-                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
-                >
-                  No thanks, take me to my inbox
-                </button>
-              </p>
+                  {/* Confirmation text */}
+                  <h2 className="mt-6 text-xl sm:text-2xl font-display font-bold text-gray-900 leading-tight">
+                    You&apos;re on the list.
+                  </h2>
+                  <p className="mt-3 text-[15px] text-gray-500 leading-relaxed">
+                    Providers in <span className="text-primary-600 font-medium">{cityDisplay}</span> will start reaching out soon.
+                  </p>
+
+                  {/* Go to inbox button */}
+                  <button
+                    onClick={handleGoToInbox}
+                    className="group"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      minHeight: "52px",
+                      marginTop: "28px",
+                      padding: "0 24px",
+                      backgroundColor: "#4d8a8a",
+                      backgroundImage: "linear-gradient(to bottom, #5fa3a3, #4d8a8a)",
+                      color: "#ffffff",
+                      fontSize: "15px",
+                      fontWeight: 600,
+                      borderRadius: "12px",
+                      border: "none",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #6db3b3, #5fa3a3)";
+                      e.currentTarget.style.boxShadow = "0 6px 10px -2px rgba(77, 138, 138, 0.25), 0 3px 6px -2px rgba(77, 138, 138, 0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #5fa3a3, #4d8a8a)";
+                      e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)";
+                    }}
+                  >
+                    Go to my inbox
+                  </button>
+                </>
+              ) : (
+                /* ============ DEFAULT STATE ============ */
+                <>
+                  {/* Label */}
+                  <p className="text-xs font-semibold tracking-widest text-primary-600 uppercase mb-6">
+                    Find Your Match
+                  </p>
+
+                  {/* Illustration */}
+                  <MatchIllustration />
+
+                  {/* Headline — dynamic based on connection state */}
+                  <h2 className="mt-8 text-xl sm:text-2xl font-display font-bold text-gray-900 leading-tight">
+                    {connection?.to_profile?.display_name ? (
+                      <>
+                        Let other providers in{" "}
+                        <span className="text-primary-600">{cityDisplay}</span>
+                        {" "}find you too.
+                      </>
+                    ) : (
+                      <>
+                        Providers in{" "}
+                        <span className="text-primary-600">{cityDisplay}</span>
+                        {" "}are ready to connect with you.
+                      </>
+                    )}
+                  </h2>
+
+                  {/* Subtext */}
+                  <p className="mt-3 text-[15px] text-gray-500 leading-relaxed">
+                    Turning this on means providers can reach out to you directly — no searching required.
+                  </p>
+
+                  {/* Primary CTA with explicit inline styles */}
+                  <button
+                    onClick={handleActivate}
+                    disabled={saving}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      minHeight: "52px",
+                      marginTop: "28px",
+                      padding: "0 24px",
+                      backgroundColor: "#4d8a8a",
+                      backgroundImage: "linear-gradient(to bottom, #5fa3a3, #4d8a8a)",
+                      color: "#ffffff",
+                      fontSize: "15px",
+                      fontWeight: 600,
+                      borderRadius: "12px",
+                      border: "none",
+                      cursor: saving ? "not-allowed" : "pointer",
+                      opacity: saving ? 0.5 : 1,
+                      boxShadow: "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!saving) {
+                        e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #6db3b3, #5fa3a3)";
+                        e.currentTarget.style.boxShadow = "0 6px 10px -2px rgba(77, 138, 138, 0.25), 0 3px 6px -2px rgba(77, 138, 138, 0.15)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundImage = "linear-gradient(to bottom, #5fa3a3, #4d8a8a)";
+                      e.currentTarget.style.boxShadow = "0 4px 6px -1px rgba(77, 138, 138, 0.2), 0 2px 4px -1px rgba(77, 138, 138, 0.1)";
+                    }}
+                  >
+                    {saving ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                        <svg style={{ animation: "spin 1s linear infinite", height: "16px", width: "16px" }} fill="none" viewBox="0 0 24 24">
+                          <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Saving...
+                      </span>
+                    ) : (
+                      "Yes, let providers find me"
+                    )}
+                  </button>
+
+                  {/* Plain text link */}
+                  <p className="mt-4">
+                    <button
+                      onClick={handleSkip}
+                      disabled={saving}
+                      className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 focus:outline-none focus:underline focus:text-gray-600"
+                    >
+                      No thanks, take me to my inbox
+                    </button>
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -533,7 +671,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       {/* ================================================================
           SECTION 2 — BENEFITS
           ================================================================ */}
-      <section className="px-4 sm:px-6 pb-16">
+      <section className="px-4 sm:px-6 pt-2 pb-4">
         <div className="max-w-lg mx-auto">
           <h2 className="text-lg font-display font-semibold text-gray-900 mb-4">
             Explore the benefits center
@@ -546,38 +684,48 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           SECTION 3 — PROVIDER RECOMMENDATIONS (horizontal scroll)
           ================================================================ */}
       {matches.length > 0 && (
-        <section className="pb-20">
+        <section className="pt-12 pb-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-lg font-display font-semibold text-gray-900 mb-5">
-              Other providers in{" "}
-              <span className="text-primary-600">{cityDisplay}</span>
-              {" "}you may like
+              {city ? (
+                <>
+                  Other providers in{" "}
+                  <span className="text-primary-600">{city}</span>
+                  {" "}you may like
+                </>
+              ) : (
+                "Other providers you may like"
+              )}
             </h2>
 
-            {/* Horizontal scroll container */}
+            {/* Horizontal scroll container — 2 cards visible + third peeking */}
             <div
               ref={scrollRef}
-              className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+              className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 snap-x snap-mandatory"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
+              }}
             >
               {matches.map((provider) => (
-                <ProviderScrollCard key={provider.provider_id} provider={provider} />
+                <div key={provider.provider_id} className="snap-start">
+                  <ProviderScrollCard provider={provider} />
+                </div>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* Animations */}
+      {/* Animations and scrollbar hiding */}
       <style jsx global>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
+        /* Hide scrollbar for horizontal scroll containers */
+        [style*="scrollbar-width: none"]::-webkit-scrollbar {
           display: none;
         }
       `}</style>

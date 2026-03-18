@@ -795,71 +795,74 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           </section>
 
           {/* ============================================================
-              PROVIDER RECOMMENDATIONS — Full width like Airbnb
+              PROVIDER RECOMMENDATIONS — Aligned with timeline cards above
               ============================================================ */}
           {matches.length > 0 && (
             <section className="pb-20">
-              {/* Section header with navigation arrows — Airbnb style */}
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-text-lg font-semibold text-gray-900">
-                  Discover providers near you
-                </h2>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => scrollProviders("left")}
-                    disabled={!canScrollLeft}
-                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Scroll left"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => scrollProviders("right")}
-                    disabled={!canScrollRight}
-                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
-                    aria-label="Scroll right"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+              {/* Wrapper with same left padding as timeline cards */}
+              <div className="pl-14">
+                {/* Section header with navigation arrows */}
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-text-lg font-semibold text-gray-900">
+                    Discover providers near you
+                  </h2>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => scrollProviders("left")}
+                      disabled={!canScrollLeft}
+                      className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Scroll left"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => scrollProviders("right")}
+                      disabled={!canScrollRight}
+                      className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 disabled:bg-gray-50 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors"
+                      aria-label="Scroll right"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Scrollable provider cards — using Olera's CompactProviderCard */}
-              <div
-                ref={providerScrollRef}
-                onScroll={updateScrollButtons}
-                className="flex gap-4 overflow-x-auto pb-2 scroll-smooth"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-              >
-                {matches.map((provider) => {
-                  // Map olera-providers data to Provider interface
-                  const imageUrl = provider.provider_logo || provider.provider_images?.split(" | ")?.[0] || "";
-                  const location = [provider.city, provider.state].filter(Boolean).join(", ");
+                {/* Scrollable provider cards — using Olera's CompactProviderCard */}
+                <div
+                  ref={providerScrollRef}
+                  onScroll={updateScrollButtons}
+                  className="flex gap-4 overflow-x-auto pb-2 scroll-smooth"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+                  {matches.map((provider) => {
+                    // Map olera-providers data to Provider interface
+                    const imageUrl = provider.provider_logo || provider.provider_images?.split(" | ")?.[0] || "";
+                    const location = [provider.city, provider.state].filter(Boolean).join(", ");
 
-                  const mappedProvider: Provider = {
-                    id: provider.provider_id,
-                    slug: provider.provider_id,
-                    name: provider.provider_name,
-                    image: imageUrl,
-                    address: location,
-                    rating: provider.google_rating || 0,
-                    priceRange: "",
-                    primaryCategory: provider.provider_category,
-                    careTypes: [provider.provider_category],
-                    highlights: [],
-                    verified: false,
-                  };
+                    const mappedProvider: Provider = {
+                      id: provider.provider_id,
+                      slug: provider.provider_id,
+                      name: provider.provider_name,
+                      image: imageUrl,
+                      address: location,
+                      rating: provider.google_rating || 0,
+                      priceRange: "",
+                      primaryCategory: provider.provider_category,
+                      careTypes: [provider.provider_category],
+                      highlights: [],
+                      verified: false,
+                    };
 
-                  return (
-                    <div key={provider.provider_id} className="flex-shrink-0 w-[220px]">
-                      <CompactProviderCard provider={mappedProvider} />
-                    </div>
-                  );
-                })}
+                    return (
+                      <div key={provider.provider_id} className="flex-shrink-0 w-[220px]">
+                        <CompactProviderCard provider={mappedProvider} />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </section>
           )}
@@ -867,23 +870,25 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           {/* Loading state for providers */}
           {providersLoading && (
             <section className="pb-20">
-              <div className="flex items-center justify-between mb-5">
-                <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
-                <div className="flex gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
-                  <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
-                </div>
-              </div>
-              <div className="flex gap-4 overflow-hidden">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[180px]">
-                    <div className="aspect-[4/3] rounded-xl bg-gray-100 animate-pulse" />
-                    <div className="mt-2.5 space-y-2">
-                      <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse" />
-                      <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse" />
-                    </div>
+              <div className="pl-14">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
+                  <div className="flex gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
+                    <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
                   </div>
-                ))}
+                </div>
+                <div className="flex gap-4 overflow-hidden">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex-shrink-0 w-[220px]">
+                      <div className="aspect-[4/3] rounded-xl bg-gray-100 animate-pulse" />
+                      <div className="mt-2.5 space-y-2">
+                        <div className="h-4 bg-gray-100 rounded w-3/4 animate-pulse" />
+                        <div className="h-3 bg-gray-100 rounded w-1/2 animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           )}

@@ -7,17 +7,16 @@ import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient } from "@/lib/supabase/client";
 import { useSavedProviders } from "@/hooks/use-saved-providers";
+import { useSavedBenefits } from "@/hooks/use-saved-benefits";
 import { PRE_AUTH_PAGE_KEY } from "@/components/auth/UnifiedAuthModal";
 import CompactProviderCard from "@/components/providers/CompactProviderCard";
 import type { Provider } from "@/components/providers/ProviderCard";
+import { useProfileCompleteness } from "@/components/portal/profile/completeness";
+import ProfileWizard from "@/components/welcome/ProfileWizard";
 
 // ============================================================
 // Types
 // ============================================================
-
-interface WelcomeClientProps {
-  destination: string;
-}
 
 interface MatchProvider {
   provider_id: string;
@@ -28,6 +27,12 @@ interface MatchProvider {
   city: string | null;
   state: string | null;
   google_rating: number | null;
+}
+
+interface WelcomeClientProps {
+  destination: string;
+  initialProviders?: MatchProvider[];
+  initialCity?: string | null;
 }
 
 interface ConnectionWithProvider {
@@ -253,9 +258,9 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
 // Main Component
 // ============================================================
 
-export default function WelcomeClient({ destination }: WelcomeClientProps) {
+export default function WelcomeClient({ destination, initialProviders = [], initialCity = null }: WelcomeClientProps) {
   const router = useRouter();
-  const { account, activeProfile, refreshAccountData } = useAuth();
+  const { account, activeProfile, refreshAccountData, user } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
   const providerScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -266,11 +271,27 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
   const [navigating, setNavigating] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [connection, setConnection] = useState<ConnectionWithProvider | null>(null);
-  const [matches, setMatches] = useState<MatchProvider[]>([]);
-  const [providersLoading, setProvidersLoading] = useState(true);
-  const [city, setCity] = useState<string | null>(null);
+  // Use server-fetched providers — no loading state needed
+  const [matches, setMatches] = useState<MatchProvider[]>(initialProviders);
+  const [providersLoading, setProvidersLoading] = useState(false); // Already loaded from server
+  const [city, setCity] = useState<string | null>(initialCity);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [preAuthPage, setPreAuthPage] = useState<string | null>(null);
+
+  // Profile wizard state
+  const [profileWizardOpen, setProfileWizardOpen] = useState(false);
+
+  // Profile completeness tracking
+  const { percentage: profilePercentage, firstIncompleteStep } = useProfileCompleteness(
+    activeProfile ?? null,
+    user?.email
+  );
+
+  // Saved benefits tracking
+  const { savedCount: benefitsSavedCount } = useSavedBenefits();
+
+  // Profile live status (is_active on the profile)
+  const isProfileLive = activeProfile?.is_active ?? false;
 
   // Read pre-auth page from localStorage on mount (for "Skip for now" redirect)
   useEffect(() => {
@@ -301,10 +322,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
       }
       setHasInitialized(true);
 
-      // Get city and state from profile
-      setCity(activeProfile.city || null);
-      const familyState = activeProfile.state;
-      const familyCareTypes = activeProfile.care_types || [];
+      // Update city from profile if not already set from server
+      if (!city && activeProfile.city) {
+        setCity(activeProfile.city);
+      }
 
       // Fetch connection info — this is quick and needed for the main UI
       let connectedProviderCity: string | null = null;
@@ -362,60 +383,13 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
         console.error("[welcome] Failed to fetch connection:", err);
       }
 
-      // Determine city for recommendations
-      const recommendationCity = connectedProviderCity || activeProfile.city;
-      if (recommendationCity) {
-        setCity(recommendationCity);
+      // Update city if connected provider has one (for display purposes)
+      if (connectedProviderCity) {
+        setCity(connectedProviderCity);
       }
 
-      // Show the main UI immediately — don't wait for provider recommendations
+      // Show the main UI — providers already loaded from server
       setLoading(false);
-
-      // Fetch provider recommendations in the background (non-blocking)
-      // If city is available, filter by city; otherwise fetch top-rated nationally
-      (async () => {
-        try {
-          let query = supabase
-            .from("olera-providers")
-            .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
-            .eq("deleted", false)
-            .not("google_rating", "is", null)
-            .gte("google_rating", 4.0)
-            .not("provider_images", "is", null)
-            .order("google_rating", { ascending: false })
-            .limit(6);
-
-          // Filter by city if available
-          if (recommendationCity) {
-            query = query.eq("city", recommendationCity);
-          }
-
-          const { data: providerMatches, error: matchError } = await query;
-
-          if (!matchError && providerMatches && providerMatches.length > 0) {
-            setMatches(providerMatches as MatchProvider[]);
-          } else if (recommendationCity) {
-            // City search returned no results — fallback to national
-            const { data: nationalMatches } = await supabase
-              .from("olera-providers")
-              .select("provider_id, provider_name, provider_logo, provider_images, provider_category, city, state, google_rating")
-              .eq("deleted", false)
-              .not("google_rating", "is", null)
-              .gte("google_rating", 4.0)
-              .not("provider_images", "is", null)
-              .order("google_rating", { ascending: false })
-              .limit(6);
-
-            if (nationalMatches && nationalMatches.length > 0) {
-              setMatches(nationalMatches as MatchProvider[]);
-            }
-          }
-        } catch (err) {
-          console.error("[welcome] Failed to fetch provider recommendations:", err);
-        } finally {
-          setProvidersLoading(false);
-        }
-      })();
     }
 
     init();
@@ -586,9 +560,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           </section>
 
           {/* ============================================================
-              CONNECTION CARD — Provider they're connected with
+              TOP CARD — Connected provider OR Fresh welcome card
               ============================================================ */}
-          {isConnected && connection?.to_profile && (() => {
+          {isConnected && connection?.to_profile ? (() => {
             const provider = connection.to_profile;
             const location = [provider.city, provider.state].filter(Boolean).join(", ");
             const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
@@ -689,20 +663,65 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 </div>
               </section>
             );
-          })()}
+          })() : (
+            /* ============================================================
+               FRESH STATE CARD — Welcome card for new users without connection
+               ============================================================ */
+            <section className="pb-12">
+              <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+                <div className="flex flex-col sm:flex-row">
+                  {/* Image — warm, welcoming photograph */}
+                  <div className="relative w-full sm:w-[240px] aspect-[16/10] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100 overflow-hidden sm:rounded-l-2xl">
+                    <Image
+                      src="/images/for-providers/hero.jpg"
+                      alt="Caregiver helping a senior"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 p-5 sm:p-6 flex flex-col min-w-0">
+                    {/* Headline */}
+                    <h2 className="text-text-xl sm:text-display-xs font-semibold text-gray-900 leading-tight">
+                      Finding Care Made Simple
+                    </h2>
+
+                    {/* Subtext — brief value proposition */}
+                    <p className="mt-2 text-text-md text-gray-500 leading-relaxed">
+                      One profile connects you with qualified providers and helps you discover benefits you may qualify for.
+                    </p>
+
+                    {/* Spacer */}
+                    <div className="flex-1 min-h-4" />
+
+                    {/* CTA Button */}
+                    <div className="mt-4 sm:mt-5 flex sm:justify-end">
+                      <button
+                        onClick={() => setProfileWizardOpen(true)}
+                        className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-700 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+                      >
+                        Get Started
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* ============================================================
               ACTION TIMELINE — Profile, Benefits, Matches (Airbnb style)
-              Indented on both sides to feel "nested" between main sections
+              Indented on LEFT only to feel "nested" — RIGHT aligns with main sections
               ============================================================ */}
-          <section className="pb-16 mx-4 sm:mx-8">
+          <section className="pb-16 ml-4 sm:ml-8">
             {/* Nested layout: timeline on left, cards fill remaining space */}
             <div className="relative pl-14">
               {/* Timeline — absolutely positioned in left margin, minimal and subtle */}
               <div className="absolute left-0 top-0 bottom-0 w-12 flex flex-col items-center">
                 {/* Step 1 marker */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[11px] text-gray-400 mb-1">Profile</span>
+                  <span className="text-[11px] font-semibold text-gray-500 mb-1">Profile</span>
                   <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
                     1
                   </div>
@@ -711,7 +730,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 <div className="flex-1 w-px bg-gray-150 my-3" style={{ backgroundColor: '#e8e8e8' }} />
                 {/* Step 2 marker */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[11px] text-gray-400 mb-1">Benefits</span>
+                  <span className="text-[11px] font-semibold text-gray-500 mb-1">Benefits</span>
                   <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
                     2
                   </div>
@@ -720,7 +739,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 <div className="flex-1 w-px bg-gray-150 my-3" style={{ backgroundColor: '#e8e8e8' }} />
                 {/* Step 3 marker */}
                 <div className="flex flex-col items-center">
-                  <span className="text-[11px] text-gray-400 mb-1">Matches</span>
+                  <span className="text-[11px] font-semibold text-gray-500 mb-1">Matches</span>
                   <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-500">
                     3
                   </div>
@@ -730,9 +749,9 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
               {/* Cards — full width, generous spacing */}
               <div className="space-y-4">
                 {/* Card 1: Profile */}
-                <Link
-                  href="/portal/profile"
-                  className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+                <button
+                  onClick={() => setProfileWizardOpen(true)}
+                  className="w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
                 >
                   <div className="w-14 h-14 rounded-xl bg-[#FEF7ED] flex items-center justify-center flex-shrink-0">
                     <svg viewBox="0 0 32 32" className="w-8 h-8">
@@ -741,13 +760,22 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                       <circle cx="20" cy="20" r="1.5" fill="#A69484"/>
                     </svg>
                   </div>
-                  <p className="flex-1 text-text-md font-semibold text-gray-900">Complete your profile</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-text-md font-semibold text-gray-900">
+                      {isConnected && connection?.to_profile?.display_name
+                        ? `Help ${connection.to_profile.display_name.split(' ')[0]} learn more about you`
+                        : "Complete your profile"}
+                    </p>
+                    <p className="text-text-sm text-gray-500 mt-0.5">
+                      {profilePercentage}% complete
+                    </p>
+                  </div>
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                </Link>
+                </button>
 
                 {/* Card 2: Benefits */}
                 <Link
@@ -760,7 +788,12 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                       <text x="16" y="20" textAnchor="middle" fill="#8B7355" fontSize="12" fontWeight="600">$</text>
                     </svg>
                   </div>
-                  <p className="flex-1 text-text-md font-semibold text-gray-900">You may qualify for benefits</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-text-md font-semibold text-gray-900">You may qualify for benefits</p>
+                    <p className="text-text-sm text-gray-500 mt-0.5">
+                      {benefitsSavedCount === 0 ? "0 saved" : `${benefitsSavedCount} saved`}
+                    </p>
+                  </div>
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -780,7 +813,16 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                       <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
                     </svg>
                   </div>
-                  <p className="flex-1 text-text-md font-semibold text-gray-900">Get matched with providers</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-text-md font-semibold text-gray-900">Get matched with providers</p>
+                    <p className="text-text-sm text-gray-500 mt-0.5">
+                      {isProfileLive ? (
+                        <span className="text-primary-600">Live</span>
+                      ) : (
+                        "Profile not live"
+                      )}
+                    </p>
+                  </div>
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -885,6 +927,19 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
             </section>
           )}
         </div>
+
+        {/* Profile Wizard */}
+        {profileWizardOpen && activeProfile && (
+          <ProfileWizard
+            profile={activeProfile}
+            userEmail={user?.email}
+            onClose={() => setProfileWizardOpen(false)}
+            onComplete={() => {
+              refreshAccountData();
+              setProfileWizardOpen(false);
+            }}
+          />
+        )}
       </div>
     );
   }

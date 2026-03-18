@@ -459,11 +459,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           {connection?.to_profile?.display_name ? (
             <>
               <h1 className="text-[32px] sm:text-[40px] font-display font-bold text-gray-900 leading-[1.15] tracking-tight">
-                You&apos;re connected with{" "}
-                <span className="text-primary-600">{connection.to_profile.display_name}</span>.
+                You&apos;re connected.
               </h1>
               <p className="mt-2 text-lg text-gray-500">
-                Find more providers and explore benefits you may qualify for.
+                Explore more providers and benefits you may qualify for.
               </p>
             </>
           ) : (
@@ -472,7 +471,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
                 Welcome to Olera.
               </h1>
               <p className="mt-2 text-lg text-gray-500">
-                Find more providers and explore benefits you may qualify for.
+                Explore providers and benefits you may qualify for.
               </p>
             </>
           )}

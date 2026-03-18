@@ -795,10 +795,10 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
           </section>
 
           {/* ============================================================
-              PROVIDER RECOMMENDATIONS — Aligned with content above
+              PROVIDER RECOMMENDATIONS — Full width like Airbnb
               ============================================================ */}
           {matches.length > 0 && (
-            <section className="pb-20 pl-14">
+            <section className="pb-20">
               {/* Section header with navigation arrows — Airbnb style */}
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-text-lg font-semibold text-gray-900">
@@ -866,7 +866,7 @@ export default function WelcomeClient({ destination }: WelcomeClientProps) {
 
           {/* Loading state for providers */}
           {providersLoading && (
-            <section className="pb-20 pl-14">
+            <section className="pb-20">
               <div className="flex items-center justify-between mb-5">
                 <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
                 <div className="flex gap-2">

@@ -19,6 +19,7 @@ import MatchesFilterBar, {
 import MatchesFilterSheet, { type FilterSheetType } from "@/components/provider/matches/MatchesFilterSheet";
 import FamilyMatchCard from "@/components/provider/matches/FamilyMatchCard";
 import ReachOutDrawer from "@/components/provider/matches/ReachOutDrawer";
+import Pagination from "@/components/ui/Pagination";
 
 
 // ── Timeline config ──
@@ -98,7 +99,7 @@ const URGENCY_ORDER: Record<string, number> = {
 };
 
 const DEFAULT_NOTE_KEY = "olera_default_reachout_note";
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 12;
 
 // ── Inline keyframes ──
 
@@ -586,8 +587,6 @@ export default function ProviderMatchesPage() {
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set());
   const [reachOutCounts, setReachOutCounts] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MatchesFilters>(DEFAULT_FILTERS);
   const [sortBy, setSortBy] = useState<SortOption>("best_match");
@@ -604,6 +603,10 @@ export default function ProviderMatchesPage() {
 
   // Contacted section accordion (collapsed by default)
   const [contactedExpanded, setContactedExpanded] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const hasFullAccess = canEngage(
     providerProfile?.type,
@@ -737,45 +740,39 @@ export default function ProviderMatchesPage() {
   );
 
   const fetchFamilies = useCallback(
-    async (offset: number) => {
+    async () => {
       if (!profileId || !isSupabaseConfigured()) {
         setLoading(false);
         return;
       }
 
-      if (offset === 0) setLoading(true);
-      else setLoadingMore(true);
+      setLoading(true);
       setFetchError(null);
 
       try {
         const supabase = createClient();
 
-        // Round 1: families + provider's own connections (+ responded)
+        // Fetch all families + provider's own connections (+ responded)
         const [familiesRes, connectionsRes, respondedRes] = await Promise.all([
           supabase
             .from("business_profiles")
-            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at")
+            .select("id, display_name, city, state, lat, lng, type, care_types, metadata, image_url, slug, created_at", { count: "exact" })
             .eq("type", "family")
             .eq("is_active", true)
             .filter("metadata->care_post->>status", "eq", "active")
-            .order("created_at", { ascending: false })
-            .range(offset, offset + PAGE_SIZE),
-          ...(offset === 0
-            ? [
-                supabase
-                  .from("connections")
-                  .select("to_profile_id")
-                  .eq("from_profile_id", profileId)
-                  .eq("type", "request")
-                  .in("status", ["pending", "accepted"]),
-                supabase
-                  .from("connections")
-                  .select("to_profile_id")
-                  .eq("from_profile_id", profileId)
-                  .eq("type", "request")
-                  .eq("status", "accepted"),
-              ]
-            : [Promise.resolve({ data: null, error: null }), Promise.resolve({ data: null, error: null })]),
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("connections")
+            .select("to_profile_id")
+            .eq("from_profile_id", profileId)
+            .eq("type", "request")
+            .in("status", ["pending", "accepted"]),
+          supabase
+            .from("connections")
+            .select("to_profile_id")
+            .eq("from_profile_id", profileId)
+            .eq("type", "request")
+            .eq("status", "accepted"),
         ]);
 
         if (familiesRes.error) {
@@ -783,23 +780,17 @@ export default function ProviderMatchesPage() {
         }
 
         const fetchedFamilies = (familiesRes.data as Profile[]) || [];
-        setHasMore(fetchedFamilies.length > PAGE_SIZE);
-        const trimmed = fetchedFamilies.slice(0, PAGE_SIZE);
-
-        if (offset === 0) {
-          setFamilies(trimmed);
-          setContactedIds(
-            new Set(connectionsRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
-          );
-          setRespondedIds(
-            new Set(respondedRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
-          );
-        } else {
-          setFamilies((prev) => [...prev, ...trimmed]);
-        }
+        setFamilies(fetchedFamilies);
+        setTotalCount(familiesRes.count || fetchedFamilies.length);
+        setContactedIds(
+          new Set(connectionsRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+        );
+        setRespondedIds(
+          new Set(respondedRes.data?.map((c: { to_profile_id: string }) => c.to_profile_id) || [])
+        );
 
         // Reach-out counts per family
-        const familyIds = trimmed.map((f) => f.id);
+        const familyIds = fetchedFamilies.map((f) => f.id);
         if (familyIds.length > 0) {
           const { data: reachOuts } = await supabase
             .from("connections")
@@ -812,15 +803,7 @@ export default function ProviderMatchesPage() {
           (reachOuts || []).forEach((r: { to_profile_id: string }) => {
             counts.set(r.to_profile_id, (counts.get(r.to_profile_id) || 0) + 1);
           });
-          if (offset === 0) {
-            setReachOutCounts(counts);
-          } else {
-            setReachOutCounts((prev) => {
-              const merged = new Map(prev);
-              counts.forEach((v, k) => merged.set(k, v));
-              return merged;
-            });
-          }
+          setReachOutCounts(counts);
         }
       } catch (err) {
         console.error("[olera] matches fetch failed:", err);
@@ -831,24 +814,28 @@ export default function ProviderMatchesPage() {
         );
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
     [profileId],
   );
 
   useEffect(() => {
-    fetchFamilies(0);
+    fetchFamilies();
   }, [fetchFamilies]);
 
   // Poll for updates every 45 seconds (family profile changes, new listings)
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchFamilies(0);
+      fetchFamilies();
     }, 45000);
 
     return () => clearInterval(interval);
   }, [fetchFamilies]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, sortBy]);
 
   // Filter + sort
   const filteredFamilies = useMemo(() => {
@@ -937,6 +924,13 @@ export default function ProviderMatchesPage() {
     return sorted;
   }, [families, contactedIds, filters, sortBy, providerCareTypes]);
 
+  // Paginate filtered families
+  const totalPages = Math.ceil(filteredFamilies.length / PAGE_SIZE);
+  const paginatedFamilies = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return filteredFamilies.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [filteredFamilies, currentPage]);
+
   const contactedFamilies = useMemo(
     () => families.filter((f) => contactedIds.has(f.id)),
     [families, contactedIds],
@@ -965,7 +959,7 @@ export default function ProviderMatchesPage() {
           </p>
           <button
             type="button"
-            onClick={() => fetchFamilies(0)}
+            onClick={() => fetchFamilies()}
             className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             Try again
@@ -1047,7 +1041,7 @@ export default function ProviderMatchesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {filteredFamilies.map((family) => (
+                {paginatedFamilies.map((family) => (
                   <FamilyMatchCard
                     key={family.id}
                     family={family}
@@ -1114,44 +1108,24 @@ export default function ProviderMatchesPage() {
               </div>
             )}
 
-            {/* Load more */}
-            {hasMore && (
-              <div className="flex justify-center pt-4">
-                <button
-                  type="button"
-                  onClick={() => fetchFamilies(families.length)}
-                  disabled={loadingMore}
-                  className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingMore ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                      Loading...
-                    </span>
-                  ) : (
-                    "Load more matches"
-                  )}
-                </button>
-              </div>
-            )}
-
-            {/* Inline error for load-more failures */}
-            {fetchError && families.length > 0 && (
-              <div className="flex items-center justify-center gap-3 py-4">
-                <p className="text-sm text-red-500">Couldn&apos;t load more matches.</p>
-                <button
-                  type="button"
-                  onClick={() => fetchFamilies(families.length)}
-                  className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-                >
-                  Retry
-                </button>
+            {/* Pagination */}
+            {filteredFamilies.length > PAGE_SIZE && (
+              <div className="pt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredFamilies.length}
+                  itemsPerPage={PAGE_SIZE}
+                  onPageChange={setCurrentPage}
+                  itemLabel="families"
+                  showItemCount={true}
+                />
               </div>
             )}
           </div>
 
           {/* Sidebar — hidden on mobile */}
-          <div className="hidden lg:block lg:col-span-1">
+          <div className="hidden lg:block lg:col-span-1 self-start">
             <MatchesSidebar
               remaining={freeRemaining}
               totalFamilies={families.length}
@@ -1177,6 +1151,8 @@ export default function ProviderMatchesPage() {
         onSend={handleSendFromDrawer}
         defaultMessage={reachOutNote}
         providerProfile={providerProfile}
+        providerCareTypes={providerCareTypes}
+        providerPaymentMethods={providerPaymentMethods}
         sending={sending}
         sendError={sendError}
       />

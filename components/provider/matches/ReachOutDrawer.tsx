@@ -11,6 +11,8 @@ interface ReachOutDrawerProps {
   onSend: (familyId: string, message: string, saveAsDefault: boolean) => Promise<void>;
   defaultMessage?: string;
   providerProfile?: Profile | null;
+  providerCareTypes?: string[];
+  providerPaymentMethods?: string[];
   sending?: boolean;
   sendError?: string | null;
 }
@@ -22,12 +24,13 @@ function getInitials(name: string): string {
 }
 
 function avatarGradient(name: string): string {
+  // Warm/purple tones to avoid green overload on the page
   const gradients = [
-    "linear-gradient(135deg, #5fa3a3, #7ab8b8)",
-    "linear-gradient(135deg, #417272, #5fa3a3)",
-    "linear-gradient(135deg, #4d8a8a, #7ab8b8)",
-    "linear-gradient(135deg, #385e5e, #5fa3a3)",
-    "linear-gradient(135deg, #5fa3a3, #96c8c8)",
+    "linear-gradient(135deg, #8b7355, #a08060)", // warm brown
+    "linear-gradient(135deg, #7c6a9a, #9683b5)", // soft purple
+    "linear-gradient(135deg, #6b7c8a, #8a9ba8)", // slate blue
+    "linear-gradient(135deg, #9a7c6a, #b59683)", // terracotta
+    "linear-gradient(135deg, #7a6b8a, #968bb5)", // lavender
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -36,12 +39,33 @@ function avatarGradient(name: string): string {
   return gradients[Math.abs(hash) % gradients.length];
 }
 
-const TIMELINE_LABELS: Record<string, string> = {
-  immediate: "Immediate",
-  within_1_month: "Within 1 month",
-  within_3_months: "Within 3 months",
-  exploring: "Exploring",
+const TIMELINE_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
+  immediate: { label: "Immediate", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", dot: "bg-red-500" },
+  within_1_month: { label: "Within 1 month", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", dot: "bg-amber-500" },
+  within_3_months: { label: "Within 3 months", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200", dot: "bg-blue-500" },
+  exploring: { label: "Exploring", color: "text-gray-500", bg: "bg-gray-50", border: "border-gray-200", dot: "bg-gray-400" },
 };
+
+function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3959; // miles
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function estimateDriveTime(miles: number): string {
+  const minutes = Math.round(miles / 0.5);
+  if (minutes < 1) return "1 min";
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const rem = minutes % 60;
+  return rem > 0 ? `${hours}h ${rem}m` : `${hours}h`;
+}
 
 export default function ReachOutDrawer({
   family,
@@ -50,6 +74,8 @@ export default function ReachOutDrawer({
   onSend,
   defaultMessage = "",
   providerProfile,
+  providerCareTypes = [],
+  providerPaymentMethods = [],
   sending = false,
   sendError,
 }: ReachOutDrawerProps) {
@@ -112,8 +138,48 @@ export default function ReachOutDrawer({
   const initials = getInitials(displayName);
   const location = [family.city, family.state].filter(Boolean).join(", ");
   const careNeeds = meta?.care_needs || family.care_types || [];
-  const timeline = meta?.timeline ? TIMELINE_LABELS[meta.timeline] : null;
+  const paymentMethods = meta?.payment_methods || [];
+  const timeline = meta?.timeline ? TIMELINE_CONFIG[meta.timeline] : null;
   const aboutSituation = meta?.about_situation || family.description;
+
+  // Calculate match reasons for the drawer
+  const matchReasons: { icon: string; text: string }[] = [];
+
+  // Service match
+  const matchingServices = careNeeds.filter((need) =>
+    providerCareTypes.some((service) => service.toLowerCase() === need.toLowerCase())
+  );
+  if (matchingServices.length > 0) {
+    matchReasons.push({
+      icon: "services",
+      text: matchingServices.length === 1
+        ? `Looking for ${matchingServices[0]}`
+        : `Looking for ${matchingServices.length} services you offer`,
+    });
+  }
+
+  // Distance
+  const providerLat = providerProfile?.lat;
+  const providerLng = providerProfile?.lng;
+  if (providerLat && providerLng && family.lat && family.lng) {
+    const distance = haversineDistance(providerLat, providerLng, family.lat, family.lng);
+    const driveTime = estimateDriveTime(distance);
+    matchReasons.push({
+      icon: "location",
+      text: `${driveTime} drive from you`,
+    });
+  }
+
+  // Payment match
+  const matchingPayments = paymentMethods.filter((method) =>
+    providerPaymentMethods.some((pm) => pm.toLowerCase() === method.toLowerCase())
+  );
+  if (matchingPayments.length > 0) {
+    matchReasons.push({
+      icon: "payment",
+      text: `Pays with ${matchingPayments[0]} — you accept`,
+    });
+  }
 
   // Provider preview
   const providerName = providerProfile?.display_name || "Your profile";
@@ -201,11 +267,12 @@ export default function ReachOutDrawer({
             <div className="flex-1 overflow-y-auto">
               {/* Family Summary */}
               <div className="px-5 lg:px-6 py-4 bg-warm-50/50 border-b border-warm-100/60">
+                {/* Timeline + Care Needs badges */}
                 <div className="flex flex-wrap gap-2 mb-3">
                   {timeline && (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-white border border-gray-200 text-gray-700">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                      {timeline}
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${timeline.border} ${timeline.color} ${timeline.bg}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${timeline.dot} animate-pulse`} />
+                      {timeline.label}
                     </span>
                   )}
                   {careNeeds.slice(0, 3).map((need) => (
@@ -222,6 +289,35 @@ export default function ReachOutDrawer({
                     </span>
                   )}
                 </div>
+
+                {/* Match details */}
+                {matchReasons.length > 0 && (
+                  <div className="space-y-1.5 mb-3">
+                    {matchReasons.slice(0, 3).map((reason, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+                          {reason.icon === "services" && (
+                            <svg className="w-2.5 h-2.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                            </svg>
+                          )}
+                          {reason.icon === "location" && (
+                            <svg className="w-2.5 h-2.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                          )}
+                          {reason.icon === "payment" && (
+                            <svg className="w-2.5 h-2.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600">{reason.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {aboutSituation && (
                   <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">
                     &ldquo;{aboutSituation}&rdquo;

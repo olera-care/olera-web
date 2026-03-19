@@ -29,12 +29,13 @@ function blurName(name: string): string {
 }
 
 function avatarGradient(name: string): string {
+  // Warm/purple tones to avoid green overload on the page
   const gradients = [
-    "linear-gradient(135deg, #5fa3a3, #7ab8b8)",
-    "linear-gradient(135deg, #417272, #5fa3a3)",
-    "linear-gradient(135deg, #4d8a8a, #7ab8b8)",
-    "linear-gradient(135deg, #385e5e, #5fa3a3)",
-    "linear-gradient(135deg, #5fa3a3, #96c8c8)",
+    "linear-gradient(135deg, #8b7355, #a08060)", // warm brown
+    "linear-gradient(135deg, #7c6a9a, #9683b5)", // soft purple
+    "linear-gradient(135deg, #6b7c8a, #8a9ba8)", // slate blue
+    "linear-gradient(135deg, #9a7c6a, #b59683)", // terracotta
+    "linear-gradient(135deg, #7a6b8a, #968bb5)", // lavender
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -127,20 +128,16 @@ export default function FamilyMatchCard({
       });
     }
 
-    // Distance
+    // Distance - only show if we can calculate drive time (avoid duplicate location)
     if (providerLat && providerLng && family.lat && family.lng) {
       const distance = haversineDistance(providerLat, providerLng, family.lat, family.lng);
       const driveTime = estimateDriveTime(distance);
       reasons.push({
         icon: "location",
-        text: `${driveTime} from your location`,
-      });
-    } else if (location) {
-      reasons.push({
-        icon: "location",
-        text: location,
+        text: `${driveTime} drive from you`,
       });
     }
+    // Don't show location as a match reason - it's already in the header
 
     // Payment match
     const matchingPayments = paymentMethods.filter((method) =>
@@ -159,7 +156,7 @@ export default function FamilyMatchCard({
     }
 
     return reasons.slice(0, 3);
-  }, [careNeeds, paymentMethods, providerCareTypes, providerPaymentMethods, providerLat, providerLng, family.lat, family.lng, location]);
+  }, [careNeeds, paymentMethods, providerCareTypes, providerPaymentMethods, providerLat, providerLng, family.lat, family.lng]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -277,7 +274,7 @@ export default function FamilyMatchCard({
 
         {/* Competition indicator */}
         {!contacted && reachOutCount === 0 && (
-          <p className="text-xs text-center text-primary-600 font-medium mt-2">
+          <p className="text-xs text-center text-amber-600 font-medium mt-2">
             Be the first to connect!
           </p>
         )}

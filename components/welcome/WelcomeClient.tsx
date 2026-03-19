@@ -392,6 +392,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // Track if user has completed the onboarding (made a Go Live decision)
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
+  // Track if user JUST went live (for immediate UI feedback before auth state refreshes)
+  const [justWentLive, setJustWentLive] = useState(false);
+
   // Celebration state
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationShown, setCelebrationShown] = useState(false);
@@ -443,8 +446,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
   // Profile live status — aligned with Matches page logic
   // Uses metadata.care_post.status === "active" (set by /api/care-post/activate-matches)
+  // Also considers justWentLive for immediate UI feedback before auth state refreshes
   const carePostStatus = ((activeProfile?.metadata as FamilyMetadata)?.care_post?.status) || null;
-  const isProfileLive = carePostStatus === "active";
+  const isProfileLive = carePostStatus === "active" || justWentLive;
 
   // Go Live validation — minimum data required for meaningful matching
   // Providers filter by location and care types, so we require both
@@ -930,7 +934,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             <div className="relative sm:pl-14">
               {/* Timeline — hidden on mobile, visible on sm+ */}
               <div className="hidden sm:flex absolute left-0 top-0 bottom-0 w-12 flex-col items-center">
-                {/* Step 1 marker */}
+                {/* Step 1 marker — Profile */}
                 <div className="flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-gray-500 mb-1">Profile</span>
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${profileComplete ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
@@ -941,9 +945,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     ) : '1'}
                   </div>
                 </div>
-                {/* Line segment */}
+                {/* Line segment 1→2 */}
                 <div className={`flex-1 w-px my-3 ${profileComplete ? 'bg-primary-200' : ''}`} style={{ backgroundColor: profileComplete ? undefined : '#e8e8e8' }} />
-                {/* Step 2 marker */}
+                {/* Step 2 marker — Matches */}
                 <div className="flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-gray-500 mb-1">Matches</span>
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${isProfileLive ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
@@ -954,6 +958,19 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     ) : '2'}
                   </div>
                 </div>
+                {/* Line segment 2→3 — only show when profile is live */}
+                {isProfileLive && (
+                  <>
+                    <div className="flex-1 w-px my-3 bg-primary-200" />
+                    {/* Step 3 marker — Benefits (current step - ring style) */}
+                    <div className="flex flex-col items-center">
+                      <span className="text-[11px] font-semibold text-gray-500 mb-1">Benefits</span>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium bg-white border-2 border-primary-400 text-primary-600">
+                        3
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Cards — full width, generous spacing */}
@@ -1027,54 +1044,31 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 {/* Card 2: Matches — transforms to show success state when live */}
                 <div className="relative">
                   {isProfileLive ? (
-                    // Already live — celebratory success state with benefits integrated
-                    <div className="relative bg-gradient-to-br from-primary-50 to-emerald-50/50 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
-                      {/* Main link area */}
-                      <Link
-                        href="/portal/matches"
-                        className="flex items-center gap-4 p-4 group"
-                      >
-                        <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-100">
-                          <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-text-md font-semibold text-gray-900">You&apos;re discoverable!</p>
-                          <p className="text-text-sm mt-0.5 text-primary-600">
-                            <span className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                              Profile is live in {cityDisplay}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center flex-shrink-0 group-hover:bg-white transition-colors">
-                          <svg className="w-4 h-4 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </Link>
-                      {/* Benefits teaser — integrated into the success state */}
-                      <div className="px-4 pb-4">
-                        <Link
-                          href="/benefits/finder"
-                          className="flex items-center gap-3 p-3 bg-white/80 rounded-xl hover:bg-white transition-colors group"
-                        >
-                          <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-text-sm font-medium text-gray-900">Care may be covered</p>
-                            <p className="text-text-xs text-gray-500">Find benefits you qualify for</p>
-                          </div>
-                          <svg className="w-4 h-4 text-gray-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </Link>
+                    // Already live — white card with checkmark and Live badge
+                    <Link
+                      href="/portal/matches"
+                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+                    >
+                      {/* Live badge - top right */}
+                      <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Live
+                      </span>
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-50">
+                        <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
                       </div>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">Matches</p>
+                        <p className="text-text-sm mt-0.5 text-primary-600">Providers can discover you</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
                   ) : hasCompletedOnboarding ? (
                     // Skipped Go Live — muted state, links to matches page
                     <Link
@@ -1164,6 +1158,33 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     </button>
                   )}
                 </div>
+
+                {/* Card 3: Benefits — only appears after going live */}
+                {isProfileLive && (
+                  <div className="relative">
+                    <Link
+                      href="/benefits/finder"
+                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+                    >
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50">
+                        <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">Explore benefits</p>
+                        <p className="text-text-sm mt-0.5 text-gray-500">
+                          Care may be covered — find benefits you qualify for
+                        </p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -1344,6 +1365,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 }),
               });
               if (res.ok) {
+                // Immediately show live state in UI (don't wait for auth refresh)
+                setJustWentLive(true);
                 await refreshAccountData?.();
                 // Mark onboarding complete and persist
                 setHasCompletedOnboarding(true);
@@ -1351,7 +1374,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   localStorage.setItem("olera_completed_onboarding", "true");
                 } catch { /* localStorage not available */ }
                 setGoLiveModalOpen(false);
-                // Stay on welcome page - will now show "All Set" view
+                // Stay on welcome page - will now show "All Set" view with live state
               }
             } catch (err) {
               console.error("[welcome] Failed to activate profile:", err);

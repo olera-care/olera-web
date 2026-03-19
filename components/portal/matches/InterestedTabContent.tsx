@@ -205,7 +205,7 @@ export default function InterestedTabContent({
   if (pending.length === 0 && declined.length === 0) {
     if (!hasCarePost) {
       return (
-        <div className="py-16 text-center">
+        <div className="py-12 text-center">
           <div
             className="w-14 h-14 rounded-full bg-warm-100/60 flex items-center justify-center text-2xl mx-auto mb-5"
             style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
@@ -235,29 +235,129 @@ export default function InterestedTabContent({
     }
 
     return (
-      <div className="py-16 text-center">
-        <div
-          className="w-14 h-14 rounded-full bg-warm-100/60 flex items-center justify-center text-2xl mx-auto mb-5"
-          style={{ animation: "emptyFloat 3s ease-in-out infinite" }}
-        >
-          👀
+      <div className="py-8">
+        {/* Animated illustration */}
+        <div className="relative w-full max-w-[320px] h-[180px] mx-auto mb-6">
+          {/* Decorative background blobs */}
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-gradient-to-br from-primary-100/40 to-primary-50/20 blur-xl"
+            style={{ animation: "pulse 4s ease-in-out infinite" }}
+          />
+
+          {/* Central phone/notification illustration */}
+          <div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-28 rounded-2xl bg-white border-2 border-gray-200 shadow-lg"
+            style={{ animation: "float 3s ease-in-out infinite" }}
+          >
+            {/* Screen content */}
+            <div className="absolute inset-2 rounded-xl bg-gradient-to-b from-primary-50 to-white overflow-hidden">
+              {/* Notification bars */}
+              <div className="mt-3 mx-2 space-y-2">
+                <div className="h-2 w-full rounded bg-gray-200/80" />
+                <div className="h-2 w-3/4 rounded bg-gray-200/60" />
+              </div>
+            </div>
+            {/* Notification dot */}
+            <div
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary-500 border-2 border-white shadow-sm"
+              style={{ animation: "ping 2s cubic-bezier(0, 0, 0.2, 1) infinite" }}
+            />
+          </div>
+
+          {/* Floating provider avatars */}
+          <div
+            className="absolute left-[15%] top-[20%] w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 shadow-md flex items-center justify-center text-white text-xs font-bold"
+            style={{ animation: "floatLeft 4s ease-in-out infinite" }}
+          >
+            JM
+          </div>
+          <div
+            className="absolute right-[15%] top-[30%] w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 shadow-md flex items-center justify-center text-white text-xs font-bold"
+            style={{ animation: "floatRight 3.5s ease-in-out infinite 0.5s" }}
+          >
+            SK
+          </div>
+          <div
+            className="absolute left-[25%] bottom-[15%] w-8 h-8 rounded-full bg-gradient-to-br from-warm-400 to-warm-500 shadow-md flex items-center justify-center text-white text-[10px] font-bold"
+            style={{ animation: "floatLeft 3s ease-in-out infinite 1s" }}
+          >
+            AL
+          </div>
+          <div
+            className="absolute right-[22%] bottom-[20%] w-9 h-9 rounded-full bg-gradient-to-br from-primary-300 to-primary-500 shadow-md flex items-center justify-center text-white text-xs font-bold"
+            style={{ animation: "floatRight 4.5s ease-in-out infinite 0.3s" }}
+          >
+            TC
+          </div>
+
+          {/* Connection lines (dashed) */}
+          <svg className="absolute inset-0 w-full h-full opacity-30" style={{ animation: "fadeInOut 3s ease-in-out infinite" }}>
+            <line x1="25%" y1="35%" x2="45%" y2="45%" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-primary-400" />
+            <line x1="75%" y1="40%" x2="55%" y2="45%" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" className="text-primary-400" />
+          </svg>
         </div>
-        <h3 className="text-base font-display font-bold text-gray-900">
-          No providers have reached out yet
-        </h3>
-        <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-[320px] mx-auto">
-          Providers in your area are reviewing care profiles daily. You&apos;ll be
-          notified when someone expresses interest.
-        </p>
+
+        {/* Text content */}
+        <div className="text-center">
+          <h3 className="text-lg font-display font-bold text-gray-900 mb-2">
+            Providers are looking at your profile
+          </h3>
+          <p className="text-sm text-gray-500 leading-relaxed max-w-[340px] mx-auto mb-6">
+            Care providers in your area are actively reviewing profiles like yours.
+            When someone&apos;s interested, they&apos;ll reach out here.
+          </p>
+
+          {/* What to expect cards */}
+          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-br from-primary-50/80 to-white border border-primary-100/60">
+              <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-semibold text-gray-900">Get notified</p>
+                <p className="text-[11px] text-gray-500">We&apos;ll email you</p>
+              </div>
+            </div>
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-br from-warm-50/80 to-white border border-warm-100/60">
+              <div className="w-8 h-8 rounded-lg bg-warm-100 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-warm-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-semibold text-gray-900">Usually 3–5 days</p>
+                <p className="text-[11px] text-gray-500">For first response</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <style jsx>{`
-          @keyframes emptyFloat {
-            0%,
-            100% {
-              transform: translateY(0);
-            }
-            50% {
-              transform: translateY(-6px);
-            }
+          @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+            50% { transform: translate(-50%, -50%) translateY(-8px); }
+          }
+          @keyframes floatLeft {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-5px) translateY(-10px); }
+          }
+          @keyframes floatRight {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(5px) translateY(-8px); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 0.4; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.6; transform: translateX(-50%) scale(1.1); }
+          }
+          @keyframes ping {
+            0% { transform: scale(1); opacity: 1; }
+            75%, 100% { transform: scale(1.5); opacity: 0; }
+          }
+          @keyframes fadeInOut {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.4; }
           }
         `}</style>
       </div>

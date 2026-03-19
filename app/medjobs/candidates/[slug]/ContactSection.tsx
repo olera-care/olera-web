@@ -14,7 +14,7 @@ export default function ContactSection({
   studentPhone: string | null;
   studentSlug: string;
 }) {
-  const { user, activeProfile, profiles } = useAuth();
+  const { user, activeProfile, profiles, openAuth } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
   const hasProviderProfile = profiles.some(
     (p) => p.type === "organization" || p.type === "caregiver"
@@ -107,19 +107,19 @@ export default function ContactSection({
     );
   }
 
-  // State 4: Not signed in at all
+  // State 4: Not signed in at all — open auth modal in-place
   return (
     <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
       <p className="text-sm text-gray-500">
         <span className="font-medium text-gray-700">Want to connect with {studentName}?</span>
-        {" "}Sign in as a provider to view contact information and reach out directly.
+        {" "}Sign in to view contact information and reach out directly.
       </p>
-      <Link
-        href="/for-providers"
+      <button
+        onClick={() => openAuth({ defaultMode: "sign-in" })}
         className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm font-semibold text-white transition-colors"
       >
-        Sign In as Provider
-      </Link>
+        Sign In
+      </button>
     </div>
   );
 }

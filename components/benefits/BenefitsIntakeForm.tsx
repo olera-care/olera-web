@@ -93,6 +93,116 @@ export default function BenefitsIntakeForm() {
     if (step === 0) preloadFullCityData();
   }, [step]);
 
+  // ─── Pre-fill from user profile (if no draft exists) ────────────────────
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    if (!activeProfile) return;
+
+    // Check if there's an existing draft — don't override user's work
+    const hasDraft = typeof window !== "undefined" && localStorage.getItem("olera-benefits-draft");
+    if (hasDraft) return;
+
+    // Check if answers already have data (restored from DB)
+    if (answers.stateCode || answers.age) return;
+
+    prefillApplied.current = true;
+    const meta = (activeProfile.metadata || {}) as FamilyMetadata;
+
+    // Pre-fill location from profile
+    if (activeProfile.city && activeProfile.state) {
+      const display = `${activeProfile.city}, ${activeProfile.state}`;
+      setLocationInputLocal(display);
+      setLocationDisplay(display);
+      setSelectedStateCode(activeProfile.state);
+      updateAnswers({ stateCode: activeProfile.state });
+    }
+
+    // Pre-fill age from metadata
+    if (meta.age) {
+      setAgeInput(String(meta.age));
+      updateAnswers({ age: meta.age });
+    }
+
+    // Map care_types to primaryNeeds
+    const careTypes = activeProfile.care_types || [];
+    const needsMap: Record<string, PrimaryNeed> = {
+      "personal_care": "personalCare",
+      "bathing": "personalCare",
+      "dressing": "personalCare",
+      "grooming": "personalCare",
+      "household": "householdTasks",
+      "housekeeping": "householdTasks",
+      "meal_prep": "householdTasks",
+      "medication": "healthManagement",
+      "health": "healthManagement",
+      "medical": "healthManagement",
+      "companion": "companionship",
+      "social": "companionship",
+      "memory_care": "memoryCare",
+      "dementia": "memoryCare",
+      "alzheimers": "memoryCare",
+      "mobility": "mobilityHelp",
+      "transfer": "mobilityHelp",
+      "wheelchair": "mobilityHelp",
+    };
+
+    const mappedNeeds: PrimaryNeed[] = [];
+    for (const ct of careTypes) {
+      const normalized = ct.toLowerCase().replace(/[^a-z_]/g, "");
+      for (const [key, need] of Object.entries(needsMap)) {
+        if (normalized.includes(key) && !mappedNeeds.includes(need)) {
+          mappedNeeds.push(need);
+        }
+      }
+    }
+    if (mappedNeeds.length > 0) {
+      updateAnswers({ primaryNeeds: mappedNeeds });
+    }
+
+    // Map living_situation or care_location to carePreference
+    const livingSituation = meta.living_situation?.toLowerCase() || "";
+    const careLocation = meta.care_location?.toLowerCase() || "";
+    if (livingSituation.includes("home") || careLocation.includes("home")) {
+      updateAnswers({ carePreference: "stayHome" });
+    } else if (livingSituation.includes("facility") || careLocation.includes("facility") ||
+               livingSituation.includes("assisted") || careLocation.includes("assisted")) {
+      updateAnswers({ carePreference: "exploringFacility" });
+    }
+
+    // Pre-fill income range if available
+    if (meta.income_range) {
+      const incomeMap: Record<string, IncomeRange> = {
+        "under_1500": "under1500",
+        "under_2500": "under2500",
+        "under_4000": "under4000",
+        "under_6000": "under6000",
+        "over_6000": "over6000",
+        "prefer_not_to_say": "preferNotToSay",
+      };
+      const mapped = incomeMap[meta.income_range];
+      if (mapped) {
+        updateAnswers({ incomeRange: mapped });
+      }
+    }
+
+    // Pre-fill medicaid status if available
+    if (meta.medicaid_status) {
+      const medicaidMap: Record<string, MedicaidStatus> = {
+        "already_has": "alreadyHas",
+        "has_medicaid": "alreadyHas",
+        "applying": "applying",
+        "not_sure": "notSure",
+        "does_not_have": "doesNotHave",
+        "no_medicaid": "doesNotHave",
+      };
+      const mapped = medicaidMap[meta.medicaid_status];
+      if (mapped) {
+        updateAnswers({ medicaidStatus: mapped });
+      }
+    }
+  }, [activeProfile, answers.stateCode, answers.age, updateAnswers, setLocationDisplay]);
+
   const stepInfo = INTAKE_STEPS[step];
 
   // If voice mode was restored from draft, mark mode as chosen

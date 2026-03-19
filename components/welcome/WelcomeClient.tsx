@@ -909,147 +909,103 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
           {/* ============================================================
               COMPLETION DASHBOARD — Shows when all steps done
-              3 distinct action cards that guide user to next steps
+              Clean, minimal design with clear visual hierarchy
               ============================================================ */}
           {allStepsComplete && (
-            <section className="pb-8">
-              {/* Heading with celebration feel */}
-              <div className="mb-8 text-center">
-                {/* Celebratory icon with subtle animation */}
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-50 to-emerald-50 mb-5 ring-4 ring-white shadow-[0_4px_16px_rgba(25,144,135,0.15)]">
-                  <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24">
-                    {/* Sparkle/celebration icon */}
+            <section className="pb-12">
+              {/* Celebration header - clean and focused */}
+              <div className="mb-10 text-center">
+                {/* Sparkle icon */}
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary-100 to-emerald-100 mb-4">
+                  <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
                   </svg>
                 </div>
-                <h2 className="text-display-xs sm:text-display-sm font-display font-semibold text-gray-900">
-                  You&apos;re all set!
+                <h2 className="text-2xl sm:text-3xl font-display font-semibold text-gray-900">
+                  You&apos;re all set
                 </h2>
-                <p className="text-text-md sm:text-text-lg text-gray-500 mt-2 max-w-md mx-auto">
-                  Your profile is live and providers in {cityDisplay} can now discover you.
-                </p>
               </div>
 
-              {/* Action Cards with staggered animation */}
-              <div className="grid gap-4 sm:grid-cols-3">
-                {/* Card 1: Matches (PRIMARY - most important now) */}
+              {/* Minimal action cards - horizontal layout */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-12">
+                {/* Card 1: Matches */}
                 <Link
                   href="/portal/matches"
-                  className="group relative bg-gradient-to-br from-primary-50/80 to-emerald-50/60 rounded-2xl p-5 min-h-[180px] border border-primary-100/60 hover:border-primary-200 hover:shadow-[0_4px_20px_rgba(25,144,135,0.15)] hover:scale-[1.02] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 card-entrance"
-                  style={{ animationDelay: '0ms' }}
+                  className="group flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-200"
                 >
-                  {/* Live badge */}
-                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm shadow-sm">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">Live</span>
-                  </div>
-
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-11 h-11 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-text-md font-semibold text-gray-900">Your Matches</p>
-                    </div>
-                  </div>
-                  <p className="text-text-sm text-gray-600 leading-relaxed">
-                    Providers can now find you and reach out. Check for messages and recommendations.
-                  </p>
-                  <p className="mt-4 text-text-sm text-primary-600 font-semibold group-hover:text-primary-700 flex items-center gap-1">
-                    View matches
-                    <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <div className="w-12 h-12 rounded-xl bg-primary-50 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                  </p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900">Matches</span>
+                      {isProfileLive && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          Live
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
 
                 {/* Card 2: Profile */}
                 <Link
                   href="/portal/profile"
-                  className="group bg-white rounded-2xl p-5 min-h-[180px] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:scale-[1.02] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 card-entrance"
-                  style={{ animationDelay: '75ms' }}
+                  className="group flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-200"
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-11 h-11 rounded-xl bg-primary-50 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-text-md font-semibold text-gray-900">Your Profile</p>
-                      <p className="text-text-sm text-gray-500">{profilePercentage}% complete</p>
-                    </div>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
-                    <div
-                      className="h-full bg-primary-500 rounded-full transition-all duration-500"
-                      style={{ width: `${profilePercentage}%` }}
-                    />
-                  </div>
-                  <p className="text-text-sm text-gray-600 leading-relaxed">
-                    {profilePercentage < 100
-                      ? 'A more complete profile helps providers understand your needs better.'
-                      : 'Your profile is looking great! Review and update anytime.'}
-                  </p>
-                  <p className="mt-4 text-text-sm text-primary-600 font-semibold group-hover:text-primary-700 flex items-center gap-1">
-                    {profilePercentage < 100 ? 'Complete profile' : 'View profile'}
-                    <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                  </p>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900">Profile</span>
+                      <span className="text-sm text-gray-400">{profilePercentage}%</span>
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
 
                 {/* Card 3: Benefits */}
                 <Link
                   href="/portal/benefits"
-                  className="group bg-white rounded-2xl p-5 min-h-[180px] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:scale-[1.02] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 card-entrance"
-                  style={{ animationDelay: '150ms' }}
+                  className="group flex-1 flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-100 hover:border-primary-200 hover:shadow-lg transition-all duration-200"
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-text-md font-semibold text-gray-900">Financial Help</p>
-                      <p className="text-text-sm text-gray-500">
-                        {benefitsSavedCount > 0 ? `${benefitsSavedCount} programs saved` : 'Explore programs'}
-                      </p>
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-gray-900">Benefits</span>
+                      {benefitsSavedCount > 0 && (
+                        <span className="text-sm text-gray-400">{benefitsSavedCount} saved</span>
+                      )}
                     </div>
                   </div>
-                  <p className="text-text-sm text-gray-600 leading-relaxed">
-                    Discover VA benefits, Medicaid, and other programs that may help cover care costs.
-                  </p>
-                  <p className="mt-4 text-text-sm text-primary-600 font-semibold group-hover:text-primary-700 flex items-center gap-1">
-                    Find benefits
-                    <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </p>
+                  <svg className="w-5 h-5 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
               </div>
 
-              {/* Card entrance animation */}
-              <style jsx>{`
-                .card-entrance {
-                  animation: cardSlideUp 0.4s ease-out backwards;
-                }
-                @keyframes cardSlideUp {
-                  from {
-                    opacity: 0;
-                    transform: translateY(12px);
-                  }
-                  to {
-                    opacity: 1;
-                    transform: translateY(0);
-                  }
-                }
-              `}</style>
+              {/* Visual divider before providers */}
+              <div className="flex items-center gap-4 mb-2">
+                <div className="flex-1 h-px bg-gray-100" />
+                <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">Explore</span>
+                <div className="flex-1 h-px bg-gray-100" />
+              </div>
             </section>
           )}
 

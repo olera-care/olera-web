@@ -542,6 +542,7 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
         {/* Footer Navigation */}
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
           <div className="flex items-center justify-between">
+            {/* Left side - Skip (step 1) or Back (step 2+) */}
             <div>
               {currentStep > 0 ? (
                 <button
@@ -553,13 +554,14 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
               ) : (
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  Close
+                  Skip
                 </button>
               )}
             </div>
 
+            {/* Right side - Next only */}
             <button
               onClick={handleNext}
               disabled={!canProceed()}

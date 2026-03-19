@@ -76,13 +76,42 @@ function MatchesContent() {
   const [recommendedProviders, setRecommendedProviders] = useState<RecommendedProvider[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
 
-  // Fetch recommended providers based on profile location
+  // Fetch recommended providers using smart matching API
   useEffect(() => {
     async function fetchRecommendedProviders() {
       if (!activeProfile?.city || !activeProfile?.state) return;
 
       setLoadingProviders(true);
       try {
+        // Try smart matching API first (care-type aware, excludes dismissed)
+        const res = await fetch("/api/matches/fetch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sort: "relevance", limit: 12 }),
+        });
+
+        if (res.ok) {
+          const { providers } = await res.json();
+          if (providers && providers.length > 0) {
+            // Map API response to our interface
+            setRecommendedProviders(providers.map((p: Record<string, unknown>) => ({
+              provider_id: p.provider_id,
+              provider_name: p.provider_name,
+              provider_category: p.provider_category,
+              provider_logo: p.provider_logo,
+              provider_images: p.provider_images,
+              city: p.city,
+              state: p.state,
+              google_rating: p.google_rating,
+              lower_price: p.lower_price,
+              upper_price: p.upper_price,
+            })));
+            return;
+          }
+        }
+
+        // Fallback: direct Supabase query if API fails or returns empty
+        console.log("[matches] Smart matching returned empty, falling back to direct query");
         const supabase = createClient();
         const { data } = await supabase
           .from("olera-providers")
@@ -97,6 +126,23 @@ function MatchesContent() {
         }
       } catch (err) {
         console.error("[matches] Failed to fetch recommendations:", err);
+        // Fallback on error
+        try {
+          const supabase = createClient();
+          const { data } = await supabase
+            .from("olera-providers")
+            .select("provider_id, provider_name, provider_category, provider_logo, provider_images, city, state, google_rating, lower_price, upper_price")
+            .eq("state", activeProfile.state)
+            .eq("deleted", false)
+            .order("google_rating", { ascending: false, nullsFirst: false })
+            .limit(12);
+
+          if (data) {
+            setRecommendedProviders(data);
+          }
+        } catch {
+          // Silent fail on fallback
+        }
       } finally {
         setLoadingProviders(false);
       }

@@ -88,6 +88,7 @@ export default function MatchProviderCard({
   const location = [provider.city, provider.state].filter(Boolean).join(", ");
   const providerUrl = `/provider/${provider.slug || provider.id}`;
   const isInterested = Boolean(interestedMessage);
+  const firstName = provider.name.split(" ")[0];
 
   const handleSave = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -132,44 +133,45 @@ export default function MatchProviderCard({
         href={providerUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="group flex flex-col h-full bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all overflow-hidden"
+        className="group flex flex-col h-full min-h-[420px] bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-lg hover:border-gray-300/80 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden"
       >
-        {/* Image - fixed height */}
-        <div className="relative h-40 flex-shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50">
+        {/* Image Section */}
+        <div className="relative h-44 flex-shrink-0 bg-gradient-to-br from-primary-50 via-gray-50 to-warm-50 overflow-hidden">
           {provider.image ? (
-            <Image
-              src={provider.image}
-              alt={provider.name}
-              fill
-              className="object-cover"
-            />
+            <>
+              <Image
+                src={provider.image}
+                alt={provider.name}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* Subtle vignette overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/5" />
+            </>
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center">
               <div
-                className="w-14 h-14 rounded-full flex items-center justify-center"
+                className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm"
                 style={{ background: avatarGradient(provider.name) }}
               >
-                <span className="text-xl font-bold text-white">
+                <span className="text-2xl font-bold text-white">
                   {getInitials(provider.name)}
                 </span>
               </div>
-              <span className="text-xs font-medium text-primary-400 mt-2">
+              <span className="text-xs font-medium text-primary-500 mt-3 px-3 py-1 bg-white/80 rounded-full">
                 {provider.category}
               </span>
             </div>
           )}
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-
-          {/* Save button */}
+          {/* Save button - top right */}
           <button
             onClick={handleSave}
-            className={`absolute top-2 right-2 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-white hover:shadow-md transition-all ${saved ? "scale-105" : ""}`}
+            className={`absolute top-3 right-3 w-10 h-10 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-md hover:shadow-lg hover:bg-white transition-all duration-200 ${saved ? "scale-110" : "hover:scale-105"}`}
             aria-label={saved ? "Remove from saved" : "Save provider"}
           >
             <svg
-              className={`w-4 h-4 transition-all ${saved ? "text-primary-600 fill-primary-600" : "text-gray-400 hover:text-primary-600"}`}
+              className={`w-5 h-5 transition-all duration-200 ${saved ? "text-rose-500 fill-rose-500" : "text-gray-400 hover:text-rose-400"}`}
               fill={saved ? "currentColor" : "none"}
               stroke="currentColor"
               strokeWidth={2}
@@ -183,73 +185,85 @@ export default function MatchProviderCard({
             </svg>
           </button>
 
-          {/* Interested badge */}
+          {/* Interested badge - top left */}
           {isInterested && (
-            <div className="absolute top-2 left-2 px-2.5 py-1 bg-primary-600 text-white text-xs font-medium rounded-full shadow-sm">
+            <div className="absolute top-3 left-3 px-3 py-1.5 bg-gradient-to-r from-primary-600 to-primary-500 text-white text-xs font-semibold rounded-full shadow-md flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/80 animate-pulse" />
               Interested in you
+            </div>
+          )}
+
+          {/* Rating badge - bottom right on image */}
+          {provider.rating && provider.rating > 0 && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-full shadow-sm">
+              <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              <span className="text-sm font-bold text-gray-900">
+                {provider.rating.toFixed(1)}
+              </span>
             </div>
           )}
         </div>
 
-        {/* Content - flex-1 to fill remaining space */}
-        <div className="p-4 flex flex-col flex-1">
-          {/* Name + Rating - fixed height area */}
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-gray-900 text-[15px] group-hover:text-primary-700 transition-colors line-clamp-2 flex-1 leading-snug min-h-[2.5rem]">
-              {provider.name}
-            </h3>
-            {provider.rating && provider.rating > 0 && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-sm font-semibold text-gray-900">
-                  {provider.rating.toFixed(1)}
-                </span>
-              </div>
+        {/* Content Section */}
+        <div className="p-5 flex flex-col flex-1">
+          {/* Provider name */}
+          <h3 className="font-semibold text-gray-900 text-base leading-snug group-hover:text-primary-700 transition-colors line-clamp-2 min-h-[2.75rem]">
+            {provider.name}
+          </h3>
+
+          {/* Category · Location */}
+          <div className="flex items-center gap-1.5 mt-1.5 text-sm text-gray-500">
+            <span className="truncate">{provider.category}</span>
+            {location && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span className="truncate">{location}</span>
+              </>
             )}
           </div>
 
-          {/* Category · Location */}
-          <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-            {provider.category}
-            {location && ` · ${location}`}
-          </p>
+          {/* Price */}
+          <div className="mt-2.5">
+            {provider.priceRange ? (
+              <p className="text-sm font-semibold text-gray-900">{provider.priceRange}</p>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Contact for pricing</p>
+            )}
+          </div>
 
-          {/* Price - always show area, use placeholder if no price */}
-          <p className="text-sm font-semibold text-gray-900 mt-2 min-h-[1.25rem]">
-            {provider.priceRange || <span className="text-gray-400 font-normal">Contact for pricing</span>}
-          </p>
-
-          {/* Provider's message (if interested) - fixed height container */}
-          {isInterested ? (
-            <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-100 min-h-[5.5rem]">
-              <p className="text-sm text-gray-600 line-clamp-2">
+          {/* Provider's message (if interested) */}
+          {isInterested && interestedMessage && (
+            <div className="mt-4 p-3.5 bg-gradient-to-br from-primary-50/50 to-warm-50/30 rounded-xl border border-primary-100/50">
+              <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
                 &ldquo;{interestedMessage}&rdquo;
               </p>
               {interestedAt && (
-                <p className="text-xs text-gray-400 mt-1.5">
+                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   {formatTimeAgo(interestedAt)}
                 </p>
               )}
             </div>
-          ) : (
-            /* Spacer for non-interested cards to maintain height parity */
-            <div className="flex-1 min-h-3" />
           )}
 
           {/* Match reasons (if any) */}
           {matchReasons.length > 0 && (
-            <div className="mt-3 space-y-1.5">
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
-                Why they may be a good match
+            <div className="mt-4 space-y-2">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                Why they're a good match
               </p>
-              <div className="space-y-1">
-                {matchReasons.slice(0, 3).map((reason, i) => (
+              <div className="space-y-1.5">
+                {matchReasons.slice(0, 2).map((reason, i) => (
                   <div key={i} className="flex items-start gap-2">
-                    <svg className="w-3.5 h-3.5 text-primary-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
+                    <div className="w-4 h-4 rounded-full bg-primary-100 flex items-center justify-center shrink-0 mt-0.5">
+                      <svg className="w-2.5 h-2.5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                    </div>
                     <p className="text-xs text-gray-600 leading-relaxed">{reason}</p>
                   </div>
                 ))}
@@ -257,26 +271,28 @@ export default function MatchProviderCard({
             </div>
           )}
 
-          {/* Actions - always at bottom */}
-          <div className="mt-auto pt-4 flex gap-2">
+          {/* Spacer to push actions to bottom */}
+          <div className="flex-1 min-h-4" />
+
+          {/* Actions */}
+          <div className="pt-4 mt-auto border-t border-gray-100">
             {isInterested ? (
-              <>
-                {/* Reply / Continue conversation */}
+              <div className="flex gap-2.5">
+                {/* Reply button */}
                 <button
                   onClick={handleMessageClick}
-                  className="flex-1 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-gradient-to-b from-primary-500 to-primary-600 text-white text-sm font-semibold rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
-                  Reply to {provider.name.split(" ")[0]}
+                  Reply to {firstName}
                 </button>
-                {/* Decline */}
+                {/* Decline button */}
                 <button
                   onClick={handleDecline}
                   disabled={declining}
-                  className="px-4 py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
-                  aria-label="Decline"
+                  className="px-4 py-3 bg-gray-100 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-200 hover:text-gray-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {declining ? (
                     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -284,17 +300,20 @@ export default function MatchProviderCard({
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Decline
+                    </>
                   )}
                 </button>
-              </>
+              </div>
             ) : (
-              /* Not interested yet — prompt to message */
+              /* Message Provider button */
               <button
                 onClick={handleMessageClick}
-                className="w-full px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full px-4 py-3 bg-gradient-to-b from-primary-500 to-primary-600 text-white text-sm font-semibold rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />

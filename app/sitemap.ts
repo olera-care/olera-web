@@ -6,6 +6,7 @@ import {
   cityToSlug,
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
+import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
 
 const SITE_URL = "https://olera.care";
 
@@ -107,28 +108,32 @@ export default async function sitemap({
       // Waiver library pages (static data)
       try {
         for (const state of allStates) {
+          const stateUrl = buildStateUrl(state.id);
           entries.push({
-            url: `${SITE_URL}/waiver-library/${state.id}`,
+            url: `${SITE_URL}${stateUrl}`,
             lastModified: new Date(),
             changeFrequency: "monthly",
             priority: 0.5,
           });
-          entries.push({
-            url: `${SITE_URL}/waiver-library/forms/${state.id}`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.4,
-          });
-          for (const program of state.programs ?? []) {
+          if (state.id !== "texas") {
             entries.push({
-              url: `${SITE_URL}/waiver-library/${state.id}/${program.id}`,
+              url: `${SITE_URL}/waiver-library/forms/${state.id}`,
+              lastModified: new Date(),
+              changeFrequency: "monthly",
+              priority: 0.4,
+            });
+          }
+          for (const program of state.programs ?? []) {
+            const programUrl = buildProgramUrl(state.id, program.id);
+            entries.push({
+              url: `${SITE_URL}${programUrl}`,
               lastModified: new Date(),
               changeFrequency: "monthly",
               priority: 0.5,
             });
             if (program.forms?.length > 0) {
               entries.push({
-                url: `${SITE_URL}/waiver-library/${state.id}/${program.id}/forms`,
+                url: `${SITE_URL}${programUrl}/forms`,
                 lastModified: new Date(),
                 changeFrequency: "monthly",
                 priority: 0.4,

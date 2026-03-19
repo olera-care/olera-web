@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { WaiverProgram } from "@/data/waiver-library";
 
@@ -18,7 +18,8 @@ const FEDERAL_KEYWORDS = [
   "congregate meals", "senior legal", "pace",
 ];
 
-type Category = "financial" | "food" | "health" | "caregiver";
+import { getCategory, type Category } from "@/lib/waiver-category";
+export { getCategory };
 
 const CATEGORY_TABS: { value: Category; label: string }[] = [
   { value: "financial", label: "Financial Help" },
@@ -26,30 +27,6 @@ const CATEGORY_TABS: { value: Category; label: string }[] = [
   { value: "health", label: "Health Coverage" },
   { value: "caregiver", label: "Caregiver Support" },
 ];
-
-const FOOD_KEYWORDS = [
-  "snap", "food", "nutrition", "meals", "calfresh", "congregate",
-  "home-delivered meals", "senior nutrition",
-];
-const HEALTH_KEYWORDS = [
-  "medicaid", "medicare", "health", "medical", "ship", "hicap",
-  "pace", "insurance", "coverage", "waiver", "hcbs",
-];
-const CAREGIVER_KEYWORDS = [
-  "caregiver", "respite", "ombudsman", "family caregiver",
-];
-const FINANCIAL_KEYWORDS = [
-  "ssi", "ssp", "supplemental", "energy", "liheap", "weatherization",
-  "property tax", "legal", "savings program", "cash assistance",
-];
-
-function getCategory(program: WaiverProgram): Category {
-  const text = `${program.name} ${program.id} ${program.tagline}`.toLowerCase();
-  if (CAREGIVER_KEYWORDS.some((kw) => text.includes(kw))) return "caregiver";
-  if (FOOD_KEYWORDS.some((kw) => text.includes(kw))) return "food";
-  if (FINANCIAL_KEYWORDS.some((kw) => text.includes(kw))) return "financial";
-  return "health";
-}
 
 function isFederalProgram(program: WaiverProgram): boolean {
   const text = `${program.name} ${program.id}`.toLowerCase();
@@ -59,13 +36,28 @@ function isFederalProgram(program: WaiverProgram): boolean {
 interface ProgramListProps {
   programs: WaiverProgram[];
   stateId: string;
+  /** Map of program.id → new slug for custom URL paths */
+  slugMap?: Record<string, string>;
+  /** Base path for program links (e.g. "/texas/benefits") */
+  basePath?: string;
 }
 
-export function ProgramList({ programs, stateId }: ProgramListProps) {
+export function ProgramList({ programs, stateId, slugMap, basePath }: ProgramListProps) {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<Category>("financial");
 
-  const searchFiltered = search.trim()
+  // Read ?tab= param on mount to restore the correct category
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab") as Category | null;
+    if (tab && CATEGORY_TABS.some((t) => t.value === tab)) {
+      setCategory(tab);
+    }
+  }, []);
+
+  const hasSearch = search.trim().length > 0;
+
+  const searchFiltered = hasSearch
     ? programs.filter((p) => {
         const q = search.toLowerCase();
         return (
@@ -76,7 +68,10 @@ export function ProgramList({ programs, stateId }: ProgramListProps) {
       })
     : programs;
 
-  const filtered = searchFiltered.filter((p) => getCategory(p) === category);
+  // When searching, show all matches regardless of category
+  const filtered = hasSearch
+    ? searchFiltered
+    : searchFiltered.filter((p) => getCategory(p) === category);
 
   // Count programs per category (based on search-filtered list)
   const categoryCounts = CATEGORY_TABS.reduce((acc, tab) => {
@@ -194,7 +189,7 @@ export function ProgramList({ programs, stateId }: ProgramListProps) {
 
                 <div className="mt-5">
                   <Link
-                    href={`/waiver-library/${stateId}/${program.id}`}
+                    href={basePath && slugMap?.[program.id] ? `${basePath}/${slugMap[program.id]}` : `/waiver-library/${stateId}/${program.id}`}
                     className="inline-flex items-center justify-center w-full px-4 py-2.5 text-base font-semibold text-primary-600 bg-primary-50 border border-primary-200 rounded-xl hover:bg-primary-100 transition-colors"
                   >
                     Learn more

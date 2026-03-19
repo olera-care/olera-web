@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const state = getStateById(stateId);
   const program = getProgramById(stateId, benefitId);
   if (!state || !program) return {};
-  const title = `Document Checklist | ${program.shortName} | ${state.name} | Olera`;
-  const description = `Gather the documents you need to apply for ${program.name} in ${state.name}. Check off items and email the list to yourself.`;
+  const title = `${program.name} Document Checklist 2026 — 16 Documents to Apply | Olera`;
+  const description = `Get the complete document checklist for applying for the ${program.name} in ${state.name} in 2026. 16 required documents across identity, income, medical, and residency. Email yourself the full list free.`;
   return {
     title,
     description,
@@ -56,15 +56,13 @@ export default async function ChecklistPage({ params }: Props) {
               { label: "Benefits Hub", href: "/waiver-library" },
               { label: state.name, href: `/waiver-library/${state.id}` },
               { label: program.shortName, href: `/waiver-library/${state.id}/${program.id}` },
-              { label: "Document Checklist" },
+              { label: "Document Checklist", current: true },
+              { label: "Application Forms", href: `/waiver-library/${state.id}/${program.id}/forms` },
             ]}
           />
           <h1 className="mt-2 text-2xl md:text-3xl font-bold text-white">
-            Document Checklist
+            {program.name} Document Checklist 2026
           </h1>
-          <p className="mt-1 text-sm text-primary-200">
-            Everything you need to apply for {program.shortName} in {state.name}
-          </p>
         </div>
       </section>
 

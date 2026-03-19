@@ -1,56 +1,53 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getStateById, getProgramById, activeStateIds } from "@/data/waiver-library";
+import { getStateById, getProgramById } from "@/data/waiver-library";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
 import { ServiceAreasMap } from "@/components/waiver-library/ServiceAreasMapLoader";
 import { ExpandableText } from "@/components/waiver-library/ExpandableText";
 import { FaqAccordion } from "@/components/waiver-library/FaqAccordion";
 import { CityBadge } from "@/components/waiver-library/CityBadge";
 import { getCategory } from "@/lib/waiver-category";
+import { TX_NEW_TO_OLD, TX_OLD_TO_NEW } from "@/lib/texas-slug-map";
 
 interface Props {
-  params: Promise<{ state: string; benefit: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  const params: { state: string; benefit: string }[] = [];
-  for (const stateId of activeStateIds) {
-    const state = getStateById(stateId);
-    if (state) {
-      for (const program of state.programs) {
-        params.push({ state: stateId, benefit: program.id });
-      }
-    }
-  }
-  return params;
+  return Object.values(TX_OLD_TO_NEW).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { state: stateId, benefit: benefitId } = await params;
-  const state = getStateById(stateId);
-  const program = getProgramById(stateId, benefitId);
+  const { slug } = await params;
+  const oldId = TX_NEW_TO_OLD[slug];
+  if (!oldId) return {};
+  const state = getStateById("texas");
+  const program = getProgramById("texas", oldId);
   if (!state || !program) return {};
-  const title = `${program.name} | ${state.name} | Benefits Hub | Olera`;
-  const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in ${state.name}.`;
+  const title = `${program.name} | Texas | Benefits Hub | Olera`;
+  const description = `${program.tagline} Learn about eligibility, home care benefits, and how to apply for ${program.shortName} in Texas.`;
   return {
     title,
     description,
-    alternates: { canonical: `/waiver-library/${stateId}/${benefitId}` },
+    alternates: { canonical: `/texas/benefits/${slug}` },
     openGraph: {
       title,
       description,
-      url: `/waiver-library/${stateId}/${benefitId}`,
+      url: `/texas/benefits/${slug}`,
       siteName: "Olera",
       type: "website",
     },
   };
 }
 
-export default async function BenefitPage({ params }: Props) {
-  const { state: stateId, benefit: benefitId } = await params;
-  const state = getStateById(stateId);
-  const program = getProgramById(stateId, benefitId);
+export default async function TexasBenefitPage({ params }: Props) {
+  const { slug } = await params;
+  const oldId = TX_NEW_TO_OLD[slug];
+  if (!oldId) notFound();
+
+  const state = getStateById("texas");
+  const program = getProgramById("texas", oldId);
 
   if (!state || !program) {
     notFound();
@@ -92,9 +89,9 @@ export default async function BenefitPage({ params }: Props) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-5">
           <div className="flex items-center gap-3 mb-1">
             <Link
-              href={`/waiver-library/${state.id}?tab=${getCategory(program)}`}
+              href={`/texas/benefits?tab=${getCategory(program)}`}
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-              aria-label={`Back to ${state.name}`}
+              aria-label="Back to Texas"
             >
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -104,10 +101,10 @@ export default async function BenefitPage({ params }: Props) {
               variant="dark"
               items={[
                 { label: "Benefits Hub", href: "/waiver-library" },
-                { label: state.name, href: `/waiver-library/${state.id}` },
+                { label: "Texas", href: "/texas/benefits" },
                 { label: program.shortName, current: true },
-                { label: "Document Checklist", href: `/waiver-library/${state.id}/${program.id}/checklist` },
-                { label: "Application Forms", href: `/waiver-library/${state.id}/${program.id}/forms` },
+                { label: "Document Checklist", href: `/texas/benefits/${slug}/checklist` },
+                { label: "Application Forms", href: `/texas/benefits/${slug}/forms` },
               ]}
             />
           </div>
@@ -176,18 +173,8 @@ export default async function BenefitPage({ params }: Props) {
                 {program.eligibilityHighlights.map((highlight) => (
                   <li key={highlight} className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-success-100 flex items-center justify-center shrink-0 mt-0.5">
-                      <svg
-                        className="w-3.5 h-3.5 text-success-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M5 13l4 4L19 7"
-                        />
+                      <svg className="w-3.5 h-3.5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
                     <span className="text-gray-700">{highlight}</span>
@@ -215,8 +202,8 @@ export default async function BenefitPage({ params }: Props) {
       <section className="py-3 md:py-4">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-primary-50 rounded-xl border border-primary-100 shadow-sm p-5 md:p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">What to Gather Before Applying for {program.name} in {state.name}</h2>
-            <p className="text-sm text-gray-600 mb-4">To apply for {program.name} in {state.name} you will need the following documents ready before contacting your local Medicaid office or calling 211.</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">What to Gather Before Applying for {program.name} in Texas</h2>
+            <p className="text-sm text-gray-600 mb-4">To apply for {program.name} in Texas you will need the following documents ready before contacting your local Medicaid office or calling 211.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-start gap-4 bg-white rounded-xl border border-gray-100 p-5">
                 <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center shrink-0">
@@ -254,7 +241,7 @@ export default async function BenefitPage({ params }: Props) {
             </div>
             <div className="mt-4">
               <Link
-                href={`/waiver-library/${state.id}/${program.id}/checklist`}
+                href={`/texas/benefits/${slug}/checklist`}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-primary-700 text-sm font-semibold rounded-xl border border-primary-200 hover:bg-primary-50 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,10 +263,10 @@ export default async function BenefitPage({ params }: Props) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12h16" />
               </svg>
-              How to Apply for {program.shortName} in {state.name}
+              How to Apply for {program.shortName} in Texas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Step 1: Check eligibility */}
+              {/* Step 1 */}
               <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col min-h-[220px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
                 <div className="flex items-center gap-3 mb-3 min-h-[44px]">
                   <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-primary-600/25">
@@ -291,10 +278,7 @@ export default async function BenefitPage({ params }: Props) {
                   <p className="text-sm text-gray-600">{program.applicationSteps[0]?.description || "See if you qualify using the eligibility highlights above."}</p>
                 </div>
                 <div className="mt-auto pt-3">
-                  <Link
-                    href="/benefits/finder"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-                  >
+                  <Link href="/benefits/finder" className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -303,7 +287,7 @@ export default async function BenefitPage({ params }: Props) {
                 </div>
               </div>
 
-              {/* Step 2: Gather documents */}
+              {/* Step 2 */}
               <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col min-h-[220px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
                 <div className="flex items-center gap-3 mb-3 min-h-[44px]">
                   <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-primary-600/25">
@@ -315,10 +299,7 @@ export default async function BenefitPage({ params }: Props) {
                   <p className="text-sm text-gray-600">{program.applicationSteps[1]?.description || "Collect proof of age, income, and residency."}</p>
                 </div>
                 <div className="mt-auto pt-3">
-                  <Link
-                    href={`/waiver-library/${state.id}/${program.id}/checklist`}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-                  >
+                  <Link href={`/texas/benefits/${slug}/checklist`} className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
@@ -340,10 +321,7 @@ export default async function BenefitPage({ params }: Props) {
                     <p className="text-sm text-gray-600">{program.applicationSteps[2]?.description || "Download and submit by mail or at your local office."}</p>
                   </div>
                   <div className="mt-auto pt-3">
-                    <Link
-                      href={`/waiver-library/${state.id}/${program.id}/forms`}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-                    >
+                    <Link href={`/texas/benefits/${slug}/forms`} className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
@@ -353,7 +331,7 @@ export default async function BenefitPage({ params }: Props) {
                 </div>
               )}
 
-              {/* Step 4: Submit application */}
+              {/* Step 4 */}
               <div className="bg-white rounded-xl border border-gray-100 p-4 flex flex-col min-h-[220px] shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
                 <div className="flex items-center gap-3 mb-3 min-h-[44px]">
                   <div className="w-9 h-9 bg-primary-600 rounded-full flex items-center justify-center shrink-0 shadow-md shadow-primary-600/25">
@@ -366,12 +344,7 @@ export default async function BenefitPage({ params }: Props) {
                 </div>
                 {program.forms.length > 0 && (
                   <div className="mt-auto pt-3">
-                    <a
-                      href={program.forms[0].url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-                    >
+                    <a href={program.forms[0].url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-2 bg-primary-50 text-primary-700 text-xs font-semibold rounded-lg border border-primary-200 shadow-md shadow-primary-200/50 hover:bg-primary-100 hover:shadow-lg hover:shadow-primary-200/60 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7v4m0-4l-2 2m2-2l2 2" />
                       </svg>
@@ -385,7 +358,6 @@ export default async function BenefitPage({ params }: Props) {
         </div>
       </section>
 
-
       {/* Service Areas */}
       {program.serviceAreas && program.serviceAreas.length > 0 && (
         <section className="py-3 md:py-4">
@@ -393,7 +365,6 @@ export default async function BenefitPage({ params }: Props) {
             {program.serviceAreasHeading ? (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
-                  {/* Left — cities & info */}
                   <div className="p-6 md:p-8 flex flex-col justify-center">
                     <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
                       <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,7 +396,6 @@ export default async function BenefitPage({ params }: Props) {
                         </p>
                       </div>
                     )}
-                    {/* Don't see a location CTA */}
                     <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-primary-50 border border-primary-100 rounded-lg px-4 py-3.5">
                       <div>
                         <p className="text-sm font-bold text-gray-900">Don&apos;t see a location close to you?</p>
@@ -437,23 +407,21 @@ export default async function BenefitPage({ params }: Props) {
                       </a>
                     </div>
                   </div>
-                  {/* Right — map */}
                   <div className="border-t lg:border-t-0 lg:border-l border-gray-200 bg-gray-50 flex flex-col">
-                    <ServiceAreasMap stateId={state.id} areas={program.serviceAreas} mapPins={program.mapPins} programName={program.name} noWrapper />
+                    <ServiceAreasMap stateId="texas" areas={program.serviceAreas} mapPins={program.mapPins} programName={program.name} noWrapper />
                   </div>
                 </div>
               </div>
             ) : (
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
-                  {/* Left — city cards */}
                   <div className="p-6 md:p-8">
                     <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-5 flex items-center gap-2">
                       <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      Where to Access {program.name.replace(new RegExp(`\\s*${state.name}\\s*`, 'gi'), ' ').trim()} in {state.name}
+                      Where to Access {program.name.replace(/\s*Texas\s*/gi, ' ').trim()} in Texas
                     </h2>
                     <div className="grid gap-2.5 grid-cols-1 sm:grid-cols-2">
                       {program.serviceAreas.map((area) => (
@@ -463,7 +431,6 @@ export default async function BenefitPage({ params }: Props) {
                         </div>
                       ))}
                     </div>
-                    {/* Don't see a location CTA */}
                     <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-primary-50 border border-primary-100 rounded-lg px-4 py-3.5">
                       <div>
                         <p className="text-sm font-bold text-gray-900">Don&apos;t see a location close to you?</p>
@@ -475,9 +442,8 @@ export default async function BenefitPage({ params }: Props) {
                       </a>
                     </div>
                   </div>
-                  {/* Right — map */}
                   <div className="border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col">
-                    <ServiceAreasMap stateId={state.id} areas={program.serviceAreas} mapPins={program.mapPins} programName={program.name} noWrapper />
+                    <ServiceAreasMap stateId="texas" areas={program.serviceAreas} mapPins={program.mapPins} programName={program.name} noWrapper />
                   </div>
                 </div>
               </div>
@@ -517,18 +483,8 @@ export default async function BenefitPage({ params }: Props) {
                 className="inline-flex items-center justify-center px-6 py-3 text-base text-white font-semibold rounded-xl bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-600/25 transition-all duration-200"
               >
                 Find My Savings
-                <svg
-                  className="ml-2 w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
+                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
             </div>

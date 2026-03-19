@@ -103,31 +103,22 @@ export default function MedJobsPage() {
     <main className="bg-white">
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/80 via-orange-50/20 to-white" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 lg:pt-28 pb-16">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-20 pb-16">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Copy */}
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                <span className="text-xs font-medium text-primary-700">Now Accepting Applications</span>
-              </div>
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-gray-900 leading-[1.1]">
-                Get paid healthcare
-                <br />
-                <span className="text-primary-600">experience while</span>
-                <br />
-                <span className="text-primary-600">you&apos;re still in school</span>
+                Get paid healthcare experience{" "}
+                <span className="text-primary-600">while you&apos;re still in school</span>
               </h1>
-              <p className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg">
-                Whether you&apos;re headed to medical school, nursing, PA, PT, or public health
-                — gain verified patient care hours while helping seniors live better. Every hour
-                is logged, confirmed by your provider, and ready for your professional school application.
+              <p className="mt-5 text-[17px] text-gray-500 leading-relaxed max-w-lg">
+                Paid roles with senior care providers. Verified hours for your professional school application.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
                 <Link
                   href="/medjobs/apply"
-                  className="inline-flex items-center px-7 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
+                  className="inline-flex items-center px-7 py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
                 >
                   Apply Now
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,23 +127,20 @@ export default function MedJobsPage() {
                 </Link>
                 <Link
                   href="/medjobs/candidates"
-                  className="inline-flex items-center px-7 py-3.5 text-gray-600 text-sm font-medium hover:text-gray-900 transition-colors"
+                  className="inline-flex items-center px-7 py-3 text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors"
                 >
                   I&apos;m a provider looking to hire
-                  <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
                 </Link>
               </div>
             </div>
 
-            {/* Hero image with overlapping elements */}
+            {/* Hero image */}
             <div className="relative">
-              <div className="aspect-square rounded-3xl overflow-hidden bg-gray-100 shadow-2xl shadow-gray-900/10">
-                  <Image
+              <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-lg shadow-gray-200/50">
+                <Image
                   src="/images/medjobs/hero-caregiving.jpg"
                   alt="Student caregiver helping a senior — Olera MedJobs"
-                  width={1080}
+                  width={810}
                   height={1080}
                   className="w-full h-full object-cover"
                   priority

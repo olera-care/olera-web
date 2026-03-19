@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import WelcomeClient from "@/components/welcome/WelcomeClient";
+
+// Dynamic rendering - uses auth session and search params
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Welcome | Olera",

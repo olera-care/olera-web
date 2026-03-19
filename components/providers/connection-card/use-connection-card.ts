@@ -104,6 +104,36 @@ export function useConnectionCard(props: ConnectionCardProps) {
   const availableCareTypes = mapProviderCareTypes();
   const notificationEmail = user?.email || "your email";
 
+  // ── Profile pre-fill data (must be before callbacks that use it) ──
+  const profileMeta = (activeProfile?.metadata || {}) as Record<string, unknown>;
+  const hasProfileCareDetails = Boolean(
+    profileMeta.relationship_to_recipient && profileMeta.timeline
+  );
+  const profileRecipient = profileMeta.relationship_to_recipient as string | undefined;
+  const profileTimeline = profileMeta.timeline as string | undefined;
+  const initialRecipient = profileRecipient
+    ? RECIPIENT_FROM_PROFILE[profileRecipient] || null
+    : null;
+  const initialUrgency = profileTimeline
+    ? URGENCY_FROM_TIMELINE[profileTimeline] || null
+    : null;
+
+  // ── Smart routing: check if user is fully onboarded ──
+  // Profile complete = has name, location, care types, and care details
+  const isProfileComplete = Boolean(
+    activeProfile?.display_name &&
+    activeProfile?.city &&
+    activeProfile?.state &&
+    activeProfile?.care_types?.length &&
+    profileMeta.relationship_to_recipient &&
+    profileMeta.timeline
+  );
+  // Matches live = care_post.status === "active"
+  const carePost = profileMeta.care_post as { status?: string } | undefined;
+  const isMatchesLive = carePost?.status === "active";
+  // Fully onboarded = profile complete AND matches live
+  const isFullyOnboarded = isProfileComplete && isMatchesLive;
+
   // ── Resolve initial state — show form immediately for everyone ──
   useEffect(() => {
     if (authLoading) return;
@@ -501,9 +531,18 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.created_at) setPendingRequestDate(data.created_at);
         if (data.connectionId) setConnectionId(data.connectionId);
 
-        // Show enrichment first — redirect happens after save/skip
-        setCardState("enrichment");
-        setPhoneRevealed(true);
+        // Smart routing based on onboarding state
+        // Skip enrichment entirely for logged-in users — welcome page wizard handles this
+        if (onConnectionCreated) {
+          onConnectionCreated(data.connectionId);
+        } else if (isFullyOnboarded) {
+          // Fully onboarded (profile complete + matches live) → go to inbox
+          router.push(`/portal/inbox?id=${data.connectionId}`);
+        } else {
+          // Not fully onboarded → welcome page (profile wizard collects care details)
+          router.push(`/welcome?connection=${data.connectionId}&provider=${providerSlug}`);
+        }
+        return;
       } else {
         // Guest flow — instant account creation + session
         const res = await fetch("/api/connections/request", {
@@ -587,7 +626,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated]);
+  }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated, isFullyOnboarded, router]);
 
   // ── Save enrichment data (post-submit) ──
   // Note: Intent data is now captured in the initial connection request
@@ -628,6 +667,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
   // Pre-fill data for signed-in users
   const userEmail = user?.email || "";
   const userName = account?.display_name || "";
+  const userPhone = activeProfile?.phone || "";
 
   return {
     // State
@@ -669,5 +709,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     // Pre-fill for signed-in users
     userEmail,
     userName,
+    userPhone,
+    hasProfileCareDetails,
+    initialRecipient,
+    initialUrgency,
   };
 }

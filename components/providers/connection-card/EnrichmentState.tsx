@@ -10,6 +10,8 @@ interface EnrichmentStateProps {
   onSave: (data: { careRecipient: CareRecipient; urgency: UrgencyValue }) => void;
   onSkip: () => void;
   saving?: boolean;
+  initialRecipient?: CareRecipient | null;
+  initialUrgency?: UrgencyValue | null;
 }
 
 export default function EnrichmentState({
@@ -17,9 +19,11 @@ export default function EnrichmentState({
   onSave,
   onSkip,
   saving,
+  initialRecipient = null,
+  initialUrgency = null,
 }: EnrichmentStateProps) {
-  const [recipient, setRecipient] = useState<CareRecipient | null>(null);
-  const [urgency, setUrgency] = useState<UrgencyValue | null>(null);
+  const [recipient, setRecipient] = useState<CareRecipient | null>(initialRecipient);
+  const [urgency, setUrgency] = useState<UrgencyValue | null>(initialUrgency);
 
   const canSave = recipient && urgency && !saving;
 

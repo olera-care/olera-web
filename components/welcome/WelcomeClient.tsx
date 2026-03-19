@@ -1090,14 +1090,14 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     ) : '2'}
                   </div>
                 </div>
-                {/* Line segment 2→3 — only show when profile is live */}
-                {isProfileLive && (
+                {/* Line segment 2→3 — show when onboarding complete (live or skipped) */}
+                {(isProfileLive || hasCompletedOnboarding) && (
                   <>
-                    <div className="flex-1 w-px my-3 bg-primary-200" />
+                    <div className={`flex-1 w-px my-3 ${isProfileLive ? 'bg-primary-200' : 'bg-gray-200'}`} />
                     {/* Step 3 marker — Benefits (current step - ring style) */}
                     <div className="flex flex-col items-center">
                       <span className="text-[11px] font-semibold text-gray-500 mb-1">Benefits</span>
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium bg-white border-2 border-primary-400 text-primary-600">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${isProfileLive ? 'bg-white border-2 border-primary-400 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
                         3
                       </div>
                     </div>
@@ -1202,13 +1202,17 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       </div>
                     </Link>
                   ) : hasCompletedOnboarding ? (
-                    // Skipped Go Live — muted state, links to matches page
+                    // Skipped Go Live — green stroke to indicate next action, links to matches page
                     <Link
                       href="/portal/matches"
                       className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+                      style={{
+                        outline: '3px solid #199087',
+                        outlineOffset: '3px',
+                      }}
                     >
-                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-100">
-                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
+                        <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </div>
@@ -1218,8 +1222,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                           Go live anytime to let providers find you
                         </p>
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 transition-colors">
+                        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -1291,15 +1295,15 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   )}
                 </div>
 
-                {/* Card 3: Benefits — only appears after going live */}
-                {isProfileLive && (
+                {/* Card 3: Benefits — appears after going live OR when user skipped */}
+                {(isProfileLive || hasCompletedOnboarding) && (
                   <div className="relative">
                     <Link
                       href="/benefits/finder"
                       className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
                     >
-                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-50">
-                        <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${isProfileLive ? 'bg-amber-50' : 'bg-gray-100'}`}>
+                        <svg className={`w-6 h-6 ${isProfileLive ? 'text-amber-600' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>

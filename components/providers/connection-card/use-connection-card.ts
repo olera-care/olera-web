@@ -529,65 +529,8 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        // Best case: Server verified the token and gave us session tokens
-        // Use setSession for reliable session establishment
-        let sessionEstablished = false;
-        if (data.accessToken && data.refreshToken) {
-          try {
-            const supabase = createClient();
-            console.log("[guest-connection] Setting session with server-provided tokens...");
-            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-              access_token: data.accessToken,
-              refresh_token: data.refreshToken,
-            });
-
-            if (sessionError) {
-              console.error("[guest-connection] Failed to set session:", sessionError);
-            } else {
-              console.log("[guest-connection] Session established:", sessionData?.session?.user?.email);
-              sessionEstablished = true;
-
-              // Refresh auth state with the new user ID
-              const userId = sessionData?.session?.user?.id;
-              if (userId && refreshAccountData) {
-                console.log("[guest-connection] Refreshing account data...");
-                try {
-                  await refreshAccountData(userId);
-                } catch (refreshErr) {
-                  console.error("[guest-connection] Failed to refresh account data:", refreshErr);
-                }
-              }
-
-              // Small delay for state propagation
-              await new Promise(resolve => setTimeout(resolve, 100));
-            }
-          } catch (sessionErr) {
-            console.error("[guest-connection] Session error:", sessionErr);
-          }
-        }
-
-        // If no session tokens or session establishment failed, try magic link fallback
-        if (!sessionEstablished && data.actionLink) {
-          console.log("[guest-connection] Falling back to magic link redirect...");
-          try {
-            localStorage.setItem("olera_pending_connection", JSON.stringify({
-              connectionId: data.connectionId,
-              providerSlug,
-            }));
-          } catch {
-            // localStorage not available
-          }
-          window.location.href = data.actionLink;
-          return;
-        }
-
-        // Log if we're proceeding without session
-        if (!sessionEstablished) {
-          console.warn("[guest-connection] Proceeding to welcome without session establishment");
-        }
-
-        // Store connection info in localStorage for WelcomeClient to use
-        // This ensures the connection card shows even if RLS blocks the fetch
+        // Store connection info in localStorage FIRST for instant navigation
+        // This ensures the connection card shows even if session isn't ready yet
         try {
           localStorage.setItem("olera_pending_connection", JSON.stringify({
             connectionId: data.connectionId,
@@ -599,9 +542,39 @@ export function useConnectionCard(props: ConnectionCardProps) {
           // localStorage not available
         }
 
-        // Navigate to /welcome with connection info
+        // Navigate immediately - don't wait for session establishment
         const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
         router.replace(welcomeUrl);
+
+        // Establish session in background (non-blocking)
+        // This will be ready by the time user interacts with the welcome page
+        if (data.accessToken && data.refreshToken) {
+          const supabase = createClient();
+          supabase.auth.setSession({
+            access_token: data.accessToken,
+            refresh_token: data.refreshToken,
+          }).then(({ data: sessionData, error: sessionError }) => {
+            if (sessionError) {
+              console.error("[guest-connection] Background session error:", sessionError);
+            } else {
+              console.log("[guest-connection] Background session established:", sessionData?.session?.user?.email);
+              // Refresh account data in background
+              const userId = sessionData?.session?.user?.id;
+              if (userId && refreshAccountData) {
+                refreshAccountData(userId).catch(err => {
+                  console.error("[guest-connection] Background refresh error:", err);
+                });
+              }
+            }
+          }).catch(err => {
+            console.error("[guest-connection] Background session error:", err);
+          });
+        } else if (data.actionLink) {
+          // No session tokens - user will need to use magic link from email
+          console.log("[guest-connection] No session tokens, user will need magic link from email");
+        }
+
+        return; // Already navigated
         return;
       }
     } catch (err: unknown) {

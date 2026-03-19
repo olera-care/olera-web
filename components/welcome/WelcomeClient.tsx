@@ -1155,7 +1155,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               Cards transform inline to show completion states
               The journey IS the celebration
               ============================================================ */}
-          <section className="pb-6 sm:pb-8 sm:ml-16">
+          <section className="pb-12 sm:ml-16">
             {/* Nested layout: timeline on left (desktop only), cards fill remaining space */}
             <div className="relative sm:pl-14">
               {/* Timeline — hidden on mobile, visible on sm+ */}

@@ -92,6 +92,19 @@ function parseCareRequest(message: string | null): CareRequestData | null {
   }
 }
 
+/** Check if message is plain text (not JSON) and return it, or null if empty/JSON */
+function getPlainTextMessage(message: string | null): string | null {
+  if (!message || !message.trim()) return null;
+  try {
+    JSON.parse(message);
+    // If it parses as JSON, it's not plain text
+    return null;
+  } catch {
+    // Not JSON, it's plain text
+    return message.trim();
+  }
+}
+
 function avatarGradient(name: string): string {
   const gradients = [
     "linear-gradient(135deg, #0ea5e9, #6366f1)",
@@ -392,7 +405,9 @@ export default function ConversationPanel({
   const autoIntro = getAutoIntro(connMetadata);
   const additionalNotes = parseInitialNotes(connection.message);
   const careRequest = parseCareRequest(connection.message);
-  const initialNotes = autoIntro || additionalNotes;
+  const plainTextMessage = getPlainTextMessage(connection.message);
+  // Show initial notes from: auto_intro, additional_notes (from JSON), or plain text message
+  const initialNotes = autoIntro || additionalNotes || plainTextMessage;
   const thread = (connMetadata?.thread as ThreadMessage[]) || [];
 
   // Names in conversation header are not clickable - use "View full profile" in details panel instead

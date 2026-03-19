@@ -70,7 +70,7 @@ export default function MessageComposerModal({
     .toUpperCase();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <div className="py-2">
         {/* Provider header with avatar - personal touch */}
         <div

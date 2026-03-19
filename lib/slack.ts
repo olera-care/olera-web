@@ -125,6 +125,47 @@ export function slackDispute(opts: {
   };
 }
 
+export function slackRemovalRequest(opts: {
+  providerName: string;
+  providerSlug: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  action: string;
+  reason: string;
+  details?: string;
+}): { text: string; blocks: SlackBlock[] } {
+  const detailLine = opts.details ? `\n*Details:*\n${opts.details}` : "";
+  return {
+    text: `🚨 Page removal request: ${opts.providerName}`,
+    blocks: [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "🚨 Page Removal Request", emoji: true },
+      },
+      {
+        type: "section",
+        fields: [
+          { type: "mrkdwn", text: `*Provider:*\n${opts.providerName}` },
+          { type: "mrkdwn", text: `*Action:*\n${opts.action}` },
+          { type: "mrkdwn", text: `*Reason:*\n${opts.reason}` },
+          { type: "mrkdwn", text: `*Submitted by:*\n${opts.fullName}` },
+          { type: "mrkdwn", text: `*Email:*\n${opts.email}` },
+          { type: "mrkdwn", text: `*Phone:*\n${opts.phone}` },
+        ],
+      },
+      ...(detailLine
+        ? [
+            {
+              type: "section" as const,
+              text: { type: "mrkdwn" as const, text: detailLine },
+            },
+          ]
+        : []),
+    ],
+  };
+}
+
 export function slackMissingEmail(opts: {
   familyName: string;
   providerName: string;

@@ -1231,7 +1231,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl transition-all group text-left"
                       style={needsProfileAttention ? {
                         border: '2px solid #199087',
-                        boxShadow: '0 0 0 4px rgba(25, 144, 135, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
+                        boxShadow: '0 0 0 4px rgba(25, 144, 135, 0.15), 0 8px 24px rgba(0,0,0,0.12), 0 16px 40px rgba(0,0,0,0.08)',
                       } : {
                         boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
                       }}
@@ -1326,7 +1326,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl transition-all group text-left"
                       style={needsMatchesAttention ? {
                         border: '2px solid #199087',
-                        boxShadow: '0 0 0 4px rgba(25, 144, 135, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
+                        boxShadow: '0 0 0 4px rgba(25, 144, 135, 0.15), 0 8px 24px rgba(0,0,0,0.12), 0 16px 40px rgba(0,0,0,0.08)',
                       } : {
                         boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
                       }}

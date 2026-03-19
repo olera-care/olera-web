@@ -1297,6 +1297,10 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               refreshAccountData();
               setProfileWizardOpen(false);
             }}
+            onStepSaved={() => {
+              // Refresh profile data after each step so percentage updates live
+              refreshAccountData();
+            }}
           />
         )}
 

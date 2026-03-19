@@ -529,11 +529,31 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        // Establish session instantly using tokenHash
+        // Store connection info for redirect (will be picked up after auth callback)
+        try {
+          localStorage.setItem("olera_pending_connection", JSON.stringify({
+            connectionId: data.connectionId,
+            providerSlug,
+          }));
+        } catch {
+          // localStorage not available
+        }
+
+        // Use actionLink for reliable session establishment
+        // This redirects through Supabase's verification flow
+        if (data.actionLink) {
+          console.log("[guest-connection] Redirecting through magic link for session...");
+          // The actionLink will go to Supabase, which will verify and redirect to /auth/magic-link
+          // The /auth/magic-link handler will then redirect to /welcome with the connection info
+          window.location.href = data.actionLink;
+          return; // Stop here — we're redirecting
+        }
+
+        // Fallback: try verifyOtp if no actionLink (shouldn't happen)
         if (data.tokenHash) {
           try {
             const supabase = createClient();
-            console.log("[guest-connection] Attempting to verify OTP...");
+            console.log("[guest-connection] Fallback: Attempting to verify OTP...");
             const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
               token_hash: data.tokenHash,
               type: "magiclink",
@@ -541,38 +561,27 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
             if (verifyError) {
               console.error("[guest-connection] Failed to establish session:", verifyError);
-              // Continue anyway — user can verify via email later
             } else {
               console.log("[guest-connection] Session established:", sessionData?.session?.user?.email);
-
-              // CRITICAL: Refresh auth state with the new user ID before navigating
-              // This ensures AuthProvider has the profile data when /welcome loads
               const userId = sessionData?.session?.user?.id;
               if (userId && refreshAccountData) {
-                console.log("[guest-connection] Refreshing account data for user:", userId);
                 try {
                   await refreshAccountData(userId);
-                  console.log("[guest-connection] Account data refreshed");
                 } catch (refreshErr) {
                   console.error("[guest-connection] Failed to refresh account data:", refreshErr);
                 }
               }
-
-              // Small delay to ensure cookies and state are fully propagated
               await new Promise(resolve => setTimeout(resolve, 200));
             }
           } catch (sessionErr) {
             console.error("[guest-connection] Session error:", sessionErr);
           }
-        } else {
-          console.warn("[guest-connection] No tokenHash received from API");
         }
 
         // Navigate to /welcome with connection info
-        // User now has an active session and can complete their profile
         const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
-        router.replace(welcomeUrl); // Use replace to avoid back-button issues
-        return; // Stop here — we're navigating away
+        router.replace(welcomeUrl);
+        return;
       }
     } catch (err: unknown) {
       const msg =

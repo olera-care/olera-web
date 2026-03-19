@@ -115,6 +115,7 @@ async function handleGuestConnection({
   let accountId: string;
   let userId: string;
   let tokenHash: string | null = null;
+  let actionLink: string | null = null;
   let isNewUser = false;
   const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
 
@@ -166,6 +167,7 @@ async function handleGuestConnection({
 
         if (!linkError && linkData?.properties?.hashed_token) {
           tokenHash = linkData.properties.hashed_token;
+          actionLink = linkData.properties.action_link || null;
         }
       } else {
         // Edge case: auth user exists but no profile in our DB
@@ -184,6 +186,7 @@ async function handleGuestConnection({
         }
 
         tokenHash = linkData?.properties?.hashed_token || null;
+        actionLink = linkData?.properties?.action_link || null;
         userId = ""; // We don't have easy access to the user ID here
 
         // Create account and profile for this existing auth user
@@ -294,7 +297,9 @@ async function handleGuestConnection({
     // Set as active profile
     await db.from("accounts").update({ active_profile_id: fromProfileId }).eq("id", accountId);
 
-    // Generate magic link token for instant session
+    // Generate magic link for instant session
+    // We return the action_link so the client can redirect through Supabase's verification
+    // This is more reliable than using verifyOtp with token_hash
     const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
       type: "magiclink",
       email: normalizedEmail,
@@ -305,6 +310,7 @@ async function handleGuestConnection({
 
     if (!linkError && linkData?.properties?.hashed_token) {
       tokenHash = linkData.properties.hashed_token;
+      actionLink = linkData.properties.action_link || null;
     }
 
     // Loops: new account created
@@ -446,6 +452,7 @@ async function handleGuestConnection({
       connectionId: existingConnection.id,
       created_at: existingConnection.created_at,
       tokenHash: tokenHash || null,
+      actionLink: actionLink || null,
     });
   }
 
@@ -669,6 +676,7 @@ async function handleGuestConnection({
     connectionId: newConnection.id,
     created_at: newConnection.created_at,
     tokenHash: tokenHash || null,
+    actionLink: actionLink || null,
     providerSlug,
     isNewUser,
   });

@@ -489,7 +489,7 @@ export default async function ProviderPage({
   sectionItems.push({ id: "highlights", label: "Highlights" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  if (hasOleraScore || googleReviewsData) sectionItems.push({ id: "reviews", label: "Reviews" });
+  if (googleReviewsData?.reviews?.length) sectionItems.push({ id: "reviews", label: "Reviews" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
@@ -864,55 +864,12 @@ export default async function ProviderPage({
                 />
               </div>
 
-              {/* ── Olera Score + Google Reviews — combined ratings zone ── */}
-              {(hasOleraScore || googleReviewsData) && (
-                <div id="reviews" className="scroll-mt-20">
-                  {/* Olera Score */}
-                  {hasOleraScore && (
-                    <div className="py-8 border-t border-gray-200">
-                      <div className="flex flex-col items-center text-center mb-8">
-                        <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-700 mb-5">Olera Score</p>
-                        <div className="w-24 h-24 rounded-full border-4 border-gray-200 flex items-center justify-center mb-4">
-                          <span className="text-4xl font-bold text-gray-900">{oleraScore!.toFixed(1)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <StarIcon
-                              key={star}
-                              className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-primary-500" : "text-gray-200"}`}
-                              filled={star <= Math.round(oleraScore!)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {hasScoreBreakdown && (
-                        <div className={`grid grid-cols-2 ${scoreBreakdown.length === 3 ? "md:grid-cols-3" : scoreBreakdown.length >= 4 ? "md:grid-cols-4" : ""} gap-4`}>
-                          {scoreBreakdown.map((item) => (
-                            <div key={item.label} className="text-center">
-                              <p className="text-2xl font-bold text-gray-900 mb-2">{item.value.toFixed(1)}</p>
-                              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
-                                <div
-                                  className="h-full bg-primary-600 rounded-full"
-                                  style={{ width: `${(item.value / 5) * 100}%` }}
-                                />
-                              </div>
-                              <p className="text-xs font-semibold tracking-[0.1em] uppercase text-gray-500">{item.label}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Google Review Snippets */}
-                  <GoogleReviewSnippets
-                    googleReviewsData={googleReviewsData}
-                    providerName={profile.display_name}
-                    placeId={providerPlaceId}
-                  />
-                </div>
-              )}
+              {/* ── What families are saying (Google review snippets) ── */}
+              <GoogleReviewSnippets
+                googleReviewsData={googleReviewsData}
+                providerName={profile.display_name}
+                placeId={providerPlaceId}
+              />
 
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">

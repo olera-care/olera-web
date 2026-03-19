@@ -9,20 +9,18 @@ interface GoogleReviewSnippetsProps {
 }
 
 function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
-  const px = size === "md" ? "w-5 h-5" : "w-4 h-4";
+  const px = size === "md" ? "w-[18px] h-[18px]" : "w-4 h-4";
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => {
         const fill = Math.min(1, Math.max(0, rating - (star - 1)));
         if (fill >= 0.75) {
-          // Full star
           return (
             <svg key={star} className={`${px} text-amber-400`} fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
           );
         } else if (fill >= 0.25) {
-          // Half star
           return (
             <svg key={star} className={`${px}`} viewBox="0 0 20 20">
               <defs>
@@ -35,7 +33,6 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
             </svg>
           );
         } else {
-          // Empty star
           return (
             <svg key={star} className={`${px} text-gray-200`} fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -47,9 +44,9 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
   );
 }
 
-function GoogleGLogo() {
+function GoogleGIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -73,12 +70,24 @@ export default function GoogleReviewSnippets({
     : `https://www.google.com/maps/search/${encodeURIComponent(providerName)}`;
 
   return (
-    <div className="py-8 scroll-mt-20 border-t border-gray-200">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div id="reviews" className="py-8 scroll-mt-20 border-t border-gray-200">
+      {/* Header — warm, human */}
+      <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">
+        What families are saying
+      </h2>
+
+      {/* Rating bar — one clear number, one source */}
+      <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <GoogleGLogo />
-          <h2 className="text-2xl font-bold text-gray-900 font-display">Google Reviews</h2>
+          <StarRating rating={rating} size="md" />
+          <span className="text-lg font-semibold text-gray-900">{rating.toFixed(1)}</span>
+          <span className="text-sm text-gray-400">·</span>
+          <div className="flex items-center gap-1">
+            <GoogleGIcon className="w-3.5 h-3.5" />
+            <span className="text-sm text-gray-500">
+              {review_count.toLocaleString()} review{review_count !== 1 ? "s" : ""}
+            </span>
+          </div>
         </div>
         <a
           href={googleMapsUrl}
@@ -86,19 +95,8 @@ export default function GoogleReviewSnippets({
           rel="noopener noreferrer"
           className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
         >
-          See all on Google <span aria-hidden="true">&rarr;</span>
+          See all <span aria-hidden="true">&rarr;</span>
         </a>
-      </div>
-
-      {/* Rating summary bar */}
-      <div className="flex items-center gap-3 mb-6">
-        <span className="text-3xl font-bold text-gray-900">{rating.toFixed(1)}</span>
-        <div>
-          <StarRating rating={rating} size="md" />
-          <p className="text-sm text-gray-500 mt-0.5">
-            {review_count.toLocaleString()} review{review_count !== 1 ? "s" : ""} on Google
-          </p>
-        </div>
       </div>
 
       {/* Review cards */}
@@ -106,7 +104,7 @@ export default function GoogleReviewSnippets({
         {reviews.map((review, i) => (
           <div
             key={i}
-            className="border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors"
+            className="border border-gray-100 rounded-xl p-5 bg-gray-50/50"
           >
             {/* Author row */}
             <div className="flex items-center gap-3 mb-3">
@@ -114,51 +112,33 @@ export default function GoogleReviewSnippets({
                 <img
                   src={review.profile_photo_url}
                   alt={review.author_name}
-                  className="w-9 h-9 rounded-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-semibold text-gray-500">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  <span className="text-xs font-semibold text-gray-500">
                     {review.author_name.charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900 truncate">{review.author_name}</p>
-                <p className="text-xs text-gray-400">{review.relative_time}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{review.author_name}</p>
+                <div className="flex items-center gap-2">
+                  <StarRating rating={review.rating} />
+                  <span className="text-xs text-gray-400">{review.relative_time}</span>
+                </div>
               </div>
-            </div>
-
-            {/* Stars */}
-            <div className="mb-2">
-              <StarRating rating={review.rating} />
             </div>
 
             {/* Review text */}
             {review.text && (
               <p className="text-sm text-gray-600 leading-relaxed line-clamp-4">
-                &ldquo;{review.text}&rdquo;
+                {review.text}
               </p>
             )}
           </div>
         ))}
-      </div>
-
-      {/* Google attribution */}
-      <div className="flex items-center gap-1.5 mt-4">
-        <GoogleGLogo />
-        <p className="text-xs text-gray-400">
-          Reviews from{" "}
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-500 hover:text-gray-600 underline"
-          >
-            Google
-          </a>
-        </p>
       </div>
     </div>
   );

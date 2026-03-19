@@ -242,7 +242,7 @@ export default function Select({
       {label && (
         <label
           id={labelId}
-          className="block text-sm font-medium text-gray-700 mb-1.5"
+          className="block text-base font-semibold text-gray-900 mb-2"
         >
           {label}
           {required && <span className="text-red-500 ml-0.5">*</span>}

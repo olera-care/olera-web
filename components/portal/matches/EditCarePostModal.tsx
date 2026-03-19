@@ -224,7 +224,7 @@ export default function EditCarePostModal({
         </div>
       }
     >
-      <div className="space-y-5 pt-2">
+      <div className="space-y-6 pt-3">
         {error && (
           <p className="text-sm text-red-600" role="alert">
             {error}
@@ -233,7 +233,7 @@ export default function EditCarePostModal({
 
         {/* ── Step 1: Care details ── */}
         {step === 1 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Who needs care */}
             <Select
               label="Who needs care"
@@ -256,7 +256,7 @@ export default function EditCarePostModal({
 
             {/* Types of care needed */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 Types of care needed
               </label>
               <div className="flex flex-wrap gap-2">
@@ -273,7 +273,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {ct}
@@ -287,7 +287,7 @@ export default function EditCarePostModal({
 
         {/* ── Step 2: Location & schedule ── */}
         {step === 2 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <Input
                 label="City"
@@ -305,7 +305,7 @@ export default function EditCarePostModal({
 
             {/* Schedule preference */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 Schedule preference
               </label>
               <div className="flex flex-wrap gap-2">
@@ -320,7 +320,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {opt}
@@ -334,10 +334,10 @@ export default function EditCarePostModal({
 
         {/* ── Step 3: Timeline & payment ── */}
         {step === 3 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {/* Timeline */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 When do you need care?
               </label>
               <div className="flex flex-wrap gap-2">
@@ -352,7 +352,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {opt.label}
@@ -364,7 +364,7 @@ export default function EditCarePostModal({
 
             {/* Payment methods */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
                 Payment method
               </label>
               <div className="flex flex-wrap gap-2">
@@ -381,7 +381,7 @@ export default function EditCarePostModal({
                         "px-3.5 py-2 rounded-xl text-sm font-medium border transition-all duration-200",
                         isSelected
                           ? "bg-primary-50 border-primary-300 text-primary-700"
-                          : "bg-white border-warm-100 text-gray-900 hover:border-warm-200",
+                          : "bg-white border-gray-200 text-gray-700 hover:border-gray-300",
                       ].join(" ")}
                     >
                       {pm}
@@ -395,7 +395,7 @@ export default function EditCarePostModal({
 
         {/* ── Step 4: Additional info ── */}
         {step === 4 && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <Input
               as="textarea"
               label="About your situation"

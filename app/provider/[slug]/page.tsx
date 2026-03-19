@@ -20,6 +20,7 @@ import MobileGalleryActionBar from "@/components/providers/MobileGalleryActionBa
 import MobileStickyBottomCTA from "@/components/providers/MobileStickyBottomCTA";
 import MobileClaimLink from "@/components/providers/MobileClaimLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
+import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
@@ -750,18 +751,11 @@ export default async function ProviderPage({
               </div>
 
               {/* ── "Manage this page" CTA ── */}
-              <div className="mt-4 flex items-center gap-2 text-sm">
-                <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                <span className="text-gray-500">Is this your business?</span>
-                <a
-                  href={`/provider/${profile.slug}/onboard`}
-                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                >
-                  Manage this page <span aria-hidden="true">→</span>
-                </a>
-              </div>
+              <ManagePageCTA
+                providerSlug={profile.slug}
+                providerName={profile.display_name}
+                providerId={profile.id}
+              />
 
               {/* Managed by — only show when staff data exists */}
               {hasStaff && (

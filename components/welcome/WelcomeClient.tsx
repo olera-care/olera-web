@@ -1406,7 +1406,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           {matches.length > 0 && (
             <section className="pb-20">
               {/* Section header — bigger when onboarding complete */}
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className={`font-semibold text-gray-900 ${allStepsComplete ? 'text-text-xl sm:text-display-xs' : 'text-text-lg'}`}>
                     {allStepsComplete ? 'Your recommended providers' : 'Discover providers near you'}
@@ -1508,7 +1508,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           {/* Loading state for providers */}
           {providersLoading && (
             <section className="pb-20">
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-4">
                 <div className="h-6 w-48 bg-gray-100 rounded animate-pulse" />
                 <div className="flex gap-2">
                   <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />

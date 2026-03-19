@@ -190,7 +190,8 @@ export async function POST(request: NextRequest) {
 
       const providerDisplayName = providerForEmail?.display_name || provider_id;
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-      const providerUrl = `${siteUrl}/provider/${provider_id}`;
+      const providerPageUrl = `${siteUrl}/provider/${provider_id}`;
+      const providerPortalUrl = `${siteUrl}/provider/${provider_id}/onboard`;
 
       // 1. Email the provider about the new question (if they have an email)
       let pEmail = providerForEmail?.email || null;
@@ -211,7 +212,7 @@ export async function POST(request: NextRequest) {
             providerName: providerDisplayName,
             askerName,
             question: question.trim(),
-            providerUrl,
+            providerUrl: providerPortalUrl,
           }),
         });
       }
@@ -225,7 +226,7 @@ export async function POST(request: NextRequest) {
             askerName,
             providerName: providerDisplayName,
             question: question.trim(),
-            providerUrl,
+            providerUrl: providerPageUrl,
           }),
         });
       }

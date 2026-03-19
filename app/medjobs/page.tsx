@@ -5,11 +5,11 @@ import Image from "next/image";
 export const metadata: Metadata = {
   title: "MedJobs — Student Caregiver Talent Marketplace | Olera",
   description:
-    "Gain verified clinical experience as a pre-health student caregiver, or find motivated student talent for your senior care facility. Olera MedJobs connects students with providers.",
+    "Get paid healthcare experience as a student caregiver, or find motivated student talent for your senior care facility. Olera MedJobs connects students with providers.",
   openGraph: {
     title: "MedJobs — Student Caregiver Talent Marketplace | Olera",
     description:
-      "Gain verified clinical experience as a pre-health student caregiver, or find motivated student talent for your senior care facility.",
+      "Get paid healthcare experience as a student caregiver, or find motivated student talent for your senior care facility.",
   },
 };
 
@@ -24,7 +24,7 @@ const HOW_IT_WORKS = [
     ),
   },
   {
-    title: "Get discovered by providers",
+    title: "Interview with care agencies near your university",
     description: "Senior care providers in your area browse student profiles and reach out with caregiving opportunities.",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,8 +33,8 @@ const HOW_IT_WORKS = [
     ),
   },
   {
-    title: "Build verified credentials",
-    description: "Log patient care hours, get provider confirmations, and build a clinical experience transcript for grad school.",
+    title: "Provide care while you're still in school",
+    description: "Log patient care hours, get provider confirmations, and build a healthcare experience transcript for professional school.",
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
@@ -50,7 +50,7 @@ const STUDENT_FEATURES = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
       </svg>
     ),
-    label: "Verified clinical hours",
+    label: "Verified healthcare hours",
     detail: "Every hour logged and confirmed by your supervising provider — ready for your AMCAS or CASPA application.",
   },
   {
@@ -60,7 +60,7 @@ const STUDENT_FEATURES = [
       </svg>
     ),
     label: "Real bedside experience",
-    detail: "Home care, assisted living, memory care, and hospice — the settings grad programs want to see on your application.",
+    detail: "Home care, assisted living, memory care, and hospice — the settings professional schools want to see on your application.",
   },
   {
     icon: (
@@ -91,7 +91,7 @@ const TESTIMONIALS = [
     image: "/images/medjobs/minh-nguyet-hoang.jpg",
   },
   {
-    quote: "I was struggling to find clinical experience that fit my class schedule. MedJobs matched me with a home care agency 10 minutes from campus. I work two shifts a week.",
+    quote: "I was struggling to find healthcare experience that fit my class schedule. MedJobs matched me with a home care agency 10 minutes from campus. I work two shifts a week.",
     name: "Jeswin Vennatt",
     track: "MD/MBA Candidate, Texas A&M",
     image: "/images/medjobs/jeswin-vennatt.png",
@@ -110,26 +110,26 @@ export default function MedJobsPage() {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 border border-primary-100 mb-6">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
-                <span className="text-xs font-medium text-primary-700">Now accepting applications for Fall 2026</span>
+                <span className="text-xs font-medium text-primary-700">Now Accepting Applications</span>
               </div>
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-gray-900 leading-[1.1]">
-                Caregiving experience
+                Get paid healthcare
                 <br />
-                <span className="text-primary-600">that counts toward</span>
+                <span className="text-primary-600">experience while</span>
                 <br />
-                <span className="text-primary-600">your degree</span>
+                <span className="text-primary-600">you&apos;re still in school</span>
               </h1>
               <p className="mt-5 text-lg text-gray-500 leading-relaxed max-w-lg">
-                Pre-health students gain verified patient care hours while
-                helping seniors live better. Every hour is logged, confirmed
-                by your provider, and ready for your grad school application.
+                Whether you&apos;re headed to medical school, nursing, PA, PT, or public health
+                — gain verified patient care hours while helping seniors live better. Every hour
+                is logged, confirmed by your provider, and ready for your professional school application.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
                 <Link
                   href="/medjobs/apply"
                   className="inline-flex items-center px-7 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
                 >
-                  Apply as a student
+                  Apply Now
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -157,18 +157,6 @@ export default function MedJobsPage() {
                   className="w-full h-full object-cover"
                   priority
                 />
-              </div>
-              {/* Floating cards */}
-              <div className="absolute -bottom-5 -left-3 sm:left-4 bg-white rounded-2xl shadow-lg border border-gray-100 px-5 py-3.5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xl font-bold text-gray-900">800+</p>
-                  <p className="text-xs text-gray-500">Students applied</p>
-                </div>
               </div>
             </div>
           </div>
@@ -265,9 +253,9 @@ export default function MedJobsPage() {
                   href="/medjobs/apply"
                   className="inline-flex items-center px-7 py-3 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors"
                 >
-                  Start your application
+                  Apply Now
                 </Link>
-                <p className="mt-3 text-sm text-gray-400">Takes about 3 minutes. No cost.</p>
+                <p className="mt-3 text-sm text-gray-400">No cost, no commitment.</p>
               </div>
             </div>
           </div>
@@ -283,7 +271,7 @@ export default function MedJobsPage() {
                 For students
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                The clinical hours your application needs
+                The healthcare experience your future career needs
               </h2>
               <p className="mt-4 text-lg text-gray-500 leading-relaxed">
                 PA programs require 1,000-2,000 patient care hours. Med schools want hundreds.
@@ -426,19 +414,19 @@ export default function MedJobsPage() {
                 For providers
               </p>
               <h2 className="font-serif text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-                Staff who actually want
-                <br />to be there
+                Staff who show up
+                <br />for your clients
               </h2>
               <p className="mt-4 text-lg text-gray-500 leading-relaxed">
-                Pre-health students aren&apos;t just filling a shift — they&apos;re building
+                Healthcare students aren&apos;t just filling a shift — they&apos;re building
                 a career in healthcare. Browse profiles, review resumes, and connect
-                directly. No middleman, no agency fees.
+                directly.
               </p>
               <div className="mt-8 grid sm:grid-cols-2 gap-6">
                 {[
-                  { stat: "92%", label: "Have 60+ university credits" },
-                  { stat: "$15-18", label: "Average hourly rate" },
-                  { stat: "48hr", label: "Average time to first match" },
+                  { stat: "85%", label: "Student retention after 90 days" },
+                  { stat: "15-20", label: "Average weekly hours per student" },
+                  { stat: "70%", label: "Available evenings & weekends" },
                   { stat: "4.8/5", label: "Provider satisfaction" },
                 ].map((item) => (
                   <div key={item.label} className="bg-white rounded-xl p-4 border border-gray-100">
@@ -468,20 +456,19 @@ export default function MedJobsPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight leading-tight">
-            Your clinical experience
+            Your healthcare experience
             <br />
             <span className="text-primary-600">starts here</span>
           </h2>
           <p className="mt-5 text-lg text-gray-500 max-w-xl mx-auto">
-            3 minutes to create your profile. No cost, no commitment.
-            Join 800+ students already building their healthcare careers through Olera MedJobs.
+            Create your profile. No cost, no commitment.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/medjobs/apply"
               className="inline-flex items-center px-8 py-3.5 bg-primary-600 text-white text-sm font-semibold rounded-full hover:bg-primary-700 transition-colors shadow-sm shadow-primary-600/20"
             >
-              Apply as a student
+              Apply Now
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>

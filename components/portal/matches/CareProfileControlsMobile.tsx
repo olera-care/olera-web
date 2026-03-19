@@ -145,8 +145,8 @@ export default function CareProfileControlsMobile({
           <div className="flex items-center gap-2">
             <span className="text-[12px] font-medium text-gray-500">Your profile</span>
             {acceptingMatches ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-primary-50 border border-primary-100/60 text-[9px] font-semibold text-primary-600 uppercase tracking-wide">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[9px] font-semibold text-emerald-700 uppercase tracking-wide">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Live
               </span>
             ) : (

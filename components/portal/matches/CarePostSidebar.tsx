@@ -317,8 +317,8 @@ export default function CarePostSidebar({
                 Your Care Profile
               </h4>
               {acceptingMatches ? (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary-50 border border-primary-100/60 text-[10px] font-semibold text-primary-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-semibold text-emerald-700">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Live
                 </span>
               ) : (

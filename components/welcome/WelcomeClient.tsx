@@ -953,7 +953,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       <span className="font-semibold text-white text-lg">View Your Matches</span>
                       {isProfileLive && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           Live
                         </span>
                       )}

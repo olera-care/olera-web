@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -35,6 +35,18 @@ function isValidVideoUrl(url: string): boolean {
 }
 
 export default function SubmitVideoPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-400">Loading...</div>
+      </main>
+    }>
+      <SubmitVideoContent />
+    </Suspense>
+  );
+}
+
+function SubmitVideoContent() {
   const searchParams = useSearchParams();
   const slug = searchParams.get("slug") || "";
 

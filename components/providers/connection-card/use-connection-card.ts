@@ -529,53 +529,74 @@ export function useConnectionCard(props: ConnectionCardProps) {
 
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        // Store connection info for redirect (will be picked up after auth callback)
-        try {
-          localStorage.setItem("olera_pending_connection", JSON.stringify({
-            connectionId: data.connectionId,
-            providerSlug,
-          }));
-        } catch {
-          // localStorage not available
-        }
-
-        // Use actionLink for reliable session establishment
-        // This redirects through Supabase's verification flow
-        if (data.actionLink) {
-          console.log("[guest-connection] Redirecting through magic link for session...");
-          // The actionLink will go to Supabase, which will verify and redirect to /auth/magic-link
-          // The /auth/magic-link handler will then redirect to /welcome with the connection info
-          window.location.href = data.actionLink;
-          return; // Stop here — we're redirecting
-        }
-
-        // Fallback: try verifyOtp if no actionLink (shouldn't happen)
-        if (data.tokenHash) {
+        // Best case: Server verified the token and gave us session tokens
+        // Use setSession for reliable session establishment
+        let sessionEstablished = false;
+        if (data.accessToken && data.refreshToken) {
           try {
             const supabase = createClient();
-            console.log("[guest-connection] Fallback: Attempting to verify OTP...");
-            const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
-              token_hash: data.tokenHash,
-              type: "magiclink",
+            console.log("[guest-connection] Setting session with server-provided tokens...");
+            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+              access_token: data.accessToken,
+              refresh_token: data.refreshToken,
             });
 
-            if (verifyError) {
-              console.error("[guest-connection] Failed to establish session:", verifyError);
+            if (sessionError) {
+              console.error("[guest-connection] Failed to set session:", sessionError);
             } else {
               console.log("[guest-connection] Session established:", sessionData?.session?.user?.email);
+              sessionEstablished = true;
+
+              // Refresh auth state with the new user ID
               const userId = sessionData?.session?.user?.id;
               if (userId && refreshAccountData) {
+                console.log("[guest-connection] Refreshing account data...");
                 try {
                   await refreshAccountData(userId);
                 } catch (refreshErr) {
                   console.error("[guest-connection] Failed to refresh account data:", refreshErr);
                 }
               }
-              await new Promise(resolve => setTimeout(resolve, 200));
+
+              // Small delay for state propagation
+              await new Promise(resolve => setTimeout(resolve, 100));
             }
           } catch (sessionErr) {
             console.error("[guest-connection] Session error:", sessionErr);
           }
+        }
+
+        // If no session tokens or session establishment failed, try magic link fallback
+        if (!sessionEstablished && data.actionLink) {
+          console.log("[guest-connection] Falling back to magic link redirect...");
+          try {
+            localStorage.setItem("olera_pending_connection", JSON.stringify({
+              connectionId: data.connectionId,
+              providerSlug,
+            }));
+          } catch {
+            // localStorage not available
+          }
+          window.location.href = data.actionLink;
+          return;
+        }
+
+        // Log if we're proceeding without session
+        if (!sessionEstablished) {
+          console.warn("[guest-connection] Proceeding to welcome without session establishment");
+        }
+
+        // Store connection info in localStorage for WelcomeClient to use
+        // This ensures the connection card shows even if RLS blocks the fetch
+        try {
+          localStorage.setItem("olera_pending_connection", JSON.stringify({
+            connectionId: data.connectionId,
+            providerId,
+            providerSlug,
+            providerName,
+          }));
+        } catch {
+          // localStorage not available
         }
 
         // Navigate to /welcome with connection info

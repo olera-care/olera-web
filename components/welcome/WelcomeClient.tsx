@@ -523,17 +523,93 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           }
 
           setConnection(enrichedConn);
+          // Clear localStorage now that we have the real data
+          try {
+            localStorage.removeItem("olera_pending_connection");
+          } catch {
+            // localStorage not available
+          }
           if (enrichedConn.to_profile?.city) {
             setCity(enrichedConn.to_profile.city);
           }
+          return; // Successfully fetched, exit early
         }
       } catch (err) {
-        console.error("[welcome] Failed to fetch connection:", err);
+        console.error("[welcome] Failed to fetch connection from DB:", err);
+      }
+
+      // Fallback: Use localStorage data if DB fetch failed (e.g., RLS blocked due to no session yet)
+      try {
+        const stored = localStorage.getItem("olera_pending_connection");
+        if (stored) {
+          const pending = JSON.parse(stored);
+          if (pending.connectionId === connectionIdParam) {
+            console.log("[welcome] Using localStorage fallback for connection");
+            // Create a minimal connection object from localStorage + iOS data
+            const supabase = createClient();
+            const providerSlug = pending.providerSlug || providerSlugParam;
+            // Use providerId for iOS lookup, fall back to slug
+            const lookupId = pending.providerId || providerSlug;
+
+            // Try to get provider info from olera-providers
+            const { data: iosData } = await supabase
+              .from("olera-providers")
+              .select("provider_id, provider_name, provider_logo, provider_images, google_rating, review_count, lower_price, upper_price, city, state, provider_category")
+              .eq("provider_id", lookupId)
+              .single();
+
+            if (iosData) {
+              const iosImage = iosData.provider_logo || iosData.provider_images?.split(" | ")[0] || null;
+              const fallbackConn: ConnectionWithProvider = {
+                id: connectionIdParam!, // Safe: guard above checks connectionIdParam exists
+                to_profile: {
+                  id: "", // Unknown, but not needed for display
+                  slug: providerSlug,
+                  source_provider_id: iosData.provider_id,
+                  display_name: iosData.provider_name || pending.providerName || "Provider",
+                  image_url: iosImage,
+                  city: iosData.city,
+                  state: iosData.state,
+                  category: iosData.provider_category,
+                  metadata: {
+                    google_rating: iosData.google_rating,
+                    review_count: iosData.review_count,
+                    lower_price: iosData.lower_price,
+                    upper_price: iosData.upper_price,
+                  },
+                },
+              };
+              setConnection(fallbackConn);
+              if (iosData.city) {
+                setCity(iosData.city);
+              }
+            } else if (pending.providerName) {
+              // Even if iOS data not found, show something
+              const fallbackConn: ConnectionWithProvider = {
+                id: connectionIdParam!, // Safe: guard above checks connectionIdParam exists
+                to_profile: {
+                  id: "",
+                  slug: providerSlug,
+                  source_provider_id: null,
+                  display_name: pending.providerName,
+                  image_url: null,
+                  city: null,
+                  state: null,
+                  category: null,
+                  metadata: null,
+                },
+              };
+              setConnection(fallbackConn);
+            }
+          }
+        }
+      } catch (lsErr) {
+        console.error("[welcome] localStorage fallback failed:", lsErr);
       }
     }
 
     fetchConnection();
-  }, [connectionIdParam, connection]);
+  }, [connectionIdParam, connection, providerSlugParam]);
 
   // Main initialization - handle auth state and other data
   useEffect(() => {

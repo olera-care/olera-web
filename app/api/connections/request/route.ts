@@ -116,6 +116,8 @@ async function handleGuestConnection({
   let userId: string;
   let tokenHash: string | null = null;
   let actionLink: string | null = null;
+  let accessToken: string | null = null;
+  let refreshToken: string | null = null;
   let isNewUser = false;
   const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
 
@@ -156,27 +158,45 @@ async function handleGuestConnection({
 
         userId = accountData?.user_id || "";
 
-        // Generate magic link token for session
+        // Generate magic link token and verify server-side for instant session
         const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
           type: "magiclink",
           email: normalizedEmail,
           options: {
-            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/welcome")}`,
+            redirectTo: `${siteUrl}/welcome`,
           },
         });
 
-        if (!linkError && linkData?.properties?.hashed_token) {
-          tokenHash = linkData.properties.hashed_token;
+        if (!linkError && linkData?.properties) {
+          tokenHash = linkData.properties.hashed_token || null;
           actionLink = linkData.properties.action_link || null;
+
+          // Verify server-side to get session tokens
+          try {
+            const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
+              token_hash: linkData.properties.hashed_token,
+              type: "magiclink",
+            });
+
+            if (!verifyError && verifyData?.session) {
+              accessToken = verifyData.session.access_token;
+              refreshToken = verifyData.session.refresh_token;
+              console.log("[guest-connection] Server-side session created for existing user:", normalizedEmail);
+            } else {
+              console.warn("[guest-connection] Server-side verify failed for existing user:", verifyError?.message);
+            }
+          } catch (verifyErr) {
+            console.error("[guest-connection] Server-side verify error for existing user:", verifyErr);
+          }
         }
       } else {
         // Edge case: auth user exists but no profile in our DB
-        // Try to get user ID via magic link generation
+        // Generate magic link and verify server-side for instant session
         const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
           type: "magiclink",
           email: normalizedEmail,
           options: {
-            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/welcome")}`,
+            redirectTo: `${siteUrl}/welcome`,
           },
         });
 
@@ -188,6 +208,27 @@ async function handleGuestConnection({
         tokenHash = linkData?.properties?.hashed_token || null;
         actionLink = linkData?.properties?.action_link || null;
         userId = ""; // We don't have easy access to the user ID here
+
+        // Verify server-side to get session tokens
+        if (linkData?.properties?.hashed_token) {
+          try {
+            const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
+              token_hash: linkData.properties.hashed_token,
+              type: "magiclink",
+            });
+
+            if (!verifyError && verifyData?.session) {
+              accessToken = verifyData.session.access_token;
+              refreshToken = verifyData.session.refresh_token;
+              userId = verifyData.session.user?.id || "";
+              console.log("[guest-connection] Server-side session created for auth-only user:", normalizedEmail);
+            } else {
+              console.warn("[guest-connection] Server-side verify failed for auth-only user:", verifyError?.message);
+            }
+          } catch (verifyErr) {
+            console.error("[guest-connection] Server-side verify error for auth-only user:", verifyErr);
+          }
+        }
 
         // Create account and profile for this existing auth user
         // First, we need to look up the user via the auth admin API
@@ -297,20 +338,38 @@ async function handleGuestConnection({
     // Set as active profile
     await db.from("accounts").update({ active_profile_id: fromProfileId }).eq("id", accountId);
 
-    // Generate magic link for instant session
-    // We return the action_link so the client can redirect through Supabase's verification
-    // This is more reliable than using verifyOtp with token_hash
+    // Generate session tokens for instant login
+    // We use generateLink to get the OTP, then verify it server-side to get session tokens
     const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
       type: "magiclink",
       email: normalizedEmail,
       options: {
-        redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/welcome")}`,
+        redirectTo: `${siteUrl}/welcome`,
       },
     });
 
-    if (!linkError && linkData?.properties?.hashed_token) {
-      tokenHash = linkData.properties.hashed_token;
+    if (!linkError && linkData?.properties) {
+      tokenHash = linkData.properties.hashed_token || null;
       actionLink = linkData.properties.action_link || null;
+
+      // Try to verify the token server-side and get session tokens
+      // This creates a session we can pass to the client
+      try {
+        const { data: verifyData, error: verifyError } = await authClient.auth.verifyOtp({
+          token_hash: linkData.properties.hashed_token,
+          type: "magiclink",
+        });
+
+        if (!verifyError && verifyData?.session) {
+          accessToken = verifyData.session.access_token;
+          refreshToken = verifyData.session.refresh_token;
+          console.log("[guest-connection] Server-side session created for:", normalizedEmail);
+        } else {
+          console.warn("[guest-connection] Server-side verify failed:", verifyError?.message);
+        }
+      } catch (verifyErr) {
+        console.error("[guest-connection] Server-side verify error:", verifyErr);
+      }
     }
 
     // Loops: new account created
@@ -451,8 +510,11 @@ async function handleGuestConnection({
       status: "duplicate",
       connectionId: existingConnection.id,
       created_at: existingConnection.created_at,
-      tokenHash: tokenHash || null,
-      actionLink: actionLink || null,
+      tokenHash: accessToken ? null : (tokenHash || null),
+      actionLink: accessToken ? null : (actionLink || null),
+      accessToken: accessToken || null,
+      refreshToken: refreshToken || null,
+      providerSlug,
     });
   }
 
@@ -671,12 +733,16 @@ async function handleGuestConnection({
     // Non-blocking
   }
 
+  // If we have session tokens, don't send tokenHash/actionLink (they're consumed)
+  // If we don't have session tokens, send tokenHash/actionLink for fallback
   return NextResponse.json({
     status: "created",
     connectionId: newConnection.id,
     created_at: newConnection.created_at,
-    tokenHash: tokenHash || null,
-    actionLink: actionLink || null,
+    tokenHash: accessToken ? null : (tokenHash || null),
+    actionLink: accessToken ? null : (actionLink || null),
+    accessToken: accessToken || null,
+    refreshToken: refreshToken || null,
     providerSlug,
     isNewUser,
   });

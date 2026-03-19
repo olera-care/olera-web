@@ -1,51 +1,47 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getStateById, getProgramById, activeStateIds } from "@/data/waiver-library";
+import { getStateById, getProgramById } from "@/data/waiver-library";
 import { Breadcrumb } from "@/components/waiver-library/Breadcrumb";
+import { TX_NEW_TO_OLD, TX_OLD_TO_NEW } from "@/lib/texas-slug-map";
 
 interface Props {
-  params: Promise<{ state: string; benefit: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  const params: { state: string; benefit: string }[] = [];
-  for (const stateId of activeStateIds) {
-    const state = getStateById(stateId);
-    if (state) {
-      for (const program of state.programs) {
-        params.push({ state: stateId, benefit: program.id });
-      }
-    }
-  }
-  return params;
+  return Object.values(TX_OLD_TO_NEW).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { state: stateId, benefit: benefitId } = await params;
-  const state = getStateById(stateId);
-  const program = getProgramById(stateId, benefitId);
-  if (!state || !program) return {};
+  const { slug } = await params;
+  const oldId = TX_NEW_TO_OLD[slug];
+  if (!oldId) return {};
+  const program = getProgramById("texas", oldId);
+  if (!program) return {};
   const title = `${program.name} Forms 2026 — Download Application & Referral Forms | Olera`;
-  const description = `Download the ${program.forms.map(f => f.name).join(" and ")} for ${program.name} in ${state.name}. Free PDF downloads with step-by-step submission instructions.`;
+  const description = `Download the ${program.forms.map(f => f.name).join(" and ")} for ${program.name} in Texas. Free PDF downloads with step-by-step submission instructions.`;
   return {
     title,
     description,
-    alternates: { canonical: `/waiver-library/${stateId}/${benefitId}/forms` },
+    alternates: { canonical: `/texas/benefits/${slug}/forms` },
     openGraph: {
       title,
       description,
-      url: `/waiver-library/${stateId}/${benefitId}/forms`,
+      url: `/texas/benefits/${slug}/forms`,
       siteName: "Olera",
       type: "website",
     },
   };
 }
 
-export default async function FormsPage({ params }: Props) {
-  const { state: stateId, benefit: benefitId } = await params;
-  const state = getStateById(stateId);
-  const program = getProgramById(stateId, benefitId);
+export default async function TexasFormsPage({ params }: Props) {
+  const { slug } = await params;
+  const oldId = TX_NEW_TO_OLD[slug];
+  if (!oldId) notFound();
+
+  const state = getStateById("texas");
+  const program = getProgramById("texas", oldId);
 
   if (!state || !program) {
     notFound();
@@ -53,16 +49,15 @@ export default async function FormsPage({ params }: Props) {
 
   return (
     <div className="bg-vanilla-100 min-h-screen">
-      {/* Sticky teal header */}
       <section className="bg-primary-800 text-white sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 md:py-4">
           <Breadcrumb
             variant="dark"
             items={[
               { label: "Benefits Hub", href: "/waiver-library" },
-              { label: state.name, href: `/waiver-library/${state.id}` },
-              { label: program.shortName, href: `/waiver-library/${state.id}/${program.id}` },
-              { label: "Document Checklist", href: `/waiver-library/${state.id}/${program.id}/checklist` },
+              { label: "Texas", href: "/texas/benefits" },
+              { label: program.shortName, href: `/texas/benefits/${slug}` },
+              { label: "Document Checklist", href: `/texas/benefits/${slug}/checklist` },
               { label: "Application Forms", current: true },
             ]}
           />
@@ -71,20 +66,19 @@ export default async function FormsPage({ params }: Props) {
           </h1>
           <div className="mt-3 inline-block bg-primary-700/50 rounded-xl px-4 py-3 max-w-3xl">
             <p className="text-sm text-primary-100 leading-relaxed">
-              Download the {program.forms.length} form{program.forms.length !== 1 ? "s" : ""} required to apply for {program.name} in {state.name}. All forms are free and can be submitted online, by mail, or in person at your local Health and Human Services office.
+              Download the {program.forms.length} form{program.forms.length !== 1 ? "s" : ""} required to apply for {program.name} in Texas. All forms are free and can be submitted online, by mail, or in person at your local Health and Human Services office.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Program forms card */}
       <section className="py-4 md:py-5 bg-vanilla-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-start justify-between gap-4 mb-2">
               <h2 className="text-lg font-bold text-gray-900">{program.name}</h2>
               <Link
-                href={`/waiver-library/${state.id}/${program.id}`}
+                href={`/texas/benefits/${slug}`}
                 className="text-sm font-medium text-primary-600 hover:text-primary-500 transition-colors shrink-0"
               >
                 View program details
@@ -133,19 +127,17 @@ export default async function FormsPage({ params }: Props) {
               </div>
             ))}
 
-            {/* How to use these forms */}
             <div className="mt-4 pt-4 border-t border-gray-100">
               <h3 className="font-semibold text-gray-900 mb-2">How to use these forms</h3>
               <div className="bg-gray-50 rounded-xl p-4">
                 <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600">
                   <li>Download and complete each form above, making sure to fill in all required fields and sign where indicated.</li>
-                  <li>Attach supporting documents from your <Link href={`/waiver-library/${state.id}/${program.id}/checklist`} className="text-primary-600 hover:text-primary-500 font-medium">document checklist</Link> — including proof of identity, income, and {state.name} residency.</li>
+                  <li>Attach supporting documents from your <Link href={`/texas/benefits/${slug}/checklist`} className="text-primary-600 hover:text-primary-500 font-medium">document checklist</Link> — including proof of identity, income, and Texas residency.</li>
                   <li>Submit your completed forms online at YourTexasBenefits.com, by mail to your local HHS office, or in person — processing typically takes 30 to 90 days.</li>
                 </ol>
               </div>
             </div>
 
-            {/* Check eligibility CTA */}
             <div className="mt-4 pt-4 border-t border-gray-100">
               <Link
                 href="/benefits/finder"
@@ -161,7 +153,6 @@ export default async function FormsPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Bottom CTA banner */}
       <section className="pb-16 md:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-primary-800 rounded-2xl py-10 md:py-12 px-6 text-center">
@@ -177,18 +168,8 @@ export default async function FormsPage({ params }: Props) {
                 className="inline-flex items-center justify-center px-8 py-3 bg-white text-primary-900 font-semibold rounded-xl shadow-lg shadow-black/20 hover:shadow-xl hover:bg-primary-50 transition-all"
               >
                 Find My Savings
-                <svg
-                  className="ml-2 w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
+                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
               </Link>
             </div>

@@ -1,12 +1,16 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import InterestedCard from "@/components/portal/matches/InterestedCard";
+import MatchProviderCard from "@/components/portal/matches/MatchProviderCard";
 import InterestedCardCompact from "@/components/portal/matches/InterestedCardCompact";
 import {
   useInterestedProviders,
   type InterestedProvider,
 } from "@/hooks/useInterestedProviders";
+import type {
+  OrganizationMetadata,
+  CaregiverMetadata,
+} from "@/lib/types";
 
 interface InterestedTabContentProps {
   profileId: string;
@@ -14,6 +18,22 @@ interface InterestedTabContentProps {
   familyLat?: number | null;
   familyLng?: number | null;
   variant?: "desktop" | "mobile";
+}
+
+function getPriceRange(profile: InterestedProvider["providerProfile"]): string | null {
+  if (!profile) return null;
+  const meta = profile.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
+  if (!meta) return null;
+  if (meta.hourly_rate_min && meta.hourly_rate_max) {
+    return `$${meta.hourly_rate_min}–$${meta.hourly_rate_max}/hr`;
+  }
+  if (meta.hourly_rate_min) return `From $${meta.hourly_rate_min}/hr`;
+  if (meta.price_range) return meta.price_range;
+  const lower = meta.lower_price as number | undefined;
+  const upper = meta.upper_price as number | undefined;
+  if (lower && upper) return `$${lower}–$${upper}/hr`;
+  if (lower) return `From $${lower}/hr`;
+  return null;
 }
 
 export default function InterestedTabContent({
@@ -26,11 +46,6 @@ export default function InterestedTabContent({
   const { pending, declined, loading, updateLocal } =
     useInterestedProviders(profileId);
   const [declinedExpanded, setDeclinedExpanded] = useState(false);
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
-  const [acceptingId, setAcceptingId] = useState<string | null>(null);
-  const [decliningId, setDecliningId] = useState<string | null>(null);
-  const [acceptedId, setAcceptedId] = useState<string | null>(null);
-  const [declinedConfirmId, setDeclinedConfirmId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Auto-dismiss error after 4 seconds
@@ -40,153 +55,66 @@ export default function InterestedTabContent({
     return () => clearTimeout(timer);
   }, [actionError]);
 
-  // ── Expand card (also marks as viewed) ──
-  const handleExpand = useCallback(
-    async (id: string) => {
-      setExpandedCardId(id);
+  // ── Handle message sent (accept + send message) ──
+  const handleMessage = useCallback(
+    async (providerId: string, message: string) => {
+      // Find the connection for this provider
+      const item = pending.find((c) => c.providerProfile?.id === providerId);
+      if (!item) return;
 
-      // Mark as viewed optimistically
-      const item = pending.find((c) => c.id === id);
-      if (item && !(item.metadata as Record<string, unknown>)?.viewed) {
-        const prevMeta = item.metadata as Record<string, unknown>;
-
-        updateLocal(id, {
-          metadata: { ...prevMeta, viewed: true },
+      setActionError(null);
+      try {
+        // Accept the connection and send the message
+        const res = await fetch("/api/connections/respond-interest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            connectionId: item.id,
+            action: "accept",
+            message,
+          }),
         });
-
-        window.dispatchEvent(
-          new CustomEvent("olera:interested-viewed", { detail: { connectionId: id } })
-        );
-
-        try {
-          const res = await fetch("/api/connections/respond-interest", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionId: id, action: "view" }),
-          });
-          if (!res.ok) {
-            console.error("[InterestedTab] view API failed, reverting");
-            updateLocal(id, { metadata: { ...prevMeta, viewed: false } });
-          }
-        } catch {
-          console.error("[InterestedTab] view API error, reverting");
-          updateLocal(id, { metadata: { ...prevMeta, viewed: false } });
+        if (!res.ok) {
+          setActionError("Couldn't send message. Please try again.");
+          return;
         }
+
+        // Remove from pending (they're now connected)
+        updateLocal(item.id, "remove");
+      } catch {
+        setActionError("Couldn't send message. Please try again.");
       }
     },
     [pending, updateLocal]
   );
 
-  const handleCollapse = useCallback(() => {
-    setExpandedCardId(null);
-  }, []);
-
-  // ── Accept (Start conversation) ──
-  const handleAccept = useCallback(
-    async (id: string) => {
-      setAcceptingId(id);
-      setActionError(null);
-      try {
-        const res = await fetch("/api/connections/respond-interest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ connectionId: id, action: "accept" }),
-        });
-        if (!res.ok) {
-          setActionError("Couldn't start conversation. Please try again.");
-          return;
-        }
-
-        // Show success state instead of removing
-        setAcceptedId(id);
-        setExpandedCardId(null);
-      } catch {
-        setActionError("Couldn't start conversation. Please try again.");
-      } finally {
-        setAcceptingId(null);
-      }
-    },
-    []
-  );
-
-  // ── Dismiss accepted card ──
-  const handleDismiss = useCallback(
-    (id: string) => {
-      setAcceptedId(null);
-      updateLocal(id, "remove");
-    },
-    [updateLocal]
-  );
-
   // ── Decline ──
   const handleDecline = useCallback(
-    async (id: string) => {
-      setDecliningId(id);
+    async (connectionId: string) => {
       setActionError(null);
       try {
         const res = await fetch("/api/connections/respond-interest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ connectionId: id, action: "decline" }),
+          body: JSON.stringify({ connectionId, action: "decline" }),
         });
         if (!res.ok) {
           setActionError("Couldn't decline. Please try again.");
           return;
         }
 
-        // Show feedback view instead of moving to declined immediately
-        setDeclinedConfirmId(id);
-        setExpandedCardId(null);
+        // Move to declined
+        const item = pending.find((c) => c.id === connectionId);
+        if (item) {
+          const meta = (item.metadata || {}) as Record<string, unknown>;
+          updateLocal(connectionId, {
+            status: "declined",
+            metadata: { ...meta, declined_at: new Date().toISOString() },
+          } as Partial<InterestedProvider>);
+        }
       } catch {
         setActionError("Couldn't decline. Please try again.");
-      } finally {
-        setDecliningId(null);
       }
-    },
-    []
-  );
-
-  // ── Undo decline (reconsider) ──
-  const handleUndoDecline = useCallback(
-    async (id: string) => {
-      const res = await fetch("/api/connections/respond-interest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ connectionId: id, action: "reconsider" }),
-      });
-      if (!res.ok) return;
-
-      setDeclinedConfirmId(null);
-    },
-    []
-  );
-
-  // ── Done with decline feedback ──
-  const handleDoneDecline = useCallback(
-    async (id: string, reasons: string[]) => {
-      // Send feedback reasons if any were selected
-      if (reasons.length > 0) {
-        try {
-          await fetch("/api/connections/respond-interest", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ connectionId: id, action: "decline_feedback", reasons }),
-          });
-        } catch {
-          // Non-critical — don't block the flow
-        }
-      }
-
-      // Move to declined and clear feedback view
-      const item = pending.find((c) => c.id === id);
-      if (item) {
-        const meta = (item.metadata || {}) as Record<string, unknown>;
-        updateLocal(id, {
-          status: "declined",
-          metadata: { ...meta, declined_at: new Date().toISOString(), decline_reasons: reasons },
-        } as Partial<InterestedProvider>);
-      }
-      setDeclinedConfirmId(null);
     },
     [pending, updateLocal]
   );
@@ -432,27 +360,34 @@ export default function InterestedTabContent({
 
       {/* Pending cards */}
       {pending.length > 0 && (
-        <div className="space-y-5 mb-6">
-          {pending.map((item) => (
-            <InterestedCard
-              key={item.id}
-              item={item}
-              isExpanded={expandedCardId === item.id}
-              onExpand={handleExpand}
-              onCollapse={handleCollapse}
-              onAccept={handleAccept}
-              onDecline={handleDecline}
-              isAccepting={acceptingId === item.id}
-              isDeclining={decliningId === item.id}
-              isAccepted={acceptedId === item.id}
-              onDismiss={handleDismiss}
-              isDeclinedConfirm={declinedConfirmId === item.id}
-              onUndoDecline={handleUndoDecline}
-              onDoneDecline={handleDoneDecline}
-              familyLat={familyLat}
-              familyLng={familyLng}
-            />
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+          {pending.map((item) => {
+            const profile = item.providerProfile;
+            const meta = profile?.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;
+            const matchReasons = ((item.metadata as Record<string, unknown>)?.match_reasons as string[]) || [];
+            return (
+              <MatchProviderCard
+                key={item.id}
+                provider={{
+                  id: profile?.id || item.from_profile_id,
+                  name: profile?.display_name || "Provider",
+                  slug: profile?.slug || undefined,
+                  image: profile?.image_url,
+                  category: profile?.category || profile?.care_types?.[0] || "Care Provider",
+                  city: profile?.city,
+                  state: profile?.state,
+                  rating: (meta?.google_rating as number) || null,
+                  priceRange: getPriceRange(profile),
+                }}
+                interestedMessage={item.message || (item.metadata as Record<string, unknown>)?.reach_out_note as string}
+                interestedAt={item.created_at}
+                connectionId={item.id}
+                matchReasons={matchReasons}
+                onMessage={handleMessage}
+                onDecline={handleDecline}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -494,21 +429,72 @@ export default function InterestedTabContent({
           </button>
 
           {declinedExpanded && (
-            <div className="space-y-5">
-              {declined.map((item) => (
-                <InterestedCard
-                  key={item.id}
-                  item={item}
-                  onReconsider={handleReconsider}
-                  isDeclined
-                  familyLat={familyLat}
-                  familyLng={familyLng}
-                />
-              ))}
+            <div className="space-y-3">
+              {declined.map((item) => {
+                const profile = item.providerProfile;
+                return (
+                  <DeclinedProviderRow
+                    key={item.id}
+                    name={profile?.display_name || "Provider"}
+                    image={profile?.image_url}
+                    location={[profile?.city, profile?.state].filter(Boolean).join(", ")}
+                    onReconsider={() => handleReconsider(item.id)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Declined provider row ──
+function DeclinedProviderRow({
+  name,
+  image,
+  location,
+  onReconsider,
+}: {
+  name: string;
+  image?: string | null;
+  location?: string;
+  onReconsider: () => void;
+}) {
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-200/80 opacity-60 hover:opacity-80 transition-opacity">
+      {image ? (
+        <img
+          src={image}
+          alt={name}
+          className="w-10 h-10 rounded-xl object-cover shrink-0"
+        />
+      ) : (
+        <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center shrink-0 text-xs font-bold text-warm-500">
+          {initials}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-gray-600 truncate">{name}</p>
+        {location && (
+          <p className="text-xs text-gray-400 truncate">{location}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onReconsider}
+        className="text-xs font-medium text-primary-600 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
+      >
+        Reconsider
+      </button>
     </div>
   );
 }

@@ -1095,7 +1095,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               {/* Cards — full width, tighter on desktop */}
               <div className="space-y-4 lg:space-y-3">
                 {/* Card 1: Profile — with attention animation for fresh users */}
-                <div className="relative step-card-entrance" style={{ animationDelay: '0ms' }}>
+                <div className="relative">
                   <button
                     onClick={() => setProfileWizardOpen(true)}
                     className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsProfileAttention ? 'animate-ring-breathe' : ''}`}
@@ -1132,7 +1132,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 </div>
 
                 {/* Card 2: Benefits — with attention animation */}
-                <div className="relative step-card-entrance" style={{ animationDelay: '75ms' }}>
+                <div className="relative">
                   <button
                     onClick={() => {
                       // Mark benefits as viewed for gamification
@@ -1173,7 +1173,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 </div>
 
                 {/* Card 3: Matches — activates profile if not live, otherwise links to matches */}
-                <div className="relative step-card-entrance" style={{ animationDelay: '150ms' }}>
+                <div className="relative">
                   {isProfileLive ? (
                     // Already live — just link to matches
                     <Link
@@ -1830,30 +1830,18 @@ export default function WelcomeClient({ destination, initialProviders = [], init
         }
         @keyframes ring-breathe {
           0%, 100% {
-            box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.3), 0 0 0 4px rgba(52, 211, 153, 0.15);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4), 0 0 0 6px rgba(16, 185, 129, 0.1);
           }
           50% {
-            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5), 0 0 0 8px rgba(52, 211, 153, 0.1);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.6), 0 0 0 10px rgba(16, 185, 129, 0.15);
           }
         }
         .animate-ring-breathe {
           animation: ring-breathe 2s ease-in-out infinite;
+          border: 2px solid rgba(16, 185, 129, 0.5);
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out forwards;
-        }
-        .step-card-entrance {
-          animation: stepCardSlideUp 0.4s ease-out backwards;
-        }
-        @keyframes stepCardSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(16px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
         }
         /* Hide scrollbar for horizontal scroll containers */
         [style*="scrollbar-width: none"]::-webkit-scrollbar {

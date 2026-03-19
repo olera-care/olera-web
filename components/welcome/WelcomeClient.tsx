@@ -472,11 +472,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
       const supabase = createClient();
 
-      // Check if onboarding already completed → skip (only on first load)
-      if (!hasInitialized && account?.onboarding_completed === true) {
-        router.replace(destination);
-        return;
-      }
+      // Note: We no longer auto-redirect returning users to portal.
+      // If they visit /welcome directly, show them the dashboard.
+      // If they came via a link (email, etc.), they'll go to their intended destination.
       setHasInitialized(true);
 
       // Update city from profile if not already set from server

@@ -533,24 +533,31 @@ export function useConnectionCard(props: ConnectionCardProps) {
         if (data.tokenHash) {
           try {
             const supabase = createClient();
-            const { error: verifyError } = await supabase.auth.verifyOtp({
+            console.log("[guest-connection] Attempting to verify OTP...");
+            const { data: sessionData, error: verifyError } = await supabase.auth.verifyOtp({
               token_hash: data.tokenHash,
               type: "magiclink",
             });
 
             if (verifyError) {
-              console.error("Failed to establish session:", verifyError);
+              console.error("[guest-connection] Failed to establish session:", verifyError);
               // Continue anyway — user can verify via email later
+            } else {
+              console.log("[guest-connection] Session established:", sessionData?.session?.user?.email);
+              // Wait a moment for cookies to be set
+              await new Promise(resolve => setTimeout(resolve, 100));
             }
           } catch (sessionErr) {
-            console.error("Session error:", sessionErr);
+            console.error("[guest-connection] Session error:", sessionErr);
           }
+        } else {
+          console.warn("[guest-connection] No tokenHash received from API");
         }
 
         // Navigate to /welcome with connection info
         // User now has an active session and can complete their profile
         const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
-        router.push(welcomeUrl);
+        router.replace(welcomeUrl); // Use replace to avoid back-button issues
         return; // Stop here — we're navigating away
       }
     } catch (err: unknown) {

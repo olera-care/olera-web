@@ -35,6 +35,7 @@ function generateSlug(name: string): string {
 interface GuestConnectionParams {
   guestEmail: string;
   guestFullName?: string;
+  guestPhone?: string;
   providerId: string;
   providerName: string;
   providerSlug: string;
@@ -52,6 +53,7 @@ interface GuestConnectionParams {
 async function handleGuestConnection({
   guestEmail,
   guestFullName,
+  guestPhone,
   providerId,
   providerName,
   providerSlug,
@@ -189,11 +191,13 @@ async function handleGuestConnection({
         // Since we can't easily get user by email, we'll create profile with null account for now
         // and let the magic link callback claim it
         const slug = await generateUniqueSlugFromName(db, displayName);
+        const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
         const { data: newProfile, error: profileErr } = await db
           .from("business_profiles")
           .insert({
             account_id: null, // Will be claimed when user uses magic link
             email: normalizedEmail,
+            phone: normalizedPhone,
             slug,
             type: "family",
             display_name: displayName,
@@ -250,13 +254,15 @@ async function handleGuestConnection({
     }
     accountId = newAccount.id;
 
-    // Create family profile
+    // Create family profile with phone if provided
     const slug = await generateUniqueSlugFromName(db, displayName);
+    const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
     const { data: newProfile, error: profileErr } = await db
       .from("business_profiles")
       .insert({
         account_id: accountId,
         email: normalizedEmail,
+        phone: normalizedPhone,
         slug,
         type: "family",
         display_name: displayName,
@@ -736,6 +742,7 @@ export async function POST(request: Request) {
       return handleGuestConnection({
         guestEmail,
         guestFullName: formData?.fullName,
+        guestPhone: formData?.phone,
         providerId,
         providerName,
         providerSlug,

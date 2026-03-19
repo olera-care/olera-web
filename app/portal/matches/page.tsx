@@ -379,7 +379,6 @@ function MatchesContent() {
               <RecommendedTabContent
                 providers={recommendedProviders}
                 loading={loadingProviders}
-                locationDisplay={locationDisplay || null}
                 onSendMessage={handleSendMessage}
               />
             ) : (

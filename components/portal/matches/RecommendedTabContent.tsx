@@ -19,7 +19,6 @@ interface RecommendedProvider {
 interface RecommendedTabContentProps {
   providers: RecommendedProvider[];
   loading: boolean;
-  locationDisplay: string | null;
   onSendMessage: (providerId: string, message: string) => Promise<void>;
 }
 
@@ -35,7 +34,6 @@ function Shimmer({ className }: { className?: string }) {
 export default function RecommendedTabContent({
   providers,
   loading,
-  locationDisplay,
   onSendMessage,
 }: RecommendedTabContentProps) {
   // Loading state with shimmer effect
@@ -46,12 +44,6 @@ export default function RecommendedTabContent({
         id="tabpanel-recommended"
         aria-labelledby="tab-recommended"
       >
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <Shimmer className="h-6 w-48 rounded-lg mb-2" />
-            <Shimmer className="h-4 w-36 rounded-lg" />
-          </div>
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
@@ -130,25 +122,6 @@ export default function RecommendedTabContent({
       id="tabpanel-recommended"
       aria-labelledby="tab-recommended"
     >
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h3 className="text-lg font-display font-bold text-gray-900">
-            Recommended for you
-          </h3>
-          {locationDisplay && (
-            <p className="text-[14px] text-gray-500 mt-0.5">
-              Matching your needs in {locationDisplay}
-            </p>
-          )}
-        </div>
-        <Link
-          href="/browse"
-          className="text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors focus:outline-none focus-visible:underline"
-        >
-          View all →
-        </Link>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {providers.map((provider, index) => {
           const imageUrl = provider.provider_logo || provider.provider_images?.split(" | ")[0] || null;
@@ -184,6 +157,20 @@ export default function RecommendedTabContent({
           );
         })}
       </div>
+
+      {/* View all button at bottom */}
+      <div className="mt-6 text-center">
+        <Link
+          href="/browse"
+          className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+        >
+          View all providers
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
+
       <style jsx>{`
         .card-entrance {
           animation: cardFadeIn 0.3s ease-out backwards;

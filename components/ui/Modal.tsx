@@ -151,7 +151,7 @@ export default function Modal({
       className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4"
       role="dialog"
       aria-modal="true"
-      aria-label={title}
+      aria-label={typeof title === "string" ? title : undefined}
     >
       {/* Backdrop - uses onMouseDown to prevent drag-and-release closes */}
       <div

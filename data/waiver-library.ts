@@ -11,6 +11,21 @@ export interface ApplicationStep {
   description: string;
 }
 
+export interface ServiceArea {
+  name: string;
+  description: string;
+}
+
+export interface AlsoServing {
+  text: string;
+}
+
+export interface MapPin {
+  label: string;
+  lat: number;
+  lng: number;
+}
+
 export interface WaiverProgram {
   id: string;
   name: string;
@@ -21,6 +36,16 @@ export interface WaiverProgram {
   eligibilityHighlights: string[];
   applicationSteps: ApplicationStep[];
   forms: WaiverForm[];
+  serviceAreas?: ServiceArea[];
+  serviceAreasHeading?: string;
+  serviceAreasSummary?: string;
+  serviceAreasAlsoServing?: string;
+  serviceAreasCta?: string;
+  alsoServing?: string;
+  mapPins?: MapPin[];
+  phone?: string;
+  intro?: string;
+  faqs?: { question: string; answer: string }[];
 }
 
 export interface StateData {
@@ -9125,23 +9150,48 @@ const tennesseePrograms: WaiverProgram[] = [
 const texasPrograms: WaiverProgram[] = [
   {
     id: "star-plus-home-and-community-based-services",
-    name: "STAR+PLUS Home and Community-Based Services",
-    shortName: "STAR+PLUS Home and",
+    name: "Texas STAR+PLUS Waiver",
+    shortName: "STAR+PLUS Waiver",
     tagline: "Medicaid managed care program for adults 65+ or disabled. Covers personal attendant services and community-based care.",
-    savingsRange: "$1,000 – $5,000/year",
+    savingsRange: "$20,000 – $50,000/year in 2026",
     description: "Medicaid managed care program for adults 65+ or disabled. Covers personal attendant services and community-based care.",
+    intro: "STAR+PLUS Home and Community-Based Services is Texas's primary Medicaid managed care program for adults who are 65 or older or living with a disability. It provides personal attendant services, adaptive aids, and community-based supports that help Texans stay safely in their homes instead of moving to a nursing facility. For families navigating long-term care in Texas, STAR+PLUS is often the most comprehensive option available.",
     eligibilityHighlights: [
       "Age 21 or older",
-      "Income below $2901/month",
+      "Income below $2,982/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "Check you meet the age 21+ and $2,982/month income limit for Texas in 2026." },
+      { step: 2, title: "Gather required documents", description: "Gather Social Security statements, bank records, and a Texas utility bill or lease." },
+      { step: 3, title: "Download forms", description: "Download the Texas Medicaid Application and HCBS Waiver Referral Form." },
+      { step: 4, title: "Submit your application", description: "Submit to Texas HHS — processing takes 30–90 days. Call 211 to join the interest list now." },
     ],
     forms: [
-      { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Official Texas Medicaid application, required for waiver enrollment.", url: "https://www.yourtexasbenefits.com" },
-      { id: "texas-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.yourtexasbenefits.com" },
+      { id: "texas-medicaid-application", name: "Texas Medicaid Application Form", description: "Official Texas Medicaid application, required for waiver enrollment.", url: "https://www.yourtexasbenefits.com" },
+      { id: "texas-hcbs-referral", name: "HCBS Waiver Referral Form Texas", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.yourtexasbenefits.com" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas", description: "Dallas, Collin, Denton counties" },
+      { name: "Fort Worth", description: "Tarrant County" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+    ],
+    serviceAreasHeading: "STAR+PLUS Service Locations in Texas",
+    faqs: [
+      {
+        question: "Can I have Medicare and still qualify for STAR+PLUS?",
+        answer: "Yes. Most STAR+PLUS members are \"dual eligible,\" meaning they have both Medicare and Medicaid. Medicare covers hospital and doctor visits while STAR+PLUS adds home care, personal attendant services, and other community-based supports that Medicare does not cover. Having Medicare does not disqualify you.",
+      },
+      {
+        question: "Is there a waitlist to get into the program?",
+        answer: "STAR+PLUS does maintain an interest list in many service areas, and wait times can range from several months to over a year depending on your location and level of need. We strongly recommend calling 2-1-1 as soon as possible to get your name on the interest list while your application is being processed.",
+      },
+      {
+        question: "How long does it take for my application to be processed?",
+        answer: "Application processing typically takes 30 to 90 days from the date Texas Health and Human Services receives your completed application and all supporting documents. Incomplete applications or missing documents are the most common cause of delays, so use the document checklist above to make sure everything is ready before you submit.",
+      },
     ],
   },
   {
@@ -9149,18 +9199,43 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Medicare Savings Programs",
     shortName: "Medicare Savings",
     tagline: "State-administered programs that pay Medicare premiums and costs for low-income beneficiaries.",
-    savingsRange: "$2,000 – $8,000/year",
+    savingsRange: "$2,000 – $8,000/year in 2026",
     description: "State-administered programs that pay Medicare premiums and costs for low-income beneficiaries.",
+    intro: "Texas Medicare Savings Programs help low-income Medicare beneficiaries cover the cost of premiums, deductibles, and copays that Medicare alone doesn't pay. Administered by the state of Texas, these programs — including QMB, SLMB, and QI — can save eligible seniors thousands of dollars each year on healthcare costs. If you're on Medicare in Texas and struggling with out-of-pocket expenses, this program may be able to help.",
     eligibilityHighlights: [
-      "Income below $1781/month",
+      "Income below $1,796/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "Confirm your income is below $1,796/month and you are currently enrolled in Medicare Part A or Part B." },
+      { step: 2, title: "Gather required documents", description: "Collect your Medicare card, Social Security statements, proof of income, and a Texas ID or utility bill." },
+      { step: 3, title: "Download forms", description: "Download the Medicare Savings Program Application to apply for QMB, SLMB, or QI coverage." },
+      { step: 4, title: "Submit your application", description: "Submit online at YourTexasBenefits.com or mail to your local HHS office. Processing takes 30 to 45 days." },
     ],
     forms: [
       { id: "texas-msp-application", name: "Medicare Savings Program Application", description: "Apply for QMB, SLMB, or QI coverage to help pay Medicare premiums, deductibles, and copays.", url: "https://www.yourtexasbenefits.com" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas", description: "Dallas, Collin, Denton counties" },
+      { name: "Fort Worth", description: "Tarrant County" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+    ],
+    serviceAreasHeading: "Medicare Savings Locations in Texas",
+    faqs: [
+      {
+        question: "What are the income limits for Texas Medicare Savings Programs in 2026?",
+        answer: "For 2026, the highest income limit for Texas Medicare Savings Programs is $1,796 per month for individuals at the QI level, which represents 135% of the federal poverty level. QMB has the lowest income threshold, followed by SLMB, and then QI for those with slightly higher incomes. To qualify for any of these programs, you must already be enrolled in Medicare and meet both income and resource limits set by the state. These are state-administered programs run through the Texas Health and Human Services Commission.",
+      },
+      {
+        question: "How do I apply for Texas Medicare Savings Programs and how long does approval take?",
+        answer: "You can apply online through YourTexasBenefits.com or in person at your local Texas Health and Human Services office. The application requires proof of income and assets so the state can determine which program level you qualify for. Processing typically takes 30 to 45 days from the time your completed application is received. If approved, SLMB and QI benefits can be applied retroactively for up to three months before your application date, so it is worth applying as soon as you think you may be eligible.",
+      },
+      {
+        question: "What is the difference between QMB, SLMB, and QI in Texas Medicare Savings Programs?",
+        answer: "The biggest difference is what each program covers. QMB is the most comprehensive, paying for your Medicare premiums, deductibles, and copays, which means Medicare providers cannot bill you for any remaining costs on covered services. SLMB and QI only cover your monthly Part B premium and do not help with deductibles, copays, or coinsurance. QMB has the lowest income limit of the three, while QI allows higher incomes but is funded on a first-come, first-served basis, so applying early in the year is recommended.",
+      },
     ],
   },
   {
@@ -9168,38 +9243,90 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas SNAP Food Benefits",
     shortName: "SNAP/Food",
     tagline: "Monthly benefits loaded onto a Lone Star Card to buy groceries. Seniors 60+ can apply with simplified rules.",
-    savingsRange: "$1,500 – $3,600/year",
+    savingsRange: "$1,500 – $3,600/year in 2026",
     description: "Monthly benefits loaded onto a Lone Star Card to buy groceries. Seniors 60+ can apply with simplified rules.",
+    intro: "Texas SNAP Food Benefits provide monthly grocery assistance loaded directly onto a Lone Star Card, helping seniors and families across Texas put nutritious food on the table. Older adults aged 60 and above can apply through simplified rules that make the process easier. For many Texas seniors living on a fixed income, SNAP benefits are a vital lifeline that helps stretch every dollar.",
     eligibilityHighlights: [
-      "Income below $1580/month",
+      "Income below $1,729/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "Verify your household income is below $1,729/month. Seniors 60+ qualify under simplified rules." },
+      { step: 2, title: "Gather required documents", description: "Prepare your Texas ID, pay stubs or Social Security statements, rent/mortgage receipts, and utility bills." },
+      { step: 3, title: "Download forms", description: "Download the Texas SNAP Application or apply directly online at YourTexasBenefits.com." },
+      { step: 4, title: "Submit your application", description: "Submit online, by mail, or in person. Complete a phone interview within 30 days to receive your Lone Star Card." },
     ],
     forms: [
       { id: "texas-snap-application", name: "Texas SNAP Application", description: "Apply for Supplemental Nutrition Assistance Program (food assistance) benefits.", url: "https://www.yourtexasbenefits.com" },
     ],
+    faqs: [
+      {
+        question: "What is the income limit for Texas SNAP benefits for seniors over 60?",
+        answer: "For 2026, a single person in Texas can earn up to $1,729 per month (130% of the federal poverty level) and still qualify for SNAP benefits. Seniors aged 60 and older may qualify under simplified rules with fewer reporting requirements, making the process easier. Texas also uses broad-based categorical eligibility, which means there is no asset or resource test for most applicants. The average monthly benefit for a single senior is around $100 to $200.",
+      },
+      {
+        question: "How long does it take to get a Texas SNAP Lone Star Card after you apply?",
+        answer: "You can apply online at YourTexasBenefits.com or visit your local Health and Human Services office in person. After submitting your application, you will need to complete an interview by phone or in person before a decision is made. Texas is required to process most applications within 30 days, though if you are in an urgent situation you may qualify for expedited benefits within 7 days. Once approved, your benefits are loaded onto a Lone Star Card, which is the Texas version of an EBT card.",
+      },
+      {
+        question: "Can you use a Texas SNAP Lone Star Card to buy groceries online?",
+        answer: "Yes, Texas SNAP recipients can use their Lone Star Card to order groceries online for delivery or pickup through approved retailers including Amazon, Walmart, and H-E-B. The card works just like a debit card at approved grocery stores and farmers markets as well. SNAP benefits cover most food items such as fruits, vegetables, meat, dairy, bread, and cereals. However, you cannot use SNAP to purchase hot prepared foods, alcohol, tobacco, vitamins, or non-food household items.",
+      },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas / Fort Worth", description: "Dallas, Collin, Denton, Tarrant counties" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+      { name: "Rio Grande Valley", description: "Hidalgo, Cameron counties" },
+      { name: "Corpus Christi", description: "Nueces County" },
+      { name: "Lubbock / Amarillo", description: "Lubbock, Potter, Randall counties" },
+    ],
+    serviceAreasHeading: "SNAP Office Locations in Texas",
   },
   {
     id: "texas-medicaid-for-the-elderly-and-people-with-disabilities",
     name: "Texas Medicaid for the Elderly and People with Disabilities",
     shortName: "Texas Medicaid for the",
     tagline: "Full Medicaid coverage for seniors 65+ and people with disabilities with limited income.",
-    savingsRange: "$5,000 – $20,000/year",
+    savingsRange: "$5,000 – $20,000/year in 2026",
     description: "Full Medicaid coverage for seniors 65+ and people with disabilities with limited income.",
+    intro: "Texas Medicaid for the Elderly and People with Disabilities provides comprehensive health coverage to older Texans and individuals living with disabilities who have limited income. This program covers doctor visits, hospital stays, prescriptions, and long-term care services that would otherwise be unaffordable. It is one of the most important safety-net programs in Texas for seniors who need ongoing medical care.",
     eligibilityHighlights: [
       "Age 65 or older",
-      "Income below $967/month",
+      "Income below $994/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "Confirm you are 65+ or have a qualifying disability, and that your income is below $994/month (SSI level)." },
+      { step: 2, title: "Gather required documents", description: "Collect your birth certificate or passport, Social Security card, bank statements, and proof of Texas residency." },
+      { step: 3, title: "Download forms", description: "Download the Texas Medicaid Application from YourTexasBenefits.com or request a paper copy by calling 2-1-1." },
+      { step: 4, title: "Submit your application", description: "Submit online, by mail, or at your local HHS office. Expect a decision within 45 days of submitting all documents." },
     ],
     forms: [
       { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Official Texas Medicaid application. Apply online or download a printable form.", url: "https://www.yourtexasbenefits.com" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas", description: "Dallas, Collin, Denton counties" },
+      { name: "Fort Worth", description: "Tarrant County" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+    ],
+    serviceAreasHeading: "Medicaid for Elderly Locations in Texas",
+    faqs: [
+      {
+        question: "What are the income and asset limits for Texas Medicaid for the Elderly and People with Disabilities in 2026?",
+        answer: "For a single individual, the income limit for Texas MEPD is $994 per month (the SSI federal benefit rate), and countable assets must be $2,000 or less. For a married couple, the combined income limit is $1,491 per month with a $3,000 asset limit. Countable assets include bank accounts, retirement accounts, stocks, bonds, and certificates of deposit. You must also be a Texas resident and a U.S. citizen or qualified non-citizen to be eligible.",
+      },
+      {
+        question: "How long does it take to get approved for Texas Medicaid for the Elderly and People with Disabilities?",
+        answer: "Most MEPD applications are processed within 45 days from the date HHSC receives your completed and signed application. However, if you are under 65 and your disability has not already been established through the Social Security Administration, the timeline extends to 90 days because the HHSC Disability Determination Unit must review your case separately. You can apply online at YourTexasBenefits.com, by calling 2-1-1, or in person at your local HHSC office.",
+      },
+      {
+        question: "What is the difference between Texas Medicaid for the Elderly and People with Disabilities and STAR+PLUS?",
+        answer: "MEPD is the eligibility category that determines whether you qualify for Medicaid based on age (65+) or disability, while STAR+PLUS is the managed care delivery system through which most MEPD beneficiaries actually receive their healthcare services. MEPD itself is an entitlement, meaning anyone who meets the requirements is guaranteed coverage by law with no waiting list. The STAR+PLUS Home and Community-Based Services waiver, on the other hand, has limited enrollment slots and may place additional applicants on a waitlist. In short, MEPD gets you approved for Medicaid, and STAR+PLUS is how Texas delivers the care.",
+      },
     ],
   },
   {
@@ -9207,18 +9334,34 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas SHIP Medicare Counseling",
     shortName: "Texas SHIP Medicare Counseling",
     tagline: "Free, unbiased help understanding Medicare options. Certified counselors help compare plans.",
-    savingsRange: "Free counseling service",
+    savingsRange: "Free counseling service in 2026",
     description: "Free, unbiased help understanding Medicare options. Certified counselors help compare plans.",
+    intro: "The Texas SHIP Medicare Counseling program offers free, unbiased guidance from certified counselors who help you understand and compare Medicare plan options. Whether you're enrolling in Medicare for the first time or reviewing your coverage during open enrollment, Texas SHIP counselors can help you find the plan that best fits your needs and budget. This service is completely free and is available to all Medicare beneficiaries in Texas.",
     eligibilityHighlights: [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "SHIP is free and open to all Medicare beneficiaries in Texas. No income or age restrictions apply." },
+      { step: 2, title: "Gather your Medicare info", description: "Have your Medicare card, current plan details, and a list of your prescriptions ready for your counseling session." },
+      { step: 3, title: "Download forms", description: "Download the SHIP counseling request form or call 1-800-252-9240 to schedule a session by phone." },
+      { step: 4, title: "Meet with a counselor", description: "A certified SHIP volunteer will compare plans and help you choose the best Medicare coverage for your needs." },
     ],
     forms: [
       { id: "texas-ship-counseling", name: "SHIP Medicare Counseling Request", description: "Request free, unbiased Medicare counseling to compare plans and understand your benefits.", url: "https://www.shiphelp.org" },
+    ],
+    faqs: [
+      {
+        question: "What does Texas SHIP Medicare counseling help with?",
+        answer: "Texas SHIP, known locally as HICAP (Health Information, Counseling and Advocacy Program), provides free, unbiased Medicare counseling to anyone on Medicare or approaching Medicare eligibility. The program is run through the Texas Department of Insurance and staffed by trained volunteers who can help with Medicare enrollment, comparing Medicare Advantage and Medigap plans, understanding Medicare bills, filing appeals, and identifying low-income assistance programs like Medicare Savings Programs or Extra Help. SHIP counselors do not sell insurance products or receive commissions, so their guidance is based entirely on your situation. You can reach Texas SHIP by calling 1-800-252-9240 to connect with a local counselor.",
+      },
+      {
+        question: "How do I schedule a Texas SHIP Medicare counseling appointment and how long does it take?",
+        answer: "To schedule a counseling session, call the Texas SHIP helpline at 1-800-252-9240, and staff will connect you with a trained volunteer counselor in your area. Sessions can take place by phone, in person at a local counseling site, or at community events like senior centers and libraries. Most one-on-one sessions last 30 to 60 minutes depending on the complexity of your questions, and counselors recommend scheduling well before key Medicare deadlines like the Annual Enrollment Period (October 15 through December 7). Bring your Medicare card, any plan materials, and a list of your current prescriptions so your counselor can give you the most accurate guidance.",
+      },
+      {
+        question: "How is Texas SHIP different from calling an insurance broker or 1-800-MEDICARE?",
+        answer: "Texas SHIP counselors are trained volunteers who work through the Texas Department of Insurance, not licensed insurance agents, which means they have no financial incentive to steer you toward any particular plan. Unlike an insurance broker, a SHIP counselor will never sell you a product or earn a commission from your enrollment decision. Compared to 1-800-MEDICARE, which provides general program information, Texas SHIP offers personalized, one-on-one counseling tailored to your specific health needs, medications, and budget. SHIP counselors can also help with issues that go beyond enrollment, such as disputing Medicare billing errors, filing appeals for denied claims, and screening you for Texas-specific assistance programs.",
+      },
     ],
   },
   {
@@ -9226,18 +9369,34 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Comprehensive Energy Assistance Program (CEAP/LIHEAP)",
     shortName: "CEAP/LIHEAP",
     tagline: "Helps pay heating and cooling bills. One-time payment sent directly to your utility company.",
-    savingsRange: "$500 – $2,000/year",
+    savingsRange: "$500 – $2,000/year in 2026",
     description: "Helps pay heating and cooling bills. One-time payment sent directly to your utility company.",
+    intro: "The Texas Comprehensive Energy Assistance Program (CEAP), funded through the federal LIHEAP program, helps low-income Texas households pay their heating and cooling bills. Eligible families receive a one-time payment sent directly to their utility company, providing critical relief during extreme weather months. With Texas summers and winters putting strain on energy costs, this program helps vulnerable households keep the lights and air conditioning on.",
     eligibilityHighlights: [
-      "Income below $1928/month",
+      "Income below $1,995/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "Confirm your household income is below $1,995/month (150% FPL). Priority goes to seniors 60+ and disabled households." },
+      { step: 2, title: "Gather required documents", description: "Collect your most recent utility bill, proof of income for all household members, and a Texas photo ID." },
+      { step: 3, title: "Download forms", description: "Download the Texas Energy Assistance Application from your local Community Action Agency or TDHCA website." },
+      { step: 4, title: "Submit your application", description: "Apply through your local Community Action Agency. Funds are first-come, first-served, so apply early when the window opens." },
     ],
     forms: [
       { id: "texas-energy-application", name: "Texas Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.tdhca.state.tx.us/community-affairs/ceap/" },
+    ],
+    faqs: [
+      {
+        question: "What are the income limits to qualify for Texas CEAP energy assistance in 2026?",
+        answer: "For a single-person household, the income limit for CEAP is $1,995 per month, which is 150% of the federal poverty level. The limit increases with each additional household member. Priority is given to households that include elderly members age 60 and older, people with disabilities, or families with children under the age of 6. All household members' income is counted when determining eligibility.",
+      },
+      {
+        question: "When can I apply for Texas CEAP and how long does it take to get help?",
+        answer: "Application periods vary by region because CEAP is administered through local Community Action Agencies across Texas, so you need to contact your local agency to find out when they are accepting applications. Funds are limited and distributed on a first-come, first-served basis, meaning the program often runs out of money before everyone who qualifies can be served. It is best to apply as early as possible when your local agency opens its application window. Processing times also vary by agency, but once approved, payment is sent directly to your utility company.",
+      },
+      {
+        question: "Does Texas CEAP pay my electric bill directly or give me cash for energy costs?",
+        answer: "CEAP provides a one-time payment that is sent directly to your utility company, not to you personally. The program covers both heating and cooling costs, which is especially important in Texas where summer electricity bills can spike due to extreme heat. It is not an ongoing monthly benefit, so the single payment is meant to help you get caught up or get ahead on your energy bills. The program generally cannot be used for propane tank purchases or to cover utility security deposits.",
+      },
     ],
   },
   {
@@ -9245,19 +9404,44 @@ const texasPrograms: WaiverProgram[] = [
     name: "Primary Home Care (Community Care)",
     shortName: "Primary Home Care (Community",
     tagline: "Personal attendant services for Medicaid recipients who need help with daily activities at home.",
-    savingsRange: "$1,000 – $5,000/year",
+    savingsRange: "$1,000 – $5,000/year in 2026",
     description: "Personal attendant services for Medicaid recipients who need help with daily activities at home.",
+    intro: "Primary Home Care through Texas Community Care provides personal attendant services to Medicaid recipients who need help with everyday activities like bathing, dressing, and meal preparation. This program allows Texans to receive the hands-on support they need while remaining in the comfort of their own home. It is a key part of Texas's commitment to keeping seniors and individuals with disabilities out of institutional care.",
     eligibilityHighlights: [
       "Must be enrolled in Medicaid",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "You must already be enrolled in Texas Medicaid and need help with daily activities like bathing or dressing." },
+      { step: 2, title: "Gather required documents", description: "Have your Medicaid ID, doctor's statement of need, and proof of Texas residency ready for the assessment." },
+      { step: 3, title: "Download forms", description: "Download the Texas Medicaid Application and HCBS Referral Form to request attendant care services." },
+      { step: 4, title: "Submit your application", description: "Submit to Texas HHS and complete a functional needs assessment. A caseworker will determine your hours of care." },
     ],
     forms: [
       { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Official Texas Medicaid application, required for waiver enrollment.", url: "https://www.yourtexasbenefits.com" },
       { id: "texas-hcbs-referral", name: "HCBS Waiver Referral/Enrollment Form", description: "Request a functional assessment and referral to home and community-based waiver services.", url: "https://www.yourtexasbenefits.com" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas", description: "Dallas, Collin, Denton counties" },
+      { name: "Fort Worth", description: "Tarrant County" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+    ],
+    serviceAreasHeading: "Primary Home Care Locations in Texas",
+    faqs: [
+      {
+        question: "How many hours of Texas Primary Home Care can I get per week?",
+        answer: "The number of hours you receive is determined by a functional needs assessment conducted by HHSC, not by a fixed schedule. Most participants receive between 6 and 30 hours per week depending on how much help they need with activities like bathing, dressing, and meal preparation. You must require a minimum of six hours per week to qualify for the program. Your hours can be adjusted over time if your needs change, and a reassessment is done periodically to make sure your service plan still fits.",
+      },
+      {
+        question: "How long does it take to get approved for Texas Primary Home Care services?",
+        answer: "The timeline has two main stages. First, you must be approved for Texas Medicaid through SSI, which typically takes three to five months to process. Once Medicaid eligibility is established, HHSC conducts a face-to-face assessment, and after that interview, the referral packet is sent to the service provider within five business days. The provider then receives authorization and actual service delivery can begin shortly after the referral is complete.",
+      },
+      {
+        question: "What is the difference between Texas Primary Home Care and STAR+PLUS HCBS waiver services?",
+        answer: "Texas Primary Home Care is a Medicaid entitlement program, meaning anyone who meets the eligibility criteria is guaranteed services with no waitlist. It focuses specifically on personal attendant services like bathing, dressing, grooming, meal preparation, and light housekeeping, all delivered by personal attendants rather than nurses. STAR+PLUS HCBS, by contrast, is a waiver program that requires a nursing facility level of care and offers a broader range of services including home modifications, adaptive aids, and respite care. PHC is also limited to the individual's own home, while STAR+PLUS allows services in settings like assisted living facilities.",
+      },
     ],
   },
   {
@@ -9265,37 +9449,109 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Respite Care Services",
     shortName: "Respite Care",
     tagline: "Temporary relief for family caregivers. Someone else cares for your loved one so you can rest.",
-    savingsRange: "$2,000 – $8,000/year",
+    savingsRange: "$2,000 – $8,000/year in 2026",
     description: "Temporary relief for family caregivers. Someone else cares for your loved one so you can rest.",
+    intro: "Texas Respite Care Services provide temporary relief to family caregivers by arranging for a trained substitute to look after their loved one. Whether you need a few hours to run errands or a longer break to recharge, respite care ensures your family member continues to receive quality attention. For the thousands of Texas families providing unpaid care to aging or disabled relatives, this program offers essential support to prevent caregiver burnout.",
     eligibilityHighlights: [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "You must be a primary caregiver for someone age 60+ or a grandparent raising a grandchild in Texas." },
+      { step: 2, title: "Gather required documents", description: "Prepare your ID, the care recipient's medical information, and documentation of your caregiving role." },
+      { step: 3, title: "Download forms", description: "Download the Family Caregiver Support Application through your local Area Agency on Aging." },
+      { step: 4, title: "Submit your application", description: "Contact your local AAA to submit your application. A care coordinator will assess your needs and arrange services." },
     ],
     forms: [
       { id: "texas-caregiver-application", name: "Family Caregiver Support Application", description: "Apply for respite care, caregiver training, and support services through your Area Agency on Aging.", url: "https://eldercare.acl.gov" },
     ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas / Fort Worth", description: "Dallas, Collin, Denton, Tarrant counties" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+      { name: "Corpus Christi", description: "Nueces County" },
+    ],
+    serviceAreasHeading: "Respite Care Locations in Texas",
+    faqs: [
+      {
+        question: "Who is eligible for Texas respite care through the Area Agency on Aging?",
+        answer: "Texas respite care through the National Family Caregiver Support Program is available to unpaid family caregivers who are at least 18 years old and caring for a loved one age 60 or older. The caregiver or care recipient must live within the service area of one of Texas' 28 Area Agencies on Aging, and the caregiver cannot receive payment for the care they provide. Grandparents and other relatives age 55 and older who are raising grandchildren under 18 may also qualify, with priority given to those caring for children with special needs. Caregivers of individuals with Alzheimer's disease or a related disorder may be eligible regardless of the care recipient's age.",
+      },
+      {
+        question: "How do I apply for Texas respite care and how many hours can I get?",
+        answer: "To apply, call 2-1-1 Texas (available 24 hours) to be connected with your local Area Agency on Aging, which administers the program in your region. Your local AAA will walk you through an eligibility screening and, if approved, work with you to arrange services. The number of hours or dollar amount you can receive varies by AAA. Some programs offer up to 32 hours of respite every three months, while others provide a one-time benefit of around $800 that can be used all at once or spread over a three-month period.",
+      },
+      {
+        question: "How is Texas respite care different from regular home care services?",
+        answer: "Texas respite care funded through the NFCSP is designed specifically to give temporary relief to unpaid family caregivers, not to serve as ongoing care for the recipient. Regular home care focuses on the daily needs of the person receiving care and is typically a long-term arrangement, while respite care provides short-term breaks so caregivers can rest, handle personal matters, or avoid burnout. Respite care is also more flexible in delivery, and can include an in-home aide, adult day care, or a short-term facility stay depending on the family's needs. Because its primary goal is caregiver wellbeing rather than long-term patient care, respite services are time-limited and meant to supplement the unpaid care a family member is already providing.",
+      },
+    ],
   },
   {
     id: "texas-meals-on-wheels",
-    name: "Texas Meals on Wheels",
+    name: "Meals on Wheels Texas",
     shortName: "Home Meals",
     tagline: "Free or low-cost nutritious meals delivered to your home. Available to adults 60+ regardless of income.",
-    savingsRange: "$1,500 – $3,600/year",
+    savingsRange: "$1,500 – $3,600/year in 2026",
     description: "Free or low-cost nutritious meals delivered to your home. Available to adults 60+ regardless of income.",
+    intro: "Meals on Wheels Texas delivers free or low-cost nutritious meals directly to the homes of older adults across the state. Available to Texans aged 60 and older regardless of income, the program also provides a daily wellness check through the delivery visit itself. For homebound seniors in Texas who may have difficulty cooking or shopping for groceries, Meals on Wheels is a trusted source of both nutrition and connection.",
     eligibilityHighlights: [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "You must be 60 or older and homebound or have difficulty preparing meals. There is no income requirement." },
+      { step: 2, title: "Find your local provider", description: "Call 2-1-1 Texas or visit mealsonwheelstexas.org to find the Meals on Wheels provider in your area." },
+      { step: 3, title: "Download forms", description: "Download the Senior Meals Program Referral form. A family member or doctor can also refer you directly." },
+      { step: 4, title: "Complete your intake", description: "A staff member will call or visit to assess your needs. Meal delivery typically starts within 1 to 2 weeks." },
     ],
     forms: [
       { id: "texas-meals-referral", name: "Senior Meals Program Referral", description: "Request home-delivered or congregate meals through your local Area Agency on Aging.", url: "https://eldercare.acl.gov" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Galveston, Montgomery, Liberty counties" },
+      { name: "Dallas / Fort Worth", description: "Dallas, Collin, Tarrant, Erath counties" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin / Waco", description: "Travis, Williamson, McLennan counties" },
+      { name: "El Paso", description: "El Paso County" },
+      { name: "Corpus Christi / South Texas", description: "Nueces, Victoria, DeWitt, Goliad counties" },
+      { name: "Lubbock / Amarillo", description: "Lubbock, Potter, Randall counties" },
+      { name: "Tyler / Beaumont", description: "Smith, Jefferson counties" },
+    ],
+    serviceAreasHeading: "Meals on Wheels Locations in Texas",
+    mapPins: [
+      { label: "Meals on Wheels Houston", lat: 29.7604, lng: -95.3698 },
+      { label: "Meals on Wheels Dallas", lat: 32.7767, lng: -96.7970 },
+      { label: "Meals on Wheels San Antonio", lat: 29.4241, lng: -98.4936 },
+      { label: "Meals on Wheels, Inc. of Tarrant County", lat: 32.8998, lng: -97.0403 },
+      { label: "Meals on Wheels - Erath County", lat: 32.2174, lng: -98.2362 },
+      { label: "Meals on Wheels Central Texas", lat: 30.6280, lng: -97.6781 },
+      { label: "Meals on Wheels Waco", lat: 31.5493, lng: -97.1467 },
+      { label: "Meals on Wheels Montgomery County", lat: 30.3138, lng: -95.4560 },
+      { label: "Meals on Wheels South Texas", lat: 28.7041, lng: -97.8653 },
+      { label: "Galveston Island Meals on Wheels", lat: 29.3013, lng: -94.7977 },
+      { label: "Meals on Wheels El Paso", lat: 31.7619, lng: -106.4850 },
+      { label: "Meals on Wheels Corpus Christi", lat: 27.8006, lng: -97.3964 },
+      { label: "Meals on Wheels Lubbock", lat: 33.5779, lng: -101.8552 },
+      { label: "Meals on Wheels Amarillo", lat: 35.2220, lng: -101.8313 },
+      { label: "Meals on Wheels Tyler", lat: 32.3513, lng: -95.3011 },
+      { label: "Meals on Wheels Beaumont", lat: 30.0802, lng: -94.1266 },
+      { label: "Meals on Wheels Austin", lat: 30.2672, lng: -97.7431 },
+      { label: "Meals on Wheels Fort Worth", lat: 32.7555, lng: -97.3308 },
+    ],
+    faqs: [
+      {
+        question: "Who is eligible for Meals on Wheels Texas and do you have to meet income requirements?",
+        answer: "Meals on Wheels Texas programs generally serve adults age 60 and older who are homebound, have difficulty preparing meals on their own, and live within a local program's service area. Eligibility is based on need, not income. There are no income restrictions for most programs funded through the Texas Health and Human Services Commission and the Area Agencies on Aging. Disabled adults under 60 may also qualify depending on the local provider, and anyone can request a referral by calling 2-1-1 Texas or contacting their nearest Meals on Wheels program directly.",
+      },
+      {
+        question: "How do I sign up for Meals on Wheels in Texas and how long does it take to start getting meals?",
+        answer: "To sign up, call 2-1-1 Texas or contact your local Meals on Wheels provider, which you can find by entering your zip code at mealsonwheelstexas.org. A caseworker or assessment staff member will conduct a phone or in-home visit to determine eligibility, usually within a few business days of your request. The full intake and onboarding process typically takes one to two weeks, though some programs in high-demand areas like Austin or Dallas may take several weeks to complete.",
+      },
+      {
+        question: "What does Meals on Wheels Texas provide besides food that makes it different from other meal delivery services?",
+        answer: "Meals on Wheels Texas is not just a food delivery program. Volunteers perform a daily safety and wellness check at every meal drop-off, and for many homebound seniors, the volunteer may be the only person they interact with all day. Texas programs also offer wraparound services that vary by region, including home repairs, pet care assistance, durable medical equipment, transportation, and clinical care screenings. The entire network is coordinated through Texas Area Agencies on Aging and funded by federal dollars, state support through HHSC, and local donor contributions, with no cost to the recipient.",
+      },
     ],
   },
   {
@@ -9303,19 +9559,44 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas PACE Programs",
     shortName: "Texas PACE Programs",
     tagline: "All-inclusive care centers in select Texas cities providing comprehensive medical and social services.",
-    savingsRange: "$15,000 – $35,000/year",
+    savingsRange: "$15,000 – $35,000/year in 2026",
     description: "All-inclusive care centers in select Texas cities providing comprehensive medical and social services.",
+    intro: "Texas PACE Programs (Program of All-Inclusive Care for the Elderly) offer comprehensive medical and social services through dedicated care centers in select Texas cities. PACE coordinates everything from doctor visits and prescriptions to physical therapy and transportation, all under one roof. For older Texans who qualify for nursing home-level care but want to continue living at home, PACE provides a full continuum of support.",
     eligibilityHighlights: [
       "Age 55 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "You must be 55+, live in a PACE service area, and meet nursing home-level care criteria set by the State of Texas." },
+      { step: 2, title: "Gather required documents", description: "Collect your Medicare and Medicaid cards, medical records, list of medications, and proof of Texas residency." },
+      { step: 3, title: "Download forms", description: "Download the PACE Enrollment Application and Texas Medicaid Application if not already enrolled in Medicaid." },
+      { step: 4, title: "Schedule your assessment", description: "Contact your nearest PACE center for a home visit. The interdisciplinary team will create your personalized care plan." },
     ],
     forms: [
       { id: "texas-pace-enrollment", name: "PACE Enrollment Application", description: "Enroll in the Program of All-Inclusive Care for the Elderly for comprehensive medical and support services.", url: "https://www.yourtexasbenefits.com" },
       { id: "texas-medicaid-application", name: "Texas Medicaid Application", description: "Medicaid eligibility may be required. Apply through Texas's portal.", url: "https://www.yourtexasbenefits.com" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend counties" },
+      { name: "Dallas / Fort Worth", description: "Dallas, Tarrant counties" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "El Paso", description: "El Paso County" },
+      { name: "Amarillo", description: "Potter, Randall counties" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+    ],
+    serviceAreasHeading: "PACE Program Locations in Texas",
+    faqs: [
+      {
+        question: "Can you keep your own doctor if you join Texas PACE?",
+        answer: "When you enroll in Texas PACE, you will need to switch to a primary care doctor within the PACE organization. This is because the PACE model depends on a closely coordinated interdisciplinary care team that manages all of your medical services together. However, some PACE organizations may allow you to see a previous specialist on a limited basis if it is pre-authorized as part of your care plan. Your new PACE doctor or nurse practitioner specializes in the care of older adults and works alongside therapists, social workers, and other professionals dedicated to your health.",
+      },
+      {
+        question: "Does Texas PACE cost anything if you only have Medicare and not Medicaid?",
+        answer: "You do not need both Medicare and Medicaid to join Texas PACE, but the cost differs significantly depending on your coverage. Participants who qualify for both Medicare and Medicaid typically pay nothing out of pocket for PACE services, with no copays, deductibles, or lifetime limits on approved care. If you have Medicare only and do not qualify for Medicaid, you can still enroll but will be responsible for a monthly premium for the long-term care portion of PACE, which can run several thousand dollars per month, plus a separate premium for Medicare Part D prescription drug coverage.",
+      },
+      {
+        question: "How is Texas PACE different from going to a nursing home or other Medicaid programs?",
+        answer: "Texas PACE is designed specifically to keep people who qualify for nursing home placement living in their own communities instead. Unlike traditional Medicaid long-term care, PACE becomes the sole source of all Medicare and Medicaid benefits, bundling medical care, prescriptions, adult day services, transportation, and even dental and vision into one coordinated program. An interdisciplinary team at your local Texas PACE center creates a personalized care plan, and roughly 95% of participants continue living at home rather than in a facility. There is no copayment for participants who are dually eligible for Medicare and Medicaid.",
+      },
     ],
   },
   {
@@ -9323,18 +9604,34 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Long-Term Care Ombudsman",
     shortName: "LTC Ombudsman",
     tagline: "Free advocates who resolve complaints and protect the rights of people in nursing homes.",
-    savingsRange: "$10,000 – $30,000/year",
+    savingsRange: "$10,000 – $30,000/year in 2026",
     description: "Free advocates who resolve complaints and protect the rights of people in nursing homes.",
+    intro: "The Texas Long-Term Care Ombudsman program provides free, trained advocates who investigate complaints and protect the rights of residents in nursing homes and assisted living facilities. If you or a loved one in Texas is experiencing issues with care quality, dignity, or safety in a long-term care setting, an ombudsman can step in to help resolve the problem. This program plays a critical role in ensuring that vulnerable Texans receive the standard of care they deserve.",
     eligibilityHighlights: [
       "Contact program for eligibility details",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Identify the issue", description: "This program is for residents of Texas nursing homes or assisted living facilities facing care, safety, or rights issues." },
+      { step: 2, title: "Document your concerns", description: "Write down specific incidents including dates, staff involved, and any witnesses to the problems you have observed." },
+      { step: 3, title: "Download forms", description: "Download the Ombudsman Complaint Form or call the Texas Ombudsman hotline at 1-800-458-9858 to file by phone." },
+      { step: 4, title: "File your complaint", description: "Submit your complaint and a trained ombudsman advocate will investigate and work to resolve the issue confidentially." },
     ],
     forms: [
       { id: "texas-ombudsman-complaint", name: "Long-Term Care Ombudsman Complaint Form", description: "File a complaint or request advocacy assistance for nursing home or assisted living concerns.", url: "https://acl.gov/programs/protecting-rights-and-preventing-abuse/long-term-care-ombudsman-program" },
+    ],
+    faqs: [
+      {
+        question: "What types of complaints does the Texas Long-Term Care Ombudsman handle for nursing homes and assisted living?",
+        answer: "The Texas Long-Term Care Ombudsman program, administered by Texas HHSC, covers residents of both nursing homes and assisted living facilities across the state. Ombudsmen can help with a wide range of concerns including care quality problems, residents' rights violations, involuntary discharge disputes, and billing issues. There are no income, age, or eligibility requirements to use the program. Anyone can contact the hotline at 1-800-458-9858, whether you are a resident, a family member, or a friend concerned about someone's care.",
+      },
+      {
+        question: "What happens after you call the Texas Long-Term Care Ombudsman hotline to file a complaint?",
+        answer: "When you call the Texas Long-Term Care Ombudsman hotline at 1-800-458-9858, your complaint is taken through a confidential process and assigned to a trained ombudsman in your area. The ombudsman will typically investigate by visiting the facility, speaking with the resident, and working with staff to resolve the concern. Texas HHSC administers the program statewide, so complaints are routed to the appropriate regional ombudsman regardless of where the facility is located. Resolution timelines vary depending on the complexity of the issue, but the ombudsman will keep you informed throughout the process.",
+      },
+      {
+        question: "What is the difference between calling the Texas Long-Term Care Ombudsman versus Adult Protective Services or law enforcement?",
+        answer: "The Texas Long-Term Care Ombudsman program is different because ombudsmen are trained advocates who work on behalf of residents, not regulators or law enforcement officers. While Adult Protective Services investigates abuse and neglect, and law enforcement handles criminal matters, ombudsmen focus on resolving a broader range of concerns like care quality, rights violations, discharge disputes, and billing problems through advocacy and mediation. The program offers a confidential complaint process and ombudsmen can often resolve issues without formal legal or regulatory action. In serious cases an ombudsman can also help you understand when involving APS or law enforcement may be appropriate.",
+      },
     ],
   },
   {
@@ -9342,18 +9639,34 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Weatherization Assistance Program",
     shortName: "Weatherization",
     tagline: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
-    savingsRange: "$500 – $2,000/year",
+    savingsRange: "$500 – $2,000/year in 2026",
     description: "Free home improvements to reduce energy costs including insulation, weather stripping, and furnace repair.",
+    intro: "The Texas Weatherization Assistance Program provides free home improvements — such as insulation, weather stripping, and furnace repairs — designed to lower energy costs for low-income households. By making homes more energy efficient, the program helps Texas families save money on utility bills year-round while also improving comfort and safety. Priority is given to seniors, people with disabilities, and families with young children.",
     eligibilityHighlights: [
-      "Income below $2570/month",
+      "Income below $2,660/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "Confirm your household income is below $2,660/month (200% FPL). Seniors 60+ and disabled households get priority." },
+      { step: 2, title: "Gather required documents", description: "Collect proof of income, your utility bills, Texas ID, and landlord permission if you are a renter." },
+      { step: 3, title: "Download forms", description: "Download the Weatherization Application from your local subrecipient agency assigned by TDHCA." },
+      { step: 4, title: "Submit and schedule audit", description: "Apply through your local agency. A certified energy auditor will evaluate your home to determine needed improvements." },
     ],
     forms: [
       { id: "texas-energy-application", name: "Texas Energy Assistance Application", description: "Apply for help paying home heating and cooling bills through LIHEAP.", url: "https://www.tdhca.state.tx.us/community-affairs/ceap/" },
+    ],
+    faqs: [
+      {
+        question: "What are the income limits for Texas Weatherization Assistance Program in 2026?",
+        answer: "To qualify for the Texas Weatherization Assistance Program in 2026, your household income must be at or below 200% of the federal poverty level. For a single person, that means earning no more than $2,660 per month. The program gives priority to elderly residents age 60 and older, people with disabilities, and families with children under 6. You can apply through your local subrecipient agency, which is assigned by the Texas Department of Housing and Community Affairs (TDHCA).",
+      },
+      {
+        question: "How long is the waitlist for Texas Weatherization Assistance?",
+        answer: "Wait times for the Texas Weatherization Assistance Program vary significantly by location, ranging from 6 months to over 2 years in some areas. Once you reach the top of the list, a certified energy auditor will evaluate your home to determine which improvements will have the greatest impact on your energy use. The actual weatherization work typically includes things like adding insulation, sealing air leaks, and repairing or replacing heating and cooling systems. The average value of the work performed is between $4,000 and $7,000 per home, all provided at no cost to qualifying households.",
+      },
+      {
+        question: "What does Texas Weatherization Assistance do and how is it different from CEAP energy bill help?",
+        answer: "The Texas Weatherization Assistance Program provides free physical improvements to your home, such as insulation, weather stripping, caulking, window repairs, and furnace or AC repair or replacement, all aimed at making your home more energy efficient. This is different from CEAP (the Comprehensive Energy Assistance Program), which helps pay your current utility bills but does not fix the underlying problems causing high energy costs. Weatherization addresses the root cause by reducing how much energy your home wastes, which lowers your bills long term. Both homeowners and renters can qualify, though renters will need their landlord's written permission before work can begin.",
+      },
     ],
   },
   {
@@ -9361,18 +9674,43 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Legal Services for Seniors",
     shortName: "Senior Legal Aid",
     tagline: "Free legal help for seniors 60+ on issues like benefits denials, housing disputes, and elder abuse.",
-    savingsRange: "$500 – $3,000/year",
+    savingsRange: "$500 – $3,000/year in 2026",
     description: "Free legal help for seniors 60+ on issues like benefits denials, housing disputes, and elder abuse.",
+    intro: "Texas Legal Services for Seniors provides free legal assistance to Texans aged 60 and older who are facing issues such as benefits denials, housing disputes, consumer fraud, and elder abuse. Experienced attorneys and legal aid workers help seniors navigate the legal system without the burden of costly fees. This program ensures that older adults in Texas have access to justice when they need it most.",
     eligibilityHighlights: [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "You must be 60 or older and live in Texas. There is no income requirement for this free legal service." },
+      { step: 2, title: "Gather your documents", description: "Collect any letters, notices, contracts, or court documents related to your legal issue before your consultation." },
+      { step: 3, title: "Download forms", description: "Download the Senior Legal Services Intake Form or call your local legal aid office to start your case by phone." },
+      { step: 4, title: "Meet with an attorney", description: "A legal aid attorney will review your case and provide free advice, representation, or referrals as needed." },
     ],
     forms: [
       { id: "texas-legal-intake", name: "Senior Legal Services Intake Form", description: "Request free legal assistance for issues like benefits denials, housing, and consumer protection.", url: "https://eldercare.acl.gov" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas", description: "Dallas, Collin, Denton counties" },
+      { name: "Fort Worth", description: "Tarrant County" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+    ],
+    serviceAreasHeading: "Senior Legal Services Locations in Texas",
+    faqs: [
+      {
+        question: "Who is eligible for Texas Legal Services for Seniors?",
+        answer: "Texas Legal Services for Seniors is available to any Texas resident aged 60 or older. There is no income requirement to qualify, making it accessible regardless of financial status. However, priority is given to individuals with the greatest economic or social need, including those who are low-income, minority, or living in rural areas. The program is funded through the Older Americans Act and delivered through Area Agencies on Aging and local legal aid organizations across the state.",
+      },
+      {
+        question: "How do I apply for Texas Legal Services for Seniors and how long does it take to get help?",
+        answer: "To get started, contact your local Area Agency on Aging or a legal aid organization in your area that participates in the program. After an initial intake screening to confirm your age and understand your legal issue, you may receive services ranging from legal advice over the phone to brief services like drafting a letter or reviewing a document. In some cases, an attorney may provide direct representation. Wait times vary by region and demand, but many programs aim to respond within a few business days of your initial request.",
+      },
+      {
+        question: "What types of cases does Texas Legal Services for Seniors handle and what cases are excluded?",
+        answer: "Texas Legal Services for Seniors focuses on civil legal matters that commonly affect older adults, including benefits denials, housing disputes, consumer fraud, elder abuse, and guardianship issues. Attorneys can provide legal advice, help with paperwork, negotiate on your behalf, and in certain situations represent you in court. The program does not typically handle criminal cases or fee-generating cases such as personal injury lawsuits, since those cases can be taken by private attorneys on a contingency basis. This focus on civil matters allows the program to direct its limited resources toward legal problems where seniors would otherwise have no access to representation.",
+      },
     ],
   },
   {
@@ -9380,18 +9718,45 @@ const texasPrograms: WaiverProgram[] = [
     name: "Texas Senior Companion Program",
     shortName: "Texas Senior Companion Program",
     tagline: "Trained volunteers visit seniors who are homebound to provide companionship and light assistance.",
-    savingsRange: "$2,000 – $8,000/year",
+    savingsRange: "$2,000 – $8,000/year in 2026",
     description: "Trained volunteers visit seniors who are homebound to provide companionship and light assistance.",
+    intro: "The Texas Senior Companion Program pairs trained volunteers with homebound seniors to provide regular companionship and light assistance with daily tasks. Volunteers visit on a consistent schedule, offering social connection that helps reduce isolation and improve well-being. For older Texans living alone, the Senior Companion Program provides meaningful human interaction and a reassuring presence.",
     eligibilityHighlights: [
       "Age 60 or older",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "Clients must be 60+ and homebound or socially isolated. Volunteers must be 55+ and meet income guidelines." },
+      { step: 2, title: "Contact your local program", description: "Call 2-1-1 Texas or your nearest AmeriCorps Seniors office to request a companion or sign up to volunteer." },
+      { step: 3, title: "Download forms", description: "Download the program application. Volunteers will need to complete a background check and orientation training." },
+      { step: 4, title: "Get matched", description: "A coordinator will match you with a companion based on location, schedule, and interests. Visits start within 2 to 4 weeks." },
     ],
     forms: [
       { id: "texas-scsep-application", name: "Senior Employment Program Application", description: "Apply for part-time community service job training for low-income seniors aged 55+.", url: "https://www.dol.gov/agencies/eta/seniors" },
+    ],
+    serviceAreas: [
+      { name: "Houston", description: "Harris, Fort Bend, Montgomery counties" },
+      { name: "Dallas / Fort Worth", description: "Dallas, Collin, Denton, Tarrant counties" },
+      { name: "San Antonio", description: "Bexar County" },
+      { name: "Austin", description: "Travis, Williamson counties" },
+      { name: "El Paso", description: "El Paso County" },
+      { name: "Corpus Christi / Rio Grande Valley", description: "Nueces, Hidalgo, Cameron, Willacy counties" },
+      { name: "Lubbock / South Plains", description: "Lubbock, Hockley counties" },
+      { name: "Midland / Odessa", description: "Midland, Ector counties" },
+    ],
+    serviceAreasHeading: "Senior Companion Program Locations in Texas",
+    faqs: [
+      {
+        question: "What are the income and age requirements to volunteer for the Texas Senior Companion Program?",
+        answer: "To volunteer, you must be age 55 or older and meet federal income guidelines, which are set at or below 200% of the federal poverty level, in order to receive the stipend. The program is part of AmeriCorps Seniors (formerly Senior Corps), so eligibility follows federal guidelines. Clients who receive visits must be age 60 or older and be homebound or socially isolated, but there is no income requirement for clients.",
+      },
+      {
+        question: "How many hours do you have to volunteer for the Texas Senior Companion Program?",
+        answer: "Senior Companions commit to serving between 15 and 40 hours per week visiting and assisting older adults in their community. In return for this time commitment, volunteers receive a small tax-free stipend, mileage reimbursement, and meals during their service hours. Most local program offices will work with you on scheduling, and the matching process pairs you with a client based on location, availability, and shared interests.",
+      },
+      {
+        question: "Is the Texas Senior Companion Program free and how is it different from home care?",
+        answer: "The program is completely free to the older adults who receive visits. Unlike home care or home health services, Senior Companions do not provide medical care, personal care, or clinical support. Instead, they offer friendship, conversation, and light assistance such as help with errands or accompaniment to appointments. It is a volunteer-driven program focused on reducing isolation rather than delivering professional caregiving.",
+      },
     ],
   },
   {
@@ -9399,19 +9764,35 @@ const texasPrograms: WaiverProgram[] = [
     name: "Senior Community Service Employment Program (SCSEP)",
     shortName: "SCSEP",
     tagline: "Paid job training for low-income seniors 55+. Work at community organizations while learning skills.",
-    savingsRange: "$3,000 – $8,000/year",
+    savingsRange: "$3,000 – $8,000/year in 2026",
     description: "Paid job training for low-income seniors 55+. Work at community organizations while learning skills.",
+    intro: "The Senior Community Service Employment Program (SCSEP) in Texas offers paid, part-time job training for low-income adults aged 55 and older who want to re-enter the workforce. Participants work at local community organizations — such as schools, hospitals, and nonprofits — while building new skills and earning income. SCSEP gives older Texans a path back to employment with the training and support they need to succeed.",
     eligibilityHighlights: [
       "Age 55 or older",
-      "Income below $1580/month",
+      "Income below $1,663/month",
     ],
     applicationSteps: [
-      { step: 1, title: "Check your eligibility", description: "Use our benefits finder to see if you qualify, or review the eligibility highlights above." },
-      { step: 2, title: "Gather required documents", description: "Prepare proof of age, income, residency, and any disability documentation that may be required." },
-      { step: 3, title: "Submit your application", description: "Complete and submit the application form. A caseworker will review your information and determine eligibility." },
+      { step: 1, title: "Check your eligibility", description: "You must be 55+ with household income below $1,663/month and unemployed or looking for work in Texas." },
+      { step: 2, title: "Gather required documents", description: "Bring your Texas ID, Social Security card, proof of income, and employment history to your intake appointment." },
+      { step: 3, title: "Download forms", description: "Download the Senior Employment Program Application or contact your local SCSEP grantee to apply in person." },
+      { step: 4, title: "Start training", description: "Once accepted, you will be placed at a local community organization for paid, part-time job training (20 hours/week)." },
     ],
     forms: [
       { id: "texas-scsep-application", name: "Senior Employment Program Application", description: "Apply for part-time community service job training for low-income seniors aged 55+.", url: "https://www.dol.gov/agencies/eta/seniors" },
+    ],
+    faqs: [
+      {
+        question: "Who is eligible for SCSEP in Texas and what are the income requirements?",
+        answer: "To qualify for the Senior Community Service Employment Program in Texas, you must be at least 55 years old, currently unemployed, and authorized to work in the United States. Your household income must be at or below 125% of the federal poverty level, which for a single person in 2026 is approximately $1,663 per month ($19,950 annually). Priority enrollment is given to individuals who are 65 or older, veterans, and those who were unsuccessful finding employment through a WIOA program. You can contact your county SCSEP representative through the Texas Workforce Commission or a national grantee like AARP Foundation.",
+      },
+      {
+        question: "How long can you stay in the SCSEP program and how many hours do you work?",
+        answer: "SCSEP participants in Texas typically train for one to two years, though the program allows up to a 48-month (four-year) lifetime limit on participation. During training, participants work approximately 20 hours per week at nonprofit organizations, school districts, or government agencies and are paid the highest applicable minimum wage. Extensions beyond the typical timeline may be granted on a case-by-case basis depending on the participant's progress toward unsubsidized employment. The goal is to transition participants into permanent jobs in the public or private sector once their training is complete.",
+      },
+      {
+        question: "What makes SCSEP different from other job training programs for seniors in Texas?",
+        answer: "SCSEP is the only federally funded job training program in the United States designed exclusively for low-income adults aged 55 and older, making it unique among workforce development programs. Unlike other training programs, SCSEP places participants directly into paid community service assignments at nonprofits and public agencies, so they earn income while building skills rather than attending classroom-only instruction. In Texas, the program is administered by TWC alongside national grantees such as AARP Foundation, Goodwill Industries, SER National, and National Able Network. The program also provides wraparound assistance like help with transportation, work clothing, health checkups, and GED preparation.",
+      },
     ],
   },
 ];

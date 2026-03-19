@@ -6,6 +6,7 @@ import {
   cityToSlug,
 } from "@/lib/power-pages";
 import { allStates } from "@/data/waiver-library";
+import { buildStateUrl, buildProgramUrl } from "@/lib/texas-slug-map";
 
 export const dynamic = "force-dynamic";
 
@@ -102,12 +103,16 @@ export async function GET(request: Request) {
 
       // Waiver library
       for (const state of allStates) {
-        entries.push(xmlEntry(`${SITE_URL}/waiver-library/${state.id}`, 0.5, "monthly"));
-        entries.push(xmlEntry(`${SITE_URL}/waiver-library/forms/${state.id}`, 0.4, "monthly"));
+        const stateUrl = buildStateUrl(state.id);
+        entries.push(xmlEntry(`${SITE_URL}${stateUrl}`, 0.5, "monthly"));
+        if (state.id !== "texas") {
+          entries.push(xmlEntry(`${SITE_URL}/waiver-library/forms/${state.id}`, 0.4, "monthly"));
+        }
         for (const program of state.programs ?? []) {
-          entries.push(xmlEntry(`${SITE_URL}/waiver-library/${state.id}/${program.id}`, 0.5, "monthly"));
+          const programUrl = buildProgramUrl(state.id, program.id);
+          entries.push(xmlEntry(`${SITE_URL}${programUrl}`, 0.5, "monthly"));
           if (program.forms?.length > 0) {
-            entries.push(xmlEntry(`${SITE_URL}/waiver-library/${state.id}/${program.id}/forms`, 0.4, "monthly"));
+            entries.push(xmlEntry(`${SITE_URL}${programUrl}/forms`, 0.4, "monthly"));
           }
         }
       }

@@ -731,7 +731,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           {/* ============================================================
               HEADER — Time-aware greeting + Welcome message
               ============================================================ */}
-          <section className="pt-8 sm:pt-12 pb-6 sm:pb-8">
+          <section className="pt-6 sm:pt-8 lg:pt-6 pb-4 sm:pb-6">
             <p className="text-text-md sm:text-text-lg text-gray-500">
               {greeting}
             </p>
@@ -750,12 +750,12 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
 
             return (
-              <section className="pb-12">
+              <section className="pb-8 lg:pb-6">
                 {/* Card container — no border, subtle shadow like Airbnb */}
                 <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
                   <div className="flex flex-col sm:flex-row">
                     {/* Provider Image — rounded corners on mobile top, left on desktop */}
-                    <div className="relative w-full sm:w-[240px] aspect-[16/10] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100 overflow-hidden sm:rounded-l-2xl">
+                    <div className="relative w-full sm:w-[200px] lg:w-[180px] aspect-[16/10] sm:aspect-auto sm:min-h-[160px] flex-shrink-0 bg-gray-100 overflow-hidden sm:rounded-l-2xl">
                       {provider.image_url ? (
                         <Image
                           src={provider.image_url}
@@ -849,11 +849,11 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             /* ============================================================
                FRESH STATE CARD — Welcome card for new users without connection
                ============================================================ */
-            <section className="pb-12">
+            <section className="pb-8 lg:pb-6">
               <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
                 <div className="flex flex-col sm:flex-row">
                   {/* Image — warm, welcoming photograph */}
-                  <div className="relative w-full sm:w-[240px] aspect-[16/10] sm:aspect-auto sm:min-h-[200px] flex-shrink-0 bg-gray-100 overflow-hidden sm:rounded-l-2xl">
+                  <div className="relative w-full sm:w-[200px] lg:w-[180px] aspect-[16/10] sm:aspect-auto sm:min-h-[160px] flex-shrink-0 bg-gray-100 overflow-hidden sm:rounded-l-2xl">
                     <Image
                       src="/images/for-providers/hero.jpg"
                       alt="Caregiver helping a senior"
@@ -1048,7 +1048,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               Hidden when all steps complete (replaced by compact banner above)
               ============================================================ */}
           {!allStepsComplete && (
-          <section className="pb-6 sm:pb-8 sm:ml-16">
+          <section className="pb-4 sm:pb-6 lg:pb-4 sm:ml-16">
             {/* Nested layout: timeline on left (desktop only), cards fill remaining space */}
             <div className="relative sm:pl-14">
               {/* Timeline — hidden on mobile, visible on sm+ */}
@@ -1092,8 +1092,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 </div>
               </div>
 
-              {/* Cards — full width, generous spacing */}
-              <div className="space-y-4">
+              {/* Cards — full width, tighter on desktop */}
+              <div className="space-y-4 lg:space-y-3">
                 {/* Card 1: Profile — with attention animation for fresh users */}
                 <div className="relative step-card-entrance" style={{ animationDelay: '0ms' }}>
                   <button

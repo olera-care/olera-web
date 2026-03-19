@@ -1846,15 +1846,19 @@ export default function WelcomeClient({ destination, initialProviders = [], init
         }
         @keyframes ring-breathe {
           0%, 100% {
-            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4), 0 0 0 6px rgba(16, 185, 129, 0.1);
+            outline-width: 3px;
+            outline-offset: 2px;
           }
           50% {
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.6), 0 0 0 10px rgba(16, 185, 129, 0.15);
+            outline-width: 4px;
+            outline-offset: 4px;
           }
         }
         .animate-ring-breathe {
-          animation: ring-breathe 2s ease-in-out infinite;
-          border: 2px solid rgba(16, 185, 129, 0.5);
+          animation: ring-breathe 1.5s ease-in-out infinite;
+          outline: 3px solid #10b981;
+          outline-offset: 2px;
+          border: 2px solid #10b981;
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out forwards;

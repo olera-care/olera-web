@@ -447,10 +447,10 @@ export default function ProfileWizard({
     <Modal isOpen onClose={onClose} size="2xl" title={stepHeader}>
       <div className="flex flex-col min-h-[420px]">
         {/* Form Content — overflow visible on step 1 for dropdown */}
-        <div className={`flex-1 py-4 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
+        <div className={`flex-1 pt-5 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
           {/* ── Step 1: Basics ── */}
           {step.id === "basics" && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <Input
                 label="Your name"
                 value={displayName}
@@ -460,7 +460,7 @@ export default function ProfileWizard({
 
               {/* Location with autocomplete */}
               <div className="relative" ref={locationDropdownRef}>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-base font-semibold text-gray-900 mb-2">
                   Location
                 </label>
                 <div className="relative">
@@ -511,7 +511,7 @@ export default function ProfileWizard({
 
           {/* ── Step 2: Contact ── */}
           {step.id === "contact" && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <Input
                 label="Email"
                 type="email"
@@ -529,7 +529,7 @@ export default function ProfileWizard({
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2.5">
+                <label className="block text-base font-semibold text-gray-900 mb-3">
                   How would you like to be contacted?
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -547,7 +547,7 @@ export default function ProfileWizard({
           {step.id === "recipient" && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2.5">
+                <label className="block text-base font-semibold text-gray-900 mb-3">
                   Who needs care?
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -566,7 +566,7 @@ export default function ProfileWizard({
               />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2.5">
+                <label className="block text-base font-semibold text-gray-900 mb-3">
                   How soon do you need care?
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -582,7 +582,7 @@ export default function ProfileWizard({
           {step.id === "care" && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2.5">
+                <label className="block text-base font-semibold text-gray-900 mb-3">
                   Type of care needed
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -597,7 +597,7 @@ export default function ProfileWizard({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2.5">
+                <label className="block text-base font-semibold text-gray-900 mb-3">
                   What kind of help is needed?
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -615,14 +615,19 @@ export default function ProfileWizard({
 
           {/* ── Step 5: Payment ── */}
           {step.id === "payment" && (
-            <div className="flex flex-wrap gap-2">
-              {PAYMENT_OPTIONS.map((opt) =>
-                renderPill(opt, payments.includes(opt), () =>
-                  setPayments((prev) =>
-                    prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+            <div className="space-y-1">
+              <label className="block text-base font-semibold text-gray-900 mb-3">
+                How will care be paid for?
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {PAYMENT_OPTIONS.map((opt) =>
+                  renderPill(opt, payments.includes(opt), () =>
+                    setPayments((prev) =>
+                      prev.includes(opt) ? prev.filter((x) => x !== opt) : [...prev, opt]
+                    )
                   )
-                )
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>

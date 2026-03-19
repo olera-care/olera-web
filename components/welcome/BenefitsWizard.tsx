@@ -410,7 +410,7 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
     <Modal isOpen onClose={onClose} size="2xl" title={stepHeader}>
       <div className="flex flex-col min-h-[420px]">
         {/* Form Content */}
-        <div className={`flex-1 py-4 ${step.id === "location" ? "overflow-visible" : "overflow-y-auto"}`}>
+        <div className={`flex-1 pt-5 ${step.id === "location" ? "overflow-visible" : "overflow-y-auto"}`}>
 
           {/* Step 1: Location */}
           {step.id === "location" && (
@@ -490,8 +490,8 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
 
           {/* Step 4: Primary Needs */}
           {step.id === "needs" && (
-            <div className="space-y-2">
-              <p className="text-sm text-gray-500 mb-3">Select all that apply</p>
+            <div className="space-y-3">
+              <p className="text-base text-gray-600">Select all that apply</p>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(PRIMARY_NEEDS).map(([key, { displayTitle, icon }]) =>
                   renderPill(

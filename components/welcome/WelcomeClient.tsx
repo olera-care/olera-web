@@ -881,7 +881,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
                     {/* Subtext — brief value proposition */}
                     <p className="mt-2 text-text-md text-gray-500 leading-relaxed">
-                      One profile connects you with qualified providers and helps you discover benefits you may qualify for.
+                      One profile connects you with qualified providers in your area.
                     </p>
 
                     {/* Spacer */}
@@ -1062,22 +1062,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     ) : '1'}
                   </div>
                 </div>
-                {/* Line segment 1 */}
+                {/* Line segment */}
                 <div className={`flex-1 w-px my-3 ${profileComplete ? 'bg-primary-200' : ''}`} style={{ backgroundColor: profileComplete ? undefined : '#e8e8e8' }} />
                 {/* Step 2 marker */}
-                <div className="flex flex-col items-center">
-                  <span className="text-[11px] font-semibold text-gray-500 mb-1">Benefits</span>
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${hasViewedBenefits ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
-                    {hasViewedBenefits ? (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    ) : '2'}
-                  </div>
-                </div>
-                {/* Line segment 2 */}
-                <div className={`flex-1 w-px my-3 ${hasViewedBenefits ? 'bg-primary-200' : ''}`} style={{ backgroundColor: hasViewedBenefits ? undefined : '#e8e8e8' }} />
-                {/* Step 3 marker */}
                 <div className="flex flex-col items-center">
                   <span className="text-[11px] font-semibold text-gray-500 mb-1">Matches</span>
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium ${isProfileLive ? 'bg-primary-100 text-primary-600' : 'bg-gray-100 text-gray-500'}`}>
@@ -1085,7 +1072,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                    ) : '3'}
+                    ) : '2'}
                   </div>
                 </div>
               </div>
@@ -1096,7 +1083,12 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 <div className="relative">
                   <button
                     onClick={() => setProfileWizardOpen(true)}
-                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsProfileAttention ? 'animate-ring-breathe' : ''}`}
+                    className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
+                    style={needsProfileAttention ? {
+                      outline: '3px solid #10b981',
+                      outlineOffset: '2px',
+                      animation: 'ring-breathe 1.5s ease-in-out infinite',
+                    } : undefined}
                   >
                   <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${profileComplete ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
                     {profileComplete ? (
@@ -1129,48 +1121,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   </button>
                 </div>
 
-                {/* Card 2: Benefits — with attention animation */}
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      // Mark benefits as viewed for gamification
-                      try {
-                        localStorage.setItem("olera_viewed_benefits", "true");
-                        setHasViewedBenefits(true);
-                      } catch { /* localStorage not available */ }
-                      setBenefitsWizardOpen(true);
-                    }}
-                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsBenefitsAttention ? 'animate-ring-breathe' : ''}`}
-                  >
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${hasViewedBenefits ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
-                      {hasViewedBenefits ? (
-                        <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
-                      ) : (
-                        <svg viewBox="0 0 32 32" className="w-8 h-8">
-                          <circle cx="16" cy="16" r="10" fill="#E8C9A0" stroke="#D4A574" strokeWidth="1.5"/>
-                          <text x="16" y="20" textAnchor="middle" fill="#8B7355" fontSize="12" fontWeight="600">$</text>
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-text-md font-semibold text-gray-900">
-                        {hasViewedBenefits ? "Benefits explored" : "You may qualify for benefits"}
-                      </p>
-                      <p className={`text-text-sm mt-0.5 ${hasViewedBenefits ? 'text-primary-600' : 'text-gray-500'}`}>
-                        {benefitsSavedCount === 0 ? (hasViewedBenefits ? "Tap to explore more" : "0 saved") : `${benefitsSavedCount} saved`}
-                      </p>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </button>
-                </div>
-
-                {/* Card 3: Matches — activates profile if not live, otherwise links to matches */}
+                {/* Card 2: Matches — activates profile if not live, otherwise links to matches */}
                 <div className="relative">
                   {isProfileLive ? (
                     // Already live — just link to matches
@@ -1202,7 +1153,12 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Ready to go live — button to show GoLiveModal
                     <button
                       onClick={() => setGoLiveModalOpen(true)}
-                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'animate-ring-breathe' : ''}`}
+                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
+                      style={needsMatchesAttention ? {
+                        outline: '3px solid #10b981',
+                        outlineOffset: '2px',
+                        animation: 'ring-breathe 1.5s ease-in-out infinite',
+                      } : undefined}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
                         <svg viewBox="0 0 32 32" className="w-8 h-8">
@@ -1229,7 +1185,12 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Not ready to go live — missing data, prompt to complete profile
                     <button
                       onClick={() => setProfileWizardOpen(true)}
-                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'animate-ring-breathe' : ''}`}
+                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
+                      style={needsMatchesAttention ? {
+                        outline: '3px solid #10b981',
+                        outlineOffset: '2px',
+                        animation: 'ring-breathe 1.5s ease-in-out infinite',
+                      } : undefined}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-100">
                         <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

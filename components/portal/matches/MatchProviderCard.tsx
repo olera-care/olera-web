@@ -290,6 +290,8 @@ export default function MatchProviderCard({
         onClose={() => setShowMessageModal(false)}
         providerName={provider.name}
         providerId={provider.id}
+        providerImage={provider.image}
+        providerCategory={provider.category}
         onSend={handleSendMessage}
       />
     </>

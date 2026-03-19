@@ -1410,12 +1410,23 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               setActivatingProfile(false);
             }
           }}
-          onSkip={() => {
-            // Mark onboarding complete even though they didn't go live
+          onSkip={async () => {
+            // Mark onboarding complete in database so user can navigate freely
+            try {
+              await fetch("/api/auth/ensure-account", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mark_onboarding_complete: true }),
+              });
+            } catch (err) {
+              console.error("[welcome] Failed to mark onboarding complete:", err);
+            }
+            // Also update local state
             setHasCompletedOnboarding(true);
             try {
               localStorage.setItem("olera_completed_onboarding", "true");
             } catch { /* localStorage not available */ }
+            refreshAccountData?.();
             setGoLiveModalOpen(false);
             // Stay on welcome page - will now show "All Set" view (without LIVE badge)
           }}

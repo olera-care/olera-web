@@ -1078,15 +1078,15 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               </div>
 
               {/* Cards — full width, generous spacing */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Card 1: Profile — with attention animation for fresh users */}
                 <div className="relative">
                   <button
                     onClick={() => setProfileWizardOpen(true)}
                     className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
                     style={needsProfileAttention ? {
-                      outline: '3px solid #10b981',
-                      outlineOffset: '2px',
+                      outline: '3px solid #199087',
+                      outlineOffset: '3px',
                       animation: 'ring-breathe 1.5s ease-in-out infinite',
                     } : undefined}
                   >
@@ -1155,8 +1155,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       onClick={() => setGoLiveModalOpen(true)}
                       className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
                       style={needsMatchesAttention ? {
-                        outline: '3px solid #10b981',
-                        outlineOffset: '2px',
+                        outline: '3px solid #199087',
+                        outlineOffset: '3px',
                         animation: 'ring-breathe 1.5s ease-in-out infinite',
                       } : undefined}
                     >
@@ -1187,8 +1187,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       onClick={() => setProfileWizardOpen(true)}
                       className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
                       style={needsMatchesAttention ? {
-                        outline: '3px solid #10b981',
-                        outlineOffset: '2px',
+                        outline: '3px solid #199087',
+                        outlineOffset: '3px',
                         animation: 'ring-breathe 1.5s ease-in-out infinite',
                       } : undefined}
                     >
@@ -1806,18 +1806,19 @@ export default function WelcomeClient({ destination, initialProviders = [], init
         @keyframes ring-breathe {
           0%, 100% {
             outline-width: 3px;
-            outline-offset: 2px;
+            outline-offset: 3px;
+            opacity: 1;
           }
           50% {
             outline-width: 4px;
-            outline-offset: 4px;
+            outline-offset: 6px;
+            opacity: 0.7;
           }
         }
         .animate-ring-breathe {
           animation: ring-breathe 1.5s ease-in-out infinite;
-          outline: 3px solid #10b981;
-          outline-offset: 2px;
-          border: 2px solid #10b981;
+          outline: 3px solid #199087;
+          outline-offset: 3px;
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out forwards;

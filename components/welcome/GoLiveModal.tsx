@@ -63,14 +63,14 @@ export default function GoLiveModal({
           </div>
         </div>
 
-        {/* Headline */}
+        {/* Headline - value-focused, punchy */}
         <h2 className="text-2xl font-display font-semibold text-gray-900 mb-3">
-          Go live?
+          Let providers find you
         </h2>
 
         {/* Simple, reassuring copy */}
         <p className="text-gray-500 leading-relaxed max-w-sm mx-auto mb-8">
-          Providers in your area will be able to discover your profile and reach out to you.
+          Care providers in your area will discover your profile and reach out directly.
         </p>
 
         {/* Actions */}
@@ -90,7 +90,7 @@ export default function GoLiveModal({
                 Going live...
               </span>
             ) : (
-              "Go Live"
+              "Yes, let them find me"
             )}
           </button>
 

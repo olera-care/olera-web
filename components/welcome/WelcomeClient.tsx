@@ -840,11 +840,11 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     {/* Spacer */}
                     <div className="flex-1 min-h-4" />
 
-                    {/* CTA Button */}
+                    {/* CTA Button — gray style like connected user's Message button */}
                     <div className="mt-4 sm:mt-5 flex sm:justify-end">
                       <button
                         onClick={() => setProfileWizardOpen(true)}
-                        className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 active:bg-primary-700 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2"
+                        className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
                       >
                         Get Started
                       </button>
@@ -917,7 +917,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               Hidden when all steps complete (replaced by compact banner above)
               ============================================================ */}
           {!allStepsComplete && (
-          <section className="pb-16 sm:ml-16">
+          <section className="pb-6 sm:pb-8 sm:ml-16">
             {/* Nested layout: timeline on left (desktop only), cards fill remaining space */}
             <div className="relative sm:pl-14">
               {/* Timeline — hidden on mobile, visible on sm+ */}
@@ -965,13 +965,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               <div className="space-y-4">
                 {/* Card 1: Profile — with attention animation for fresh users */}
                 <div className="relative">
-                  {/* Pulsing attention ring for fresh users */}
-                  {needsProfileAttention && (
-                    <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
-                  )}
                   <button
                     onClick={() => setProfileWizardOpen(true)}
-                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsProfileAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsProfileAttention ? 'animate-ring-breathe' : ''}`}
                   >
                   <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${profileComplete ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
                     {profileComplete ? (
@@ -1006,9 +1002,6 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
                 {/* Card 2: Benefits — with attention animation */}
                 <div className="relative">
-                  {needsBenefitsAttention && (
-                    <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
-                  )}
                   <button
                     onClick={() => {
                       // Mark benefits as viewed for gamification
@@ -1018,7 +1011,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       } catch { /* localStorage not available */ }
                       setBenefitsWizardOpen(true);
                     }}
-                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsBenefitsAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                    className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsBenefitsAttention ? 'animate-ring-breathe' : ''}`}
                   >
                     <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${hasViewedBenefits ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
                       {hasViewedBenefits ? (
@@ -1050,9 +1043,6 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
                 {/* Card 3: Matches — activates profile if not live, otherwise links to matches */}
                 <div className="relative">
-                  {needsMatchesAttention && (
-                    <div className="absolute -inset-1 rounded-[20px] bg-primary-400/20 animate-pulse" />
-                  )}
                   {isProfileLive ? (
                     // Already live — just link to matches
                     <Link
@@ -1104,7 +1094,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                         }
                       }}
                       disabled={activatingProfile}
-                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''} disabled:opacity-70`}
+                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'animate-ring-breathe' : ''} disabled:opacity-70`}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
                         {activatingProfile ? (
@@ -1138,7 +1128,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Not ready to go live — missing data, prompt to complete profile
                     <button
                       onClick={() => setProfileWizardOpen(true)}
-                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'ring-2 ring-primary-400 ring-offset-2' : ''}`}
+                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'animate-ring-breathe' : ''}`}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-100">
                         <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1702,6 +1692,17 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             opacity: 1;
             transform: translateY(0);
           }
+        }
+        @keyframes ring-breathe {
+          0%, 100% {
+            box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.3), 0 0 0 4px rgba(52, 211, 153, 0.15);
+          }
+          50% {
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.5), 0 0 0 8px rgba(52, 211, 153, 0.1);
+          }
+        }
+        .animate-ring-breathe {
+          animation: ring-breathe 2s ease-in-out infinite;
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out forwards;

@@ -27,6 +27,10 @@
     {
       "path": "/api/cron/matches-unread",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/google-reviews",
+      "schedule": "0 3 1 * *"
     }
   ]
 }

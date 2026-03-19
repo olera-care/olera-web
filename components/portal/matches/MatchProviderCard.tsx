@@ -334,6 +334,8 @@ export default function MatchProviderCard({
         providerImage={provider.image}
         providerCategory={provider.category}
         onSend={handleSendMessage}
+        isReply={isInterested}
+        providerMessage={interestedMessage}
       />
     </>
   );

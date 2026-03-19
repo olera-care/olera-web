@@ -676,13 +676,15 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     return "Good evening";
   };
 
-  const greeting = isReturningUser
+  const greeting = isReturningUser || allStepsComplete
     ? (userName ? `Welcome back, ${userName}` : "Welcome back")
     : (userName ? `${getTimeGreeting()}, ${userName}` : getTimeGreeting());
 
-  const subtitle = isReturningUser && !allStepsComplete
-    ? "Pick up where you left off"
-    : "Welcome to Olera";
+  const subtitle = allStepsComplete
+    ? "Your care journey continues"
+    : isReturningUser
+      ? "Pick up where you left off"
+      : "Welcome to Olera";
 
   // ================================================================
   // NEW VERSION — Building on top (Connected State first)
@@ -706,8 +708,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
           {/* ============================================================
               TOP CARD — Connected provider OR Fresh welcome card
+              Hidden when all steps complete (they've already "gotten started")
               ============================================================ */}
-          {isConnected && connection?.to_profile ? (() => {
+          {!allStepsComplete && (isConnected && connection?.to_profile ? (() => {
             const provider = connection.to_profile;
             const location = [provider.city, provider.state].filter(Boolean).join(", ");
             const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
@@ -853,59 +856,110 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 </div>
               </div>
             </section>
-          )}
+          ))}
 
           {/* Confetti celebration */}
           {showCelebration && <ConfettiCelebration />}
 
           {/* ============================================================
-              COMPLETION CELEBRATION BANNER — Shows when all steps done
+              COMPLETION DASHBOARD — Shows when all steps done
+              3 distinct action cards that guide user to next steps
               ============================================================ */}
           {allStepsComplete && (
             <section className="pb-8">
-              <div className="bg-gradient-to-r from-primary-50 via-primary-50/80 to-warm-50 rounded-2xl p-6 border border-primary-100/60">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm border border-primary-100">
-                    <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-text-lg font-semibold text-gray-900">You're all set!</h2>
-                    <p className="text-text-sm text-gray-600 mt-0.5">
-                      Your profile is live and providers can now find you. Explore our recommendations below.
-                    </p>
-                  </div>
+              {/* Heading */}
+              <div className="mb-6 text-center">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary-50 mb-4">
+                  <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
+                <h2 className="text-display-xs font-display font-semibold text-gray-900">You&apos;re all set!</h2>
+                <p className="text-text-md text-gray-500 mt-1">Your profile is live. Here&apos;s what you can do next.</p>
+              </div>
 
-                {/* Compact status row */}
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => setProfileWizardOpen(true)}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-full text-text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    Profile {profilePercentage}%
-                  </button>
-                  <button
-                    onClick={() => setBenefitsWizardOpen(true)}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-full text-text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    Benefits {benefitsSavedCount > 0 ? `(${benefitsSavedCount} saved)` : 'explored'}
-                  </button>
-                  <Link
-                    href="/portal/matches"
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-full text-text-sm font-medium text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    Profile Live
-                  </Link>
-                </div>
+              {/* 3 Action Cards */}
+              <div className="grid gap-4 sm:grid-cols-3">
+                {/* Card 1: Profile */}
+                <Link
+                  href="/portal/profile"
+                  className="group bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-text-md font-semibold text-gray-900">Your Profile</p>
+                      <p className="text-text-sm text-gray-500">{profilePercentage}% complete</p>
+                    </div>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary-500 rounded-full transition-all duration-500"
+                      style={{ width: `${profilePercentage}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-text-sm text-primary-600 font-medium group-hover:text-primary-700">
+                    {profilePercentage < 100 ? 'Complete your profile →' : 'View profile →'}
+                  </p>
+                </Link>
+
+                {/* Card 2: Benefits */}
+                <Link
+                  href="/portal/benefits"
+                  className="group bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-text-md font-semibold text-gray-900">Benefits</p>
+                      <p className="text-text-sm text-gray-500">
+                        {benefitsSavedCount > 0 ? `${benefitsSavedCount} saved` : 'Programs available'}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-text-sm text-gray-600">
+                    Discover financial assistance programs you may qualify for.
+                  </p>
+                  <p className="mt-3 text-text-sm text-primary-600 font-medium group-hover:text-primary-700">
+                    Explore benefits →
+                  </p>
+                </Link>
+
+                {/* Card 3: Matches */}
+                <Link
+                  href="/portal/matches"
+                  className="group bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-text-md font-semibold text-gray-900">Matches</p>
+                      <div className="flex items-center gap-1.5 text-text-sm">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-emerald-600 font-medium">Profile Live</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-text-sm text-gray-600">
+                    Providers can now find you. Check for messages and new matches.
+                  </p>
+                  <p className="mt-3 text-text-sm text-primary-600 font-medium group-hover:text-primary-700">
+                    View matches →
+                  </p>
+                </Link>
               </div>
             </section>
           )}

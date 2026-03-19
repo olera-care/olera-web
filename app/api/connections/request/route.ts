@@ -3,7 +3,7 @@ import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildIntroMessage } from "@/lib/build-intro-message";
 import { sendEmail } from "@/lib/email";
-import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail } from "@/lib/email-templates";
+import { connectionRequestEmail, connectionSentEmail, guestConnectionEmail, verifyEmailEmail } from "@/lib/email-templates";
 import { sendSlackAlert, slackNewLead, slackMissingEmail } from "@/lib/slack";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import { sendLoopsEvent } from "@/lib/loops";
@@ -92,53 +92,178 @@ async function handleGuestConnection({
     );
   }
 
-  // Find or create placeholder profile for this guest email
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INSTANT ACCOUNT CREATION
+  // Create real Supabase user + account + profile (not placeholder)
+  // User gets instant session via tokenHash returned to client
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const { createClient: createAdminAuthClient } = await import("@supabase/supabase-js");
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
+  }
+
+  const authClient = createAdminAuthClient(supabaseUrl, serviceKey);
+  const siteUrl = getSiteUrl();
+
   let fromProfileId: string;
-  let claimToken: string;
+  let accountId: string;
+  let userId: string;
+  let tokenHash: string | null = null;
+  let isNewUser = false;
+  const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
 
-  const { data: existingProfile } = await db
-    .from("business_profiles")
-    .select("id, claim_token")
-    .eq("email", normalizedEmail)
-    .is("account_id", null)
-    .eq("type", "family")
-    .limit(1)
-    .single();
+  // Try to create user — if already exists, we'll handle that case
+  const { data: newUser, error: createUserErr } = await authClient.auth.admin.createUser({
+    email: normalizedEmail,
+    email_confirm: false,
+    user_metadata: {
+      full_name: displayName,
+    },
+  });
 
-  if (existingProfile) {
-    fromProfileId = existingProfile.id;
-    claimToken = existingProfile.claim_token;
+  if (createUserErr) {
+    // Check if user already exists (error code for duplicate email)
+    if (createUserErr.message?.includes("already been registered") ||
+        createUserErr.message?.includes("already exists")) {
+      // User exists — look up by email in accounts table via business_profiles
+      const { data: existingProfile } = await db
+        .from("business_profiles")
+        .select("id, account_id")
+        .eq("email", normalizedEmail)
+        .eq("type", "family")
+        .not("account_id", "is", null)
+        .limit(1)
+        .single();
 
-    // Sync latest intent data to existing guest profile
-    try {
-      await syncIntentToProfile(db, fromProfileId, {
-        careRecipient: intentData.careRecipient,
-        careType: intentData.careType,
-        urgency: intentData.urgency,
-        additionalNotes: intentData.additionalNotes,
-      });
-    } catch (syncErr) {
-      console.error("Failed to sync intent to guest profile:", syncErr);
+      if (existingProfile && existingProfile.account_id) {
+        // Existing user with account and profile
+        fromProfileId = existingProfile.id;
+        accountId = existingProfile.account_id;
+
+        // Get user_id from account
+        const { data: accountData } = await db
+          .from("accounts")
+          .select("user_id")
+          .eq("id", accountId)
+          .single();
+
+        userId = accountData?.user_id || "";
+
+        // Generate magic link token for session
+        const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: {
+            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/welcome")}`,
+          },
+        });
+
+        if (!linkError && linkData?.properties?.hashed_token) {
+          tokenHash = linkData.properties.hashed_token;
+        }
+      } else {
+        // Edge case: auth user exists but no profile in our DB
+        // Try to get user ID via magic link generation
+        const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+          type: "magiclink",
+          email: normalizedEmail,
+          options: {
+            redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/welcome")}`,
+          },
+        });
+
+        if (linkError) {
+          console.error("Failed to generate link for existing user:", linkError);
+          return NextResponse.json({ error: "Failed to create session." }, { status: 500 });
+        }
+
+        tokenHash = linkData?.properties?.hashed_token || null;
+        userId = ""; // We don't have easy access to the user ID here
+
+        // Create account and profile for this existing auth user
+        // First, we need to look up the user via the auth admin API
+        // Since we can't easily get user by email, we'll create profile with null account for now
+        // and let the magic link callback claim it
+        const slug = await generateUniqueSlugFromName(db, displayName);
+        const { data: newProfile, error: profileErr } = await db
+          .from("business_profiles")
+          .insert({
+            account_id: null, // Will be claimed when user uses magic link
+            email: normalizedEmail,
+            slug,
+            type: "family",
+            display_name: displayName,
+            care_types: intentData.careType && careTypeMap[intentData.careType]
+              ? [careTypeMap[intentData.careType]]
+              : [],
+            claim_state: "unclaimed",
+            verification_state: "unverified",
+            source: "guest_connection",
+            metadata: {
+              relationship_to_recipient: intentData.careRecipient
+                ? recipientMap[intentData.careRecipient] ?? null
+                : null,
+              timeline: intentData.urgency
+                ? timelineMap[intentData.urgency] ?? null
+                : null,
+              about_situation: intentData.additionalNotes || null,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (profileErr) {
+          console.error("Failed to create profile for existing user:", profileErr);
+          return NextResponse.json({ error: "Failed to create profile." }, { status: 500 });
+        }
+        fromProfileId = newProfile.id;
+        accountId = ""; // Will be set when magic link is used
+      }
+    } else {
+      // Actual error creating user
+      console.error("Failed to create auth user:", createUserErr);
+      return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
     }
   } else {
-    // Create placeholder profile
-    // Use fullName from form if provided, otherwise fall back to email prefix
-    const displayName = guestFullName?.trim() || normalizedEmail.split("@")[0] || "Guest";
-    const slug = generateSlug(displayName);
+    // Successfully created new user
+    isNewUser = true;
+    userId = newUser.user.id;
 
-    const { data: newProfile, error: profileError } = await db
+    // Create account
+    const { data: newAccount, error: accountErr } = await db
+      .from("accounts")
+      .insert({
+        user_id: userId,
+        display_name: displayName,
+        onboarding_completed: false,
+      })
+      .select("id")
+      .single();
+
+    if (accountErr) {
+      console.error("Failed to create account:", accountErr);
+      return NextResponse.json({ error: "Failed to create account." }, { status: 500 });
+    }
+    accountId = newAccount.id;
+
+    // Create family profile
+    const slug = await generateUniqueSlugFromName(db, displayName);
+    const { data: newProfile, error: profileErr } = await db
       .from("business_profiles")
       .insert({
-        account_id: null, // Placeholder — no account yet
+        account_id: accountId,
         email: normalizedEmail,
         slug,
         type: "family",
-        category: null,
         display_name: displayName,
         care_types: intentData.careType && careTypeMap[intentData.careType]
           ? [careTypeMap[intentData.careType]]
           : [],
-        claim_state: "unclaimed",
+        claim_state: "claimed",
         verification_state: "unverified",
         source: "guest_connection",
         metadata: {
@@ -151,19 +276,59 @@ async function handleGuestConnection({
           about_situation: intentData.additionalNotes || null,
         },
       })
-      .select("id, claim_token")
+      .select("id")
       .single();
 
-    if (profileError) {
-      console.error("Failed to create guest profile:", profileError);
-      return NextResponse.json(
-        { error: "Failed to create your profile." },
-        { status: 500 }
-      );
+    if (profileErr) {
+      console.error("Failed to create family profile:", profileErr);
+      return NextResponse.json({ error: "Failed to create profile." }, { status: 500 });
+    }
+    fromProfileId = newProfile.id;
+
+    // Set as active profile
+    await db.from("accounts").update({ active_profile_id: fromProfileId }).eq("id", accountId);
+
+    // Generate magic link token for instant session
+    const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
+      type: "magiclink",
+      email: normalizedEmail,
+      options: {
+        redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/welcome")}`,
+      },
+    });
+
+    if (!linkError && linkData?.properties?.hashed_token) {
+      tokenHash = linkData.properties.hashed_token;
     }
 
-    fromProfileId = newProfile.id;
-    claimToken = newProfile.claim_token;
+    // Loops: new account created
+    try {
+      const nameParts = displayName.trim().split(/\s+/);
+      await sendLoopsEvent({
+        email: normalizedEmail,
+        eventName: "user_signup",
+        audience: "seeker",
+        eventProperties: { source: "guest_connection" },
+        contactProperties: {
+          firstName: nameParts[0] || "",
+          lastName: nameParts.slice(1).join(" ") || "",
+        },
+      });
+    } catch {
+      // Non-blocking
+    }
+  }
+
+  // Sync intent data to profile
+  try {
+    await syncIntentToProfile(db, fromProfileId, {
+      careRecipient: intentData.careRecipient,
+      careType: intentData.careType,
+      urgency: intentData.urgency,
+      additionalNotes: intentData.additionalNotes,
+    });
+  } catch (syncErr) {
+    console.error("Failed to sync intent to profile:", syncErr);
   }
 
   // Resolve target provider (same logic as authenticated flow)
@@ -274,7 +439,7 @@ async function handleGuestConnection({
       status: "duplicate",
       connectionId: existingConnection.id,
       created_at: existingConnection.created_at,
-      claimToken,
+      tokenHash: tokenHash || null,
     });
   }
 
@@ -352,67 +517,31 @@ async function handleGuestConnection({
     return NextResponse.json({ error: "Failed to send request." }, { status: 500 });
   }
 
-  // Send SINGLE combined email: connection confirmation + magic link
-  // Uses generateLink() to create magic link without Supabase sending its own email
+  // Send "Verify your email" email (user already has instant session via tokenHash)
   try {
-    const { createClient: createAdminAuthClient } = await import("@supabase/supabase-js");
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    // Use environment-aware URL so magic links work in preview/staging deployments
-    const siteUrl = getSiteUrl();
+    // Generate a verification link for the email
+    const { data: verifyLinkData, error: verifyLinkError } = await authClient.auth.admin.generateLink({
+      type: "magiclink",
+      email: normalizedEmail,
+      options: {
+        redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent("/portal/inbox")}&verify=true`,
+      },
+    });
 
-    const careTypeMap: Record<string, string> = {
-      home_care: "Home Care",
-      home_health: "Home Health Care",
-      assisted_living: "Assisted Living",
-      memory_care: "Memory Care",
-    };
-
-    if (url && serviceKey) {
-      const authClient = createAdminAuthClient(url, serviceKey);
-
-      // Generate magic link without sending Supabase's default email
-      // Use client-side /auth/magic-link handler (not server-side /auth/callback)
-      // because generateLink() uses implicit flow which puts tokens in hash fragment
-      const finalDestination = `/portal/inbox?id=${newConnection.id}&token=${claimToken}`;
-      const { data: linkData, error: linkError } = await authClient.auth.admin.generateLink({
-        type: "magiclink",
-        email: normalizedEmail,
-        options: {
-          redirectTo: `${siteUrl}/auth/magic-link?next=${encodeURIComponent(finalDestination)}&token=${claimToken}`,
-        },
+    if (!verifyLinkError && verifyLinkData?.properties?.action_link) {
+      await sendEmail({
+        to: normalizedEmail,
+        subject: `Verify your email — Olera`,
+        html: verifyEmailEmail({
+          familyName: firstName || "there",
+          providerName,
+          verifyUrl: verifyLinkData.properties.action_link,
+        }),
       });
-
-      if (linkError) {
-        console.error("Failed to generate magic link:", linkError);
-        // Fall back to simple confirmation email without magic link
-        await sendEmail({
-          to: normalizedEmail,
-          subject: `You're connected with ${providerName} on Olera`,
-          html: connectionSentEmail({
-            familyName: firstName || "there",
-            providerName,
-            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
-            viewUrl: `${siteUrl}${finalDestination}`,
-          }),
-        });
-      } else {
-        // Send our combined email with the magic link embedded
-        await sendEmail({
-          to: normalizedEmail,
-          subject: `You're connected with ${providerName} on Olera`,
-          html: guestConnectionEmail({
-            familyName: firstName || "there",
-            providerName,
-            careType: intentData?.careType ? (careTypeMap[intentData.careType] || intentData.careType) : null,
-            magicLinkUrl: linkData.properties.action_link,
-          }),
-        });
-      }
     }
   } catch (emailErr) {
-    console.error("Failed to send guest connection email:", emailErr);
-    // Non-blocking — connection was created
+    console.error("Failed to send verify email:", emailErr);
+    // Non-blocking — user has instant session, verification is optional
   }
 
   // Provider notifications (fire-and-forget)
@@ -533,7 +662,9 @@ async function handleGuestConnection({
     status: "created",
     connectionId: newConnection.id,
     created_at: newConnection.created_at,
-    claimToken,
+    tokenHash: tokenHash || null,
+    providerSlug,
+    isNewUser,
   });
 }
 

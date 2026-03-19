@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { getDeferredAction, clearDeferredAction } from "@/lib/deferred-action";
@@ -76,6 +77,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     onConnectionCreated,
   } = props;
 
+  const router = useRouter();
   const { user, account, activeProfile, profiles, isLoading: authLoading, openAuth, refreshAccountData } =
     useAuth();
   const savedProviders = useSavedProviders();
@@ -339,7 +341,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     setIntentData((prev) => ({ ...prev, urgency: val }));
   }, []);
 
-  // ── Submit guest connection request via API ──
+  // ── Submit guest connection request via API (instant account creation) ──
   const submitGuestRequest = useCallback(async (email: string) => {
     setError("");
     setSubmitting(true);
@@ -364,39 +366,28 @@ export function useConnectionCard(props: ConnectionCardProps) {
         throw new Error(data.error || "Failed to send request.");
       }
 
-      // Store claim token in localStorage for inbox access
-      if (data.claimToken) {
+      window.dispatchEvent(new CustomEvent("olera:connection-created"));
+
+      // Establish session instantly using tokenHash
+      if (data.tokenHash) {
         try {
-          localStorage.setItem(CLAIM_TOKEN_KEY, data.claimToken);
-        } catch {
-          // localStorage may fail in private browsing
+          const supabase = createClient();
+          const { error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: data.tokenHash,
+            type: "magiclink",
+          });
+
+          if (verifyError) {
+            console.error("Failed to establish session:", verifyError);
+          }
+        } catch (sessionErr) {
+          console.error("Session error:", sessionErr);
         }
       }
 
-      // Store redirect destination for magic link handler
-      // When user clicks magic link, they'll be redirected here after auth
-      if (data.connectionId && data.claimToken) {
-        const redirectUrl = `/portal/inbox?id=${data.connectionId}&token=${data.claimToken}`;
-        storeGuestRedirect(redirectUrl, data.claimToken);
-      }
-
-      // Redirect to post-connection success page if callback provided
-      if (data.connectionId && onConnectionCreated) {
-        onConnectionCreated(data.connectionId);
-        return;
-      }
-
-      // No redirect callback — update local state
-      if (data.created_at) {
-        setPendingRequestDate(data.created_at);
-      }
-      if (data.connectionId) {
-        setConnectionId(data.connectionId);
-      }
-
-      setCardState("connected");
-      setPendingRequestDate((prev) => prev || new Date().toISOString());
-      setPhoneRevealed(true);
+      // Navigate to /welcome with connection info
+      const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+      router.push(welcomeUrl);
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
@@ -407,7 +398,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
     } finally {
       setSubmitting(false);
     }
-  }, [providerId, providerName, providerSlug, intentData, onConnectionCreated]);
+  }, [providerId, providerName, providerSlug, intentData, router]);
 
   // ── Connect (submit from intent or returning) ──
   const connect = useCallback(() => {
@@ -514,7 +505,7 @@ export function useConnectionCard(props: ConnectionCardProps) {
         setCardState("enrichment");
         setPhoneRevealed(true);
       } else {
-        // Guest flow — use email for connection
+        // Guest flow — instant account creation + session
         const res = await fetch("/api/connections/request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -536,25 +527,31 @@ export function useConnectionCard(props: ConnectionCardProps) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to send request.");
 
-        // Store claim token
-        if (data.claimToken) {
-          try { localStorage.setItem(CLAIM_TOKEN_KEY, data.claimToken); } catch {}
-        }
-        if (data.connectionId && data.claimToken) {
-          storeGuestRedirect(
-            `/portal/inbox?id=${data.connectionId}&token=${data.claimToken}`,
-            data.claimToken
-          );
-        }
-
         window.dispatchEvent(new CustomEvent("olera:connection-created"));
 
-        if (data.created_at) setPendingRequestDate(data.created_at);
-        if (data.connectionId) setConnectionId(data.connectionId);
+        // Establish session instantly using tokenHash
+        if (data.tokenHash) {
+          try {
+            const supabase = createClient();
+            const { error: verifyError } = await supabase.auth.verifyOtp({
+              token_hash: data.tokenHash,
+              type: "magiclink",
+            });
 
-        // Show enrichment first — redirect happens after save/skip
-        setCardState("enrichment");
-        setPhoneRevealed(true);
+            if (verifyError) {
+              console.error("Failed to establish session:", verifyError);
+              // Continue anyway — user can verify via email later
+            }
+          } catch (sessionErr) {
+            console.error("Session error:", sessionErr);
+          }
+        }
+
+        // Navigate to /welcome with connection info
+        // User now has an active session and can complete their profile
+        const welcomeUrl = `/welcome?connection=${data.connectionId}&provider=${providerSlug}`;
+        router.push(welcomeUrl);
+        return; // Stop here — we're navigating away
       }
     } catch (err: unknown) {
       const msg =
@@ -601,22 +598,27 @@ export function useConnectionCard(props: ConnectionCardProps) {
       // Non-blocking
     } finally {
       setSubmitting(false);
-      // Redirect to connected page if callback available, else show connected state
+      // Unified experience: redirect to /welcome
       if (connectionId && onConnectionCreated) {
         onConnectionCreated(connectionId);
+      } else if (connectionId) {
+        router.push(`/welcome?connection=${connectionId}&provider=${providerSlug}`);
       } else {
         setCardState("connected");
       }
     }
-  }, [connectionId, onConnectionCreated, user]);
+  }, [connectionId, onConnectionCreated, user, router, providerSlug]);
 
   const skipEnrichment = useCallback(() => {
+    // Unified experience: redirect to /welcome
     if (connectionId && onConnectionCreated) {
       onConnectionCreated(connectionId);
+    } else if (connectionId) {
+      router.push(`/welcome?connection=${connectionId}&provider=${providerSlug}`);
     } else {
       setCardState("connected");
     }
-  }, [connectionId, onConnectionCreated]);
+  }, [connectionId, onConnectionCreated, router, providerSlug]);
 
   // Total steps: 2 for logged-in, 3 for guest (includes email capture)
   const totalSteps = user ? 2 : 3;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -351,7 +351,12 @@ function ProviderScrollCard({ provider }: { provider: MatchProvider }) {
 
 export default function WelcomeClient({ destination, initialProviders = [], initialCity = null }: WelcomeClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { account, activeProfile, refreshAccountData, user, isLoading: authLoading } = useAuth();
+
+  // URL params for instant connection (from guest connection flow)
+  const connectionIdParam = searchParams.get("connection");
+  const providerSlugParam = searchParams.get("provider");
   const scrollRef = useRef<HTMLDivElement>(null);
   const providerScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -482,10 +487,10 @@ export default function WelcomeClient({ destination, initialProviders = [], init
         setCity(activeProfile.city);
       }
 
-      // Fetch connection info — this is quick and needed for the main UI
+      // Fetch connection info — prefer URL param if present (from instant connection flow)
       let connectedProviderCity: string | null = null;
       try {
-        const { data: connections } = await supabase
+        let connectionsQuery = supabase
           .from("connections")
           .select(`
             id,
@@ -494,9 +499,17 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             )
           `)
           .eq("from_profile_id", activeProfile.id)
-          .eq("type", "inquiry")
-          .order("created_at", { ascending: false })
-          .limit(1);
+          .eq("type", "inquiry");
+
+        // If connection ID is in URL, fetch that specific connection
+        if (connectionIdParam) {
+          connectionsQuery = connectionsQuery.eq("id", connectionIdParam);
+        } else {
+          // Otherwise, get the most recent connection
+          connectionsQuery = connectionsQuery.order("created_at", { ascending: false }).limit(1);
+        }
+
+        const { data: connections } = await connectionsQuery;
 
         if (connections && connections.length > 0) {
           let conn = connections[0] as ConnectionWithProvider;
@@ -548,7 +561,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     }
 
     init();
-  }, [activeProfile, account, destination, router, hasInitialized]);
+  }, [activeProfile, account, destination, router, hasInitialized, connectionIdParam]);
 
   // Complete onboarding and redirect (or show confirmation)
   const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false, customRedirect?: string) => {
@@ -576,8 +589,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              city: city || undefined,
+              city: city || activeProfile?.city || undefined,
               state: activeProfile?.state || undefined,
+              careTypes: activeProfile?.care_types?.length ? activeProfile.care_types : undefined,
             }),
           }),
           profileRequest,
@@ -751,10 +765,10 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           </section>
 
           {/* ============================================================
-              TOP CARD — Connected provider OR Fresh welcome card
-              Hidden when all steps complete (they've already "gotten started")
+              TOP CARD — Connected provider (always visible) OR Fresh welcome card
+              Fresh state hidden when all steps complete
               ============================================================ */}
-          {!allStepsComplete && (isConnected && connection?.to_profile ? (() => {
+          {isConnected && connection?.to_profile ? (() => {
             const provider = connection.to_profile;
             const location = [provider.city, provider.state].filter(Boolean).join(", ");
             const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
@@ -855,9 +869,10 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 </div>
               </section>
             );
-          })() : (
+          })() : !allStepsComplete ? (
             /* ============================================================
                FRESH STATE CARD — Welcome card for new users without connection
+               Hidden when all steps complete
                ============================================================ */
             <section className="pb-12">
               <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -900,152 +915,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 </div>
               </div>
             </section>
-          ))}
+          ) : null}
 
           {/* Confetti celebration */}
           {showCelebration && <ConfettiCelebration />}
 
           {/* ============================================================
-              COMPLETION DASHBOARD — Shows when all steps done
-              Premium card with gradient, animations, and clear hierarchy
+              ACTION TIMELINE — Profile & Matches cards
+              Cards transform inline to show completion states
+              The journey IS the celebration
               ============================================================ */}
-          {allStepsComplete && (
-            <section className="mb-10">
-              <div className="relative bg-gradient-to-br from-white via-white to-primary-50/30 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] p-6 sm:p-8 overflow-hidden">
-                {/* Subtle decorative gradient orb */}
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-primary-200/40 to-emerald-200/30 rounded-full blur-3xl pointer-events-none" />
-
-                {/* Celebration header */}
-                <div className="relative mb-8 text-center">
-                  {/* Animated sparkle icon */}
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-100 to-emerald-100 mb-4 shadow-[0_4px_12px_rgba(25,144,135,0.2)] animate-celebration-pulse">
-                    <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24">
-                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-display font-semibold text-gray-900 mb-2">
-                    You&apos;re all set
-                  </h2>
-                  <p className="text-gray-500">
-                    Care providers in <span className="text-primary-600 font-medium">{cityDisplay}</span> can now discover you
-                  </p>
-                </div>
-
-                {/* Hero action: Matches - the primary next step */}
-                <Link
-                  href="/portal/matches"
-                  className="group relative flex items-center gap-4 p-5 mb-4 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl shadow-[0_4px_16px_rgba(25,144,135,0.3)] hover:shadow-[0_8px_24px_rgba(25,144,135,0.4)] hover:scale-[1.01] transition-all duration-300 animate-card-entrance"
-                  style={{ animationDelay: '0ms' }}
-                >
-                  {/* Shimmer effect */}
-                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-2xl pointer-events-none" />
-
-                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-semibold text-white text-lg">View Your Matches</span>
-                      {isProfileLive && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Live
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-primary-100 text-sm">See providers who match your needs</p>
-                  </div>
-                  <svg className="w-6 h-6 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-
-                {/* Secondary actions: Profile & Benefits */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {/* Card: Profile */}
-                  <Link
-                    href="/portal/profile"
-                    className="group flex-1 flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 hover:border-gray-200 hover:bg-white hover:shadow-md transition-all duration-200 animate-card-entrance"
-                    style={{ animationDelay: '75ms' }}
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">Profile</span>
-                        <span className="text-sm text-gray-400">{profilePercentage}%</span>
-                      </div>
-                    </div>
-                    <svg className="w-5 h-5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-
-                  {/* Card: Benefits */}
-                  <Link
-                    href="/portal/benefits"
-                    className="group flex-1 flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 hover:border-gray-200 hover:bg-white hover:shadow-md transition-all duration-200 animate-card-entrance"
-                    style={{ animationDelay: '150ms' }}
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
-                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">Benefits</span>
-                        {benefitsSavedCount > 0 && (
-                          <span className="text-sm text-gray-400">{benefitsSavedCount} saved</span>
-                        )}
-                      </div>
-                    </div>
-                    <svg className="w-5 h-5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Animations */}
-              <style jsx>{`
-                @keyframes celebration-pulse {
-                  0%, 100% { transform: scale(1); }
-                  50% { transform: scale(1.05); }
-                }
-                .animate-celebration-pulse {
-                  animation: celebration-pulse 2s ease-in-out infinite;
-                }
-                @keyframes card-entrance {
-                  from {
-                    opacity: 0;
-                    transform: translateY(12px);
-                  }
-                  to {
-                    opacity: 1;
-                    transform: translateY(0);
-                  }
-                }
-                .animate-card-entrance {
-                  animation: card-entrance 0.4s ease-out backwards;
-                }
-              `}</style>
-            </section>
-          )}
-
-          {/* ============================================================
-              ACTION TIMELINE — Profile, Benefits, Matches (Airbnb style)
-              Desktop: Indented with timeline markers on left
-              Mobile: Just cards, no timeline (cleaner, more space)
-              Hidden when all steps complete (replaced by compact banner above)
-              ============================================================ */}
-          {!allStepsComplete && (
           <section className="pb-6 sm:pb-8 sm:ml-16">
             {/* Nested layout: timeline on left (desktop only), cards fill remaining space */}
             <div className="relative sm:pl-14">
@@ -1121,36 +1000,59 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                   </button>
                 </div>
 
-                {/* Card 2: Matches — activates profile if not live, otherwise links to matches */}
+                {/* Card 2: Matches — transforms to show success state when live */}
                 <div className="relative">
                   {isProfileLive ? (
-                    // Already live — just link to matches
-                    <Link
-                      href="/portal/matches"
-                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
-                    >
-                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-50">
-                        <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                        </svg>
+                    // Already live — celebratory success state with benefits integrated
+                    <div className="relative bg-gradient-to-br from-primary-50 to-emerald-50/50 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+                      {/* Main link area */}
+                      <Link
+                        href="/portal/matches"
+                        className="flex items-center gap-4 p-4 group"
+                      >
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-100">
+                          <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-text-md font-semibold text-gray-900">You&apos;re discoverable!</p>
+                          <p className="text-text-sm mt-0.5 text-primary-600">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              Profile is live in {cityDisplay}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center flex-shrink-0 group-hover:bg-white transition-colors">
+                          <svg className="w-4 h-4 text-gray-400 group-hover:text-primary-600 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </Link>
+                      {/* Benefits teaser — integrated into the success state */}
+                      <div className="px-4 pb-4">
+                        <Link
+                          href="/benefits/finder"
+                          className="flex items-center gap-3 p-3 bg-white/80 rounded-xl hover:bg-white transition-colors group"
+                        >
+                          <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-text-sm font-medium text-gray-900">Care may be covered</p>
+                            <p className="text-text-xs text-gray-500">Find benefits you qualify for</p>
+                          </div>
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-text-md font-semibold text-gray-900">You&apos;re discoverable!</p>
-                        <p className="text-text-sm mt-0.5 text-primary-600">
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            Profile is live
-                          </span>
-                        </p>
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </Link>
+                    </div>
                   ) : canGoLive ? (
-                    // Ready to go live — button to show GoLiveModal
+                    // Ready to go live — personalized CTA with provider name if connected
                     <button
                       onClick={() => setGoLiveModalOpen(true)}
                       className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
@@ -1169,10 +1071,12 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-text-md font-semibold text-gray-900">
-                          Go live & get matched
+                          {isConnected && connection?.to_profile?.display_name
+                            ? `Let providers like ${connection.to_profile.display_name.split(' ')[0]} find you`
+                            : "Go live & get matched"}
                         </p>
                         <p className="text-text-sm mt-0.5 text-gray-500">
-                          Let providers discover you
+                          {isConnected ? "More providers can discover your profile" : "Let providers discover you"}
                         </p>
                       </div>
                       <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
@@ -1216,14 +1120,12 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               </div>
             </div>
           </section>
-          )}
 
           {/* ============================================================
               PROVIDER RECOMMENDATIONS — Full width, aligned with main card
-              More prominent when all steps complete
               ============================================================ */}
           {matches.length > 0 && (
-            <section className={allStepsComplete ? "pb-20" : "pb-20"}>
+            <section className="pb-20">
               {/* Section header — bigger when onboarding complete */}
               <div className="flex items-center justify-between mb-5">
                 <div>

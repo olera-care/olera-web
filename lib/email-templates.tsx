@@ -145,6 +145,25 @@ export function guestConnectionEmail(opts: {
   `);
 }
 
+/** Email to verify email address after instant account creation */
+export function verifyEmailEmail(opts: {
+  familyName: string;
+  providerName: string;
+  verifyUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Verify your email</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, you're connected with <strong>${opts.providerName}</strong> on Olera.
+      Verify your email to sign in from any device and keep your account secure.
+    </p>
+    <div style="margin:24px 0;">${button("Verify Email", opts.verifyUrl)}</div>
+    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
+      You can continue using Olera without verifying, but we recommend it for account security.
+    </p>
+  `);
+}
+
 /** Email to family when a provider responds (accept/decline) */
 export function connectionResponseEmail(opts: {
   familyName: string;

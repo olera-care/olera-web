@@ -119,15 +119,23 @@ export default function Modal({
   }, [isOpen, handleKeyDown]);
 
   // Auto-focus first focusable element — only on initial open
+  // Also scrolls content to top to ensure user sees the beginning of the form.
   useEffect(() => {
     if (!isOpen) return;
 
     // Small delay so the DOM has settled after render
     const timer = setTimeout(() => {
+      // Include button[type="button"] to support custom Select components
       const firstFocusable = contentRef.current?.querySelector<HTMLElement>(
-        'input, select, textarea, button[type="submit"]'
+        'button[type="button"], input, select, textarea, button[type="submit"]'
       );
-      firstFocusable?.focus();
+      firstFocusable?.focus({ preventScroll: true });
+
+      // Scroll the modal content to top to ensure user sees the first field
+      const scrollContainer = contentRef.current?.querySelector('[data-modal-scroll]');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      }
     }, 50);
 
     return () => clearTimeout(timer);
@@ -210,7 +218,10 @@ export default function Modal({
         </div>
 
         {/* Scrollable body */}
-        <div className={`px-5 sm:px-7 pt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}>
+        <div
+          data-modal-scroll
+          className={`px-5 sm:px-7 pt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}
+        >
           {children}
         </div>
 

@@ -4,7 +4,6 @@ import { useState } from "react";
 import Modal from "@/components/ui/Modal";
 import ModalFooter from "@/components/provider-dashboard/edit-modals/ModalFooter";
 import { saveProfile } from "@/components/provider-dashboard/edit-modals/save-profile";
-import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
@@ -77,14 +76,11 @@ export default function EditCarePostModal({
   onSaved,
 }: EditCarePostModalProps) {
   const meta = (profile.metadata || {}) as FamilyMetadata;
-  const { percentage } = useProfileCompleteness(profile, userEmail);
-  const profileComplete = percentage >= 100;
 
   // Step state
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [saveToProfile, setSaveToProfile] = useState(!profileComplete);
 
   // Step 1: Care details
   const [relationship, setRelationship] = useState(meta.relationship_to_recipient || "");
@@ -135,16 +131,14 @@ export default function EditCarePostModal({
     try {
       await saveProfile({
         profileId: profile.id,
-        // Only update top-level profile fields when the checkbox is checked
-        topLevelFields: saveToProfile
-          ? {
-              care_types: careTypes,
-              city: city || undefined,
-              state: state || undefined,
-              phone: phone || undefined,
-              description: aboutSituation || undefined,
-            }
-          : {},
+        // Always update all fields shown in this modal
+        topLevelFields: {
+          care_types: careTypes,
+          city: city || undefined,
+          state: state || undefined,
+          phone: phone || undefined,
+          description: aboutSituation || undefined,
+        },
         metadataFields: {
           relationship_to_recipient: relationship || undefined,
           age: age ? parseInt(age, 10) : undefined,
@@ -374,27 +368,6 @@ export default function EditCarePostModal({
               placeholder="(555) 123-4567"
               helpText="Only shared with providers you connect with."
             />
-
-            {/* Save to profile checkbox */}
-            <label className="flex items-start gap-3 px-4 py-3.5 rounded-xl border border-gray-200/80 bg-warm-50/30 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={saveToProfile}
-                onChange={(e) => setSaveToProfile(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
-              />
-              <div className="min-w-0">
-                <span className="text-[14px] font-medium text-gray-800 leading-tight block">
-                  Also update my profile
-                </span>
-                <span className="text-[12px] text-gray-500 leading-relaxed block mt-0.5">
-                  {profileComplete
-                    ? "Save these changes to your full profile as well."
-                    : `Your profile is ${percentage}% complete — saving here will help fill it in.`
-                  }
-                </span>
-              </div>
-            </label>
           </div>
         )}
       </div>

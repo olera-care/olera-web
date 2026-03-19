@@ -142,49 +142,83 @@ function DiscoveryIllustration() {
 // ============================================================
 
 function ConfettiCelebration() {
+  // More refined, premium confetti colors (Olera teal, warm gold, soft purple, rose)
+  const colors = ['#199087', '#199087', '#10b981', '#f59e0b', '#d4a574', '#a78bfa', '#f472b6'];
+
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {/* Generate confetti pieces */}
-      {Array.from({ length: 50 }).map((_, i) => {
-        const colors = ['#199087', '#f59e0b', '#8b5cf6', '#ec4899', '#10b981', '#3b82f6'];
+      {/* Generate confetti pieces - varied shapes for visual interest */}
+      {Array.from({ length: 60 }).map((_, i) => {
         const color = colors[i % colors.length];
-        const left = Math.random() * 100;
-        const delay = Math.random() * 0.5;
-        const duration = 2 + Math.random() * 2;
-        const size = 6 + Math.random() * 8;
+        const left = 10 + Math.random() * 80; // Keep within 10-90% to avoid edge clustering
+        const delay = Math.random() * 0.8;
+        const duration = 2.5 + Math.random() * 1.5;
+        const size = 5 + Math.random() * 7;
         const rotation = Math.random() * 360;
+        const swayAmount = 15 + Math.random() * 30;
+        const swayDirection = Math.random() > 0.5 ? 1 : -1;
+
+        // Varied shapes: circles, squares, rectangles (confetti strips)
+        const shapeType = Math.random();
+        const isCircle = shapeType < 0.3;
+        const isStrip = shapeType > 0.7;
 
         return (
           <div
             key={i}
-            className="absolute animate-confetti-fall"
+            className="absolute"
             style={{
               left: `${left}%`,
               top: '-20px',
-              width: `${size}px`,
-              height: `${size}px`,
+              width: isStrip ? `${size * 0.4}px` : `${size}px`,
+              height: isStrip ? `${size * 1.8}px` : `${size}px`,
               backgroundColor: color,
-              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+              borderRadius: isCircle ? '50%' : '2px',
               transform: `rotate(${rotation}deg)`,
-              animationDelay: `${delay}s`,
-              animationDuration: `${duration}s`,
+              animation: `confetti-fall-${swayDirection > 0 ? 'right' : 'left'} ${duration}s ease-out ${delay}s forwards`,
+              ['--sway' as string]: `${swayAmount * swayDirection}px`,
             }}
           />
         );
       })}
       <style jsx>{`
-        @keyframes confetti-fall {
+        @keyframes confetti-fall-right {
           0% {
-            transform: translateY(0) rotate(0deg);
+            transform: translateY(0) translateX(0) rotate(0deg);
             opacity: 1;
           }
+          25% {
+            transform: translateY(25vh) translateX(var(--sway)) rotate(180deg);
+          }
+          50% {
+            transform: translateY(50vh) translateX(0) rotate(360deg);
+          }
+          75% {
+            transform: translateY(75vh) translateX(calc(var(--sway) * -0.5)) rotate(540deg);
+          }
           100% {
-            transform: translateY(100vh) rotate(720deg);
+            transform: translateY(100vh) translateX(var(--sway)) rotate(720deg);
             opacity: 0;
           }
         }
-        .animate-confetti-fall {
-          animation: confetti-fall linear forwards;
+        @keyframes confetti-fall-left {
+          0% {
+            transform: translateY(0) translateX(0) rotate(0deg);
+            opacity: 1;
+          }
+          25% {
+            transform: translateY(25vh) translateX(calc(var(--sway) * -1)) rotate(-180deg);
+          }
+          50% {
+            transform: translateY(50vh) translateX(0) rotate(-360deg);
+          }
+          75% {
+            transform: translateY(75vh) translateX(calc(var(--sway) * 0.5)) rotate(-540deg);
+          }
+          100% {
+            transform: translateY(100vh) translateX(calc(var(--sway) * -1)) rotate(-720deg);
+            opacity: 0;
+          }
         }
       `}</style>
     </div>
@@ -867,26 +901,67 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               ============================================================ */}
           {allStepsComplete && (
             <section className="pb-8">
-              {/* Heading */}
-              <div className="mb-6 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary-50 mb-4">
-                  <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              {/* Heading with celebration feel */}
+              <div className="mb-8 text-center">
+                {/* Celebratory icon with subtle animation */}
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-50 to-emerald-50 mb-5 ring-4 ring-white shadow-[0_4px_16px_rgba(25,144,135,0.15)]">
+                  <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24">
+                    {/* Sparkle/celebration icon */}
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
                   </svg>
                 </div>
-                <h2 className="text-display-xs font-display font-semibold text-gray-900">You&apos;re all set!</h2>
-                <p className="text-text-md text-gray-500 mt-1">Your profile is live. Here&apos;s what you can do next.</p>
+                <h2 className="text-display-xs sm:text-display-sm font-display font-semibold text-gray-900">
+                  You&apos;re all set!
+                </h2>
+                <p className="text-text-md sm:text-text-lg text-gray-500 mt-2 max-w-md mx-auto">
+                  Your profile is live and providers in {cityDisplay} can now discover you.
+                </p>
               </div>
 
-              {/* 3 Action Cards */}
+              {/* Action Cards with staggered animation */}
               <div className="grid gap-4 sm:grid-cols-3">
-                {/* Card 1: Profile */}
+                {/* Card 1: Matches (PRIMARY - most important now) */}
+                <Link
+                  href="/portal/matches"
+                  className="group relative bg-gradient-to-br from-primary-50/80 to-emerald-50/60 rounded-2xl p-5 min-h-[180px] border border-primary-100/60 hover:border-primary-200 hover:shadow-[0_4px_20px_rgba(25,144,135,0.15)] hover:scale-[1.02] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 card-entrance"
+                  style={{ animationDelay: '0ms' }}
+                >
+                  {/* Live badge */}
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm shadow-sm">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">Live</span>
+                  </div>
+
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                      <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-text-md font-semibold text-gray-900">Your Matches</p>
+                    </div>
+                  </div>
+                  <p className="text-text-sm text-gray-600 leading-relaxed">
+                    Providers can now find you and reach out. Check for messages and recommendations.
+                  </p>
+                  <p className="mt-4 text-text-sm text-primary-600 font-semibold group-hover:text-primary-700 flex items-center gap-1">
+                    View matches
+                    <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </p>
+                </Link>
+
+                {/* Card 2: Profile */}
                 <Link
                   href="/portal/profile"
-                  className="group bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all"
+                  className="group bg-white rounded-2xl p-5 min-h-[180px] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:scale-[1.02] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 card-entrance"
+                  style={{ animationDelay: '75ms' }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-xl bg-primary-50 flex items-center justify-center">
                       <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
@@ -897,70 +972,72 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     </div>
                   </div>
                   {/* Progress bar */}
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
                     <div
                       className="h-full bg-primary-500 rounded-full transition-all duration-500"
                       style={{ width: `${profilePercentage}%` }}
                     />
                   </div>
-                  <p className="mt-3 text-text-sm text-primary-600 font-medium group-hover:text-primary-700">
-                    {profilePercentage < 100 ? 'Complete your profile →' : 'View profile →'}
+                  <p className="text-text-sm text-gray-600 leading-relaxed">
+                    {profilePercentage < 100
+                      ? 'A more complete profile helps providers understand your needs better.'
+                      : 'Your profile is looking great! Review and update anytime.'}
+                  </p>
+                  <p className="mt-4 text-text-sm text-primary-600 font-semibold group-hover:text-primary-700 flex items-center gap-1">
+                    {profilePercentage < 100 ? 'Complete profile' : 'View profile'}
+                    <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </p>
                 </Link>
 
-                {/* Card 2: Benefits */}
+                {/* Card 3: Benefits */}
                 <Link
                   href="/portal/benefits"
-                  className="group bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all"
+                  className="group bg-white rounded-2xl p-5 min-h-[180px] shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.1)] hover:scale-[1.02] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 card-entrance"
+                  style={{ animationDelay: '150ms' }}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center">
                       <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="text-text-md font-semibold text-gray-900">Benefits</p>
+                      <p className="text-text-md font-semibold text-gray-900">Financial Help</p>
                       <p className="text-text-sm text-gray-500">
-                        {benefitsSavedCount > 0 ? `${benefitsSavedCount} saved` : 'Programs available'}
+                        {benefitsSavedCount > 0 ? `${benefitsSavedCount} programs saved` : 'Explore programs'}
                       </p>
                     </div>
                   </div>
-                  <p className="text-text-sm text-gray-600">
-                    Discover financial assistance programs you may qualify for.
+                  <p className="text-text-sm text-gray-600 leading-relaxed">
+                    Discover VA benefits, Medicaid, and other programs that may help cover care costs.
                   </p>
-                  <p className="mt-3 text-text-sm text-primary-600 font-medium group-hover:text-primary-700">
-                    Explore benefits →
-                  </p>
-                </Link>
-
-                {/* Card 3: Matches */}
-                <Link
-                  href="/portal/matches"
-                  className="group bg-white rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-text-md font-semibold text-gray-900">Matches</p>
-                      <div className="flex items-center gap-1.5 text-text-sm">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-emerald-600 font-medium">Profile Live</span>
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-text-sm text-gray-600">
-                    Providers can now find you. Check for messages and new matches.
-                  </p>
-                  <p className="mt-3 text-text-sm text-primary-600 font-medium group-hover:text-primary-700">
-                    View matches →
+                  <p className="mt-4 text-text-sm text-primary-600 font-semibold group-hover:text-primary-700 flex items-center gap-1">
+                    Find benefits
+                    <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </p>
                 </Link>
               </div>
+
+              {/* Card entrance animation */}
+              <style jsx>{`
+                .card-entrance {
+                  animation: cardSlideUp 0.4s ease-out backwards;
+                }
+                @keyframes cardSlideUp {
+                  from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                }
+              `}</style>
             </section>
           )}
 
@@ -1109,7 +1186,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                         </svg>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-text-md font-semibold text-gray-900">You're discoverable!</p>
+                        <p className="text-text-md font-semibold text-gray-900">You&apos;re discoverable!</p>
                         <p className="text-text-sm mt-0.5 text-primary-600">
                           <span className="flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />

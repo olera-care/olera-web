@@ -45,6 +45,10 @@ export default function SettingsPage() {
   const [fieldError, setFieldError] = useState("");
   const [fieldSuccess, setFieldSuccess] = useState("");
 
+  // Email verification
+  const [sendingVerification, setSendingVerification] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+
   // Delete account
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -110,6 +114,25 @@ export default function SettingsPage() {
     },
     [activeProfile, getNotifOn, refreshAccountData]
   );
+
+  // ── Send verification email ──
+  const sendVerificationEmail = async () => {
+    if (!user?.email || !isSupabaseConfigured()) return;
+    setSendingVerification(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: user.email,
+      });
+      if (error) throw error;
+      setVerificationSent(true);
+    } catch (err) {
+      console.error("Failed to send verification email:", err);
+    } finally {
+      setSendingVerification(false);
+    }
+  };
 
   // ── Account field editing ──
   const startEdit = (field: "email" | "phone" | "password") => {
@@ -290,6 +313,9 @@ export default function SettingsPage() {
             label="Email"
             value={user?.email || "Not set"}
             verified={!!user?.email_confirmed_at}
+            onVerify={sendVerificationEmail}
+            verifying={sendingVerification}
+            verificationSent={verificationSent}
             isEditing={editingField === "email"}
             editValue={fieldValue}
             onEditChange={setFieldValue}
@@ -621,6 +647,9 @@ function AccountRow({
   label,
   value,
   verified,
+  onVerify,
+  verifying,
+  verificationSent,
   isEditing,
   editValue,
   onEditChange,
@@ -637,6 +666,9 @@ function AccountRow({
   label: string;
   value: string;
   verified?: boolean;
+  onVerify?: () => void;
+  verifying?: boolean;
+  verificationSent?: boolean;
   isEditing: boolean;
   editValue: string;
   onEditChange: (v: string) => void;
@@ -671,16 +703,31 @@ function AccountRow({
               />
             )
           ) : (
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <p className="text-[15px] text-gray-900">{value}</p>
-              {verified && (
+              {verified ? (
                 <span className="inline-flex items-center gap-1 text-xs text-success-600 font-medium">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
                   Verified
                 </span>
-              )}
+              ) : onVerify ? (
+                verificationSent ? (
+                  <span className="text-xs text-primary-600 font-medium">
+                    Check your inbox
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onVerify}
+                    disabled={verifying}
+                    className="text-xs text-amber-600 hover:text-amber-700 font-medium transition-colors disabled:opacity-50"
+                  >
+                    {verifying ? "Sending..." : "Verify email"}
+                  </button>
+                )
+              ) : null}
             </div>
           )}
         </div>

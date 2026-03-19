@@ -404,11 +404,7 @@ export default function CarePostSidebar({
         {/* Stats */}
         <div className="border-t border-gray-100 px-5 py-3.5 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] text-gray-400">Total views</span>
-            <span className="text-[13px] font-semibold text-gray-800">—</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] text-gray-400">Conversations started</span>
+            <span className="text-[12px] text-gray-400">Providers interested</span>
             <span className="text-[13px] font-semibold text-gray-800">{interestedCount}</span>
           </div>
           {activeDays && (

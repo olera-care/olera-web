@@ -3,6 +3,8 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { newCandidateAlertEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert } from "@/lib/slack";
+import { getTrackLabel } from "@/lib/medjobs-helpers";
+import type { StudentMetadata } from "@/lib/types";
 
 /**
  * GET /api/cron/medjobs-digest
@@ -55,21 +57,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Query failed" }, { status: 500 });
     }
 
-    const PROGRAM_TRACK_LABELS: Record<string, string> = {
-      pre_nursing: "Pre-Nursing",
-      nursing: "Nursing",
-      pre_med: "Pre-Med",
-      pre_pa: "Pre-PA",
-      pre_health: "Pre-Health",
-      other: "Other",
-    };
-
     const candidates = newStudents.map((s) => {
-      const meta = s.metadata as Record<string, unknown>;
+      const meta = s.metadata as StudentMetadata;
       return {
         name: s.display_name,
-        university: (meta.university as string) || "Not specified",
-        programTrack: PROGRAM_TRACK_LABELS[(meta.program_track as string) || ""] || "Student",
+        university: meta.university || "Not specified",
+        programTrack: getTrackLabel(meta) || "Student",
         slug: s.slug,
       };
     });

@@ -6,6 +6,8 @@ import { sendEmail } from "@/lib/email";
 import { applicationReceivedEmail, applicationSentEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsApplication } from "@/lib/slack";
 import { sendSMS } from "@/lib/twilio";
+import { getTrackLabel } from "@/lib/medjobs-helpers";
+import type { StudentMetadata } from "@/lib/types";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -103,15 +105,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to submit application" }, { status: 500 });
     }
 
-    const studentMeta = studentProfile.metadata as Record<string, unknown>;
-    const programTrackLabels: Record<string, string> = {
-      pre_nursing: "Pre-Nursing",
-      nursing: "Nursing",
-      pre_med: "Pre-Med",
-      pre_pa: "Pre-PA",
-      pre_health: "Pre-Health",
-      other: "Other",
-    };
+    const studentMeta = studentProfile.metadata as StudentMetadata;
 
     // Fire-and-forget: email to provider
     if (providerProfile.email) {
@@ -122,8 +116,8 @@ export async function POST(req: NextRequest) {
           html: applicationReceivedEmail({
             providerName: providerProfile.display_name,
             studentName: studentProfile.display_name,
-            university: (studentMeta.university as string) || "Not specified",
-            programTrack: programTrackLabels[(studentMeta.program_track as string) || ""] || "Not specified",
+            university: studentMeta.university || "Not specified",
+            programTrack: getTrackLabel(studentMeta) || "Not specified",
             profileSlug: studentProfile.slug,
           }),
         });
@@ -154,7 +148,7 @@ export async function POST(req: NextRequest) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
         await sendSMS({
           to: providerProfile.phone,
-          body: `New MedJobs application from ${studentProfile.display_name} (${(studentMeta.university as string) || "student"}). View: ${siteUrl}/provider/medjobs/candidates/${studentProfile.slug}`,
+          body: `New MedJobs application from ${studentProfile.display_name} (${studentMeta.university || "student"}). View: ${siteUrl}/provider/medjobs/candidates/${studentProfile.slug}`,
         });
       } catch (err) {
         console.error("[medjobs/apply-to-provider] sms error:", err);
@@ -166,7 +160,7 @@ export async function POST(req: NextRequest) {
       const alert = slackMedJobsApplication({
         studentName: studentProfile.display_name,
         providerName: providerProfile.display_name,
-        university: (studentMeta.university as string) || "Not specified",
+        university: studentMeta.university || "Not specified",
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch (err) {

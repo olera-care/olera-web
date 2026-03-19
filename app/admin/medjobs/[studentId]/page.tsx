@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCitySearch } from "@/hooks/use-city-search";
-import type { StudentMetadata, StudentProgramTrack } from "@/lib/types";
+import type { StudentMetadata, StudentProgramTrack, IntendedProfessionalSchool } from "@/lib/types";
 
 const PROGRAM_TRACKS: { value: StudentProgramTrack; label: string }[] = [
   { value: "pre_med", label: "Pre-Med" },
@@ -15,12 +15,48 @@ const PROGRAM_TRACKS: { value: StudentProgramTrack; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+const INTENDED_SCHOOLS: { value: IntendedProfessionalSchool; label: string }[] = [
+  { value: "medicine", label: "Medicine" },
+  { value: "nursing", label: "Nursing" },
+  { value: "pa", label: "Physician Assistant" },
+  { value: "pt", label: "Physical Therapy" },
+  { value: "public_health", label: "Public Health" },
+  { value: "undecided", label: "Undecided" },
+];
+
 const AVAILABILITY_OPTIONS = [
   { value: "part_time", label: "Part Time" },
   { value: "full_time", label: "Full Time" },
   { value: "flexible", label: "Flexible" },
   { value: "summer_only", label: "Summer Only" },
   { value: "weekends", label: "Weekends" },
+];
+
+const AVAILABILITY_TYPE_OPTIONS = [
+  { value: "in_between_classes", label: "Between Classes" },
+  { value: "evenings", label: "Evenings" },
+  { value: "weekends", label: "Weekends" },
+  { value: "overnights", label: "Overnights" },
+];
+
+const SEASONAL_OPTIONS = [
+  { value: "summer", label: "Summer" },
+  { value: "winter_break", label: "Winter Break" },
+  { value: "fall_semester", label: "Fall Semester" },
+  { value: "spring_semester", label: "Spring Semester" },
+];
+
+const DURATION_OPTIONS = [
+  { value: "1_semester", label: "1 Semester" },
+  { value: "multiple_semesters", label: "Multiple Semesters" },
+  { value: "1_plus_year", label: "1+ Year" },
+];
+
+const HOURS_RANGE_OPTIONS = [
+  { value: "5-10", label: "5-10 hours" },
+  { value: "10-15", label: "10-15 hours" },
+  { value: "15-20", label: "15-20 hours" },
+  { value: "20+", label: "20+ hours" },
 ];
 
 const SEEKING_OPTIONS = [
@@ -87,16 +123,23 @@ export default function AdminMedJobsDetailPage() {
         graduation_year: meta.graduation_year,
         gpa: meta.gpa,
         program_track: meta.program_track,
+        intended_professional_school: meta.intended_professional_school,
         certifications: meta.certifications || [],
         years_caregiving: meta.years_caregiving,
         care_experience_types: meta.care_experience_types || [],
         languages: meta.languages || [],
         availability_type: meta.availability_type,
+        availability_types: meta.availability_types || [],
+        seasonal_availability: meta.seasonal_availability || [],
+        duration_commitment: meta.duration_commitment,
+        hours_per_week_range: meta.hours_per_week_range,
         hours_per_week: meta.hours_per_week,
         available_start: meta.available_start,
         transportation: meta.transportation,
         willing_to_relocate: meta.willing_to_relocate,
         max_commute_miles: meta.max_commute_miles,
+        acknowledgments_completed: meta.acknowledgments_completed,
+        acknowledgment_date: meta.acknowledgment_date,
         resume_url: meta.resume_url,
         video_intro_url: meta.video_intro_url,
         linkedin_url: meta.linkedin_url,
@@ -436,7 +479,20 @@ export default function AdminMedJobsDetailPage() {
             <FieldInput label="Campus" value={formData.campus as string} onChange={(v) => updateField("campus", v || undefined)} />
             <FieldInput label="Major" value={formData.major as string} onChange={(v) => updateField("major", v || undefined)} />
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Program Track</label>
+              <label className="block text-sm font-medium text-gray-700">Intended Professional School</label>
+              <select
+                value={(formData.intended_professional_school as string) || ""}
+                onChange={(e) => updateField("intended_professional_school", e.target.value || undefined)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
+              >
+                <option value="">Select...</option>
+                {INTENDED_SCHOOLS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Program Track (legacy)</label>
               <select
                 value={(formData.program_track as string) || ""}
                 onChange={(e) => updateField("program_track", e.target.value || undefined)}
@@ -544,57 +600,128 @@ export default function AdminMedJobsDetailPage() {
 
         {/* Availability */}
         <Section title="Availability">
+          {/* New structured fields */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Availability Types</label>
+            <div className="flex flex-wrap gap-2">
+              {AVAILABILITY_TYPE_OPTIONS.map((opt) => {
+                const types = (formData.availability_types as string[]) || [];
+                const selected = types.includes(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      const updated = selected ? types.filter((t) => t !== opt.value) : [...types, opt.value];
+                      updateField("availability_types", updated);
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      selected
+                        ? "bg-primary-100 text-primary-700 border-primary-300"
+                        : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Seasonal Availability</label>
+            <div className="flex flex-wrap gap-2">
+              {SEASONAL_OPTIONS.map((opt) => {
+                const seasons = (formData.seasonal_availability as string[]) || [];
+                const selected = seasons.includes(opt.value);
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      const updated = selected ? seasons.filter((s) => s !== opt.value) : [...seasons, opt.value];
+                      updateField("seasonal_availability", updated);
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      selected
+                        ? "bg-primary-100 text-primary-700 border-primary-300"
+                        : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Availability Type</label>
+              <label className="block text-sm font-medium text-gray-700">Duration Commitment</label>
               <select
-                value={(formData.availability_type as string) || ""}
-                onChange={(e) => updateField("availability_type", e.target.value || undefined)}
+                value={(formData.duration_commitment as string) || ""}
+                onChange={(e) => updateField("duration_commitment", e.target.value || undefined)}
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
               >
                 <option value="">Select...</option>
-                {AVAILABILITY_OPTIONS.map((o) => (
+                {DURATION_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
             </div>
-            <FieldInput
-              label="Hours per Week"
-              value={formData.hours_per_week as number}
-              onChange={(v) => updateField("hours_per_week", v === "" ? undefined : Number(v))}
-              type="number"
-            />
-            <FieldInput
-              label="Available Start Date"
-              value={formData.available_start as string}
-              onChange={(v) => updateField("available_start", v || undefined)}
-              type="date"
-            />
-            <FieldInput
-              label="Max Commute (miles)"
-              value={formData.max_commute_miles as number}
-              onChange={(v) => updateField("max_commute_miles", v === "" ? undefined : Number(v))}
-              type="number"
-            />
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={!!formData.transportation}
-                  onChange={(e) => updateField("transportation", e.target.checked)}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-                Has Transportation
-              </label>
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={!!formData.willing_to_relocate}
-                  onChange={(e) => updateField("willing_to_relocate", e.target.checked)}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-                Willing to Relocate
-              </label>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">Hours per Week Range</label>
+              <select
+                value={(formData.hours_per_week_range as string) || ""}
+                onChange={(e) => updateField("hours_per_week_range", e.target.value || undefined)}
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
+              >
+                <option value="">Select...</option>
+                {HOURS_RANGE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Legacy fields */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-xs text-gray-400 mb-3">Legacy fields (old profiles)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">Availability Type (legacy)</label>
+                <select
+                  value={(formData.availability_type as string) || ""}
+                  onChange={(e) => updateField("availability_type", e.target.value || undefined)}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
+                >
+                  <option value="">Select...</option>
+                  {AVAILABILITY_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              <FieldInput
+                label="Hours per Week (legacy)"
+                value={formData.hours_per_week as number}
+                onChange={(v) => updateField("hours_per_week", v === "" ? undefined : Number(v))}
+                type="number"
+              />
+              <FieldInput
+                label="Max Commute (miles)"
+                value={formData.max_commute_miles as number}
+                onChange={(v) => updateField("max_commute_miles", v === "" ? undefined : Number(v))}
+                type="number"
+              />
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={!!formData.transportation}
+                    onChange={(e) => updateField("transportation", e.target.checked)}
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  Has Transportation
+                </label>
+              </div>
             </div>
           </div>
         </Section>
@@ -630,7 +757,7 @@ export default function AdminMedJobsDetailPage() {
               onChange={(v) => updateField("profile_completeness", v === "" ? undefined : Number(v))}
               type="number"
             />
-            <div className="flex items-center pt-6">
+            <div className="flex items-center gap-4 pt-6">
               <label className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
@@ -639,6 +766,15 @@ export default function AdminMedJobsDetailPage() {
                   className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
                 Active
+              </label>
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={!!formData.acknowledgments_completed}
+                  onChange={(e) => updateField("acknowledgments_completed", e.target.checked)}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                />
+                Acknowledgments
               </label>
             </div>
           </div>

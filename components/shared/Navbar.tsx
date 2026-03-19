@@ -385,21 +385,33 @@ export default function Navbar() {
                 Account
               </Link>
               {hasFamilyProfile && (
-                <Link
-                  href="/portal/matches"
-                  className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
-                    <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
-                  </svg>
-                  Matches
-                  {matchesPendingCount > 0 && (
-                    <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-                      {matchesPendingCount}
-                    </span>
-                  )}
-                </Link>
+                <>
+                  <Link
+                    href="/portal/matches"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                      <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z" />
+                    </svg>
+                    Matches
+                    {matchesPendingCount > 0 && (
+                      <span className="ml-auto text-[10px] font-bold text-white bg-primary-600 rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
+                        {matchesPendingCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link
+                    href="/medjobs/apply"
+                    className="flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <svg className="w-[18px] h-[18px] text-gray-500 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" viewBox="0 0 24 24">
+                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    Become a Caregiver
+                  </Link>
+                </>
               )}
             </>
           )}

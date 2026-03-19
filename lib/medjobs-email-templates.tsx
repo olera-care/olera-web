@@ -57,8 +57,8 @@ export function studentWelcomeEmail({
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to MedJobs, ${studentName}!</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Your student caregiver profile has been created. Providers in your area can now
-      discover you and reach out with caregiving opportunities.
+      Your account has been created. Your profile is <strong>not yet visible</strong> to providers.
+      Complete the steps below to activate it.
     </p>
     <table cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
       <tr><td>
@@ -67,16 +67,15 @@ export function studentWelcomeEmail({
       </td></tr>
     </table>
     <p style="font-size:14px;color:#6b7280;margin:0 0 8px;line-height:1.6;">
-      <strong>Next steps to stand out:</strong>
+      <strong>To activate your profile:</strong>
     </p>
-    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
-      <li>Upload your resume</li>
-      <li>Add a video introduction</li>
-      <li>List your certifications (CNA, BLS, etc.)</li>
-      <li>Specify your availability</li>
-    </ul>
+    <ol style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
+      <li><strong>Submit your intro video</strong> (required to activate your profile)</li>
+      <li>Upload course schedule (optional)</li>
+      <li>Complete driver&apos;s license verification (optional)</li>
+    </ol>
     <p style="margin:0 0 4px;">
-      ${button("View Your Profile", `${BASE_URL}/medjobs/candidates/${profileSlug}`)}
+      ${button("Submit Your Intro Video", `${BASE_URL}/medjobs/submit-video?slug=${profileSlug}`)}
     </p>
   `);
 }

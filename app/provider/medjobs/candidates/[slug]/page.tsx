@@ -236,8 +236,22 @@ export default function ProviderStudentProfilePage() {
           </div>
         </div>
 
-        {/* Invite / Connect */}
-        <div className="mt-6">
+        {/* Actions */}
+        <div className="mt-6 space-y-4">
+          {/* Schedule Interview CTA */}
+          {profile.email && (
+            <a
+              href={`mailto:${profile.email}?subject=${encodeURIComponent(`Interview — ${activeProfile?.display_name || "Provider"} × ${profile.display_name}`)}&body=${encodeURIComponent(`Hi ${profile.display_name.split(" ")[0]},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${activeProfile?.display_name || ""}`)}`}
+              className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+              Schedule Interview
+            </a>
+          )}
+
+          {/* Invite / Connect */}
           {applied ? (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 font-medium text-center">
               Connected! You&apos;ve already reached out to this candidate.

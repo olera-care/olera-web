@@ -126,7 +126,7 @@ export default function MedJobsPage() {
                   </svg>
                 </Link>
                 <Link
-                  href="/medjobs/candidates"
+                  href="/medjobs/providers"
                   className="inline-flex items-center px-7 py-3 text-gray-500 text-sm font-medium hover:text-gray-900 transition-colors"
                 >
                   I&apos;m a provider looking to hire
@@ -462,7 +462,7 @@ export default function MedJobsPage() {
               </svg>
             </Link>
             <Link
-              href="/medjobs/candidates"
+              href="/medjobs/providers"
               className="inline-flex items-center px-8 py-3.5 text-gray-600 text-sm font-medium hover:text-gray-900 transition-colors"
             >
               I&apos;m a provider

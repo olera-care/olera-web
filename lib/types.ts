@@ -269,6 +269,9 @@ export interface FamilyMetadata {
 // MedJobs Types
 // ============================================================
 
+export type IntendedProfessionalSchool =
+  | "medicine" | "nursing" | "pa" | "pt" | "public_health" | "undecided";
+
 export type StudentProgramTrack =
   | "pre_nursing"
   | "nursing"
@@ -309,6 +312,15 @@ export interface StudentMetadata {
   // Credential engine (data model ready, UI Phase 2)
   total_verified_hours?: number;
   verified_care_types?: string[];
+
+  // New structured fields (Phase 1)
+  intended_professional_school?: IntendedProfessionalSchool;
+  availability_types?: string[];        // multi-select: "in_between_classes", "evenings", "weekends", "overnights"
+  seasonal_availability?: string[];     // "summer", "winter_break", "fall_semester", "spring_semester"
+  duration_commitment?: string;         // "1_semester", "multiple_semesters", "1_plus_year"
+  hours_per_week_range?: string;        // "5-10", "10-15", "15-20", "20+"
+  acknowledgments_completed?: boolean;
+  acknowledgment_date?: string;
 
   // Status
   profile_completeness?: number;   // 0-100

@@ -2,16 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import type { StudentMetadata, StudentProgramTrack } from "@/lib/types";
-
-const PROGRAM_TRACK_LABELS: Record<StudentProgramTrack, string> = {
-  pre_nursing: "Pre-Nursing",
-  nursing: "Nursing",
-  pre_med: "Pre-Med",
-  pre_pa: "Pre-PA",
-  pre_health: "Pre-Health",
-  other: "Other",
-};
+import type { StudentMetadata } from "@/lib/types";
+import { getTrackLabel, formatAvailability, formatHoursPerWeek, hasVideo } from "@/lib/medjobs-helpers";
 
 interface Candidate {
   id: string;
@@ -38,7 +30,6 @@ export default function ProviderCandidateBrowsePage() {
 
   // Filters
   const [stateFilter, setStateFilter] = useState("");
-  const [trackFilter, setTrackFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [sort, setSort] = useState("newest");
 
@@ -51,7 +42,6 @@ export default function ProviderCandidateBrowsePage() {
         sort,
       });
       if (stateFilter) params.set("state", stateFilter);
-      if (trackFilter) params.set("programTrack", trackFilter);
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
 
       const res = await fetch(`/api/medjobs/candidates?${params}`);
@@ -65,7 +55,7 @@ export default function ProviderCandidateBrowsePage() {
     } finally {
       setLoading(false);
     }
-  }, [page, stateFilter, trackFilter, searchQuery, sort]);
+  }, [page, stateFilter, searchQuery, sort]);
 
   useEffect(() => {
     fetchCandidates();
@@ -112,16 +102,6 @@ export default function ProviderCandidateBrowsePage() {
             <option value="FL">Florida</option>
           </select>
           <select
-            value={trackFilter}
-            onChange={(e) => { setTrackFilter(e.target.value); setPage(0); }}
-            className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white text-sm"
-          >
-            <option value="">All Tracks</option>
-            {Object.entries(PROGRAM_TRACK_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-          <select
             value={sort}
             onChange={(e) => { setSort(e.target.value); setPage(0); }}
             className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white text-sm"
@@ -158,6 +138,11 @@ export default function ProviderCandidateBrowsePage() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {candidates.map((candidate) => {
               const meta = candidate.metadata;
+              const trackLabel = getTrackLabel(meta);
+              const availLabel = formatAvailability(meta);
+              const hoursLabel = formatHoursPerWeek(meta);
+              const videoAvailable = hasVideo(meta);
+
               return (
                 <div
                   key={candidate.id}
@@ -183,16 +168,27 @@ export default function ProviderCandidateBrowsePage() {
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
-                    {meta.program_track && (
+                    {trackLabel && (
                       <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full font-medium">
-                        {PROGRAM_TRACK_LABELS[meta.program_track]}
+                        {trackLabel}
+                      </span>
+                    )}
+                    {videoAvailable && (
+                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-medium inline-flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                        </svg>
+                        Video
                       </span>
                     )}
                     {candidate.city && candidate.state && (
                       <span>{candidate.city}, {candidate.state}</span>
                     )}
-                    {meta.availability_type && (
-                      <span className="capitalize">{meta.availability_type.replace(/_/g, " ")}</span>
+                    {availLabel && (
+                      <span>{availLabel}</span>
+                    )}
+                    {hoursLabel && (
+                      <span>{hoursLabel}</span>
                     )}
                   </div>
 

@@ -266,6 +266,11 @@ export default function Footer() {
                     MedJobs
                   </Link>
                 </li>
+                <li>
+                  <Link href="/medjobs/providers" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    MedJobs for Providers
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

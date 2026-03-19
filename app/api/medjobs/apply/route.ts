@@ -4,6 +4,7 @@ import { sendEmail } from "@/lib/email";
 import { studentWelcomeEmail } from "@/lib/medjobs-email-templates";
 import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
+import type { IntendedProfessionalSchool, StudentProgramTrack } from "@/lib/types";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,30 +20,44 @@ function generateSlug(name: string, university: string): string {
   return `${base}-${suffix}`;
 }
 
+/** Map intended_professional_school → program_track for backward compat */
+function mapToProgramTrack(school?: IntendedProfessionalSchool): StudentProgramTrack | undefined {
+  if (!school) return undefined;
+  const map: Record<IntendedProfessionalSchool, StudentProgramTrack> = {
+    medicine: "pre_med",
+    nursing: "nursing",
+    pa: "pre_pa",
+    pt: "pre_health",
+    public_health: "pre_health",
+    undecided: "other",
+  };
+  return map[school];
+}
+
 function computeCompleteness(data: {
   displayName?: string;
   university?: string;
   major?: string;
-  programTrack?: string;
+  intendedSchool?: string;
   city?: string;
   state?: string;
-  availabilityType?: string;
+  availabilityTypes?: string[];
   certifications?: string[];
   careExperienceTypes?: string[];
-  resumeUrl?: string;
   videoIntroUrl?: string;
+  acknowledgmentsCompleted?: boolean;
 }): number {
   const fields = [
     { filled: !!data.displayName, weight: 15 },
     { filled: !!data.university, weight: 15 },
     { filled: !!data.major, weight: 10 },
-    { filled: !!data.programTrack, weight: 10 },
+    { filled: !!data.intendedSchool, weight: 10 },
     { filled: !!data.city && !!data.state, weight: 10 },
-    { filled: !!data.availabilityType, weight: 10 },
-    { filled: (data.certifications?.length ?? 0) > 0, weight: 10 },
+    { filled: (data.availabilityTypes?.length ?? 0) > 0, weight: 10 },
+    { filled: (data.certifications?.length ?? 0) > 0, weight: 5 },
     { filled: (data.careExperienceTypes?.length ?? 0) > 0, weight: 5 },
-    { filled: !!data.resumeUrl, weight: 10 },
-    { filled: !!data.videoIntroUrl, weight: 5 },
+    { filled: !!data.videoIntroUrl, weight: 15 },
+    { filled: !!data.acknowledgmentsCompleted, weight: 5 },
   ];
   return fields.reduce((sum, f) => sum + (f.filled ? f.weight : 0), 0);
 }
@@ -58,10 +73,8 @@ export async function POST(req: NextRequest) {
       // Education
       university,
       universityId,
-      campus,
       major,
-      graduationYear,
-      programTrack,
+      intendedSchool,
       // Location
       city,
       state,
@@ -71,18 +84,13 @@ export async function POST(req: NextRequest) {
       yearsCaregiving,
       careExperienceTypes,
       languages,
-      // Availability
-      availabilityType,
-      hoursPerWeek,
-      availableStart,
-      transportation,
-      maxCommuteMiles,
-      // Media
-      resumeUrl,
-      videoIntroUrl,
-      linkedinUrl,
-      // Description
-      description,
+      // Availability (new structured fields)
+      availabilityTypes,
+      seasonalAvailability,
+      durationCommitment,
+      hoursPerWeekRange,
+      // Acknowledgments
+      acknowledgmentsCompleted,
       // Honeypot
       website: honeypot,
     } = body;
@@ -99,32 +107,29 @@ export async function POST(req: NextRequest) {
     if (!email?.trim()) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
-    if (!university?.trim()) {
-      return NextResponse.json({ error: "University is required" }, { status: 400 });
-    }
 
     const trimmedName = displayName.trim().slice(0, 100);
-    const slug = generateSlug(trimmedName, university);
+    const slug = generateSlug(trimmedName, university || "student");
 
     const metadata = {
-      university: university?.trim(),
+      university: university?.trim() || undefined,
       university_id: universityId || undefined,
-      campus: campus?.trim() || undefined,
       major: major?.trim() || undefined,
-      graduation_year: graduationYear ? Number(graduationYear) : undefined,
-      program_track: programTrack || undefined,
+      intended_professional_school: intendedSchool || undefined,
+      program_track: mapToProgramTrack(intendedSchool as IntendedProfessionalSchool),
       certifications: certifications?.filter(Boolean) || [],
-      years_caregiving: yearsCaregiving ? Number(yearsCaregiving) : undefined,
+      years_caregiving: yearsCaregiving ? (yearsCaregiving === "family" ? 0 : Number(yearsCaregiving)) : undefined,
       care_experience_types: careExperienceTypes?.filter(Boolean) || [],
       languages: languages?.filter(Boolean) || [],
-      availability_type: availabilityType || undefined,
-      hours_per_week: hoursPerWeek ? Number(hoursPerWeek) : undefined,
-      available_start: availableStart || undefined,
-      transportation: transportation ?? undefined,
-      max_commute_miles: maxCommuteMiles ? Number(maxCommuteMiles) : undefined,
-      resume_url: resumeUrl || undefined,
-      video_intro_url: videoIntroUrl || undefined,
-      linkedin_url: linkedinUrl?.trim() || undefined,
+      // New structured availability
+      availability_types: availabilityTypes?.filter(Boolean) || [],
+      seasonal_availability: seasonalAvailability?.filter(Boolean) || [],
+      duration_commitment: durationCommitment || undefined,
+      hours_per_week_range: hoursPerWeekRange || undefined,
+      // Acknowledgments
+      acknowledgments_completed: !!acknowledgmentsCompleted,
+      acknowledgment_date: acknowledgmentsCompleted ? new Date().toISOString() : undefined,
+      // Status
       profile_completeness: 0,
       seeking_status: "actively_looking" as const,
     };
@@ -134,24 +139,24 @@ export async function POST(req: NextRequest) {
       displayName: trimmedName,
       university: metadata.university,
       major: metadata.major,
-      programTrack: metadata.program_track,
+      intendedSchool: metadata.intended_professional_school,
       city,
       state,
-      availabilityType: metadata.availability_type,
+      availabilityTypes: metadata.availability_types,
       certifications: metadata.certifications,
       careExperienceTypes: metadata.care_experience_types,
-      resumeUrl: metadata.resume_url,
-      videoIntroUrl: metadata.video_intro_url,
+      videoIntroUrl: undefined, // Not submitted yet
+      acknowledgmentsCompleted: metadata.acknowledgments_completed,
     });
 
-    // Create profile
+    // Create profile — is_active: false until video submitted
     const { data: profile, error } = await supabaseAdmin
       .from("business_profiles")
       .insert({
         slug,
         type: "student",
         display_name: trimmedName,
-        description: description?.trim() || null,
+        description: null,
         email: email.trim().toLowerCase(),
         phone: phone?.trim() || null,
         city: city?.trim() || null,
@@ -162,7 +167,7 @@ export async function POST(req: NextRequest) {
         claim_state: "unclaimed",
         verification_state: "unverified",
         source: "user_created",
-        is_active: true,
+        is_active: false,
       })
       .select("id")
       .single();
@@ -192,7 +197,7 @@ export async function POST(req: NextRequest) {
       const alert = slackMedJobsNewStudent({
         studentName: trimmedName,
         university: metadata.university || "Not specified",
-        programTrack: metadata.program_track || "Not specified",
+        programTrack: metadata.intended_professional_school || metadata.program_track || "Not specified",
         location: [city, state].filter(Boolean).join(", ") || "Not specified",
       });
       await sendSlackAlert(alert.text, alert.blocks);
@@ -208,6 +213,7 @@ export async function POST(req: NextRequest) {
         audience: "seeker",
         eventProperties: {
           university: metadata.university || "",
+          intended_school: metadata.intended_professional_school || "",
           program_track: metadata.program_track || "",
           city: city || "",
           state: state || "",

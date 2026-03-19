@@ -5,21 +5,13 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { useAuth } from "@/components/auth/AuthProvider";
-import type { StudentMetadata, StudentProgramTrack } from "@/lib/types";
+import type { StudentMetadata } from "@/lib/types";
+import { getTrackLabel, formatAvailability, formatHoursPerWeek, formatDuration, hasVideo, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
-const PROGRAM_TRACK_LABELS: Record<StudentProgramTrack, string> = {
-  pre_nursing: "Pre-Nursing",
-  nursing: "Nursing",
-  pre_med: "Pre-Med",
-  pre_pa: "Pre-PA",
-  pre_health: "Pre-Health",
-  other: "Other",
-};
 
 interface StudentProfile {
   id: string;
@@ -68,7 +60,6 @@ export default function ProviderStudentProfilePage() {
           .eq("type", "invitation")
           .single();
 
-        // Also check reverse (student applied to us)
         const { data: reverseExisting } = await supabase
           .from("connections")
           .select("id")
@@ -139,6 +130,11 @@ export default function ProviderStudentProfilePage() {
   }
 
   const meta = profile.metadata || ({} as StudentMetadata);
+  const trackLabel = getTrackLabel(meta);
+  const availLabel = formatAvailability(meta);
+  const hoursLabel = formatHoursPerWeek(meta);
+  const durationLabel = formatDuration(meta);
+  const videoAvailable = hasVideo(meta);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -158,10 +154,10 @@ export default function ProviderStudentProfilePage() {
             <h1 className="text-2xl font-bold text-gray-900">{profile.display_name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-500">
               {meta.university && <span>{meta.university}</span>}
-              {meta.program_track && (
+              {trackLabel && (
                 <>
                   <span className="text-gray-300">&middot;</span>
-                  <span>{PROGRAM_TRACK_LABELS[meta.program_track]}</span>
+                  <span>{trackLabel}</span>
                 </>
               )}
               {profile.city && profile.state && (
@@ -179,6 +175,31 @@ export default function ProviderStudentProfilePage() {
             )}
           </div>
         </div>
+
+        {/* Intro Video — above fold, immediately playable */}
+        {videoAvailable && (
+          <div className="mt-6">
+            <a
+              href={meta.video_intro_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 p-4 rounded-xl border border-primary-200 bg-primary-50 hover:bg-primary-100 transition-colors"
+            >
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-primary-700">Watch Intro Video</p>
+                <p className="text-xs text-primary-600 mt-0.5">Hear directly from {profile.display_name.split(" ")[0]}</p>
+              </div>
+              <svg className="w-5 h-5 text-primary-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        )}
 
         {profile.description && (
           <p className="mt-4 text-sm text-gray-600 leading-relaxed">{profile.description}</p>
@@ -215,8 +236,22 @@ export default function ProviderStudentProfilePage() {
           </div>
         </div>
 
-        {/* Invite / Connect */}
-        <div className="mt-6">
+        {/* Actions */}
+        <div className="mt-6 space-y-4">
+          {/* Schedule Interview CTA */}
+          {profile.email && (
+            <a
+              href={`mailto:${profile.email}?subject=${encodeURIComponent(`Interview — ${activeProfile?.display_name || "Provider"} × ${profile.display_name}`)}&body=${encodeURIComponent(`Hi ${profile.display_name.split(" ")[0]},\n\nWe'd like to schedule a brief interview to learn more about your availability and experience. Are you free this week for a 15-minute call?\n\nBest,\n${activeProfile?.display_name || ""}`)}`}
+              className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-gray-900 hover:bg-gray-800 rounded-xl text-sm font-semibold text-white transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+              </svg>
+              Schedule Interview
+            </a>
+          )}
+
+          {/* Invite / Connect */}
           {applied ? (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm text-emerald-700 font-medium text-center">
               Connected! You&apos;ve already reached out to this candidate.
@@ -269,10 +304,47 @@ export default function ProviderStudentProfilePage() {
                 <dd className="text-sm text-gray-900">{meta.graduation_year}</dd>
               </div>
             )}
-            {meta.program_track && (
+            {meta.intended_professional_school && (
               <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Track</dt>
-                <dd className="text-sm text-gray-900">{PROGRAM_TRACK_LABELS[meta.program_track]}</dd>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Intended School</dt>
+                <dd className="text-sm text-gray-900">{INTENDED_SCHOOL_LABELS[meta.intended_professional_school]}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+
+        {/* Availability */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Availability</h2>
+          <dl className="space-y-3">
+            {availLabel && (
+              <div>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Schedule</dt>
+                <dd className="text-sm text-gray-900">{availLabel}</dd>
+              </div>
+            )}
+            {hoursLabel && (
+              <div>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Hours/Week</dt>
+                <dd className="text-sm text-gray-900">{hoursLabel}</dd>
+              </div>
+            )}
+            {durationLabel && (
+              <div>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Commitment</dt>
+                <dd className="text-sm text-gray-900">{durationLabel}</dd>
+              </div>
+            )}
+            {meta.seasonal_availability && meta.seasonal_availability.length > 0 && (
+              <div>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Seasonal</dt>
+                <dd className="flex flex-wrap gap-1.5 mt-1">
+                  {meta.seasonal_availability.map((s) => (
+                    <span key={s} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs capitalize">
+                      {s.replace(/_/g, " ")}
+                    </span>
+                  ))}
+                </dd>
               </div>
             )}
           </dl>
@@ -321,69 +393,63 @@ export default function ProviderStudentProfilePage() {
           )}
         </div>
 
-        {/* Availability */}
+        {/* Reliability Signals */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Availability</h2>
-          <dl className="space-y-3">
-            {meta.availability_type && (
-              <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Schedule</dt>
-                <dd className="text-sm text-gray-900 capitalize">{meta.availability_type.replace(/_/g, " ")}</dd>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Reliability</h2>
+          <div className="space-y-2.5">
+            {videoAvailable && (
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-gray-700">Intro video submitted</span>
               </div>
             )}
-            {meta.hours_per_week && (
-              <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Hours/Week</dt>
-                <dd className="text-sm text-gray-900">{meta.hours_per_week} hours</dd>
+            {meta.acknowledgments_completed && (
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-gray-700">All acknowledgments completed</span>
               </div>
             )}
-            {meta.transportation !== undefined && (
-              <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Transportation</dt>
-                <dd className="text-sm text-gray-900">{meta.transportation ? "Has own transportation" : "Needs transportation"}</dd>
+            {durationLabel && (
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-gray-700">Committed for {durationLabel.toLowerCase()}</span>
               </div>
             )}
-            {meta.max_commute_miles && (
-              <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Max Commute</dt>
-                <dd className="text-sm text-gray-900">{meta.max_commute_miles} miles</dd>
+            {meta.hours_per_week_range && ["15-20", "20+"].includes(meta.hours_per_week_range) && (
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-gray-700">15+ hours/week</span>
               </div>
             )}
-          </dl>
+            {!videoAvailable && !meta.acknowledgments_completed && !durationLabel && (
+              <p className="text-sm text-gray-400">No reliability signals yet</p>
+            )}
+          </div>
         </div>
 
-        {/* Resume / Media */}
-        {(meta.resume_url || meta.video_intro_url) && (
+        {/* Resume */}
+        {meta.resume_url && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-base font-semibold text-gray-900 mb-4">Documents</h2>
-            <div className="space-y-3">
-              {meta.resume_url && (
-                <a
-                  href={meta.resume_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all"
-                >
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                  </svg>
-                  <span className="text-sm font-medium text-gray-700">View Resume</span>
-                </a>
-              )}
-              {meta.video_intro_url && (
-                <a
-                  href={meta.video_intro_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all"
-                >
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
-                  </svg>
-                  <span className="text-sm font-medium text-gray-700">Watch Video Intro</span>
-                </a>
-              )}
-            </div>
+            <a
+              href={meta.resume_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 transition-all"
+            >
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+              <span className="text-sm font-medium text-gray-700">View Resume</span>
+            </a>
           </div>
         )}
 
@@ -393,7 +459,7 @@ export default function ProviderStudentProfilePage() {
             <h2 className="text-base font-semibold text-gray-900 mb-4">Verified Experience</h2>
             <div className="text-center py-4">
               <p className="text-4xl font-bold text-primary-600">{meta.total_verified_hours}</p>
-              <p className="text-sm text-gray-500 mt-1">Patient Care Hours</p>
+              <p className="text-sm text-gray-500 mt-1">Healthcare Hours</p>
             </div>
           </div>
         )}

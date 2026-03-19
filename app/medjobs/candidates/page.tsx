@@ -4,21 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createBrowserClient } from "@supabase/ssr";
-import type { StudentMetadata, StudentProgramTrack } from "@/lib/types";
+import type { StudentMetadata } from "@/lib/types";
+import { getTrackLabel, formatAvailability, formatHoursPerWeek, formatDuration, hasVideo } from "@/lib/medjobs-helpers";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
-const PROGRAM_TRACK_LABELS: Record<StudentProgramTrack, string> = {
-  pre_nursing: "Pre-Nursing",
-  nursing: "Nursing",
-  pre_med: "Pre-Med",
-  pre_pa: "Pre-PA",
-  pre_health: "Pre-Health",
-  other: "Other",
-};
 
 interface StudentProfile {
   id: string;
@@ -35,7 +27,6 @@ interface StudentProfile {
 
 const PAGE_SIZE = 12;
 
-// Gradient backgrounds for candidates without photos
 const GRADIENTS = [
   "from-primary-400 to-teal-500",
   "from-teal-400 to-emerald-500",
@@ -61,7 +52,6 @@ export default function CandidateBrowsePage() {
 
   // Filters
   const [stateFilter, setStateFilter] = useState("");
-  const [trackFilter, setTrackFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
   const fetchCandidates = useCallback(async () => {
@@ -85,19 +75,10 @@ export default function CandidateBrowsePage() {
 
     const { data, count } = await query;
 
-    let filtered = (data || []) as StudentProfile[];
-
-    // Client-side filter for metadata fields (program_track is in JSONB)
-    if (trackFilter) {
-      filtered = filtered.filter(
-        (c) => (c.metadata as StudentMetadata)?.program_track === trackFilter
-      );
-    }
-
-    setCandidates(filtered);
+    setCandidates((data || []) as StudentProfile[]);
     setTotal(count || 0);
     setLoading(false);
-  }, [page, stateFilter, trackFilter, searchQuery]);
+  }, [page, stateFilter, searchQuery]);
 
   useEffect(() => {
     fetchCandidates();
@@ -127,7 +108,7 @@ export default function CandidateBrowsePage() {
             href="/medjobs/apply"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 rounded-xl text-sm font-semibold text-white transition-colors"
           >
-            Apply as Student
+            Apply Now
           </Link>
         </div>
 
@@ -154,16 +135,6 @@ export default function CandidateBrowsePage() {
               <option value="NY">New York</option>
               <option value="FL">Florida</option>
             </select>
-            <select
-              value={trackFilter}
-              onChange={(e) => { setTrackFilter(e.target.value); handleFilterChange(); }}
-              className="px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white text-sm"
-            >
-              <option value="">All Tracks</option>
-              {Object.entries(PROGRAM_TRACK_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -178,10 +149,6 @@ export default function CandidateBrowsePage() {
                   <div className="h-4 bg-gray-100 rounded w-1/2 mt-2" />
                   <div className="mt-4 h-3 bg-gray-100 rounded w-full" />
                   <div className="mt-2 h-3 bg-gray-100 rounded w-3/4" />
-                  <div className="mt-4 flex gap-2">
-                    <div className="h-6 bg-gray-100 rounded-full w-16" />
-                    <div className="h-6 bg-gray-100 rounded-full w-20" />
-                  </div>
                   <div className="mt-5 h-10 bg-gray-100 rounded-xl" />
                 </div>
               </div>
@@ -196,8 +163,13 @@ export default function CandidateBrowsePage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {candidates.map((candidate) => {
                 const meta = candidate.metadata as StudentMetadata;
-                const careTypes = meta.care_experience_types || [];
+                const trackLabel = getTrackLabel(meta);
+                const availLabel = formatAvailability(meta);
+                const hoursLabel = formatHoursPerWeek(meta);
+                const durationLabel = formatDuration(meta);
                 const certs = meta.certifications || [];
+                const videoAvailable = hasVideo(meta);
+
                 return (
                   <div
                     key={candidate.id}
@@ -220,11 +192,19 @@ export default function CandidateBrowsePage() {
                           </span>
                         </div>
                       )}
+                      {/* Video indicator badge */}
+                      {videoAvailable && (
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-sm">
+                          <svg className="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                          </svg>
+                          <span className="text-xs font-medium text-gray-700">Video</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Content */}
                     <div className="p-5 flex flex-col flex-1">
-                      {/* Name and University */}
                       <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary-600 transition-colors truncate">
                         {candidate.display_name}
                       </h3>
@@ -232,62 +212,46 @@ export default function CandidateBrowsePage() {
                         {meta.university || "University not specified"}
                       </p>
 
-                      {/* Structured Criteria */}
-                      <div className="mt-3 space-y-2.5 flex-1">
-                        {/* Program Track */}
-                        {meta.program_track && (
+                      {/* Structured info */}
+                      <div className="mt-3 space-y-2 flex-1">
+                        {trackLabel && (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400 w-14 shrink-0">Track</span>
+                            <span className="text-xs text-gray-400 w-16 shrink-0">School</span>
                             <span className="px-2.5 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-semibold">
-                              {PROGRAM_TRACK_LABELS[meta.program_track]}
+                              {trackLabel}
                             </span>
                           </div>
                         )}
 
-                        {/* Location */}
                         {(candidate.city || candidate.state) && (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400 w-14 shrink-0">Location</span>
+                            <span className="text-xs text-gray-400 w-16 shrink-0">Location</span>
                             <span className="text-xs text-gray-600">
                               {[candidate.city, candidate.state].filter(Boolean).join(", ")}
                             </span>
                           </div>
                         )}
 
-                        {/* Availability */}
-                        {meta.availability_type && (
+                        {availLabel && (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400 w-14 shrink-0">Avail.</span>
-                            <span className="text-xs text-gray-600 capitalize">
-                              {meta.availability_type.replace(/_/g, " ")}
-                              {meta.hours_per_week ? ` / ${meta.hours_per_week} hrs/wk` : ""}
+                            <span className="text-xs text-gray-400 w-16 shrink-0">Avail.</span>
+                            <span className="text-xs text-gray-600">
+                              {availLabel}
+                              {hoursLabel ? ` / ${hoursLabel}` : ""}
                             </span>
                           </div>
                         )}
 
-                        {/* Care Experience */}
-                        {careTypes.length > 0 && (
-                          <div className="flex items-start gap-2">
-                            <span className="text-xs text-gray-400 w-14 shrink-0 pt-0.5">Care</span>
-                            <div className="flex flex-wrap gap-1">
-                              {careTypes.slice(0, 3).map((type) => (
-                                <span key={type} className="px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full text-xs">
-                                  {type}
-                                </span>
-                              ))}
-                              {careTypes.length > 3 && (
-                                <span className="px-2 py-0.5 text-gray-400 text-xs">
-                                  +{careTypes.length - 3} more
-                                </span>
-                              )}
-                            </div>
+                        {durationLabel && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400 w-16 shrink-0">Commit</span>
+                            <span className="text-xs text-gray-600">{durationLabel}</span>
                           </div>
                         )}
 
-                        {/* Certifications */}
                         {certs.length > 0 && (
                           <div className="flex items-start gap-2">
-                            <span className="text-xs text-gray-400 w-14 shrink-0 pt-0.5">Certs</span>
+                            <span className="text-xs text-gray-400 w-16 shrink-0 pt-0.5">Certs</span>
                             <div className="flex flex-wrap gap-1">
                               {certs.slice(0, 3).map((cert) => (
                                 <span key={cert} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
@@ -296,17 +260,16 @@ export default function CandidateBrowsePage() {
                               ))}
                               {certs.length > 3 && (
                                 <span className="px-2 py-0.5 text-gray-400 text-xs">
-                                  +{certs.length - 3} more
+                                  +{certs.length - 3}
                                 </span>
                               )}
                             </div>
                           </div>
                         )}
 
-                        {/* Verified Hours */}
                         {(meta.total_verified_hours ?? 0) > 0 && (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400 w-14 shrink-0">Hours</span>
+                            <span className="text-xs text-gray-400 w-16 shrink-0">Hours</span>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium">
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -317,7 +280,6 @@ export default function CandidateBrowsePage() {
                         )}
                       </div>
 
-                      {/* View Profile Button */}
                       <Link
                         href={`/medjobs/candidates/${candidate.slug}`}
                         className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-xl text-sm font-semibold transition-colors"

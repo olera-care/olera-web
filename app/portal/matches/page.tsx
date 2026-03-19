@@ -260,8 +260,8 @@ function MatchesContent() {
               <h1 className="text-2xl font-display font-bold text-gray-900">Matches</h1>
               {hasPost && (
                 isActive ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Live
                   </span>
                 ) : isPaused ? (

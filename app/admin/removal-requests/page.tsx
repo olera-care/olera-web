@@ -150,16 +150,24 @@ export default function AdminRemovalRequestsPage() {
                 <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <p className="text-sm font-medium text-gray-900">{req.provider_name}</p>
-                    {req.provider_slug && (
+                    <div className="flex items-center gap-3 mt-1">
+                      {req.provider_slug && (
+                        <a
+                          href={`/provider/${req.provider_slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary-600 hover:text-primary-700"
+                        >
+                          Public page →
+                        </a>
+                      )}
                       <a
-                        href={`/provider/${req.provider_slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-primary-600 hover:text-primary-700"
+                        href={`/admin/directory/${req.provider_id}`}
+                        className="text-xs text-gray-500 hover:text-gray-700"
                       >
-                        View page →
+                        Admin detail →
                       </a>
-                    )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <p className="text-sm text-gray-900">{req.full_name}</p>

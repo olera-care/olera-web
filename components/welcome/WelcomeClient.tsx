@@ -840,9 +840,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // The profile percentage is for gamification/progress tracking, not a gate for the celebration
   const allStepsComplete = isProfileLive || hasCompletedOnboarding;
 
-  // Trigger celebration when all steps complete (only once)
+  // Trigger celebration only when user actually goes live (not when they skip)
   useEffect(() => {
-    if (allStepsComplete && !celebrationShown && !showCelebration) {
+    if (isProfileLive && !celebrationShown && !showCelebration) {
       setShowCelebration(true);
       setCelebrationShown(true);
       try {
@@ -852,7 +852,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
       const timer = setTimeout(() => setShowCelebration(false), 4000);
       return () => clearTimeout(timer);
     }
-  }, [allStepsComplete, celebrationShown, showCelebration]);
+  }, [isProfileLive, celebrationShown, showCelebration]);
 
   // Loading state - controlled by init function
   // Connection data is fetched in parallel, so we can show content faster
@@ -1297,10 +1297,14 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       </div>
                     </Link>
                   ) : hasCompletedOnboarding ? (
-                    // Skipped Go Live — subtle active state to indicate next action
+                    // Skipped Go Live — keep teal highlight to indicate next action
                     <Link
                       href="/portal/matches"
-                      className="active-card relative flex items-center gap-4 p-4 bg-white rounded-2xl transition-all group"
+                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl transition-all group"
+                      style={{
+                        border: '2px solid #199087',
+                        boxShadow: '0 0 0 4px rgba(25, 144, 135, 0.15), 0 8px 24px rgba(0,0,0,0.12), 0 16px 40px rgba(0,0,0,0.08)',
+                      }}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
                         <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

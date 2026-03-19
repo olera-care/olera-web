@@ -471,37 +471,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     } catch { /* localStorage not available */ }
   }, []);
 
-  // Check if should skip and load initial data
+  // Fetch connection data immediately if connection ID is in URL
+  // This runs independently of auth state to speed up initial load
   useEffect(() => {
-    async function init() {
-      // If we have a connection ID in URL but auth is still loading, wait
-      // This handles the guest connection flow where session was just established
-      if (connectionIdParam && authLoading) {
-        console.log("[welcome] Waiting for auth to settle (connection ID present)...");
-        return; // Don't set loading to false yet - wait for auth
-      }
+    if (!connectionIdParam || connection) return;
 
-      if (!activeProfile) {
-        setLoading(false);
-        return;
-      }
-
+    async function fetchConnection() {
       const supabase = createClient();
-
-      // Note: We no longer auto-redirect returning users to portal.
-      // If they visit /welcome directly, show them the dashboard.
-      // If they came via a link (email, etc.), they'll go to their intended destination.
-      setHasInitialized(true);
-
-      // Update city from profile if not already set from server
-      if (!city && activeProfile.city) {
-        setCity(activeProfile.city);
-      }
-
-      // Fetch connection info — prefer URL param if present (from instant connection flow)
-      let connectedProviderCity: string | null = null;
       try {
-        let connectionsQuery = supabase
+        // Fetch connection directly by ID - no need to wait for activeProfile
+        const { data: conn } = await supabase
           .from("connections")
           .select(`
             id,
@@ -509,70 +488,139 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               id, slug, source_provider_id, display_name, image_url, city, state, category, metadata
             )
           `)
-          .eq("from_profile_id", activeProfile.id)
-          .eq("type", "inquiry");
+          .eq("id", connectionIdParam)
+          .single();
 
-        // If connection ID is in URL, fetch that specific connection
-        if (connectionIdParam) {
-          connectionsQuery = connectionsQuery.eq("id", connectionIdParam);
-        } else {
-          // Otherwise, get the most recent connection
-          connectionsQuery = connectionsQuery.order("created_at", { ascending: false }).limit(1);
-        }
+        if (conn?.to_profile) {
+          let enrichedConn = conn as ConnectionWithProvider;
 
-        const { data: connections } = await connectionsQuery;
+          // Enrich with iOS data in parallel
+          const iosKey = conn.to_profile.source_provider_id || conn.to_profile.slug;
+          if (iosKey) {
+            const { data: iosData } = await supabase
+              .from("olera-providers")
+              .select("provider_logo, provider_images, google_rating, review_count, lower_price, upper_price")
+              .eq("provider_id", iosKey)
+              .single();
 
-        if (connections && connections.length > 0) {
-          let conn = connections[0] as ConnectionWithProvider;
-          connectedProviderCity = conn.to_profile?.city || null;
-
-          // Enrich with iOS data (rating, pricing) from olera-providers
-          if (conn.to_profile) {
-            const iosKey = conn.to_profile.source_provider_id || conn.to_profile.slug;
-            if (iosKey) {
-              const { data: iosData } = await supabase
-                .from("olera-providers")
-                .select("provider_logo, provider_images, google_rating, review_count, lower_price, upper_price")
-                .eq("provider_id", iosKey)
-                .single();
-
-              if (iosData) {
-                const iosImage = iosData.provider_logo || iosData.provider_images?.split(" | ")[0] || null;
-                conn = {
-                  ...conn,
-                  to_profile: {
-                    ...conn.to_profile,
-                    image_url: conn.to_profile.image_url || iosImage,
-                    metadata: {
-                      ...((conn.to_profile.metadata || {}) as Record<string, unknown>),
-                      ...(iosData.google_rating ? { google_rating: iosData.google_rating } : {}),
-                      ...(iosData.review_count ? { review_count: iosData.review_count } : {}),
-                      ...(iosData.lower_price ? { lower_price: iosData.lower_price } : {}),
-                      ...(iosData.upper_price ? { upper_price: iosData.upper_price } : {}),
-                    },
+            if (iosData) {
+              const iosImage = iosData.provider_logo || iosData.provider_images?.split(" | ")[0] || null;
+              enrichedConn = {
+                ...enrichedConn,
+                to_profile: {
+                  ...enrichedConn.to_profile!,
+                  image_url: enrichedConn.to_profile!.image_url || iosImage,
+                  metadata: {
+                    ...((enrichedConn.to_profile!.metadata || {}) as Record<string, unknown>),
+                    ...(iosData.google_rating ? { google_rating: iosData.google_rating } : {}),
+                    ...(iosData.review_count ? { review_count: iosData.review_count } : {}),
+                    ...(iosData.lower_price ? { lower_price: iosData.lower_price } : {}),
+                    ...(iosData.upper_price ? { upper_price: iosData.upper_price } : {}),
                   },
-                };
-              }
+                },
+              };
             }
           }
 
-          setConnection(conn);
+          setConnection(enrichedConn);
+          if (enrichedConn.to_profile?.city) {
+            setCity(enrichedConn.to_profile.city);
+          }
         }
       } catch (err) {
         console.error("[welcome] Failed to fetch connection:", err);
       }
+    }
 
-      // Update city if connected provider has one (for display purposes)
-      if (connectedProviderCity) {
-        setCity(connectedProviderCity);
+    fetchConnection();
+  }, [connectionIdParam, connection]);
+
+  // Main initialization - handle auth state and other data
+  useEffect(() => {
+    async function init() {
+      // If auth is still loading, wait (but connection fetch above runs in parallel)
+      if (authLoading) {
+        return;
       }
 
-      // Show the main UI — providers already loaded from server
+      // No active profile - show the page anyway (connection card already fetched above)
+      if (!activeProfile) {
+        setLoading(false);
+        return;
+      }
+
+      const supabase = createClient();
+      setHasInitialized(true);
+
+      // Update city from profile if not already set
+      if (!city && activeProfile.city) {
+        setCity(activeProfile.city);
+      }
+
+      // If no connection from URL, fetch the most recent one
+      if (!connectionIdParam && !connection) {
+        try {
+          const { data: connections } = await supabase
+            .from("connections")
+            .select(`
+              id,
+              to_profile:business_profiles!connections_to_profile_id_fkey(
+                id, slug, source_provider_id, display_name, image_url, city, state, category, metadata
+              )
+            `)
+            .eq("from_profile_id", activeProfile.id)
+            .eq("type", "inquiry")
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+          if (connections && connections.length > 0) {
+            let conn = connections[0] as ConnectionWithProvider;
+
+            // Enrich with iOS data
+            if (conn.to_profile) {
+              const iosKey = conn.to_profile.source_provider_id || conn.to_profile.slug;
+              if (iosKey) {
+                const { data: iosData } = await supabase
+                  .from("olera-providers")
+                  .select("provider_logo, provider_images, google_rating, review_count, lower_price, upper_price")
+                  .eq("provider_id", iosKey)
+                  .single();
+
+                if (iosData) {
+                  const iosImage = iosData.provider_logo || iosData.provider_images?.split(" | ")[0] || null;
+                  conn = {
+                    ...conn,
+                    to_profile: {
+                      ...conn.to_profile,
+                      image_url: conn.to_profile.image_url || iosImage,
+                      metadata: {
+                        ...((conn.to_profile.metadata || {}) as Record<string, unknown>),
+                        ...(iosData.google_rating ? { google_rating: iosData.google_rating } : {}),
+                        ...(iosData.review_count ? { review_count: iosData.review_count } : {}),
+                        ...(iosData.lower_price ? { lower_price: iosData.lower_price } : {}),
+                        ...(iosData.upper_price ? { upper_price: iosData.upper_price } : {}),
+                      },
+                    },
+                  };
+                }
+              }
+            }
+
+            setConnection(conn);
+            if (conn.to_profile?.city) {
+              setCity(conn.to_profile.city);
+            }
+          }
+        } catch (err) {
+          console.error("[welcome] Failed to fetch connection:", err);
+        }
+      }
+
       setLoading(false);
     }
 
     init();
-  }, [activeProfile, account, destination, router, hasInitialized, connectionIdParam, authLoading]);
+  }, [activeProfile, account, destination, router, hasInitialized, connectionIdParam, authLoading, connection, city]);
 
   // Complete onboarding and redirect (or show confirmation)
   const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false, customRedirect?: string) => {
@@ -717,8 +765,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     }
   }, [allStepsComplete, celebrationShown, showCelebration]);
 
-  // Loading state - wait for both auth and local initialization
-  if (loading || authLoading) {
+  // Loading state - controlled by init function
+  // Connection data is fetched in parallel, so we can show content faster
+  if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" style={{ willChange: "transform" }} />

@@ -302,12 +302,11 @@ export default function InterestedTabContent({
 
         {/* Text content */}
         <div className="text-center">
-          <h3 className="text-lg font-display font-bold text-gray-900 mb-2">
+          <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
             Providers are looking at your profile
           </h3>
           <p className="text-sm text-gray-500 leading-relaxed max-w-[340px] mx-auto mb-6">
-            Care providers in your area are actively reviewing profiles like yours.
-            When someone&apos;s interested, they&apos;ll reach out here.
+            Care providers in your area are reviewing profiles like yours.
           </p>
 
           {/* What to expect cards */}

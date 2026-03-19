@@ -88,6 +88,8 @@ interface ProfileWizardProps {
   userEmail?: string;
   onClose: () => void;
   onComplete: () => void;
+  /** Called after each step is saved — use to refresh profile data */
+  onStepSaved?: () => void;
 }
 
 const STEPS = [
@@ -105,6 +107,7 @@ export default function ProfileWizard({
   userEmail,
   onClose,
   onComplete,
+  onStepSaved,
 }: ProfileWizardProps) {
   const meta = (profile.metadata || {}) as FamilyMetadata;
 
@@ -306,6 +309,9 @@ export default function ProfileWizard({
   const handleNext = async () => {
     const saved = await saveCurrentStep();
     if (!saved) return;
+
+    // Notify parent to refresh profile data (updates percentage)
+    onStepSaved?.();
 
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -625,7 +631,7 @@ export default function ProfileWizard({
         {/* Footer Navigation */}
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
           <div className="flex items-center justify-between">
-            {/* Left side - Back or Skip */}
+            {/* Left side - Skip (step 1) or Back (step 2+) */}
             <div>
               {currentStep > 0 ? (
                 <button
@@ -637,46 +643,37 @@ export default function ProfileWizard({
                 </button>
               ) : (
                 <button
-                  onClick={onClose}
+                  onClick={handleSkip}
                   disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
                 >
-                  Close
+                  Skip
                 </button>
               )}
             </div>
 
-            {/* Right side - Skip & Next */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleSkip}
-                disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-50"
-              >
-                Skip
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50"
-              >
-                {saving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : currentStep === STEPS.length - 1 ? (
-                  "Finish"
-                ) : (
-                  <>
-                    Next
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
+            {/* Right side - Next only */}
+            <button
+              onClick={handleNext}
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50"
+            >
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Saving...
+                </>
+              ) : currentStep === STEPS.length - 1 ? (
+                "Finish"
+              ) : (
+                <>
+                  Next
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

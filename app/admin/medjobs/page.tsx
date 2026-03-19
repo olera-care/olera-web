@@ -213,7 +213,7 @@ export default function AdminMedJobsPage() {
               <tr>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Student</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">University</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Track</th>
+                <th className="text-left px-4 py-3 font-medium text-gray-500">School</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Location</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Profile</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Joined</th>

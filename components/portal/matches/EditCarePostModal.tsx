@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Modal from "@/components/ui/Modal";
-import ModalFooter from "@/components/provider-dashboard/edit-modals/ModalFooter";
 import { saveProfile } from "@/components/provider-dashboard/edit-modals/save-profile";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -67,7 +66,14 @@ interface EditCarePostModalProps {
   onSaved: () => void;
 }
 
-const TOTAL_STEPS = 4;
+const STEPS = [
+  { id: 1, title: "Care Details", subtitle: "Who needs care and what type?" },
+  { id: 2, title: "Location & Schedule", subtitle: "Where and when do you need care?" },
+  { id: 3, title: "Timeline & Payment", subtitle: "When and how will you pay?" },
+  { id: 4, title: "Additional Info", subtitle: "Any other details?" },
+] as const;
+
+const TOTAL_STEPS = STEPS.length;
 
 export default function EditCarePostModal({
   profile,
@@ -160,23 +166,62 @@ export default function EditCarePostModal({
     if (step > 1) setStep(step - 1);
   }
 
+  // Get current step metadata
+  const currentStepData = STEPS.find(s => s.id === step) || STEPS[0];
+
+  // Step header for Modal title — aligns with close button
+  const stepHeader = (
+    <div>
+      <p className="text-sm text-gray-400 mb-1">
+        Step <span className="font-semibold text-gray-600">{step}</span> of {TOTAL_STEPS}
+      </p>
+      <h2 className="text-xl font-semibold text-gray-900">{currentStepData.title}</h2>
+      <p className="text-sm text-gray-500 mt-0.5">{currentStepData.subtitle}</p>
+    </div>
+  );
+
   return (
     <Modal
       isOpen
       onClose={onClose}
-      title="Edit care profile"
+      title={stepHeader}
       size="2xl"
       footer={
-        <ModalFooter
-          saving={saving}
-          hasChanges={hasChanges}
-          onClose={onClose}
-          onSave={handleSave}
-          guidedMode
-          guidedStep={step}
-          guidedTotal={TOTAL_STEPS}
-          onGuidedBack={step > 1 ? handleBack : undefined}
-        />
+        <div className="flex items-center justify-between">
+          <div>
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Back
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Skip
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            {saving
+              ? "Saving..."
+              : step === TOTAL_STEPS
+                ? "Finish"
+                : "Next"}
+          </button>
+        </div>
       }
     >
       <div className="space-y-5 pt-2">

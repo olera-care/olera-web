@@ -909,60 +909,72 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
           {/* ============================================================
               COMPLETION DASHBOARD — Shows when all steps done
-              Wrapped in a card with shadow for visual separation
+              Premium card with gradient, animations, and clear hierarchy
               ============================================================ */}
           {allStepsComplete && (
             <section className="mb-10">
-              <div className="bg-white rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] p-6 sm:p-8">
-                {/* Celebration header - clean and focused */}
-                <div className="mb-6 text-center">
-                  {/* Sparkle icon */}
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary-100 to-emerald-100 mb-4">
-                    <svg className="w-7 h-7 text-primary-600" fill="none" viewBox="0 0 24 24">
+              <div className="relative bg-gradient-to-br from-white via-white to-primary-50/30 rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] p-6 sm:p-8 overflow-hidden">
+                {/* Subtle decorative gradient orb */}
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-primary-200/40 to-emerald-200/30 rounded-full blur-3xl pointer-events-none" />
+
+                {/* Celebration header */}
+                <div className="relative mb-8 text-center">
+                  {/* Animated sparkle icon */}
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary-100 to-emerald-100 mb-4 shadow-[0_4px_12px_rgba(25,144,135,0.2)] animate-celebration-pulse">
+                    <svg className="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-display font-semibold text-gray-900">
+                  <h2 className="text-2xl sm:text-3xl font-display font-semibold text-gray-900 mb-2">
                     You&apos;re all set
                   </h2>
+                  <p className="text-gray-500">
+                    Care providers in <span className="text-primary-600 font-medium">{cityDisplay}</span> can now discover you
+                  </p>
                 </div>
 
-                {/* Minimal action cards - horizontal layout */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {/* Card 1: Matches */}
-                  <Link
-                    href="/portal/matches"
-                    className="group flex-1 flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200"
-                  >
-                    <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">Matches</span>
-                        {isProfileLive && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            Live
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
+                {/* Hero action: Matches - the primary next step */}
+                <Link
+                  href="/portal/matches"
+                  className="group relative flex items-center gap-4 p-5 mb-4 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl shadow-[0_4px_16px_rgba(25,144,135,0.3)] hover:shadow-[0_8px_24px_rgba(25,144,135,0.4)] hover:scale-[1.01] transition-all duration-300 animate-card-entrance"
+                  style={{ animationDelay: '0ms' }}
+                >
+                  {/* Shimmer effect */}
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent rounded-2xl" />
 
-                  {/* Card 2: Profile */}
+                  <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-semibold text-white text-lg">View Your Matches</span>
+                      {isProfileLive && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Live
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-primary-100 text-sm">See providers who match your needs</p>
+                  </div>
+                  <svg className="w-6 h-6 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+
+                {/* Secondary actions: Profile & Benefits */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {/* Card: Profile */}
                   <Link
                     href="/portal/profile"
-                    className="group flex-1 flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200"
+                    className="group flex-1 flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 hover:border-gray-200 hover:bg-white hover:shadow-md transition-all duration-200 animate-card-entrance"
+                    style={{ animationDelay: '75ms' }}
                   >
-                    <div className="w-12 h-12 rounded-xl bg-gray-200 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
@@ -972,18 +984,19 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                         <span className="text-sm text-gray-400">{profilePercentage}%</span>
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
 
-                  {/* Card 3: Benefits */}
+                  {/* Card: Benefits */}
                   <Link
                     href="/portal/benefits"
-                    className="group flex-1 flex items-center gap-4 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all duration-200"
+                    className="group flex-1 flex items-center gap-4 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 hover:border-gray-200 hover:bg-white hover:shadow-md transition-all duration-200 animate-card-entrance"
+                    style={{ animationDelay: '150ms' }}
                   >
-                    <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                      <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
@@ -995,12 +1008,36 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                         )}
                       </div>
                     </div>
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-primary-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>
                 </div>
               </div>
+
+              {/* Animations */}
+              <style jsx>{`
+                @keyframes celebration-pulse {
+                  0%, 100% { transform: scale(1); }
+                  50% { transform: scale(1.05); }
+                }
+                .animate-celebration-pulse {
+                  animation: celebration-pulse 2s ease-in-out infinite;
+                }
+                @keyframes card-entrance {
+                  from {
+                    opacity: 0;
+                    transform: translateY(12px);
+                  }
+                  to {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                }
+                .animate-card-entrance {
+                  animation: card-entrance 0.4s ease-out backwards;
+                }
+              `}</style>
             </section>
           )}
 

@@ -2012,13 +2012,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           }
         }
         .active-card {
-          border: 1.5px solid rgba(25, 144, 135, 0.3) !important;
+          border: 2px solid #199087 !important;
           box-shadow:
             0 4px 12px rgba(0,0,0,0.1),
             0 8px 24px rgba(0,0,0,0.08) !important;
         }
         .active-card:hover {
-          border-color: rgba(25, 144, 135, 0.45) !important;
+          border-color: #147a72 !important;
           box-shadow:
             0 6px 16px rgba(0,0,0,0.12),
             0 12px 32px rgba(0,0,0,0.1) !important;

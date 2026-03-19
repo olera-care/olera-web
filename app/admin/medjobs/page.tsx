@@ -3,16 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { StudentMetadata, StudentProgramTrack } from "@/lib/types";
-
-const PROGRAM_TRACK_LABELS: Record<StudentProgramTrack, string> = {
-  pre_nursing: "Pre-Nursing",
-  nursing: "Nursing",
-  pre_med: "Pre-Med",
-  pre_pa: "Pre-PA",
-  pre_health: "Pre-Health",
-  other: "Other",
-};
+import type { StudentMetadata } from "@/lib/types";
+import { getTrackLabel } from "@/lib/medjobs-helpers";
 
 interface StudentRow {
   id: string;
@@ -250,9 +242,9 @@ export default function AdminMedJobsPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">{meta.university || "—"}</td>
                     <td className="px-4 py-3">
-                      {meta.program_track ? (
+                      {getTrackLabel(meta) ? (
                         <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">
-                          {PROGRAM_TRACK_LABELS[meta.program_track]}
+                          {getTrackLabel(meta)}
                         </span>
                       ) : (
                         <span className="text-gray-400">—</span>

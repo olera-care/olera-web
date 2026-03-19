@@ -216,7 +216,7 @@ export default function MedJobsPage() {
             <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100 lg:sticky lg:top-24 shadow-xl shadow-gray-900/5">
               <Image
                 src="/images/medjobs/student-portrait.jpg"
-                alt="Pre-health student caregiver"
+                alt="Student caregiver"
                 width={600}
                 height={800}
                 className="w-full h-full object-cover"
@@ -305,7 +305,7 @@ export default function MedJobsPage() {
               <div className="col-span-7 aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100">
                 <Image
                   src="/images/medjobs/students-group.jpg"
-                  alt="Pre-health student group"
+                  alt="Healthcare student group"
                   width={500}
                   height={667}
                   className="w-full h-full object-cover"

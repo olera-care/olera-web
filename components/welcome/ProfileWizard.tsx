@@ -410,13 +410,9 @@ export default function ProfileWizard({
     );
   }
 
-  // Step header for Modal title
+  // Step header for Modal title (clean, no step counter - dots are in footer)
   const stepHeader = (
     <div>
-      {/* Step indicator with emphasis */}
-      <p className="text-sm text-gray-400 mb-1">
-        Step <span className="font-semibold text-gray-600">{currentStep + 1}</span> of {STEPS.length}
-      </p>
       <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
       <p className="text-sm text-gray-500 mt-0.5">{step.subtitle}</p>
     </div>
@@ -615,7 +611,7 @@ export default function ProfileWizard({
         <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
           <div className="flex items-center justify-between">
             {/* Left side - Skip (step 1) or Back (step 2+) */}
-            <div>
+            <div className="w-20">
               {currentStep > 0 ? (
                 <button
                   onClick={handleBack}
@@ -635,28 +631,46 @@ export default function ProfileWizard({
               )}
             </div>
 
+            {/* Center - Progress dots */}
+            <div className="flex items-center gap-2">
+              {STEPS.map((_, index) => (
+                <div
+                  key={index}
+                  className={`transition-all duration-300 rounded-full ${
+                    index === currentStep
+                      ? 'w-6 h-2 bg-primary-600'
+                      : index < currentStep
+                        ? 'w-2 h-2 bg-primary-400'
+                        : 'w-2 h-2 bg-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
+
             {/* Right side - Next only */}
-            <button
-              onClick={handleNext}
-              disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50"
-            >
-              {saving ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : currentStep === STEPS.length - 1 ? (
-                "Finish"
-              ) : (
-                <>
-                  Next
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </>
-              )}
-            </button>
+            <div className="w-20 flex justify-end">
+              <button
+                onClick={handleNext}
+                disabled={saving}
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : currentStep === STEPS.length - 1 ? (
+                  "Finish"
+                ) : (
+                  <>
+                    Next
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

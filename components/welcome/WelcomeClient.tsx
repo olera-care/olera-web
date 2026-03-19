@@ -958,46 +958,70 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
               {/* Cards — full width, generous spacing */}
               <div className="space-y-6">
-                {/* Card 1: Profile — with attention animation for fresh users */}
+                {/* Card 1: Profile — links to page after onboarding, otherwise opens wizard */}
                 <div className="relative">
-                  <button
-                    onClick={() => setProfileWizardOpen(true)}
-                    className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
-                    style={needsProfileAttention ? {
-                      outline: '3px solid #199087',
-                      outlineOffset: '3px',
-                      animation: 'ring-breathe 1.5s ease-in-out infinite',
-                    } : undefined}
-                  >
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${profileComplete ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
-                    {profileComplete ? (
-                      <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      <svg viewBox="0 0 32 32" className="w-8 h-8">
-                        <rect x="6" y="4" width="20" height="26" rx="2" fill="#E8DDD4" stroke="#C4B5A6" strokeWidth="1.5"/>
-                        <rect x="9" y="8" width="14" height="10" rx="1" fill="#F5EFE8"/>
-                        <circle cx="20" cy="20" r="1.5" fill="#A69484"/>
-                      </svg>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-text-md font-semibold text-gray-900">
-                      {profileComplete ? "Profile looking good!" : (isConnected && connection?.to_profile?.display_name
-                        ? `Help ${connection.to_profile.display_name.split(' ')[0]} learn more about you`
-                        : "Complete your profile")}
-                    </p>
-                    <p className={`text-text-sm mt-0.5 ${profileComplete ? 'text-primary-600' : 'text-gray-500'}`}>
-                      {profilePercentage}% complete
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                  </button>
+                  {allStepsComplete ? (
+                    // Onboarding complete — link to profile page
+                    <Link
+                      href="/portal/profile"
+                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+                    >
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-50">
+                        <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">Profile</p>
+                        <p className="text-text-sm mt-0.5 text-primary-600">{profilePercentage}% complete</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  ) : (
+                    // Still onboarding — open wizard modal
+                    <button
+                      onClick={() => setProfileWizardOpen(true)}
+                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
+                      style={needsProfileAttention ? {
+                        outline: '3px solid #199087',
+                        outlineOffset: '3px',
+                        animation: 'ring-breathe 1.5s ease-in-out infinite',
+                      } : undefined}
+                    >
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${profileComplete ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
+                        {profileComplete ? (
+                          <svg className="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg viewBox="0 0 32 32" className="w-8 h-8">
+                            <rect x="6" y="4" width="20" height="26" rx="2" fill="#E8DDD4" stroke="#C4B5A6" strokeWidth="1.5"/>
+                            <rect x="9" y="8" width="14" height="10" rx="1" fill="#F5EFE8"/>
+                            <circle cx="20" cy="20" r="1.5" fill="#A69484"/>
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">
+                          {profileComplete ? "Profile looking good!" : (isConnected && connection?.to_profile?.display_name
+                            ? `Help ${connection.to_profile.display_name.split(' ')[0]} learn more about you`
+                            : "Complete your profile")}
+                        </p>
+                        <p className={`text-text-sm mt-0.5 ${profileComplete ? 'text-primary-600' : 'text-gray-500'}`}>
+                          {profilePercentage}% complete
+                        </p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  )}
                 </div>
 
                 {/* Card 2: Matches — transforms to show success state when live */}
@@ -1051,6 +1075,29 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                         </Link>
                       </div>
                     </div>
+                  ) : hasCompletedOnboarding ? (
+                    // Skipped Go Live — muted state, links to matches page
+                    <Link
+                      href="/portal/matches"
+                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
+                    >
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-100">
+                        <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-text-md font-semibold text-gray-900">Explore matches</p>
+                        <p className="text-text-sm mt-0.5 text-gray-500">
+                          Go live anytime to let providers find you
+                        </p>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
                   ) : canGoLive ? (
                     // Ready to go live — personalized CTA with provider name if connected
                     <button

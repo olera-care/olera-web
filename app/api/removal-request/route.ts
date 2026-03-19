@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { sendSlackAlert, slackRemovalRequest } from "@/lib/slack";
+
+function getServiceClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey);
+}
 
 /**
  * POST /api/removal-request
@@ -34,6 +42,27 @@ export async function POST(request: Request) {
         { error: "All required fields must be filled." },
         { status: 400 }
       );
+    }
+
+    // Persist to database
+    const db = getServiceClient();
+    if (db) {
+      const { error: insertErr } = await db.from("removal_requests").insert({
+        provider_id,
+        provider_name: provider_name || provider_id,
+        provider_slug: provider_slug || null,
+        full_name: full_name.trim(),
+        business_email: business_email.trim(),
+        business_phone: business_phone.trim(),
+        action,
+        reason,
+        additional_details: additional_details?.trim() || null,
+      });
+
+      if (insertErr) {
+        console.error("Failed to insert removal request:", insertErr);
+        // Continue anyway — Slack alert is the fallback
+      }
     }
 
     // Send Slack alert with full details

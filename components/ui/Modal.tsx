@@ -220,7 +220,7 @@ export default function Modal({
         {/* Scrollable body */}
         <div
           data-modal-scroll
-          className={`px-5 sm:px-7 pt-2 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}
+          className={`px-5 sm:px-7 flex-1 min-h-0 overflow-y-auto overscroll-contain ${footer ? "" : "pb-5 sm:pb-7"}`}
         >
           {children}
         </div>

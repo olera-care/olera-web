@@ -152,56 +152,25 @@ function MatchesContent() {
   }, [activeProfile?.city, activeProfile?.state]);
 
   // Handle sending a message to a provider (creates inquiry connection)
+  // Always uses the API to ensure proper summary card with seeker info
   const handleSendMessage = useCallback(async (providerId: string, message: string) => {
     if (!activeProfile) return;
 
-    const supabase = createClient();
+    const res = await fetch("/api/connections/create-inquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        providerId,
+        message,
+      }),
+    });
 
-    // First, check if provider has a business_profile or use olera-providers data
-    const { data: providerProfile } = await supabase
-      .from("business_profiles")
-      .select("id")
-      .eq("source_provider_id", providerId)
-      .maybeSingle();
-
-    let toProfileId = providerProfile?.id;
-
-    // If no business profile, create connection via API which handles this case
-    if (!toProfileId) {
-      const res = await fetch("/api/connections/create-inquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          providerId,
-          message,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      const data = await res.json();
-      router.push(`/portal/inbox?connection=${data.connectionId}`);
-      return;
+    if (!res.ok) {
+      throw new Error("Failed to send message");
     }
 
-    // Create the connection directly
-    const { data: connection, error } = await supabase
-      .from("connections")
-      .insert({
-        from_profile_id: activeProfile.id,
-        to_profile_id: toProfileId,
-        type: "inquiry",
-        status: "pending",
-        message,
-      })
-      .select("id")
-      .single();
-
-    if (error) throw error;
-
-    router.push(`/portal/inbox?connection=${connection.id}`);
+    const data = await res.json();
+    router.push(`/portal/inbox?connection=${data.connectionId}`);
   }, [activeProfile, router]);
 
   // Dynamic subtitle based on state

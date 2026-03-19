@@ -115,6 +115,7 @@ export default function ProfileWizard({
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Overview fields
   const [displayName, setDisplayName] = useState(profile.display_name || "");
@@ -308,24 +309,38 @@ export default function ProfileWizard({
   ]);
 
   const handleNext = async () => {
-    const saved = await saveCurrentStep();
-    if (!saved) return;
+    // Optimistic UI: advance immediately, save in background
+    const isLastStep = currentStep === STEPS.length - 1;
 
-    // Notify parent to refresh profile data (updates percentage)
-    onStepSaved?.();
-
-    if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Last step — clear draft and show completion modal
+    if (isLastStep) {
+      // Last step — show completion modal immediately
       clearDraft();
       setShowCompleteModal(true);
+    } else {
+      // Smooth transition to next step
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentStep(currentStep + 1);
+        setIsTransitioning(false);
+      }, 150);
     }
+
+    // Save in background (non-blocking)
+    saveCurrentStep().then((saved) => {
+      if (saved) {
+        // Notify parent to refresh profile data (updates percentage)
+        onStepSaved?.();
+      }
+    });
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentStep(currentStep - 1);
+        setIsTransitioning(false);
+      }, 150);
     }
   };
 
@@ -422,7 +437,7 @@ export default function ProfileWizard({
     <Modal isOpen onClose={onClose} size="2xl" title={stepHeader}>
       <div className="flex flex-col min-h-[420px]">
         {/* Form Content — overflow visible on step 1 for dropdown */}
-        <div className={`flex-1 pt-5 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
+        <div className={`flex-1 pt-5 transition-opacity duration-150 ${isTransitioning ? "opacity-0" : "opacity-100"} ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
           {/* ── Step 1: Basics ── */}
           {step.id === "basics" && (
             <div className="space-y-6">
@@ -651,15 +666,9 @@ export default function ProfileWizard({
             <div className="w-20 flex justify-end">
               <button
                 onClick={handleNext}
-                disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 active:scale-[0.98] rounded-xl transition-all"
               >
-                {saving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : currentStep === STEPS.length - 1 ? (
+                {currentStep === STEPS.length - 1 ? (
                   "Finish"
                 ) : (
                   <>

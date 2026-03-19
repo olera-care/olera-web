@@ -40,6 +40,16 @@ interface WelcomeClientProps {
 
 interface ConnectionWithProvider {
   id: string;
+  from_profile_id?: string;
+  metadata?: {
+    thread?: Array<{
+      from_profile_id: string;
+      text: string;
+      created_at: string;
+      is_auto_reply?: boolean;
+    }>;
+    [key: string]: unknown;
+  } | null;
   to_profile: {
     id: string;
     slug: string | null;
@@ -480,10 +490,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
       const supabase = createClient();
       try {
         // Fetch connection directly by ID - no need to wait for activeProfile
+        // Include metadata to check if user has sent messages
         const { data: conn } = await supabase
           .from("connections")
           .select(`
             id,
+            metadata,
+            from_profile_id,
             to_profile:business_profiles!connections_to_profile_id_fkey(
               id, slug, source_provider_id, display_name, image_url, city, state, category, metadata
             )
@@ -855,6 +868,24 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   const userName = activeProfile?.display_name?.split(" ")[0] || account?.display_name?.split(" ")[0];
   const isConnected = !!connection?.to_profile?.display_name;
 
+  // Detect if user has sent a message (not auto-reply) to the connected provider
+  const connectionThread = connection?.metadata?.thread || [];
+  const userProfileId = activeProfile?.id;
+  const hasUserMessaged = connectionThread.some(
+    (msg) => msg.from_profile_id === userProfileId && !msg.is_auto_reply
+  );
+
+  // Determine if this is a fresh connection (URL has connection param) vs returning user
+  const isFreshConnection = !!connectionIdParam;
+
+  // Decide what to show in the top card area
+  // - Fresh connection + hasn't messaged: Show full connection card
+  // - Has messaged: Hide the connection card (they're engaged)
+  // - Returning user + not fresh + profile incomplete: Show "Pick up where you left off"
+  // - Returning user + profile done but not live: Hide card, focus on step cards
+  const showConnectionCard = isConnected && !hasUserMessaged && isFreshConnection;
+  const showPickUpWhereLeftOff = isConnected && !isFreshConnection && !hasUserMessaged && !allStepsComplete;
+
   const needsProfileAttention = !profileComplete;
   const needsBenefitsAttention = false; // Benefits is optional, not part of core onboarding
   const needsMatchesAttention = profileComplete && !isProfileLive;
@@ -901,10 +932,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           </section>
 
           {/* ============================================================
-              TOP CARD — Connected provider (always visible) OR Fresh welcome card
-              Fresh state hidden when all steps complete
+              TOP CARD — Context-aware based on user journey state
+              - Fresh connection: Show provider card with "Start conversation"
+              - Returning user (connected, not messaged): Show "Pick up where you left off"
+              - Has messaged: Hide card (they're engaged)
+              - New user (no connection): Show welcome card
               ============================================================ */}
-          {isConnected && connection?.to_profile ? (() => {
+          {showConnectionCard && connection?.to_profile ? (() => {
             const provider = connection.to_profile;
             const location = [provider.city, provider.state].filter(Boolean).join(", ");
             const hasRatingOrPricing = provider.metadata?.google_rating || provider.metadata?.lower_price;
@@ -997,7 +1031,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                           href={`/portal/inbox?provider=${provider.id}`}
                           className="flex items-center justify-center w-full sm:w-auto px-6 py-3 text-text-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-200 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
                         >
-                          Message
+                          Start conversation
                         </Link>
                       </div>
                     </div>
@@ -1005,7 +1039,67 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                 </div>
               </section>
             );
-          })() : !allStepsComplete ? (
+          })() : showPickUpWhereLeftOff && connection?.to_profile ? (
+            /* ============================================================
+               RETURNING USER CARD — "Pick up where you left off"
+               For users who connected but came back without the connection URL param
+               ============================================================ */
+            <section className="pb-10">
+              <div className="bg-gradient-to-br from-primary-50/50 to-white rounded-2xl border border-primary-100/60 p-5 sm:p-6">
+                <div className="flex items-start gap-4">
+                  {/* Provider mini avatar */}
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+                    {connection.to_profile.image_url ? (
+                      <Image
+                        src={connection.to_profile.image_url}
+                        alt={connection.to_profile.display_name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ background: avatarGradient(connection.to_profile.display_name) }}
+                      >
+                        <span className="text-sm font-bold text-white">
+                          {getInitials(connection.to_profile.display_name)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-text-sm font-medium text-primary-700">
+                      Pick up where you left off
+                    </p>
+                    <p className="mt-1 text-text-md text-gray-900 font-semibold line-clamp-1">
+                      Continue your conversation with {connection.to_profile.display_name.split(' ')[0]}
+                    </p>
+                    <div className="mt-3 flex items-center gap-3">
+                      <Link
+                        href={`/portal/inbox?provider=${connection.to_profile.id}`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        Message
+                      </Link>
+                      {!profileComplete && (
+                        <button
+                          onClick={() => setProfileWizardOpen(true)}
+                          className="text-text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                          or complete profile
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : !isConnected && !allStepsComplete ? (
             /* ============================================================
                FRESH STATE CARD — Welcome card for new users without connection
                Hidden when all steps complete
@@ -1106,7 +1200,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               </div>
 
               {/* Cards — full width, generous spacing */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* Card 1: Profile — links to page after onboarding, otherwise opens wizard */}
                 <div className="relative">
                   {allStepsComplete ? (
@@ -1134,12 +1228,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Still onboarding — open wizard modal
                     <button
                       onClick={() => setProfileWizardOpen(true)}
-                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
-                      style={needsProfileAttention ? {
-                        outline: '3px solid #199087',
-                        outlineOffset: '3px',
-                        animation: 'ring-breathe 1.5s ease-in-out infinite',
-                      } : undefined}
+                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all group text-left ${needsProfileAttention ? 'active-card' : ''}`}
                     >
                       <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${profileComplete ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
                         {profileComplete ? (
@@ -1164,8 +1253,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                           {profilePercentage}% complete
                         </p>
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${needsProfileAttention ? 'bg-primary-500' : 'bg-gray-100'}`}>
+                        <svg className={`w-4 h-4 ${needsProfileAttention ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -1202,14 +1291,10 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       </div>
                     </Link>
                   ) : hasCompletedOnboarding ? (
-                    // Skipped Go Live — green stroke to indicate next action, links to matches page
+                    // Skipped Go Live — subtle active state to indicate next action
                     <Link
                       href="/portal/matches"
-                      className="relative flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group"
-                      style={{
-                        outline: '3px solid #199087',
-                        outlineOffset: '3px',
-                      }}
+                      className="active-card relative flex items-center gap-4 p-4 bg-white rounded-2xl transition-all group"
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
                         <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1222,8 +1307,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                           Go live anytime to let providers find you
                         </p>
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-200 transition-colors">
-                        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-600 transition-colors">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -1232,12 +1317,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Ready to go live — personalized CTA with provider name if connected
                     <button
                       onClick={() => setGoLiveModalOpen(true)}
-                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
-                      style={needsMatchesAttention ? {
-                        outline: '3px solid #199087',
-                        outlineOffset: '3px',
-                        animation: 'ring-breathe 1.5s ease-in-out infinite',
-                      } : undefined}
+                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all group text-left ${needsMatchesAttention ? 'active-card' : ''}`}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
                         <svg viewBox="0 0 32 32" className="w-8 h-8">
@@ -1256,8 +1336,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                           {isConnected ? "More providers can discover your profile" : "Let providers discover you"}
                         </p>
                       </div>
-                      <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${needsMatchesAttention ? 'bg-primary-500' : 'bg-primary-100'}`}>
+                        <svg className={`w-4 h-4 ${needsMatchesAttention ? 'text-white' : 'text-primary-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
                       </div>
@@ -1266,12 +1346,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Not ready to go live — missing data, prompt to complete profile
                     <button
                       onClick={() => setProfileWizardOpen(true)}
-                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left"
-                      style={needsMatchesAttention ? {
-                        outline: '3px solid #199087',
-                        outlineOffset: '3px',
-                        animation: 'ring-breathe 1.5s ease-in-out infinite',
-                      } : undefined}
+                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all group text-left"
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gray-100">
                         <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1922,22 +1997,33 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             transform: translateY(0);
           }
         }
-        @keyframes ring-breathe {
+        @keyframes card-glow {
           0%, 100% {
-            outline-width: 3px;
-            outline-offset: 3px;
-            opacity: 1;
+            box-shadow:
+              0 0 0 1px rgba(25, 144, 135, 0.08),
+              0 4px 20px rgba(25, 144, 135, 0.08),
+              0 8px 32px rgba(25, 144, 135, 0.04);
           }
           50% {
-            outline-width: 4px;
-            outline-offset: 6px;
-            opacity: 0.7;
+            box-shadow:
+              0 0 0 1px rgba(25, 144, 135, 0.12),
+              0 6px 28px rgba(25, 144, 135, 0.12),
+              0 12px 40px rgba(25, 144, 135, 0.06);
           }
         }
-        .animate-ring-breathe {
-          animation: ring-breathe 1.5s ease-in-out infinite;
-          outline: 3px solid #199087;
-          outline-offset: 3px;
+        .active-card {
+          background: linear-gradient(to bottom, #f8fffe, #ffffff) !important;
+          box-shadow:
+            0 0 0 1px rgba(25, 144, 135, 0.08),
+            0 4px 20px rgba(25, 144, 135, 0.08),
+            0 8px 32px rgba(25, 144, 135, 0.04) !important;
+          animation: card-glow 3s ease-in-out infinite;
+        }
+        .active-card:hover {
+          box-shadow:
+            0 0 0 1px rgba(25, 144, 135, 0.12),
+            0 8px 32px rgba(25, 144, 135, 0.12),
+            0 16px 48px rgba(25, 144, 135, 0.06) !important;
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out forwards;

@@ -417,16 +417,20 @@ export default function Navbar() {
           )}
         </div>
 
-      {/* Profile switcher */}
-      <div className="mx-4 border-t border-gray-100" />
-      <div className="px-2 py-1">
-        <ProfileSwitcher
-          onSwitch={() => setIsUserMenuOpen(false)}
-          variant="dropdown"
-          allowedTypes={isProviderPortal ? ["organization", "caregiver"] : ["family"]}
-          navigateTo={isProviderPortal ? "/provider" : "/"}
-        />
-      </div>
+      {/* Profile switcher - only show on provider side where switching between org profiles is useful */}
+      {isProviderPortal && (
+        <>
+          <div className="mx-4 border-t border-gray-100" />
+          <div className="px-2 py-1">
+            <ProfileSwitcher
+              onSwitch={() => setIsUserMenuOpen(false)}
+              variant="dropdown"
+              allowedTypes={["organization", "caregiver"]}
+              navigateTo="/provider"
+            />
+          </div>
+        </>
+      )}
 
       {isAdmin && (
         <>
@@ -1224,19 +1228,8 @@ export default function Navbar() {
                         )}
                       </div>
 
-                      {/* Profile switcher & other actions */}
-                      <div className="my-3 border-t border-gray-100" />
-
-                      <div className="px-3">
-                        <ProfileSwitcher
-                          onSwitch={() => setIsMobileMenuOpen(false)}
-                          variant="dropdown"
-                          allowedTypes={["family"]}
-                          navigateTo="/"
-                        />
-                      </div>
-
                       {/* Switch to Provider - show when user has provider access */}
+                      <div className="my-3 border-t border-gray-100" />
                       {(hasProviderProfile || hasAttemptedOnboarding) && (
                         <button
                           type="button"

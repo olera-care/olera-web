@@ -590,39 +590,15 @@ export function useConnectionCard(props: ConnectionCardProps) {
   }, [user, providerId, providerName, providerSlug, refreshAccountData, onConnectionCreated]);
 
   // ── Save enrichment data (post-submit) ──
-  const saveEnrichment = useCallback(async (data: {
-    careRecipient: string;
-    urgency: string;
+  // Note: Intent data is now captured in the initial connection request
+  // and profile updates are handled by the /welcome page
+  const saveEnrichment = useCallback(async (_data?: {
+    careRecipient?: string;
+    urgency?: string;
   }) => {
     setSubmitting(true);
     try {
-      if (connectionId) {
-        // Guest users need claim token for authorization
-        let claimToken: string | undefined;
-        if (!user) {
-          try {
-            claimToken = localStorage.getItem(CLAIM_TOKEN_KEY) || undefined;
-          } catch {
-            // localStorage may fail in private browsing
-          }
-        }
-
-        await fetch("/api/connections/update-intent", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            connectionId,
-            careRecipient: data.careRecipient,
-            urgency: data.urgency,
-            ...(claimToken ? { claimToken } : {}),
-          }),
-        });
-      }
-    } catch {
-      // Non-blocking
-    } finally {
-      setSubmitting(false);
-      // Unified experience: redirect to /welcome
+      // Unified experience: redirect to /welcome (profile updates happen there)
       if (connectionId && onConnectionCreated) {
         onConnectionCreated(connectionId);
       } else if (connectionId) {
@@ -630,8 +606,10 @@ export function useConnectionCard(props: ConnectionCardProps) {
       } else {
         setCardState("connected");
       }
+    } finally {
+      setSubmitting(false);
     }
-  }, [connectionId, onConnectionCreated, user, router, providerSlug]);
+  }, [connectionId, onConnectionCreated, router, providerSlug]);
 
   const skipEnrichment = useCallback(() => {
     // Unified experience: redirect to /welcome

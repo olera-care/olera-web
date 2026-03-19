@@ -518,48 +518,85 @@ async function handleGuestConnection({
     });
   }
 
-  // Build message payload
-  const firstName = normalizedEmail.split("@")[0] || "";
-
-  const messagePayload = JSON.stringify({
-    care_recipient: intentData?.careRecipient || null,
-    care_type: intentData?.careType || null,
-    care_type_other: intentData?.careTypeOtherText || null,
-    urgency: intentData?.urgency || null,
-    additional_notes: intentData?.additionalNotes || null,
-    contact_preference: null,
-    seeker_phone: null,
-    seeker_email: normalizedEmail,
-    seeker_first_name: firstName,
-    seeker_last_name: "",
-  });
-
-  // Look up provider info for notifications
+  // Look up provider info for summary card and notifications
   let providerEmail: string | null = null;
   let providerDisplayName: string | null = null;
+  let providerCity: string | null = null;
+  let providerState: string | null = null;
   try {
     const { data: bp } = await db
       .from("business_profiles")
-      .select("email, display_name")
+      .select("email, display_name, city, state")
       .eq("id", toProfileId)
       .single();
     providerEmail = bp?.email || null;
     providerDisplayName = bp?.display_name || null;
+    providerCity = bp?.city || null;
+    providerState = bp?.state || null;
 
-    if (!providerEmail) {
+    // Fallback to olera-providers for email and location
+    if (!providerEmail || !providerCity) {
       const { data: ios } = await db
         .from("olera-providers")
-        .select("email")
+        .select("email, city, state")
         .eq("provider_id", providerId)
         .single();
-      providerEmail = ios?.email || null;
+      providerEmail = providerEmail || ios?.email || null;
+      providerCity = providerCity || ios?.city || null;
+      providerState = providerState || ios?.state || null;
     }
   } catch {
     // Non-blocking
   }
 
+  // Build message payload with all available seeker info
+  const seekerName = guestFullName?.trim() || displayName;
+  const nameParts = seekerName.split(/\s+/);
+  const firstName = nameParts[0] || normalizedEmail.split("@")[0] || "";
+  const lastName = nameParts.slice(1).join(" ") || "";
+  const normalizedPhone = guestPhone ? normalizeUSPhone(guestPhone) : null;
+
+  // Build location string for summary
+  const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+
+  const messagePayload = JSON.stringify({
+    // Seeker identity (always available)
+    seeker_name: seekerName,
+    seeker_first_name: firstName,
+    seeker_last_name: lastName,
+    seeker_email: normalizedEmail,
+    seeker_phone: normalizedPhone,
+    // Location context (from provider)
+    looking_in_city: providerCity,
+    looking_in_state: providerState,
+    // Custom message from form
+    message: intentData?.additionalNotes || null,
+    // Care details (may be filled later via profile)
+    care_recipient: intentData?.careRecipient || null,
+    care_type: intentData?.careType || null,
+    care_type_other: intentData?.careTypeOtherText || null,
+    urgency: intentData?.urgency || null,
+    // Legacy field for backward compatibility
+    additional_notes: intentData?.additionalNotes || null,
+    contact_preference: null,
+  });
+
+  // Build auto_intro - a natural language summary
+  let autoIntro: string;
+  if (intentData?.additionalNotes) {
+    // User wrote a custom message - use it as the intro
+    autoIntro = intentData.additionalNotes;
+  } else if (locationStr) {
+    // No custom message - generate based on location
+    autoIntro = `${firstName} is interested in care services in ${locationStr}.`;
+  } else {
+    // Fallback
+    autoIntro = `${firstName} is interested in learning more about your services.`;
+  }
+
   // Build connection metadata
   const connectionMetadata: Record<string, unknown> = {};
+  connectionMetadata.auto_intro = autoIntro;
   if (!providerEmail) connectionMetadata.needs_provider_email = true;
 
   // Auto-reply from provider (marked as auto to exclude from unread reminders)
@@ -1070,73 +1107,121 @@ export async function POST(request: Request) {
       });
     }
 
-    // 5. Build message payload
-    const nameParts = (account.display_name || "").trim().split(/\s+/);
-    const firstName = nameParts[0] || "";
-    const lastName = nameParts.slice(1).join(" ") || "";
-
-    const messagePayload = JSON.stringify({
-      care_recipient: intentData?.careRecipient || null,
-      care_type: intentData?.careType || null,
-      care_type_other: intentData?.careTypeOtherText || null,
-      urgency: intentData?.urgency || null,
-      additional_notes: intentData?.additionalNotes || null,
-      contact_preference: null,
-      seeker_phone: null,
-      seeker_email: user.email || "",
-      seeker_first_name: firstName,
-      seeker_last_name: lastName,
-    });
-
-    // 6a. Look up provider email (used for metadata flag + notification)
+    // 5. Look up provider info for summary card and notifications
     let providerEmail: string | null = null;
     let providerDisplayName: string | null = null;
+    let providerCity: string | null = null;
+    let providerState: string | null = null;
     try {
       const { data: bp } = await db
         .from("business_profiles")
-        .select("email, display_name")
+        .select("email, display_name, city, state")
         .eq("id", toProfileId)
         .single();
       providerEmail = bp?.email || null;
       providerDisplayName = bp?.display_name || null;
+      providerCity = bp?.city || null;
+      providerState = bp?.state || null;
 
-      if (!providerEmail) {
+      // Fallback to olera-providers for email and location
+      if (!providerEmail || !providerCity) {
         const { data: ios } = await db
           .from("olera-providers")
-          .select("email")
+          .select("email, city, state")
           .eq("provider_id", providerId)
           .single();
-        providerEmail = ios?.email || null;
+        providerEmail = providerEmail || ios?.email || null;
+        providerCity = providerCity || ios?.city || null;
+        providerState = providerState || ios?.state || null;
       }
     } catch {
       // Non-blocking
     }
 
-    // 6. Build auto-intro message from profile + intent data
-    let autoIntro: string | null = null;
+    // 6. Get seeker's profile data for richer summary card
+    let seekerPhone: string | null = null;
+    let seekerCareTypes: string[] = [];
+    let seekerRelationship: string | null = null;
+    let seekerTimeline: string | null = null;
     try {
-      const [{ data: familyProfile }, { data: providerProfile }] = await Promise.all([
-        db.from("business_profiles").select("care_types, metadata").eq("id", fromProfileId).single(),
-        db.from("business_profiles").select("care_types").eq("id", toProfileId).single(),
-      ]);
+      const { data: familyProfile } = await db
+        .from("business_profiles")
+        .select("phone, care_types, metadata")
+        .eq("id", fromProfileId)
+        .single();
 
+      seekerPhone = familyProfile?.phone || null;
+      seekerCareTypes = familyProfile?.care_types || [];
       const familyMeta = (familyProfile?.metadata || {}) as Record<string, string | undefined>;
-      autoIntro = buildIntroMessage(
-        familyProfile?.care_types || [],
-        providerProfile?.care_types || [],
-        familyMeta.relationship_to_recipient,
-        familyMeta.timeline,
-        intentData?.careType,
-        intentData?.careRecipient,
-        intentData?.urgency,
-      );
+      seekerRelationship = familyMeta.relationship_to_recipient || null;
+      seekerTimeline = familyMeta.timeline || null;
     } catch {
-      // Non-blocking — connection creation should not fail if intro generation fails
+      // Non-blocking
     }
 
-    // 7. Build connection metadata with auto-intro and provider auto-reply
+    // Build message payload with all available seeker info
+    const seekerName = account.display_name || user.email?.split("@")[0] || "";
+    const nameParts = seekerName.trim().split(/\s+/);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    // Build location string for summary
+    const locationStr = [providerCity, providerState].filter(Boolean).join(", ");
+
+    // Resolve care details: prefer intent data, fall back to profile data
+    const careRecipient = intentData?.careRecipient || seekerRelationship;
+    const careType = intentData?.careType || (seekerCareTypes.length > 0 ? seekerCareTypes[0] : null);
+    const urgency = intentData?.urgency || seekerTimeline;
+
+    const messagePayload = JSON.stringify({
+      // Seeker identity (always available)
+      seeker_name: seekerName,
+      seeker_first_name: firstName,
+      seeker_last_name: lastName,
+      seeker_email: user.email || "",
+      seeker_phone: seekerPhone,
+      // Location context (from provider)
+      looking_in_city: providerCity,
+      looking_in_state: providerState,
+      // Custom message from form
+      message: intentData?.additionalNotes || null,
+      // Care details (from intent or profile)
+      care_recipient: careRecipient,
+      care_type: careType,
+      care_type_other: intentData?.careTypeOtherText || null,
+      urgency: urgency,
+      // Legacy field for backward compatibility
+      additional_notes: intentData?.additionalNotes || null,
+      contact_preference: null,
+    });
+
+    // 7. Build auto-intro message
+    let autoIntro: string;
+    if (intentData?.additionalNotes) {
+      // User wrote a custom message - use it
+      autoIntro = intentData.additionalNotes;
+    } else {
+      // Try to build from profile data using existing function
+      const generatedIntro = buildIntroMessage(
+        seekerCareTypes,
+        [], // provider care types not needed for this
+        seekerRelationship || undefined,
+        seekerTimeline || undefined,
+        careType,
+        careRecipient,
+        urgency,
+      );
+      // If buildIntroMessage returns generic fallback, use location-based intro instead
+      if (generatedIntro === "Hi, I'd love to learn more about your services." && locationStr) {
+        autoIntro = `${firstName} is interested in care services in ${locationStr}.`;
+      } else {
+        autoIntro = generatedIntro;
+      }
+    }
+
+    // 8. Build connection metadata with auto-intro and provider auto-reply
     const connectionMetadata: Record<string, unknown> = {};
-    if (autoIntro) connectionMetadata.auto_intro = autoIntro;
+    connectionMetadata.auto_intro = autoIntro;
     if (!providerEmail) connectionMetadata.needs_provider_email = true;
 
     // Seed an automatic reply from the provider so the seeker has an

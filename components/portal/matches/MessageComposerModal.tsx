@@ -138,8 +138,6 @@ export default function MessageComposerModal({
                 {initials}
               </div>
             )}
-            {/* Online indicator */}
-            <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white" />
           </div>
 
           {/* Provider info */}

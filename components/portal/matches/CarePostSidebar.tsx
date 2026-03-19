@@ -566,7 +566,7 @@ export default function CarePostSidebar({
         <p className="text-[13px] text-gray-600 leading-relaxed">
           {interestedCount > 0
             ? <>Take your time. There&apos;s <span className="font-semibold text-gray-800">no pressure</span> to respond immediately.</>
-            : <>Most providers respond within <span className="font-semibold text-gray-800">3–5 days</span> of seeing a matching profile.</>
+            : <>Providers typically respond within <span className="font-semibold text-gray-800">3–5 days</span>. We&apos;ll email you when someone reaches out.</>
           }
         </p>
       </div>

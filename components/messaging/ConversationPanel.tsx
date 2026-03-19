@@ -4,14 +4,12 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
 import type { Profile } from "@/lib/types";
 import type { ConnectionWithProfile } from "./ConversationList";
-import EditCareRequestModal from "./EditCareRequestModal";
 
 interface ConversationPanelProps {
   connection: ConnectionWithProfile | null;
   activeProfile: Profile | null;
   onMessageSent: (connectionId: string, thread: ThreadMessage[]) => void;
   onSendMessage?: (connectionId: string, text: string) => Promise<ThreadMessage[]>;
-  onCareRequestUpdated?: (connectionId: string, message: string, metadata: Record<string, unknown>) => void;
   onBack?: () => void;
   detailOpen?: boolean;
   onToggleDetail?: () => void;
@@ -47,11 +45,22 @@ function getAutoIntro(metadata: Record<string, unknown> | undefined): string | n
 }
 
 interface CareRequestData {
+  // Core seeker identity (always available)
+  seekerName: string | null;
+  seekerFirstName: string | null;
+  seekerEmail: string | null;
+  seekerPhone: string | null;
+  // Location context
+  lookingInCity: string | null;
+  lookingInState: string | null;
+  // Custom message
+  message: string | null;
+  // Care details (may be null for new flow)
   careType: string | null;
   careRecipient: string | null;
   urgency: string | null;
+  // Legacy field
   additionalNotes: string | null;
-  seekerName: string | null;
 }
 
 const CARE_TYPE_LABELS: Record<string, string> = {
@@ -79,13 +88,26 @@ function parseCareRequest(message: string | null): CareRequestData | null {
   if (!message) return null;
   try {
     const p = JSON.parse(message);
-    if (!p.care_type && !p.care_recipient && !p.urgency) return null;
+    // Accept if we have any meaningful data (name, email, care details, or message)
+    const hasData = p.seeker_name || p.seeker_email || p.care_type || p.care_recipient || p.message || p.additional_notes;
+    if (!hasData) return null;
     return {
+      // Core identity
+      seekerName: p.seeker_name || [p.seeker_first_name, p.seeker_last_name].filter(Boolean).join(" ") || null,
+      seekerFirstName: p.seeker_first_name || null,
+      seekerEmail: p.seeker_email || null,
+      seekerPhone: p.seeker_phone || null,
+      // Location
+      lookingInCity: p.looking_in_city || null,
+      lookingInState: p.looking_in_state || null,
+      // Message
+      message: p.message || null,
+      // Care details
       careType: p.care_type || null,
       careRecipient: p.care_recipient || null,
       urgency: p.urgency || null,
+      // Legacy
       additionalNotes: p.additional_notes || null,
-      seekerName: [p.seeker_first_name, p.seeker_last_name].filter(Boolean).join(" ") || null,
     };
   } catch {
     return null;
@@ -145,7 +167,7 @@ const HomeIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 // ── Care Request Card ──
 
-function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, editable, connectionId, autoIntro, onUpdated, claimToken }: {
+function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, otherInitial, imageUrl, autoIntro }: {
   careRequest: CareRequestData;
   time: string;
   dateStr: string;
@@ -153,14 +175,12 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
   otherName: string;
   otherInitial: string;
   imageUrl?: string | null;
-  editable: boolean;
-  connectionId: string;
   autoIntro?: string | null;
-  onUpdated?: (message: string, metadata: Record<string, unknown>) => void;
-  claimToken?: string | null;
 }) {
-  const [editOpen, setEditOpen] = useState(false);
   const senderName = careRequest.seekerName;
+  const locationStr = [careRequest.lookingInCity, careRequest.lookingInState].filter(Boolean).join(", ");
+  const displayMessage = careRequest.message || careRequest.additionalNotes;
+  const hasEnhancedDetails = careRequest.careType || careRequest.careRecipient || careRequest.urgency;
 
   return (
     <div className={isInbound ? "flex items-end gap-2.5" : "flex justify-end"}>
@@ -187,33 +207,59 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
                 </svg>
               </div>
               <span className="text-sm font-bold text-white">Care Request</span>
-              {editable && (
-                <button
-                  onClick={() => setEditOpen(true)}
-                  className="ml-auto flex items-center gap-1.5 min-h-[44px] px-3 -mr-2 rounded-lg hover:bg-white/15 transition-colors"
-                  aria-label="Edit care request"
-                >
-                  <svg className="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                  <span className="text-xs font-medium text-white/80">Edit</span>
-                </button>
-              )}
             </div>
           </div>
 
-          {/* Body — compact summary */}
+          {/* Body — rich summary */}
           <div className="bg-white px-5 pt-4 pb-4">
-            {/* Care type — hero heading */}
-            {careRequest.careType && (
+            {/* Seeker name — hero heading */}
+            {senderName && (
               <h3 className="text-lg font-display font-bold text-gray-900 leading-tight">
-                {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
+                {senderName}
               </h3>
             )}
 
-            {/* Recipient + Timeline — inline chips */}
-            {(careRequest.careRecipient || careRequest.urgency) && (
-              <div className="flex items-center gap-1.5 flex-wrap mt-2.5">
+            {/* Location subtitle */}
+            {locationStr && (
+              <p className="text-[14px] text-gray-500 mt-0.5 flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Looking for care in {locationStr}
+              </p>
+            )}
+
+            {/* Contact info */}
+            {(careRequest.seekerEmail || careRequest.seekerPhone) && (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-[13px] text-gray-600">
+                {careRequest.seekerEmail && (
+                  <a href={`mailto:${careRequest.seekerEmail}`} className="flex items-center gap-1.5 hover:text-primary-600 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    {careRequest.seekerEmail}
+                  </a>
+                )}
+                {careRequest.seekerPhone && (
+                  <a href={`tel:${careRequest.seekerPhone}`} className="flex items-center gap-1.5 hover:text-primary-600 transition-colors">
+                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    {careRequest.seekerPhone}
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* Care details chips (when available) */}
+            {hasEnhancedDetails && (
+              <div className="flex items-center gap-1.5 flex-wrap mt-3 pt-3 border-t border-dashed border-gray-200">
+                {careRequest.careType && (
+                  <span className="inline-flex items-center gap-1.5 text-[13px] text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full font-medium">
+                    {CARE_TYPE_LABELS[careRequest.careType] || careRequest.careType}
+                  </span>
+                )}
                 {careRequest.careRecipient && (
                   <span className="inline-flex items-center gap-1.5 text-[13px] text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
                     <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,11 +268,8 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
                     {RECIPIENT_LABELS[careRequest.careRecipient] || careRequest.careRecipient}
                   </span>
                 )}
-                {careRequest.careRecipient && careRequest.urgency && (
-                  <span className="text-gray-300">&middot;</span>
-                )}
                 {careRequest.urgency && (
-                  <span className="inline-flex items-center gap-1.5 text-[13px] text-primary-700 bg-primary-50 px-2.5 py-1 rounded-full">
+                  <span className="inline-flex items-center gap-1.5 text-[13px] text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -236,52 +279,34 @@ function CareRequestCard({ careRequest, time, dateStr, isInbound, otherName, oth
               </div>
             )}
 
-            {/* Auto-intro quote */}
-            {autoIntro && (
-              <div className="mt-3.5 pt-3.5 border-t border-dashed border-gray-200">
-                <p className="text-[14px] text-gray-500 leading-relaxed italic">
-                  &ldquo;{autoIntro}&rdquo;
+            {/* Custom message */}
+            {displayMessage && (
+              <div className={`${hasEnhancedDetails ? "mt-3" : "mt-3.5 pt-3.5 border-t border-dashed border-gray-200"}`}>
+                <p className="text-[14px] text-gray-600 leading-relaxed">
+                  &ldquo;{displayMessage}&rdquo;
                 </p>
               </div>
             )}
 
-            {/* Additional notes (if different from auto-intro) */}
-            {careRequest.additionalNotes && careRequest.additionalNotes !== autoIntro && (
-              <div className={`${autoIntro ? "mt-2" : "mt-3.5 pt-3.5 border-t border-dashed border-gray-200"}`}>
+            {/* Auto-intro (if different from message) */}
+            {autoIntro && autoIntro !== displayMessage && (
+              <div className="mt-2">
                 <p className="text-[14px] text-gray-500 leading-relaxed italic">
-                  &ldquo;{careRequest.additionalNotes}&rdquo;
+                  {autoIntro}
                 </p>
               </div>
             )}
           </div>
 
-          {/* Footer — sender name + date */}
+          {/* Footer — date only (name is now in header) */}
           <div className="bg-gray-50 px-5 py-2.5 border-t border-gray-100">
             <p className="text-xs text-gray-400">
-              {isInbound
-                ? `From ${senderName || otherName}`
-                : senderName || "You"
-              }
-              {" "}&middot; {dateStr}
+              {dateStr}
             </p>
           </div>
         </div>
         <p className={`text-xs text-gray-400 mt-1.5 ${isInbound ? "ml-1" : "text-right mr-1"}`}>{time}</p>
       </div>
-
-      {/* Edit modal */}
-      {editOpen && (
-        <EditCareRequestModal
-          careRequest={careRequest}
-          connectionId={connectionId}
-          onClose={() => setEditOpen(false)}
-          onSaved={(message, metadata) => {
-            setEditOpen(false);
-            onUpdated?.(message, metadata);
-          }}
-          claimToken={claimToken}
-        />
-      )}
     </div>
   );
 }
@@ -293,7 +318,6 @@ export default function ConversationPanel({
   activeProfile,
   onMessageSent,
   onSendMessage,
-  onCareRequestUpdated,
   onBack,
   detailOpen,
   onToggleDetail,
@@ -507,13 +531,7 @@ export default function ConversationPanel({
                   otherName={otherName}
                   otherInitial={otherInitial}
                   imageUrl={imageUrl}
-                  editable={!isInbound && (connection.status === "pending" || connection.status === "accepted")}
-                  connectionId={connection.id}
                   autoIntro={autoIntro}
-                  onUpdated={(message, metadata) => {
-                    onCareRequestUpdated?.(connection.id, message, metadata);
-                  }}
-                  claimToken={claimToken}
                 />
               ) : initialNotes ? (
                 /* Fallback to simple bubble when no structured data */

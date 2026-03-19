@@ -63,6 +63,13 @@ export async function POST(request: Request) {
 
     const fromProfileId = account.active_profile_id;
 
+    // Get the family profile info for the summary card
+    const { data: familyProfile } = await db
+      .from("business_profiles")
+      .select("display_name, email, phone, city, state")
+      .eq("id", fromProfileId)
+      .single();
+
     // Get provider info from olera-providers
     const { data: provider, error: providerErr } = await db
       .from("olera-providers")
@@ -138,6 +145,37 @@ export async function POST(request: Request) {
       });
     }
 
+    // Build message payload with seeker info for summary card
+    const seekerName = familyProfile?.display_name || user.email?.split("@")[0] || "";
+    const nameParts = seekerName.trim().split(/\s+/);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    const messagePayload = JSON.stringify({
+      // Seeker identity
+      seeker_name: seekerName,
+      seeker_first_name: firstName,
+      seeker_last_name: lastName,
+      seeker_email: familyProfile?.email || user.email || "",
+      seeker_phone: familyProfile?.phone || null,
+      // Location context (from provider)
+      looking_in_city: provider.city,
+      looking_in_state: provider.state,
+      // Custom message
+      message: message.trim(),
+      // Care details (may be added from profile later)
+      care_recipient: null,
+      care_type: null,
+      urgency: null,
+      additional_notes: message.trim(),
+    });
+
+    // Build auto_intro
+    const locationStr = [provider.city, provider.state].filter(Boolean).join(", ");
+    const autoIntro = message.trim() || (locationStr
+      ? `${firstName} is interested in care services in ${locationStr}.`
+      : `${firstName} is interested in learning more about your services.`);
+
     // Create the connection
     const { data: connection, error: connectionErr } = await db
       .from("connections")
@@ -146,10 +184,19 @@ export async function POST(request: Request) {
         to_profile_id: toProfileId,
         type: "inquiry",
         status: "pending",
-        message: message.trim(),
+        message: messagePayload,
         metadata: {
           source: "matches_recommendation",
           provider_id: providerId,
+          auto_intro: autoIntro,
+          thread: [
+            {
+              from_profile_id: toProfileId,
+              text: `Hello ${firstName || "there"}, thank you for reaching out. We're reviewing your request and will get back to you shortly.`,
+              created_at: new Date().toISOString(),
+              is_auto_reply: true,
+            },
+          ],
         },
       })
       .select("id")

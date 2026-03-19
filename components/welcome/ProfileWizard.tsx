@@ -434,9 +434,8 @@ export default function ProfileWizard({
   return (
     <Modal isOpen onClose={onClose} size="2xl">
       <div className="flex flex-col min-h-[500px]">
-        {/* Clean Header — no divider, minimal progress */}
-        {/* Note: Modal already provides header padding, so we use minimal pt here */}
-        <div className="px-1 pt-2 pb-2">
+        {/* Clean Header — pull up to align with close button */}
+        <div className="px-1 -mt-2 pb-2">
           {/* Step counter — subtle */}
           <p className="text-sm text-gray-400 mb-2">
             Step {currentStep + 1} of {STEPS.length}

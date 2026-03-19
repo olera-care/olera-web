@@ -302,8 +302,8 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
     return (
       <Modal isOpen onClose={onClose} size="2xl">
         <div className="flex flex-col max-h-[80vh]">
-          {/* Header — Modal already provides padding, so use minimal pt */}
-          <div className="px-1 pt-2 pb-4 border-b border-gray-100">
+          {/* Header — pull up to align with close button */}
+          <div className="px-1 -mt-2 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
                 <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,8 +399,8 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
   return (
     <Modal isOpen onClose={onClose} size="2xl">
       <div className="flex flex-col min-h-[500px]">
-        {/* Header — Modal already provides padding, so use minimal pt */}
-        <div className="px-1 pt-2 pb-2">
+        {/* Header — pull up to align with close button */}
+        <div className="px-1 -mt-2 pb-2">
           <p className="text-sm text-gray-400 mb-2">
             Step {currentStep + 1} of {STEPS.length}
           </p>

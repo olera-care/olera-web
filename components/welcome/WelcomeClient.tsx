@@ -384,6 +384,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // Track if user has viewed benefits (for gamification)
   const [hasViewedBenefits, setHasViewedBenefits] = useState(false);
 
+  // Track if user has completed the onboarding (made a Go Live decision)
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+
   // Celebration state
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationShown, setCelebrationShown] = useState(false);
@@ -397,6 +400,10 @@ export default function WelcomeClient({ destination, initialProviders = [], init
       const viewed = localStorage.getItem("olera_viewed_benefits");
       if (viewed === "true") {
         setHasViewedBenefits(true);
+      }
+      const completed = localStorage.getItem("olera_completed_onboarding");
+      if (completed === "true") {
+        setHasCompletedOnboarding(true);
       }
       const celebrated = localStorage.getItem("olera_onboarding_celebrated");
       if (celebrated === "true") {
@@ -670,7 +677,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // NOTE: These calculations and the useEffect MUST be before any conditional returns
   // to avoid the "Rendered more hooks than during the previous render" error
   const profileComplete = profilePercentage >= 50;
-  const allStepsComplete = profileComplete && hasViewedBenefits && isProfileLive;
+  // Show "All Set" page when user has: 1) complete profile 2) viewed benefits 3) made a Go Live decision (or is already live)
+  const allStepsComplete = profileComplete && hasViewedBenefits && (isProfileLive || hasCompletedOnboarding);
 
   // Trigger celebration when all steps complete (only once)
   useEffect(() => {
@@ -1401,21 +1409,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             userEmail={user?.email}
             onClose={() => setProfileWizardOpen(false)}
             onComplete={() => {
+              // Profile wizard done - user stays on welcome page
+              // The Matches card will be highlighted to prompt them to go live
               refreshAccountData();
               setProfileWizardOpen(false);
             }}
             onStepSaved={() => {
               // Refresh profile data after each step so percentage updates live
-              refreshAccountData();
-            }}
-            onGoLive={async () => {
-              // Activate profile and redirect to matches
-              await completeOnboarding(true, false, "/portal/matches");
-            }}
-            onSkipGoLive={() => {
-              // Just close the wizard, don't activate
-              // Profile stays not live, user can activate later
-              setProfileWizardOpen(false);
               refreshAccountData();
             }}
           />
@@ -1449,8 +1449,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               });
               if (res.ok) {
                 await refreshAccountData?.();
+                // Mark onboarding complete and persist
+                setHasCompletedOnboarding(true);
+                try {
+                  localStorage.setItem("olera_completed_onboarding", "true");
+                } catch { /* localStorage not available */ }
                 setGoLiveModalOpen(false);
-                router.push("/portal/matches");
+                // Stay on welcome page - will now show "All Set" view
               }
             } catch (err) {
               console.error("[welcome] Failed to activate profile:", err);
@@ -1459,11 +1464,14 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             }
           }}
           onSkip={() => {
+            // Mark onboarding complete even though they didn't go live
+            setHasCompletedOnboarding(true);
+            try {
+              localStorage.setItem("olera_completed_onboarding", "true");
+            } catch { /* localStorage not available */ }
             setGoLiveModalOpen(false);
-            // Stay on welcome page, profile NOT live
+            // Stay on welcome page - will now show "All Set" view (without LIVE badge)
           }}
-          canGoLive={canGoLive}
-          missingItems={goLiveMissingItems}
         />
       </div>
     );

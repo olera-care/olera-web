@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
-import GoLiveModal from "@/components/welcome/GoLiveModal";
+import ProfileCompleteModal from "@/components/welcome/ProfileCompleteModal";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -91,10 +91,6 @@ interface ProfileWizardProps {
   onComplete: () => void;
   /** Called after each step is saved — use to refresh profile data */
   onStepSaved?: () => void;
-  /** Called when user chooses to go live from the activation modal */
-  onGoLive?: () => Promise<void>;
-  /** Called when user skips going live (chooses "Not now") */
-  onSkipGoLive?: () => void;
 }
 
 const STEPS = [
@@ -113,14 +109,12 @@ export default function ProfileWizard({
   onClose,
   onComplete,
   onStepSaved,
-  onGoLive,
-  onSkipGoLive,
 }: ProfileWizardProps) {
   const meta = (profile.metadata || {}) as FamilyMetadata;
 
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [showGoLiveModal, setShowGoLiveModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   // Overview fields
   const [displayName, setDisplayName] = useState(profile.display_name || "");
@@ -323,9 +317,9 @@ export default function ProfileWizard({
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Last step — clear draft and show Go Live modal
+      // Last step — clear draft and show completion modal
       clearDraft();
-      setShowGoLiveModal(true);
+      setShowCompleteModal(true);
     }
   };
 
@@ -340,25 +334,13 @@ export default function ProfileWizard({
       setCurrentStep(currentStep + 1);
     } else {
       clearDraft();
-      setShowGoLiveModal(true);
+      setShowCompleteModal(true);
     }
   };
 
-  // Called when user chooses to go live
-  const handleGoLive = async () => {
+  // Called when user clicks Continue in the completion modal
+  const handleContinue = () => {
     clearDraft();
-    if (onGoLive) {
-      await onGoLive();
-    }
-    onComplete();
-  };
-
-  // Called when user chooses "Not now"
-  const handleSkipGoLive = () => {
-    clearDraft();
-    if (onSkipGoLive) {
-      onSkipGoLive();
-    }
     onComplete();
   };
 
@@ -382,24 +364,12 @@ export default function ProfileWizard({
     </button>
   );
 
-  // ── Go Live Modal ──
-  // Check if user has minimum data to go live (location + care types)
-  const hasLocation = !!(city && state);
-  const hasCareTypes = careTypes.length > 0;
-  const canGoLive = hasLocation && hasCareTypes;
-  const missingItems: string[] = [];
-  if (!hasLocation) missingItems.push("location");
-  if (!hasCareTypes) missingItems.push("care preferences");
-
-  if (showGoLiveModal) {
+  // ── Profile Complete Modal ──
+  if (showCompleteModal) {
     return (
-      <GoLiveModal
+      <ProfileCompleteModal
         isOpen
-        onClose={onClose}
-        onGoLive={handleGoLive}
-        onSkip={handleSkipGoLive}
-        canGoLive={canGoLive}
-        missingItems={missingItems}
+        onContinue={handleContinue}
       />
     );
   }

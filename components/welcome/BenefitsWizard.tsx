@@ -299,30 +299,30 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
     const topMatches = result.matchedPrograms.slice(0, 5);
     const savedCount = topMatches.filter(m => isSaved(m.program.name)).length;
 
-    return (
-      <Modal isOpen onClose={onClose} size="2xl">
-        <div className="flex flex-col max-h-[80vh]">
-          {/* Header */}
-          <div className="px-1 pb-4 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-                <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {result.matchedPrograms.length} programs found
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Based on your answers in {locationDisplay}
-                </p>
-              </div>
-            </div>
-          </div>
+    // Results header for Modal title
+    const resultsHeader = (
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+          <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {result.matchedPrograms.length} programs found
+          </h2>
+          <p className="text-sm text-gray-500">
+            Based on your answers in {locationDisplay}
+          </p>
+        </div>
+      </div>
+    );
 
+    return (
+      <Modal isOpen onClose={onClose} size="2xl" title={resultsHeader}>
+        <div className="flex flex-col max-h-[80vh]">
           {/* Results List */}
-          <div className="flex-1 overflow-y-auto px-1 py-4">
+          <div className="flex-1 overflow-y-auto py-4">
             <div className="space-y-3">
               {topMatches.map((match) => (
                 <ProgramCard
@@ -381,13 +381,12 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
   // ── Loading Screen ──
   if (pageState === "loading") {
     return (
-      <Modal isOpen onClose={onClose} size="md">
-        <div className="py-12 px-4 text-center">
+      <Modal isOpen onClose={onClose} size="md" title="Finding programs...">
+        <div className="py-8 text-center">
           <div className="w-12 h-12 mx-auto mb-4">
             <div className="w-12 h-12 border-3 border-primary-500 border-t-transparent rounded-full animate-spin" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900">Finding programs...</h2>
-          <p className="text-sm text-gray-500 mt-1">Matching you with benefits you may qualify for</p>
+          <p className="text-sm text-gray-500">Matching you with benefits you may qualify for</p>
         </div>
       </Modal>
     );
@@ -396,20 +395,22 @@ export default function BenefitsWizard({ profile, onClose, onComplete }: Benefit
   // ── Main Wizard ──
   const step = STEPS[currentStep];
 
-  return (
-    <Modal isOpen onClose={onClose} size="2xl">
-      <div className="flex flex-col min-h-[500px]">
-        {/* Header */}
-        <div className="px-1 pb-2">
-          <p className="text-sm text-gray-400 mb-2">
-            Step {currentStep + 1} of {STEPS.length}
-          </p>
-          <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
-          <p className="text-sm text-gray-500 mt-1">{step.subtitle}</p>
-        </div>
+  // Step header for Modal title
+  const stepHeader = (
+    <div>
+      <p className="text-sm text-gray-400 mb-1">
+        Step <span className="font-semibold text-gray-600">{currentStep + 1}</span> of {STEPS.length}
+      </p>
+      <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
+      <p className="text-sm text-gray-500 mt-0.5">{step.subtitle}</p>
+    </div>
+  );
 
+  return (
+    <Modal isOpen onClose={onClose} size="2xl" title={stepHeader}>
+      <div className="flex flex-col min-h-[420px]">
         {/* Form Content */}
-        <div className={`flex-1 px-1 py-4 ${step.id === "location" ? "overflow-visible" : "overflow-y-auto"}`}>
+        <div className={`flex-1 py-4 ${step.id === "location" ? "overflow-visible" : "overflow-y-auto"}`}>
 
           {/* Step 1: Location */}
           {step.id === "location" && (

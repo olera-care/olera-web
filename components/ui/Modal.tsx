@@ -6,7 +6,8 @@ import { createPortal } from "react-dom";
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string;
+  /** Title can be a string or React node for custom headers (e.g., step indicators) */
+  title?: ReactNode;
   children: ReactNode;
   /** Maximum width of the modal content. Default: "md" */
   size?: "sm" | "md" | "lg" | "xl" | "2xl";
@@ -198,9 +199,13 @@ export default function Modal({
             </button>
           )}
 
-          {/* Title (left-aligned) */}
+          {/* Title (left-aligned) — can be string or ReactNode */}
           {title ? (
-            <h2 className="text-xl sm:text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
+            typeof title === "string" ? (
+              <h2 className="text-xl sm:text-[28px] font-semibold text-gray-900 flex-1">{title}</h2>
+            ) : (
+              <div className="flex-1">{title}</div>
+            )
           ) : (
             <div className="flex-1" />
           )}

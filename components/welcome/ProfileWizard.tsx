@@ -431,23 +431,23 @@ export default function ProfileWizard({
     );
   }
 
+  // Step header for Modal title
+  const stepHeader = (
+    <div>
+      {/* Step indicator with emphasis */}
+      <p className="text-sm text-gray-400 mb-1">
+        Step <span className="font-semibold text-gray-600">{currentStep + 1}</span> of {STEPS.length}
+      </p>
+      <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
+      <p className="text-sm text-gray-500 mt-0.5">{step.subtitle}</p>
+    </div>
+  );
+
   return (
-    <Modal isOpen onClose={onClose} size="2xl">
-      <div className="flex flex-col min-h-[500px]">
-        {/* Header */}
-        <div className="px-1 pb-2">
-          {/* Step counter — subtle */}
-          <p className="text-sm text-gray-400 mb-2">
-            Step {currentStep + 1} of {STEPS.length}
-          </p>
-
-          {/* Step title */}
-          <h2 className="text-xl font-semibold text-gray-900">{step.title}</h2>
-          <p className="text-sm text-gray-500 mt-1">{step.subtitle}</p>
-        </div>
-
+    <Modal isOpen onClose={onClose} size="2xl" title={stepHeader}>
+      <div className="flex flex-col min-h-[420px]">
         {/* Form Content — overflow visible on step 1 for dropdown */}
-        <div className={`flex-1 px-1 py-4 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
+        <div className={`flex-1 py-4 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
           {/* ── Step 1: Basics ── */}
           {step.id === "basics" && (
             <div className="space-y-5">

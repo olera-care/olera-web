@@ -166,8 +166,7 @@ export default function GoLiveModal({
             Ready to be discovered?
           </h2>
           <p className="text-gray-500 leading-relaxed max-w-md mx-auto mb-8">
-            When you go live, care providers in your area can find you and reach out.
-            Your contact details stay private until you choose to share them.
+            Go live so providers can find and message you. Your contact details stay private until you share them.
           </p>
 
           {/* Visual benefit hints - minimal, elegant */}

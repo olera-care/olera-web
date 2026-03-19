@@ -708,8 +708,8 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   const isConnected = !!connection?.to_profile?.display_name;
 
   const needsProfileAttention = !profileComplete;
-  const needsBenefitsAttention = profileComplete && !hasViewedBenefits;
-  const needsMatchesAttention = profileComplete && hasViewedBenefits && !isProfileLive;
+  const needsBenefitsAttention = false; // Benefits is optional, not part of core onboarding
+  const needsMatchesAttention = profileComplete && !isProfileLive;
 
   // Toggle this to switch between new and old version during development
   const USE_NEW_VERSION = true;

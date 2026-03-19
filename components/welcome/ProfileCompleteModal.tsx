@@ -151,19 +151,11 @@ export default function ProfileCompleteModal({
           }`}
         >
           <h2 className="text-2xl font-display font-semibold text-gray-900 mb-3">
-            Beautifully done
+            Profile complete
           </h2>
-          <p className="text-gray-500 leading-relaxed max-w-sm mx-auto mb-8">
-            Your profile tells your story. Now local care providers can understand
-            exactly what you&apos;re looking for.
+          <p className="text-gray-500 leading-relaxed max-w-sm mx-auto mb-6">
+            Providers can now see what you&apos;re looking for. Go live to start receiving messages.
           </p>
-
-          {/* Subtle hint about next step */}
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-400 mb-6">
-            <span className="w-8 h-px bg-gray-200" />
-            <span>One more step to get discovered</span>
-            <span className="w-8 h-px bg-gray-200" />
-          </div>
         </div>
 
         {/* CTA Button */}

@@ -412,8 +412,8 @@ function MatchesContent() {
             )}
           </div>
 
-          {/* Right — Sidebar (1/3, desktop only) */}
-          <div className="hidden lg:block lg:col-span-1">
+          {/* Right — Sidebar (1/3, desktop only, sticky) */}
+          <div className="hidden lg:block lg:col-span-1 self-start">
             {activeProfile && (
               <CarePostSidebar
                 activeProfile={activeProfile}

@@ -2012,18 +2012,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
           }
         }
         .active-card {
-          background: linear-gradient(to bottom, #f8fffe, #ffffff) !important;
+          border: 1.5px solid rgba(25, 144, 135, 0.35) !important;
           box-shadow:
-            0 0 0 1px rgba(25, 144, 135, 0.08),
-            0 4px 20px rgba(25, 144, 135, 0.08),
-            0 8px 32px rgba(25, 144, 135, 0.04) !important;
-          animation: card-glow 3s ease-in-out infinite;
+            0 1px 3px rgba(0,0,0,0.08),
+            0 4px 12px rgba(0,0,0,0.05) !important;
         }
         .active-card:hover {
+          border-color: rgba(25, 144, 135, 0.5) !important;
           box-shadow:
-            0 0 0 1px rgba(25, 144, 135, 0.12),
-            0 8px 32px rgba(25, 144, 135, 0.12),
-            0 16px 48px rgba(25, 144, 135, 0.06) !important;
+            0 2px 8px rgba(0,0,0,0.12),
+            0 8px 24px rgba(0,0,0,0.08) !important;
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out forwards;

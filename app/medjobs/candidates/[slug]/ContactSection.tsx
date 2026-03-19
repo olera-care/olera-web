@@ -14,9 +14,13 @@ export default function ContactSection({
   studentPhone: string | null;
   studentSlug: string;
 }) {
-  const { activeProfile } = useAuth();
+  const { user, activeProfile, profiles } = useAuth();
   const isProvider = activeProfile?.type === "organization" || activeProfile?.type === "caregiver";
+  const hasProviderProfile = profiles.some(
+    (p) => p.type === "organization" || p.type === "caregiver"
+  );
 
+  // State 1: Signed in as provider — full access
   if (isProvider) {
     return (
       <div className="mt-6 space-y-4">
@@ -67,7 +71,43 @@ export default function ContactSection({
     );
   }
 
-  // Not signed in as provider — show gate
+  // State 2: Signed in with a provider profile, but it's not the active one
+  if (user && hasProviderProfile) {
+    return (
+      <div className="mt-6 p-4 bg-primary-50 rounded-xl border border-primary-100">
+        <p className="text-sm text-gray-600">
+          <span className="font-medium text-gray-900">Switch to your provider profile</span>{" "}
+          to view contact info and schedule an interview with {studentName}.
+        </p>
+        <Link
+          href={`/provider/medjobs/candidates/${studentSlug}`}
+          className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm font-semibold text-white transition-colors"
+        >
+          Open in Provider Hub
+        </Link>
+      </div>
+    );
+  }
+
+  // State 3: Signed in but no provider profile at all
+  if (user) {
+    return (
+      <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <p className="text-sm text-gray-500">
+          <span className="font-medium text-gray-700">Want to connect with {studentName}?</span>
+          {" "}Create a provider profile to view contact information and reach out.
+        </p>
+        <Link
+          href="/for-providers/create"
+          className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm font-semibold text-white transition-colors"
+        >
+          Create Provider Profile
+        </Link>
+      </div>
+    );
+  }
+
+  // State 4: Not signed in at all
   return (
     <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
       <p className="text-sm text-gray-500">
@@ -75,10 +115,10 @@ export default function ContactSection({
         {" "}Sign in as a provider to view contact information and reach out directly.
       </p>
       <Link
-        href="/medjobs/providers"
+        href="/for-providers"
         className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm font-semibold text-white transition-colors"
       >
-        Learn More
+        Sign In as Provider
       </Link>
     </div>
   );

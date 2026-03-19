@@ -69,7 +69,7 @@ export default function GoogleReviewSnippets({
 
   const { rating, review_count, reviews } = googleReviewsData;
   const googleMapsUrl = placeId
-    ? `https://www.google.com/maps/place/?q=place_id:${placeId}`
+    ? `https://search.google.com/local/reviews?placeid=${placeId}`
     : `https://www.google.com/maps/search/${encodeURIComponent(providerName)}`;
 
   return (

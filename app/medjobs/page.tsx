@@ -104,7 +104,7 @@ export default function MedJobsPage() {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-20 pb-16">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 lg:pt-16 pb-10">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Copy */}
             <div>
@@ -136,11 +136,11 @@ export default function MedJobsPage() {
 
             {/* Hero image */}
             <div className="relative">
-              <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-gray-100 shadow-lg shadow-gray-200/50">
+              <div className="aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-lg shadow-gray-200/50">
                 <Image
                   src="/images/medjobs/hero-caregiving.jpg"
                   alt="Student caregiver helping a senior — Olera MedJobs"
-                  width={810}
+                  width={1080}
                   height={1080}
                   className="w-full h-full object-cover"
                   priority
@@ -152,7 +152,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* Trust bar — university logos */}
-      <section className="py-8 sm:py-10 border-b border-gray-100 bg-gray-50/50">
+      <section className="py-6 sm:py-8 border-b border-gray-100 bg-gray-50/50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <p className="text-xs text-center text-gray-400 uppercase tracking-widest font-medium mb-6">
             Students from universities across the country
@@ -179,7 +179,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* Testimonial #1 — woven between sections */}
-      <section className="py-14 sm:py-16">
+      <section className="py-10 sm:py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex items-start gap-5">
             <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-100">
@@ -197,7 +197,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* How it works */}
-      <section className="py-20 sm:py-28 bg-gray-50/70">
+      <section className="py-16 sm:py-20 bg-gray-50/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             {/* Photo — sticky on scroll */}
@@ -251,7 +251,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* For Students */}
-      <section className="py-20 sm:py-28">
+      <section className="py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -325,7 +325,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* Testimonial #2 */}
-      <section className="py-14 sm:py-16 bg-primary-50/40">
+      <section className="py-10 sm:py-12 bg-primary-50/40">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="flex items-start gap-5">
             <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-100">
@@ -343,7 +343,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* Meet the students */}
-      <section className="py-20 sm:py-28">
+      <section className="py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
             <p className="text-sm tracking-widest uppercase text-gray-400 font-medium mb-3">
@@ -381,7 +381,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* For Providers */}
-      <section className="py-20 sm:py-28 bg-gray-50">
+      <section className="py-16 sm:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Photo */}
@@ -440,7 +440,7 @@ export default function MedJobsPage() {
       </section>
 
       {/* Bottom CTA — warm, confident */}
-      <section className="relative py-24 sm:py-32 overflow-hidden">
+      <section className="relative py-16 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-white via-primary-50/30 to-primary-50/50" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight leading-tight">

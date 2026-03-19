@@ -203,10 +203,10 @@ export default function CarePostSidebar({
               </div>
               <div>
                 <h4 className="text-[15px] font-semibold text-gray-900">
-                  Go live to get matches
+                  Let providers find you
                 </h4>
                 <p className="text-[12px] text-gray-500">
-                  Let providers discover you
+                  Go live to start getting matched
                 </p>
               </div>
             </div>

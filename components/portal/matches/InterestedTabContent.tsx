@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import MatchProviderCard from "@/components/portal/matches/MatchProviderCard";
 import InterestedCardCompact from "@/components/portal/matches/InterestedCardCompact";
 import {
@@ -43,6 +44,7 @@ export default function InterestedTabContent({
   familyLng,
   variant = "desktop",
 }: InterestedTabContentProps) {
+  const router = useRouter();
   const { pending, declined, loading, updateLocal } =
     useInterestedProviders(profileId);
   const [declinedExpanded, setDeclinedExpanded] = useState(false);
@@ -79,13 +81,14 @@ export default function InterestedTabContent({
           return;
         }
 
-        // Remove from pending (they're now connected)
+        // Remove from pending and redirect to inbox
         updateLocal(item.id, "remove");
+        router.push(`/portal/inbox?id=${item.id}`);
       } catch {
         setActionError("Couldn't send message. Please try again.");
       }
     },
-    [pending, updateLocal]
+    [pending, updateLocal, router]
   );
 
   // ── Decline ──
@@ -460,7 +463,7 @@ export default function InterestedTabContent({
 
       {/* Pending cards */}
       {pending.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
           {pending.map((item) => {
             const profile = item.providerProfile;
             const meta = profile?.metadata as (OrganizationMetadata & CaregiverMetadata & Record<string, unknown>) | null;

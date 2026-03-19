@@ -670,13 +670,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
   // Gamification: attention moves through cards as user completes steps
   // 1. Profile card pulses until profile >= 50% complete
-  // 2. Benefits card pulses until they've visited (not necessarily saved)
-  // 3. Matches card pulses until profile is live
+  // 2. Matches card pulses until profile is live
   // NOTE: These calculations and the useEffect MUST be before any conditional returns
   // to avoid the "Rendered more hooks than during the previous render" error
   const profileComplete = profilePercentage >= 50;
-  // Show "All Set" page when user has: 1) complete profile 2) viewed benefits 3) made a Go Live decision (or is already live)
-  const allStepsComplete = profileComplete && hasViewedBenefits && (isProfileLive || hasCompletedOnboarding);
+  // Show "All Set" page when user has made a Go Live decision (either went live or explicitly skipped)
+  // The profile percentage is for gamification/progress tracking, not a gate for the celebration
+  const allStepsComplete = isProfileLive || hasCompletedOnboarding;
 
   // Trigger celebration when all steps complete (only once)
   useEffect(() => {

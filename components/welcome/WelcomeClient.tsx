@@ -14,6 +14,7 @@ import type { Provider } from "@/components/providers/ProviderCard";
 import { useProfileCompleteness } from "@/components/portal/profile/completeness";
 import ProfileWizard from "@/components/welcome/ProfileWizard";
 import BenefitsWizard from "@/components/welcome/BenefitsWizard";
+import GoLiveModal from "@/components/welcome/GoLiveModal";
 import type { FamilyMetadata } from "@/lib/types";
 
 // ============================================================
@@ -376,6 +377,9 @@ export default function WelcomeClient({ destination, initialProviders = [], init
 
   // Profile activation state (for "Go Live" action)
   const [activatingProfile, setActivatingProfile] = useState(false);
+
+  // Go Live modal state (shown from Matches card or after profile wizard)
+  const [goLiveModalOpen, setGoLiveModalOpen] = useState(false);
 
   // Track if user has viewed benefits (for gamification)
   const [hasViewedBenefits, setHasViewedBenefits] = useState(false);
@@ -1201,49 +1205,21 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                       </div>
                     </Link>
                   ) : canGoLive ? (
-                    // Ready to go live — button to activate
+                    // Ready to go live — button to show GoLiveModal
                     <button
-                      onClick={async () => {
-                        setActivatingProfile(true);
-                        try {
-                          const res = await fetch("/api/care-post/activate-matches", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              city: city || activeProfile?.city || undefined,
-                              state: activeProfile?.state || undefined,
-                            }),
-                          });
-                          if (res.ok) {
-                            await refreshAccountData?.();
-                            // Small delay to let state update, then celebration will trigger
-                          }
-                        } catch (err) {
-                          console.error("[welcome] Failed to activate profile:", err);
-                        } finally {
-                          setActivatingProfile(false);
-                        }
-                      }}
-                      disabled={activatingProfile}
-                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'animate-ring-breathe' : ''} disabled:opacity-70`}
+                      onClick={() => setGoLiveModalOpen(true)}
+                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-shadow group text-left ${needsMatchesAttention ? 'animate-ring-breathe' : ''}`}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
-                        {activatingProfile ? (
-                          <svg className="w-6 h-6 text-primary-500 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                        ) : (
-                          <svg viewBox="0 0 32 32" className="w-8 h-8">
-                            <rect x="6" y="4" width="20" height="26" rx="2" fill="#C5E8E4" stroke="#8BCDC5" strokeWidth="1.5"/>
-                            <rect x="9" y="8" width="14" height="10" rx="1" fill="#E0F2EF"/>
-                            <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
-                          </svg>
-                        )}
+                        <svg viewBox="0 0 32 32" className="w-8 h-8">
+                          <rect x="6" y="4" width="20" height="26" rx="2" fill="#C5E8E4" stroke="#8BCDC5" strokeWidth="1.5"/>
+                          <rect x="9" y="8" width="14" height="10" rx="1" fill="#E0F2EF"/>
+                          <rect x="13" y="20" width="6" height="10" fill="#8BCDC5"/>
+                        </svg>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-text-md font-semibold text-gray-900">
-                          {activatingProfile ? "Going live..." : "Go live & get matched"}
+                          Go live & get matched
                         </p>
                         <p className="text-text-sm mt-0.5 text-gray-500">
                           Let providers discover you
@@ -1432,6 +1408,16 @@ export default function WelcomeClient({ destination, initialProviders = [], init
               // Refresh profile data after each step so percentage updates live
               refreshAccountData();
             }}
+            onGoLive={async () => {
+              // Activate profile and redirect to matches
+              await completeOnboarding(true, false, "/portal/matches");
+            }}
+            onSkipGoLive={() => {
+              // Just close the wizard, don't activate
+              // Profile stays not live, user can activate later
+              setProfileWizardOpen(false);
+              refreshAccountData();
+            }}
           />
         )}
 
@@ -1445,6 +1431,40 @@ export default function WelcomeClient({ destination, initialProviders = [], init
             }}
           />
         )}
+
+        {/* Go Live Modal — shown when clicking Matches card */}
+        <GoLiveModal
+          isOpen={goLiveModalOpen}
+          onClose={() => setGoLiveModalOpen(false)}
+          onGoLive={async () => {
+            setActivatingProfile(true);
+            try {
+              const res = await fetch("/api/care-post/activate-matches", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  city: city || activeProfile?.city || undefined,
+                  state: activeProfile?.state || undefined,
+                }),
+              });
+              if (res.ok) {
+                await refreshAccountData?.();
+                setGoLiveModalOpen(false);
+                router.push("/portal/matches");
+              }
+            } catch (err) {
+              console.error("[welcome] Failed to activate profile:", err);
+            } finally {
+              setActivatingProfile(false);
+            }
+          }}
+          onSkip={() => {
+            setGoLiveModalOpen(false);
+            // Stay on welcome page, profile NOT live
+          }}
+          canGoLive={canGoLive}
+          missingItems={goLiveMissingItems}
+        />
       </div>
     );
   }

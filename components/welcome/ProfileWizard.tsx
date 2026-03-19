@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
+import GoLiveModal from "@/components/welcome/GoLiveModal";
 import type { BusinessProfile, FamilyMetadata } from "@/lib/types";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { useCitySearch } from "@/hooks/use-city-search";
@@ -90,6 +91,10 @@ interface ProfileWizardProps {
   onComplete: () => void;
   /** Called after each step is saved — use to refresh profile data */
   onStepSaved?: () => void;
+  /** Called when user chooses to go live from the activation modal */
+  onGoLive?: () => Promise<void>;
+  /** Called when user skips going live (chooses "Not now") */
+  onSkipGoLive?: () => void;
 }
 
 const STEPS = [
@@ -108,12 +113,14 @@ export default function ProfileWizard({
   onClose,
   onComplete,
   onStepSaved,
+  onGoLive,
+  onSkipGoLive,
 }: ProfileWizardProps) {
   const meta = (profile.metadata || {}) as FamilyMetadata;
 
   const [currentStep, setCurrentStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(false);
+  const [showGoLiveModal, setShowGoLiveModal] = useState(false);
 
   // Overview fields
   const [displayName, setDisplayName] = useState(profile.display_name || "");
@@ -316,9 +323,9 @@ export default function ProfileWizard({
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Last step — clear draft and show celebration
+      // Last step — clear draft and show Go Live modal
       clearDraft();
-      setShowCelebration(true);
+      setShowGoLiveModal(true);
     }
   };
 
@@ -333,12 +340,25 @@ export default function ProfileWizard({
       setCurrentStep(currentStep + 1);
     } else {
       clearDraft();
-      setShowCelebration(true);
+      setShowGoLiveModal(true);
     }
   };
 
-  const handleFinish = () => {
+  // Called when user chooses to go live
+  const handleGoLive = async () => {
     clearDraft();
+    if (onGoLive) {
+      await onGoLive();
+    }
+    onComplete();
+  };
+
+  // Called when user chooses "Not now"
+  const handleSkipGoLive = () => {
+    clearDraft();
+    if (onSkipGoLive) {
+      onSkipGoLive();
+    }
     onComplete();
   };
 
@@ -362,36 +382,25 @@ export default function ProfileWizard({
     </button>
   );
 
-  // ── Celebration Screen ──
-  if (showCelebration) {
+  // ── Go Live Modal ──
+  // Check if user has minimum data to go live (location + care types)
+  const hasLocation = !!(city && state);
+  const hasCareTypes = careTypes.length > 0;
+  const canGoLive = hasLocation && hasCareTypes;
+  const missingItems: string[] = [];
+  if (!hasLocation) missingItems.push("location");
+  if (!hasCareTypes) missingItems.push("care preferences");
+
+  if (showGoLiveModal) {
     return (
-      <Modal isOpen onClose={onClose} size="md">
-        <div className="py-8 px-4 text-center">
-          {/* Animated checkmark */}
-          <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full bg-primary-100 animate-ping opacity-30" />
-            <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-          </div>
-
-          <h2 className="text-2xl font-display font-semibold text-gray-900 mb-2">
-            Looking good!
-          </h2>
-          <p className="text-gray-500 mb-8 max-w-sm mx-auto">
-            Your profile is ready. Providers can now learn more about you and your care needs.
-          </p>
-
-          <button
-            onClick={handleFinish}
-            className="w-full max-w-xs mx-auto flex items-center justify-center px-6 py-3 text-text-md font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors"
-          >
-            Continue
-          </button>
-        </div>
-      </Modal>
+      <GoLiveModal
+        isOpen
+        onClose={onClose}
+        onGoLive={handleGoLive}
+        onSkip={handleSkipGoLive}
+        canGoLive={canGoLive}
+        missingItems={missingItems}
+      />
     );
   }
 

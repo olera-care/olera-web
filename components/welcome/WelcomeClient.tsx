@@ -1228,7 +1228,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Still onboarding — open wizard modal
                     <button
                       onClick={() => setProfileWizardOpen(true)}
-                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all group text-left ${needsProfileAttention ? 'active-card' : ''}`}
+                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl transition-all group text-left"
+                      style={needsProfileAttention ? {
+                        border: '2px solid #199087',
+                        boxShadow: '0 0 0 4px rgba(25, 144, 135, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
+                      } : {
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
+                      }}
                     >
                       <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${profileComplete ? 'bg-primary-50' : 'bg-[#FEF7ED]'}`}>
                         {profileComplete ? (
@@ -1317,7 +1323,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
                     // Ready to go live — personalized CTA with provider name if connected
                     <button
                       onClick={() => setGoLiveModalOpen(true)}
-                      className={`relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.12),0_8px_24px_rgba(0,0,0,0.08)] transition-all group text-left ${needsMatchesAttention ? 'active-card' : ''}`}
+                      className="relative w-full flex items-center gap-4 p-4 bg-white rounded-2xl transition-all group text-left"
+                      style={needsMatchesAttention ? {
+                        border: '2px solid #199087',
+                        boxShadow: '0 0 0 4px rgba(25, 144, 135, 0.15), 0 4px 12px rgba(0,0,0,0.1)',
+                      } : {
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05)',
+                      }}
                     >
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#E8F5F3]">
                         <svg viewBox="0 0 32 32" className="w-8 h-8">

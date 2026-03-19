@@ -474,6 +474,13 @@ export default function WelcomeClient({ destination, initialProviders = [], init
   // Check if should skip and load initial data
   useEffect(() => {
     async function init() {
+      // If we have a connection ID in URL but auth is still loading, wait
+      // This handles the guest connection flow where session was just established
+      if (connectionIdParam && authLoading) {
+        console.log("[welcome] Waiting for auth to settle (connection ID present)...");
+        return; // Don't set loading to false yet - wait for auth
+      }
+
       if (!activeProfile) {
         setLoading(false);
         return;
@@ -565,7 +572,7 @@ export default function WelcomeClient({ destination, initialProviders = [], init
     }
 
     init();
-  }, [activeProfile, account, destination, router, hasInitialized, connectionIdParam]);
+  }, [activeProfile, account, destination, router, hasInitialized, connectionIdParam, authLoading]);
 
   // Complete onboarding and redirect (or show confirmation)
   const completeOnboarding = useCallback(async (activateMatches: boolean, showConfirmationAfter: boolean = false, customRedirect?: string) => {

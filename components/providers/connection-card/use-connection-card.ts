@@ -544,8 +544,22 @@ export function useConnectionCard(props: ConnectionCardProps) {
               // Continue anyway — user can verify via email later
             } else {
               console.log("[guest-connection] Session established:", sessionData?.session?.user?.email);
-              // Wait a moment for cookies to be set
-              await new Promise(resolve => setTimeout(resolve, 100));
+
+              // CRITICAL: Refresh auth state with the new user ID before navigating
+              // This ensures AuthProvider has the profile data when /welcome loads
+              const userId = sessionData?.session?.user?.id;
+              if (userId && refreshAccountData) {
+                console.log("[guest-connection] Refreshing account data for user:", userId);
+                try {
+                  await refreshAccountData(userId);
+                  console.log("[guest-connection] Account data refreshed");
+                } catch (refreshErr) {
+                  console.error("[guest-connection] Failed to refresh account data:", refreshErr);
+                }
+              }
+
+              // Small delay to ensure cookies and state are fully propagated
+              await new Promise(resolve => setTimeout(resolve, 200));
             }
           } catch (sessionErr) {
             console.error("[guest-connection] Session error:", sessionErr);

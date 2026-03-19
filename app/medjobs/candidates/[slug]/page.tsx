@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, formatAvailability, formatHoursPerWeek, formatDuration, hasVideo, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
+import ContactSection from "./ContactSection";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -124,19 +125,13 @@ export default async function StudentProfilePage({ params }: PageProps) {
             <p className="mt-4 text-sm text-gray-600 leading-relaxed">{profile.description}</p>
           )}
 
-          {/* Contact — gated */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-            <p className="text-sm text-gray-500">
-              <span className="font-medium text-gray-700">Want to connect with {profile.display_name}?</span>
-              {" "}Sign in as a provider to view contact information and reach out directly.
-            </p>
-            <Link
-              href="/for-providers"
-              className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm font-semibold text-white transition-colors"
-            >
-              Sign In as Provider
-            </Link>
-          </div>
+          {/* Contact — auth-aware */}
+          <ContactSection
+            studentName={profile.display_name}
+            studentEmail={profile.email}
+            studentPhone={profile.phone}
+            studentSlug={profile.slug}
+          />
         </div>
 
         {/* Details Grid */}

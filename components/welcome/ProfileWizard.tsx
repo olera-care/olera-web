@@ -429,9 +429,10 @@ export default function ProfileWizard({
     <Modal isOpen onClose={onClose} size="2xl">
       <div className="flex flex-col min-h-[500px]">
         {/* Clean Header — no divider, minimal progress */}
-        <div className="px-6 pt-6 pb-2">
-          {/* Step counter — subtle, top-right aligned with close button */}
-          <p className="text-sm text-gray-400 mb-3">
+        {/* Note: Modal already provides header padding, so we use minimal pt here */}
+        <div className="px-1 pt-2 pb-2">
+          {/* Step counter — subtle */}
+          <p className="text-sm text-gray-400 mb-2">
             Step {currentStep + 1} of {STEPS.length}
           </p>
 
@@ -441,7 +442,7 @@ export default function ProfileWizard({
         </div>
 
         {/* Form Content — overflow visible on step 1 for dropdown */}
-        <div className={`flex-1 px-6 py-5 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
+        <div className={`flex-1 px-1 py-4 ${step.id === "basics" ? "overflow-visible" : "overflow-y-auto"}`}>
           {/* ── Step 1: Basics ── */}
           {step.id === "basics" && (
             <div className="space-y-5">

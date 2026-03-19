@@ -43,7 +43,8 @@ export default function MessageComposerModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
-      <div className="p-6">
+      {/* Note: Modal already provides header padding, so use minimal pt here */}
+      <div className="pt-2">
         {/* Header */}
         <h2 className="text-lg font-semibold text-gray-900 mb-1">
           Message {providerName}

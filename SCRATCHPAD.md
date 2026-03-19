@@ -7,10 +7,16 @@
 
 ## Current Focus
 
-- **Olera MedJobs: Student Caregiver Talent Marketplace** — IN PROGRESS (Phases 1-5 done, design polish in progress)
+- **"Manage this page" CTA + Fix Provider Email Links** — IN PROGRESS
+  - Plan: `plans/manage-this-page-plan.md`
+  - Notion task: "Add a very visible 'Manage this page' to the detailed provider page" (P1 🔥)
+  - TJ flagged as "biggest operational gap" — email campaign links broken, hero CTA missing
+  - Branch: `zen-keller`
+
+- **Olera MedJobs: Student Caregiver Talent Marketplace** — DONE (on staging)
   - Plan: `plans/medjobs-plan.md`
   - Phases 1-5 DONE, PR #273 merged to staging
-  - Design polish PR #279 (branch `shiny-knuth`): photo-forward candidate cards, real testimonial photos, hero image tuning, university partner logos, optional photo upload in application
+  - Design polish PR #279 merged
   - **Deferred:** Phase 6 (credential engine UI), Phase 7 (Stripe billing)
 
 - **SBF Accuracy Audit** — AUDIT COMPLETE, FIXES PLANNED

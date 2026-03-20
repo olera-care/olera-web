@@ -7,6 +7,7 @@ import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
 import { PROVIDER_CATEGORIES } from "@/lib/types";
 import { useCitySearch } from "@/hooks/use-city-search";
+import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import type { DirectoryProvider } from "@/lib/types";
 
 interface ImageMetadata {
@@ -358,15 +359,17 @@ export default function AdminDirectoryDetailPage() {
             <FieldInput label="Zipcode" value={formData.zipcode as string} onChange={(v) => updateField("zipcode", v === "" ? null : Number(v))} type="number" />
             <FieldInput label="Latitude" value={formData.lat as string} onChange={(v) => updateField("lat", v === "" ? null : Number(v))} type="number" step="any" />
             <FieldInput label="Longitude" value={formData.lon as string} onChange={(v) => updateField("lon", v === "" ? null : Number(v))} type="number" step="any" />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">Place ID</label>
-              <input
-                type="text"
-                value={(formData.place_id as string) || ""}
-                readOnly
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500"
-              />
-            </div>
+            <GooglePlaceSearch
+              value={(formData.place_id as string) || null}
+              selectedName={(formData.provider_name as string) || null}
+              onSelect={(placeId, name, rating) => {
+                updateField("place_id", placeId);
+                if (rating != null) updateField("google_rating", rating);
+              }}
+              onClear={() => {
+                updateField("place_id", null);
+              }}
+            />
           </div>
         </Section>
 

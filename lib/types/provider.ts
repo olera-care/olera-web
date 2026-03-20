@@ -8,7 +8,7 @@
  */
 
 import { generateProviderSlug } from "@/lib/slugify";
-import type { BusinessProfile, ProfileCategory } from "@/lib/types";
+import type { BusinessProfile, ProfileCategory, GoogleReviewsData } from "@/lib/types";
 
 export interface Provider {
   provider_id: string;
@@ -39,6 +39,8 @@ export interface Provider {
   deleted_at: string | null;
   hero_image_url: string | null;
   slug: string | null; // Human-readable URL slug (populated via migration)
+  google_reviews_data: GoogleReviewsData | null; // Cached Google review snippets (JSONB)
+  last_viewed_at: string | null; // Tracks page views for tiered refresh
 }
 
 /**

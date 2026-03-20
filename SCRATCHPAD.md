@@ -7,11 +7,13 @@
 
 ## Current Focus
 
-- **"Manage this page" CTA + Fix Provider Email Links** — IN PROGRESS
-  - Plan: `plans/manage-this-page-plan.md`
-  - Notion task: "Add a very visible 'Manage this page' to the detailed provider page" (P1 🔥)
-  - TJ flagged as "biggest operational gap" — email campaign links broken, hero CTA missing
-  - Branch: `zen-keller`
+- **Google Review Snippets on Provider Pages** — ON STAGING ✅ (PRs #296, #297 merged)
+  - Plan: `plans/google-review-snippets-plan.md`
+  - Notion task: "Add Google Review Snippets to provider pages" (P1 🔥)
+  - Unified "What families are saying" section with Google + Olera reviews
+  - Tiered cron (monthly) + on-demand backfill + admin seed endpoint
+  - **In progress:** Extending pipeline to business_profiles (new providers)
+  - **Pending:** Bulk seed of 22K providers (~$112 one-time)
 
 - **Olera MedJobs: Student Caregiver Talent Marketplace** — DONE (on staging)
   - Plan: `plans/medjobs-plan.md`
@@ -24,8 +26,6 @@
   - 4-phase improvement plan in Notion (Phases 1-2 = P1 🔥)
   - Audit doc: `docs/sbf-accuracy-audit.md`
 
-- **Provider Deletion Request & Admin Approval** — ON STAGING ✅
-
 ---
 
 ## Blocked / Needs Input
@@ -36,14 +36,16 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Push MedJobs to main** — promote staging after design polish PR merges
-2. **Test photo upload end-to-end** on staging preview deploy
-3. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching fix, carePreference in scoring (P1 🔥)
-4. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into structured format, migrate to Supabase (P1 🔥)
-5. **Monitor GSC for 404 spikes** — ongoing post-cutover
-6. **Send XFive cutover memo** — request spot check + Q&A/user account export from v1
-7. **Continue notification test matrix** — tests #3-5, #8, #11-12, #14-18 remaining
-8. **Delete fake seed connections** from Supabase (Sarah Reynolds, James Adeyemi, etc.)
+1. **Extend Google reviews to business_profiles** — new providers need place_id + reviews
+   - Step A: Read google_reviews_data from business_profiles metadata in provider page
+   - Step B: Google Business linking in provider onboarding (Places Autocomplete)
+   - Step C: Google Place search in admin directory create/edit
+2. **Bulk seed Google reviews** — run admin endpoint for 22K providers (~$112)
+3. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
+4. **Push MedJobs to main** — promote staging to production
+5. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
+6. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
+7. **Delete fake seed connections** from Supabase
 
 ---
 
@@ -51,15 +53,17 @@ _(Nothing currently blocked)_
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-19 | Tiered refresh strategy (not blind monthly) | At 100K providers, blind refresh = $500/month. Tiered (claimed > viewed > long tail) = ~$100/month. Scales to 500K. |
+| 2026-03-19 | Remove Olera Score from reviews zone (keep in header/sidebar) | Until ScoreCalculator v2 is ported, two disconnected scores (Olera 4.3 vs Google 5.0) erode trust. Bring back when data is connected. |
+| 2026-03-19 | Unified reviews feed with source badges | v1 had separate sections. Merged into one "What families are saying" with Google/Olera badges per card. Less cognitive load. |
+| 2026-03-19 | JSONB on olera-providers (not separate table) | Only storing 2 reviews per provider. Not worth a join. Simpler queries. |
+| 2026-03-19 | Places API (New) over legacy | $5/1K vs $17/1K for place details with reviews. Same data. |
+| 2026-03-19 | Created Notion task for ScoreCalculator v2 (P2) | Port from olera-backend Ruby. Weights shift as Google review count grows: Reputation 0.7→0.3, Google 0.2→0.6, Profile 0.1 constant. |
 | 2026-03-17 | University logos: grayscale default, color on hover | 5 partner schools with existing connections (TAMU, Michigan, Houston, Prairie View, Maryland) |
 | 2026-03-17 | Hero image uses native square aspect ratio | Source is 1080x1080; forced aspect ratios looked awkward |
 | 2026-03-17 | Photo upload is no-auth, fire-and-forget | Students aren't signed in during application; profile creates first, photo is best-effort |
-| 2026-03-17 | Minh-Nguyet Hoang is MD/MBA Candidate at Texas A&M | Not PA / Health Science Center as initially assumed |
 | 2026-03-14 | SBF accuracy issues are systemic, not surface-level | Root cause is structural: no county resolution, two disconnected data systems, no sub-state geo intelligence |
-| 2026-03-14 | Chantel's 528-program waiver library is the path forward | Must be parsed into structured format and migrated to Supabase to power recommendations |
 | 2026-03-13 | OAuth post-auth: 5-min window detection | Replace always-on onboarding popup with targeted check: only auto-open for accounts created <5 minutes ago |
-| 2026-03-13 | Voice intake for Benefits Finder (Chrome/Edge only) | TTS + speech recognition for guided conversational intake. Disabled on Firefox/Safari (no API support) |
-| 2026-03-12 | Simple inquiry form over multi-step wizard | Multi-step intent wizard had too much friction. Single form fires lead immediately |
 | 2026-03-12 | Fire-first UX for Q&A | Question submits immediately, then optional enrichment. Zero friction > data completeness |
 
 ---
@@ -68,114 +72,79 @@ _(Nothing currently blocked)_
 
 - Project is a TypeScript/Next.js 16 web app for senior care discovery
 - Key colors: #198087 (primary teal), warm orange palette, serif headings for editorial feel
-- Homepage components: `components/home/` — HeroSection, TopProvidersSection, ExploreCareSection, CommunitySection, CTASection
-- Shared hooks: `hooks/use-in-view.ts`, `hooks/use-animated-counters.ts`, `hooks/use-city-search.ts`
+- Google Places API key: restricted to Places API (New) only, project "Olera Provider API" (olera-provider-api)
+- 36,668 active providers, 32,042 with place_id, 22,337 with google_rating > 0
+- 5 providers seeded with Google reviews as test data (hanstel-homehealth, hanameel-at-peace-home-care, etc.)
+- Scaling to 100K providers expected within 2 months
 
 ---
 
 ## Session Log
 
-### 2026-03-17 (Session 54) — MedJobs Design Polish: Cards, Photos, Logos, Testimonials
+### 2026-03-19 (Session 55) — Google Review Snippets: Full Implementation
 
-**Branch:** `shiny-knuth` (from staging) — PR #279
+**Branch:** `fresh-ride` (from staging) — PRs #296, #297 merged
 
-**What:** Major design polish pass on MedJobs landing page and candidate browse. Photo-forward candidate cards, real testimonial photos, hero image tuning, and university partner logos.
+**What:** End-to-end Google review snippets on provider pages. Explored v1 repos (olera-backend, olera-fe-experiments), designed tiered cost strategy, built full pipeline, iterated on UI/UX through 3 design passes.
 
-**Changes (7 commits):**
-- `app/medjobs/candidates/page.tsx` — Full card redesign: large photo (aspect-[3/4]) at top with gradient+initial fallback, structured criteria rows (Track, Location, Availability, Care Experience, Certifications, Verified Hours), "View Profile →" button
-- `app/medjobs/apply/page.tsx` — Optional circular photo upload in "About You" step, fire-and-forget upload after profile creation
-- `app/api/medjobs/upload-photo/route.ts` — New API: no-auth photo upload to Supabase `profile-images` bucket, updates `image_url` on business_profile
-- `app/medjobs/page.tsx` — Multiple iterations:
-  - Testimonials: Minh-Nguyet Hoang (MD/MBA, Texas A&M) and Jeswin Vennatt (MD/MBA, Texas A&M) with real photos
-  - Hero image: tuned from 4/3 → 3/4 → 4/5 → square (native 1080x1080)
-  - University trust bar: text list → real logos (Texas A&M, Michigan, Houston, Prairie View A&M, Maryland) with grayscale hover effect
-- `public/images/medjobs/` — jeswin-vennatt.png, minh-nguyet-hoang.jpg, universities/ (5 logos)
+**Exploration phase:**
+- Fetched Notion roadmap, identified "Add Google Review Snippets to provider pages" (P1 🔥)
+- Cloned and analyzed `olera-backend` (Ruby) and `olera-fe-experiments` (TypeScript) for v1 review implementation
+- Found: v1 used monthly cron, Google Places Details API, `google_reviews` table, ScoreCalculator with dynamic weights
+- Found: `olera-providers` table already has `place_id` (32K providers) and `google_rating` (22K)
+- Created Notion task for ScoreCalculator v2 port (P2)
 
-**Decisions:**
-- Photo upload is no-auth (students aren't signed in during application)
-- Upload is fire-and-forget — profile creates first, photo is best-effort
-- Candidate cards use gradient backgrounds with initials as fallback when no photo
-- Hero image uses native square aspect ratio (1080x1080 source) — no cropping
-- University logos: grayscale by default, color on hover — 5 partner schools with existing connections
-- Minh-Nguyet Hoang is MD/MBA Candidate at Texas A&M (not PA / Health Science Center)
+**Cost analysis (deep dive):**
+- Blind monthly at 100K providers = $500/month ($300 after credit)
+- Designed tiered strategy: claimed monthly, viewed monthly, long tail quarterly = ~$100/month
+- Includes `last_viewed_at` tracking for tier 2 decisions
+- On-demand backfill as safety net (non-blocking, doesn't hurt page load)
 
-**Also:** Marked Provider Home Page as DONE, Provider Deletion as ON STAGING. GSC sitemap re-submission discussed.
+**Implementation (12 tasks across 4 phases):**
+1. Google Cloud setup — API key created, restricted to Places API (New)
+2. Supabase migration 021 — `google_reviews_data` JSONB + `last_viewed_at` columns + index
+3. `lib/google-places.ts` — fetch utility with batch support
+4. `app/api/cron/google-reviews/route.ts` — tiered monthly cron (1st of month, 3 AM UTC)
+5. `app/api/admin/seed-google-reviews/route.ts` — admin seed with dry_run mode
+6. View tracking — non-blocking `last_viewed_at` updates (debounced >24h)
+7. `app/api/internal/backfill-google-review/route.ts` — on-demand backfill trigger
+8. `components/providers/GoogleReviewSnippets.tsx` — standalone component (later merged into ReviewsSection)
+9. Provider page integration — google_reviews_data + place_id captured from raw query
 
-**Next session:** Push MedJobs to main, test photo upload end-to-end on staging, add real pilot photos to "Meet the Students" cards, continue SBF Phase 1 bug fixes.
+**UI/UX evolution (3 iterations):**
+1. **v1:** Olera Score circle + breakdown bars + separate Google Reviews section → two competing scores, dashboard feel
+2. **v2:** Removed Olera Score from zone, single "What families are saying" with Google data only → clean but disconnected from Olera reviews
+3. **v3 (shipped):** Unified feed merging Google + Olera reviews with source badges ("Google review" with G icon, "Olera review 🌿") → one section, one story
 
----
+**Key design decisions:**
+- Removed Olera Score circle + breakdown bars until ScoreCalculator v2 is ported (scores contradict without connected data)
+- Olera Score still visible in header badge + connection card sidebar
+- Warm header: "What families are saying" (not "Google Reviews")
+- Reviews positioned above About (Q&A → Reviews → About)
 
-### 2026-03-17 (Session 53) — MedJobs Phases 4-5, Migration Fixes, Competitive Analysis, Design Polish
+**Dry run results:**
+- 36,668 active providers, 22,337 eligible for seed (google_rating > 0)
+- Initial seed cost: ~$112 one-time
+- 5 providers seeded as test batch — all worked end-to-end
 
-**Branch:** `modest-dijkstra` (continued)
+**Files created:**
+- `lib/google-places.ts` — Google Places API fetch utility
+- `app/api/cron/google-reviews/route.ts` — tiered monthly cron
+- `app/api/admin/seed-google-reviews/route.ts` — admin seed endpoint
+- `app/api/internal/backfill-google-review/route.ts` — on-demand backfill
+- `components/providers/GoogleReviewSnippets.tsx` — standalone component (kept for reference)
+- `supabase/migrations/021_google_reviews.sql` — schema changes
+- `plans/google-review-snippets-plan.md` — detailed plan with cost projections
 
-**What:** Completed Phases 4-5 implementation, fixed 3 migration issues discovered during production deploy, ran competitive analysis (CareYaYa, Papa, Honor, Caring Support), and iterated on landing page design 3 times based on taste pass and competitive patterns.
+**Files modified:**
+- `app/provider/[slug]/page.tsx` — google_reviews_data capture, view tracking, backfill trigger, section reorder
+- `components/providers/ReviewsSection.tsx` — accepts googleReviewsData, merged feed, source badges
+- `components/providers/AllReviewsModal.tsx` — DisplayReview type extended, normalizeReviews merges Google
+- `lib/types.ts` — GoogleReviewSnippet, GoogleReviewsData types
+- `lib/types/provider.ts` — google_reviews_data, last_viewed_at fields
+- `vercel.json` — added google-reviews cron schedule
+- `.env.example` — GOOGLE_PLACES_API_KEY
 
-**Migration fixes (ran on production):**
-- `profile_type` is TEXT + CHECK constraint, not a PostgreSQL enum (schema.sql is misleading)
-- Trigger function is `update_updated_at_column()` not `update_updated_at()`
-- Table is `business_profiles` not `profiles`
-- Saved these learnings to memory: `feedback_schema_text_not_enum.md`
+**Gap identified:** Pipeline only works for `olera-providers` table. New providers in `business_profiles` don't get Google reviews. Next steps: extend page to read from BP metadata, add Google linking to onboarding, add to admin directory.
 
-**Competitive analysis highlights:**
-- CareYaYa: 30K+ students, $15-18/hr, scrapbook aesthetic, career outcome hook ("double acceptance rate")
-- Papa: $241M funded, companionship model, playful SVG animations, segmented hero
-- Olera's moat: verified credential engine (no competitor has this)
-- Report in Notion under original MedJobs task page
-
-**Landing page evolution:**
-1. Template version (dark gradient, numbered circles) → too generic
-2. Minimal Perena version (warm stone bg, flat lists) → too cold/corporate
-3. Photo-forward version (split hero, photo mosaic, testimonials) → warm but needed real photos
-4. Refined with competitive patterns: career outcome hook in hero ("that counts toward your degree"), specific hour requirements (PA: 1,000-2,000), woven testimonials, provider stat cards
-5. Added real pilot photos from TJ's files
-
-**Files created/modified this session:**
-- `app/api/cron/medjobs-digest/route.ts` — weekly candidate digest
-- `app/api/cron/medjobs-nudge/route.ts` — profile completion nudge
-- `lib/slack.ts` — MedJobs alert helpers
-- `vercel.json` — added 2 cron schedules
-- `components/shared/Navbar.tsx` — MedJobs link
-- `components/shared/Footer.tsx` — MedJobs link
-- `components/admin/AdminSidebar.tsx` — MedJobs nav item
-- `app/admin/medjobs/page.tsx` — admin student table
-- `app/api/sitemap/route.ts` — medjobs entries
-- `app/medjobs/page.tsx` — redesigned 3x
-- `supabase/migrations/019_medjobs_foundation.sql` — 3 fixes
-
-**Next session:** Get real pilot photos for remaining placeholders, test application flow end-to-end on preview deploy, consider Phase 6 (credential engine UI).
-
----
-
-### 2026-03-16 (Session 52) — MedJobs Architecture + Phases 1-3 Implementation
-
-**Branch:** `modest-dijkstra` (from staging)
-
-**What:** Designed and began implementing Olera MedJobs — a student caregiver talent marketplace. Read both Notion tasks in full, explored existing codebase (auth, email, Supabase schema, notifications), created architecture plan, then implemented Phases 1-3.
-
-**Architecture decisions:**
-- Student as new `profile_type` enum value (safe additive migration)
-- 3 new tables: `medjobs_experience_logs`, `medjobs_universities`, `medjobs_job_posts`
-- Reuse `connections` table for student→provider applications
-- StudentMetadata JSONB with credential engine fields from day one
-- Separate MedJobs email templates file for modularity
-- RLS: student profiles public (like org/caregiver), contact info gated at API layer
-
-**Files created (3,712 lines across 3 commits):**
-- `supabase/migrations/019_medjobs_foundation.sql` — schema
-- `scripts/seed-universities.sql` — 50 TX universities
-- `plans/medjobs-plan.md` — 7-phase, 24-task plan
-- `lib/types.ts` — updated with StudentMetadata + MedJobs types
-- `lib/medjobs-email-templates.tsx` — 6 email templates
-- `app/medjobs/page.tsx` — landing page
-- `app/medjobs/apply/page.tsx` — 4-step application form
-- `app/medjobs/candidates/page.tsx` — public candidate browse
-- `app/medjobs/candidates/[slug]/page.tsx` — student profile (public)
-- `app/api/medjobs/apply/route.ts` — student application API
-- `app/api/medjobs/candidates/route.ts` — candidate query API
-- `app/api/medjobs/apply-to-provider/route.ts` — application + notifications
-- `app/provider/medjobs/page.tsx` — provider MedJobs dashboard
-- `app/provider/medjobs/candidates/page.tsx` — provider candidate browse
-- `app/provider/medjobs/candidates/[slug]/page.tsx` — provider student profile view
-
-**Next session:** Phase 4 (Loops events, weekly digest cron, profile nudge cron), Phase 5 (nav integration, sitemap, admin panel)
+**Next session:** Extend Google reviews pipeline to business_profiles (steps A/B/C), then bulk seed.

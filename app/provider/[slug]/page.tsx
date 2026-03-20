@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata } from "@/lib/types";
+import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
@@ -250,6 +250,10 @@ export default async function ProviderPage({
 
   // --- Data fetching ---
   let profile: Profile | null = null;
+  let googleReviewsData: GoogleReviewsData | null = null;
+  let providerPlaceId: string | null = null;
+  let rawProviderId: string | null = null;
+  let providerSource: "ios" | "bp" = "ios";
 
   // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
   try {
@@ -265,6 +269,9 @@ export default async function ProviderPage({
 
     if (bySlug) {
       profile = iosProviderToProfile(bySlug);
+      googleReviewsData = bySlug.google_reviews_data;
+      providerPlaceId = bySlug.place_id;
+      rawProviderId = bySlug.provider_id;
     } else {
       // Fall back to provider_id (legacy alphanumeric ID)
       const { data: byId } = await supabase
@@ -276,6 +283,9 @@ export default async function ProviderPage({
 
       if (byId) {
         profile = iosProviderToProfile(byId);
+        googleReviewsData = byId.google_reviews_data;
+        providerPlaceId = byId.place_id;
+        rawProviderId = byId.provider_id;
       }
     }
   } catch {
@@ -292,7 +302,21 @@ export default async function ProviderPage({
         .eq("slug", slug)
         .in("type", ["organization", "caregiver"])
         .single<Profile>();
-      profile = data;
+      if (data) {
+        profile = data;
+        providerSource = "bp";
+        // Extract Google data from business_profile metadata
+        const bpMeta = data.metadata as Record<string, unknown> | null;
+        const gm = bpMeta?.google_metadata as { place_id?: string; rating?: number; review_count?: number } | undefined;
+        const bpGoogleReviews = bpMeta?.google_reviews_data as GoogleReviewsData | undefined;
+        if (bpGoogleReviews) {
+          googleReviewsData = bpGoogleReviews;
+        }
+        if (gm?.place_id) {
+          providerPlaceId = gm.place_id;
+        }
+        rawProviderId = data.id;
+      }
     } catch {
       // Supabase not configured — fall through to mock lookup
     }
@@ -401,6 +425,26 @@ export default async function ProviderPage({
   // Google rating (external, read-only) - stored in google_metadata
   const googleRating = meta?.google_metadata?.rating ?? null;
 
+  // --- Non-blocking background tasks (view tracking + on-demand backfill) ---
+  if (rawProviderId) {
+    const db = getServiceClient();
+    // Task 6: Update last_viewed_at (debounced: only if >24h stale)
+    db.from("olera-providers")
+      .update({ last_viewed_at: new Date().toISOString() })
+      .eq("provider_id", rawProviderId)
+      .or("last_viewed_at.is.null,last_viewed_at.lt." + new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .then(() => { /* fire and forget */ });
+
+    // Task 7: On-demand backfill if provider has place_id but no cached reviews
+    if (providerPlaceId && !googleReviewsData) {
+      fetch(new URL("/api/internal/backfill-google-review", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: rawProviderId, place_id: providerPlaceId, source: providerSource }),
+      }).catch(() => { /* fire and forget */ });
+    }
+  }
+
   // Olera Score: prioritize community_score, then fall back to rating (for legacy data)
   // For claimed profiles with no reviews, don't show a rating
   const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
@@ -459,10 +503,10 @@ export default async function ProviderPage({
   sectionItems.push({ id: "highlights", label: "Highlights" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
+  sectionItems.push({ id: "reviews", label: "Reviews" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
-  sectionItems.push({ id: "reviews", label: "Reviews" });
 
   // ============================================================
   // Render
@@ -834,6 +878,19 @@ export default async function ProviderPage({
                 />
               </div>
 
+              {/* ── What families are saying ── */}
+              <div id="reviews" className="scroll-mt-20">
+                <ReviewsSection
+                  providerId={profile.slug}
+                  providerSlug={profile.slug}
+                  providerName={profile.display_name}
+                  mockReviews={reviewsToShow}
+                  isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                  googleReviewsData={googleReviewsData}
+                  placeId={providerPlaceId}
+                />
+              </div>
+
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
@@ -897,55 +954,6 @@ export default async function ProviderPage({
                   </p>
                 </div>
               )}
-
-              {/* ── Olera Score — hidden when no scores exist ── */}
-              {hasOleraScore && (
-                <div id="reviews" className="py-12 scroll-mt-20 border-t border-gray-200">
-                  {/* Centered score display */}
-                  <div className="flex flex-col items-center text-center mb-10">
-                    <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary-700 mb-5">Olera Score</p>
-                    <div className="w-24 h-24 rounded-full border-4 border-gray-200 flex items-center justify-center mb-4">
-                      <span className="text-4xl font-bold text-gray-900">{oleraScore!.toFixed(1)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <StarIcon
-                          key={star}
-                          className={`w-5 h-5 ${star <= Math.round(oleraScore!) ? "text-primary-500" : "text-gray-200"}`}
-                          filled={star <= Math.round(oleraScore!)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Breakdown cards — only items with real values */}
-                  {hasScoreBreakdown && (
-                    <div className={`grid grid-cols-2 ${scoreBreakdown.length === 3 ? "md:grid-cols-3" : scoreBreakdown.length >= 4 ? "md:grid-cols-4" : ""} gap-4`}>
-                      {scoreBreakdown.map((item) => (
-                        <div key={item.label} className="text-center">
-                          <p className="text-2xl font-bold text-gray-900 mb-2">{item.value.toFixed(1)}</p>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3">
-                            <div
-                              className="h-full bg-primary-600 rounded-full"
-                              style={{ width: `${(item.value / 5) * 100}%` }}
-                            />
-                          </div>
-                          <p className="text-xs font-semibold tracking-[0.1em] uppercase text-gray-500">{item.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ── What families are saying ── */}
-              <ReviewsSection
-                providerId={profile.slug}
-                providerSlug={profile.slug}
-                providerName={profile.display_name}
-                mockReviews={reviewsToShow}
-                isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-              />
 
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (

@@ -96,7 +96,22 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({ provider, images, rawImages });
+    // Fetch linked business_profiles record for owner/staff metadata
+    let staffData = null;
+    let businessProfileId: string | null = null;
+    const { data: bp } = await db
+      .from("business_profiles")
+      .select("id, metadata")
+      .eq("source_provider_id", providerId)
+      .limit(1)
+      .maybeSingle();
+    if (bp) {
+      businessProfileId = bp.id;
+      const meta = (bp.metadata || {}) as Record<string, unknown>;
+      staffData = meta.staff || null;
+    }
+
+    return NextResponse.json({ provider, images, rawImages, staffData, businessProfileId });
   } catch (err) {
     console.error("Directory detail error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -126,6 +141,40 @@ export async function PATCH(
     const { providerId } = await params;
     const body = await request.json();
     const db = getServiceClient();
+
+    // Handle staff/owner update separately (stored in business_profiles.metadata)
+    if (body._staff !== undefined) {
+      const { data: bp } = await db
+        .from("business_profiles")
+        .select("id, metadata")
+        .eq("source_provider_id", providerId)
+        .limit(1)
+        .maybeSingle();
+
+      if (!bp) {
+        return NextResponse.json({ error: "No linked business profile found" }, { status: 404 });
+      }
+
+      const existingMeta = (bp.metadata || {}) as Record<string, unknown>;
+      const { error: staffErr } = await db
+        .from("business_profiles")
+        .update({ metadata: { ...existingMeta, staff: body._staff } })
+        .eq("id", bp.id);
+
+      if (staffErr) {
+        return NextResponse.json({ error: "Failed to update staff data" }, { status: 500 });
+      }
+
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "update_provider_staff",
+        targetType: "directory_provider",
+        targetId: providerId,
+        details: { staff: body._staff },
+      });
+
+      return NextResponse.json({ success: true });
+    }
 
     // Filter to only allowed fields
     const updates: Record<string, unknown> = {};

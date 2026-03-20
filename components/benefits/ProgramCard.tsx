@@ -9,10 +9,11 @@ interface ProgramCardProps {
   match: BenefitMatch;
   isSaved: boolean;
   onToggleSave: () => void;
+  defaultExpanded?: boolean;
 }
 
-export default function ProgramCard({ match, isSaved, onToggleSave }: ProgramCardProps) {
-  const [expanded, setExpanded] = useState(false);
+export default function ProgramCard({ match, isSaved, onToggleSave, defaultExpanded = false }: ProgramCardProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [showSavedToast, setShowSavedToast] = useState(false);
   const { program, matchScore, matchReasons, tierLabel } = match;
   const bookmarkRef = useRef<SVGSVGElement>(null);

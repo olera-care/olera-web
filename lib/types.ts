@@ -167,6 +167,24 @@ export interface GoogleMetadata {
   last_synced?: string;
 }
 
+/** Cached Google review snippet — stored as JSONB on olera-providers */
+export interface GoogleReviewSnippet {
+  author_name: string;
+  rating: number;
+  text: string;
+  relative_time: string;
+  profile_photo_url: string | null;
+  time: number; // Unix timestamp (seconds)
+}
+
+/** Full cached Google review data for a provider */
+export interface GoogleReviewsData {
+  rating: number;
+  review_count: number;
+  reviews: GoogleReviewSnippet[];
+  last_synced: string; // ISO 8601
+}
+
 export interface OrganizationMetadata {
   license_number?: string;
   year_founded?: number;

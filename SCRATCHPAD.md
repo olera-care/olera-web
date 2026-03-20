@@ -7,11 +7,15 @@
 
 ## Current Focus
 
-- **"Manage this page" CTA + Fix Provider Email Links** — IN PROGRESS
-  - Plan: `plans/manage-this-page-plan.md`
-  - Notion task: "Add a very visible 'Manage this page' to the detailed provider page" (P1 🔥)
-  - TJ flagged as "biggest operational gap" — email campaign links broken, hero CTA missing
-  - Branch: `zen-keller`
+- **"Manage this page" CTA + Fix Provider Email Links** — DONE ✅ (PR #288 merged)
+
+- **Google Review Snippets on Provider Pages** — IN PROGRESS
+  - Plan: `plans/google-review-snippets-plan.md`
+  - Notion task: "Add Google Review Snippets to provider pages" (P1 🔥)
+  - Show Google star rating, review count, 2 recent review cards below Q&A
+  - Move Olera Score up to couple with Google reviews
+  - Monthly cron + initial seed via Google Places API
+  - Branch: `fresh-ride`
 
 - **Olera MedJobs: Student Caregiver Talent Marketplace** — DONE (on staging)
   - Plan: `plans/medjobs-plan.md`

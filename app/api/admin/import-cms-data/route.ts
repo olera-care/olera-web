@@ -18,15 +18,18 @@ import {
  *
  * Query params:
  *   ?state=TX           — process providers in this state (required)
- *   &source=all         — "home_health", "nursing_home", "hospice", or "all" (default "all")
+ *   &source=home_health — "home_health", "nursing_home", "hospice", or "all" (default "home_health")
  *   &dry_run=true       — just count matches, don't write
  *   &force=true         — overwrite existing CMS data
  *
  * Usage:
- *   1. ?state=TX&dry_run=true to see match counts
- *   2. ?state=TX to import
- *   3. Repeat for each state with providers
+ *   1. ?state=TX&source=home_health&dry_run=true — dry run one source
+ *   2. ?state=TX&source=home_health — import one source
+ *   3. ?state=TX&source=all — import all sources (may timeout on large states)
  */
+// Allow up to 60 seconds for CMS API calls
+export const maxDuration = 60;
+
 // Support GET so admins can trigger from browser URL bar
 export async function GET(request: NextRequest) {
   return handler(request);
@@ -44,7 +47,7 @@ async function handler(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const state = searchParams.get("state")?.toUpperCase();
-  const source = searchParams.get("source") ?? "all";
+  const source = searchParams.get("source") ?? "home_health";
   const dryRun = searchParams.get("dry_run") === "true";
   const force = searchParams.get("force") === "true";
 
@@ -220,7 +223,8 @@ async function handler(request: NextRequest) {
       by_source: results,
     });
   } catch (err) {
-    console.error("[import-cms-data] Unexpected error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[import-cms-data] Unexpected error:", message);
+    return NextResponse.json({ error: "Internal error", detail: message }, { status: 500 });
   }
 }

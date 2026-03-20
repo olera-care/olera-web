@@ -7,6 +7,13 @@
 
 ## Current Focus
 
+- **Trust Signals & Smart Ranking — Replacing the Olera Score** — IN PROGRESS
+  - Plan: `plans/trust-signals-plan.md`
+  - Notion: [Trust Signals & Smart Ranking](https://www.notion.so/3295903a0ffe810e9baada745e4ebbad)
+  - Replaces AI-derived Olera Score with verifiable signals (Google Reviews, CMS data, behavioral demand)
+  - Phase 1: Remove score from all UI. Phase 2: Google backfill for uncovered categories. Phase 3: CMS integration. Phase 4: Smart ranking.
+  - Branch: `gentle-hawking`
+
 - **Google Review Snippets on Provider Pages** — LIVE ON PRODUCTION ✅
   - Plan: `plans/google-review-snippets-plan.md`
   - Seed log: `docs/google-reviews-seed-log.md`
@@ -52,12 +59,10 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Olera Score presentation refinement** — Notion task (P1 🔥)
-2. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
-3. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
-4. **Delete fake seed connections** from Supabase (admin delete feature now enables this)
-5. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
-6. **Admin: provider photo deletion** — Notion task (P2)
+1. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
+2. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
+3. **Delete fake seed connections** from Supabase (admin delete feature now enables this)
+4. **Admin: provider photo deletion** — Notion task (P2)
 
 ---
 
@@ -66,6 +71,9 @@ _(Nothing currently blocked)_
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | 2026-03-19 | Tiered refresh strategy (not blind monthly) | At 100K providers, blind refresh = $500/month. Tiered (claimed > viewed > long tail) = ~$100/month. Scales to 500K. |
+| 2026-03-20 | Replace Olera Score with Trust Signals system | Score was AI opinion (Perplexity) presented as fact. Both care seekers and providers rejected it. Replace with verifiable signals: Google Reviews, CMS federal data, behavioral demand. Olera becomes curator, not judge. |
+| 2026-03-20 | CMS data integration viable (~30% match rate) | CMS Home Health + Nursing Home + Hospice datasets = ~32.5K providers. Free API, no key needed, quarterly updates. ~10,800 Olera providers enrichable. |
+| 2026-03-20 | Google Reviews is primary quality signal, not Olera Score | Care seekers want "what others are saying" not algorithmic opinion. Google rating available for 61% of providers. Star color changed teal→amber with "on Google" attribution. |
 | 2026-03-19 | Remove Olera Score from reviews zone (keep in header/sidebar) | Until ScoreCalculator v2 is ported, two disconnected scores (Olera 4.3 vs Google 5.0) erode trust. Bring back when data is connected. |
 | 2026-03-19 | Unified reviews feed with source badges | v1 had separate sections. Merged into one "What families are saying" with Google/Olera badges per card. Less cognitive load. |
 | 2026-03-19 | JSONB on olera-providers (not separate table) | Only storing 2 reviews per provider. Not worth a join. Simpler queries. |
@@ -93,27 +101,64 @@ _(Nothing currently blocked)_
 
 ## Session Log
 
+### 2026-03-20 (Session 58) — Replace Olera Score with Trust Signals (Phase 1)
+
+**Branch:** `gentle-hawking` (from staging)
+
+**What:** Deep exploration of Olera Score trust problem, designed new Trust Signals system, implemented Phase 1 (complete score removal from all UI).
+
+**Exploration & Strategy (3+ hours):**
+- Read `olera_score_evaluator.py` — discovered score is Perplexity AI opinion with built-in upward bias (target ~4.3, random boosting)
+- Identified root cause: algorithmic assessment in visual language of social proof
+- Designed 3-layer replacement: Google Reviews (social proof) → CMS Data (federal quality) → Behavioral Demand (organic)
+- Tested CMS enrichment feasibility: ~30% match rate = ~10,800 providers enrichable with federal quality data
+- Created Notion strategy doc: "Trust Signals & Smart Ranking — Replacing the Olera Score"
+- Iterated through 3 revisions based on TJ feedback (provider cooperation constraints, CMS-uncovered categories, ranking without score)
+
+**Phase 1 Implementation (Tasks 1-8):**
+- Removed `oleraScore` from all 10 files (computation, props, rendering, structured data, admin, hooks)
+- Changed hero star color teal→amber with "on Google" attribution
+- JSON-LD `aggregateRating` now sourced from Google reviews data only (not AI score)
+- Removed admin score editing (Community, Value, Info Availability fields)
+- Cleaned score mapping from dashboard hooks, onboarding shell, mock providers
+- Browse cards updated: star color amber, "on Google" attribution text
+- TypeScript compiles clean
+
+**Files modified:**
+- `app/provider/[slug]/page.tsx` — score removal, Google attribution, JSON-LD fix
+- `components/providers/SectionNav.tsx` — removed score badge from sticky header
+- `components/providers/MobileStickyBottomCTA.tsx` — removed score from mobile sheet
+- `components/providers/connection-card/CardTopSection.tsx` — removed score display, simplified to price-only
+- `components/providers/connection-card/types.ts` — removed oleraScore from interface
+- `app/admin/directory/[providerId]/page.tsx` — removed score edit fields
+- `app/api/admin/directory/[providerId]/route.ts` — removed score from updatable fields
+- `hooks/useProviderDashboardData.ts` — removed score from Supabase query
+- `components/provider-onboarding/SmartDashboardShell.tsx` — removed score mapping
+- `lib/mock-providers.ts` — removed score from metadata
+
+**Files created:**
+- `docs/olera-score-backup.md` — full backup of all removed code for revert
+- `plans/trust-signals-plan.md` — 18-task implementation plan across 4 phases
+
+**Next session:** Phase 2 (Google review backfill for CMS-uncovered categories) + Phase 3 (CMS data integration).
+
+---
+
 ### 2026-03-20 (Session 57) — Admin Lead Deletion + Search + Pagination
 
 **Branch:** `eager-lovelace` (from staging)
 
-**What:** Added inline and bulk delete for connections on `/admin/leads`, plus server-side search and pagination. Fetched Notion roadmap, picked "Add ability to quickly delete leads from admin dashboard" (P1), explored codebase, planned, and implemented.
+**What:** Added inline and bulk delete for connections on `/admin/leads`, plus server-side search and pagination.
 
 **Implementation:**
-1. **DELETE API** — `app/api/admin/leads/route.ts`: accepts `{ ids: string[] }`, admin-guarded, fetches connection details before delete for audit, hard deletes, logs each to `audit_log`
-2. **Confirmation dialog** — `ConfirmDeleteDialog` component in page, shared between inline and bulk flows
-3. **Inline delete** — trash icon per row in Actions column, confirmation shows "from → to" names
-4. **Bulk delete** — checkbox column with select-all, red bar shows "{N} selected — Delete / Clear"
-5. **Optimistic UI** — rows removed immediately, rollback on API failure
-6. **Search** — server-side search by profile `display_name` with 300ms debounce, clear button
-7. **Pagination** — 25 per page, Previous/Next controls, "Showing X–Y of Z" + total count in header
+1. DELETE API with audit logging
+2. Confirmation dialog (inline + bulk)
+3. Checkbox select-all + bulk delete bar
+4. Optimistic UI with rollback
+5. Server-side search (debounced 300ms)
+6. Pagination (25/page)
 
-**Files modified:**
-- `app/admin/leads/page.tsx` — full UI (dialog, checkboxes, search, pagination, trash icons)
-- `app/api/admin/leads/route.ts` — DELETE handler + search param + total count in response
-
-**Files created:**
-- `plans/admin-delete-leads-plan.md` — implementation plan
+**Files:** `app/admin/leads/page.tsx`, `app/api/admin/leads/route.ts`, `plans/admin-delete-leads-plan.md`
 
 ---
 

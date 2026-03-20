@@ -13,10 +13,12 @@ import { fetchGoogleReviews } from "@/lib/google-places";
  *   &dry_run=true     — just count eligible providers, don't fetch
  *   &force=true       — re-fetch even if already synced
  *   &require_rating=true — only providers with google_rating > 0 (default true)
+ *   &categories=Home Care (Non-medical),Assisted Living — filter by provider_category (comma-separated)
  *
  * Usage:
  *   1. First call with ?dry_run=true to see count + cost estimate
  *   2. Then batch: ?limit=100&offset=0, ?limit=100&offset=100, etc.
+ *   3. For targeted backfill: ?categories=Home Care (Non-medical),Assisted Living&dry_run=true
  */
 export async function POST(request: NextRequest) {
   // Auth check
@@ -31,6 +33,8 @@ export async function POST(request: NextRequest) {
   const dryRun = searchParams.get("dry_run") === "true";
   const force = searchParams.get("force") === "true";
   const requireRating = searchParams.get("require_rating") !== "false";
+  const categoriesParam = searchParams.get("categories");
+  const categories = categoriesParam ? categoriesParam.split(",").map((c) => c.trim()).filter(Boolean) : null;
 
   const db = getServiceClient();
 
@@ -50,6 +54,10 @@ export async function POST(request: NextRequest) {
       countQuery = countQuery.is("google_reviews_data", null);
     }
 
+    if (categories) {
+      countQuery = countQuery.in("provider_category", categories);
+    }
+
     const { count: totalEligible, error: countErr } = await countQuery;
 
     if (countErr) {
@@ -64,7 +72,7 @@ export async function POST(request: NextRequest) {
         dry_run: true,
         total_eligible: totalEligible,
         estimated_cost: `$${costEstimate.toFixed(2)}`,
-        filters: { require_rating: requireRating, force },
+        filters: { require_rating: requireRating, force, categories: categories ?? "all" },
         message: `${totalEligible} providers eligible. Run without dry_run=true to seed.`,
       });
     }
@@ -84,6 +92,10 @@ export async function POST(request: NextRequest) {
 
     if (!force) {
       dataQuery = dataQuery.is("google_reviews_data", null);
+    }
+
+    if (categories) {
+      dataQuery = dataQuery.in("provider_category", categories);
     }
 
     const { data: providers, error: fetchErr } = await dataQuery;

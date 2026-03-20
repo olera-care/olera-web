@@ -978,24 +978,24 @@ export default async function ProviderPage({
                     </ScrollToConnectionCard>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start gap-6">
-                    <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
-                      <div className="relative mx-auto mb-3 w-20 h-20">
+                    <div className="border border-gray-200 rounded-2xl p-6 text-center flex-shrink-0 w-48">
+                      <div className="relative mx-auto mb-4 w-24 h-24">
                         {staff!.image ? (
-                          <Image src={staff!.image} alt={staff!.name} width={80} height={80} className="w-20 h-20 rounded-full object-cover" />
+                          <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
                         ) : (
-                          <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center">
-                            <span className="text-2xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
+                          <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
+                            <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
                           </div>
                         )}
                         {actualClaimState === "claimed" && (
-                          <svg className="absolute bottom-0 right-0 w-5 h-5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                          <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
                             <circle cx="10" cy="10" r="10" fill="white" />
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
                           </svg>
                         )}
                       </div>
-                      <p className="text-sm font-semibold text-gray-900">{staff!.name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{staff!.position}</p>
+                      <p className="text-base font-bold text-gray-900">{staff!.name}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{staff!.position}</p>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>

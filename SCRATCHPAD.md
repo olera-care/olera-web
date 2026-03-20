@@ -15,13 +15,22 @@
   - Tiered monthly cron + on-demand backfill + Google Business linking in onboarding
   - PRs: #296, #297, #298, #299, #300, #301
 
-- **Admin Lead Deletion + Search + Pagination** — IN REVIEW (PR pending)
+- **Admin Lead Deletion + Search + Pagination** — LIVE ON PRODUCTION ✅ (PR #310, #311)
   - Plan: `plans/admin-delete-leads-plan.md`
-  - Notion task: "Add ability to quickly delete leads from admin dashboard" (P1 🔥)
   - Inline per-row trash icon + bulk checkbox select + delete
   - Hard delete with confirmation dialog, audit-logged
   - Server-side search by profile name (debounced 300ms)
   - Pagination at 25 per page with Previous/Next controls
+
+- **SBF Phase 1+2: Matching Accuracy + Data Unification** — ON STAGING (PRs #313-320)
+  - Plan: `plans/sbf-phase1-plan.md`
+  - 4 critical bugs fixed: ZIP→county, AAA matching, veteran filtering, care preference scoring
+  - Veteran status question added (step 7) with full voice mode support
+  - 528 waiver programs seeded into `sbf_state_programs` (from `data/waiver-library.ts`)
+  - Needs-to-categories mapping fixed (financialHelp → food/housing/utilities now reachable)
+  - Scoring rebalanced: base scores halved, smaller bonuses for meaningful tier spread
+  - Local AAA shown as "Recommended First Step" (Brazos Valley AAA for College Station)
+  - First benefit card expanded by default for discoverability
 
 - **"Manage this page" CTA + Fix Provider Email Links** — DONE ✅ (merged PR #289)
 
@@ -37,9 +46,10 @@
   - Design polish PR #279 merged
   - **Deferred:** Phase 6 (credential engine UI), Phase 7 (Stripe billing)
 
-- **SBF Accuracy Audit** — AUDIT COMPLETE, FIXES PLANNED
+- **SBF Accuracy Audit** — PHASES 1-2 DONE ✅, PHASES 3-4 REMAINING
   - 7 findings across geography, logic, taxonomy, ranking, data quality
-  - 4-phase improvement plan in Notion (Phases 1-2 = P1 🔥)
+  - Phases 1-2 implemented (critical bugs + data unification)
+  - Phases 3-4 remaining: geo scoring, weighted model, test harness
   - Audit doc: `docs/sbf-accuracy-audit.md`
 
 ---
@@ -52,12 +62,13 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Olera Score presentation refinement** — Notion task (P1 🔥)
-2. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
-3. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
-4. **Delete fake seed connections** from Supabase (admin delete feature now enables this)
+1. **Promote SBF fixes to production** — after TJ finishes testing on staging
+2. **Olera Score presentation refinement** — Notion task (P1 🔥, in progress in another session)
+3. **Delete fake seed connections** from Supabase (admin delete feature now enables this)
+4. **SBF Phase 3: Improve Matching Quality** — Geo scoring, weighted model, validation (P2)
 5. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
 6. **Admin: provider photo deletion** — Notion task (P2)
+7. **Deduplicate federal programs** — `sbf_federal_programs` has 3x duplicate entries
 
 ---
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 
 /**
  * GET /api/admin/leads
@@ -72,6 +72,81 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ connections: connections ?? [] });
   } catch (err) {
     console.error("Admin leads error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+/**
+ * DELETE /api/admin/leads
+ *
+ * Hard delete one or more connections by ID.
+ * Body: { ids: string[] }
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+
+    const body = await request.json();
+    const ids: string[] = body.ids;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "ids array is required" }, { status: 400 });
+    }
+
+    if (ids.length > 100) {
+      return NextResponse.json({ error: "Cannot delete more than 100 leads at once" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Fetch connection details before deleting (for audit log)
+    const { data: toDelete } = await db
+      .from("connections")
+      .select(`
+        id,
+        type,
+        status,
+        created_at,
+        from_profile:business_profiles!connections_from_profile_id_fkey(display_name),
+        to_profile:business_profiles!connections_to_profile_id_fkey(display_name)
+      `)
+      .in("id", ids);
+
+    // Hard delete
+    const { error: deleteError, count } = await db
+      .from("connections")
+      .delete({ count: "exact" })
+      .in("id", ids);
+
+    if (deleteError) {
+      console.error("Admin leads delete error:", deleteError);
+      return NextResponse.json({ error: "Failed to delete leads" }, { status: 500 });
+    }
+
+    // Audit log each deletion
+    for (const conn of toDelete ?? []) {
+      await logAuditAction({
+        adminUserId: adminUser.id,
+        action: "delete_lead",
+        targetType: "connection",
+        targetId: conn.id,
+        details: {
+          type: conn.type,
+          status: conn.status,
+          from: (conn.from_profile as unknown as { display_name: string } | null)?.display_name,
+          to: (conn.to_profile as unknown as { display_name: string } | null)?.display_name,
+          created_at: conn.created_at,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true, deleted: count ?? 0 });
+  } catch (err) {
+    console.error("Admin leads delete error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

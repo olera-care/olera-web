@@ -1,11 +1,52 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 
 type TypeFilter = "all" | "inquiry" | "application" | "invitation" | "needs_email";
+
+/* ── Confirmation Dialog ────────────────────────────────────── */
+
+function ConfirmDeleteDialog({
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  deleting,
+}: {
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <p className="mt-2 text-sm text-gray-600">{message}</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={deleting}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={deleting}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CARE_TYPE_LABELS: Record<string, string> = {
   home_care: "Home Care",
@@ -136,6 +177,79 @@ export default function AdminLeadsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<TypeFilter>(initialTab);
 
+  // Delete state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState<{ ids: string[]; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const leadsBeforeDelete = useRef<Lead[]>([]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === leads.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(leads.map((l) => l.id)));
+    }
+  };
+
+  const requestDeleteSingle = (lead: Lead) => {
+    const from = lead.from_profile?.display_name ?? "Unknown";
+    const to = lead.to_profile?.display_name ?? "Unknown";
+    setConfirmDelete({ ids: [lead.id], label: `Delete the lead from ${from} \u2192 ${to}?` });
+  };
+
+  const requestDeleteBulk = () => {
+    const count = selectedIds.size;
+    setConfirmDelete({
+      ids: Array.from(selectedIds),
+      label: `Permanently delete ${count} lead${count === 1 ? "" : "s"}? This cannot be undone.`,
+    });
+  };
+
+  const executeDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    leadsBeforeDelete.current = leads;
+
+    // Optimistic removal
+    const idsToDelete = new Set(confirmDelete.ids);
+    setLeads((prev) => prev.filter((l) => !idsToDelete.has(l.id)));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      idsToDelete.forEach((id) => next.delete(id));
+      return next;
+    });
+
+    try {
+      const res = await fetch("/api/admin/leads", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: confirmDelete.ids }),
+      });
+
+      if (!res.ok) {
+        // Rollback
+        setLeads(leadsBeforeDelete.current);
+        const data = await res.json();
+        setError(data.error || "Failed to delete leads");
+      }
+    } catch {
+      setLeads(leadsBeforeDelete.current);
+      setError("Network error while deleting");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(null);
+    }
+  };
+
   const fetchLeads = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -158,6 +272,7 @@ export default function AdminLeadsPage() {
   }, [filter]);
 
   useEffect(() => {
+    setSelectedIds(new Set());
     fetchLeads();
   }, [fetchLeads]);
 
@@ -196,6 +311,27 @@ export default function AdminLeadsPage() {
         ))}
       </div>
 
+      {/* Bulk delete bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-4 mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
+          <span className="text-sm font-medium text-red-800">
+            {selectedIds.size} selected
+          </span>
+          <button
+            onClick={requestDeleteBulk}
+            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Delete selected
+          </button>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4 text-sm text-red-700">
           {error}
@@ -216,6 +352,14 @@ export default function AdminLeadsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="w-10 px-3 py-3">
+                    <input
+                      type="checkbox"
+                      checked={leads.length > 0 && selectedIds.size === leads.length}
+                      onChange={toggleSelectAll}
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                  </th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">From</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">To</th>
                   <th className="text-left px-6 py-3 text-sm font-medium text-gray-500">Care Type</th>
@@ -262,7 +406,15 @@ export default function AdminLeadsPage() {
                   const isFromFamily = lead.from_profile?.type === "family";
 
                   return (
-                  <tr key={lead.id} className={`hover:bg-gray-50 ${needsEmail ? "bg-amber-50" : ""}`}>
+                  <tr key={lead.id} className={`hover:bg-gray-50 ${needsEmail ? "bg-amber-50" : ""} ${selectedIds.has(lead.id) ? "bg-blue-50" : ""}`}>
+                    <td className="w-10 px-3 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(lead.id)}
+                        onChange={() => toggleSelect(lead.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       {isFromFamily ? (
                         <Link href={`/admin/care-seekers/${lead.from_profile?.id}`} className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline">
@@ -330,9 +482,20 @@ export default function AdminLeadsPage() {
                       {new Date(lead.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
-                      {needsEmail ? (
-                        <InlineEmailInput lead={lead} onEmailAdded={fetchLeads} />
-                      ) : null}
+                      <div className="flex items-center gap-2">
+                        {needsEmail && (
+                          <InlineEmailInput lead={lead} onEmailAdded={fetchLeads} />
+                        )}
+                        <button
+                          onClick={() => requestDeleteSingle(lead)}
+                          title="Delete lead"
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   );
@@ -341,6 +504,17 @@ export default function AdminLeadsPage() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Confirmation dialog */}
+      {confirmDelete && (
+        <ConfirmDeleteDialog
+          title={confirmDelete.ids.length === 1 ? "Delete lead" : "Delete leads"}
+          message={confirmDelete.label}
+          onConfirm={executeDelete}
+          onCancel={() => setConfirmDelete(null)}
+          deleting={deleting}
+        />
       )}
     </div>
   );

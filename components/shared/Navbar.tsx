@@ -140,7 +140,7 @@ export default function Navbar() {
     pathname.startsWith("/provider/account") ||
     // Claim/onboard flow shows provider portal nav
     (pathname.startsWith("/provider/") && pathname.endsWith("/onboard"));
-  const isMinimalNav = pathname.startsWith("/portal/inbox");
+  const isMinimalNav = pathname.startsWith("/portal/inbox") || pathname.startsWith("/welcome");
 
   // Show auth pill as soon as we know a user session exists.
   const hasSession = !!user;
@@ -417,16 +417,20 @@ export default function Navbar() {
           )}
         </div>
 
-      {/* Profile switcher */}
-      <div className="mx-4 border-t border-gray-100" />
-      <div className="px-2 py-1">
-        <ProfileSwitcher
-          onSwitch={() => setIsUserMenuOpen(false)}
-          variant="dropdown"
-          allowedTypes={isProviderPortal ? ["organization", "caregiver"] : ["family"]}
-          navigateTo={isProviderPortal ? "/provider" : "/"}
-        />
-      </div>
+      {/* Profile switcher - only show on provider side where switching between org profiles is useful */}
+      {isProviderPortal && (
+        <>
+          <div className="mx-4 border-t border-gray-100" />
+          <div className="px-2 py-1">
+            <ProfileSwitcher
+              onSwitch={() => setIsUserMenuOpen(false)}
+              variant="dropdown"
+              allowedTypes={["organization", "caregiver"]}
+              navigateTo="/provider"
+            />
+          </div>
+        </>
+      )}
 
       {isAdmin && (
         <>
@@ -557,7 +561,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
+        className={`${navbarVisible ? "sticky" : "fixed"} top-0 left-0 right-0 z-50 bg-white ${isPortal || isProviderPortal || pathname.startsWith("/welcome") ? "border-b border-gray-200" : isScrolled && navbarVisible ? "shadow-sm" : ""}`}
         style={{
           transform: navbarVisible ? "translateY(0)" : "translateY(-100%)",
           transition: "transform 200ms cubic-bezier(0.33, 1, 0.68, 1)"
@@ -775,21 +779,15 @@ export default function Navbar() {
                 ) : (
                   /* Family mode: For Providers + heart + user menu */
                   <>
-                    {/* MedJobs link */}
-                    <Link
-                      href="/medjobs"
-                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                    >
-                      MedJobs
-                    </Link>
-
-                    {/* For Providers link */}
-                    <button
-                      onClick={handleForProviders}
-                      className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-                    >
-                      For Providers
-                    </button>
+                    {/* For Providers link — hidden on minimal nav pages */}
+                    {!isMinimalNav && (
+                      <button
+                        onClick={handleForProviders}
+                        className="px-4 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+                      >
+                        For Providers
+                      </button>
+                    )}
 
                     {/* Saved providers heart */}
                     <Link
@@ -1230,19 +1228,8 @@ export default function Navbar() {
                         )}
                       </div>
 
-                      {/* Profile switcher & other actions */}
-                      <div className="my-3 border-t border-gray-100" />
-
-                      <div className="px-3">
-                        <ProfileSwitcher
-                          onSwitch={() => setIsMobileMenuOpen(false)}
-                          variant="dropdown"
-                          allowedTypes={["family"]}
-                          navigateTo="/"
-                        />
-                      </div>
-
                       {/* Switch to Provider - show when user has provider access */}
+                      <div className="my-3 border-t border-gray-100" />
                       {(hasProviderProfile || hasAttemptedOnboarding) && (
                         <button
                           type="button"

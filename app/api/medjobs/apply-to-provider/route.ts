@@ -9,10 +9,13 @@ import { sendSMS } from "@/lib/twilio";
 import { getTrackLabel } from "@/lib/medjobs-helpers";
 import type { StudentMetadata } from "@/lib/types";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors when env vars are not available
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,6 +37,8 @@ export async function POST(req: NextRequest) {
     if (!providerProfileId) {
       return NextResponse.json({ error: "Provider profile ID required" }, { status: 400 });
     }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Get student's account and profile
     const { data: account } = await supabaseAdmin

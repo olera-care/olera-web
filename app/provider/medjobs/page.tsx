@@ -3,12 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { createBrowserClient } from "@supabase/ssr";
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createClient } from "@/lib/supabase/client";
 
 interface DashboardStats {
   totalCandidates: number;
@@ -27,7 +22,7 @@ export default function ProviderMedJobsPage() {
 
       try {
         // Total student candidates
-        const { count: totalCandidates } = await supabase
+        const { count: totalCandidates } = await createClient()
           .from("business_profiles")
           .select("id", { count: "exact", head: true })
           .eq("type", "student")
@@ -36,7 +31,7 @@ export default function ProviderMedJobsPage() {
         // New this week
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
-        const { count: newThisWeek } = await supabase
+        const { count: newThisWeek } = await createClient()
           .from("business_profiles")
           .select("id", { count: "exact", head: true })
           .eq("type", "student")
@@ -44,7 +39,7 @@ export default function ProviderMedJobsPage() {
           .gte("created_at", weekAgo.toISOString());
 
         // Pending applications to this provider
-        const { count: pendingApplications } = await supabase
+        const { count: pendingApplications } = await createClient()
           .from("connections")
           .select("id", { count: "exact", head: true })
           .eq("to_profile_id", activeProfile.id)

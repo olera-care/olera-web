@@ -27,11 +27,12 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { connectionId, careType, careRecipient, urgency, additionalNotes, claimToken } = body as {
+    const { connectionId, careType, careRecipient, urgency, message, additionalNotes, claimToken } = body as {
       connectionId?: string;
       careType?: string;
       careRecipient?: string;
       urgency?: string;
+      message?: string;
       additionalNotes?: string;
       claimToken?: string;
     };
@@ -131,6 +132,8 @@ export async function PATCH(request: Request) {
     if (careType !== undefined) existingMessage.care_type = careType;
     if (careRecipient !== undefined) existingMessage.care_recipient = careRecipient;
     if (urgency !== undefined) existingMessage.urgency = urgency;
+    // Support both new 'message' field and legacy 'additional_notes'
+    if (message !== undefined) existingMessage.message = message;
     if (additionalNotes !== undefined) existingMessage.additional_notes = additionalNotes;
 
     // Regenerate auto_intro with updated intent data

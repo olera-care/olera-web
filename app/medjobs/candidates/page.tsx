@@ -4,13 +4,20 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, formatAvailability, formatHoursPerWeek, formatDuration, hasVideo } from "@/lib/medjobs-helpers";
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+let _supabase: SupabaseClient | null = null;
+function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    _supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  }
+  return _supabase;
+}
 
 interface StudentProfile {
   id: string;
@@ -57,7 +64,7 @@ export default function CandidateBrowsePage() {
   const fetchCandidates = useCallback(async () => {
     setLoading(true);
 
-    let query = supabase
+    let query = getSupabase()
       .from("business_profiles")
       .select("id, slug, display_name, city, state, description, care_types, metadata, image_url, created_at", { count: "exact" })
       .eq("type", "student")

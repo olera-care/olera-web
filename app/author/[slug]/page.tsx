@@ -5,13 +5,8 @@ import type { Metadata } from "next";
 import { getAuthorBySlug, getAllAuthorSlugs } from "@/lib/authors";
 import { createClient } from "@/lib/supabase/server";
 
-// ISR: revalidate every 60 seconds
-export const revalidate = 60;
-
-// Static generation for all known authors
-export async function generateStaticParams() {
-  return getAllAuthorSlugs().map((slug) => ({ slug }));
-}
+// Dynamic rendering - skip static generation during build
+export const dynamic = "force-dynamic";
 
 // SEO metadata
 export async function generateMetadata({

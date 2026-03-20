@@ -102,13 +102,32 @@ function MagicLinkHandler() {
 
         setStatus("success");
 
+        // Check for pending connection info from guest connection flow
+        let pendingConnection: { connectionId: string; providerSlug: string } | null = null;
+        try {
+          const stored = localStorage.getItem("olera_pending_connection");
+          if (stored) {
+            pendingConnection = JSON.parse(stored);
+            localStorage.removeItem("olera_pending_connection");
+          }
+        } catch {
+          // localStorage not available
+        }
+
         // Determine final destination
+        // If we have pending connection info, include it in the welcome URL
         // New user (onboarding_completed=false) + no deferred action → /welcome
-        // Note: middleware also handles this redirect, but we keep this for deferred action support
         const hasDeferredAction = !!getDeferredAction()?.action;
-        const finalDestination = (isNewUser && !hasDeferredAction)
-          ? `/welcome?next=${encodeURIComponent(next)}`
-          : next;
+        let finalDestination: string;
+
+        if (pendingConnection) {
+          // Guest connection flow - go to welcome with connection info
+          finalDestination = `/welcome?connection=${pendingConnection.connectionId}&provider=${pendingConnection.providerSlug}`;
+        } else if (isNewUser && !hasDeferredAction) {
+          finalDestination = `/welcome?next=${encodeURIComponent(next)}`;
+        } else {
+          finalDestination = next;
+        }
 
         // Redirect immediately — no delay needed since middleware handles new user redirect
         router.replace(finalDestination);

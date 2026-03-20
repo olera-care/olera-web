@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData } from "@/lib/types";
+import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
@@ -149,7 +149,7 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   rating?: number;
   review_count?: number;
   images?: string[];
-  staff?: { name: string; position: string; bio: string; image: string };
+  staff?: StaffInfo;
   badge?: string;
   accepted_payments?: string[];
   pricing_details?: { service: string; rate: string; rateType: string }[];
@@ -336,7 +336,7 @@ export default async function ProviderPage({
 
   const rating = meta?.rating;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
-  const staff = meta?.staff;
+  let staff = meta?.staff;
   const acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
@@ -351,7 +351,7 @@ export default async function ProviderPage({
             const supabase = await createClient();
             const { data: bp } = await supabase
               .from("business_profiles")
-              .select("claim_state, account_id")
+              .select("claim_state, account_id, metadata")
               .eq("source_provider_id", profile.source_provider_id!)
               .maybeSingle();
             return bp;
@@ -399,6 +399,11 @@ export default async function ProviderPage({
   if (claimResult) {
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
+    // Merge staff/owner data from business_profiles metadata (iOS metadata doesn't have it)
+    const bpMeta = claimResult.metadata as ExtendedMetadata | null;
+    if (bpMeta?.staff) {
+      staff = bpMeta.staff;
+    }
   }
 
   const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
@@ -804,13 +809,21 @@ export default async function ProviderPage({
               {/* Managed by — only show when staff data exists */}
               {hasStaff && (
                 <div className="flex items-center gap-2.5 mt-4">
-                  {staff!.image ? (
-                    <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="rounded-full object-cover" />
-                  ) : (
-                    <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                      <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
-                    </div>
-                  )}
+                  <div className="relative flex-shrink-0">
+                    {staff!.image ? (
+                      <Image src={staff!.image} alt={staff!.name} width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                        <span className="text-[10px] font-semibold text-gray-500">{getInitials(staff!.name)}</span>
+                      </div>
+                    )}
+                    {actualClaimState === "claimed" && (
+                      <svg className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="10" r="10" fill="white" />
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-500">
                     Managed by: <span className="font-medium text-gray-700">{staff!.name}</span>
                   </p>
@@ -965,20 +978,28 @@ export default async function ProviderPage({
                     </ScrollToConnectionCard>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start gap-6">
-                    <div className="border border-gray-200 rounded-xl p-5 text-center flex-shrink-0 w-40">
-                      {staff!.image ? (
-                        <Image src={staff!.image} alt={staff!.name} width={80} height={80} className="rounded-full object-cover mx-auto mb-3" />
-                      ) : (
-                        <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                          <span className="text-2xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
-                        </div>
-                      )}
-                      <p className="text-sm font-semibold text-gray-900">{staff!.name}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{staff!.position}</p>
+                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center flex-shrink-0 w-52 shadow-md">
+                      <div className="relative mx-auto mb-5 w-24 h-24">
+                        {staff!.image ? (
+                          <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center">
+                            <span className="text-3xl font-bold text-gray-500">{getInitials(staff!.name)}</span>
+                          </div>
+                        )}
+                        {actualClaimState === "claimed" && (
+                          <svg className="absolute bottom-0 right-0 w-6 h-6 text-[#198087]" viewBox="0 0 20 20" fill="currentColor">
+                            <circle cx="10" cy="10" r="10" fill="white" />
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <p className="text-base font-bold text-gray-900">{staff!.name}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{staff!.position}</p>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-semibold text-gray-900 mb-2">Care motivation</h3>
-                      <ExpandableText text={staff!.bio} maxLength={200} />
+                      <ExpandableText text={staff!.care_motivation || staff!.bio} maxLength={200} />
                     </div>
                   </div>
                   <div className="flex items-center gap-2 mt-6 text-sm text-gray-500">

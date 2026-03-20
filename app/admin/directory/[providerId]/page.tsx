@@ -40,6 +40,18 @@ export default function AdminDirectoryDetailPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Owner/staff state (stored in business_profiles.metadata.staff)
+  const [staffName, setStaffName] = useState("");
+  const [staffPosition, setStaffPosition] = useState("");
+  const [staffBio, setStaffBio] = useState("");
+  const [staffCareMotivation, setStaffCareMotivation] = useState("");
+  const [staffImage, setStaffImage] = useState("");
+  const [originalStaff, setOriginalStaff] = useState<Record<string, string>>({});
+  const [savingStaff, setSavingStaff] = useState(false);
+  const [staffMessage, setStaffMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const staffFileRef = useRef<HTMLInputElement>(null);
+  const [uploadingStaffPhoto, setUploadingStaffPhoto] = useState(false);
+
   // City search state
   const [cityQuery, setCityQuery] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -69,6 +81,23 @@ export default function AdminDirectoryDetailPage() {
       setOriginalData({ ...data.provider });
       setImages(data.images ?? []);
       setRawImages(data.rawImages ?? []);
+
+      // Populate staff/owner data
+      const staff = data.staffData as Record<string, string> | null;
+      if (staff) {
+        setStaffName(staff.name || "");
+        setStaffPosition(staff.position || "");
+        setStaffBio(staff.bio || "");
+        setStaffCareMotivation(staff.care_motivation || "");
+        setStaffImage(staff.image || "");
+        setOriginalStaff({
+          name: staff.name || "",
+          position: staff.position || "",
+          bio: staff.bio || "",
+          care_motivation: staff.care_motivation || "",
+          image: staff.image || "",
+        });
+      }
     } catch (err) {
       console.error("Failed to fetch provider:", err);
     } finally {
@@ -203,6 +232,83 @@ export default function AdminDirectoryDetailPage() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  const isStaffDirty =
+    staffName !== (originalStaff.name || "") ||
+    staffPosition !== (originalStaff.position || "") ||
+    staffBio !== (originalStaff.bio || "") ||
+    staffCareMotivation !== (originalStaff.care_motivation || "") ||
+    staffImage !== (originalStaff.image || "");
+
+  async function handleSaveStaff() {
+    setSavingStaff(true);
+    setStaffMessage(null);
+    try {
+      const staffData = {
+        name: staffName.trim(),
+        position: staffPosition.trim(),
+        bio: staffBio.trim(),
+        image: staffImage,
+        care_motivation: staffCareMotivation.trim() || undefined,
+      };
+      const res = await fetch(`/api/admin/directory/${providerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _staff: staffName.trim() ? staffData : null }),
+      });
+      if (res.ok) {
+        setOriginalStaff({
+          name: staffName.trim(),
+          position: staffPosition.trim(),
+          bio: staffBio.trim(),
+          care_motivation: staffCareMotivation.trim(),
+          image: staffImage,
+        });
+        setStaffMessage({ type: "success", text: "Owner info saved." });
+        setTimeout(() => setStaffMessage(null), 3000);
+      } else {
+        const err = await res.json();
+        setStaffMessage({ type: "error", text: err.error || "Failed to save." });
+      }
+    } catch {
+      setStaffMessage({ type: "error", text: "Network error." });
+    } finally {
+      setSavingStaff(false);
+    }
+  }
+
+  async function handleStaffPhotoUpload(file: File) {
+    setUploadingStaffPhoto(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("providerId", providerId);
+
+      const res = await fetch("/api/admin/directory/upload", {
+        method: "POST",
+        body,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.imageUrl) setStaffImage(data.imageUrl);
+        // Also refresh provider images
+        const detailRes = await fetch(`/api/admin/directory/${providerId}`);
+        if (detailRes.ok) {
+          const detail = await detailRes.json();
+          setImages(detail.images ?? []);
+          setRawImages(detail.rawImages ?? []);
+        }
+      } else {
+        setStaffMessage({ type: "error", text: "Failed to upload photo." });
+      }
+    } catch {
+      setStaffMessage({ type: "error", text: "Network error uploading photo." });
+    } finally {
+      setUploadingStaffPhoto(false);
+      if (staffFileRef.current) staffFileRef.current.value = "";
     }
   }
 
@@ -591,6 +697,91 @@ export default function AdminDirectoryDetailPage() {
           {images.length === 0 && rawImages.length === 0 && (
             <p className="text-sm text-gray-500">No images found for this provider.</p>
           )}
+        </Section>
+
+        {/* Facility Manager / Owner */}
+        <Section title="Facility Manager">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput label="Full Name" value={staffName} onChange={setStaffName} />
+            <FieldInput label="Title / Position" value={staffPosition} onChange={setStaffPosition} />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Care Motivation</label>
+            <textarea
+              value={staffCareMotivation}
+              onChange={(e) => setStaffCareMotivation(e.target.value)}
+              rows={3}
+              placeholder="Why did this person start this care home?"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Short Bio</label>
+            <textarea
+              value={staffBio}
+              onChange={(e) => setStaffBio(e.target.value)}
+              rows={2}
+              placeholder="Background, credentials..."
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+            />
+          </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Photo</label>
+            <div className="flex items-center gap-4">
+              {staffImage ? (
+                <img src={staffImage} alt="Owner" className="w-14 h-14 rounded-full object-cover" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-lg font-bold">
+                  {staffName ? staffName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) : "?"}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => staffFileRef.current?.click()}
+                  disabled={uploadingStaffPhoto}
+                  className="px-3 py-1.5 text-sm font-medium text-primary-600 border border-primary-300 rounded-lg hover:bg-primary-50 transition-colors disabled:opacity-50"
+                >
+                  {uploadingStaffPhoto ? "Uploading..." : staffImage ? "Change" : "Upload"}
+                </button>
+                {staffImage && (
+                  <button
+                    type="button"
+                    onClick={() => setStaffImage("")}
+                    className="px-3 py-1.5 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              <input
+                ref={staffFileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleStaffPhotoUpload(file);
+                }}
+                className="hidden"
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+            <div>
+              {staffMessage && (
+                <span className={`text-sm ${staffMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                  {staffMessage.text}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={handleSaveStaff}
+              disabled={!isStaffDirty || savingStaff}
+              className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {savingStaff ? "Saving..." : "Save Owner Info"}
+            </button>
+          </div>
         </Section>
 
         {/* Danger Zone */}

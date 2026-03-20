@@ -53,13 +53,14 @@ function evaluateEligibility(
   answers: BenefitsIntakeAnswers,
   relevantCategories: BenefitCategory[]
 ): BenefitMatch | null {
-  let score = program.priority_score;
+  // Normalize base score to 0-50 range to leave room for bonuses
+  let score = Math.round(program.priority_score * 0.5);
   const reasons: string[] = [];
 
   // Hard disqualify: age below minimum
   if (program.min_age != null && answers.age != null) {
     if (answers.age < program.min_age) return null;
-    score += 10;
+    score += 8;
     reasons.push("Meets age requirement");
   }
 
@@ -67,15 +68,16 @@ function evaluateEligibility(
   const income = getEstimatedMonthlyIncome(answers.incomeRange);
   if (income != null && program.max_income_single != null) {
     if (income <= program.max_income_single) {
-      score += 15;
+      score += 12;
       reasons.push("Within income guidelines");
     }
   }
 
   // Veteran — hard disqualify veteran-only programs for non-veterans
-  if (program.requires_veteran === true) {
+  const requiresVeteran = (program as Record<string, unknown>).requires_veteran;
+  if (requiresVeteran === true) {
     if (answers.veteranStatus === "yes") {
-      score += 20;
+      score += 15;
       reasons.push("Veteran benefit");
     } else if (answers.veteranStatus === "no") {
       return null; // Hard disqualify
@@ -96,13 +98,12 @@ function evaluateEligibility(
 
   // Medicare (soft — no disqualification)
   if (program.requires_medicare && hasMedicaid) {
-    // If they have Medicaid, they may also have Medicare — give partial boost
     score += 5;
   }
 
   // Category match (largest bonus)
   if (relevantCategories.includes(program.category)) {
-    score += 25;
+    score += 15;
     reasons.push("Matches your care needs");
   }
 
@@ -111,17 +112,16 @@ function evaluateEligibility(
     const setting = inferCareSetting(program.name);
     if (answers.carePreference === "stayHome") {
       if (setting === "home") {
-        score += 10;
+        score += 8;
         reasons.push("Supports staying at home");
       } else if (setting === "facility") {
-        score -= 10;
+        score -= 8;
       }
     } else if (answers.carePreference === "exploringFacility") {
       if (setting === "facility") {
-        score += 10;
+        score += 8;
         reasons.push("Facility-based program");
       }
-      // No penalty for home programs — still useful for facility seekers
     }
   }
 

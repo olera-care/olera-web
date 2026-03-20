@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
-import GoogleReviewSnippets from "@/components/providers/GoogleReviewSnippets";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
 import ProviderHeroGallery from "@/components/providers/ProviderHeroGallery";
 import Breadcrumbs from "@/components/providers/Breadcrumbs";
@@ -489,7 +488,7 @@ export default async function ProviderPage({
   sectionItems.push({ id: "highlights", label: "Highlights" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  if (googleReviewsData?.reviews?.length) sectionItems.push({ id: "reviews", label: "Reviews" });
+  sectionItems.push({ id: "reviews", label: "Reviews" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
@@ -864,13 +863,6 @@ export default async function ProviderPage({
                 />
               </div>
 
-              {/* ── What families are saying (Google review snippets) ── */}
-              <GoogleReviewSnippets
-                googleReviewsData={googleReviewsData}
-                providerName={profile.display_name}
-                placeId={providerPlaceId}
-              />
-
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
@@ -936,13 +928,17 @@ export default async function ProviderPage({
               )}
 
               {/* ── What families are saying ── */}
-              <ReviewsSection
-                providerId={profile.slug}
-                providerSlug={profile.slug}
-                providerName={profile.display_name}
-                mockReviews={reviewsToShow}
-                isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-              />
+              <div id="reviews" className="scroll-mt-20">
+                <ReviewsSection
+                  providerId={profile.slug}
+                  providerSlug={profile.slug}
+                  providerName={profile.display_name}
+                  mockReviews={reviewsToShow}
+                  isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                  googleReviewsData={googleReviewsData}
+                  placeId={providerPlaceId}
+                />
+              </div>
 
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (

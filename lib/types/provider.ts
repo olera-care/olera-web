@@ -8,7 +8,7 @@
  */
 
 import { generateProviderSlug } from "@/lib/slugify";
-import type { BusinessProfile, ProfileCategory, GoogleReviewsData } from "@/lib/types";
+import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData } from "@/lib/types";
 
 export interface Provider {
   provider_id: string;
@@ -40,6 +40,7 @@ export interface Provider {
   hero_image_url: string | null;
   slug: string | null; // Human-readable URL slug (populated via migration)
   google_reviews_data: GoogleReviewsData | null; // Cached Google review snippets (JSONB)
+  cms_data: CMSData | null; // CMS Medicare quality data (JSONB)
   last_viewed_at: string | null; // Tracks page views for tiered refresh
 }
 
@@ -165,6 +166,8 @@ export interface ProviderCardData {
   description?: string;
   lat?: number | null;
   lon?: number | null;
+  cmsRating?: number | null;
+  cmsSource?: string | null;
 }
 
 /** URL patterns that strongly suggest a logo rather than a facility photo */
@@ -322,6 +325,8 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     description: provider.provider_description?.slice(0, 200) || undefined,
     lat: provider.lat,
     lon: provider.lon,
+    cmsRating: provider.cms_data?.overall_rating ?? null,
+    cmsSource: provider.cms_data?.source ?? null,
   };
 }
 

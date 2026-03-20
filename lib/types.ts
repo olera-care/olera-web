@@ -185,6 +185,23 @@ export interface GoogleReviewsData {
   last_synced: string; // ISO 8601
 }
 
+/** CMS (Medicare) quality data — stored as JSONB on olera-providers */
+export interface CMSData {
+  ccn: string; // CMS Certification Number
+  source: "home_health" | "nursing_home" | "hospice";
+  overall_rating: number | null; // 1-5 stars
+  health_inspection_rating?: number | null;
+  staffing_rating?: number | null;
+  quality_rating?: number | null;
+  provider_name: string; // CMS name (may differ from ours)
+  certification_date?: string | null;
+  deficiency_count?: number;
+  penalty_count?: number;
+  total_fines?: number;
+  abuse_icon?: string;
+  last_synced: string; // ISO 8601
+}
+
 /** Staff/owner info displayed on provider detail pages */
 export interface StaffInfo {
   name: string;

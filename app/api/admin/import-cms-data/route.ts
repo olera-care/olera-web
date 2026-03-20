@@ -27,7 +27,16 @@ import {
  *   2. ?state=TX to import
  *   3. Repeat for each state with providers
  */
+// Support GET so admins can trigger from browser URL bar
+export async function GET(request: NextRequest) {
+  return handler(request);
+}
+
 export async function POST(request: NextRequest) {
+  return handler(request);
+}
+
+async function handler(request: NextRequest) {
   const user = await getAuthUser();
   if (!user || !(await isMasterAdmin(user.id))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -35,7 +35,7 @@ interface CMSResponse {
 async function fetchCMSDataset(
   datasetId: string,
   conditions: { property: string; value: string; operator?: string }[] = [],
-  limit = 5000,
+  limit = 1500,
   offset = 0,
 ): Promise<CMSResponse> {
   const url = `${CMS_API_BASE}/${datasetId}/0`;
@@ -68,7 +68,7 @@ async function fetchCMSDataset(
 export async function fetchHomeHealthByState(state: string): Promise<CMSRecord[]> {
   const allRecords: CMSRecord[] = [];
   let offset = 0;
-  const limit = 5000;
+  const limit = 1500;
 
   while (true) {
     const { results } = await fetchCMSDataset(
@@ -91,7 +91,7 @@ export async function fetchHomeHealthByState(state: string): Promise<CMSRecord[]
 export async function fetchNursingHomesByState(state: string): Promise<CMSRecord[]> {
   const allRecords: CMSRecord[] = [];
   let offset = 0;
-  const limit = 5000;
+  const limit = 1500;
 
   while (true) {
     const { results } = await fetchCMSDataset(

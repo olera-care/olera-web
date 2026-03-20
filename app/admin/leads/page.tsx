@@ -169,6 +169,8 @@ function InlineEmailInput({
   );
 }
 
+const PAGE_SIZE = 25;
+
 export default function AdminLeadsPage() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get("tab") as TypeFilter) || "all";
@@ -176,6 +178,13 @@ export default function AdminLeadsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<TypeFilter>(initialTab);
+
+  // Search & pagination
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [total, setTotal] = useState(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Delete state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -254,12 +263,18 @@ export default function AdminLeadsPage() {
     setLoading(true);
     setError(null);
     try {
-      const needsEmailParam = filter === "needs_email" ? "&needs_email=true" : "";
-      const typeParam = filter !== "all" && filter !== "needs_email" ? `&type=${filter}` : "";
-      const res = await fetch(`/api/admin/leads?limit=100${typeParam}${needsEmailParam}`);
+      const params = new URLSearchParams();
+      params.set("limit", String(PAGE_SIZE));
+      params.set("offset", String(page * PAGE_SIZE));
+      if (filter !== "all" && filter !== "needs_email") params.set("type", filter);
+      if (filter === "needs_email") params.set("needs_email", "true");
+      if (debouncedSearch) params.set("search", debouncedSearch);
+
+      const res = await fetch(`/api/admin/leads?${params}`);
       if (res.ok) {
         const data = await res.json();
         setLeads(data.connections ?? []);
+        setTotal(data.total ?? 0);
       } else {
         setError("Failed to load leads. Please try again.");
       }
@@ -269,7 +284,23 @@ export default function AdminLeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, page, debouncedSearch]);
+
+  // Debounce search input (300ms)
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value);
+      setPage(0);
+    }, 300);
+  };
+
+  // Reset page & selection when filter changes
+  useEffect(() => {
+    setPage(0);
+    setSelectedIds(new Set());
+  }, [filter, debouncedSearch]);
 
   useEffect(() => {
     setSelectedIds(new Set());
@@ -287,10 +318,52 @@ export default function AdminLeadsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
-        <p className="text-lg text-gray-600 mt-1">
-          View all connections and inquiries across the platform.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
+            <p className="text-lg text-gray-600 mt-1">
+              View all connections and inquiries across the platform.
+            </p>
+          </div>
+          <div className="text-sm text-gray-500">
+            {total} total
+          </div>
+        </div>
+      </div>
+
+      {/* Search bar */}
+      <div className="mb-4">
+        <div className="relative">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          />
+          {search && (
+            <button
+              onClick={() => { setSearch(""); setDebouncedSearch(""); setPage(0); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -502,6 +575,31 @@ export default function AdminLeadsPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {total > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-4 px-2">
+          <p className="text-sm text-gray-500">
+            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={(page + 1) * PAGE_SIZE >= total}
+              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

@@ -978,8 +978,8 @@ export default async function ProviderPage({
                     </ScrollToConnectionCard>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start gap-6">
-                    <div className="border border-gray-200 rounded-2xl p-6 text-center flex-shrink-0 w-48">
-                      <div className="relative mx-auto mb-4 w-24 h-24">
+                    <div className="border border-gray-100 rounded-2xl px-6 pt-8 pb-6 text-center flex-shrink-0 w-52 shadow-md">
+                      <div className="relative mx-auto mb-5 w-24 h-24">
                         {staff!.image ? (
                           <Image src={staff!.image} alt={staff!.name} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
                         ) : (

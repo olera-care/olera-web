@@ -13,7 +13,7 @@ import {
   getEstimatedMonthlyIncome,
   needsToCategories,
 } from "@/lib/types/benefits";
-import { zipToState } from "@/lib/benefits/zip-lookup";
+import { zipToState, zipToCounty } from "@/lib/benefits/zip-lookup";
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -25,6 +25,26 @@ function getSupabase() {
 }
 
 type SupabaseDB = ReturnType<typeof getSupabase>;
+
+// ─── Care Setting Heuristic ──────────────────────────────────────────────────
+
+const HOME_KEYWORDS = [
+  "home", "hcbs", "home-based", "in-home", "homemaker", "home health",
+  "home care", "community-based", "aging in place", "home modification",
+];
+const FACILITY_KEYWORDS = [
+  "facility", "nursing", "assisted living", "nursing home", "residential",
+  "institutional", "skilled nursing",
+];
+
+function inferCareSetting(programName: string): "home" | "facility" | "any" {
+  const lower = programName.toLowerCase();
+  const isHome = HOME_KEYWORDS.some((kw) => lower.includes(kw));
+  const isFacility = FACILITY_KEYWORDS.some((kw) => lower.includes(kw));
+  if (isHome && !isFacility) return "home";
+  if (isFacility && !isHome) return "facility";
+  return "any";
+}
 
 // ─── Scoring ──────────────────────────────────────────────────────────────────
 
@@ -52,9 +72,16 @@ function evaluateEligibility(
     }
   }
 
-  // Veteran (hard disqualify if required but not met)
-  // Web intake doesn't ask veteran status, so skip disqualification
-  // but don't give the +20 bonus either
+  // Veteran — hard disqualify veteran-only programs for non-veterans
+  if (program.requires_veteran === true) {
+    if (answers.veteranStatus === "yes") {
+      score += 20;
+      reasons.push("Veteran benefit");
+    } else if (answers.veteranStatus === "no") {
+      return null; // Hard disqualify
+    }
+    // "preferNotToSay" or null → keep program but no bonus
+  }
 
   // Disability (hard disqualify if required but not met)
   // Web intake doesn't ask disability status, so skip disqualification
@@ -79,7 +106,26 @@ function evaluateEligibility(
     reasons.push("Matches your care needs");
   }
 
-  score = Math.min(score, 100);
+  // Care preference — boost/penalize based on home vs facility
+  if (answers.carePreference && answers.carePreference !== "unsure") {
+    const setting = inferCareSetting(program.name);
+    if (answers.carePreference === "stayHome") {
+      if (setting === "home") {
+        score += 10;
+        reasons.push("Supports staying at home");
+      } else if (setting === "facility") {
+        score -= 10;
+      }
+    } else if (answers.carePreference === "exploringFacility") {
+      if (setting === "facility") {
+        score += 10;
+        reasons.push("Facility-based program");
+      }
+      // No penalty for home programs — still useful for facility seekers
+    }
+  }
+
+  score = Math.max(0, Math.min(score, 100));
 
   return {
     id: program.id,
@@ -200,6 +246,11 @@ export async function POST(request: Request) {
         { error: "Could not determine state from ZIP code" },
         { status: 400 }
       );
+    }
+
+    // Resolve county from ZIP if not already set
+    if (!answers.county && answers.zipCode) {
+      answers.county = await zipToCounty(answers.zipCode);
     }
 
     const supabase = getSupabase();

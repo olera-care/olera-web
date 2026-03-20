@@ -15,12 +15,14 @@ import {
   PRIMARY_NEEDS,
   INCOME_RANGES,
   MEDICAID_STATUSES,
+  VETERAN_STATUSES,
 } from "@/lib/types/benefits";
 import type {
   CarePreference,
   PrimaryNeed,
   IncomeRange,
   MedicaidStatus,
+  VeteranStatus,
   IntakeStep,
 } from "@/lib/types/benefits";
 import VoiceMicButton from "./VoiceMicButton";
@@ -132,14 +134,14 @@ export default function BenefitsIntakeForm() {
     if (step !== 5 || !user || !activeProfile || publishDefaultSet.current) return;
     publishDefaultSet.current = true;
 
-    // Check if there's a saved draft FROM step 5 - meaning user was on this step
+    // Check if there's a saved draft FROM the last step - meaning user was on this step
     // before auth redirect and their checkbox selection should be preserved
     try {
       const raw = typeof window !== "undefined" ? localStorage.getItem("olera-benefits-draft") : null;
       if (raw) {
         const draft = JSON.parse(raw);
-        if (draft.step === 5 && draft.publishCarePost !== undefined) {
-          // User was on step 5 before, their selection is already restored
+        if (draft.step === 6 && draft.publishCarePost !== undefined) {
+          // User was on last step before, their selection is already restored
           return;
         }
       }
@@ -246,6 +248,8 @@ export default function BenefitsIntakeForm() {
         return answers.incomeRange !== null;
       case 5:
         return answers.medicaidStatus !== null;
+      case 6:
+        return answers.veteranStatus !== null;
       default:
         return false;
     }
@@ -268,7 +272,7 @@ export default function BenefitsIntakeForm() {
       updateAnswers({ age: parseInt(ageInput, 10) });
     }
 
-    if (step < 5) {
+    if (step < 6) {
       goToStep((step + 1) as IntakeStep);
     } else {
       // Submit with all answers flushed — no auth gate, results are free
@@ -380,11 +384,15 @@ export default function BenefitsIntakeForm() {
           break;
         case "medicaidStatus":
           updateAnswers({ medicaidStatus: result.value });
+          goToStep(6);
+          break;
+        case "veteranStatus":
+          updateAnswers({ veteranStatus: result.value });
           break;
         case "navigation":
           if (result.value === "back") handleBack();
-          else if (result.value === "skip" && step < 5) goToStep((step + 1) as IntakeStep);
-          else if (result.value === "continue" && step < 5) goToStep((step + 1) as IntakeStep);
+          else if (result.value === "skip" && step < 6) goToStep((step + 1) as IntakeStep);
+          else if (result.value === "continue" && step < 6) goToStep((step + 1) as IntakeStep);
           break;
         case "unknown":
           // Handled by VoiceMicButton (shows clarification)
@@ -432,6 +440,9 @@ export default function BenefitsIntakeForm() {
         case "medicaidStatus":
           confirmDetail = "";
           break;
+        case "veteranStatus":
+          confirmDetail = "";
+          break;
       }
 
       // Show guided confirmation
@@ -449,7 +460,7 @@ export default function BenefitsIntakeForm() {
         // For navigation "done"/"continue" on needs step, narrate the next prompt
         if (result.type === "navigation") {
           const nextStep = (step + 1) as IntakeStep;
-          if (nextStep <= 5) {
+          if (nextStep <= 6) {
             narrate(GUIDED_PROMPTS[nextStep], () => {
               setGuidedAutoStart(true);
             });
@@ -459,7 +470,7 @@ export default function BenefitsIntakeForm() {
       }
 
       // Auto-advance with narration (except final step)
-      if (step < 5 && result.type !== "unknown") {
+      if (step < 6 && result.type !== "unknown") {
         if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
 
         // Build narration: confirmation + next question
@@ -480,7 +491,7 @@ export default function BenefitsIntakeForm() {
       }
 
       // Final step — narrate closing, then auto-submit
-      if (step === 5 && result.type === "medicaidStatus") {
+      if (step === 6 && result.type === "veteranStatus") {
         if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
         narrate("Thanks, that\u2019s everything. Let me find what\u2019s available.", () => {
           handleNext();
@@ -683,15 +694,31 @@ export default function BenefitsIntakeForm() {
 
           {/* Step 5: Medicaid */}
           {step === 5 && (
+            <div className="flex flex-col gap-2.5">
+              {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
+                ([key, val]) => (
+                  <Pill
+                    key={key}
+                    label={val.displayTitle}
+                    selected={answers.medicaidStatus === key}
+                    onClick={() => updateAnswers({ medicaidStatus: key })}
+                  />
+                )
+              )}
+            </div>
+          )}
+
+          {/* Step 6: Veteran status */}
+          {step === 6 && (
             <>
               <div className="flex flex-col gap-2.5">
-                {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
+                {(Object.entries(VETERAN_STATUSES) as [VeteranStatus, { displayTitle: string }][]).map(
                   ([key, val]) => (
                     <Pill
                       key={key}
                       label={val.displayTitle}
-                      selected={answers.medicaidStatus === key}
-                      onClick={() => updateAnswers({ medicaidStatus: key })}
+                      selected={answers.veteranStatus === key}
+                      onClick={() => updateAnswers({ veteranStatus: key })}
                     />
                   )
                 )}
@@ -745,7 +772,7 @@ export default function BenefitsIntakeForm() {
                 : "bg-gray-100 text-gray-300 cursor-default"
             }`}
           >
-            {step === 5 ? "Find my benefits" : "Continue"}
+            {step === 6 ? "Find my benefits" : "Continue"}
           </button>
         </div>
       </div>
@@ -981,7 +1008,6 @@ export default function BenefitsIntakeForm() {
 
       {/* Step 5: Medicaid status */}
       {step === 5 && (
-        <>
         <div className="flex flex-col gap-2.5 mb-4">
           {(Object.entries(MEDICAID_STATUSES) as [MedicaidStatus, { displayTitle: string }][]).map(
             ([key, val]) => (
@@ -993,8 +1019,25 @@ export default function BenefitsIntakeForm() {
               />
             )
           )}
+          <VoiceMicButton step={5} onResult={handleVoiceResult} className="mt-3" />
         </div>
-        <VoiceMicButton step={5} onResult={handleVoiceResult} className="mt-3" />
+      )}
+
+      {/* Step 6: Veteran status */}
+      {step === 6 && (
+        <>
+        <div className="flex flex-col gap-2.5 mb-4">
+          {(Object.entries(VETERAN_STATUSES) as [VeteranStatus, { displayTitle: string }][]).map(
+            ([key, val]) => (
+              <Pill
+                key={key}
+                label={val.displayTitle}
+                selected={answers.veteranStatus === key}
+                onClick={() => updateAnswers({ veteranStatus: key })}
+              />
+            )
+          )}
+        </div>
 
         {/* Let providers find me — shown to everyone, auth required at submit */}
         <label className="flex items-start gap-3 mt-2 px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/50 cursor-pointer">
@@ -1039,7 +1082,7 @@ export default function BenefitsIntakeForm() {
               : "bg-gray-100 text-gray-300 cursor-default"
           }`}
         >
-          {step === 5 ? "Find my benefits" : "Continue"}
+          {step === 6 ? "Find my benefits" : "Continue"}
         </button>
       </div>
     </div>

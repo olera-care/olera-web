@@ -13,6 +13,13 @@ import Button from "@/components/ui/Button";
 import OtpInput from "@/components/auth/OtpInput";
 
 // ============================================================
+// Constants
+// ============================================================
+
+/** Key for storing pre-auth page in localStorage (for "Skip for now" on /welcome) */
+export const PRE_AUTH_PAGE_KEY = "olera_pre_auth_page";
+
+// ============================================================
 // Types
 // ============================================================
 
@@ -117,6 +124,11 @@ export default function UnifiedAuthModal({
   const handleGoogleSignIn = async () => {
     if (!isSupabaseConfigured()) return;
 
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
+
     const supabase = createClient();
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(window.location.pathname)}`;
 
@@ -143,6 +155,11 @@ export default function UnifiedAuthModal({
       setError("Password must be at least 8 characters.");
       return;
     }
+
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
 
     setLoading(true);
 
@@ -215,6 +232,12 @@ export default function UnifiedAuthModal({
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
+
     setLoading(true);
 
     try {
@@ -404,6 +427,11 @@ export default function UnifiedAuthModal({
       setError("Please enter your email address first.");
       return;
     }
+
+    // Store current page for "Skip for now" redirect on /welcome
+    try {
+      localStorage.setItem(PRE_AUTH_PAGE_KEY, window.location.pathname);
+    } catch { /* localStorage not available */ }
 
     setError("");
     setLoading(true);

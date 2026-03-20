@@ -252,6 +252,20 @@ export async function GET(request: NextRequest) {
                   .from("business_profiles")
                   .delete()
                   .eq("id", placeholder.id);
+
+                // Ensure active_profile_id is set so welcome page can find connections
+                const { data: accountData } = await admin
+                  .from("accounts")
+                  .select("active_profile_id")
+                  .eq("id", existing.id)
+                  .single();
+
+                if (!accountData?.active_profile_id) {
+                  await admin
+                    .from("accounts")
+                    .update({ active_profile_id: mainFamilyId })
+                    .eq("id", existing.id);
+                }
               }
             }
           }

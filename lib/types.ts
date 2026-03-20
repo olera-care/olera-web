@@ -292,6 +292,9 @@ export interface FamilyMetadata {
   care_location?: string;
   language_preference?: string | string[];
   about_situation?: string;
+  // Benefits intake fields
+  income_range?: string;
+  medicaid_status?: string;
   notification_prefs?: {
     connection_updates?: { email?: boolean; sms?: boolean };
     saved_provider_alerts?: { email?: boolean; sms?: boolean };
@@ -303,10 +306,11 @@ export interface FamilyMetadata {
     published_at?: string;
   };
   benefits_results?: {
-    answers: Record<string, unknown>;
-    results: Record<string, unknown>;
-    location_display: string;
-    completed_at: string;
+    answers?: Record<string, unknown>;
+    results?: Record<string, unknown>;
+    location_display?: string;
+    completed_at?: string;
+    matchCount?: number;
   };
 }
 

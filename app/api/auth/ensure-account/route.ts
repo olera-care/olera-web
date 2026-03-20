@@ -171,11 +171,28 @@ export async function POST(request: Request) {
               .from("business_profiles")
               .delete()
               .eq("id", placeholder.id);
+
+            // Ensure active_profile_id is set so welcome page can find connections
+            if (!(existingAccount as Account).active_profile_id) {
+              await dbClient
+                .from("accounts")
+                .update({ active_profile_id: mainFamilyId })
+                .eq("id", acctId);
+            }
           }
         } catch (err) {
           console.error("[ensure-account] placeholder handling error (existing):", err);
           // Non-blocking
         }
+      }
+
+      // Also ensure active_profile_id is set even without a claim token
+      // Some accounts may exist without active_profile_id being set
+      if (existingFamilyProfile && !(existingAccount as Account).active_profile_id) {
+        await dbClient
+          .from("accounts")
+          .update({ active_profile_id: existingFamilyProfile.id })
+          .eq("id", acctId);
       }
 
       // If requested, mark onboarding as complete (used when skipping popup for users with deferred actions or existing profiles)

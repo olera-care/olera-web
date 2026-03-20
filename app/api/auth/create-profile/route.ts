@@ -308,7 +308,7 @@ export async function POST(request: Request) {
       // Family profile — check if a baseline one already exists (created by ensure-account)
       const { data: existingFamilyProfile } = await db
         .from("business_profiles")
-        .select("id")
+        .select("id, metadata")
         .eq("account_id", accountId)
         .eq("type", "family")
         .limit(1)

@@ -6,10 +6,13 @@ import { sendSlackAlert, slackMedJobsNewStudent } from "@/lib/slack";
 import { sendLoopsEvent } from "@/lib/loops";
 import type { IntendedProfessionalSchool, StudentProgramTrack } from "@/lib/types";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors when env vars are not available
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 function generateSlug(name: string, university: string): string {
   const base = `${name}-${university}`
@@ -148,6 +151,8 @@ export async function POST(req: NextRequest) {
       videoIntroUrl: undefined, // Not submitted yet
       acknowledgmentsCompleted: metadata.acknowledgments_completed,
     });
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Create profile — is_active: false until video submitted
     const { data: profile, error } = await supabaseAdmin

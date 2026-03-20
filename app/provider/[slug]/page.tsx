@@ -863,6 +863,19 @@ export default async function ProviderPage({
                 />
               </div>
 
+              {/* ── What families are saying ── */}
+              <div id="reviews" className="scroll-mt-20">
+                <ReviewsSection
+                  providerId={profile.slug}
+                  providerSlug={profile.slug}
+                  providerName={profile.display_name}
+                  mockReviews={reviewsToShow}
+                  isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                  googleReviewsData={googleReviewsData}
+                  placeId={providerPlaceId}
+                />
+              </div>
+
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-4">About</h2>
@@ -926,19 +939,6 @@ export default async function ProviderPage({
                   </p>
                 </div>
               )}
-
-              {/* ── What families are saying ── */}
-              <div id="reviews" className="scroll-mt-20">
-                <ReviewsSection
-                  providerId={profile.slug}
-                  providerSlug={profile.slug}
-                  providerName={profile.display_name}
-                  mockReviews={reviewsToShow}
-                  isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-                  googleReviewsData={googleReviewsData}
-                  placeId={providerPlaceId}
-                />
-              </div>
 
               {/* ── Facility Manager — hidden when no staff data ── */}
               {hasStaff && (

@@ -351,10 +351,10 @@ export function getEstimatedMonthlyIncome(
 export function needsToCategories(needs: PrimaryNeed[]): BenefitCategory[] {
   const mapping: Record<PrimaryNeed, BenefitCategory[]> = {
     personalCare: ["healthcare"],
-    householdTasks: ["caregiver"],
+    householdTasks: ["caregiver", "housing"],
     healthManagement: ["healthcare"],
     companionship: ["caregiver"],
-    financialHelp: ["income"],
+    financialHelp: ["income", "food", "housing", "utilities"],
     memoryCare: ["healthcare"],
     mobilityHelp: ["healthcare"],
   };

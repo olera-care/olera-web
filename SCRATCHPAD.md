@@ -15,6 +15,14 @@
   - **In progress:** Extending pipeline to business_profiles (new providers)
   - **Pending:** Bulk seed of 22K providers (~$112 one-time)
 
+- **"Manage this page" CTA + Fix Provider Email Links** — DONE ✅ (merged PR #289)
+
+- **Meet the Owner Section** — ON STAGING
+  - Plan: `plans/meet-the-owner-plan.md`
+  - Notion task: "Meet the owner section" (P1 🔥)
+  - Two placements: compact "Managed by" badge + full "Facility Manager" section
+  - Provider portal edit modal for owner info + admin directory editing
+
 - **Olera MedJobs: Student Caregiver Talent Marketplace** — DONE (on staging)
   - Plan: `plans/medjobs-plan.md`
   - Phases 1-5 DONE, PR #273 merged to staging

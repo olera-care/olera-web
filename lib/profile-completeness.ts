@@ -1,4 +1,4 @@
-import type { Profile } from "@/lib/types";
+import type { Profile, StaffInfo } from "@/lib/types";
 
 // Extended metadata shape — matches the JSONB metadata stored on provider profiles
 export interface ExtendedMetadata {
@@ -29,7 +29,7 @@ export interface ExtendedMetadata {
   rating?: number;
   review_count?: number;
   images?: string[];
-  staff?: { name: string; position: string; bio: string; image: string };
+  staff?: StaffInfo;
   badge?: string;
   accepted_payments?: string[];
   pricing_details?: { service: string; rate: string; rateMin?: string; rateMax?: string; rateType: string }[];

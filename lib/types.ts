@@ -185,7 +185,17 @@ export interface GoogleReviewsData {
   last_synced: string; // ISO 8601
 }
 
+/** Staff/owner info displayed on provider detail pages */
+export interface StaffInfo {
+  name: string;
+  position: string;
+  bio: string;
+  image: string;
+  care_motivation?: string;
+}
+
 export interface OrganizationMetadata {
+  staff?: StaffInfo;
   license_number?: string;
   year_founded?: number;
   bed_count?: number;

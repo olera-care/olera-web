@@ -8,7 +8,8 @@ export type SectionId =
   | "screening"
   | "about"
   | "pricing"
-  | "payment";
+  | "payment"
+  | "owner";
 
 export interface BaseEditModalProps {
   profile: Profile;

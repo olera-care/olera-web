@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       // Fetch providers for this state
       const { data: providers } = await db
         .from("olera-providers")
-        .select("provider_id, provider_name, zipcode, provider_category")
+        .select("provider_id, provider_name, zipcode, address, provider_category")
         .eq("state", state)
         .or("deleted.is.null,deleted.eq.false");
 
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
       // Home Health
       try {
         const cmsRecords = await fetchHomeHealthByState(state);
-        const matches = matchCMSRecords(providers, cmsRecords, homeHealthToCMSData, "provider_name", "zip_code");
+        const matches = matchCMSRecords(providers, cmsRecords, homeHealthToCMSData, "provider_name", "zip_code", "address");
         stateMatches += matches.size;
 
         for (const [providerId, cmsData] of matches) {
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       // Nursing Homes
       try {
         const cmsRecords = await fetchNursingHomesByState(state);
-        const matches = matchCMSRecords(providers, cmsRecords, nursingHomeToCMSData, "provider_name", "zip_code");
+        const matches = matchCMSRecords(providers, cmsRecords, nursingHomeToCMSData, "provider_name", "zip_code", "provider_address");
         stateMatches += matches.size;
 
         for (const [providerId, cmsData] of matches) {
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
       // Hospice
       try {
         const cmsRecords = await fetchHospiceByState(state);
-        const matches = matchCMSRecords(providers, cmsRecords, hospiceToCMSData, "facility_name", "zip_code");
+        const matches = matchCMSRecords(providers, cmsRecords, hospiceToCMSData, "facility_name", "zip_code", "address_line_1");
         stateMatches += matches.size;
 
         for (const [providerId, cmsData] of matches) {

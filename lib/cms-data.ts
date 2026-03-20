@@ -147,18 +147,71 @@ export async function fetchHospiceByState(state: string): Promise<CMSRecord[]> {
 }
 
 /**
- * Normalize a provider name for fuzzy matching.
- * Strips common suffixes, punctuation, and normalizes whitespace.
+ * Normalize a provider name for matching.
+ * Strips legal suffixes, industry terms, punctuation, and normalizes whitespace.
  */
 export function normalizeName(name: string): string {
   return name
     .toLowerCase()
     .replace(/['']/g, "'")
-    .replace(/,?\s*(llc|inc|corp|ltd|co|lp|llp|pllc|pc|dba|d\/b\/a)\.?\s*$/gi, "")
-    .replace(/,?\s*(home health|home care|hospice|nursing|rehab|rehabilitation)\s*(services?|agency|care|center|centre|facility|of)?\s*$/gi, "")
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ")
+    .replace(/[']/g, "")
+    // Strip legal entity suffixes
+    .replace(/,?\s*(llc|inc|corp|corporation|ltd|co|lp|llp|pllc|pc|dba|d\/b\/a|psc)\.?\s*/gi, " ")
+    // Strip industry terms (anywhere, not just end)
+    .replace(/\b(home health|home care|hospice|nursing|rehab|rehabilitation|healthcare|health care|medical group|medical|services?|agency|care|center|centre|facility|of|the|and|at|in|for|hh|nh)\b/gi, " ")
+    // Strip state names (CMS often appends them)
+    .replace(/\b(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming)\b/gi, " ")
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()#@"]/g, " ")
     .replace(/\bst\b/g, "saint")
     .replace(/\bmt\b/g, "mount")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Extract meaningful tokens from a name (for overlap matching).
+ */
+function nameTokens(name: string): Set<string> {
+  const normalized = normalizeName(name);
+  return new Set(normalized.split(" ").filter((t) => t.length > 1));
+}
+
+/**
+ * Compute token overlap score between two names.
+ * Returns a value between 0 and 1 (1 = perfect overlap).
+ */
+function tokenOverlap(name1: string, name2: string): number {
+  const t1 = nameTokens(name1);
+  const t2 = nameTokens(name2);
+  if (t1.size === 0 || t2.size === 0) return 0;
+
+  let shared = 0;
+  for (const t of t1) {
+    if (t2.has(t)) shared++;
+  }
+
+  // Use the smaller set as denominator — if all tokens from the shorter
+  // name appear in the longer name, that's a strong match
+  const smaller = Math.min(t1.size, t2.size);
+  return shared / smaller;
+}
+
+/**
+ * Normalize an address for comparison.
+ */
+function normalizeAddress(addr: string): string {
+  return addr
+    .toLowerCase()
+    .replace(/\bsuite\b/g, "ste")
+    .replace(/\bstreet\b/g, "st")
+    .replace(/\bavenue\b/g, "ave")
+    .replace(/\bboulevard\b/g, "blvd")
+    .replace(/\bdrive\b/g, "dr")
+    .replace(/\broad\b/g, "rd")
+    .replace(/\blane\b/g, "ln")
+    .replace(/\bparkway\b/g, "pkwy")
+    .replace(/\bcircle\b/g, "cir")
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()#@"]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -224,23 +277,46 @@ export function hospiceToCMSData(record: CMSRecord): CMSData {
 }
 
 /**
- * Match CMS records against Olera providers by name + ZIP.
+ * Match CMS records against Olera providers using tiered strategy:
+ *  1. Exact normalized name + ZIP (highest confidence)
+ *  2. Token overlap ≥ 60% + ZIP (catches name format differences)
+ *  3. Address match + ZIP (catches completely different names for same location)
+ *
  * Returns a map of provider_id → CMSData for matched providers.
  */
 export function matchCMSRecords(
-  olerProviders: { provider_id: string; provider_name: string; zipcode: number | null }[],
+  olerProviders: { provider_id: string; provider_name: string; zipcode: number | null; address?: string | null }[],
   cmsRecords: CMSRecord[],
   toCMSData: (record: CMSRecord) => CMSData,
   cmsNameField: string,
   cmsZipField: string,
+  cmsAddressField = "address",
 ): Map<string, CMSData> {
-  // Build CMS lookup: normalized(name+zip) → record
-  const cmsLookup = new Map<string, CMSRecord>();
+  // Build CMS indexes by ZIP for efficient lookup
+  const cmsExact = new Map<string, CMSRecord>(); // normalized(name)|zip → record
+  const cmsByZip = new Map<string, CMSRecord[]>(); // zip → records[]
+  const cmsAddrIndex = new Map<string, CMSRecord>(); // normalized(addr)|zip → record
+
   for (const r of cmsRecords) {
     const name = normalizeName(r[cmsNameField] || "");
     const zip = normalizeZip(r[cmsZipField]);
-    if (name && zip) {
-      cmsLookup.set(`${name}|${zip}`, r);
+    if (!zip) continue;
+
+    if (name) {
+      cmsExact.set(`${name}|${zip}`, r);
+    }
+
+    // Index by ZIP for token overlap
+    if (!cmsByZip.has(zip)) cmsByZip.set(zip, []);
+    cmsByZip.get(zip)!.push(r);
+
+    // Index by address for fallback
+    const addr = r[cmsAddressField];
+    if (addr) {
+      const normAddr = normalizeAddress(addr);
+      if (normAddr.length > 5) {
+        cmsAddrIndex.set(`${normAddr}|${zip}`, r);
+      }
     }
   }
 
@@ -251,9 +327,42 @@ export function matchCMSRecords(
     const zip = normalizeZip(p.zipcode);
     if (!name || !zip) continue;
 
-    const cmsRecord = cmsLookup.get(`${name}|${zip}`);
-    if (cmsRecord) {
-      matches.set(p.provider_id, toCMSData(cmsRecord));
+    // Tier 1: Exact normalized name + ZIP
+    const exact = cmsExact.get(`${name}|${zip}`);
+    if (exact) {
+      matches.set(p.provider_id, toCMSData(exact));
+      continue;
+    }
+
+    // Tier 2: Token overlap ≥ 60% within same ZIP
+    const zipRecords = cmsByZip.get(zip);
+    if (zipRecords) {
+      let bestMatch: CMSRecord | null = null;
+      let bestScore = 0;
+
+      for (const r of zipRecords) {
+        const score = tokenOverlap(p.provider_name, r[cmsNameField] || "");
+        if (score > bestScore && score >= 0.6) {
+          bestScore = score;
+          bestMatch = r;
+        }
+      }
+
+      if (bestMatch) {
+        matches.set(p.provider_id, toCMSData(bestMatch));
+        continue;
+      }
+    }
+
+    // Tier 3: Address match + ZIP
+    if (p.address) {
+      const normAddr = normalizeAddress(p.address);
+      if (normAddr.length > 5) {
+        const addrMatch = cmsAddrIndex.get(`${normAddr}|${zip}`);
+        if (addrMatch) {
+          matches.set(p.provider_id, toCMSData(addrMatch));
+        }
+      }
     }
   }
 

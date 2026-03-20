@@ -149,7 +149,18 @@ export const MEDICAID_STATUSES: Record<
   doesNotHave: { displayTitle: "Don't have it", shortTitle: "No Medicaid" },
 };
 
-export type IntakeStep = 0 | 1 | 2 | 3 | 4 | 5;
+export type VeteranStatus = "yes" | "no" | "preferNotToSay";
+
+export const VETERAN_STATUSES: Record<
+  VeteranStatus,
+  { displayTitle: string; shortTitle: string }
+> = {
+  yes: { displayTitle: "Yes, a veteran", shortTitle: "Veteran" },
+  no: { displayTitle: "No", shortTitle: "Not a veteran" },
+  preferNotToSay: { displayTitle: "Prefer not to say", shortTitle: "Undisclosed" },
+};
+
+export type IntakeStep = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export const INTAKE_STEPS: Record<
   IntakeStep,
@@ -161,9 +172,10 @@ export const INTAKE_STEPS: Record<
   3: { title: "Needs", question: "What kind of help is most needed?" },
   4: { title: "Income", question: "About how much is the monthly income?" },
   5: { title: "Medicaid", question: "Do you currently have Medicaid?" },
+  6: { title: "Veteran", question: "Is the person who needs care a veteran?" },
 };
 
-export const TOTAL_INTAKE_STEPS = 6;
+export const TOTAL_INTAKE_STEPS = 7;
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
@@ -174,6 +186,7 @@ export interface BenefitsIntakeAnswers {
   primaryNeeds: PrimaryNeed[];
   incomeRange: IncomeRange | null;
   medicaidStatus: MedicaidStatus | null;
+  veteranStatus: VeteranStatus | null;
   // Derived from ZIP
   stateCode: string | null;
   county: string | null;
@@ -187,6 +200,7 @@ export function createEmptyIntakeAnswers(): BenefitsIntakeAnswers {
     primaryNeeds: [],
     incomeRange: null,
     medicaidStatus: null,
+    veteranStatus: null,
     stateCode: null,
     county: null,
   };

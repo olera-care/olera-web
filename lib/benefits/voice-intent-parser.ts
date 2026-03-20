@@ -7,6 +7,7 @@ import type {
   PrimaryNeed,
   IncomeRange,
   MedicaidStatus,
+  VeteranStatus,
 } from "@/lib/types/benefits";
 import { searchCities } from "@/lib/us-city-search";
 
@@ -22,6 +23,7 @@ export type VoiceParseResult =
   | { type: "primaryNeeds"; value: PrimaryNeed[]; confidence: ParseConfidence }
   | { type: "incomeRange"; value: IncomeRange; confidence: ParseConfidence }
   | { type: "medicaidStatus"; value: MedicaidStatus; confidence: ParseConfidence }
+  | { type: "veteranStatus"; value: VeteranStatus; confidence: ParseConfidence }
   | { type: "navigation"; value: "back" | "skip" | "continue"; confidence: "exact" }
   | { type: "unknown"; clarification: string };
 
@@ -60,6 +62,7 @@ const CLARIFICATIONS: Record<IntakeStep, string> = {
   3: "What kind of help is needed? For example: bathing, cooking, medications, or companionship.",
   4: "What's the approximate monthly income? For example, about fifteen hundred, or two thousand.",
   5: "Do you have Medicaid, are you applying, or not sure?",
+  6: "Is the person who needs care a veteran? You can say yes, no, or prefer not to say.",
 };
 
 // ─── Navigation intents ─────────────────────────────────────────────────────
@@ -475,6 +478,39 @@ function parseMedicaidStatus(text: string): VoiceParseResult {
   return { type: "unknown", clarification: CLARIFICATIONS[5] };
 }
 
+// ─── Step 6: Veteran status ─────────────────────────────────────────────────
+
+function parseVeteranStatus(text: string): VoiceParseResult {
+  const veteranKeywords = ["veteran", "vet", "military", "served", "service"];
+  const noKeywords = ["no", "nope", "not a veteran", "never served", "civilian"];
+  const preferNotKeywords = ["prefer not", "rather not", "skip", "don't want to say"];
+
+  if (preferNotKeywords.some((kw) => text.includes(kw))) {
+    return { type: "veteranStatus", value: "preferNotToSay", confidence: "exact" };
+  }
+
+  // Check negation first
+  const hasNegation = text.startsWith("no") || text.includes("not") || text.includes("never");
+  if (hasNegation) {
+    return { type: "veteranStatus", value: "no", confidence: "exact" };
+  }
+
+  // Check for positive veteran signals
+  if (veteranKeywords.some((kw) => text.includes(kw))) {
+    return { type: "veteranStatus", value: "yes", confidence: "exact" };
+  }
+
+  // Simple yes/no
+  if (text === "yes" || text === "yeah" || text === "yep" || text === "he is" || text === "she is") {
+    return { type: "veteranStatus", value: "yes", confidence: "fuzzy" };
+  }
+  if (noKeywords.some((kw) => text === kw || text.startsWith(kw))) {
+    return { type: "veteranStatus", value: "no", confidence: "fuzzy" };
+  }
+
+  return { type: "unknown", clarification: CLARIFICATIONS[6] };
+}
+
 // ─── Main entry point ───────────────────────────────────────────────────────
 
 /**
@@ -510,6 +546,8 @@ export function parseVoiceIntent(
       return parseIncomeRange(normalized);
     case 5:
       return parseMedicaidStatus(normalized);
+    case 6:
+      return parseVeteranStatus(normalized);
     default:
       return { type: "unknown", clarification: "I didn't understand that." };
   }
@@ -547,6 +585,13 @@ export function getConfirmationMessage(result: VoiceParseResult): string | null 
         case "applying": return "Applying for Medicaid, noted.";
         case "notSure": return "Not sure about Medicaid, that's okay.";
         case "doesNotHave": return "No Medicaid, understood.";
+      }
+      break;
+    case "veteranStatus":
+      switch (result.value) {
+        case "yes": return "Veteran, got it.";
+        case "no": return "Not a veteran, understood.";
+        case "preferNotToSay": return "That's okay, we'll skip that.";
       }
       break;
     case "navigation":

@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, StaffInfo } from "@/lib/types";
+import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
@@ -23,6 +23,7 @@ import PriceEstimate from "@/components/providers/PriceEstimate";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
+import CMSQualitySection from "@/components/providers/CMSQualitySection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
 import {
   getInitials,
@@ -251,6 +252,7 @@ export default async function ProviderPage({
   // --- Data fetching ---
   let profile: Profile | null = null;
   let googleReviewsData: GoogleReviewsData | null = null;
+  let cmsData: CMSData | null = null;
   let providerPlaceId: string | null = null;
   let rawProviderId: string | null = null;
   let providerSource: "ios" | "bp" = "ios";
@@ -270,6 +272,7 @@ export default async function ProviderPage({
     if (bySlug) {
       profile = iosProviderToProfile(bySlug);
       googleReviewsData = bySlug.google_reviews_data;
+      cmsData = bySlug.cms_data ?? null;
       providerPlaceId = bySlug.place_id;
       rawProviderId = bySlug.provider_id;
     } else {
@@ -284,6 +287,7 @@ export default async function ProviderPage({
       if (byId) {
         profile = iosProviderToProfile(byId);
         googleReviewsData = byId.google_reviews_data;
+        cmsData = byId.cms_data ?? null;
         providerPlaceId = byId.place_id;
         rawProviderId = byId.provider_id;
       }
@@ -496,6 +500,7 @@ export default async function ProviderPage({
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
   sectionItems.push({ id: "reviews", label: "Reviews" });
+  if (cmsData?.overall_rating) sectionItems.push({ id: "quality", label: "Quality" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
@@ -889,6 +894,13 @@ export default async function ProviderPage({
                   placeId={providerPlaceId}
                 />
               </div>
+
+              {/* ── CMS Quality & Safety ── */}
+              {cmsData && cmsData.overall_rating && (
+                <div className="py-8 border-t border-gray-200">
+                  <CMSQualitySection cmsData={cmsData} />
+                </div>
+              )}
 
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">

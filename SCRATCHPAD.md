@@ -115,7 +115,7 @@ _(Nothing currently blocked)_
 - Created Notion strategy doc: "Trust Signals & Smart Ranking — Replacing the Olera Score"
 - Iterated through 3 revisions based on TJ feedback (provider cooperation constraints, CMS-uncovered categories, ranking without score)
 
-**Phase 1 Implementation (Tasks 1-8):**
+**Phase 1 Implementation (Tasks 1-8) — committed `302a4e5`:**
 - Removed `oleraScore` from all 10 files (computation, props, rendering, structured data, admin, hooks)
 - Changed hero star color teal→amber with "on Google" attribution
 - JSON-LD `aggregateRating` now sourced from Google reviews data only (not AI score)
@@ -123,6 +123,10 @@ _(Nothing currently blocked)_
 - Cleaned score mapping from dashboard hooks, onboarding shell, mock providers
 - Browse cards updated: star color amber, "on Google" attribution text
 - TypeScript compiles clean
+
+**Phase 2 Start (Task 9) — committed `f479ffa`:**
+- Added optional `categories` query param to Google review seed endpoint
+- Allows targeted backfill for CMS-uncovered categories (Home Care, Assisted Living, Independent Living)
 
 **Files modified:**
 - `app/provider/[slug]/page.tsx` — score removal, Google attribution, JSON-LD fix
@@ -140,7 +144,7 @@ _(Nothing currently blocked)_
 - `docs/olera-score-backup.md` — full backup of all removed code for revert
 - `plans/trust-signals-plan.md` — 18-task implementation plan across 4 phases
 
-**Next session:** Phase 2 (Google review backfill for CMS-uncovered categories) + Phase 3 (CMS data integration).
+**Next session:** Task 10 (run targeted backfill for CMS-uncovered categories), then Phase 3 (CMS data integration).
 
 ---
 

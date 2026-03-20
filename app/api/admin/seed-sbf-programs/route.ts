@@ -4,16 +4,30 @@ import { allStates } from "@/data/waiver-library";
 import type { BenefitCategory } from "@/lib/types/benefits";
 
 /**
- * POST /api/admin/seed-sbf-programs
+ * GET/POST /api/admin/seed-sbf-programs
  *
  * Parses the 528-program waiver library into structured BenefitProgram rows
  * and upserts them into `sbf_state_programs`.
  *
  * Query params:
- *   dry_run=true — preview without writing
+ *   dry_run=true — preview without writing (GET defaults to dry_run)
  *   state=TX — seed only one state
+ *   confirm=true — required on GET to actually write (safety rail)
  */
+export async function GET(request: NextRequest) {
+  // GET defaults to dry_run unless confirm=true
+  const { searchParams } = new URL(request.url);
+  if (!searchParams.has("dry_run") && !searchParams.has("confirm")) {
+    searchParams.set("dry_run", "true");
+  }
+  return handleSeed(request);
+}
+
 export async function POST(request: NextRequest) {
+  return handleSeed(request);
+}
+
+async function handleSeed(request: NextRequest) {
   try {
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

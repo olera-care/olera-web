@@ -15,6 +15,14 @@
   - Tiered monthly cron + on-demand backfill + Google Business linking in onboarding
   - PRs: #296, #297, #298, #299, #300, #301
 
+- **Admin Lead Deletion + Search + Pagination** — IN REVIEW (PR pending)
+  - Plan: `plans/admin-delete-leads-plan.md`
+  - Notion task: "Add ability to quickly delete leads from admin dashboard" (P1 🔥)
+  - Inline per-row trash icon + bulk checkbox select + delete
+  - Hard delete with confirmation dialog, audit-logged
+  - Server-side search by profile name (debounced 300ms)
+  - Pagination at 25 per page with Previous/Next controls
+
 - **"Manage this page" CTA + Fix Provider Email Links** — DONE ✅ (merged PR #289)
 
 - **Meet the Owner Section** — SHIPPED TO PRODUCTION ✅ (PRs #302, #303)
@@ -44,12 +52,12 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
+1. **Olera Score presentation refinement** — Notion task (P1 🔥)
 2. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
 3. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
-4. **Delete fake seed connections** from Supabase
-5. **Meet the Owner section** — Notion task (P1 🔥)
-6. **Olera Score presentation refinement** — Notion task (P1 🔥)
+4. **Delete fake seed connections** from Supabase (admin delete feature now enables this)
+5. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
+6. **Admin: provider photo deletion** — Notion task (P2)
 
 ---
 
@@ -84,6 +92,30 @@ _(Nothing currently blocked)_
 ---
 
 ## Session Log
+
+### 2026-03-20 (Session 57) — Admin Lead Deletion + Search + Pagination
+
+**Branch:** `eager-lovelace` (from staging)
+
+**What:** Added inline and bulk delete for connections on `/admin/leads`, plus server-side search and pagination. Fetched Notion roadmap, picked "Add ability to quickly delete leads from admin dashboard" (P1), explored codebase, planned, and implemented.
+
+**Implementation:**
+1. **DELETE API** — `app/api/admin/leads/route.ts`: accepts `{ ids: string[] }`, admin-guarded, fetches connection details before delete for audit, hard deletes, logs each to `audit_log`
+2. **Confirmation dialog** — `ConfirmDeleteDialog` component in page, shared between inline and bulk flows
+3. **Inline delete** — trash icon per row in Actions column, confirmation shows "from → to" names
+4. **Bulk delete** — checkbox column with select-all, red bar shows "{N} selected — Delete / Clear"
+5. **Optimistic UI** — rows removed immediately, rollback on API failure
+6. **Search** — server-side search by profile `display_name` with 300ms debounce, clear button
+7. **Pagination** — 25 per page, Previous/Next controls, "Showing X–Y of Z" + total count in header
+
+**Files modified:**
+- `app/admin/leads/page.tsx` — full UI (dialog, checkboxes, search, pagination, trash icons)
+- `app/api/admin/leads/route.ts` — DELETE handler + search param + total count in response
+
+**Files created:**
+- `plans/admin-delete-leads-plan.md` — implementation plan
+
+---
 
 ### 2026-03-19 (Session 56) — Meet the Owner Section: Full Implementation
 

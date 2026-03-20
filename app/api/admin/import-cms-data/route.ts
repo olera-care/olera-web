@@ -64,7 +64,7 @@ async function handler(request: NextRequest) {
     // Fetch our providers in this state
     let query = db
       .from("olera-providers")
-      .select("provider_id, provider_name, zipcode, provider_category")
+      .select("provider_id, provider_name, zipcode, address, provider_category")
       .eq("state", state)
       .or("deleted.is.null,deleted.eq.false");
 
@@ -141,6 +141,7 @@ async function handler(request: NextRequest) {
         nursingHomeToCMSData,
         "provider_name",
         "zip_code",
+        "provider_address",
       );
 
       let updated = 0;
@@ -179,6 +180,7 @@ async function handler(request: NextRequest) {
         hospiceToCMSData,
         "facility_name",
         "zip_code",
+        "address_line_1",
       );
 
       let updated = 0;

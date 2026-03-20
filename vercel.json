@@ -35,6 +35,10 @@
     {
       "path": "/api/cron/cms-refresh",
       "schedule": "0 6 15 1,4,7,10 *"
+    },
+    {
+      "path": "/api/cron/family-nudges",
+      "schedule": "0 15 * * *"
     }
   ]
 }

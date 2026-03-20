@@ -550,3 +550,59 @@ export function checklistEmail(opts: {
     <div>${button("View program details", `${BASE_URL}/waiver-library`)}</div>
   `);
 }
+
+// ── Care Seeker Notification Emails ──────────────────────────────
+
+/** Welcome email for new signups (Google OAuth / email OTP — NOT guest connections) */
+export function welcomeEmail(opts: {
+  familyName: string;
+  browseUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to Olera</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, thanks for joining Olera — where families find trusted senior care providers.
+    </p>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 8px;line-height:1.5;">Here's what you can do:</p>
+    <ul style="font-size:14px;color:#6b7280;margin:0 0 24px;padding-left:20px;line-height:1.8;">
+      <li><strong>Browse providers</strong> in your area</li>
+      <li><strong>Complete your profile</strong> so providers can reach out to you</li>
+      <li><strong>Go live on Matches</strong> and let qualified providers come to you</li>
+    </ul>
+    <div>${button("Browse care providers", opts.browseUrl)}</div>
+  `);
+}
+
+/** Go-live reminder for families with complete profiles who haven't activated Matches (24-48h delay) */
+export function goLiveReminderEmail(opts: {
+  familyName: string;
+  matchesUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">You're ready to go live</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, your care profile is looking great. Activate Matches and let qualified providers in your area reach out to you directly.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You're always in control — you decide which providers to respond to.
+    </p>
+    <div>${button("Go live on Matches", opts.matchesUrl)}</div>
+  `);
+}
+
+/** Profile incomplete reminder for families with sparse profiles (3-7 day delay) */
+export function familyProfileIncompleteEmail(opts: {
+  familyName: string;
+  welcomeUrl: string;
+}): string {
+  return layout(`
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Complete your profile to get matched</h1>
+    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+      Hi ${opts.familyName}, providers in your area are looking for families like yours on Olera — but your profile isn't complete yet.
+    </p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      A complete profile helps providers understand your needs and reach out with relevant care options.
+    </p>
+    <div>${button("Complete your profile", opts.welcomeUrl)}</div>
+  `);
+}

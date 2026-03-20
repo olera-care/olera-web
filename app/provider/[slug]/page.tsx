@@ -253,6 +253,7 @@ export default async function ProviderPage({
   let googleReviewsData: GoogleReviewsData | null = null;
   let providerPlaceId: string | null = null;
   let rawProviderId: string | null = null;
+  let providerSource: "ios" | "bp" = "ios";
 
   // 1. Try iOS Supabase (olera-providers table) — slug first, then provider_id
   try {
@@ -301,7 +302,21 @@ export default async function ProviderPage({
         .eq("slug", slug)
         .in("type", ["organization", "caregiver"])
         .single<Profile>();
-      profile = data;
+      if (data) {
+        profile = data;
+        providerSource = "bp";
+        // Extract Google data from business_profile metadata
+        const bpMeta = data.metadata as Record<string, unknown> | null;
+        const gm = bpMeta?.google_metadata as { place_id?: string; rating?: number; review_count?: number } | undefined;
+        const bpGoogleReviews = bpMeta?.google_reviews_data as GoogleReviewsData | undefined;
+        if (bpGoogleReviews) {
+          googleReviewsData = bpGoogleReviews;
+        }
+        if (gm?.place_id) {
+          providerPlaceId = gm.place_id;
+        }
+        rawProviderId = data.id;
+      }
     } catch {
       // Supabase not configured — fall through to mock lookup
     }
@@ -425,7 +440,7 @@ export default async function ProviderPage({
       fetch(new URL("/api/internal/backfill-google-review", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: rawProviderId, place_id: providerPlaceId }),
+        body: JSON.stringify({ provider_id: rawProviderId, place_id: providerPlaceId, source: providerSource }),
       }).catch(() => { /* fire and forget */ });
     }
   }

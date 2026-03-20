@@ -336,7 +336,7 @@ export default async function ProviderPage({
 
   const rating = meta?.rating;
   const images = meta?.images || (profile.image_url ? [profile.image_url] : []);
-  const staff = meta?.staff;
+  let staff = meta?.staff;
   const acceptedPayments = meta?.accepted_payments || [];
 
   const categoryLabel = formatCategory(profile.category);
@@ -351,7 +351,7 @@ export default async function ProviderPage({
             const supabase = await createClient();
             const { data: bp } = await supabase
               .from("business_profiles")
-              .select("claim_state, account_id")
+              .select("claim_state, account_id, metadata")
               .eq("source_provider_id", profile.source_provider_id!)
               .maybeSingle();
             return bp;
@@ -399,6 +399,11 @@ export default async function ProviderPage({
   if (claimResult) {
     actualClaimState = claimResult.claim_state;
     claimAccountId = claimResult.account_id;
+    // Merge staff/owner data from business_profiles metadata (iOS metadata doesn't have it)
+    const bpMeta = claimResult.metadata as ExtendedMetadata | null;
+    if (bpMeta?.staff) {
+      staff = bpMeta.staff;
+    }
   }
 
   const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];

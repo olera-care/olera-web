@@ -26,7 +26,7 @@ export default function GooglePlaceSearch({ value, selectedName, onSelect, onCle
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // Close dropdown on outside click
   useEffect(() => {

@@ -66,7 +66,7 @@ interface WizardData {
   careTypes: string[];
   googlePlaceId: string;
   googlePlaceName: string;
-  googleRating: number | null;
+  googleRating: string;
 }
 
 const EMPTY: WizardData = {
@@ -82,7 +82,7 @@ const EMPTY: WizardData = {
   careTypes: [],
   googlePlaceId: "",
   googlePlaceName: "",
-  googleRating: null,
+  googleRating: "",
 };
 
 function getProviderImage(provider: Provider): string | null {
@@ -697,7 +697,7 @@ function ProviderOnboardingContent() {
           isAddingProfile: isAdding,
           googlePlaceId: data.googlePlaceId || undefined,
           googlePlaceName: data.googlePlaceName || undefined,
-          googleRating: data.googleRating ?? undefined,
+          googleRating: data.googleRating ? Number(data.googleRating) : undefined,
         }),
       });
 
@@ -1870,12 +1870,12 @@ function ProviderOnboardingContent() {
                 onSelect={(placeId, name, rating) => {
                   update("googlePlaceId", placeId);
                   update("googlePlaceName", name);
-                  update("googleRating", rating);
+                  update("googleRating", rating != null ? String(rating) : "");
                 }}
                 onClear={() => {
                   update("googlePlaceId", "");
                   update("googlePlaceName", "");
-                  update("googleRating", null);
+                  update("googleRating", "");
                 }}
               />
             </div>

@@ -74,7 +74,8 @@ function evaluateEligibility(
   }
 
   // Veteran — hard disqualify veteran-only programs for non-veterans
-  const requiresVeteran = (program as Record<string, unknown>).requires_veteran;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const requiresVeteran = (program as any).requires_veteran;
   if (requiresVeteran === true) {
     if (answers.veteranStatus === "yes") {
       score += 15;

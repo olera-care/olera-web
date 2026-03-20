@@ -17,7 +17,7 @@
 
 - **"Manage this page" CTA + Fix Provider Email Links** — DONE ✅ (merged PR #289)
 
-- **Meet the Owner Section** — ON STAGING
+- **Meet the Owner Section** — SHIPPED TO PRODUCTION ✅ (PRs #302, #303)
   - Plan: `plans/meet-the-owner-plan.md`
   - Notion task: "Meet the owner section" (P1 🔥)
   - Two placements: compact "Managed by" badge + full "Facility Manager" section
@@ -88,6 +88,48 @@ _(Nothing currently blocked)_
 ---
 
 ## Session Log
+
+### 2026-03-19 (Session 56) — Meet the Owner Section: Full Implementation
+
+**Branch:** `fair-franklin` (from staging) — PR #302 merged to staging, PR #303 promoted to main
+
+**What:** End-to-end "Meet the Owner" feature — facility manager section on provider detail pages with portal and admin editing. Fetched Notion roadmap, picked "Meet the owner section" (P1), explored codebase, planned, implemented, and shipped.
+
+**Implementation (6 tasks across 4 phases):**
+1. `lib/types.ts` — New `StaffInfo` interface with `care_motivation` field, added to `OrganizationMetadata`
+2. `app/provider/[slug]/page.tsx` — Verified badge on "Managed by" compact badge + full "Facility Manager" section with shadow card, care motivation, trust line, Connect CTA
+3. `components/provider-dashboard/edit-modals/EditOwnerModal.tsx` — Portal edit modal (name, position, photo upload, care motivation, bio)
+4. `components/provider-dashboard/OwnerCard.tsx` — Dashboard card wired into `DashboardPage.tsx`
+5. `app/admin/directory/[providerId]/` — Admin owner editing with auto-creation of `business_profiles` for unclaimed providers
+6. `app/provider/[slug]/page.tsx` — Fixed staff data loading for iOS providers (claim lookup now fetches metadata)
+
+**Key debugging:**
+- Staff data for iOS providers wasn't showing because claim state lookup only fetched `claim_state, account_id` — not `metadata`. Fixed to also fetch and merge `staff` from `business_profiles.metadata`.
+- Auto-create `business_profiles` when admin saves owner info for unclaimed providers (no linked record existed before).
+- TJ tested on wrong Vercel deploy (commit before the metadata fix) — identified by checking deployment commit hash.
+
+**UI polish iterations:**
+- Photo card: w-40→w-52, p-5→px-6 pt-8 pb-6, rounded-xl→rounded-2xl, added shadow-md
+- Avatar: 80px→96px, verified badge 20px→24px
+- Name: text-sm→text-base font-bold, position: text-xs→text-sm
+
+**Files created:**
+- `components/provider-dashboard/OwnerCard.tsx`
+- `components/provider-dashboard/edit-modals/EditOwnerModal.tsx`
+- `plans/meet-the-owner-plan.md`
+
+**Files modified:**
+- `app/provider/[slug]/page.tsx` — owner section + staff data merge from business_profiles
+- `app/admin/directory/[providerId]/page.tsx` — owner editing UI
+- `app/api/admin/directory/[providerId]/route.ts` — staff save + auto-create business_profiles
+- `components/provider-dashboard/DashboardPage.tsx` — OwnerCard + EditOwnerModal wiring
+- `components/provider-dashboard/edit-modals/types.ts` — added "owner" SectionId
+- `lib/types.ts` — StaffInfo interface
+- `lib/profile-completeness.ts` — StaffInfo type reference
+
+**Next session:** Continue with remaining P1 tasks from Notion roadmap (Google Review Snippets to provider pages, Olera Score refinement, admin lead deletion).
+
+---
 
 ### 2026-03-19 (Session 55) — Google Review Snippets: Full Implementation
 

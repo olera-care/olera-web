@@ -7,13 +7,13 @@
 
 ## Current Focus
 
-- **Google Review Snippets on Provider Pages** — ON STAGING ✅ (PRs #296, #297 merged)
+- **Google Review Snippets on Provider Pages** — LIVE ON PRODUCTION ✅
   - Plan: `plans/google-review-snippets-plan.md`
-  - Notion task: "Add Google Review Snippets to provider pages" (P1 🔥)
-  - Unified "What families are saying" section with Google + Olera reviews
-  - Tiered cron (monthly) + on-demand backfill + admin seed endpoint
-  - **In progress:** Extending pipeline to business_profiles (new providers)
-  - **Pending:** Bulk seed of 22K providers (~$112 one-time)
+  - Seed log: `docs/google-reviews-seed-log.md`
+  - 5,423 providers seeded with Google reviews ($0 actual cost)
+  - Unified "What families are saying" section with source badges
+  - Tiered monthly cron + on-demand backfill + Google Business linking in onboarding
+  - PRs: #296, #297, #298, #299, #300, #301
 
 - **"Manage this page" CTA + Fix Provider Email Links** — DONE ✅ (merged PR #289)
 
@@ -44,16 +44,12 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Extend Google reviews to business_profiles** — new providers need place_id + reviews
-   - Step A: Read google_reviews_data from business_profiles metadata in provider page
-   - Step B: Google Business linking in provider onboarding (Places Autocomplete)
-   - Step C: Google Place search in admin directory create/edit
-2. **Bulk seed Google reviews** — run admin endpoint for 22K providers (~$112)
-3. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
-4. **Push MedJobs to main** — promote staging to production
-5. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
-6. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
-7. **Delete fake seed connections** from Supabase
+1. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
+2. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
+3. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
+4. **Delete fake seed connections** from Supabase
+5. **Meet the Owner section** — Notion task (P1 🔥)
+6. **Olera Score presentation refinement** — Notion task (P1 🔥)
 
 ---
 

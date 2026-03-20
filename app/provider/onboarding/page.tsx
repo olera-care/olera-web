@@ -14,6 +14,7 @@ import Select from "@/components/ui/Select";
 import WizardNav from "@/components/ui/WizardNav";
 import Pagination from "@/components/ui/Pagination";
 import OtpInput from "@/components/auth/OtpInput";
+import GooglePlaceSearch from "@/components/providers/GooglePlaceSearch";
 import type { Provider } from "@/lib/types/provider";
 
 type ProviderType = "organization" | "caregiver";
@@ -63,6 +64,9 @@ interface WizardData {
   email: string;
   website: string;
   careTypes: string[];
+  googlePlaceId: string;
+  googlePlaceName: string;
+  googleRating: number | null;
 }
 
 const EMPTY: WizardData = {
@@ -76,6 +80,9 @@ const EMPTY: WizardData = {
   email: "",
   website: "",
   careTypes: [],
+  googlePlaceId: "",
+  googlePlaceName: "",
+  googleRating: null,
 };
 
 function getProviderImage(provider: Provider): string | null {
@@ -688,6 +695,9 @@ function ProviderOnboardingContent() {
           zip: data.zip || undefined,
           careTypes: data.careTypes,
           isAddingProfile: isAdding,
+          googlePlaceId: data.googlePlaceId || undefined,
+          googlePlaceName: data.googlePlaceName || undefined,
+          googleRating: data.googleRating ?? undefined,
         }),
       });
 
@@ -1852,6 +1862,21 @@ function ProviderOnboardingContent() {
                   update("website", (e.target as HTMLInputElement).value)
                 }
                 placeholder="https://example.com"
+              />
+
+              <GooglePlaceSearch
+                value={data.googlePlaceId || null}
+                selectedName={data.googlePlaceName || null}
+                onSelect={(placeId, name, rating) => {
+                  update("googlePlaceId", placeId);
+                  update("googlePlaceName", name);
+                  update("googleRating", rating);
+                }}
+                onClear={() => {
+                  update("googlePlaceId", "");
+                  update("googlePlaceName", "");
+                  update("googleRating", null);
+                }}
               />
             </div>
           </div>

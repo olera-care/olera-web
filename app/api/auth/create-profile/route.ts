@@ -79,6 +79,9 @@ export async function POST(request: Request) {
       careNeeds,
       isAddingProfile = false,
       whoNeedsCare,
+      googlePlaceId,
+      googlePlaceName,
+      googleRating,
     } = body;
 
     // Validate required fields
@@ -224,6 +227,14 @@ export async function POST(request: Request) {
             metadata: {
               visible_to_families: visibleToFamilies ?? true,
               visible_to_providers: visibleToProviders ?? true,
+              ...(googlePlaceId && {
+                google_metadata: {
+                  place_id: googlePlaceId,
+                  place_name: googlePlaceName || null,
+                  rating: googleRating ?? null,
+                  last_synced: new Date().toISOString(),
+                },
+              }),
             },
           })
           .select("id")

@@ -8,12 +8,11 @@ import { fetchGoogleReviews } from "@/lib/google-places";
  * On-demand backfill: called (non-blocking) when a provider page is viewed
  * and the provider has a place_id but no cached google_reviews_data.
  *
- * This is the safety net in the tiered refresh strategy — catches providers
- * not yet covered by the monthly cron without blocking page render.
+ * Supports both olera-providers (source=ios) and business_profiles (source=bp).
  */
 export async function POST(request: NextRequest) {
   try {
-    const { provider_id, place_id } = await request.json();
+    const { provider_id, place_id, source } = await request.json();
 
     if (!provider_id || !place_id) {
       return NextResponse.json({ error: "Missing provider_id or place_id" }, { status: 400 });
@@ -25,14 +24,36 @@ export async function POST(request: NextRequest) {
     }
 
     const db = getServiceClient();
-    const { error } = await db
-      .from("olera-providers")
-      .update({ google_reviews_data: data })
-      .eq("provider_id", provider_id);
 
-    if (error) {
-      console.error(`[backfill-google-review] Update failed for ${provider_id}:`, error);
-      return NextResponse.json({ error: "DB update failed" }, { status: 500 });
+    if (source === "bp") {
+      // Business profile — store in metadata.google_reviews_data
+      const { data: bp } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", provider_id)
+        .single();
+
+      const existingMeta = (bp?.metadata as Record<string, unknown>) ?? {};
+      const { error } = await db
+        .from("business_profiles")
+        .update({ metadata: { ...existingMeta, google_reviews_data: data } })
+        .eq("id", provider_id);
+
+      if (error) {
+        console.error(`[backfill-google-review] BP update failed for ${provider_id}:`, error);
+        return NextResponse.json({ error: "DB update failed" }, { status: 500 });
+      }
+    } else {
+      // olera-providers — store in google_reviews_data column
+      const { error } = await db
+        .from("olera-providers")
+        .update({ google_reviews_data: data })
+        .eq("provider_id", provider_id);
+
+      if (error) {
+        console.error(`[backfill-google-review] Update failed for ${provider_id}:`, error);
+        return NextResponse.json({ error: "DB update failed" }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ message: "Backfilled", provider_id });

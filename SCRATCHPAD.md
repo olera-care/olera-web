@@ -59,10 +59,14 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
-2. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
-3. **Delete fake seed connections** from Supabase (admin delete feature now enables this)
-4. **Admin: provider photo deletion** — Notion task (P2)
+1. **Run full TX AI verification** — `staging-olera2-web.vercel.app/api/admin/verify-trust-signals?state=TX&limit=20&offset=5` (keep incrementing offset)
+2. **Run TX home health CMS import** — `staging-olera2-web.vercel.app/api/admin/import-cms-data?state=TX&source=home_health`
+3. **Run nationwide CMS import** — `?state=all&source=home_health&batch=1` then `&batch=2` etc, repeat for `source=nursing_home`
+4. **Run nationwide AI verification** — all states, non-CMS categories
+5. **Tune AI prompt if needed** — avg confirmed signals is 1.0, may need to relax constraints
+6. **Phase 4: Smart ranking** — evidence-density sort on browse page
+7. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching (P1 🔥)
+8. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
 
 ---
 

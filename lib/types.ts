@@ -216,7 +216,7 @@ export interface AiTrustSignals {
   state: string;
   category: string;
   signals: AiTrustSignal[];
-  summary_score: number; // count of confirmed signals (0-5)
+  summary_score: number; // count of confirmed signals (0-8)
   last_verified: string; // ISO 8601
   model: string; // e.g., "sonar"
   confidence: "high" | "medium" | "low";

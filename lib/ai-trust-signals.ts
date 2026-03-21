@@ -19,6 +19,9 @@ const SIGNAL_NAMES = [
   "bbb_rated",
   "years_in_operation",
   "regulatory_actions",
+  "active_website",
+  "google_business",
+  "community_presence",
 ] as const;
 
 interface PerplexityMessage {
@@ -51,7 +54,7 @@ function buildPrompt(provider: {
     {
       role: "system",
       content:
-        "You are a senior care provider verification assistant. You search for factual, verifiable information about care providers. You ONLY report confirmed findings with source evidence. You never guess or infer. Return ONLY valid JSON.",
+        "You are a senior care provider verification assistant. You search for factual, verifiable information about care providers. Report what you find — mark signals as 'confirmed' when evidence exists, even from the provider's own website or business listings. Return ONLY valid JSON.",
     },
     {
       role: "user",
@@ -63,16 +66,19 @@ Category: ${provider.provider_category}
 ${provider.website ? `Website: ${provider.website}` : ""}
 
 For each signal below, report:
-- "status": "confirmed" if you found clear evidence, "not_found" if you searched and found nothing, "unclear" if ambiguous
-- "detail": brief factual note (license number, year, rating, etc.) or null
+- "status": "confirmed" if you found evidence (from any source including the provider's website, business listings, directories, or state databases), "not_found" if you searched and found nothing, "unclear" if ambiguous
+- "detail": brief factual note (license number, year, rating, URL, etc.) or null
 - "source_url": the URL where you found evidence, or null
 
 Signals:
-1. "state_licensed" - Is this provider licensed by the state of ${provider.state || "their state"}? Check state licensing databases/registries.
+1. "state_licensed" - Is this provider licensed by the state of ${provider.state || "their state"}? Check state licensing databases, registries, or provider website mentioning license.
 2. "accredited" - Is this provider accredited by Joint Commission, CHAP, CARF, or ACHC?
 3. "bbb_rated" - Does this provider have a BBB profile? What is their rating?
-4. "years_in_operation" - When was this provider founded or incorporated?
-5. "regulatory_actions" - Are there regulatory actions, complaints, or violations on record?
+4. "years_in_operation" - When was this provider founded or incorporated? Check state business registries, About pages, or directories.
+5. "regulatory_actions" - Are there regulatory actions, complaints, or violations on record? If none found, mark as "confirmed" with detail "No regulatory actions found".
+6. "active_website" - Does this provider have an active, functional website? Check if ${provider.website || "their domain"} resolves and has real content.
+7. "google_business" - Does this provider have a Google Business Profile listing?
+8. "community_presence" - Does this provider have a presence on social media (Facebook, LinkedIn, Nextdoor), local directories (Yelp, Caring.com, A Place for Mom), or community involvement?
 
 Return this exact JSON structure:
 {
@@ -81,12 +87,15 @@ Return this exact JSON structure:
     {"signal": "accredited", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"},
     {"signal": "bbb_rated", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"},
     {"signal": "years_in_operation", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"},
-    {"signal": "regulatory_actions", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"}
+    {"signal": "regulatory_actions", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"},
+    {"signal": "active_website", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"},
+    {"signal": "google_business", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"},
+    {"signal": "community_presence", "status": "confirmed|not_found|unclear", "detail": "string or null", "source_url": "string or null"}
   ],
   "confidence": "high|medium|low"
 }
 
-IMPORTANT: Only use "confirmed" if you have specific evidence. False positives are worse than missing data.`,
+Mark "confirmed" when you find evidence — provider websites, directories, and business listings all count as valid sources.`,
     },
   ];
 }
@@ -153,9 +162,9 @@ function parseSignals(
       ? (raw.status as "confirmed" | "not_found" | "unclear")
       : "unclear";
 
-    // Downgrade "confirmed" without source to "unclear"
-    const hasSource = raw.source_url || (citations && citations.length > 0);
-    const finalStatus = status === "confirmed" && !hasSource ? "unclear" : status;
+    // Accept "confirmed" if there's a source URL, citation, or detail text
+    const hasEvidence = raw.source_url || (citations && citations.length > 0) || raw.detail;
+    const finalStatus = status === "confirmed" && !hasEvidence ? "unclear" : status;
 
     return {
       signal: name,

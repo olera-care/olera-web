@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, StaffInfo } from "@/lib/types";
+import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
@@ -24,6 +24,7 @@ import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
 import CMSQualitySection from "@/components/providers/CMSQualitySection";
+import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
 import {
   getInitials,
@@ -253,6 +254,7 @@ export default async function ProviderPage({
   let profile: Profile | null = null;
   let googleReviewsData: GoogleReviewsData | null = null;
   let cmsData: CMSData | null = null;
+  let aiTrustSignals: AiTrustSignals | null = null;
   let providerPlaceId: string | null = null;
   let rawProviderId: string | null = null;
   let providerSource: "ios" | "bp" = "ios";
@@ -273,6 +275,7 @@ export default async function ProviderPage({
       profile = iosProviderToProfile(bySlug);
       googleReviewsData = bySlug.google_reviews_data;
       cmsData = bySlug.cms_data ?? null;
+      aiTrustSignals = bySlug.ai_trust_signals ?? null;
       providerPlaceId = bySlug.place_id;
       rawProviderId = bySlug.provider_id;
     } else {
@@ -288,6 +291,7 @@ export default async function ProviderPage({
         profile = iosProviderToProfile(byId);
         googleReviewsData = byId.google_reviews_data;
         cmsData = byId.cms_data ?? null;
+        aiTrustSignals = byId.ai_trust_signals ?? null;
         providerPlaceId = byId.place_id;
         rawProviderId = byId.provider_id;
       }
@@ -501,6 +505,7 @@ export default async function ProviderPage({
   sectionItems.push({ id: "qa", label: "Q&A" });
   sectionItems.push({ id: "reviews", label: "Reviews" });
   if (cmsData?.overall_rating) sectionItems.push({ id: "quality", label: "Quality" });
+  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
@@ -899,6 +904,13 @@ export default async function ProviderPage({
               {cmsData && cmsData.overall_rating && (
                 <div className="py-8 border-t border-gray-200">
                   <CMSQualitySection cmsData={cmsData} />
+                </div>
+              )}
+
+              {/* ── AI Verified Credentials ── */}
+              {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+                <div className="py-8 border-t border-gray-200">
+                  <AiTrustSignalsSection signals={aiTrustSignals} />
                 </div>
               )}
 

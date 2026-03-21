@@ -202,6 +202,26 @@ export interface CMSData {
   last_synced: string; // ISO 8601
 }
 
+/** AI-verified trust signal — individual verification result */
+export interface AiTrustSignal {
+  signal: string; // e.g., "state_licensed", "accredited"
+  status: "confirmed" | "not_found" | "unclear";
+  detail: string | null;
+  source_url: string | null;
+}
+
+/** AI-verified trust signals for a provider */
+export interface AiTrustSignals {
+  provider_name: string;
+  state: string;
+  category: string;
+  signals: AiTrustSignal[];
+  summary_score: number; // count of confirmed signals (0-5)
+  last_verified: string; // ISO 8601
+  model: string; // e.g., "sonar"
+  confidence: "high" | "medium" | "low";
+}
+
 /** Staff/owner info displayed on provider detail pages */
 export interface StaffInfo {
   name: string;

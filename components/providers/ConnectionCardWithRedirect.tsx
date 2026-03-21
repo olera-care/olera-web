@@ -22,14 +22,8 @@ export default function ConnectionCardWithRedirect(
     <ConnectionCard
       {...cardProps}
       onConnectionCreated={(connectionId) => {
-        const params = new URLSearchParams({
-          name: props.providerName,
-          slug: props.providerSlug,
-        });
-        if (providerCategory) params.set("category", providerCategory);
-        if (providerCity) params.set("city", providerCity);
-        if (providerState) params.set("state", providerState);
-        router.push(`/connected/${connectionId}?${params.toString()}`);
+        // Unified experience: all users go to /welcome after connecting
+        router.push(`/welcome?connection=${connectionId}&provider=${props.providerSlug}`);
       }}
     />
   );

@@ -345,6 +345,7 @@ export default function BenefitsResults({ result }: BenefitsResultsProps) {
                   match={m}
                   isSaved={isSaved(m.program.name)}
                   onToggleSave={() => toggleSave(m.program.name)}
+                  defaultExpanded={i === 0}
                 />
               </div>
             ))}

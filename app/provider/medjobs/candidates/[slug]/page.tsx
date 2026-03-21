@@ -3,15 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { createClient } from "@/lib/supabase/client";
 import type { StudentMetadata } from "@/lib/types";
 import { getTrackLabel, formatAvailability, formatHoursPerWeek, formatDuration, hasVideo, INTENDED_SCHOOL_LABELS } from "@/lib/medjobs-helpers";
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 interface StudentProfile {
   id: string;
@@ -40,7 +35,7 @@ export default function ProviderStudentProfilePage() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
+      const { data } = await createClient()
         .from("business_profiles")
         .select("id, slug, display_name, email, phone, city, state, description, care_types, metadata, created_at")
         .eq("slug", slug)
@@ -52,7 +47,7 @@ export default function ProviderStudentProfilePage() {
 
       // Check if already applied
       if (data && activeProfile) {
-        const { data: existing } = await supabase
+        const { data: existing } = await createClient()
           .from("connections")
           .select("id")
           .eq("from_profile_id", activeProfile.id)
@@ -60,7 +55,7 @@ export default function ProviderStudentProfilePage() {
           .eq("type", "invitation")
           .single();
 
-        const { data: reverseExisting } = await supabase
+        const { data: reverseExisting } = await createClient()
           .from("connections")
           .select("id")
           .eq("from_profile_id", data.id)

@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, StaffInfo } from "@/lib/types";
+import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { iosProviderToProfile } from "@/lib/mock-providers";
 import type { Provider as IOSProvider } from "@/lib/types/provider";
 import ConnectionCardWithRedirect from "@/components/providers/ConnectionCardWithRedirect";
@@ -23,6 +23,8 @@ import PriceEstimate from "@/components/providers/PriceEstimate";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
+import CMSQualitySection from "@/components/providers/CMSQualitySection";
+import AiTrustSignalsSection from "@/components/providers/AiTrustSignalsSection";
 import ScrollToConnectionCard from "@/components/providers/ScrollToConnectionCard";
 import {
   getInitials,
@@ -251,6 +253,8 @@ export default async function ProviderPage({
   // --- Data fetching ---
   let profile: Profile | null = null;
   let googleReviewsData: GoogleReviewsData | null = null;
+  let cmsData: CMSData | null = null;
+  let aiTrustSignals: AiTrustSignals | null = null;
   let providerPlaceId: string | null = null;
   let rawProviderId: string | null = null;
   let providerSource: "ios" | "bp" = "ios";
@@ -270,6 +274,8 @@ export default async function ProviderPage({
     if (bySlug) {
       profile = iosProviderToProfile(bySlug);
       googleReviewsData = bySlug.google_reviews_data;
+      cmsData = bySlug.cms_data ?? null;
+      aiTrustSignals = bySlug.ai_trust_signals ?? null;
       providerPlaceId = bySlug.place_id;
       rawProviderId = bySlug.provider_id;
     } else {
@@ -284,6 +290,8 @@ export default async function ProviderPage({
       if (byId) {
         profile = iosProviderToProfile(byId);
         googleReviewsData = byId.google_reviews_data;
+        cmsData = byId.cms_data ?? null;
+        aiTrustSignals = byId.ai_trust_signals ?? null;
         providerPlaceId = byId.place_id;
         rawProviderId = byId.provider_id;
       }
@@ -450,16 +458,11 @@ export default async function ProviderPage({
     }
   }
 
-  // Olera Score: prioritize community_score, then fall back to rating (for legacy data)
-  // For claimed profiles with no reviews, don't show a rating
-  const oleraScore = meta?.community_score || (rating ? Math.round(rating * 10) / 10 : null);
-
   // --- Boolean flags for real data availability ---
   const hasRating = rating != null;
   const hasPriceRange = priceRange != null;
   const hasStaff = staff != null;
   const hasReviews = reviewsToShow.length > 0 || realReviewCount > 0;
-  const hasOleraScore = oleraScore != null;
   const hasStaffScreening = staffScreening != null &&
     (staffScreening.background_checked || staffScreening.licensed || staffScreening.insured);
   const hasAcceptedPayments = acceptedPayments.length > 0;
@@ -493,22 +496,18 @@ export default async function ProviderPage({
     }
   }
 
-  // Score breakdowns — only real values, no hardcoded fallbacks
-  const scoreBreakdown = [
-    meta?.community_score != null ? { label: "Community", value: meta.community_score } : null,
-    meta?.value_score != null ? { label: "Value", value: meta.value_score } : null,
-    meta?.info_score != null ? { label: "Transparency", value: meta.info_score } : null,
-  ].filter((item): item is { label: string; value: number } => item !== null);
-  const hasScoreBreakdown = scoreBreakdown.length > 0;
-
   // ============================================================
   // Section navigation items — only show tabs for visible sections
   // ============================================================
   const sectionItems: SectionItem[] = [];
   sectionItems.push({ id: "highlights", label: "Highlights" });
+  const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
+  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  sectionItems.push({ id: "reviews", label: "Reviews" });
+  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
+  if (cmsData?.overall_rating) sectionItems.push({ id: "quality", label: "Quality" });
+  if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
   sectionItems.push({ id: "about", label: "About" });
   if (pricingDetails.length > 0) sectionItems.push({ id: "pricing", label: "Pricing" });
   if (hasAcceptedPayments) sectionItems.push({ id: "payment", label: "Payment" });
@@ -557,13 +556,13 @@ export default async function ProviderPage({
     }),
     ...(profile.phone && { telephone: profile.phone }),
     ...(images.length > 0 && { image: images[0] }),
-    ...(oleraScore != null && {
+    ...(googleReviewsData && googleReviewsData.rating > 0 && {
       aggregateRating: {
         "@type": "AggregateRating",
-        ratingValue: oleraScore,
+        ratingValue: googleReviewsData.rating,
         bestRating: 5,
         worstRating: 0,
-        ...(reviewCount != null && { reviewCount }),
+        ...(googleReviewsData.review_count != null && { reviewCount: googleReviewsData.review_count }),
       },
     }),
     ...(priceRange && { priceRange }),
@@ -628,7 +627,6 @@ export default async function ProviderPage({
       <SectionNav
         sections={sectionItems}
         providerName={profile.display_name}
-        oleraScore={oleraScore}
       />
 
       {/* ===== Hero Zone — Vanilla Background ===== */}
@@ -727,9 +725,9 @@ export default async function ProviderPage({
                   </div>
                   {hasRating && (
                     <span className="flex items-center gap-1.5">
-                      <StarIcon className="w-5 h-5 text-primary-500" />
+                      <StarIcon className="w-5 h-5 text-amber-400" />
                       <span className="text-base font-bold text-gray-900">{rating!.toFixed(1)}</span>
-                      {reviewCount != null && <span className="text-sm text-gray-400">({reviewCount})</span>}
+                      <span className="text-sm text-gray-400">on Google</span>
                     </span>
                   )}
                 </div>
@@ -759,9 +757,9 @@ export default async function ProviderPage({
                   )}
                   {hasRating && (
                     <span className="flex items-center gap-1">
-                      <StarIcon className="w-4 h-4 text-primary-500" />
+                      <StarIcon className="w-4 h-4 text-amber-400" />
                       <span className="font-semibold text-gray-900">{rating!.toFixed(1)}</span>
-                      {reviewCount != null && <span>({reviewCount})</span>}
+                      <span>on Google</span>
                     </span>
                   )}
                 </div>
@@ -850,8 +848,24 @@ export default async function ProviderPage({
                ══════════════════════════════════════════ */}
             <div>
 
+              {/* ── What families are saying (above services when reviews exist) ── */}
+              {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
+                <div id="reviews" className="scroll-mt-20">
+                  <ReviewsSection
+                    providerId={profile.slug}
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    mockReviews={reviewsToShow}
+                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                    googleReviewsData={googleReviewsData}
+                    placeId={providerPlaceId}
+                    hideBorder
+                  />
+                </div>
+              )}
+
               {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20">
+              <div id="services" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={6} />
               </div>
@@ -891,18 +905,34 @@ export default async function ProviderPage({
                 />
               </div>
 
-              {/* ── What families are saying ── */}
-              <div id="reviews" className="scroll-mt-20">
-                <ReviewsSection
-                  providerId={profile.slug}
-                  providerSlug={profile.slug}
-                  providerName={profile.display_name}
-                  mockReviews={reviewsToShow}
-                  isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-                  googleReviewsData={googleReviewsData}
-                  placeId={providerPlaceId}
-                />
-              </div>
+              {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
+              {(googleReviewsData?.reviews?.length ?? 0) === 0 && (
+                <div id="reviews" className="scroll-mt-20">
+                  <ReviewsSection
+                    providerId={profile.slug}
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    mockReviews={reviewsToShow}
+                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                    googleReviewsData={googleReviewsData}
+                    placeId={providerPlaceId}
+                  />
+                </div>
+              )}
+
+              {/* ── CMS Quality & Safety ── */}
+              {cmsData && cmsData.overall_rating && (
+                <div className="py-8 border-t border-gray-200">
+                  <CMSQualitySection cmsData={cmsData} />
+                </div>
+              )}
+
+              {/* ── AI Verified Credentials ── */}
+              {aiTrustSignals && aiTrustSignals.summary_score > 0 && (
+                <div className="py-8 border-t border-gray-200">
+                  <AiTrustSignalsSection signals={aiTrustSignals} />
+                </div>
+              )}
 
               {/* ── About ── */}
               <div id="about" className="py-8 scroll-mt-20 border-t border-gray-200">
@@ -1039,7 +1069,6 @@ export default async function ProviderPage({
                 providerName={profile.display_name}
                 providerSlug={profile.slug}
                 priceRange={priceRange}
-                oleraScore={oleraScore}
                 reviewCount={reviewCount}
                 phone={profile.phone}
                 acceptedPayments={acceptedPayments}
@@ -1076,7 +1105,6 @@ export default async function ProviderPage({
         priceRange={priceRange}
         providerId={profile.id}
         providerSlug={profile.slug}
-        oleraScore={oleraScore}
         reviewCount={reviewCount}
         phone={profile.phone}
         acceptedPayments={acceptedPayments}

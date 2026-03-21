@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { sendLoopsEvent } from "@/lib/loops";
+import { sendEmail } from "@/lib/email";
+import { welcomeEmail } from "@/lib/email-templates";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sanitizeDisplayName, validateReturnUrl } from "@/lib/validation";
 
@@ -162,6 +164,29 @@ export async function GET(request: NextRequest) {
           // Non-blocking
         }
 
+        // Welcome email (fire-and-forget)
+        try {
+          if (data.user.email) {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            await sendEmail({
+              to: data.user.email,
+              subject: "Welcome to Olera",
+              html: welcomeEmail({
+                familyName: displayName.split(/\s+/)[0] || "there",
+                browseUrl: `${siteUrl}/browse`,
+              }),
+            });
+            // Mark as sent on family profile
+            if (newFamilyId) {
+              await admin.from("business_profiles")
+                .update({ metadata: { welcome_email_sent: true } })
+                .eq("id", newFamilyId);
+            }
+          }
+        } catch {
+          // Non-blocking
+        }
+
         // New user (onboarding_completed=false) → redirect to /welcome
         // Pass original destination as ?next= so they return there after welcome
         const welcomeUrl = `/welcome?next=${encodeURIComponent(next)}`;
@@ -252,6 +277,20 @@ export async function GET(request: NextRequest) {
                   .from("business_profiles")
                   .delete()
                   .eq("id", placeholder.id);
+
+                // Ensure active_profile_id is set so welcome page can find connections
+                const { data: accountData } = await admin
+                  .from("accounts")
+                  .select("active_profile_id")
+                  .eq("id", existing.id)
+                  .single();
+
+                if (!accountData?.active_profile_id) {
+                  await admin
+                    .from("accounts")
+                    .update({ active_profile_id: mainFamilyId })
+                    .eq("id", existing.id);
+                }
               }
             }
           }

@@ -167,6 +167,17 @@ export function useInterestedProviders(
     fetchData();
   }, [fetchData]);
 
+  // Poll for updates every 45 seconds (new interested providers, profile updates)
+  useEffect(() => {
+    if (!profileId) return;
+
+    const interval = setInterval(() => {
+      fetchData();
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, [profileId, fetchData]);
+
   // Listen for cross-instance "viewed" events so the sidebar badge updates
   // even though it uses a separate hook instance from InterestedTabContent.
   useEffect(() => {

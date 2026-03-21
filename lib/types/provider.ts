@@ -8,7 +8,7 @@
  */
 
 import { generateProviderSlug } from "@/lib/slugify";
-import type { BusinessProfile, ProfileCategory, GoogleReviewsData } from "@/lib/types";
+import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData, AiTrustSignals } from "@/lib/types";
 
 export interface Provider {
   provider_id: string;
@@ -40,6 +40,8 @@ export interface Provider {
   hero_image_url: string | null;
   slug: string | null; // Human-readable URL slug (populated via migration)
   google_reviews_data: GoogleReviewsData | null; // Cached Google review snippets (JSONB)
+  cms_data: CMSData | null; // CMS Medicare quality data (JSONB)
+  ai_trust_signals: AiTrustSignals | null; // AI-verified trust signals (JSONB)
   last_viewed_at: string | null; // Tracks page views for tiered refresh
 }
 
@@ -165,6 +167,9 @@ export interface ProviderCardData {
   description?: string;
   lat?: number | null;
   lon?: number | null;
+  cmsRating?: number | null;
+  cmsSource?: string | null;
+  trustSignalCount?: number; // count of AI-confirmed trust signals
 }
 
 /** URL patterns that strongly suggest a logo rather than a facility photo */
@@ -311,8 +316,8 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     imageType,
     images: images.length > 0 ? images : [],
     address: formatLocation(provider),
-    rating: provider.google_rating || 0,
-    reviewCount: undefined,
+    rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? 0,
+    reviewCount: provider.google_reviews_data?.review_count ?? undefined,
     priceRange: formatPriceRange(provider) || "Contact for pricing",
     primaryCategory: getCategoryDisplayName(provider.provider_category),
     careTypes: [provider.provider_category],
@@ -322,6 +327,9 @@ export function toCardFormat(provider: Provider): ProviderCardData {
     description: provider.provider_description?.slice(0, 200) || undefined,
     lat: provider.lat,
     lon: provider.lon,
+    cmsRating: provider.cms_data?.overall_rating ?? null,
+    cmsSource: provider.cms_data?.source ?? null,
+    trustSignalCount: provider.ai_trust_signals?.summary_score ?? undefined,
   };
 }
 

@@ -14,6 +14,7 @@ interface InquiryFormProps {
   error?: string;
   initialEmail?: string;
   initialName?: string;
+  initialPhone?: string;
 }
 
 export default function InquiryForm({
@@ -23,10 +24,11 @@ export default function InquiryForm({
   error,
   initialEmail = "",
   initialName = "",
+  initialPhone = "",
 }: InquiryFormProps) {
   const [email, setEmail] = useState(initialEmail);
   const [fullName, setFullName] = useState(initialName);
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone);
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [localError, setLocalError] = useState("");

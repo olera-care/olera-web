@@ -498,13 +498,10 @@ export default function AdminDirectoryDetailPage() {
           </div>
         </Section>
 
-        {/* Scores */}
-        <Section title="Scores">
+        {/* Google Rating (read-only reference) */}
+        <Section title="Google Rating">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <FieldInput label="Google Rating" value={formData.google_rating as string} onChange={(v) => updateField("google_rating", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Community Score" value={formData.community_Score as string} onChange={(v) => updateField("community_Score", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Value Score" value={formData.value_score as string} onChange={(v) => updateField("value_score", v === "" ? null : Number(v))} type="number" step="0.1" />
-            <FieldInput label="Info Availability" value={formData.information_availability_score as string} onChange={(v) => updateField("information_availability_score", v === "" ? null : Number(v))} type="number" step="0.1" />
           </div>
         </Section>
 

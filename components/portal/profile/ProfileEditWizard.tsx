@@ -166,48 +166,6 @@ function WhoIcon({ type }: { type: string }) {
   }
 }
 
-function AnimatedIllustration() {
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      {/* Main illustration */}
-      <div className="relative w-48 h-48 lg:w-56 lg:h-56">
-        <Image
-          src="/images/welcome-care.png"
-          alt="Care illustration"
-          fill
-          className="object-contain"
-          priority
-        />
-      </div>
-
-      {/* Floating elements */}
-      <div className="absolute top-8 left-8 w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center animate-float-slow">
-        <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-      </div>
-
-      <div className="absolute top-12 right-6 w-8 h-8 bg-warm-100 rounded-lg flex items-center justify-center animate-float-medium">
-        <svg className="w-4 h-4 text-warm-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      </div>
-
-      <div className="absolute bottom-16 left-4 w-9 h-9 bg-secondary-100 rounded-full flex items-center justify-center animate-float-fast">
-        <svg className="w-4 h-4 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      </div>
-
-      <div className="absolute bottom-8 right-10 w-7 h-7 bg-primary-50 rounded-md flex items-center justify-center animate-float-slow delay-500">
-        <svg className="w-3.5 h-3.5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </div>
-    </div>
-  );
-}
-
 // ============================================================
 // Main Component
 // ============================================================
@@ -225,6 +183,7 @@ export default function ProfileEditWizard({
   // Step state
   const [step, setStep] = useState<Step>(initialStep);
   const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Step 1: Basic Info
   const [displayName, setDisplayName] = useState(profile.display_name || "");
@@ -320,8 +279,8 @@ export default function ProfileEditWizard({
     );
   };
 
-  // Save all changes
-  const handleSave = useCallback(async () => {
+  // Auto-save function (doesn't close modal)
+  const saveChanges = useCallback(async () => {
     if (!isSupabaseConfigured() || !profile) return;
     setSaving(true);
 
@@ -357,9 +316,8 @@ export default function ProfileEditWizard({
         .eq("id", profile.id);
 
       await refreshAccountData();
-      onSaved();
     } catch (err) {
-      console.error("[ProfileEditWizard] Save failed:", err);
+      console.error("[ProfileEditWizard] Auto-save failed:", err);
     } finally {
       setSaving(false);
     }
@@ -376,24 +334,43 @@ export default function ProfileEditWizard({
     timeline,
     payments,
     refreshAccountData,
-    onSaved,
   ]);
 
-  // Navigation
-  const canGoNext = step < 4;
-  const canGoBack = step > 1;
+  // Track if initial load is done (to prevent saving on mount)
+  const initialLoadDone = useRef(false);
+  useEffect(() => {
+    initialLoadDone.current = true;
+  }, []);
 
-  const handleNext = () => {
-    if (canGoNext) setStep((s) => (s + 1) as Step);
-  };
+  // Debounced auto-save when any field changes
+  useEffect(() => {
+    if (!initialLoadDone.current) return;
 
-  const handleBack = () => {
-    if (canGoBack) setStep((s) => (s - 1) as Step);
-  };
+    setHasChanges(true);
+    const timer = setTimeout(() => {
+      saveChanges();
+    }, 800); // 800ms debounce
 
-  const handleFinish = () => {
-    handleSave();
-  };
+    return () => clearTimeout(timer);
+  }, [
+    displayName,
+    city,
+    state,
+    email,
+    phone,
+    contactPref,
+    whoNeedsCare,
+    careTypes,
+    timeline,
+    payments,
+    saveChanges,
+  ]);
+
+  // Handle close - just close, changes are already saved
+  const handleClose = useCallback(() => {
+    onSaved(); // Refresh parent data
+    onClose();
+  }, [onSaved, onClose]);
 
   // Step validation (optional - for visual feedback)
   const isStep1Valid = displayName.trim().length > 0;
@@ -404,11 +381,11 @@ export default function ProfileEditWizard({
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-4xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-4">
@@ -428,8 +405,8 @@ export default function ProfileEditWizard({
           </div>
           <button
             type="button"
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            onClick={handleClose}
+            className="p-2 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -439,9 +416,9 @@ export default function ProfileEditWizard({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="flex min-h-[480px]">
-            {/* Left: Form */}
-            <div className="flex-1 p-6 lg:p-8">
+          <div className="min-h-[400px]">
+            {/* Form Content */}
+            <div className="p-6 lg:p-8">
               {/* Step title */}
               <div className="mb-6">
                 <p className="text-sm font-medium text-primary-600 mb-1">
@@ -619,9 +596,9 @@ export default function ProfileEditWizard({
 
                   {/* Preferred contact method */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <h4 className="text-base font-semibold text-gray-900 mb-3">
                       Preferred contact method
-                    </label>
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {CONTACT_METHODS.map(({ id, label }) => (
                         <button
@@ -647,9 +624,9 @@ export default function ProfileEditWizard({
                 <div className="space-y-6">
                   {/* Who needs care */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <h4 className="text-base font-semibold text-gray-900 mb-3">
                       Who needs care?
-                    </label>
+                    </h4>
                     <div className="grid grid-cols-2 gap-2">
                       {WHO_OPTIONS.map(({ id, label, icon }) => (
                         <button
@@ -673,9 +650,9 @@ export default function ProfileEditWizard({
 
                   {/* Care types */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <h4 className="text-base font-semibold text-gray-900 mb-3">
                       What type of care are you looking for?
-                    </label>
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {CARE_TYPES.map((type) => (
                         <button
@@ -696,9 +673,9 @@ export default function ProfileEditWizard({
 
                   {/* Timeline */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <h4 className="text-base font-semibold text-gray-900 mb-3">
                       When do you need care?
-                    </label>
+                    </h4>
                     <div className="grid grid-cols-2 gap-2">
                       {TIMELINES.map(({ value, label }) => (
                         <button
@@ -723,9 +700,9 @@ export default function ProfileEditWizard({
               {step === 4 && (
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                    <h4 className="text-base font-semibold text-gray-900 mb-2">
                       How do you plan to pay for care?
-                    </label>
+                    </h4>
                     <p className="text-sm text-gray-500 mb-4">
                       Select all that apply. This helps providers understand your options.
                     </p>
@@ -763,10 +740,10 @@ export default function ProfileEditWizard({
                   </div>
 
                   {/* Benefits finder CTA */}
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-primary-50 to-warm-50 border border-primary-100">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-warm-50 to-vanilla-100 border border-warm-200/60">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
-                        <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-10 h-10 rounded-full bg-warm-100 flex items-center justify-center shrink-0">
+                        <svg className="w-5 h-5 text-warm-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
                       </div>
@@ -781,65 +758,38 @@ export default function ProfileEditWizard({
                 </div>
               )}
             </div>
-
-            {/* Right: Illustration (desktop only) */}
-            <div className="hidden lg:flex w-80 bg-gradient-to-br from-vanilla-50 via-primary-50/30 to-warm-50 items-center justify-center p-8">
-              <AnimatedIllustration />
-            </div>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-          <div>
-            {canGoBack ? (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Back
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Cancel
-              </button>
+          <div className="flex items-center gap-2 text-sm text-gray-500 min-w-[120px]">
+            {hasChanges && (
+              saving ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Changes saved</span>
+                </>
+              )
             )}
           </div>
 
           <ProgressDots current={step - 1} total={4} />
 
-          <div>
-            {canGoNext ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
-              >
-                Continue
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleFinish}
-                disabled={saving}
-                className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2"
-              >
-                {saving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </button>
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            Done
+          </button>
         </div>
       </div>
     </div>

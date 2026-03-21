@@ -7,13 +7,21 @@
 
 ## Current Focus
 
+- **Trust Signals & Smart Ranking — Replacing the Olera Score** — IN PROGRESS
+  - Plan: `plans/trust-signals-plan.md`
+  - Notion: [Trust Signals & Smart Ranking](https://www.notion.so/3295903a0ffe810e9baada745e4ebbad)
+  - Replaces AI-derived Olera Score with verifiable signals (Google Reviews, CMS data, behavioral demand)
+  - Phase 1: Remove score from all UI. Phase 2: Google backfill for uncovered categories. Phase 3: CMS integration. Phase 4: Smart ranking.
+  - Branch: `gentle-hawking`
+
 - **Google Review Snippets on Provider Pages** — LIVE ON PRODUCTION ✅
   - Plan: `plans/google-review-snippets-plan.md`
   - Seed log: `docs/google-reviews-seed-log.md`
-  - 5,423 providers seeded with Google reviews ($0 actual cost)
+  - **20,512 providers** now have Google reviews data (56% coverage, up from 5,423)
+  - Coverage grows automatically via on-demand backfill (fires on every page view for uncached providers)
   - Unified "What families are saying" section with source badges
   - Tiered monthly cron + on-demand backfill + Google Business linking in onboarding
-  - PRs: #296, #297, #298, #299, #300, #301
+  - PRs: #296, #297, #298, #299, #300, #301, **#337** (browse cards + section reorder)
 
 - **Admin Lead Deletion + Search + Pagination** — IN REVIEW (PR pending)
   - Plan: `plans/admin-delete-leads-plan.md`
@@ -52,12 +60,14 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Olera Score presentation refinement** — Notion task (P1 🔥)
-2. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching, carePreference (P1 🔥)
-3. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
-4. **Delete fake seed connections** from Supabase (admin delete feature now enables this)
-5. **Port ScoreCalculator from v1** — Notion task (P2): weighted formula with dynamic Google weights
-6. **Admin: provider photo deletion** — Notion task (P2)
+1. **Merge PR #337** — Browse cards with review counts + section reorder + stale rating fix
+2. **Test Yelp API coverage** — Script ready at `scripts/test-yelp-coverage.ts`, need Yelp API key
+3. **Evaluate AI trust signals direction** — Current avg 0.6 confirmed signals. May not be worth the complexity. Google reviews (53% coverage) may be sufficient primary signal.
+4. **Deprecate `google_rating` column** — Notion task created (P3). 70+ references to migrate to `google_reviews_data`.
+5. **Empty state for 44% without reviews** — Design thoughtful UX for providers with no Google reviews
+6. **Phase 4: Smart ranking** — evidence-density sort on browse page (Google reviews + profile completeness + claimed status)
+7. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching (P1 🔥)
+8. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
 
 ---
 
@@ -65,7 +75,14 @@ _(Nothing currently blocked)_
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-21 | Google Reviews is the primary quality signal — AI trust signals deprioritized | 53% of providers already have Google review snippets (19,324). AI trust signals avg 0.6 confirmed — too low to be useful. Google reviews are real family feedback; AI signals are marketing presence dressed as quality. Focus on surfacing existing data, not generating new signals. |
+| 2026-03-21 | Prefer `google_reviews_data.rating` over legacy `google_rating` | Legacy column has stale data (showing 5.0 when Google shows 4.2). Fresh data from API is in JSONB. Fallback chain: `google_reviews_data.rating ?? google_rating`. |
+| 2026-03-21 | Reviews section above Care Services when reviews exist | Families care most about what others are saying. Move "What families are saying" to first content section when provider has Google reviews. Keep lower (below Q&A) in empty state. |
+| 2026-03-21 | Google review theme extraction violates ToS | Can't run AI on cached Google review text to extract themes. Google offers Review Summaries API (Gemini-powered) as sanctioned alternative. $25/1K at standard tier but free if already requesting reviews field. |
 | 2026-03-19 | Tiered refresh strategy (not blind monthly) | At 100K providers, blind refresh = $500/month. Tiered (claimed > viewed > long tail) = ~$100/month. Scales to 500K. |
+| 2026-03-20 | Replace Olera Score with Trust Signals system | Score was AI opinion (Perplexity) presented as fact. Both care seekers and providers rejected it. Replace with verifiable signals: Google Reviews, CMS federal data, behavioral demand. Olera becomes curator, not judge. |
+| 2026-03-20 | CMS data integration viable (~30% match rate) | CMS Home Health + Nursing Home + Hospice datasets = ~32.5K providers. Free API, no key needed, quarterly updates. ~10,800 Olera providers enrichable. |
+| 2026-03-20 | Google Reviews is primary quality signal, not Olera Score | Care seekers want "what others are saying" not algorithmic opinion. Google rating available for 61% of providers. Star color changed teal→amber with "on Google" attribution. |
 | 2026-03-19 | Remove Olera Score from reviews zone (keep in header/sidebar) | Until ScoreCalculator v2 is ported, two disconnected scores (Olera 4.3 vs Google 5.0) erode trust. Bring back when data is connected. |
 | 2026-03-19 | Unified reviews feed with source badges | v1 had separate sections. Merged into one "What families are saying" with Google/Olera badges per card. Less cognitive load. |
 | 2026-03-19 | JSONB on olera-providers (not separate table) | Only storing 2 reviews per provider. Not worth a join. Simpler queries. |
@@ -85,35 +102,119 @@ _(Nothing currently blocked)_
 - Project is a TypeScript/Next.js 16 web app for senior care discovery
 - Key colors: #198087 (primary teal), warm orange palette, serif headings for editorial feel
 - Google Places API key: restricted to Places API (New) only, project "Olera Provider API" (olera-provider-api)
-- 36,668 active providers, 32,042 with place_id, 22,337 with google_rating > 0
-- 5 providers seeded with Google reviews as test data (hanstel-homehealth, hanameel-at-peace-home-care, etc.)
+- 36,668 active providers, 32,042 with place_id
+- **20,512 with google_reviews_data** (56%), **19,324 with review text** (53%)
+- Legacy `google_rating > 0` covers 22,337 (61%) but data is stale — do not rely on it
 - Scaling to 100K providers expected within 2 months
 
 ---
 
 ## Session Log
 
+### 2026-03-21 (Session 60) — Google Reviews Data Discovery + Browse Cards Fix
+
+**Branch:** `great-jemison` (from staging)
+
+**What:** Deep strategic review of trust signals approach. Discovered 53% of providers already have Google review data (up from documented 5,581 to 19,324). Fixed browse cards to surface this data. Reordered provider page sections to prioritize reviews.
+
+**Key Discovery:**
+- SQL verified 20,512 providers have `google_reviews_data` (56%), 19,324 with actual review text (53%)
+- Bulk seed ran on March 20 (16,904 providers) — likely from admin seed endpoint with new category filter
+- On-demand backfill (fires on every page view) adds ~3,600/day from organic traffic
+- Legacy `google_rating` column has stale data (showing 5.0 when Google shows 4.2)
+
+**Strategic Decisions:**
+- AI trust signals (Perplexity) deprioritized — avg 0.6 confirmed signals, too low to be useful
+- Google Reviews is the primary quality signal for 53% of providers
+- Google review theme extraction violates ToS — Google's Review Summaries API (Gemini) is the legal alternative
+- CMS data covers <30% of a small subset of categories — supplementary, not foundational
+- Yelp API worth testing for incremental coverage (script drafted, not yet run)
+
+**Code Changes:**
+1. `lib/types/provider.ts` — `toCardFormat()` now reads `reviewCount` from `google_reviews_data` (was hardcoded `undefined`)
+2. `lib/types/provider.ts` — Rating prefers fresh `google_reviews_data.rating` over legacy `google_rating`
+3. `components/browse/BrowseCard.tsx` — Shows review count: "4.5 (605) on Google"
+4. `lib/mock-providers.ts` — Provider metadata prefers fresh rating (fixes hero showing wrong rating)
+5. `app/provider/[slug]/page.tsx` — Reviews section moves above Care Services when reviews exist
+6. `components/providers/ReviewsSection.tsx` — Added `hideBorder` prop for first-section positioning
+7. `lib/ai-trust-signals.ts` — Expanded to 8 signals with relaxed prompt (not yet deployed)
+8. `tsconfig.json` — Exclude `scripts/` from build
+9. `docs/SYSTEMS.md` — New systems architecture doc for all background processes
+
+**Files created:**
+- `docs/SYSTEMS.md` — Documents Google reviews pipeline, CMS import, AI trust signals
+- `scripts/test-yelp-coverage.ts` — Yelp API coverage test (needs API key to run)
+
+**Notion:**
+- Created [AI Trust Signals — Signals & Prompt Reference](https://www.notion.so/32a5903a0ffe8161abe2e11a318ce1f0)
+- Created roadmap task: [Deprecate legacy google_rating column](https://www.notion.so/32a5903a0ffe81c5aac8cc4ea514874a) (P3)
+
+**PR:** #337
+
+---
+
+### 2026-03-20 (Session 58) — Replace Olera Score with Trust Signals (Phase 1)
+
+**Branch:** `gentle-hawking` (from staging)
+
+**What:** Deep exploration of Olera Score trust problem, designed new Trust Signals system, implemented Phase 1 (complete score removal from all UI).
+
+**Exploration & Strategy (3+ hours):**
+- Read `olera_score_evaluator.py` — discovered score is Perplexity AI opinion with built-in upward bias (target ~4.3, random boosting)
+- Identified root cause: algorithmic assessment in visual language of social proof
+- Designed 3-layer replacement: Google Reviews (social proof) → CMS Data (federal quality) → Behavioral Demand (organic)
+- Tested CMS enrichment feasibility: ~30% match rate = ~10,800 providers enrichable with federal quality data
+- Created Notion strategy doc: "Trust Signals & Smart Ranking — Replacing the Olera Score"
+- Iterated through 3 revisions based on TJ feedback (provider cooperation constraints, CMS-uncovered categories, ranking without score)
+
+**Phase 1 Implementation (Tasks 1-8) — committed `302a4e5`:**
+- Removed `oleraScore` from all 10 files (computation, props, rendering, structured data, admin, hooks)
+- Changed hero star color teal→amber with "on Google" attribution
+- JSON-LD `aggregateRating` now sourced from Google reviews data only (not AI score)
+- Removed admin score editing (Community, Value, Info Availability fields)
+- Cleaned score mapping from dashboard hooks, onboarding shell, mock providers
+- Browse cards updated: star color amber, "on Google" attribution text
+- TypeScript compiles clean
+
+**Phase 2 Start (Task 9) — committed `f479ffa`:**
+- Added optional `categories` query param to Google review seed endpoint
+- Allows targeted backfill for CMS-uncovered categories (Home Care, Assisted Living, Independent Living)
+
+**Files modified:**
+- `app/provider/[slug]/page.tsx` — score removal, Google attribution, JSON-LD fix
+- `components/providers/SectionNav.tsx` — removed score badge from sticky header
+- `components/providers/MobileStickyBottomCTA.tsx` — removed score from mobile sheet
+- `components/providers/connection-card/CardTopSection.tsx` — removed score display, simplified to price-only
+- `components/providers/connection-card/types.ts` — removed oleraScore from interface
+- `app/admin/directory/[providerId]/page.tsx` — removed score edit fields
+- `app/api/admin/directory/[providerId]/route.ts` — removed score from updatable fields
+- `hooks/useProviderDashboardData.ts` — removed score from Supabase query
+- `components/provider-onboarding/SmartDashboardShell.tsx` — removed score mapping
+- `lib/mock-providers.ts` — removed score from metadata
+
+**Files created:**
+- `docs/olera-score-backup.md` — full backup of all removed code for revert
+- `plans/trust-signals-plan.md` — 18-task implementation plan across 4 phases
+
+**Next session:** Task 10 (run targeted backfill for CMS-uncovered categories), then Phase 3 (CMS data integration).
+
+---
+
 ### 2026-03-20 (Session 57) — Admin Lead Deletion + Search + Pagination
 
 **Branch:** `eager-lovelace` (from staging)
 
-**What:** Added inline and bulk delete for connections on `/admin/leads`, plus server-side search and pagination. Fetched Notion roadmap, picked "Add ability to quickly delete leads from admin dashboard" (P1), explored codebase, planned, and implemented.
+**What:** Added inline and bulk delete for connections on `/admin/leads`, plus server-side search and pagination.
 
 **Implementation:**
-1. **DELETE API** — `app/api/admin/leads/route.ts`: accepts `{ ids: string[] }`, admin-guarded, fetches connection details before delete for audit, hard deletes, logs each to `audit_log`
-2. **Confirmation dialog** — `ConfirmDeleteDialog` component in page, shared between inline and bulk flows
-3. **Inline delete** — trash icon per row in Actions column, confirmation shows "from → to" names
-4. **Bulk delete** — checkbox column with select-all, red bar shows "{N} selected — Delete / Clear"
-5. **Optimistic UI** — rows removed immediately, rollback on API failure
-6. **Search** — server-side search by profile `display_name` with 300ms debounce, clear button
-7. **Pagination** — 25 per page, Previous/Next controls, "Showing X–Y of Z" + total count in header
+1. DELETE API with audit logging
+2. Confirmation dialog (inline + bulk)
+3. Checkbox select-all + bulk delete bar
+4. Optimistic UI with rollback
+5. Server-side search (debounced 300ms)
+6. Pagination (25/page)
 
-**Files modified:**
-- `app/admin/leads/page.tsx` — full UI (dialog, checkboxes, search, pagination, trash icons)
-- `app/api/admin/leads/route.ts` — DELETE handler + search param + total count in response
-
-**Files created:**
-- `plans/admin-delete-leads-plan.md` — implementation plan
+**Files:** `app/admin/leads/page.tsx`, `app/api/admin/leads/route.ts`, `plans/admin-delete-leads-plan.md`
 
 ---
 

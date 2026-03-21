@@ -17,10 +17,11 @@
 - **Google Review Snippets on Provider Pages** — LIVE ON PRODUCTION ✅
   - Plan: `plans/google-review-snippets-plan.md`
   - Seed log: `docs/google-reviews-seed-log.md`
-  - 5,423 providers seeded with Google reviews ($0 actual cost)
+  - **20,512 providers** now have Google reviews data (56% coverage, up from 5,423)
+  - Coverage grows automatically via on-demand backfill (fires on every page view for uncached providers)
   - Unified "What families are saying" section with source badges
   - Tiered monthly cron + on-demand backfill + Google Business linking in onboarding
-  - PRs: #296, #297, #298, #299, #300, #301
+  - PRs: #296, #297, #298, #299, #300, #301, **#337** (browse cards + section reorder)
 
 - **Admin Lead Deletion + Search + Pagination** — IN REVIEW (PR pending)
   - Plan: `plans/admin-delete-leads-plan.md`
@@ -59,12 +60,12 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Run full TX AI verification** — `staging-olera2-web.vercel.app/api/admin/verify-trust-signals?state=TX&limit=20&offset=5` (keep incrementing offset)
-2. **Run TX home health CMS import** — `staging-olera2-web.vercel.app/api/admin/import-cms-data?state=TX&source=home_health`
-3. **Run nationwide CMS import** — `?state=all&source=home_health&batch=1` then `&batch=2` etc, repeat for `source=nursing_home`
-4. **Run nationwide AI verification** — all states, non-CMS categories
-5. **Tune AI prompt if needed** — avg confirmed signals is 1.0, may need to relax constraints
-6. **Phase 4: Smart ranking** — evidence-density sort on browse page
+1. **Merge PR #337** — Browse cards with review counts + section reorder + stale rating fix
+2. **Test Yelp API coverage** — Script ready at `scripts/test-yelp-coverage.ts`, need Yelp API key
+3. **Evaluate AI trust signals direction** — Current avg 0.6 confirmed signals. May not be worth the complexity. Google reviews (53% coverage) may be sufficient primary signal.
+4. **Deprecate `google_rating` column** — Notion task created (P3). 70+ references to migrate to `google_reviews_data`.
+5. **Empty state for 44% without reviews** — Design thoughtful UX for providers with no Google reviews
+6. **Phase 4: Smart ranking** — evidence-density sort on browse page (Google reviews + profile completeness + claimed status)
 7. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching (P1 🔥)
 8. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
 
@@ -74,6 +75,10 @@ _(Nothing currently blocked)_
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-21 | Google Reviews is the primary quality signal — AI trust signals deprioritized | 53% of providers already have Google review snippets (19,324). AI trust signals avg 0.6 confirmed — too low to be useful. Google reviews are real family feedback; AI signals are marketing presence dressed as quality. Focus on surfacing existing data, not generating new signals. |
+| 2026-03-21 | Prefer `google_reviews_data.rating` over legacy `google_rating` | Legacy column has stale data (showing 5.0 when Google shows 4.2). Fresh data from API is in JSONB. Fallback chain: `google_reviews_data.rating ?? google_rating`. |
+| 2026-03-21 | Reviews section above Care Services when reviews exist | Families care most about what others are saying. Move "What families are saying" to first content section when provider has Google reviews. Keep lower (below Q&A) in empty state. |
+| 2026-03-21 | Google review theme extraction violates ToS | Can't run AI on cached Google review text to extract themes. Google offers Review Summaries API (Gemini-powered) as sanctioned alternative. $25/1K at standard tier but free if already requesting reviews field. |
 | 2026-03-19 | Tiered refresh strategy (not blind monthly) | At 100K providers, blind refresh = $500/month. Tiered (claimed > viewed > long tail) = ~$100/month. Scales to 500K. |
 | 2026-03-20 | Replace Olera Score with Trust Signals system | Score was AI opinion (Perplexity) presented as fact. Both care seekers and providers rejected it. Replace with verifiable signals: Google Reviews, CMS federal data, behavioral demand. Olera becomes curator, not judge. |
 | 2026-03-20 | CMS data integration viable (~30% match rate) | CMS Home Health + Nursing Home + Hospice datasets = ~32.5K providers. Free API, no key needed, quarterly updates. ~10,800 Olera providers enrichable. |
@@ -97,13 +102,56 @@ _(Nothing currently blocked)_
 - Project is a TypeScript/Next.js 16 web app for senior care discovery
 - Key colors: #198087 (primary teal), warm orange palette, serif headings for editorial feel
 - Google Places API key: restricted to Places API (New) only, project "Olera Provider API" (olera-provider-api)
-- 36,668 active providers, 32,042 with place_id, 22,337 with google_rating > 0
-- 5 providers seeded with Google reviews as test data (hanstel-homehealth, hanameel-at-peace-home-care, etc.)
+- 36,668 active providers, 32,042 with place_id
+- **20,512 with google_reviews_data** (56%), **19,324 with review text** (53%)
+- Legacy `google_rating > 0` covers 22,337 (61%) but data is stale — do not rely on it
 - Scaling to 100K providers expected within 2 months
 
 ---
 
 ## Session Log
+
+### 2026-03-21 (Session 60) — Google Reviews Data Discovery + Browse Cards Fix
+
+**Branch:** `great-jemison` (from staging)
+
+**What:** Deep strategic review of trust signals approach. Discovered 53% of providers already have Google review data (up from documented 5,581 to 19,324). Fixed browse cards to surface this data. Reordered provider page sections to prioritize reviews.
+
+**Key Discovery:**
+- SQL verified 20,512 providers have `google_reviews_data` (56%), 19,324 with actual review text (53%)
+- Bulk seed ran on March 20 (16,904 providers) — likely from admin seed endpoint with new category filter
+- On-demand backfill (fires on every page view) adds ~3,600/day from organic traffic
+- Legacy `google_rating` column has stale data (showing 5.0 when Google shows 4.2)
+
+**Strategic Decisions:**
+- AI trust signals (Perplexity) deprioritized — avg 0.6 confirmed signals, too low to be useful
+- Google Reviews is the primary quality signal for 53% of providers
+- Google review theme extraction violates ToS — Google's Review Summaries API (Gemini) is the legal alternative
+- CMS data covers <30% of a small subset of categories — supplementary, not foundational
+- Yelp API worth testing for incremental coverage (script drafted, not yet run)
+
+**Code Changes:**
+1. `lib/types/provider.ts` — `toCardFormat()` now reads `reviewCount` from `google_reviews_data` (was hardcoded `undefined`)
+2. `lib/types/provider.ts` — Rating prefers fresh `google_reviews_data.rating` over legacy `google_rating`
+3. `components/browse/BrowseCard.tsx` — Shows review count: "4.5 (605) on Google"
+4. `lib/mock-providers.ts` — Provider metadata prefers fresh rating (fixes hero showing wrong rating)
+5. `app/provider/[slug]/page.tsx` — Reviews section moves above Care Services when reviews exist
+6. `components/providers/ReviewsSection.tsx` — Added `hideBorder` prop for first-section positioning
+7. `lib/ai-trust-signals.ts` — Expanded to 8 signals with relaxed prompt (not yet deployed)
+8. `tsconfig.json` — Exclude `scripts/` from build
+9. `docs/SYSTEMS.md` — New systems architecture doc for all background processes
+
+**Files created:**
+- `docs/SYSTEMS.md` — Documents Google reviews pipeline, CMS import, AI trust signals
+- `scripts/test-yelp-coverage.ts` — Yelp API coverage test (needs API key to run)
+
+**Notion:**
+- Created [AI Trust Signals — Signals & Prompt Reference](https://www.notion.so/32a5903a0ffe8161abe2e11a318ce1f0)
+- Created roadmap task: [Deprecate legacy google_rating column](https://www.notion.so/32a5903a0ffe81c5aac8cc4ea514874a) (P3)
+
+**PR:** #337
+
+---
 
 ### 2026-03-20 (Session 58) — Replace Olera Score with Trust Signals (Phase 1)
 

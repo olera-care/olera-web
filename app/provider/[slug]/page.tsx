@@ -501,9 +501,11 @@ export default async function ProviderPage({
   // ============================================================
   const sectionItems: SectionItem[] = [];
   sectionItems.push({ id: "highlights", label: "Highlights" });
+  const hasGoogleReviews = (googleReviewsData?.reviews?.length ?? 0) > 0;
+  if (hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
   sectionItems.push({ id: "services", label: "Services" });
   sectionItems.push({ id: "qa", label: "Q&A" });
-  sectionItems.push({ id: "reviews", label: "Reviews" });
+  if (!hasGoogleReviews) sectionItems.push({ id: "reviews", label: "Reviews" });
   if (cmsData?.overall_rating) sectionItems.push({ id: "quality", label: "Quality" });
   if (aiTrustSignals && aiTrustSignals.summary_score > 0) sectionItems.push({ id: "trust-signals", label: "Verified" });
   sectionItems.push({ id: "about", label: "About" });
@@ -846,8 +848,24 @@ export default async function ProviderPage({
                ══════════════════════════════════════════ */}
             <div>
 
+              {/* ── What families are saying (above services when reviews exist) ── */}
+              {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
+                <div id="reviews" className="scroll-mt-20">
+                  <ReviewsSection
+                    providerId={profile.slug}
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    mockReviews={reviewsToShow}
+                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                    googleReviewsData={googleReviewsData}
+                    placeId={providerPlaceId}
+                    hideBorder
+                  />
+                </div>
+              )}
+
               {/* ── Care Services ── */}
-              <div id="services" className="py-8 scroll-mt-20">
+              <div id="services" className={`py-8 scroll-mt-20 ${(googleReviewsData?.reviews?.length ?? 0) > 0 ? "border-t border-gray-200" : ""}`}>
                 <h2 className="text-2xl font-bold text-gray-900 font-display mb-5">Care Services</h2>
                 <CareServicesList services={careServices} initialCount={6} />
               </div>
@@ -887,18 +905,20 @@ export default async function ProviderPage({
                 />
               </div>
 
-              {/* ── What families are saying ── */}
-              <div id="reviews" className="scroll-mt-20">
-                <ReviewsSection
-                  providerId={profile.slug}
-                  providerSlug={profile.slug}
-                  providerName={profile.display_name}
-                  mockReviews={reviewsToShow}
-                  isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
-                  googleReviewsData={googleReviewsData}
-                  placeId={providerPlaceId}
-                />
-              </div>
+              {/* ── What families are saying (below Q&A when no reviews — empty state) ── */}
+              {(googleReviewsData?.reviews?.length ?? 0) === 0 && (
+                <div id="reviews" className="scroll-mt-20">
+                  <ReviewsSection
+                    providerId={profile.slug}
+                    providerSlug={profile.slug}
+                    providerName={profile.display_name}
+                    mockReviews={reviewsToShow}
+                    isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
+                    googleReviewsData={googleReviewsData}
+                    placeId={providerPlaceId}
+                  />
+                </div>
+              )}
 
               {/* ── CMS Quality & Safety ── */}
               {cmsData && cmsData.overall_rating && (

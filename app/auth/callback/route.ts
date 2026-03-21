@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { sendLoopsEvent } from "@/lib/loops";
+import { sendEmail } from "@/lib/email";
+import { welcomeEmail } from "@/lib/email-templates";
 import { generateUniqueSlugFromName } from "@/lib/slug";
 import { sanitizeDisplayName, validateReturnUrl } from "@/lib/validation";
 
@@ -158,6 +160,29 @@ export async function GET(request: NextRequest) {
               lastName: nameParts.slice(1).join(" ") || "",
             },
           });
+        } catch {
+          // Non-blocking
+        }
+
+        // Welcome email (fire-and-forget)
+        try {
+          if (data.user.email) {
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            await sendEmail({
+              to: data.user.email,
+              subject: "Welcome to Olera",
+              html: welcomeEmail({
+                familyName: displayName.split(/\s+/)[0] || "there",
+                browseUrl: `${siteUrl}/browse`,
+              }),
+            });
+            // Mark as sent on family profile
+            if (newFamilyId) {
+              await admin.from("business_profiles")
+                .update({ metadata: { welcome_email_sent: true } })
+                .eq("id", newFamilyId);
+            }
+          }
         } catch {
           // Non-blocking
         }

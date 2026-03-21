@@ -192,8 +192,6 @@ Vercel Cron (daily 3 PM UTC)  →  Query business_profiles (type=family)  →  L
 - **Schedule:** Daily at 3 PM UTC (`0 15 * * *` in `vercel.json`)
 - **Authentication:** `CRON_SECRET` (Vercel auto-sends for cron, also supports `?secret=` for browser testing)
 
-### Emails Sent
-
 ### Emails Sent (Priority Waterfall)
 
 At most ONE email per family per cron run. First matching condition wins:
@@ -267,6 +265,83 @@ All require master admin authentication. All support GET (browser URL bar) and P
 | `/api/admin/seed-google-reviews` | Bulk seed Google reviews | $5/1K |
 | `/api/admin/import-cms-data` | Import CMS quality data | Free |
 | `/api/admin/verify-trust-signals` | AI trust signal verification | $1/1K |
+
+---
+
+## Complete Email System Catalog
+
+Every automated email sent by Olera, organized by trigger type. All emails sent via Resend API (`lib/email.ts`). Templates in `lib/email-templates.tsx` (family/provider) and `lib/medjobs-email-templates.tsx` (students).
+
+### Family Nurture Sequence (Cron — daily 3 PM UTC)
+
+| Email | Subject | Trigger | Guard |
+|-------|---------|---------|-------|
+| Go Live Reminder | "[X] providers in [city] are looking for families like yours" | Profile complete, Matches not active, Day 1+ | `go_live_reminder_sent` |
+| Profile Incomplete | Dynamic: "Tell us what you're looking for" / "Add your location" | Missing care_types or location, Day 3+ | `profile_incomplete_reminder_sent` |
+| Provider Recommendation | "Top-rated providers in [city] for you" | Complete profile, zero connections, Day 5+ | `provider_recommendation_sent` |
+| Dormant Re-engagement | "Families in [state] are finding care on Olera" | Zero connections, Day 14+ | `dormant_reengagement_sent` |
+| Post-Connection Follow-up | "How was your experience with [Provider]?" | Connection 30+ days old | `post_connection_followup_sent` |
+
+### Connection & Messaging (Event-triggered)
+
+| Email | Trigger | File |
+|-------|---------|------|
+| Connection Sent | Family sends inquiry to provider | `app/api/connections/request/route.ts` |
+| Connection Response | Provider accepts/declines inquiry | `app/api/connections/respond-interest/route.ts` |
+| Provider Reach Out | Provider discovers family on Matches | `app/api/matches/notify-reach-out/route.ts` |
+| New Message | Message sent in conversation thread | `app/api/connections/message/route.ts` |
+
+### Unread Reminders (Cron)
+
+| Email | Schedule | Trigger | File |
+|-------|----------|---------|------|
+| Unread Message (Inquiry) | Every 6 hours | Message from other party unread 24h+ | `app/api/cron/unread-reminders/route.ts` |
+| Unread Message (Matches) | Every 1 hour | Matches message unread 1h+, recipient inactive 5+ min | `app/api/cron/matches-unread/route.ts` |
+
+### Provider Nudges (Cron — daily)
+
+| Email | Trigger | Guard | File |
+|-------|---------|-------|------|
+| Matches Nudge | 2+ family inquiries, 1 quiet 48h, Matches off | `matches_nudge_email_sent` | `app/api/cron/matches-nudge/route.ts` |
+| Provider Incomplete Profile | Profile 48h+ old, missing 2+ fields | `profile_incomplete_email_sent` | `app/api/cron/matches-nudge/route.ts` |
+
+### Onboarding & Auth (Event-triggered)
+
+| Email | Trigger | File |
+|-------|---------|------|
+| Welcome | New signup (OAuth or email OTP) | `app/api/auth/ensure-account/route.ts` |
+| Verification Code | Provider claim flow | `app/api/claim/send-code/route.ts` |
+| Matches Live | Family activates Matches | `app/api/care-post/activate-matches/route.ts` |
+
+### MedJobs (Cron + Event-triggered)
+
+| Email | Schedule/Trigger | File |
+|-------|-----------------|------|
+| Student Profile Nudge | Daily 10 AM CT (<70% complete, 48h+ old) | `app/api/cron/medjobs-nudge/route.ts` |
+| Provider Candidate Digest | Weekly Mon 8 AM CT | `app/api/cron/medjobs-digest/route.ts` |
+| Application Confirmation | Student applies to provider | `app/api/medjobs/apply/route.ts` |
+
+### Admin
+
+| Email | Schedule | File |
+|-------|----------|------|
+| Daily Digest | Daily 8 AM CT | `app/api/cron/daily-digest/route.ts` |
+
+### Email Infrastructure
+
+| File | Purpose |
+|------|---------|
+| `lib/email.ts` | `sendEmail()` — Resend API wrapper, fire-and-forget safe |
+| `lib/email-templates.tsx` | All family/provider email templates + layout helpers |
+| `lib/medjobs-email-templates.tsx` | MedJobs-specific templates |
+
+### Anti-Spam Guards
+
+- **One-shot flags**: Metadata fields like `go_live_reminder_sent` prevent re-sending
+- **Priority waterfall**: Family nurture sends max 1 email per family per cron run
+- **Time windows**: Each email has minimum account age before triggering
+- **Connection checks**: Batch-fetched to avoid per-family queries
+- **Provider query cache**: Same city/state/careTypes only queried once per cron run
 
 ---
 

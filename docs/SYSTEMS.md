@@ -176,6 +176,53 @@ Perplexity Sonar API  →  Web search verification  →  olera-providers.ai_trus
 
 ---
 
+## Family Notification Emails (Cron)
+
+Automated email nudges for care-seeking families who signed up but haven't completed key actions.
+
+### Data Flow
+
+```
+Vercel Cron (daily 3 PM UTC)  →  Query business_profiles (type=family)  →  Loops transactional email
+```
+
+### Endpoint
+
+- **File:** `app/api/cron/family-nudges/route.ts`
+- **Schedule:** Daily at 3 PM UTC (`0 15 * * *` in `vercel.json`)
+- **Authentication:** `CRON_SECRET` (Vercel auto-sends for cron, also supports `?secret=` for browser testing)
+
+### Emails Sent
+
+| Email | Trigger | Timing | Guard |
+|-------|---------|--------|-------|
+| **Go Live Reminder** | Profile ≥50% complete (has care_types + city/state) but care_post not active | Account is 24-48 hours old | `metadata.go_live_reminder_sent = true` (sent once, ever) |
+| **Profile Incomplete** | Profile <50% complete (missing care_types or city/state) | Account is 3+ days old | `metadata.profile_incomplete_reminder_sent = true` (sent once, ever) |
+
+### Safety
+
+- Each email is **one-shot** — a metadata flag prevents re-sending
+- Max 500 families processed per run
+- If a family qualifies for both, only the go-live reminder is sent (not both)
+- Email resolved from `business_profiles.email` → falls back to `auth.users.email` via account lookup
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `app/api/cron/family-nudges/route.ts` | Cron handler |
+| `lib/email-templates.ts` | `goLiveReminderEmail()`, `familyProfileIncompleteEmail()` |
+| `lib/email.ts` | `sendEmail()` — sends via Loops transactional API |
+
+### Future Improvements (P2)
+
+- Evolve from one-shot to behavioral nurture sequence
+- Add provider-recommendation emails ("Top providers near [city] families love")
+- Add post-connection follow-up ("How was your experience with [provider]?") — builds Olera review system
+- Adapt timing to user urgency signals instead of fixed account age
+
+---
+
 ## Vercel Cron Schedule
 
 All cron jobs are configured in `vercel.json`:
@@ -186,6 +233,14 @@ All cron jobs are configured in `vercel.json`:
     {
       "path": "/api/cron/google-reviews",
       "schedule": "0 3 1 * *"
+    },
+    {
+      "path": "/api/cron/cms-refresh",
+      "schedule": "0 6 15 1,4,7,10 *"
+    },
+    {
+      "path": "/api/cron/family-nudges",
+      "schedule": "0 15 * * *"
     }
   ]
 }
@@ -194,6 +249,8 @@ All cron jobs are configured in `vercel.json`:
 | Job | Schedule | Description |
 |-----|----------|-------------|
 | Google Reviews Refresh | 1st of month, 3 AM UTC | Tiered refresh of cached Google review data |
+| CMS Data Refresh | 15th of Jan/Apr/Jul/Oct, 6 AM UTC | Re-import CMS Medicare quality data |
+| Family Nudge Emails | Daily, 3 PM UTC | One-shot go-live and profile-incomplete reminders |
 
 ---
 

@@ -176,6 +176,57 @@ Perplexity Sonar API  →  Web search verification  →  olera-providers.ai_trus
 
 ---
 
+## Family Notification Emails (Cron)
+
+Automated email nudges for care-seeking families who signed up but haven't completed key actions.
+
+### Data Flow
+
+```
+Vercel Cron (daily 3 PM UTC)  →  Query business_profiles (type=family)  →  Loops transactional email
+```
+
+### Endpoint
+
+- **File:** `app/api/cron/family-nudges/route.ts`
+- **Schedule:** Daily at 3 PM UTC (`0 15 * * *` in `vercel.json`)
+- **Authentication:** `CRON_SECRET` (Vercel auto-sends for cron, also supports `?secret=` for browser testing)
+
+### Emails Sent
+
+### Emails Sent (Priority Waterfall)
+
+At most ONE email per family per cron run. First matching condition wins:
+
+| Priority | Email | Trigger | Timing | Guard |
+|----------|-------|---------|--------|-------|
+| 1 | **Go Live Reminder** | Profile complete, Matches not active | Day 1+ | `go_live_reminder_sent` |
+| 2 | **Profile Incomplete** | Missing care_types or location | Day 3+ | `profile_incomplete_reminder_sent` |
+| 3 | **Provider Recommendation** | Complete profile, zero connections | Day 5+ | `provider_recommendation_sent` |
+| 4 | **Dormant Re-engagement** | Zero connections | Day 14+ | `dormant_reengagement_sent` |
+| 5 | **Post-Connection Follow-up** | Has connection 30+ days old | Day 30+ | `post_connection_followup_sent` |
+
+**Value-driven content:** Go Live, Recommendation, and Dormant emails include real provider cards (name, category, rating, review count, review snippet) matched to the family's location and care needs.
+
+### Safety
+
+- Each email is **one-shot** — a metadata flag prevents re-sending
+- Max 500 families processed per run
+- At most ONE email per family per cron run (priority waterfall with `continue`)
+- Email resolved from `business_profiles.email` → falls back to `auth.users.email` via account lookup
+- Provider queries cached per city/state/careTypes combo (prevents duplicate DB queries)
+- Supports `?dry_run=true` for testing without sending
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `app/api/cron/family-nudges/route.ts` | Cron handler with priority waterfall |
+| `lib/email-templates.tsx` | All email templates including provider card helpers |
+| `lib/email.ts` | `sendEmail()` — sends via Resend transactional API |
+
+---
+
 ## Vercel Cron Schedule
 
 All cron jobs are configured in `vercel.json`:
@@ -186,6 +237,14 @@ All cron jobs are configured in `vercel.json`:
     {
       "path": "/api/cron/google-reviews",
       "schedule": "0 3 1 * *"
+    },
+    {
+      "path": "/api/cron/cms-refresh",
+      "schedule": "0 6 15 1,4,7,10 *"
+    },
+    {
+      "path": "/api/cron/family-nudges",
+      "schedule": "0 15 * * *"
     }
   ]
 }
@@ -194,6 +253,8 @@ All cron jobs are configured in `vercel.json`:
 | Job | Schedule | Description |
 |-----|----------|-------------|
 | Google Reviews Refresh | 1st of month, 3 AM UTC | Tiered refresh of cached Google review data |
+| CMS Data Refresh | 15th of Jan/Apr/Jul/Oct, 6 AM UTC | Re-import CMS Medicare quality data |
+| Family Nudge Emails | Daily, 3 PM UTC | One-shot go-live and profile-incomplete reminders |
 
 ---
 

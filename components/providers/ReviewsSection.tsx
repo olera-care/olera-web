@@ -63,6 +63,8 @@ interface ReviewsSectionProps {
   googleReviewsData?: GoogleReviewsData | null;
   /** Google Place ID for "See all on Google" link */
   placeId?: string | null;
+  /** Hide the top border (e.g., when this is the first section) */
+  hideBorder?: boolean;
 }
 
 // ── Component ──
@@ -75,6 +77,7 @@ export default function ReviewsSection({
   isDemoMode = false,
   googleReviewsData,
   placeId,
+  hideBorder = false,
 }: ReviewsSectionProps) {
   const { user, account } = useAuth();
 
@@ -238,7 +241,7 @@ export default function ReviewsSection({
   // ── Render ──
 
   return (
-    <div className="py-8 border-t border-gray-200">
+    <div className={`py-8 ${hideBorder ? "" : "border-t border-gray-200"}`}>
       <div className="flex items-center gap-3 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 font-display tracking-tight">
           What families are saying

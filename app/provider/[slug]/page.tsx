@@ -850,7 +850,7 @@ export default async function ProviderPage({
 
               {/* ── What families are saying (above services when reviews exist) ── */}
               {(googleReviewsData?.reviews?.length ?? 0) > 0 && (
-                <div id="reviews" className="py-8 scroll-mt-20">
+                <div id="reviews" className="scroll-mt-20">
                   <ReviewsSection
                     providerId={profile.slug}
                     providerSlug={profile.slug}
@@ -859,6 +859,7 @@ export default async function ProviderPage({
                     isDemoMode={shouldShowDemoReviews && reviewsToShow.length > 0}
                     googleReviewsData={googleReviewsData}
                     placeId={providerPlaceId}
+                    hideBorder
                   />
                 </div>
               )}

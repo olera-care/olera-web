@@ -699,9 +699,9 @@ export function iosProviderToProfile(provider: IOSProvider): Profile {
     ...((provider.lower_price != null || provider.upper_price != null) && {
       price_unit: isHourly ? "HOUR" as const : "MONTH" as const,
     }),
-    // iOS scores
-    rating: provider.google_rating || undefined,
-    review_count: undefined,
+    // Prefer fresh Google API rating over legacy google_rating
+    rating: provider.google_reviews_data?.rating ?? provider.google_rating ?? undefined,
+    review_count: provider.google_reviews_data?.review_count ?? undefined,
     images: allImages,
   };
 

@@ -321,9 +321,16 @@ export default function AdminMatchesPage() {
                   >
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium text-gray-900">
-                          {provider?.display_name || "Unknown"}
-                        </p>
+                        {provider ? (
+                          <Link
+                            href={`/admin/directory/${provider.id}`}
+                            className="text-primary-600 hover:underline font-medium"
+                          >
+                            {provider.display_name || "Unknown"}
+                          </Link>
+                        ) : (
+                          <p className="font-medium text-gray-900">Unknown</p>
+                        )}
                         <p className="text-xs text-gray-500">
                           {[provider?.city, provider?.state]
                             .filter(Boolean)

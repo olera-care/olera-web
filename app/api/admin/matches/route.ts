@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
         status,
         created_at,
         updated_at,
-        from_profile:from_profile_id (id, display_name, city, state, type, category),
+        from_profile:from_profile_id (id, display_name, city, state, type, category, source_provider_id),
         to_profile:to_profile_id (id, display_name, city, state, type, care_types, metadata)
       `)
       .eq("type", "request")

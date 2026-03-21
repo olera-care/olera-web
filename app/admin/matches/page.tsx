@@ -31,6 +31,7 @@ interface MatchEvent {
     state: string | null;
     type: string;
     category: string | null;
+    source_provider_id: string | null;
   } | null;
   to_profile: {
     id: string;
@@ -323,7 +324,11 @@ export default function AdminMatchesPage() {
                       <div>
                         {provider ? (
                           <Link
-                            href={`/admin/directory/${provider.id}`}
+                            href={
+                              provider.source_provider_id
+                                ? `/admin/directory/${provider.source_provider_id}`
+                                : `/admin/care-seekers/${provider.id}`
+                            }
                             className="text-primary-600 hover:underline font-medium"
                           >
                             {provider.display_name || "Unknown"}

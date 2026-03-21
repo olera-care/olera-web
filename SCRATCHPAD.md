@@ -7,6 +7,17 @@
 
 ## Current Focus
 
+- **Care Seeker Notifications + Admin Matches Tab** — DONE ✅ (merged PRs #326, #327)
+  - Plan: `plans/notifications-plan.md`
+  - 6/6 notification emails complete (3 already existed, 3 built)
+  - Welcome email on OAuth/OTP signup, go-live reminder cron, profile incomplete cron
+  - Admin `/admin/matches` dashboard with funnel metrics + recent activity table
+  - Esther's Slack spec fully addressed
+
+- **v3 Welcome Page Redesign** — MERGED TO STAGING ✅ (reconciled PR #324)
+  - Esther's PR #295 was 54 commits behind staging — reconciled to preserve Google Reviews, CMS, Owner
+  - New `/welcome` page, portal matches redesign, smart connection routing
+
 - **Trust Signals & Smart Ranking — Replacing the Olera Score** — IN PROGRESS
   - Plan: `plans/trust-signals-plan.md`
   - Notion: [Trust Signals & Smart Ranking](https://www.notion.so/3295903a0ffe810e9baada745e4ebbad)
@@ -22,7 +33,7 @@
   - Tiered monthly cron + on-demand backfill + Google Business linking in onboarding
   - PRs: #296, #297, #298, #299, #300, #301
 
-- **Admin Lead Deletion + Search + Pagination** — IN REVIEW (PR pending)
+- **Admin Lead Deletion + Search + Pagination** — MERGED ✅
   - Plan: `plans/admin-delete-leads-plan.md`
   - Notion task: "Add ability to quickly delete leads from admin dashboard" (P1 🔥)
   - Inline per-row trash icon + bulk checkbox select + delete
@@ -100,6 +111,47 @@ _(Nothing currently blocked)_
 ---
 
 ## Session Log
+
+### 2026-03-20 (Session 59) — Notifications + Admin Matches + PR Reconciliation
+
+**Branch:** `logical-brahe` (from staging)
+
+**What:** Merged Esther's v3 Welcome Page PR via reconciliation, built 3 missing notification emails, created admin matches dashboard.
+
+**PR #295 Reconciliation (→ PR #324):**
+- Esther's PR was 54 commits behind staging — would have silently regressed Google Reviews, CMS data, Meet the Owner, and view tracking
+- Created reconciliation branch from staging, merged PR into it, all critical indicators verified
+- Auto-merge worked cleanly, TypeScript clean
+- Notion report published
+
+**Notification Emails (PR #326):**
+- Audited Esther's 6-notification spec — found 4 already working (provider interested, new message, connection confirmation, guest welcome)
+- Built 3 missing: welcome email (OAuth + OTP), go-live reminder (24-48h cron), profile incomplete (3+ day cron)
+- Templates in `lib/email-templates.tsx`, wired into `auth/callback` + `ensure-account`
+- New `family-nudges` cron registered in vercel.json (daily 15:00 UTC)
+
+**Admin Matches Tab (PR #327):**
+- `/admin/matches` dashboard with funnel metrics matching Esther's analytics spec
+- User Events: profiles created/completed/went-live/skipped
+- Provider Interest: reach-outs/accepted/declined/conversations
+- 4 key rates with progress bars: go-live, interest, response, conversation
+- Recent provider reach-outs table with search
+- All derived from existing tables — no new schema needed
+
+**Files created:**
+- `app/api/cron/family-nudges/route.ts` — daily nudge cron
+- `app/admin/matches/page.tsx` — matches dashboard
+- `app/api/admin/matches/route.ts` — matches analytics API
+- `plans/notifications-plan.md`
+
+**Files modified:**
+- `lib/email-templates.tsx` — 3 new templates
+- `app/auth/callback/route.ts` — welcome email on OAuth
+- `app/api/auth/ensure-account/route.ts` — welcome email on OTP
+- `components/admin/AdminSidebar.tsx` — added Matches nav item
+- `vercel.json` — registered family-nudges cron
+
+---
 
 ### 2026-03-20 (Session 58) — Replace Olera Score with Trust Signals (Phase 1)
 

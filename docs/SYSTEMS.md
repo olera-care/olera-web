@@ -194,32 +194,36 @@ Vercel Cron (daily 3 PM UTC)  →  Query business_profiles (type=family)  →  L
 
 ### Emails Sent
 
-| Email | Trigger | Timing | Guard |
-|-------|---------|--------|-------|
-| **Go Live Reminder** | Profile ≥50% complete (has care_types + city/state) but care_post not active | Account is 24-48 hours old | `metadata.go_live_reminder_sent = true` (sent once, ever) |
-| **Profile Incomplete** | Profile <50% complete (missing care_types or city/state) | Account is 3+ days old | `metadata.profile_incomplete_reminder_sent = true` (sent once, ever) |
+### Emails Sent (Priority Waterfall)
+
+At most ONE email per family per cron run. First matching condition wins:
+
+| Priority | Email | Trigger | Timing | Guard |
+|----------|-------|---------|--------|-------|
+| 1 | **Go Live Reminder** | Profile complete, Matches not active | Day 1+ | `go_live_reminder_sent` |
+| 2 | **Profile Incomplete** | Missing care_types or location | Day 3+ | `profile_incomplete_reminder_sent` |
+| 3 | **Provider Recommendation** | Complete profile, zero connections | Day 5+ | `provider_recommendation_sent` |
+| 4 | **Dormant Re-engagement** | Zero connections | Day 14+ | `dormant_reengagement_sent` |
+| 5 | **Post-Connection Follow-up** | Has connection 30+ days old | Day 30+ | `post_connection_followup_sent` |
+
+**Value-driven content:** Go Live, Recommendation, and Dormant emails include real provider cards (name, category, rating, review count, review snippet) matched to the family's location and care needs.
 
 ### Safety
 
 - Each email is **one-shot** — a metadata flag prevents re-sending
 - Max 500 families processed per run
-- If a family qualifies for both, only the go-live reminder is sent (not both)
+- At most ONE email per family per cron run (priority waterfall with `continue`)
 - Email resolved from `business_profiles.email` → falls back to `auth.users.email` via account lookup
+- Provider queries cached per city/state/careTypes combo (prevents duplicate DB queries)
+- Supports `?dry_run=true` for testing without sending
 
 ### Key Files
 
 | File | Purpose |
 |------|---------|
-| `app/api/cron/family-nudges/route.ts` | Cron handler |
-| `lib/email-templates.ts` | `goLiveReminderEmail()`, `familyProfileIncompleteEmail()` |
-| `lib/email.ts` | `sendEmail()` — sends via Loops transactional API |
-
-### Future Improvements (P2)
-
-- Evolve from one-shot to behavioral nurture sequence
-- Add provider-recommendation emails ("Top providers near [city] families love")
-- Add post-connection follow-up ("How was your experience with [provider]?") — builds Olera review system
-- Adapt timing to user urgency signals instead of fixed account age
+| `app/api/cron/family-nudges/route.ts` | Cron handler with priority waterfall |
+| `lib/email-templates.tsx` | All email templates including provider card helpers |
+| `lib/email.ts` | `sendEmail()` — sends via Resend transactional API |
 
 ---
 

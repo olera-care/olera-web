@@ -227,6 +227,8 @@ export interface BenefitProgram {
   priority_score: number;
   is_active: boolean;
   state_code: string | null;
+  savings_range: string | null;
+  waiver_library_url: string | null;
 }
 
 /** Matches the Supabase `sbf_area_agencies` schema */

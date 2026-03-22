@@ -30,13 +30,13 @@ export async function POST(request: NextRequest) {
 
 async function handleSeed(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
     const user = await getAuthUser();
     if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
     const adminUser = await getAdminUser(user.id);
     if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
 
-    const { searchParams } = new URL(request.url);
     const dryRun = searchParams.get("dry_run") === "true";
     const stateFilter = searchParams.get("state")?.toUpperCase();
 
@@ -51,7 +51,7 @@ async function handleSeed(request: NextRequest) {
         const category = inferCategory(program.name, program.description, program.eligibilityHighlights);
 
         programs.push({
-          id: program.id,
+          id: `${state.abbreviation.toLowerCase()}-${program.id}`,
           name: program.name,
           short_name: program.shortName || null,
           description: program.description,
@@ -109,6 +109,7 @@ async function handleSeed(request: NextRequest) {
     // Upsert in batches of 50
     let upserted = 0;
     let errors = 0;
+    const errorDetails: { batch: number; message: string; code: string }[] = [];
     for (let i = 0; i < programs.length; i += 50) {
       const batch = programs.slice(i, i + 50);
       const { error } = await db
@@ -118,16 +119,18 @@ async function handleSeed(request: NextRequest) {
       if (error) {
         console.error(`Batch ${i} error:`, error);
         errors++;
+        errorDetails.push({ batch: i, message: error.message, code: error.code });
       } else {
         upserted += batch.length;
       }
     }
 
     return NextResponse.json({
-      success: true,
+      success: errors === 0,
       deactivated_old_rows: true,
       upserted,
       errors,
+      error_details: errorDetails.slice(0, 5),
       total: programs.length,
     });
   } catch (err) {

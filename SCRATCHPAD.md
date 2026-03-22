@@ -60,14 +60,10 @@ _(Nothing currently blocked)_
 
 ## Next Up
 
-1. **Merge PR #337** — Browse cards with review counts + section reorder + stale rating fix
-2. **Test Yelp API coverage** — Script ready at `scripts/test-yelp-coverage.ts`, need Yelp API key
-3. **Evaluate AI trust signals direction** — Current avg 0.6 confirmed signals. May not be worth the complexity. Google reviews (53% coverage) may be sufficient primary signal.
-4. **Deprecate `google_rating` column** — Notion task created (P3). 70+ references to migrate to `google_reviews_data`.
-5. **Empty state for 44% without reviews** — Design thoughtful UX for providers with no Google reviews
-6. **Phase 4: Smart ranking** — evidence-density sort on browse page (Google reviews + profile completeness + claimed status)
-7. **SBF Phase 1: Fix Critical Bugs** — ZIP→county resolution, AAA matching (P1 🔥)
-8. **SBF Phase 2: Unify Data** — Parse Chantel's 528 programs into Supabase (P1 🔥)
+1. **Benefits Admin CMS** — Admin panel at `/admin/benefits` to view/edit/add all benefits programs. Single source of truth for waiver library + Benefits Finder. Replaces static `data/waiver-library.ts` with Supabase-backed CRUD. (P1 🔥, Notion task created)
+2. **Deprecate `google_rating` column** — Notion task created (P3). 70+ references to migrate to `google_reviews_data`.
+3. **Empty state for 44% without reviews** — Design thoughtful UX for providers with no Google reviews
+4. **Test Yelp API coverage** — Script ready at `scripts/test-yelp-coverage.ts`, need Yelp API key
 
 ---
 
@@ -75,6 +71,7 @@ _(Nothing currently blocked)_
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-22 | Benefits Admin CMS is the next SBF priority | Chantel's library is live but lives in a static TypeScript file. Non-developers can't edit. Need admin CRUD on `sbf_state_programs` as single source of truth, then migrate waiver library pages to read from DB. Archived SBF Phase 3 (geo scoring) and Phase 4 (test harness) — premature until CMS exists. |
 | 2026-03-21 | Google Reviews is the primary quality signal — AI trust signals deprioritized | 53% of providers already have Google review snippets (19,324). AI trust signals avg 0.6 confirmed — too low to be useful. Google reviews are real family feedback; AI signals are marketing presence dressed as quality. Focus on surfacing existing data, not generating new signals. |
 | 2026-03-21 | Prefer `google_reviews_data.rating` over legacy `google_rating` | Legacy column has stale data (showing 5.0 when Google shows 4.2). Fresh data from API is in JSONB. Fallback chain: `google_reviews_data.rating ?? google_rating`. |
 | 2026-03-21 | Reviews section above Care Services when reviews exist | Families care most about what others are saying. Move "What families are saying" to first content section when provider has Google reviews. Keep lower (below Q&A) in empty state. |
@@ -110,6 +107,35 @@ _(Nothing currently blocked)_
 ---
 
 ## Session Log
+
+### 2026-03-22 (Session 61) — SBF Seed Endpoint Fix + Waiver Library Goes Live
+
+**Branch:** `bright-nobel` (from staging)
+
+**What:** Fixed the seed endpoint that connects Chantel's 528-program waiver library to the Benefits Finder. Diagnosed and resolved 3 layered issues preventing the seed from working.
+
+**Root Causes (in order of discovery):**
+1. **Missing Supabase columns** — `requires_veteran`, `requires_medicare` didn't exist on `sbf_state_programs` (error PGRST204). Added via SQL Editor.
+2. **Supabase schema cache** — PostgREST cached the old schema. Fixed with `SELECT pg_notify('pgrst', 'reload schema')`.
+3. **Duplicate program IDs** — 28 programs had generic IDs shared across states (e.g., "medicare-savings-programs" in 12 states). Fixed by prefixing with state code: `al-medicare-savings-programs`.
+4. **UUID→TEXT type mismatch** — `id` column was UUID type but waiver library uses text slugs. Changed via `ALTER COLUMN id TYPE TEXT`.
+
+**Debugging approach:** Built a diagnostic endpoint (`?diagnose=true`) that compared `test_row_keys` vs `existing_columns` and returned the full Supabase error. This was essential since the production code didn't include error details in the response.
+
+**Code Changes:**
+1. `app/api/admin/seed-sbf-programs/route.ts` — State-prefixed IDs, error details in response, cleanup of temp diagnostic code
+
+**PRs:** #346 (staging), #347 (production)
+
+**Notion Updates:**
+- "SBF Phase 2: Unify Data" → Done with completion notes
+- "SBF Phase 3: Geo Scoring" → Archived (P3)
+- "SBF Phase 4: Test Harness" → Archived (P3)
+- Created "Benefits Admin CMS" task (P1)
+
+**Result:** 528 programs seeded. Benefits Finder now shows Chantel's programs with savings badges and waiver library detail links.
+
+---
 
 ### 2026-03-21 (Session 60) — Google Reviews Data Discovery + Browse Cards Fix
 

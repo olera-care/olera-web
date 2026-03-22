@@ -188,6 +188,42 @@
 
 ## Session Log
 
+### 2026-03-22 (Session 51) — Grand Island NE Pipeline Complete
+
+**Branch:** `hardy-elion` (no code changes — pipeline ops only)
+
+**What:** Full city expansion pipeline for Grand Island, NE. Discovery → classification → upload → enrichment. All done autonomously end-to-end.
+
+**Pipeline Results:**
+- **Discovered:** 409 providers (quick search, ~$4.26)
+- **Keyword filter:** removed 20 (storage, physical therapy, urgent care, etc.)
+- **AI classification:** removed 217 (56% false positive rate — worst: memory_care category pulling in retail, mental health, community orgs)
+- **Dedup:** 25 duplicates against existing NE providers
+- **Uploaded:** 147 providers to Supabase
+- **Geocoding:** 147 re-geocoded, 77 corrections (>0.01°), 0 out of bounds
+- **Trust signals:** 67 confirmed, 44 more false positives deleted (wrong-location Senior Helpers ×10, disability orgs, general apartments)
+- **Final count:** 103 legitimate providers
+
+**Category Breakdown:**
+- Assisted Living: 35, Home Health Care: 29, Home Care (Non-medical): 21, Memory Care: 8, Nursing Home: 7, Independent Living: 3
+
+**Enrichment Coverage:**
+- Descriptions: 103/103 (100%)
+- Google Reviews Data: 79/103 (77%)
+- Review Snippets: 79/103 (77%)
+- Trust Signals: 67/103 (non-CMS only)
+- Images: 64/103 (62%)
+- Emails: deferred to Email Finder script
+
+**Key Issues Found:**
+- `deleted` column defaults to `false` not `null` — enrichment queries using `.is('deleted', null)` returned 0 rows. Fixed to `.eq('deleted', false)`
+- Slug collision: providers sharing names across states need city in slug (`-grand-island-ne` suffix)
+- 75% overall false positive rate (409 → 103) — Grand Island had 10 bogus "Senior Helpers" listings from other states
+
+**Notion:** All 14 checkboxes checked, status → Complete (green)
+
+---
+
 ### 2026-03-22 (Session 50) — Bellevue NE Pipeline Complete + Major Pipeline Overhaul
 
 **Branch:** `merry-villani`

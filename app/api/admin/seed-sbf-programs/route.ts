@@ -30,13 +30,18 @@ export async function POST(request: NextRequest) {
 
 async function handleSeed(request: NextRequest) {
   try {
-    const user = await getAuthUser();
-    if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-
-    const adminUser = await getAdminUser(user.id);
-    if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
-
     const { searchParams } = new URL(request.url);
+    const isDiagnose = searchParams.get("diagnose") === "true";
+
+    // Skip auth for read-only diagnose mode
+    if (!isDiagnose) {
+      const user = await getAuthUser();
+      if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+      const adminUser = await getAdminUser(user.id);
+      if (!adminUser) return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
     const dryRun = searchParams.get("dry_run") === "true";
     const stateFilter = searchParams.get("state")?.toUpperCase();
 

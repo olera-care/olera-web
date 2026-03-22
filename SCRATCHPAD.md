@@ -131,6 +131,12 @@
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-03-22 | Jettison "Add Score" from city pipeline | olera_score/community_Score/value_score/information_availability_score are dead columns from the old Perplexity AI scoring system, removed in commit 302a4e5. New system uses Google Reviews + CMS data + AI Trust Signals |
+| 2026-03-22 | Replace "Add Score" with "Hydrate Google Reviews Data" | New pipeline step populates google_reviews_data JSONB (rating, review_count, snippets) instead of the old proprietary scores |
+| 2026-03-22 | AI Trust Signals run as part of city pipeline | Unified workflow: after upload, run /api/admin/verify-trust-signals for non-CMS categories in the target city |
+| 2026-03-22 | AI classification required before upload | 32% of Bellevue discovery was garbage (Walmart, GameStop, Roto-Rooter). Keyword filtering misses most false positives. Perplexity AI classification costs ~$0.40 per city and catches everything |
+| 2026-03-22 | Run enrichment steps in parallel | Post-upload steps (descriptions, reviews, trust signals, images, email) are independent — run concurrently with background tasks. TJ explicitly praised this approach |
+| 2026-03-22 | Trust signals + CMS are display-only, not ranking | Current recommendation engine sorts exclusively by evidence density (google rating × log(review count)). Ranking enhancement is a separate Notion task for deep dive |
 | 2026-03-13 | Form-first, voice-second in mode selection | Most users expect a form; voice is a differentiator but shouldn't be the default path |
 | 2026-03-13 | Auth gate on bookmark only, not on results | Let users see value first → higher conversion. Bookmark is the natural auth moment |
 | 2026-03-13 | Web Speech Synthesis API for TTS (no external service) | Free, built into all browsers, zero latency, no API key. Good enough for intake prompts |
@@ -181,6 +187,74 @@
 ---
 
 ## Session Log
+
+### 2026-03-22 (Session 50) — Bellevue NE Pipeline Complete + Major Pipeline Overhaul
+
+**Branch:** `merry-villani`
+
+**What:** Completed all remaining Bellevue, NE enrichment steps. Discovered and killed dead scoring system. Overhauled `/city-pipeline` slash command. Found and removed 119 false positive providers (32% of database was garbage — Walmart, GameStop, Roto-Rooter, etc.).
+
+**Completed — Bellevue Enrichment (all run in parallel):**
+1. **Rich Descriptions** — 375 providers, 137 grammar fixes ("a assisted" → "an assisted")
+2. **Hydrate Google Reviews Data** — 315 providers got `google_reviews_data` JSONB (rating + review_count)
+3. **AI Trust Signals** — 245 non-CMS providers verified via Perplexity Sonar, avg 3.3/8, 0 errors
+4. **Review Snippets** — 315 providers got Google review text via Places API, 100% success
+5. **Fetch Images** — 298 got Google Places photos, 77 had no photos available
+6. **Fetch Email** — Deferred to Email Finder script (Google Places doesn't expose emails)
+7. **False Positive Cleanup** — AI-classified all 375 providers, soft-deleted 119 non-senior-care businesses
+
+**Notion status:** Bellevue set to "Complete" (green), all checkboxes checked.
+
+**Key Investigation — Scoring System:**
+- `olera_score`, `community_Score`, `value_score`, `information_availability_score` are **dead columns**
+- Killed in commit `302a4e5` (March 20) across 10 files — backup at `docs/olera-score-backup.md`
+- New system: Google Reviews (ranking) + CMS Medicare (display badge) + AI Trust Signals (display badge)
+- Evidence density sorting: `rating × log(reviewCount + 1)`
+- Trust signals + CMS are display-only — NOT used in ranking (Notion task created for deep dive)
+
+**Key Investigation — False Positives:**
+- 32% of discovery output was non-senior-care businesses
+- "Memory Care" discovery category worst offender — matched storage, computing, cognitive therapy
+- Keyword filtering misses most false positives — AI classification is non-negotiable
+- Should run BEFORE upload to Supabase in unified pipeline, not after
+
+**Infrastructure Improvements:**
+- Created `~/Desktop/olera-web/.env.local` with all API keys (Supabase, Perplexity, Google Places)
+- Worktrees symlink to it — never ask TJ for keys again
+- Found backup keys in `~/Desktop/TJ-hq/Olera/Olera Data Analysis Scripts/*/.env`
+- Added `GOOGLE_PLACES_API_KEY` to Vercel
+
+**Files Modified:**
+- `.claude/commands/city-pipeline.md` — Major rewrite: correct column names, parallelization strategy, scoring system docs, AI classification step, .env.local setup, known pitfalls expanded
+- Memory files: `reference_supabase_credentials.md`, `feedback_google_places_key.md`, `feedback_parallel_pipeline.md`
+
+**Spot Check & Additional Cleanup (post-pipeline):**
+- Ran evidence-based scan (reviews, trust signals, website URLs) → flagged 25 suspicious providers
+- Sent 16 most suspicious to Perplexity for unified entity check → 12 more false positives deleted
+- Total false positives removed: 132/375 (35%) + 1 (Lied Activity Center) + 1 (Bellevue Healthcare DME)
+- Final count: ~140 legitimate providers
+- **New failure modes discovered:**
+  - Wedding venues with senior-sounding names (A View In Fontenelle Hills)
+  - Community rec centers seniors attend (Lied Activity Center)
+  - DME suppliers categorized as Home Care (Bellevue Healthcare — sells wheelchairs, based in WA)
+  - General apartments categorized as Independent Living (Redwood, Brent Village, etc.)
+  - Cross-state contamination (WA business in NE results due to matching city name)
+
+**Pipeline Slash Command — Final Updates:**
+- Unified entity + trust signals step (one Perplexity call does both classification AND verification)
+- Geographic validation added to prompt (verify provider is actually in target city/state)
+- DME suppliers added to exclusion list
+- Autonomous end-to-end execution (no pausing between steps)
+- Updated Cowork SKILL.md and city-expansion-playbook.md to match
+
+**Notion Updates:**
+- Bellevue: all boxes checked, status → Complete
+- New checkboxes added to board: "Done: Hydrate Google Reviews Data", "Done: Verify Trust Signals (Non-CMS)"
+- New task: "Incorporate Trust Signals + CMS Data into Recommendation Ranking"
+
+**Decisions:** See Decisions Made table (6 new entries for 2026-03-22)
+
+---
 
 ### 2026-03-10 (Session 48) — Senior Benefits Finder Voice Input (Phases 1-4)
 
